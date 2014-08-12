@@ -575,8 +575,6 @@ var
     sRecipient: string;
     Attachments: TStringList;
   begin
-    ASSERT(assigned(Params));
-
     // User cancel?
     sReportName := FUserReportSettings.s7Report_Name + '.PDF';
     iReportFormat := rfPDF;
@@ -594,11 +592,14 @@ var
       exit;
     end;
 
-    Params.RunReport(Dest, FileName);
+    if assigned(Params) then
+      Params.RunReport(Dest, FileName);
 
     Attachments := TStringList.Create;
     try
-      sRecipient := Params.Client.clFields.clClient_EMail_Address;
+      if assigned(Params) then
+        sRecipient := Params.Client.clFields.clClient_EMail_Address;
+
       Attachments.Add(sFilename);
 
       // User cancel?

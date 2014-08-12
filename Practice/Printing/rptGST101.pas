@@ -918,7 +918,7 @@ begin
      //AddJobFooter(Job, jtLeft,  0.8, Job.ReportTypeParams.GetClientText,False);
      //AddJobFooter(Job, jtRight, 0.8, Job.ReportTypeParams.GetPrintedText, True);
      AddCommonFooter(Job);
-     if Destination in [rdScreen, rdPrinter, rdFile] then
+     if Destination in [rdScreen, rdPrinter, rdFile, rdEmail] then
         Job.Generate(Destination, Params);
      if Assigned(Params) then
      if Params.BatchRunMode = R_Batch then

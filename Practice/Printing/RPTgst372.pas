@@ -8,7 +8,8 @@ uses
   reportDefs,
   GSTWorkRec,
   gst372frm,
-  rptGST101;
+  rptGST101,
+  RptParams;
 
 
 type
@@ -22,7 +23,7 @@ type
     property Gst372 : TFrmGST372 read FGst372 write SetGst372;
   end;
 
-function DoGST372Report(ForForm : TFrmGST372;Destination : TReportDest) : boolean;
+function DoGST372Report(ForForm : TFrmGST372; Destination : TReportDest; Params : TRptParameters = nil) : boolean;
 
 //*************
 implementation
@@ -38,7 +39,7 @@ uses
    Globals, bkConst, NewReportUtils;
 
 
-function DoGST372Report(ForForm : TFrmGST372;Destination : TReportDest) : boolean;
+function DoGST372Report(ForForm : TFrmGST372; Destination : TReportDest; Params: TRptParameters) : boolean;
 
 var
    Job : TGST372Report;
@@ -55,8 +56,8 @@ begin
       AddCommonFooter(Job);
 
 
-      if Destination in [rdScreen, rdPrinter, rdFile] then
-         Job.Generate( Destination);
+      if Destination in [rdScreen, rdPrinter, rdFile, rdEmail] then
+         Job.Generate( Destination, Params);
 
       result := Job.WasPrinted;
    finally

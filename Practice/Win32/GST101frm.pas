@@ -330,6 +330,7 @@ type
     L27: TLabel;
     lPart2Total: TLabel;
     lblLinkToGST105: TLabel;
+    btnEmail: TButton;
     procedure btnOKClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -351,6 +352,7 @@ type
     procedure nClosingDebtChange(Sender: TObject);
     procedure nOpeningDebtBChange(Sender: TObject);
     procedure lblLinkToGST105Click(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -1588,6 +1590,32 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TfrmGST101.btnEmailClick(Sender: TObject);
+var
+  Params: TRptParameters;
+begin
+  //save the figures
+  Save;
+
+  Figures.rDraftModePrinting := chkDraft.Checked;
+
+  Params := TRptParameters.Create(Ord(Report_GST101), MyClient, nil);
+
+  if DoGST101Report(rdEmail, self, Params) then
+{$IFNDEF SmartBooks}
+    if (not Figures.rDraftModePrinting) and (IsLocked(Figures.rFromDate,Figures.rToDate) <> ltAll) then begin
+       if (AskYesNo('Finalise Accounting Period','You have produced a PDF of the GST Return.  Do you want to Finalise this Accounting Period?'+#13+#13+
+           '('+bkdate2Str(Figures.rFromDate)+' - '+bkDate2Str(figures.rToDate)+')'
+           ,DLG_YES, BKH_Finalise_accounting_period_for_GST_purposes) = DLG_YES) then
+       begin
+         AutoLockGSTPeriod(Figures.rFromDate,Figures.rToDate);
+       end;
+    end;
+{$ENDIF}
+
+  FreeAndNil(Params);
+end;
+
 procedure TfrmGST101.btnFileClick(Sender: TObject);
 begin
   //save the figures

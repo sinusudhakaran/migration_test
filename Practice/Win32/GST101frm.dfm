@@ -81,23 +81,23 @@ object frmGST101: TfrmGST101
       OnClick = btnFileClick
     end
     object btnPrint: TButton
-      Left = 184
+      Left = 259
       Top = 32
       Width = 75
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = '&Print'
-      TabOrder = 3
+      TabOrder = 4
       OnClick = btnPrintClick
     end
     object btnIR372: TButton
-      Left = 272
-      Top = 31
+      Left = 340
+      Top = 32
       Width = 75
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'IR&372'
-      TabOrder = 4
+      TabOrder = 5
       OnClick = GST372Action
     end
     object btnOK: TButton
@@ -107,7 +107,7 @@ object frmGST101: TfrmGST101
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
-      TabOrder = 5
+      TabOrder = 6
       OnClick = btnOKClick
     end
     object btnCancel: TButton
@@ -118,8 +118,18 @@ object frmGST101: TfrmGST101
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 6
+      TabOrder = 7
       OnClick = btnCancelClick
+    end
+    object btnEmail: TButton
+      Left = 178
+      Top = 32
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'E&mail'
+      TabOrder = 3
+      OnClick = btnEmailClick
     end
   end
   object pgForm: TPageControl
@@ -138,10 +148,6 @@ object frmGST101: TfrmGST101
     TabOrder = 1
     object TSPart1: TTabSheet
       Caption = 'Part 1 - GST'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object sbGST: TScrollBox
         Left = 0
         Top = 0
@@ -2429,10 +2435,6 @@ object frmGST101: TfrmGST101
     object TsPart1B: TTabSheet
       Caption = 'Part 2 - GST after  01/10/10'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0

@@ -6,7 +6,7 @@ object FrmGST372: TFrmGST372
   ClientHeight = 573
   ClientWidth = 807
   Color = clBtnFace
-  Constraints.MaxHeight = 609
+  Constraints.MaxHeight = 611
   Constraints.MinHeight = 400
   Constraints.MinWidth = 640
   DefaultMonitor = dmMainForm
@@ -42,7 +42,7 @@ object FrmGST372: TFrmGST372
     object GBTop: TGroupBox
       Left = 8
       Top = 12
-      Width = 732
+      Width = 728
       Height = 120
       Anchors = [akLeft, akTop, akRight]
       Color = 14413567
@@ -52,9 +52,8 @@ object FrmGST372: TFrmGST372
       ParentColor = False
       ParentCtl3D = False
       TabOrder = 0
-      ExplicitWidth = 744
       DesignSize = (
-        732
+        728
         120)
       object Label1: TLabel
         Left = 16
@@ -92,7 +91,7 @@ object FrmGST372: TFrmGST372
         Caption = 'To'
       end
       object Label41: TLabel
-        Left = 674
+        Left = 670
         Top = 0
         Width = 47
         Height = 18
@@ -148,7 +147,7 @@ object FrmGST372: TFrmGST372
       object stname: TStaticText
         Left = 200
         Top = 43
-        Width = 517
+        Width = 513
         Height = 19
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -160,7 +159,6 @@ object FrmGST372: TFrmGST372
         ParentColor = False
         ShowAccelChar = False
         TabOrder = 4
-        ExplicitWidth = 529
       end
       object stFrom: TStaticText
         Left = 200
@@ -196,7 +194,7 @@ object FrmGST372: TFrmGST372
     object PAdjust: TGroupBox
       Left = 8
       Top = 135
-      Width = 731
+      Width = 727
       Height = 221
       Anchors = [akLeft, akTop, akRight]
       Color = 14413567
@@ -205,14 +203,13 @@ object FrmGST372: TFrmGST372
       ParentColor = False
       ParentCtl3D = False
       TabOrder = 1
-      ExplicitWidth = 743
       DesignSize = (
-        731
+        727
         221)
       object Label7: TLabel
         Left = 16
         Top = 14
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -224,7 +221,7 @@ object FrmGST372: TFrmGST372
       object Label8: TLabel
         Left = 16
         Top = 38
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -234,7 +231,7 @@ object FrmGST372: TFrmGST372
       object Label9: TLabel
         Left = 16
         Top = 61
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -244,7 +241,7 @@ object FrmGST372: TFrmGST372
       object Label10: TLabel
         Left = 16
         Top = 85
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -254,7 +251,7 @@ object FrmGST372: TFrmGST372
       object Label11: TLabel
         Left = 16
         Top = 109
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -264,7 +261,7 @@ object FrmGST372: TFrmGST372
       object Label12: TLabel
         Left = 16
         Top = 136
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -276,7 +273,7 @@ object FrmGST372: TFrmGST372
       object Label13: TLabel
         Left = 16
         Top = 158
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -288,7 +285,7 @@ object FrmGST372: TFrmGST372
       object Label14: TLabel
         Left = 16
         Top = 174
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -311,14 +308,14 @@ object FrmGST372: TFrmGST372
       object Bevel1: TBevel
         Left = 16
         Top = 183
-        Width = 707
+        Width = 703
         Height = 10
         Anchors = [akLeft, akTop, akRight]
         Shape = bsBottomLine
         ExplicitWidth = 767
       end
       object LTotalAdjust: TStaticText
-        Left = 616
+        Left = 612
         Top = 197
         Width = 107
         Height = 19
@@ -339,10 +336,9 @@ object FrmGST372: TFrmGST372
         ParentFont = False
         ShowAccelChar = False
         TabOrder = 7
-        ExplicitLeft = 628
       end
       object NPrivate: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 13
         Width = 105
         Height = 19
@@ -366,12 +362,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 0
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {73B2DBB9838916F2FE43}
         RangeLow = {73B2DBB9838916F2FEC3}
       end
       object NBusiness: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 37
         Width = 105
         Height = 19
@@ -395,12 +390,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 1
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object NAssets: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 61
         Width = 105
         Height = 19
@@ -424,12 +418,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 2
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object NEntertainment: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 85
         Width = 105
         Height = 19
@@ -453,12 +446,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 3
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object NChange: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 109
         Width = 105
         Height = 19
@@ -482,12 +474,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 4
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object NGSTExempt: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 133
         Width = 105
         Height = 19
@@ -511,12 +502,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 5
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object Nother: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 157
         Width = 105
         Height = 19
@@ -540,7 +530,6 @@ object FrmGST372: TFrmGST372
         TabOrder = 6
         OnChange = NTotalChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
@@ -548,7 +537,7 @@ object FrmGST372: TFrmGST372
     object GBCreditAdjust: TGroupBox
       Left = 8
       Top = 359
-      Width = 731
+      Width = 727
       Height = 168
       Anchors = [akLeft, akTop, akRight]
       Color = 14413567
@@ -557,14 +546,13 @@ object FrmGST372: TFrmGST372
       ParentColor = False
       ParentCtl3D = False
       TabOrder = 2
-      ExplicitWidth = 743
       DesignSize = (
-        731
+        727
         168)
       object Label17: TLabel
         Left = 16
         Top = 16
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -576,7 +564,7 @@ object FrmGST372: TFrmGST372
       object Label18: TLabel
         Left = 16
         Top = 40
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -588,7 +576,7 @@ object FrmGST372: TFrmGST372
       object Label19: TLabel
         Left = 16
         Top = 64
-        Width = 576
+        Width = 572
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -598,7 +586,7 @@ object FrmGST372: TFrmGST372
       object Label20: TLabel
         Left = 16
         Top = 112
-        Width = 593
+        Width = 589
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -625,7 +613,7 @@ object FrmGST372: TFrmGST372
       object Bevel2: TBevel
         Left = 16
         Top = 128
-        Width = 707
+        Width = 703
         Height = 10
         Anchors = [akLeft, akTop, akRight]
         Shape = bsBottomLine
@@ -634,7 +622,7 @@ object FrmGST372: TFrmGST372
       object Label6: TLabel
         Left = 17
         Top = 88
-        Width = 593
+        Width = 589
         Height = 16
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -642,7 +630,7 @@ object FrmGST372: TFrmGST372
         ExplicitWidth = 592
       end
       object LTotalCredit: TStaticText
-        Left = 616
+        Left = 612
         Top = 143
         Width = 107
         Height = 19
@@ -663,10 +651,9 @@ object FrmGST372: TFrmGST372
         ParentFont = False
         ShowAccelChar = False
         TabOrder = 4
-        ExplicitLeft = 628
       end
       object ncBusiness: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 13
         Width = 105
         Height = 19
@@ -690,12 +677,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 0
         OnChange = NCreditChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object ncPrivate: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 37
         Width = 105
         Height = 19
@@ -719,12 +705,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 1
         OnChange = NCreditChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object NCChange: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 61
         Width = 105
         Height = 19
@@ -748,12 +733,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 2
         OnChange = NCreditChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object ncOther: TOvcNumericField
-        Left = 616
+        Left = 612
         Top = 109
         Width = 105
         Height = 19
@@ -777,12 +761,11 @@ object FrmGST372: TFrmGST372
         TabOrder = 3
         OnChange = NCreditChange
         OnKeyDown = NPrivateKeyDown
-        ExplicitLeft = 628
         RangeHigh = {007814AEFF1FBCBE1940}
         RangeLow = {00000000000000000000}
       end
       object NCCustoms: TStaticText
-        Left = 615
+        Left = 611
         Top = 86
         Width = 105
         Height = 20
@@ -794,7 +777,6 @@ object FrmGST372: TFrmGST372
         BevelOuter = bvRaised
         Caption = '0.00'
         TabOrder = 5
-        ExplicitLeft = 627
       end
     end
   end
@@ -829,13 +811,13 @@ object FrmGST372: TFrmGST372
       OnClick = BtnFileClick
     end
     object BtnPrint: TButton
-      Left = 184
+      Left = 259
       Top = 9
       Width = 75
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = '&Print'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = BtnPrintClick
     end
     object BtnOK: TBitBtn
@@ -846,7 +828,7 @@ object FrmGST372: TFrmGST372
       Anchors = [akRight, akBottom]
       Caption = '&OK'
       ModalResult = 1
-      TabOrder = 3
+      TabOrder = 4
     end
     object BtnCancel: TBitBtn
       Left = 722
@@ -857,17 +839,27 @@ object FrmGST372: TFrmGST372
       Cancel = True
       Caption = '&Cancel'
       ModalResult = 2
-      TabOrder = 4
+      TabOrder = 5
     end
     object btnCopy: TButton
-      Left = 340
+      Left = 360
       Top = 9
       Width = 180
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Copy from &Last Return'
-      TabOrder = 5
+      TabOrder = 6
       OnClick = btnCopyClick
+    end
+    object BtnEmail: TButton
+      Left = 177
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = BtnEmailClick
     end
   end
   object OvcController1: TOvcController

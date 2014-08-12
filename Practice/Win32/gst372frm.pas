@@ -88,6 +88,7 @@ type
     btnCopy: TButton;
     Label6: TLabel;
     NCCustoms: TStaticText;
+    BtnEmail: TButton;
 
     procedure NTotalChange(Sender: TObject);
     procedure NCreditChange(Sender: TObject);
@@ -98,6 +99,7 @@ type
     procedure NPrivateKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure btnCopyClick(Sender: TObject);
+    procedure BtnEmailClick(Sender: TObject);
   private
     { Private declarations }
     FClient: TClientObj;
@@ -159,7 +161,9 @@ Uses
    bkXPThemes,
    bkHelp,
    Math,
-   GenUtils;
+   GenUtils,
+   RptParams,
+   Globals;
 
 
 procedure TFrmGST372.FormCreate(Sender: TObject);
@@ -320,6 +324,17 @@ begin
   // Update the totals..
   NTotalChange(nil);
   NCreditChange(nil);
+end;
+
+procedure TFrmGST372.BtnEmailClick(Sender: TObject);
+var
+  Params: TRptParameters;
+begin
+  Params := TRptParameters.Create(Ord(Report_GST372), MyClient, nil);
+
+  DoGST372Report(Self, rdEmail, Params);
+
+  FreeAndNil(Params);
 end;
 
 procedure TFrmGST372.BtnFileClick(Sender: TObject);
