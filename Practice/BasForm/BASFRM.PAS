@@ -246,6 +246,7 @@ type
     rbPercent: TRadioButton;
     Label20: TLabel;
     Label24: TLabel;
+    btnEmail: TButton;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOKClick(Sender: TObject);
@@ -275,6 +276,7 @@ type
     procedure rbYes_GSTOption1Click(Sender: TObject);
     procedure rbNo_GSTOption1Click(Sender: TObject);
     procedure bxfP1A1Click(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     { Private declarations }
     BasInfo      : TBasInfo;
@@ -1423,6 +1425,21 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure TfrmBAS.btnEmailClick(Sender: TObject);
+begin
+   //Make sure we have everything
+   ReadEditableFields;
+   //clear unselected fields for gst and payg instalment
+   ClearUnselectedFields;
+   //Recalc
+   BasInfo.Recalculate;
+   //verify
+   if not VerifyFields then
+     exit;
+   //Call Print/Preview - if returns true then the report went to printer
+   GenerateReport( rdEmail, 'produced a copy of');
+end;
 
 procedure TfrmBAS.btnExportClick(Sender: TObject);
 var

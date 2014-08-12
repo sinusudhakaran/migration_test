@@ -1483,7 +1483,7 @@ begin
 
      AddCommonFooter(Job);
 
-     if Destination in [rdScreen, rdPrinter, rdFile] then
+     if Destination in [rdScreen, rdPrinter, rdFile, rdEmail] then
         Job.Generate(Destination, Params);
 
      if Assigned(Params) then
