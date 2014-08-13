@@ -107,6 +107,7 @@ type
     AutocalculateGST1: TMenuItem;
     mniEnterPercentage: TMenuItem;
     rgGST: TRadioGroup;
+    tmrUnusedRows: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -169,6 +170,9 @@ type
     procedure actAutoCalculateGSTUpdate(Sender: TObject);
     procedure actAutoCalculateGSTExecute(Sender: TObject);
     procedure rgGSTClick(Sender: TObject);
+    procedure tblBudgetKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure tmrUnusedRowsTimer(Sender: TObject);
   private
     { Private declarations }
     FHint                 : THintWindow;
@@ -388,6 +392,7 @@ var
   i: Integer;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+   tmrUnusedRows.Enabled := False;
    //Use a copy of the client chart that can be sorted
    fShowZeros := true;
    FChart := TCustomSortChart.Create(nil);
@@ -440,7 +445,7 @@ begin
   SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
 
   EnableOrDisablePercentageInvalidControls(True);
-  ExceptionsToHideUnused := TStringList.Create;
+  ExceptionsToHideUnused := TStringList.Create;  
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -753,7 +758,7 @@ begin
   //see if we are currently at left most col and press cc left
   if ( tblBudget.ActiveCol = MonthMin) and ( Command = ccLeft) then begin
      tblBudget.LeftCol := 0;
-  end;
+  end;          
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -869,6 +874,7 @@ const
    ThisMethodName = 'tblBudgetBeginEdit';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  tmrUnusedRows.Enabled := True;
   EditMode := true;
 
   if not RowDataOK(RowNum,'BBeginEdit')then
@@ -960,6 +966,7 @@ var
 
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
   if RowDataOK(RowNum,'BDoneEdit') then
     begin
        if Assigned(FData[RowNum - 1].bDetailLine) then
@@ -1010,6 +1017,7 @@ begin
        UpdatePercentageRows(True);
   end; {if row ok}
   UpdateShowHideEnabledState;
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -1388,7 +1396,7 @@ begin
   end;
 
   SetLength(FData, aDataIndex);
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -1403,8 +1411,6 @@ begin
 
   if aRefreshFdata then
     RefreshFData(ShowZeros, DataIndex, KeepPercentages);
-
-//     tblBudget.ActiveRow := 0;
 
   tblBudget.RowLimit := DataIndex + 1;
   DataAssigned := true;
@@ -3641,6 +3647,21 @@ begin
       FHint.ActivateHint( HR, Msg );
    end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );   
+end;
+
+// This timer is used to hide any rows that have recently become 'unused'
+// by having their last value deleted. Trying to remove the rows as the
+// deletion happens is causing an access violation, because StopEditingState
+// in ovctable gets called twice, which means that tbActCell is unexpectedly
+// set to nil the second time. See: escalation 88170 in TFS
+procedure TfrmBudget.tmrUnusedRowsTimer(Sender: TObject);
+begin
+  if tmrUnusedRows.Enabled then
+  begin
+    if not fShowZeros then
+      DoHideUnused;
+    tmrUnusedRows.Enabled := False;
+  end;
 end;
 
 //------------------------------------------------------------------------------
