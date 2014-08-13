@@ -28,7 +28,7 @@ type
     procedure SpendingDetail();
     procedure DetailedSpendingDetail();
   public
-    params : TPayeeParameters;
+    Params : TPayeeParameters;
 
     procedure GenerateDetailedPayeeSpendingReport(aDest : TReportDest);
     procedure GenerateSummaryPayeeSpendingReport(aDest : TReportDest);
@@ -141,25 +141,23 @@ begin
   begin
     if Params.ShowTotals > -1 then
     begin
-      AddColAuto(Self,cLeft,      17.0,Gcgap,'Date', jtLeft);
-      AddColAuto(Self,cLeft,      11.0,Gcgap,'Reference', jtLeft);
-      AddColAuto(Self,cLeft,      10.0,Gcgap,'Narration', jtLeft);
-      AddColAuto(Self,Cleft,      10.0,Gcgap,'Account', jtRight);
-      AddColAuto(Self,cLeft,      10.0,Gcgap,'', jtLeft);
-      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'$ GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-      AddFormatColAuto(Self,cLeft,0.0,Gcgap,'$ Net',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddColAuto(Self,cLeft,      14.0,2,'Date', jtLeft);
+      AddColAuto(Self,cLeft,      10.0,2,'Reference', jtLeft);
+      AddColAuto(Self,cLeft,      13.0,2,'Narration', jtLeft);
+      AddColAuto(Self,Cleft,      21.0,2,'Account', jtLeft);
+      AddFormatColAuto(Self,cLeft,10.0,2,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddFormatColAuto(Self,cLeft,10.0,2,'$ GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddFormatColAuto(Self,cLeft,0.0,2,'$ Net',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
     end
     else
     begin
-      AddColAuto(Self,cLeft,      17.0,Gcgap,'Date', jtLeft);
-      AddColAuto(Self,cLeft,      11.0,Gcgap,'Reference', jtLeft);
-      AddColAuto(Self,cLeft,      10.0,Gcgap,'Narration', jtLeft);
-      AddColAuto(Self,Cleft,      10.0,Gcgap,'Account', jtRight);
-      AddColAuto(Self,cLeft,      10.0,Gcgap,'', jtLeft);
-      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'$ GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-      AddFormatColAuto(Self,cLeft,0.0,Gcgap,'$ Net',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddColAuto(Self,cLeft,      8.5,2,'Date', jtLeft);
+      AddColAuto(Self,cLeft,      10.0,2,'Reference', jtLeft);
+      AddColAuto(Self,cLeft,      13.0,2,'Narration', jtLeft);
+      AddColAuto(Self,Cleft,      26.5,2,'Account', jtLeft);
+      AddFormatColAuto(Self,cLeft,10.0,2,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddFormatColAuto(Self,cLeft,10.0,2,'$ GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddFormatColAuto(Self,cLeft,0.0,2,'$ Net',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
     end;
   end
   else
@@ -208,9 +206,21 @@ begin
 
   {Add Columns: Job,Left Percent, Width Percent, Caption, Alignment}
   cLeft := GcLeft;
-  AddColAuto(Self,cLeft,      35,GcGap,'Name', jtLeft);
-  AddFormatColAuto(Self,cLeft,10,GcGap,'Payee No',jtRight,'##','',false);
-  AddFormatColAuto(Self,cLeft,20,GcGap,'Amount',jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets, true);
+
+  if Params.NetandGstAmounts then
+  begin
+    AddColAuto(Self,cLeft,      35,GcGap,'Name', jtLeft);
+    AddFormatColAuto(Self,cLeft,11,5,'Payee No',jtRight,'##','',false);
+    AddFormatColAuto(Self,cLeft,13,5,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets, true);
+    AddFormatColAuto(Self,cLeft,13,5,'$ GST',jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets, true);
+    AddFormatColAuto(Self,cLeft,13,GcGap,'$ Net',jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets, true);
+  end
+  else
+  begin
+    AddColAuto(Self,cLeft,      35,GcGap,'Name', jtLeft);
+    AddFormatColAuto(Self,cLeft,10,GcGap,'Payee No',jtRight,'##','',false);
+    AddFormatColAuto(Self,cLeft,20,GcGap,'Amount',jtRight,'#,##0.00;(#,##0.00);-',MyClient.FmtMoneyStrBrackets, true);
+  end;
 
   //Add Footers
   AddCommonFooter(Self);
@@ -505,12 +515,7 @@ var
     if aAccount = '' then
       SkipColumn
     else
-      PutString(aAccount);
-
-    if aAccDesc = '' then
-      SkipColumn
-    else
-      PutString(aAccDesc);
+      PutString(aAccount + ' ' + aAccDesc);
 
     if aPutMoneyDontAdd then
     begin
@@ -722,13 +727,19 @@ var
 
   pTranRec : pTransaction_Rec;
   pDisRec : pDissection_Rec;
+
+  GSTTotal : Array of Money;
 begin
   BankAccList := params.Client.clBank_Account_List;
   PayeeList   := params.Client.clPayee_List;
 
+  Setlength(GSTTotal, PayeeList.ItemCount);
   // Initilize all payee totals to zero
   for PayeeIndex := PayeeList.First to PayeeList.Last do
+  begin
     PayeeList.Payee_At(PayeeIndex).pdFields.pdTotal := 0;
+    GSTTotal[PayeeIndex] := 0;
+  end;
 
   // Calculate Payee totals using transaction and disections
   for BankAccIndex := BankAccList.First to BankAccList.Last do
@@ -747,7 +758,10 @@ begin
         begin
           Payee := PayeeList.Find_Payee_Number(pTranRec^.txPayee_Number);
           if Assigned(Payee) then
+          begin
             Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + pTranRec^.txTemp_Base_Amount;
+            GSTTotal[PayeeIndex] := GSTTotal[PayeeIndex] + pTranRec^.txGST_Amount;
+          end;
         end
         else
         begin
@@ -761,7 +775,10 @@ begin
                 Payee := PayeeList.Find_Payee_Number( pDisRec^.dsPayee_Number );
 
                 if Assigned( Payee ) then
+                begin
                   Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + pDisRec^.dsTemp_Base_Amount;
+                  GSTTotal[PayeeIndex] := GSTTotal[PayeeIndex] + pDisRec^.dsGST_Amount;
+                end;
               end;
               pDisRec := pDisRec^.dsNext;
             end;
@@ -773,13 +790,15 @@ begin
 
   for PayeeIndex := PayeeList.First to PayeeList.Last do
   begin
-    PayeeList.Payee_At(PayeeIndex).pdFields.pdTotal := 0;
+    Payee := PayeeList.Payee_At(PayeeIndex);
     if ShowPayeeOnReport( Payee.pdFields.pdNumber) then
     begin
       if params.NetandGstAmounts then
       begin
         PutString(Payee.pdFields.pdName);
         PutCurrency(Payee.pdFields.pdNumber);
+        PutMoney(Payee.pdFields.pdTotal - GSTTotal[PayeeIndex]);
+        PutMoney(GSTTotal[PayeeIndex]);
         PutMoney(Payee.pdFields.pdTotal);
         RenderDetailLine;
       end
@@ -791,8 +810,10 @@ begin
         RenderDetailLine;
       end;
     end;
-    RenderDetailGrandTotal('');
   end;
+  RenderDetailGrandTotal('');
+
+  Setlength(GSTTotal, 0);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
