@@ -170,8 +170,6 @@ type
     procedure actAutoCalculateGSTUpdate(Sender: TObject);
     procedure actAutoCalculateGSTExecute(Sender: TObject);
     procedure rgGSTClick(Sender: TObject);
-    procedure tblBudgetKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure tmrUnusedRowsTimer(Sender: TObject);
   private
     { Private declarations }
