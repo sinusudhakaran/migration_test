@@ -275,6 +275,7 @@ begin
 
        FHelpID := HelpCtx;
        BtnSave.Visible := False;
+       btnEmail.Visible := false;
        AccountFilter := [];
 
        ShowModal;
