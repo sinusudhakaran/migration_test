@@ -42,6 +42,7 @@ type
     ChNett: TCheckBox;
     ChSales: TCheckBox;
     lInclude: TLabel;
+    btnEmail: TButton;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnPreviewClick(Sender: TObject);
@@ -50,6 +51,7 @@ type
     procedure sb1Resize(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
+    procedure btnEmailClick(Sender: TObject);
   private
     function TrimToDash(s: string): string;
     { Private declarations }
@@ -234,6 +236,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+procedure TfrmMultiGraph.btnEmailClick(Sender: TObject);
+begin
+  PrintMultiGraph(self, rdEmail, [ffPDF, ffAcclipse], Params);
+end;
+
 procedure TfrmMultiGraph.btnFileClick(Sender: TObject);
 begin
   PrintMultiGraph(self, rdFile, [ffPDF, ffAcclipse], Params);
