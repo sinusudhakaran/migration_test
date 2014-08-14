@@ -1,6 +1,7 @@
 object frmClientNotes: TfrmClientNotes
   Left = 313
   Top = 337
+  ActiveControl = btnOK
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Client File Notes'
   ClientHeight = 212
@@ -31,7 +32,7 @@ object frmClientNotes: TfrmClientNotes
     ParentCtl3D = False
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 0
+    TabOrder = 1
   end
   object Panel1: TPanel
     Left = 0
@@ -40,28 +41,28 @@ object frmClientNotes: TfrmClientNotes
     Height = 42
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 1
+    TabOrder = 0
     DesignSize = (
       425
       42)
     object chkShowOnOpen: TCheckBox
-      Left = 6
-      Top = 11
+      Left = 0
+      Top = 6
       Width = 259
       Height = 17
       Caption = 'Show notes when openin&g this client'
-      TabOrder = 0
+      TabOrder = 1
     end
     object btnOK: TButton
-      Left = 344
-      Top = 9
+      Left = 350
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Cancel = True
       Caption = '&OK'
       Default = True
-      TabOrder = 1
+      TabOrder = 0
       OnClick = btnOKClick
     end
   end
