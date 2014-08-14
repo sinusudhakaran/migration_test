@@ -1135,7 +1135,7 @@ begin
   StartFocus := True;
   Undo := False;
   FSuperTop := -999;
-  FSuperLeft := -999;
+  FSuperLeft := -999;  
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.ProcessExternalCmd(Command : TExternalCmd);
@@ -7898,8 +7898,14 @@ end;
 procedure TfrmCoding.UpdateSuggestedMemLabel;
 var
   MemCount: integer;
+  ShowTbRecommendedMemorisations: boolean;
+  ShowLblRecommendedMemorisations: boolean;
+  IsJournal: boolean;
 begin
-  if MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem) then
+  IsJournal := False;
+  if Assigned(BankAccount) then
+    IsJournal := BankAccount.IsAJournalAccount;
+  if (MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem)) or IsJournal then
   begin
     if Assigned(frmMain) then
       frmMain.tbRecommendedMemorisations.Visible := False;
@@ -7907,15 +7913,17 @@ begin
     Exit;
   end;
 
+  ShowTbRecommendedMemorisations := frmMain.tbRecommendedMemorisations.Visible;
+  ShowLblRecommendedMemorisations := lblRecommendedMemorisations.Visible;
   if Assigned(frmMain) then
-    frmMain.tbRecommendedMemorisations.Visible := True;
+    ShowTbRecommendedMemorisations := True;
 
   if Assigned(BankAccount) then
   begin
     MemCount := MyClient.clRecommended_Mems.GetCountOfRecMemsInAccount(BankAccount.baFields.baBank_Account_Number);
     if (MemCount = 0) then
     begin
-      lblRecommendedMemorisations.Visible := False;
+      ShowLblRecommendedMemorisations := False;
     end
     else
     begin
@@ -7923,14 +7931,17 @@ begin
       begin
         if Assigned(frmMain) then
           frmMain.tbRecommendedMemorisations.Visible := True;
-        lblRecommendedMemorisations.Visible := True;
+        ShowLblRecommendedMemorisations := True;
         lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
       end;
     end;
     if BankAccount.IsAJournalAccount then
-      if Assigned(frmMain) then      
-        frmMain.tbRecommendedMemorisations.Visible := False;
+      if Assigned(frmMain) then
+        ShowTbRecommendedMemorisations := False;
   end;
+
+  frmMain.tbRecommendedMemorisations.Visible := ShowTbRecommendedMemorisations;
+  lblRecommendedMemorisations.Visible := ShowLblRecommendedMemorisations;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
