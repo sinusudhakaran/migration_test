@@ -443,7 +443,7 @@ begin
   SetWindowRgn(rgGST.Handle, CreateREctRgn(7, 14, rgGST.Width - 2, rgGST.Height - 2), True);
 
   EnableOrDisablePercentageInvalidControls(True);
-  ExceptionsToHideUnused := TStringList.Create;  
+  ExceptionsToHideUnused := TStringList.Create;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -872,7 +872,6 @@ const
    ThisMethodName = 'tblBudgetBeginEdit';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-  tmrUnusedRows.Enabled := True;
   EditMode := true;
 
   if not RowDataOK(RowNum,'BBeginEdit')then
@@ -962,6 +961,21 @@ var
   pAccount: pAccount_Rec;
   GST_Class: byte;
 
+  function RowIsNowEmpty: boolean;
+  var
+    i: integer;
+  begin
+    Result := True;
+    for i := Low(FData[RowNum - 1].bAmounts) to High(FData[RowNum - 1].bAmounts) do
+    begin
+      if (FData[RowNum - 1].bAmounts[i] <> 0) then
+      begin
+        Result := False;
+        Exit;
+      end;
+    end;
+  end;
+
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -1008,11 +1022,15 @@ begin
             FData[RowNum-1].bDetailLine.bdEach_Budget[ColNum - MonthBase] := FData[RowNum - 1].bUnitPrices[ColNum - MonthBase];
          end;
        end;
+       tmrUnusedRows.Enabled := RowIsNowEmpty;
 
        // Refresh the GST cells
        RefreshGST;
-       RefreshTableWithData(fShowZeros, True, True);
-       UpdatePercentageRows(True);
+       if not tmrUnusedRows.Enabled then
+       begin
+         RefreshTableWithData(fShowZeros, True, True);
+         UpdatePercentageRows(True);
+       end;
   end; {if row ok}
   UpdateShowHideEnabledState;
 
@@ -3657,7 +3675,10 @@ begin
   if tmrUnusedRows.Enabled then
   begin
     if not fShowZeros then
+    begin
+      UpdatePercentageRows(False);
       DoHideUnused;
+    end;
     tmrUnusedRows.Enabled := False;
   end;
 end;
