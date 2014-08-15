@@ -94,6 +94,7 @@ type
                             const ADateMode : tDateMode = dNone) ;
      destructor Destroy; override;
      function MakeRptName (Title : string) : string;
+     procedure RefreshChart();
 
      property Client : TClientObj read FClient write SetClient;
      property Chart: TCustomSortChart read FChart;
@@ -732,9 +733,22 @@ begin
 
 end;
 
+procedure TRPTParameters.RefreshChart;
+begin
+  //Use a copy of the client chart that can be sorted
+  if Assigned(FChart) then
+    FreeAndNil(FChart);
+
+  FChart := TCustomSortChart.Create(FClient.ClientAuditMgr);
+
+  FChart.CopyChart(FClient.clChart);
+  if UseXlonSort then
+    FChart.Sort(XlonCompare);
+end;
+
 procedure TRPTParameters.Reset;
 begin
-   FAccountList.Clear;
+  FAccountList.Clear;
 end;
 
 procedure TRPTParameters.RestoreClient;

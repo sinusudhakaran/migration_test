@@ -1091,6 +1091,9 @@ begin
 
   if PickAccount(Code, HasChartBeenRefreshed) then
   begin
+    if HasChartBeenRefreshed then
+      ReportParams.RefreshChart;
+
     //if get here then have a code which can be posted to from picklist
     tgRanges.CurrentCell.Value := Code;
     if tgRanges.CurrentDataCol = 1 then
