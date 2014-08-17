@@ -200,7 +200,7 @@ type
     procedure EndEditRow(RowNum, ColNum : integer; var AllowIt : boolean);
 
     procedure SetBudget(const Value: TBudget);
-    procedure RefreshBudget();
+    procedure RefreshBudget(aHideUnused : boolean = false);
     procedure RefreshChart();
     procedure UpdateLine(index : integer; CopyPercentages: boolean = true);
     procedure UpdateAllLines;
@@ -1259,12 +1259,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBudget.RefreshBudget;
+procedure TfrmBudget.RefreshBudget(aHideUnused : boolean = false);
 var
   ColumnIndex : integer;
   ColDate : integer;
 begin
-  RefreshTableWithData(true);
+  RefreshTableWithData(not aHideUnused);
   {update column lables}
   for ColumnIndex := 0 to 11 do
   begin
@@ -1281,14 +1281,18 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmBudget.RefreshChart;
+var
+  HideUnused : boolean;
 begin
+  HideUnused := not UnusedRowsShowing;
+
   if assigned(FChart) then
     FreeAndNil(FChart);
 
   FChart := TCustomSortChart.Create(nil);
   FChart.CopyChart(MyClient.clChart);
 
-  RefreshBudget();
+  RefreshBudget(HideUnused);
 end;
 
 //------------------------------------------------------------------------------
