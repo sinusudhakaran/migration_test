@@ -559,15 +559,18 @@ Begin
          (Params.ShowTotals > -1) and
          (pTranRec^.txDate_Effective > PeriodEndDate) then
       begin
-        RenderColumnLine(2);
-
+        SingleUnderLine;
         if params.NetandGstAmounts then
+        begin
           RenderAmountLinewithGST(PeriodStartDate, PeriodEndDate,
                                   'Sub Total', '', '', '',
                                   PeriodGST , PeriodTotal, true)
+        end
         else
+        begin
           RenderAmountLine(PeriodStartDate, PeriodEndDate, 'Sub Total',
                            PeriodTotal, '', '', '', true);
+        end;
 
         RenderDetailLine(True, siSectiontotal);
         RenderTextLine('');
@@ -690,18 +693,21 @@ Begin
        (Params.ShowTotals > -1) and
        (not SubTotalRendered) then
     begin
-      RenderColumnLine(2);
-
       if PeriodEndDate > Params.ToDate then
         PeriodEndDate := Params.ToDate;
 
+      SingleUnderLine;
       if params.NetandGstAmounts then
+      begin
         RenderAmountLinewithGST(PeriodStartDate, PeriodEndDate,
                                 'Sub Total', '', '', '',
                                 PeriodGST , PeriodTotal, true)
+      end
       else
+      begin
         RenderAmountLine(PeriodStartDate, PeriodEndDate, 'Sub Total',
                          PeriodTotal, '', '', '', true);
+      end;
 
       RenderDetailLine(True,siSectiontotal);
       RenderTextLine('');
