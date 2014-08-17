@@ -26,6 +26,9 @@ type
     btnOK: TButton;
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure meNotesKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -78,6 +81,20 @@ end;
 procedure TfrmClientNotes.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
+end;
+
+procedure TfrmClientNotes.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = VK_RETURN) then
+    btnOk.Click;
+end;
+
+procedure TfrmClientNotes.meNotesKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = VK_RETURN) then
+    btnOk.Click;
 end;
 
 end.

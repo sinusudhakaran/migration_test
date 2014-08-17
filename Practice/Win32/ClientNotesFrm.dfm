@@ -1,7 +1,7 @@
 object frmClientNotes: TfrmClientNotes
   Left = 313
   Top = 337
-  ActiveControl = btnOK
+  ActiveControl = meNotes
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Client File Notes'
   ClientHeight = 212
@@ -17,6 +17,7 @@ object frmClientNotes: TfrmClientNotes
   Position = poScreenCenter
   Scaled = False
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object meNotes: TMemo
@@ -33,6 +34,7 @@ object frmClientNotes: TfrmClientNotes
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 1
+    OnKeyDown = meNotesKeyDown
   end
   object Panel1: TPanel
     Left = 0
