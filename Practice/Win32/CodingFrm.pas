@@ -7900,12 +7900,11 @@ var
   MemCount: integer;
   ShowTbRecommendedMemorisations: boolean;
   ShowLblRecommendedMemorisations: boolean;
-  IsJournal: boolean;
 begin
-  IsJournal := False;
   if Assigned(BankAccount) then
-    IsJournal := BankAccount.IsAJournalAccount;
-  if (MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem)) or IsJournal then
+    Assert(BankAccount.IsAJournalAccount = false, 'Journals should not update the suggested mems label');  
+
+  if (MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem)) then
   begin
     if Assigned(frmMain) then
       frmMain.tbRecommendedMemorisations.Visible := False;
@@ -7927,17 +7926,11 @@ begin
     end
     else
     begin
-      if not BankAccount.IsAJournalAccount then
-      begin
-        if Assigned(frmMain) then
-          frmMain.tbRecommendedMemorisations.Visible := True;
-        ShowLblRecommendedMemorisations := True;
-        lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
-      end;
-    end;
-    if BankAccount.IsAJournalAccount then
       if Assigned(frmMain) then
-        ShowTbRecommendedMemorisations := False;
+        frmMain.tbRecommendedMemorisations.Visible := True;
+      ShowLblRecommendedMemorisations := True;
+      lblRecommendedMemorisations.Caption := 'Suggested Memorisations: ' + IntToStr(MemCount) + ' available';
+    end;
   end;
 
   frmMain.tbRecommendedMemorisations.Visible := ShowTbRecommendedMemorisations;
@@ -8113,7 +8106,8 @@ begin
            Caption  := 'Journal Entries ' + BankAccount.Title
          else
            Caption  := 'Code Entries '+ BankAccount.Title;
-         UpdateSuggestedMemLabel;
+         if not BankAccount.IsAJournalAccount then         
+           UpdateSuggestedMemLabel;
 
          with lblAcctDetails do
          begin
@@ -8164,7 +8158,7 @@ begin
            end;
       *)
       
-      tmrMemLabel.Enabled := True;
+      tmrMemLabel.Enabled := not BankAccount.IsAJournalAccount;
    end;
 
    result := ThisForm;
