@@ -79,6 +79,7 @@ type
       function FindRecordID( ARecordID : integer ):  TPayee;
       function  Payee_At( Index : LongInt ): TPayee;
       function  Find_Payee_Number( CONST ANumber: LongInt ): TPayee;
+      function Find_Payee_Number_and_Index(const ANumber: Integer; var aItemIndex : integer): TPayee;
       function  Find_Payee_Name( CONST AName: String ): TPayee;
       function  Search_Payee_Name( CONST AName : ShortString ): TPayee;
       function Guess_Next_Payee_Number(const ANumber: Integer): TPayee;
@@ -339,6 +340,25 @@ begin
     APayee := Payee_At(i);
     if (APayee.pdNumber = ANumber) then
     begin
+      Result := APayee;
+      exit;
+    end;
+  end;
+end;
+
+function TPayee_List.Find_Payee_Number_and_Index(const ANumber: Integer; var aItemIndex : integer): TPayee;
+var
+  i : Integer;
+  APayee : TPayee;
+begin
+  Result := nil;
+
+  for i := First to Last do
+  begin
+    APayee := Payee_At(i);
+    if (APayee.pdNumber = ANumber) then
+    begin
+      aItemIndex := i;
       Result := APayee;
       exit;
     end;

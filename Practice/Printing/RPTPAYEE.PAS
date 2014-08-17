@@ -497,7 +497,7 @@ var
 
   //----------------------------------------------------------------------------
   procedure RenderAmountLinewithGST(aPeriodStartDate, aPeriodEndDate : integer;
-                                    aName, aAccount, aAccDesc, aNarration : string;
+                                    aName, aNarration, aAccount, aAccDesc : string;
                                     aPeriodGST, aPeriodTotal : Money;
                                     aPutMoneyDontAdd : boolean);
   begin
@@ -505,6 +505,7 @@ var
       PutString(bkDate2Str( aPeriodStartDate))
     else
       PutString(bkDate2Str( aPeriodStartDate) + ' - ' + bkDate2Str( aPeriodEndDate));
+
     PutString(aName);
 
     if aNarration = '' then
@@ -519,15 +520,15 @@ var
 
     if aPutMoneyDontAdd then
     begin
-      PutMoneyDontAdd(aPeriodTotal-aPeriodGST);
-      PutMoneyDontAdd(aPeriodGST);
       PutMoneyDontAdd(aPeriodTotal);
+      PutMoneyDontAdd(aPeriodGST);
+      PutMoneyDontAdd(aPeriodTotal-aPeriodGST);
     end
     else
     begin
-      PutMoney(aPeriodTotal-aPeriodGST);
-      PutMoney(aPeriodGST);
       PutMoney(aPeriodTotal);
+      PutMoney(aPeriodGST);
+      PutMoney(aPeriodTotal-aPeriodGST);
     end;
   end;
 
@@ -756,7 +757,8 @@ begin
         //is a payee number assigned to the transaction
         if ( pTranRec^.txPayee_Number <> 0 ) then
         begin
-          Payee := PayeeList.Find_Payee_Number(pTranRec^.txPayee_Number);
+          Payee := PayeeList.Find_Payee_Number_and_Index(pTranRec^.txPayee_Number, PayeeIndex);
+
           if Assigned(Payee) then
           begin
             Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + pTranRec^.txTemp_Base_Amount;
@@ -797,9 +799,9 @@ begin
       begin
         PutString(Payee.pdFields.pdName);
         PutCurrency(Payee.pdFields.pdNumber);
-        PutMoney(Payee.pdFields.pdTotal - GSTTotal[PayeeIndex]);
-        PutMoney(GSTTotal[PayeeIndex]);
         PutMoney(Payee.pdFields.pdTotal);
+        PutMoney(GSTTotal[PayeeIndex]);
+        PutMoney(Payee.pdFields.pdTotal - GSTTotal[PayeeIndex]);
         RenderDetailLine;
       end
       else
