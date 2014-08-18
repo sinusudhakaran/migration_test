@@ -48,23 +48,23 @@ object frmClientNotes: TfrmClientNotes
       425
       42)
     object chkShowOnOpen: TCheckBox
-      Left = 0
-      Top = 6
+      Left = 6
+      Top = 11
       Width = 259
       Height = 17
       Caption = 'Show notes when openin&g this client'
-      TabOrder = 1
+      TabOrder = 0
     end
     object btnOK: TButton
-      Left = 350
-      Top = 6
+      Left = 344
+      Top = 9
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Cancel = True
       Caption = '&OK'
       Default = True
-      TabOrder = 0
+      TabOrder = 1
       OnClick = btnOKClick
     end
   end
