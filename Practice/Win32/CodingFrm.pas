@@ -7901,10 +7901,7 @@ var
   ShowTbRecommendedMemorisations: boolean;
   ShowLblRecommendedMemorisations: boolean;
 begin
-  if Assigned(BankAccount) then
-    Assert(BankAccount.IsAJournalAccount = false, 'Journals should not update the suggested mems label');  
-
-  if (MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem)) then
+  if ((MyClient.clExtra.ceBlock_Client_Edit_Mems and not Assigned(AdminSystem)) or BankAccount.IsAJournalAccount) then
   begin
     if Assigned(frmMain) then
       frmMain.tbRecommendedMemorisations.Visible := False;
@@ -8106,8 +8103,7 @@ begin
            Caption  := 'Journal Entries ' + BankAccount.Title
          else
            Caption  := 'Code Entries '+ BankAccount.Title;
-         if not BankAccount.IsAJournalAccount then         
-           UpdateSuggestedMemLabel;
+         UpdateSuggestedMemLabel;
 
          with lblAcctDetails do
          begin
