@@ -119,7 +119,7 @@ const
   CODING_HELP_BMP         = 10;
   CODING_SUPER_BMP        = 11;
   //....
-  CODING_JOB_BMP          = 19;
+  CODING_JOB_BMP          = 18;
 
   BUDGET_GENERATE_BMP     = 0;
   BUDGET_COPY_BMP         = 1;

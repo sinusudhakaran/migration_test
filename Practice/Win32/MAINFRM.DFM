@@ -459,7 +459,7 @@ object frmMain: TfrmMain
       object tbQuery: TRzToolButton
         Left = 75
         Top = 29
-        ImageIndex = 18
+        ImageIndex = 17
         Caption = 'Query'
         OnClick = tbQueryClick
       end
@@ -470,7 +470,7 @@ object frmMain: TfrmMain
       object tbJob: TRzToolButton
         Left = 181
         Top = 4
-        ImageIndex = 19
+        ImageIndex = 18
         Caption = 'Job'
         OnClick = tbJobClick
       end

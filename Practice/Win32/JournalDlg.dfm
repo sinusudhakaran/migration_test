@@ -375,7 +375,7 @@ object dlgJournal: TdlgJournal
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akBottom]
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 2
     end
     object eDateUntil: TOvcPictureField
@@ -492,7 +492,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnKeyPress = celAmountKeyPress
@@ -511,7 +510,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnChange = celGstAmtChange
@@ -531,7 +529,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblJournal
     OnChange = celQuantityChange
@@ -580,7 +577,6 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -602,7 +598,6 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -624,7 +619,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Left = 448
@@ -718,7 +712,7 @@ object dlgJournal: TdlgJournal
     end
     object LookupJobF51: TMenuItem
       Caption = 'Lookup J&ob                                            F5'
-      ImageIndex = 19
+      ImageIndex = 18
       OnClick = BtnJobClick
     end
     object LookupGSTClass1: TMenuItem

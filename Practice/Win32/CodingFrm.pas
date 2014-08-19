@@ -781,7 +781,7 @@ begin
       with poiCoding[CurrentIndex] do begin
          Name := 'mniLookupJob';
          Caption := 'Lookup &Job                                              F5';
-         ImageIndex := 19;
+         ImageIndex := CODING_JOB_BMP;
          onClick := JobLookupClick;
       end;
       Inc( CurrentIndex);
@@ -927,7 +927,7 @@ begin
    with poiCoding[CurrentIndex] do begin
       Name := 'mniGotoNotes';
       Caption := 'Edit &Notes                                               Ctrl+B';
-      ImageIndex := 13;
+      ImageIndex := 19;
       OnClick := pmiGridGotoNotes;
    end;
    Inc(CurrentIndex);

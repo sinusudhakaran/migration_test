@@ -497,7 +497,7 @@ begin
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,btnChart.Glyph);
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_PAYEE_BMP,btnPayee.Glyph);
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_SUPER_BMP,sbtnSuper.Glyph);
-  ImagesFrm.AppImages.Coding.GetBitmap(19,btnJob.Glyph);
+  ImagesFrm.AppImages.Coding.GetBitmap(18,btnJob.Glyph);
   eDateUntil.Epoch       := BKDATEEPOCH;
   eDateuntil.PictureMask := BKDATEFORMAT;
 

@@ -696,7 +696,7 @@ object dlgHistorical: TdlgHistorical
     end
     object actJob: TAction
       Caption = 'Job'
-      ImageIndex = 19
+      ImageIndex = 18
       OnExecute = actJobExecute
     end
   end
