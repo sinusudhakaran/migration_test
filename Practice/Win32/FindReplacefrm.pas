@@ -32,6 +32,7 @@ type
     procedure btnReplaceChartClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
   private
     FAllDates: Boolean;
     function Validate(const Prompt : Boolean = False): Boolean;
@@ -260,6 +261,11 @@ begin
   AccountSelector.LoadAccounts(MyClient);
   AccountSelector.btnSelectAllAccountsClick(nil);
 
+end;
+
+procedure TFindReplaceDlg.FormShow(Sender: TObject);
+begin
+  EFind.SetFocus;
 end;
 
 procedure TFindReplaceDlg.FormKeyPress(Sender: TObject; var Key: Char);

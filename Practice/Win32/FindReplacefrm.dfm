@@ -12,6 +12,7 @@ object FindReplaceDlg: TFindReplaceDlg
   Scaled = False
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pBtn: TPanel
@@ -20,7 +21,7 @@ object FindReplaceDlg: TFindReplaceDlg
     Width = 490
     Height = 41
     Align = alBottom
-    TabOrder = 0
+    TabOrder = 1
     DesignSize = (
       490
       41)
@@ -52,7 +53,7 @@ object FindReplaceDlg: TFindReplaceDlg
     Height = 273
     ActivePage = tsOptions
     Align = alClient
-    TabOrder = 1
+    TabOrder = 0
     object tsOptions: TTabSheet
       Caption = '&Options'
       DesignSize = (
@@ -88,7 +89,7 @@ object FindReplaceDlg: TFindReplaceDlg
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         MaxLength = 20
-        TabOrder = 1
+        TabOrder = 2
       end
       object btnFindChart: TBitBtn
         Left = 401
@@ -97,7 +98,7 @@ object FindReplaceDlg: TFindReplaceDlg
         Height = 25
         Anchors = [akTop, akRight]
         Caption = 'Chart'
-        TabOrder = 2
+        TabOrder = 1
         OnClick = btnFindChartClick
       end
       object btnReplaceChart: TBitBtn
