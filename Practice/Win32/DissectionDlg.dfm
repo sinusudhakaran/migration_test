@@ -1098,7 +1098,7 @@ object dlgDissection: TdlgDissection
     end
     object LookupJobF51: TMenuItem
       Caption = 'Lookup &Job                                              F5'
-      ImageIndex = 19
+      ImageIndex = 18
       OnClick = btnJobClick
     end
     object LookupGST1: TMenuItem
@@ -1128,14 +1128,14 @@ object dlgDissection: TdlgDissection
     end
     object GotoNotes1: TMenuItem
       Caption = 'Edit &Notes                                              Ctrl+B'
-      ImageIndex = 13
+      ImageIndex = 19
       OnClick = GotoNotes1Click
     end
     object Notes1: TMenuItem
       Caption = 'Notes'
       object mniNoteMark: TMenuItem
         Caption = '&Mark Note as Read/Unread    Shift+Ctrl+M'
-        ImageIndex = 15
+        ImageIndex = 14
         OnClick = mniNoteMarkClick
       end
       object mniNoteMarkAll: TMenuItem
@@ -1144,7 +1144,7 @@ object dlgDissection: TdlgDissection
       end
       object mniNoteDelete: TMenuItem
         Caption = '&Delete Note                             Shift+Ctrl+X'
-        ImageIndex = 16
+        ImageIndex = 15
         OnClick = mniNoteDeleteClick
       end
     end

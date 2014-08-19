@@ -1050,7 +1050,7 @@ begin
    poiCoding[CurrentIndex] := TMenuItem.Create(Self);
    with poiCoding[CurrentIndex] do begin
       Name := 'mniNoteMark';
-      ImageIndex := 15;
+      ImageIndex := 14;
       Caption := '&Mark Note as Read/Unread    Shift+Ctrl+M';
       OnClick := pmiDoMarkNote;
    end;
@@ -1069,7 +1069,7 @@ begin
    poiCoding[CurrentIndex] := TMenuItem.Create(Self);
    with poiCoding[CurrentIndex] do begin
       Name := 'mniNoteDelete';
-      ImageIndex := 16;
+      ImageIndex := 15;
       Caption := '&Delete Note                             Shift+Ctrl+X';
       OnClick := pmiDoDeleteNote;
    end;
