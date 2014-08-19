@@ -76,7 +76,7 @@ object dlgExtract: TdlgExtract
     Width = 273
     Height = 17
     Caption = 'Extract Data in New &Format'
-    TabOrder = 1
+    TabOrder = 2
   end
   inline DateSelector: TfmeDateSelector
     Left = 26
@@ -143,7 +143,7 @@ object dlgExtract: TdlgExtract
     Width = 508
     Height = 65
     BevelOuter = bvNone
-    TabOrder = 2
+    TabOrder = 1
     object Label6: TLabel
       Left = 10
       Top = 41
