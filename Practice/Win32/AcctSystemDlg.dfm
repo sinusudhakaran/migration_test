@@ -28,7 +28,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Anchors = [akRight, akBottom]
     Caption = '&OK'
     Default = True
-    TabOrder = 5
+    TabOrder = 6
     OnClick = btnOkClick
   end
   object btnCancel: TButton
@@ -39,7 +39,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
-    TabOrder = 6
+    TabOrder = 7
     OnClick = btnCancelClick
   end
   object gbType: TGroupBox
@@ -152,7 +152,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 317
       Height = 21
       Anchors = [akLeft, akBottom]
-      TabOrder = 4
+      TabOrder = 5
       Text = 'eFrom'
       OnChange = eFromChange
     end
@@ -162,7 +162,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 317
       Height = 21
       Anchors = [akLeft, akBottom]
-      TabOrder = 5
+      TabOrder = 6
       Text = 'eTo'
     end
     object btnCheckBankManID: TButton
@@ -172,7 +172,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Set &BankLink ID'
-      TabOrder = 6
+      TabOrder = 7
       OnClick = btnCheckBankManIDClick
     end
     object cmbSystem: TComboBox
@@ -218,7 +218,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 486
       Height = 29
       BevelOuter = bvNone
-      TabOrder = 7
+      TabOrder = 4
       DesignSize = (
         486
         29)
@@ -262,7 +262,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Right = 8
     Margins.Bottom = 0
     Align = alTop
-    TabOrder = 7
+    TabOrder = 2
     object Label3: TLabel
       Left = 16
       Top = 16
@@ -277,7 +277,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 21
       Style = csDropDownList
       ItemHeight = 13
-      TabOrder = 0
+      TabOrder = 1
     end
     object ckExtract: TCheckBox
       Left = 140
@@ -285,7 +285,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 126
       Height = 17
       Caption = 'Include in format:'
-      TabOrder = 1
+      TabOrder = 0
       OnClick = ckExtractClick
     end
   end
@@ -299,7 +299,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Right = 8
     Margins.Bottom = 0
     Align = alTop
-    TabOrder = 2
+    TabOrder = 3
     object Label5: TLabel
       Left = 16
       Top = 16
@@ -376,7 +376,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Right = 8
     Margins.Bottom = 0
     Align = alTop
-    TabOrder = 3
+    TabOrder = 4
     object Label4: TLabel
       Left = 16
       Top = 16
@@ -404,7 +404,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = '&Load Default'
-    TabOrder = 4
+    TabOrder = 5
     OnClick = btndefaultClick
   end
 end
