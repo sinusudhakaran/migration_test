@@ -149,7 +149,7 @@ procedure TCAFReport.FillCollumn(C : TCell);
 begin
   if C.Col = fcAccountName then
   begin
-    Values.edtNameOfAccount.Text := GetCellText(C);
+    Values.edtNameOfAccount1.Text := GetCellText(C);
     Values.AccountNumber := '';
   end
   else if C.Col = fcBSB then
@@ -163,9 +163,9 @@ begin
     fProvisional := true;
   end
   else if C.Col = fcCostCode then
-    Values.edtCostCode.Text := GetCellText(C)
+    Values.edtCostCode1.Text := GetCellText(C)
   else if C.Col = fcClientCode then
-    Values.edtClientCode.Text := GetCellText(C)
+    Values.edtClientCode1.Text := GetCellText(C)
   else if C.Col = fcMonth then
   begin
     TempMonth := GetCellText(C);
@@ -277,10 +277,10 @@ begin
   myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextBox('Name of Account', Values.edtNameOfAccount.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Name of Account', Values.edtNameOfAccount1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
-  TextBox('Client Code', Values.edtClientCode.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Client Code', Values.edtClientCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
   NewLine(3);
@@ -288,7 +288,7 @@ begin
   TextBox('Account Number', Values.AccountNumber, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
-  TextBox('Cost Code', Values.edtCostCode.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Cost Code', Values.edtCostCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
   NewLine(3);
@@ -548,15 +548,15 @@ begin
       try
         InstIndex := Values.cmbInstitution.ItemIndex;
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount.text;
+        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount1.text;
         if Institutions.DoInstituionExceptionCode(Values.AccountNumber,
                                                   TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code) = ieBOQ then
           CAFQRDataAccount.AccountNumber := Institutions.PadQueensLandAccWithZeros(Values.AccountNumber)
         else
           CAFQRDataAccount.AccountNumber := Values.AccountNumber;
 
-        CAFQRDataAccount.ClientCode    := Values.edtClientCode.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCostCode.Text;
+        CAFQRDataAccount.ClientCode    := Values.edtClientCode1.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCostCode1.Text;
         CAFQRDataAccount.SMSF          := 'N';
 
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
