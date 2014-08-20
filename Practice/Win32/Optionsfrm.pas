@@ -19,8 +19,8 @@ type
     btnCancel: TButton;
     chkCaptions: TCheckBox;
     tsEmail: TTabSheet;
-    Panel2: TPanel;
-    Panel3: TPanel;
+    pnlMAPI: TPanel;
+    pnlSMTP: TPanel;
     rbMAPI: TRadioButton;
     rbSMTP: TRadioButton;
     Label1: TLabel;
