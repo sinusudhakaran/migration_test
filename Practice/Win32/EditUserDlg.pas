@@ -395,6 +395,8 @@ begin
   FCurrentUserTypeIndex := cmbUserType.ItemIndex;
   
   formLoaded := true;
+
+  eUserCode.SetFocus;
 End;
 
 //------------------------------------------------------------------------------

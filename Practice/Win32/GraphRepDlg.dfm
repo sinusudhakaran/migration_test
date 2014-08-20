@@ -13,6 +13,7 @@ object dlgGraphRep: TdlgGraphRep
   Scaled = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   DesignSize = (
     446
     369)
@@ -26,7 +27,7 @@ object dlgGraphRep: TdlgGraphRep
     Anchors = [akRight, akBottom]
     Caption = 'Vie&w'
     Default = True
-    TabOrder = 1
+    TabOrder = 2
     OnClick = btnOKClick
   end
   object btnCancel: TButton
@@ -37,7 +38,7 @@ object dlgGraphRep: TdlgGraphRep
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnCancelClick
   end
   object btnSave: TBitBtn
@@ -47,7 +48,7 @@ object dlgGraphRep: TdlgGraphRep
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Sa&ve'
-    TabOrder = 0
+    TabOrder = 1
     OnClick = btnSaveClick
   end
   object pcGraph: TPageControl
@@ -56,7 +57,7 @@ object dlgGraphRep: TdlgGraphRep
     Width = 441
     Height = 325
     ActivePage = tsOptions
-    TabOrder = 3
+    TabOrder = 0
     object tsOptions: TTabSheet
       Caption = '&Options'
       object Panel1: TPanel

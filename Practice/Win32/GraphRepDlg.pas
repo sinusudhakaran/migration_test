@@ -73,6 +73,7 @@ type
     procedure spnStartYearChange(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure cmbBudgetChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -144,6 +145,11 @@ begin
   if Active_UI_Style = UIS_Simple then
      btnSave.Hide;
   SetUpHelp;
+end;
+//------------------------------------------------------------------------------
+procedure TdlgGraphRep.FormShow(Sender: TObject);
+begin
+  cmbStartMonth.SetFocus;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgGraphRep.SetUpHelp;
@@ -594,6 +600,7 @@ procedure TdlgGraphRep.FormDestroy(Sender: TObject);
 begin
   MonthArray := nil;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgGraphRep.cmbBudgetChange(Sender: TObject);
    procedure EnableBudget(Value: Boolean);
