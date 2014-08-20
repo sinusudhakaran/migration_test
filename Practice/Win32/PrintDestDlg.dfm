@@ -31,7 +31,7 @@ object DlgPrintDest: TDlgPrintDest
     Height = 32
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 0
+    TabOrder = 1
     DesignSize = (
       546
       32)
@@ -103,7 +103,7 @@ object DlgPrintDest: TDlgPrintDest
     Top = 0
     Width = 460
     Height = 188
-    TabOrder = 1
+    TabOrder = 0
     TabStop = True
   end
 end

@@ -5,7 +5,7 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
   ClientHeight = 440
   ClientWidth = 505
   ExplicitWidth = 511
-  ExplicitHeight = 466
+  ExplicitHeight = 468
   PixelsPerInch = 96
   TextHeight = 13
   inherited PageControl1: TPageControl
@@ -148,7 +148,7 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
         Width = 169
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 1
       end
       object chkShowNotes: TCheckBox
@@ -190,7 +190,7 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
         Width = 169
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 2
         OnChange = cmbIncludeChange
       end
@@ -263,11 +263,19 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
     end
     inherited btnOK: TButton
       Left = 345
+      TabOrder = 4
       ExplicitLeft = 345
     end
     inherited btClose: TButton
       Left = 425
+      TabOrder = 5
       ExplicitLeft = 425
+    end
+    inherited btnSave: TBitBtn
+      TabOrder = 3
+    end
+    inherited btnEmail: TButton
+      TabOrder = 2
     end
   end
 end

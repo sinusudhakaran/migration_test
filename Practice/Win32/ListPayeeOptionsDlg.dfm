@@ -25,7 +25,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Anchors = [akLeft, akBottom]
     Caption = 'Previe&w'
     Default = True
-    TabOrder = 0
+    TabOrder = 3
     OnClick = btnPreviewClick
   end
   object btnFile: TButton
@@ -35,7 +35,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Fil&e'
-    TabOrder = 1
+    TabOrder = 4
     OnClick = btnFileClick
   end
   object btnOK: TButton
@@ -45,7 +45,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = '&Print'
-    TabOrder = 3
+    TabOrder = 7
     OnClick = btnOKClick
   end
   object btnCancel: TButton
@@ -56,7 +56,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
-    TabOrder = 4
+    TabOrder = 8
     OnClick = btnCancelClick
   end
   object btnSave: TBitBtn
@@ -66,7 +66,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Sa&ve'
-    TabOrder = 2
+    TabOrder = 6
     OnClick = BtnSaveClick
   end
   object ckbRuleLineBetweenPayees: TCheckBox
@@ -75,7 +75,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Width = 280
     Height = 17
     Caption = '&Rule a line between payees'
-    TabOrder = 5
+    TabOrder = 2
   end
   object rgSortPayeesBy: TRadioGroup
     Left = 211
@@ -87,7 +87,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Items.Strings = (
       '&Name'
       'N&umber')
-    TabOrder = 6
+    TabOrder = 1
   end
   object rgReportFormat: TRadioGroup
     Left = 8
@@ -99,7 +99,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Items.Strings = (
       '&Summarised'
       '&Detailed')
-    TabOrder = 7
+    TabOrder = 0
   end
   object btnEmail: TButton
     Left = 169
@@ -108,7 +108,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'E&mail'
-    TabOrder = 8
+    TabOrder = 5
     OnClick = btnEmailClick
   end
 end
