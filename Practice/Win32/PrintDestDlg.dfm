@@ -53,7 +53,7 @@ object DlgPrintDest: TDlgPrintDest
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&Print'
-      TabOrder = 1
+      TabOrder = 4
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
@@ -64,7 +64,7 @@ object DlgPrintDest: TDlgPrintDest
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 2
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object btnFile: TButton
@@ -74,7 +74,7 @@ object DlgPrintDest: TDlgPrintDest
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Fil&e'
-      TabOrder = 3
+      TabOrder = 1
       OnClick = btnFileClick
     end
     object btnSave: TBitBtn
@@ -84,7 +84,7 @@ object DlgPrintDest: TDlgPrintDest
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'Sa&ve'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = btnSaveClick
     end
     object btnEmail: TButton
@@ -94,7 +94,7 @@ object DlgPrintDest: TDlgPrintDest
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'E&mail'
-      TabOrder = 5
+      TabOrder = 2
       OnClick = btnEmailClick
     end
   end
