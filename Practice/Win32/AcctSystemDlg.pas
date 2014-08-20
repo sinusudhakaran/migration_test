@@ -172,8 +172,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FormShow(Sender: TObject);
 begin
-  if cmbSystem.CanFocus then
-    cmbSystem.SetFocus;
+  if eTo.CanFocus then
+    eTo.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
