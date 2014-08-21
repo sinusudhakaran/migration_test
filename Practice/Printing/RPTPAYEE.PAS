@@ -12,6 +12,7 @@ uses
   PayeeObj,
   PayeeRepDlg,
   trxList32,
+  Classes,
   NewReportObj;
 
 type
@@ -19,6 +20,7 @@ type
   TPayeeSpendingReport = class(TBKReport)
   private
   protected
+    procedure GetNarration(var aNotesList : TStringList);
     procedure PutNarration(Notes: string);
     procedure FillTempTransactionList(var aTranList : TTransaction_List);
     procedure CalcPeriodStartandEndDates(aTranList : TTransaction_List;
@@ -44,7 +46,6 @@ implementation
 
 uses
   ReportTypes,
-  Classes,
   SysUtils,
   Globals,
   GenUtils,
@@ -143,8 +144,8 @@ begin
     begin
       AddColAuto(Self,cLeft,      14.0,2,'Date', jtLeft);
       AddColAuto(Self,cLeft,      10.0,2,'Reference', jtLeft);
-      AddColAuto(Self,cLeft,      13.0,2,'Narration', jtLeft);
-      AddColAuto(Self,Cleft,      21.0,2,'Account', jtLeft);
+      AddColAuto(Self,cLeft,      17.0,2,'Narration', jtLeft);
+      AddColAuto(Self,Cleft,      17.0,2,'Account', jtLeft);
       AddFormatColAuto(Self,cLeft,10.0,2,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
       AddFormatColAuto(Self,cLeft,10.0,2,'$ GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
       AddFormatColAuto(Self,cLeft,0.0,2,'$ Net',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
@@ -153,8 +154,8 @@ begin
     begin
       AddColAuto(Self,cLeft,      8.5,2,'Date', jtLeft);
       AddColAuto(Self,cLeft,      10.0,2,'Reference', jtLeft);
-      AddColAuto(Self,cLeft,      13.0,2,'Narration', jtLeft);
-      AddColAuto(Self,Cleft,      26.5,2,'Account', jtLeft);
+      AddColAuto(Self,cLeft,      19.75,2,'Narration', jtLeft);
+      AddColAuto(Self,Cleft,      19.75,2,'Account', jtLeft);
       AddFormatColAuto(Self,cLeft,10.0,2,'$ Gross',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
       AddFormatColAuto(Self,cLeft,10.0,2,'$ GST',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
       AddFormatColAuto(Self,cLeft,0.0,2,'$ Net',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
@@ -166,18 +167,16 @@ begin
     begin
       AddColAuto(Self,cLeft,      17.0,Gcgap,'Date', jtLeft);
       AddColAuto(Self,cLeft,      11.0,Gcgap,'Reference', jtLeft);
-      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-      AddColAuto(Self,Cleft,      10.0,Gcgap,'Account', jtRight);
-      AddColAuto(Self,cLeft,      20.0,Gcgap,'', jtLeft);
+      AddFormatColAuto(Self,cLeft,14.0,2,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddColAuto(Self,Cleft,      28.0,Gcgap,'Account', jtLeft);
       AddColAuto(Self,cLeft,       0.0,Gcgap,'Narration', jtLeft);
     end
     else
     begin
       AddColAuto(Self,cLeft,       8.5,Gcgap,'Date', jtLeft);
       AddColAuto(Self,cLeft,      11.5,Gcgap,'Reference', jtLeft);
-      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
-      AddColAuto(Self,cLeft,      10.0,Gcgap,'Account', jtRight);
-      AddColAuto(Self,cLeft,      20.0,Gcgap ,'', jtLeft);
+      AddFormatColAuto(Self,cLeft,14.0,2,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddColAuto(Self,cLeft,      28.0,Gcgap,'Account', jtLeft);
       AddColAuto(Self,cLeft,       0.0,Gcgap,'Narration', jtLeft);
     end;
   end;
@@ -227,6 +226,64 @@ begin
 
   Self.OnBKPrintEx := SpendingDetail;
   Generate(aDest, Params);
+end;
+
+//------------------------------------------------------------------------------
+procedure TPayeeSpendingReport.GetNarration(var aNotesList : TStringList);
+var
+  NoteIndex, ColWidth, OldWidth : Integer;
+  ColsToSkip : integer;
+  MaxNotesLines: Integer;
+begin
+  if Params.WrapNarration then
+    MaxNotesLines := 10
+  else
+    MaxNotesLines := 1;
+
+  // Remove blank lines
+  for NoteIndex := aNotesList.Count-1 downto 0 do
+    if aNotesList[NoteIndex] = '' then
+      aNotesList.Delete(NoteIndex);
+
+  if aNotesList.Count = 0 then
+    Exit;
+
+  ColsToSkip := CurrDetail.Count;
+
+  NoteIndex := 0;
+  repeat
+    ColWidth := RenderEngine.RenderColumnWidth(CurrDetail.Count, aNotesList[NoteIndex]);
+
+    if (ColWidth < Length(aNotesList[NoteIndex])) then
+    begin
+      //line needs to be split
+      OldWidth := ColWidth; //store
+
+      while ((ColWidth > 0) and (aNotesList[NoteIndex][ColWidth] <> ' ')) do
+      begin
+        Dec(ColWidth);
+      end;
+
+      if (ColWidth = 0) then
+        ColWidth := OldWidth; //unexpected!
+
+      aNotesList.Insert(NoteIndex + 1,
+                        Copy(aNotesList[NoteIndex],
+                        ColWidth + 1,
+                        Length(aNotesList[NoteIndex]) - ColWidth + 1));
+
+      aNotesList[NoteIndex] := Copy(aNotesList[NoteIndex], 1, ColWidth);
+    end;
+
+    Inc(NoteIndex);
+  until ( NoteIndex >= aNotesList.Count) or ( NoteIndex >= MaxNotesLines);
+
+  if aNotesList.count > MaxNotesLines then
+  begin
+    for NoteIndex := aNotesList.count-1 downto MaxNotesLines do
+      aNotesList.Delete(NoteIndex);
+  end;
+  
 end;
 
 //------------------------------------------------------------------------------
@@ -482,12 +539,7 @@ var
     if aAccount = '' then
       SkipColumn
     else
-      PutString(aAccount);
-
-    if aAccDesc = '' then
-      SkipColumn
-    else
-      PutString(aAccDesc);
+      PutString(aAccount + ' ' + aAccDesc);
 
     if aNarration = '' then
       SkipColumn
@@ -500,35 +552,64 @@ var
                                     aName, aNarration, aAccount, aAccDesc : string;
                                     aPeriodGST, aPeriodTotal : Money;
                                     aPutMoneyDontAdd : boolean);
+  var
+    NotesList : TStringList;
+    NoteIndex : integer;
   begin
-    if aPeriodEndDate = 0 then
-      PutString(bkDate2Str( aPeriodStartDate))
-    else
-      PutString(bkDate2Str( aPeriodStartDate) + ' - ' + bkDate2Str( aPeriodEndDate));
+    NotesList := TStringList.Create();
+    try
+      NotesList.Text := aNarration;
+      GetNarration(NotesList);
 
-    PutString(aName);
+      if aPeriodEndDate = 0 then
+        PutString(bkDate2Str( aPeriodStartDate))
+      else
+        PutString(bkDate2Str( aPeriodStartDate) + ' - ' + bkDate2Str( aPeriodEndDate));
 
-    if aNarration = '' then
-      SkipColumn
-    else
-      PutNarration(aNarration);
+      PutString(aName);
 
-    if aAccount = '' then
-      SkipColumn
-    else
-      PutString(aAccount + ' ' + aAccDesc);
+      if (NotesList.count = 0) or
+         (NotesList.Strings[0] = '') then
+        SkipColumn
+      else
+        PutString(NotesList.Strings[0]);
 
-    if aPutMoneyDontAdd then
-    begin
-      PutMoneyDontAdd(aPeriodTotal);
-      PutMoneyDontAdd(aPeriodGST);
-      PutMoneyDontAdd(aPeriodTotal-aPeriodGST);
-    end
-    else
-    begin
-      PutMoney(aPeriodTotal);
-      PutMoney(aPeriodGST);
-      PutMoney(aPeriodTotal-aPeriodGST);
+      if aAccount = '' then
+        SkipColumn
+      else
+        PutString(aAccount + ' ' + aAccDesc);
+
+      if aPutMoneyDontAdd then
+      begin
+        PutMoneyDontAdd(aPeriodTotal);
+        PutMoneyDontAdd(aPeriodGST);
+        PutMoneyDontAdd(aPeriodTotal-aPeriodGST);
+      end
+      else
+      begin
+        PutMoney(aPeriodTotal);
+        PutMoney(aPeriodGST);
+        PutMoney(aPeriodTotal-aPeriodGST);
+      end;
+
+      if (NotesList.count > 1) then
+      begin
+
+        for NoteIndex := 1 to NotesList.count-1 do
+        begin
+          RenderDetailLine;
+          SkipColumn;
+          SkipColumn;
+          PutString(NotesList.Strings[NoteIndex]);
+          SkipColumn;
+          SkipColumn;
+          SkipColumn;
+          SkipColumn;
+        end;
+      end;
+
+    finally
+      FreeAndNil(NotesList);
     end;
   end;
 
@@ -647,8 +728,8 @@ Begin
                                       IncludeAllDissectionLines)
             else
               RenderAmountLine(pTranRec^.txDate_Effective, 0, Reference,
-                               pDisRec^.dsTemp_Base_Amount, pDisRec^.dsGL_Narration,
-                               pDisRec^.dsAccount, AccDescStr, IncludeAllDissectionLines);
+                               pDisRec^.dsTemp_Base_Amount, pDisRec^.dsAccount, AccDescStr,
+                               pDisRec^.dsGL_Narration, IncludeAllDissectionLines);
 
             if not IncludeAllDissectionLines then
               AddToTotals(pDisRec^.dsGST_Amount, pDisRec^.dsTemp_Base_Amount);
@@ -678,8 +759,8 @@ Begin
                                     false)
           else
             RenderAmountLine(pTranRec^.txDate_Effective, 0, GetFormattedReference(pTranRec),
-                             pTranRec^.txTemp_Base_Amount, pTranRec^.txGL_Narration,
-                             pTranRec^.txAccount, AccDescStr, false);
+                             pTranRec^.txTemp_Base_Amount, pTranRec^.txAccount, AccDescStr,
+                             pTranRec^.txGL_Narration, false);
 
           RenderDetailLine;
 
