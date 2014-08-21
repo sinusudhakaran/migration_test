@@ -48,7 +48,7 @@ type
     pnlDivision: TPanel;
     lblDivision: TLabel;
     cmbDivision: TComboBox;
-    Panel2: TPanel;
+    pnlCheckboxes: TPanel;
     chkChartCodes: TCheckBox;
     chkGST: TCheckBox;
     PnlBudget: TPanel;
@@ -438,7 +438,7 @@ begin
     MyDlg.FClient := Params.Client;
     Mydlg.Caption := Title;
     Mydlg.ProfitRptParameters := Params;
-    MyDlg.Panel2.Visible := ShowChartCodesGST;
+    MyDlg.pnlCheckboxes.Visible := ShowChartCodesGST;
     MyDlg.pnlDateSelection.Visible := ShowDateSelection;
     MyDlg.chkGST.Caption := '&' + Params.Client.TaxSystemNameUC + ' Inclusive';
     if Params.Client.clFields.clCountry = whUK then
@@ -450,7 +450,7 @@ begin
          MyDlg.cbPercentage.Checked := params.PercentageIncome
       else begin
          MyDlg.cbPercentage.Visible := False;
-         MyDlg.Panel2.Height := MyDlg.Panel2.Height - 20;
+         MyDlg.pnlCheckboxes.Height := MyDlg.pnlCheckboxes.Height - 20;
          MyDlg.Height := MyDlg.Height - 20;
       end;
 
@@ -498,8 +498,8 @@ begin
          if MyDlg.cmbBudget.Items.Count > 0 then
            MyDlg.cmbBudget.ItemIndex := 0;
     end else begin
-       MyDlg.PnlBudget.Visible := False;
-       MyDlg.Panel2.Top := MyDlg.Panel2.Top - 44;
+       MyDlg.pnlBudget.Visible := False;
+       // Note: it is not necessary to set Top on top aligned panels
        MyDlg.Height := MyDlg.Height - 44;
     end;
 
