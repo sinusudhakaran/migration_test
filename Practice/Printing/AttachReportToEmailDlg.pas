@@ -28,6 +28,7 @@ type
     cmbFormat: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
+    procedure cmbFormatChange(Sender: TObject);
   private
   public
     procedure Init(const aFileFormats: TFileFormatSet; const aDefault: integer);
@@ -148,6 +149,25 @@ begin
   end;
 
   ModalResult := mrOk;
+end;
+
+//------------------------------------------------------------------------------
+procedure TAttachReportToEmailFrm.cmbFormatChange(Sender: TObject);
+var
+  rfIndex: integer;
+  sOldExtn: string;
+  sNewExtn: string;
+begin
+  if (cmbFormat.ItemIndex = -1) then
+    exit;
+
+  rfIndex := Integer(cmbFormat.Items.Objects[cmbFormat.ItemIndex]);
+  ASSERT((rfMin <= rfIndex) and (rfIndex <= rfMax));
+
+  sOldExtn := ExtractFileExt(edtReportName.Text);
+  sNewExtn := rfFileExtn[rfIndex];
+
+  edtReportName.Text := StringReplace(edtReportName.Text, sOldExtn, sNewExtn, []);
 end;
 
 

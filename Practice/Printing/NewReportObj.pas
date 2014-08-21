@@ -577,15 +577,15 @@ var
 
   procedure DoEmail;
   var
-    sReportName: string;
     iReportFormat: integer;
+    sReportName: string;
     sFileName: string;
     sRecipient: string;
     Attachments: TStringList;
   begin
     // User cancel?
-    sReportName := FUserReportSettings.s7Report_Name + '.PDF';
     iReportFormat := rfPDF;
+    sReportName := FUserReportSettings.s7Report_Name + rfFileExtn[iReportFormat];
     if not ShowAttachReportToEmailFrm(Application.MainForm, FileFormats,
       sReportName, iReportFormat) then
     begin

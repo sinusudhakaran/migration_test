@@ -70,5 +70,6 @@ object AttachReportToEmailFrm: TAttachReportToEmailFrm
     Style = csDropDownList
     ItemHeight = 13
     TabOrder = 0
+    OnChange = cmbFormatChange
   end
 end
