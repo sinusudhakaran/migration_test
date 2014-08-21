@@ -33,7 +33,8 @@ type
     fMemsV2: TMemsV2;
 
     function GetLastCodingFrmKeyPress: TDateTime;
-    procedure GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos, LastCandidatePos: integer);
+    function GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos,
+                                       LastCandidatePos: integer): boolean;
   public
     constructor Create(const aBankAccounts: TBank_Account_List); reintroduce; overload;
     constructor Create(const aBankAccount: TBank_Account); reintroduce; overload;
@@ -169,9 +170,11 @@ end;
 // Pass in a Statement Details string, and this procedure will put the position of the
 // first matching Candidate into FirstCandidate and the last into LastCandidate.
 // Uses a binary search as the Candidates should be in alphabetical order according to
-// the contents of their Statement Details field
-procedure TRecommended_Mems.GetMatchingCandidateRange(StatementDetails: string;
-                                                      var FirstCandidatePos, LastCandidatePos: integer);
+// the contents of their Statement Details field.
+// Returns false if there has been an error and the resetall procedure has to be called,
+// see below.
+function TRecommended_Mems.GetMatchingCandidateRange(StatementDetails: string;
+                                                     var FirstCandidatePos, LastCandidatePos: integer): boolean;
 var
   First, Last, Pivot, FoundMatchPosition: integer;
   Found: boolean;
@@ -179,67 +182,83 @@ var
   SearchedStatementDetails: string;
   StringCompareInt: integer;
 begin
-  FirstCandidatePos := -1;
-  LastCandidatePos  := -1;
+  Result := True;
+  try
+    FirstCandidatePos := -1;
+    LastCandidatePos  := -1;
 
-  CandidateList := Candidates;
-  First := CandidateList.First;
-  Last := CandidateList.Last;
-  Found := False;
+    CandidateList := Candidates;
+    First := CandidateList.First;
+    Last := CandidateList.Last;
+    Found := False;
 
-  // Find a Candidate whose Statement Details matched those we have passed in
-  FoundMatchPosition := -1;
-  while (First <= Last) and (not Found) and (Last <> -1) do
-  begin
-    // Get the middle of the range
-    Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
-    SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
-    // Compare the string in the middle with the searched one (case insensitive)
-    StringCompareInt := CompareText(SearchedStatementDetails, StatementDetails);
-    if (UpperCase(SearchedStatementDetails) = UpperCase(StatementDetails)) then
+    // Find a Candidate whose Statement Details matched those we have passed in
+    FoundMatchPosition := -1;
+    while (First <= Last) and (not Found) and (Last <> -1) do
     begin
-      Found := True;
-      FoundMatchPosition := Pivot;
-    end
-    else if (StringCompareInt > 0) then
-      // Now we'll search within the first half
-      Last := Pivot - 1
-    else
-      // Now we'll search within the second half
-      First := Pivot + 1;
-  end;
+      // Get the middle of the range
+      Pivot := (First + Last) shr 1; // shr = shift right 1 (equivalent to div 2)
+      SearchedStatementDetails := CandidateList.Candidate_Mem_At(Pivot).cmFields.cmStatement_Details;
+      // Compare the string in the middle with the searched one (case insensitive)
+      StringCompareInt := CompareText(SearchedStatementDetails, StatementDetails);
+      if (UpperCase(SearchedStatementDetails) = UpperCase(StatementDetails)) then
+      begin
+        Found := True;
+        FoundMatchPosition := Pivot;
+      end
+      else if (StringCompareInt > 0) then
+        // Now we'll search within the first half
+        Last := Pivot - 1
+      else
+        // Now we'll search within the second half
+        First := Pivot + 1;
+    end;
 
-  if FoundMatchPosition = -1 then
-    Exit; // there are no matching candidates
+    if FoundMatchPosition = -1 then
+      Exit; // there are no matching candidates
 
-  // In a normal binary search we would be done, but in our case there may be several
-  // matching candidates (we wouldn't expect there to be too many), and we need to
-  // know about them all. So let's find the positions of the first and last candidates
+    // In a normal binary search we would be done, but in our case there may be several
+    // matching candidates (we wouldn't expect there to be too many), and we need to
+    // know about them all. So let's find the positions of the first and last candidates
 
-  // We go back through the list, from the position of the matching candidate we found,
-  // until we find the first matching candidate, store the position of the first match
-  // as FirstCandidatePos, which will be used in the Recommended Mem logic
-  FirstCandidatePos := FoundMatchPosition;
-  while (FirstCandidatePos > First) do
-  begin
-    if (CompareText(CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details,
-                        StatementDetails) = 0) then
-      FirstCandidatePos := FirstCandidatePos - 1
-    else
-      Break;
-  end;
+    // We go back through the list, from the position of the matching candidate we found,
+    // until we find the first matching candidate, store the position of the first match
+    // as FirstCandidatePos, which will be used in the Recommended Mem logic
+    FirstCandidatePos := FoundMatchPosition;
+    while (FirstCandidatePos > First) do
+    begin
+      if (CompareText(CandidateList.Candidate_Mem_At(FirstCandidatePos - 1).cmFields.cmStatement_Details,
+                          StatementDetails) = 0) then
+        FirstCandidatePos := FirstCandidatePos - 1
+      else
+        Break;
+    end;
 
-  // Now we go forward through the list, from the position of the matching candidate we
-  // found, until we find the last matching candidate, store the position of the last
-  // match as LastCandidatePos, which will be used in the Recommended Mem logic
-  LastCandidatePos := FoundMatchPosition;
-  while (LastCandidatePos < Last) do
-  begin
-    if (CompareText(CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details,
-                        StatementDetails) = 0) then
-      LastCandidatePos := LastCandidatePos + 1
-    else
-      Break;
+    // Now we go forward through the list, from the position of the matching candidate we
+    // found, until we find the last matching candidate, store the position of the last
+    // match as LastCandidatePos, which will be used in the Recommended Mem logic
+    LastCandidatePos := FoundMatchPosition;
+    while (LastCandidatePos < Last) do
+    begin
+      if (CompareText(CandidateList.Candidate_Mem_At(LastCandidatePos + 1).cmFields.cmStatement_Details,
+                          StatementDetails) = 0) then
+        LastCandidatePos := LastCandidatePos + 1
+      else
+        Break;
+    end;
+  finally
+    // If either of these values are -1, a mistake has been made when generating the candidate
+    // list, so we now need to rebuild it. A code change has been made to fix the only known
+    // source of such a mistake, see Scenario 88339
+    if (FirstCandidatePos = -1) or (LastCandidatePos = -1) then
+    begin
+      if Assigned(MyClient) then
+      begin
+        MyClient.clRecommended_Mems.ResetAll;
+        MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
+      end;
+      Result := False;
+    end;
   end;
 end;
 
@@ -535,8 +554,10 @@ var
          (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
       begin
 //        Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
-        GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
-                                  FirstCandidatePos, LastCandidatePos);
+        if not GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
+                                         FirstCandidatePos, LastCandidatePos) then
+          Exit;
+
         // Checking for exclusions: does the key exist in the candidate list with a
         // different code (including dissections, which will always have the code
         // 'DISSECT' and thus be excluded when we compare account codes, as our
@@ -557,9 +578,15 @@ var
           begin
             for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
             begin
-              Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
-              if AddMemorisationIfUnique(Account, CandidateMem1, FirstCandidatePos, LastCandidatePos) then
-                Break;
+              try
+                Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
+                if AddMemorisationIfUnique(Account, CandidateMem1, FirstCandidatePos, LastCandidatePos) then
+                  Break;
+              except
+                ShowMessage('Account = ' + Account.baFields.baBank_Account_Number + ', ' +
+                            'FirstCandidatePos = ' + IntToStr(FirstCandidatePos) + ', ' +
+                            'LastCandidatePos = ' + IntToStr(LastCandidatePos));
+              end;
             end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
           end; // if RunningUnitTest
         end; // if not ExclusionFound
@@ -786,9 +813,10 @@ begin
   // * Account Code
   // * Statement Details
   Account := TBank_Account(TranRec.txBank_Account);
-  GetMatchingCandidateRange(TranRec.txStatement_Details,
-                            FirstCandidatePos,
-                            LastCandidatePos);
+  if not GetMatchingCandidateRange(TranRec.txStatement_Details,
+                                   FirstCandidatePos,
+                                    LastCandidatePos) then
+    Exit;
   MatchingCandidatePos := -1;
   if (FirstCandidatePos > -1) then
   begin
