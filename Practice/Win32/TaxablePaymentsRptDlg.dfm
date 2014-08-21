@@ -327,7 +327,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Top = 216
       Width = 110
       Height = 25
-      Caption = 'Save Te&mplate'
+      Caption = 'Sa&ve Template'
       TabOrder = 1
       OnClick = btnSaveTemplateClick
     end
