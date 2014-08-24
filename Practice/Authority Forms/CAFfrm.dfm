@@ -5,7 +5,7 @@ object frmCAF: TfrmCAF
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Client Authority Form'
-  ClientHeight = 740
+  ClientHeight = 706
   ClientWidth = 783
   Color = clBtnFace
   Constraints.MinWidth = 350
@@ -26,12 +26,13 @@ object frmCAF: TfrmCAF
   TextHeight = 13
   object Panel6: TPanel
     Left = 0
-    Top = 699
+    Top = 665
     Width = 783
     Height = 41
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 1
+    ExplicitTop = 699
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -169,17 +170,19 @@ object frmCAF: TfrmCAF
     ParentBackground = False
     TabOrder = 0
     object pnlInstTop: TPanel
-      Left = 0
-      Top = 0
-      Width = 763
+      Left = 3
+      Top = 2
+      Width = 757
       Height = 80
-      Align = alTop
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      BevelWidth = 2
       Color = clWhite
       ParentBackground = False
       TabOrder = 0
       DesignSize = (
-        763
-        80)
+        753
+        76)
       object lblInstitution: TLabel
         Left = 24
         Top = 13
@@ -207,9 +210,9 @@ object frmCAF: TfrmCAF
         ParentFont = False
       end
       object cmbInstitution: TComboBox
-        Left = 153
+        Left = 148
         Top = 10
-        Width = 350
+        Width = 336
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -222,11 +225,12 @@ object frmCAF: TfrmCAF
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
+        ExplicitWidth = 338
       end
       object edtInstitutionName: TEdit
-        Left = 153
+        Left = 148
         Top = 10
-        Width = 350
+        Width = 344
         Height = 24
         TabStop = False
         Anchors = [akLeft, akTop, akRight]
@@ -241,11 +245,12 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 2
         Visible = False
+        ExplicitWidth = 346
       end
       object edtBranch: TEdit
-        Left = 153
+        Left = 148
         Top = 45
-        Width = 350
+        Width = 344
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -259,14 +264,14 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 1
         OnExit = edt1Exit
+        ExplicitWidth = 346
       end
     end
     object pnlInstitution: TPanel
       Left = 0
-      Top = 80
+      Top = 85
       Width = 763
       Height = 377
-      Align = alTop
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = 11
@@ -277,18 +282,22 @@ object frmCAF: TfrmCAF
       object pnlInstData1: TPanel
         Left = 145
         Top = 1
-        Width = 617
+        Width = 615
         Height = 120
+        BevelEdges = [beTop, beRight, beBottom]
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        BevelWidth = 2
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
         DesignSize = (
-          617
-          120)
+          613
+          116)
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 604
+          Width = 598
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -302,6 +311,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           ParentColor = False
           ParentFont = False
+          ExplicitWidth = 604
         end
         object lblClientCode1: TLabel
           Left = 375
@@ -346,7 +356,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -360,11 +370,12 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 0
           OnEnter = edt1Exit
+          ExplicitWidth = 346
         end
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -382,11 +393,12 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber1MouseDown
           OnValidateError = mskAccountNumber1ValidateError
           OnValidateEdit = mskAccountNumber1ValidateEdit
+          ExplicitWidth = 346
         end
         object edtAccountNumber1: TEdit
           Left = 8
           Top = 65
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -400,11 +412,12 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 4
           OnExit = edtAccountNumber1Exit
+          ExplicitWidth = 346
         end
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 137
+          Width = 131
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -419,11 +432,12 @@ object frmCAF: TfrmCAF
           TabOrder = 1
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
+          ExplicitWidth = 133
         end
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 137
+          Width = 131
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -438,13 +452,19 @@ object frmCAF: TfrmCAF
           TabOrder = 3
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
+          ExplicitWidth = 133
         end
       end
       object pnlInstLabels1: TPanel
         Left = 3
-        Top = -1
+        Top = 1
         Width = 144
         Height = 120
+        BevelEdges = [beLeft, beTop, beBottom]
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        BevelWidth = 2
+        BorderWidth = 1
         Color = clWhite
         ParentBackground = False
         TabOrder = 4
@@ -478,19 +498,22 @@ object frmCAF: TfrmCAF
       object pnlInstData2: TPanel
         Left = 145
         Top = 125
-        Width = 617
+        Width = 615
         Height = 120
         BevelEdges = [beTop, beRight, beBottom]
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        BevelWidth = 2
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
         DesignSize = (
-          617
-          120)
+          613
+          116)
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 604
+          Width = 598
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -547,9 +570,9 @@ object frmCAF: TfrmCAF
           ParentFont = False
         end
         object edtNameOfAccount2: TEdit
-          Left = 6
+          Left = 8
           Top = 10
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -562,11 +585,12 @@ object frmCAF: TfrmCAF
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          ExplicitWidth = 346
         end
         object mskAccountNumber2: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -577,11 +601,19 @@ object frmCAF: TfrmCAF
           Font.Style = []
           ParentFont = False
           TabOrder = 2
+          OnChange = mskAccountNumber2Change
+          OnEnter = mskAccountNumber2Enter
+          OnExit = mskAccountNumber2Exit
+          OnKeyUp = mskAccountNumber2KeyUp
+          OnMouseDown = mskAccountNumber2MouseDown
+          OnValidateError = mskAccountNumber2ValidateError
+          OnValidateEdit = mskAccountNumber2ValidateEdit
+          ExplicitWidth = 346
         end
         object edtAccountNumber2: TEdit
-          Left = 6
+          Left = 8
           Top = 65
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -595,11 +627,12 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 4
           OnExit = edtAccountNumber2Exit
+          ExplicitWidth = 346
         end
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 137
+          Width = 131
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -612,11 +645,12 @@ object frmCAF: TfrmCAF
           MaxLength = 8
           ParentFont = False
           TabOrder = 1
+          ExplicitWidth = 133
         end
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 137
+          Width = 131
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -629,14 +663,18 @@ object frmCAF: TfrmCAF
           MaxLength = 10
           ParentFont = False
           TabOrder = 3
+          ExplicitWidth = 133
         end
       end
       object pnlInstLabels2: TPanel
-        Left = 1
+        Left = 3
         Top = 125
         Width = 144
         Height = 120
         BevelEdges = [beLeft, beTop, beBottom]
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        BevelWidth = 2
         Color = clWhite
         ParentBackground = False
         TabOrder = 0
@@ -669,20 +707,23 @@ object frmCAF: TfrmCAF
       end
       object pnlInstData3: TPanel
         Left = 145
-        Top = 251
-        Width = 617
+        Top = 249
+        Width = 615
         Height = 120
         BevelEdges = [beTop, beRight, beBottom]
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        BevelWidth = 2
         Color = clWhite
         ParentBackground = False
         TabOrder = 3
         DesignSize = (
-          617
-          120)
+          613
+          116)
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 604
+          Width = 598
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -739,9 +780,9 @@ object frmCAF: TfrmCAF
           ParentFont = False
         end
         object edtNameOfAccount3: TEdit
-          Left = 6
+          Left = 8
           Top = 10
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -754,11 +795,12 @@ object frmCAF: TfrmCAF
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          ExplicitWidth = 346
         end
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -769,12 +811,19 @@ object frmCAF: TfrmCAF
           Font.Style = []
           ParentFont = False
           TabOrder = 2
+          OnChange = mskAccountNumber3Change
+          OnEnter = mskAccountNumber3Enter
+          OnExit = mskAccountNumber3Exit
+          OnKeyUp = mskAccountNumber3KeyUp
+          OnMouseDown = mskAccountNumber3MouseDown
           OnValidateError = mskAccountNumber3ValidateError
+          OnValidateEdit = mskAccountNumber3ValidateEdit
+          ExplicitWidth = 346
         end
         object edtAccountNumber3: TEdit
-          Left = 6
+          Left = 8
           Top = 65
-          Width = 350
+          Width = 344
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -788,11 +837,12 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 4
           OnExit = edtAccountNumber3Exit
+          ExplicitWidth = 346
         end
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 137
+          Width = 131
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -806,11 +856,12 @@ object frmCAF: TfrmCAF
           ParentFont = False
           TabOrder = 1
           OnKeyPress = edt3KeyPress
+          ExplicitWidth = 133
         end
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 137
+          Width = 131
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -824,14 +875,18 @@ object frmCAF: TfrmCAF
           ParentFont = False
           TabOrder = 3
           OnKeyPress = edt3KeyPress
+          ExplicitWidth = 133
         end
       end
       object pnlInstLabels3: TPanel
-        Left = 1
-        Top = 251
+        Left = 3
+        Top = 249
         Width = 144
         Height = 120
         BevelEdges = [beLeft, beTop, beBottom]
+        BevelKind = bkFlat
+        BevelOuter = bvNone
+        BevelWidth = 2
         Color = clWhite
         ParentBackground = False
         TabOrder = 5
@@ -993,17 +1048,15 @@ object frmCAF: TfrmCAF
     end
     object pnlClient: TPanel
       Left = 0
-      Top = 455
+      Top = 458
       Width = 763
-      Height = 28
-      Align = alBottom
+      Height = 30
       TabOrder = 2
       object pnlClientLabel: TPanel
         Left = 1
-        Top = 1
+        Top = 5
         Width = 144
-        Height = 26
-        Align = alLeft
+        Height = 28
         Color = clWhite
         ParentBackground = False
         TabOrder = 0
@@ -1023,10 +1076,9 @@ object frmCAF: TfrmCAF
       end
       object pnlClientData: TPanel
         Left = 145
-        Top = 1
+        Top = 5
         Width = 273
-        Height = 26
-        Align = alClient
+        Height = 28
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
@@ -1067,11 +1119,12 @@ object frmCAF: TfrmCAF
         Left = 418
         Top = 1
         Width = 344
-        Height = 26
+        Height = 28
         Align = alRight
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
+        ExplicitHeight = 26
       end
     end
   end

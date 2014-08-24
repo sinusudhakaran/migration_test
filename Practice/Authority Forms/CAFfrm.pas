@@ -134,10 +134,31 @@ type
     procedure mskAccountNumber3ValidateError(var aRaiseError: Boolean);
     procedure edtAccountNumber3Exit(Sender: TObject);
     procedure edtAccountNumber2Exit(Sender: TObject);
+    procedure mskAccountNumber2Change(Sender: TObject);
+    procedure mskAccountNumber2Enter(Sender: TObject);
+    procedure mskAccountNumber2Exit(Sender: TObject);
+    procedure mskAccountNumber2KeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure mskAccountNumber2MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure mskAccountNumber2ValidateEdit(var aRunExistingValidate: Boolean);
+    procedure mskAccountNumber2ValidateError(var aRaiseError: Boolean);
+    procedure mskAccountNumber3Change(Sender: TObject);
+    procedure mskAccountNumber3Enter(Sender: TObject);
+    procedure mskAccountNumber3Exit(Sender: TObject);
+    procedure mskAccountNumber3KeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure mskAccountNumber3MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure mskAccountNumber3ValidateEdit(var aRunExistingValidate: Boolean);
   private
-    fValidAccount : boolean;
+    fValidAccount1 : boolean;
+    fValidAccount2 : boolean;
+    fValidAccount3 : boolean;
     fAccountNumber : string;
-    fMaskBsb : String;
+    fMaskBsb1 : String;
+    fMaskBsb2 : String;
+    fMaskBsb3 : String;
     fOldInstName : string;
 
     fValidateError : boolean;
@@ -149,7 +170,10 @@ type
     fInstitutionType : TInstitutionType;
     fCurrentDisplayError : string;
 
-    procedure MaskValidateAccNumber();
+    procedure MaskValidateAccNumber(AccountNumText: string; WhichAccount: integer);
+    procedure MaskValidateAccNumber1();
+    procedure MaskValidateAccNumber2();
+    procedure MaskValidateAccNumber3();
     procedure SetInstitutionControls(aInstitutionType : TInstitutionType);
     procedure RemovePanelBorders();
 
@@ -161,7 +185,8 @@ type
     procedure SetDataSentToClient(aEnabled : boolean);
     procedure SetExistingClient(aEnabled : boolean);
 
-    function ValidateAccount(aAccountNumber : string; var aFailedReason : string; var aShowDlg : boolean) : boolean;
+    function ValidateAccount(aAccountNumber : string; WhichAccount: integer; var aFailedReason : string;
+                             var aShowDlg : boolean) : boolean;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -169,7 +194,7 @@ type
     property PracticeCode : string read fPracticeCode write fPracticeCode;
     property PracticeName : string read fPracticeName write fPracticeName;
 
-    property ValidAccount  : boolean read fValidAccount  write fValidAccount;
+    property ValidAccount1  : boolean read fValidAccount1  write fValidAccount1;
     property AccountNumber : string  read fAccountNumber write fAccountNumber;
     property InstitutionType : TInstitutionType read fInstitutionType write fInstitutionType;
   end;
@@ -203,9 +228,13 @@ var
   Index : integer;
   SortList : TStringList;
 begin
-  fValidAccount := false;
+  fValidAccount1 := false;
+  fValidAccount2 := false;
+  fValidAccount3 := false;
   fAccountNumber := '';
-  fMaskBsb := '';
+  fMaskBsb1 := '';
+  fMaskBsb2 := '';
+  fMaskBsb3 := '';
   fMaskHint := TMaskHint.create;
 
   RemovePanelBorders;
@@ -309,13 +338,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TfrmCAF.ValidateAccount(aAccountNumber : string; var aFailedReason : string; var aShowDlg : boolean) : boolean;
+function TfrmCAF.ValidateAccount(aAccountNumber : string; WhichAccount: integer; var aFailedReason : string; var aShowDlg : boolean) : boolean;
 var
   InstCode : string;
   AccNumber : string;
+  AccNumberText : string;
+
+  procedure SetValidAccount(Value: boolean);
+  begin
+    case WhichAccount of
+      1: fValidAccount1 := false;
+      2: fValidAccount2 := false;
+      3: fValidAccount3 := false;
+    end;
+  end;
+
 begin
   Result := false;
-  fValidAccount := false;
+  SetValidAccount(false);
   fAccountNumber := '';
   aShowDlg := true;
 
@@ -328,14 +368,19 @@ begin
     begin
       AccNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
       fAccountNumber := AccNumber;
-      fValidAccount := true;
+      SetValidAccount(true);
       Result := true;
       Exit;
     end;
   end;
 
   // Check if there is any data entered
-  if length(fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text), fMaskBsb)) = 0 then
+  case WhichAccount of
+    1: AccNumberText := mskAccountNumber1.Text;
+    2: AccNumberText := mskAccountNumber2.Text;
+    3: AccNumberText := mskAccountNumber3.Text;
+  end;
+  if length(fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(AccNumberText), fMaskBsb1)) = 0 then
   begin
     aFailedReason := 'Please enter an Account Number.';
     aShowDlg := false;
@@ -367,7 +412,7 @@ begin
 
     if Result then
     begin
-      fValidAccount := true;
+      SetValidAccount(true);
       fAccountNumber := AccNumber;
     end;
     aShowDlg := true;
@@ -376,6 +421,14 @@ end;
 
 //------------------------------------------------------------------------------
 function TfrmCAF.ValidateForm: Boolean;
+
+  procedure ShowAccValidationError(AccNumberText: string);
+  begin
+    ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
+                               trim(fMaskHint.RemoveUnusedCharsFromAccNumber(AccNumberText)),
+                               fCurrentDisplayError);
+  end;
+
 begin
   Result := True;
 
@@ -412,26 +465,38 @@ begin
   end;
 
   //Account Validation
-  if (Result) and (fValidAccount = false) and (fInstitutionType = inBLO) then
+  if (Result) and (fInstitutionType = inBLO) and not (fValidAccount1 and fValidAccount2 and fValidAccount3) then
   begin
     if length(fCurrentDisplayError) > 0 then
     begin
-      ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
-                                 trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.EditText)),
-                                 fCurrentDisplayError);
+      // TODO: should show one error for all accounts, not a separate error for each one
+      if (fValidAccount1 = false) then
+        ShowAccValidationError(mskAccountNumber1.EditText);
+      if (fValidAccount2 = false) then
+        ShowAccValidationError(mskAccountNumber2.EditText);
+      if (fValidAccount3 = false) then
+        ShowAccValidationError(mskAccountNumber3.EditText);      
     end
     else
     begin
-      MaskValidateAccNumber();
-      if fValidAccount = false then
-        ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
-                                   trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.EditText)),
-                                   fCurrentDisplayError);
+      MaskValidateAccNumber1();
+      if fValidAccount1 = false then
+        ShowAccValidationError(mskAccountNumber1.EditText);
     end;
 
-    if fValidAccount = false then
+    if fValidAccount1 = false then
     begin
       mskAccountNumber1.SetFocus;
+      Result := False;
+    end else
+    if fValidAccount2 = false then
+    begin
+      mskAccountNumber2.SetFocus;
+      Result := False;
+    end else
+    if fValidAccount3 = false then
+    begin
+      mskAccountNumber3.SetFocus;
       Result := False;
     end;
   end;
@@ -471,7 +536,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumber1Change(Sender: TObject);
 begin
-  fValidAccount := false;
+  fValidAccount1 := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -482,40 +547,64 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCAF.MaskValidateAccNumber();
+procedure TfrmCAF.MaskValidateAccNumber(AccountNumText: string; WhichAccount: integer);
 var
   FailedReason : string;
   ShowDlg : boolean;
 begin
   // Calls Validation on Exit of Account Number Control
   fCurrentDisplayError := '';
-  lblMaskErrorHint1.Caption := '';
-  if not ValidateAccount(mskAccountNumber1.EditText, FailedReason, ShowDlg) then
+  case WhichAccount of
+    1: lblMaskErrorHint1.Caption := '';
+    2: lblMaskErrorHint2.Caption := '';
+    3: lblMaskErrorHint3.Caption := '';
+  end;
+  if not ValidateAccount(AccountNumText, 1, FailedReason, ShowDlg) then
   begin
     if ShowDlg then
     begin
       ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
-                                 trim(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.EditText)),
-                                 FailedReason);
+                                 trim(fMaskHint.RemoveUnusedCharsFromAccNumber(AccountNumText)), FailedReason);
     end
     else
     begin
-      lblMaskErrorHint1.Caption := FailedReason;
+      case WhichAccount of
+        1: lblMaskErrorHint1.Caption := FailedReason;
+        2: lblMaskErrorHint2.Caption := FailedReason;
+        3: lblMaskErrorHint3.Caption := FailedReason;
+      end;
     end;
 
     fCurrentDisplayError := FailedReason;
   end;
 
-  lblAccountHintLine1.Repaint;
-  lblAccountHintLine2.Repaint;
-  lblAccountHintLine3.Repaint;
+  case WhichAccount of
+    1: lblAccountHintLine1.Repaint;
+    2: lblAccountHintLine2.Repaint;
+    3: lblAccountHintLine3.Repaint;
+  end;
   fValidateError := false;
+end;
+
+procedure TfrmCAF.MaskValidateAccNumber1;
+begin
+  MaskValidateAccNumber(mskAccountNumber1.EditText, 1);
+end;
+
+procedure TfrmCAF.MaskValidateAccNumber2;
+begin
+  MaskValidateAccNumber(mskAccountNumber2.EditText, 2);
+end;
+
+procedure TfrmCAF.MaskValidateAccNumber3;
+begin
+  MaskValidateAccNumber(mskAccountNumber3.EditText, 3);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumber1Exit(Sender: TObject);
 begin
-  MaskValidateAccNumber();
+  MaskValidateAccNumber1();
 end;
 
 //------------------------------------------------------------------------------
@@ -546,9 +635,80 @@ begin
   aRaiseError := false;
 end;
 
+procedure TfrmCAF.mskAccountNumber2Change(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber2Enter(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber2Exit(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber2KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber2MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber2ValidateEdit(
+  var aRunExistingValidate: Boolean);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber2ValidateError(var aRaiseError: Boolean);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber3Change(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber3Enter(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber3Exit(Sender: TObject);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber3KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber3MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+//
+end;
+
+procedure TfrmCAF.mskAccountNumber3ValidateEdit(
+  var aRunExistingValidate: Boolean);
+begin
+//
+end;
+
 procedure TfrmCAF.mskAccountNumber3ValidateError(var aRaiseError: Boolean);
 begin
-
+//
 end;
 
 //------------------------------------------------------------------------------
@@ -557,12 +717,12 @@ begin
   // I kept the Borders here so we can see the controls when developing but when running
   // they need to be removed
   pnlInstitution.BevelOuter  := bvNone;
-  pnlInstData1.BevelOuter     := bvNone;
-  pnlInstData2.BevelOuter     := bvNone;
-  pnlInstData3.BevelOuter     := bvNone;
-  pnlInstLabels1.BevelOuter   := bvNone;
-  pnlInstLabels2.BevelOuter   := bvNone;
-  pnlInstLabels3.BevelOuter   := bvNone;
+//  pnlInstData1.BevelOuter     := bvNone;
+//  pnlInstData2.BevelOuter     := bvNone;
+//  pnlInstData3.BevelOuter     := bvNone;
+//  pnlInstLabels1.BevelOuter   := bvNone;
+//  pnlInstLabels2.BevelOuter   := bvNone;
+//  pnlInstLabels3.BevelOuter   := bvNone;
   pnlClient.BevelOuter       := bvNone;
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
@@ -603,14 +763,16 @@ procedure TfrmCAF.SetInstitutionControls(aInstitutionType : TInstitutionType);
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;
-  AccNumber : string;
+  AccNumber1 : string;
+  AccNumber2 : string;
+  AccNumber3 : string;
 
   //----------------------------------------------------------------------------
   function CanCopyData(): boolean;
   begin
     Result := not ((edtBranch.Text = '') and
                    (edtNameOfAccount1.Text = '') and
-                   (AccNumber = '') and
+                   (AccNumber1 = '') and
                    (edtClientCode1.Text = '') and
                    (edtCostCode1.Text = '') and
                    (edtSecureCode.Text = ''));
@@ -618,15 +780,25 @@ var
 begin
   edtInstitutionName.Text := '';
   edtAccountNumber1.Text := '';
+  edtAccountNumber2.Text := '';
+  edtAccountNumber3.Text := '';
   if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
   begin
-    AccNumber := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text), fMaskBsb);
+    AccNumber1 := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text), fMaskBsb1);
+    AccNumber2 := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber2.Text), fMaskBsb2);
+    AccNumber3 := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber3.Text), fMaskBsb3);
     if CanCopyData() then
     begin
       edtInstitutionName.Text := fOldInstName;
-      edtAccountNumber1.Text := AccNumber;
+      edtAccountNumber1.Text := AccNumber1;
+      edtAccountNumber2.Text := AccNumber2;
+      edtAccountNumber3.Text := AccNumber3;
       fAccountNumber := trim(edtAccountNumber1.Text);
-      fValidAccount := (length(fAccountNumber) > 0);
+      fValidAccount1 := (length(fAccountNumber) > 0);
+      fAccountNumber := trim(edtAccountNumber2.Text);
+      fValidAccount2 := (length(fAccountNumber) > 0);
+      fAccountNumber := trim(edtAccountNumber3.Text);
+      fValidAccount3 := (length(fAccountNumber) > 0);
     end;
   end;
 
@@ -635,9 +807,15 @@ begin
   
   mskAccountNumber1.EditMask := '';
   mskAccountNumber1.EditText := '';
+  mskAccountNumber2.EditMask := '';
+  mskAccountNumber2.EditText := '';
+  mskAccountNumber3.EditMask := '';
+  mskAccountNumber3.EditText := '';
   fCurrentDisplayError := '';
   lblMaskErrorHint1.Caption := '';
-  fMaskBsb := '';
+  lblMaskErrorHint2.Caption := '';
+  lblMaskErrorHint3.Caption := '';
+  fMaskBsb1 := '';
   fOldInstName := '';
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
@@ -647,10 +825,10 @@ begin
     inNone  : begin
       chkSupplyAsProvisional.Visible := false;
       mskAccountNumber1.Visible := true;
-      edtAccountNumber1.Visible := false;
       mskAccountNumber2.Visible := true;
-      edtAccountNumber2.Visible := false;
       mskAccountNumber3.Visible := true;
+      edtAccountNumber1.Visible := false;
+      edtAccountNumber2.Visible := false;
       edtAccountNumber3.Visible := false;
       enableControls := false;
       edtInstitutionName.Visible := false;
@@ -693,11 +871,21 @@ begin
              (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
           begin
             if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
-              mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask
+            begin
+              mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+              mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+              mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+            end
             else
+            begin
               mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+              mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+              mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+            end;
           end;
-          fMaskBsb := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text);
+          fMaskBsb1 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text);
+          fMaskBsb2 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber2.Text);
+          fMaskBsb3 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber3.Text);
 
           fOldInstName := cmbInstitution.Text;
         end;
@@ -766,13 +954,13 @@ end;
 procedure TfrmCAF.edtAccountNumber1Exit(Sender: TObject);
 begin
   fAccountNumber := trim(edtAccountNumber1.Text);
-  fValidAccount := (length(fAccountNumber) > 0);
+  fValidAccount1 := (length(fAccountNumber) > 0);
 end;
 
 procedure TfrmCAF.edtAccountNumber2Exit(Sender: TObject);
 begin
   fAccountNumber := trim(edtAccountNumber2.Text);
-  fValidAccount := (length(fAccountNumber) > 0);
+  fValidAccount1 := (length(fAccountNumber) > 0);
 end;
 
 procedure TfrmCAF.edtAccountNumber3Exit(Sender: TObject);
@@ -800,7 +988,7 @@ begin
   cmbInstitution.ItemIndex := -1;
   SetInstitutionControls(inNone);
 
-  fMaskBsb := '';
+  fMaskBsb1 := '';
   fAccountNumber := '';
   edtBranch.Text := '';
 
