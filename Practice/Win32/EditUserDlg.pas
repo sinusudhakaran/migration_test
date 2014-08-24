@@ -396,7 +396,8 @@ begin
   
   formLoaded := true;
 
-  eUserCode.SetFocus;
+  if eUserCode.CanFocus then
+    eUserCode.SetFocus;
 End;
 
 //------------------------------------------------------------------------------
