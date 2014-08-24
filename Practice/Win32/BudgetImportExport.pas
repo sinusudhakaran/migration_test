@@ -65,10 +65,11 @@ type
     fBudgetDefaultFile : string;
 
     function GetIOErrorDescription(ErrorCode : integer; ErrorMsg : string) : string;
-    function GetDefFileLineData(aBudgetDefaults : TStringList;
-                                aClientCode : string;
-                                aBudgetName : string;
-                                var aIndex : integer) : TStringList;
+    procedure GetDefFileLineData(aBudgetDefaults : TStringList;
+                                 aClientCode : string;
+                                 aBudgetName : string;
+                                 var aIndex : integer;
+                                 var aLineData : TStringList);
     function AmountMatchesQuantityFormula(var aData : TBudgetData; RowIndex, ColIndex: Integer): boolean;
     procedure BudgetEditRow(var aBudgetData : TBudgetData; aBudgetAmount, RowNum, ColNum: Integer);
   public
@@ -128,39 +129,35 @@ uses
 
 { TBudgetImportExport }
 //------------------------------------------------------------------------------
-function TBudgetImportExport.GetDefFileLineData(aBudgetDefaults : TStringList;
-                                                aClientCode : string;
-                                                aBudgetName : string;
-                                                var aIndex : integer) : TStringList;
+procedure TBudgetImportExport.GetDefFileLineData(aBudgetDefaults : TStringList;
+                                                 aClientCode : string;
+                                                 aBudgetName : string;
+                                                 var aIndex : integer;
+                                                 var aLineData : TStringList);
 var
   Index : integer;
 begin
   aIndex := -1;
-  Result := TStringList.Create;
+
   for Index := 0 to aBudgetDefaults.Count - 1 do
   begin
-    Result.Clear;
-    Result.Delimiter := ',';
-    Result.StrictDelimiter := True;
-    Result.DelimitedText := aBudgetDefaults.Strings[Index];
+    aLineData.Clear;
+    aLineData.Delimiter := ',';
+    aLineData.StrictDelimiter := True;
+    aLineData.DelimitedText := aBudgetDefaults.Strings[Index];
 
-    if Result.Count <> 3 then
-    begin
+    if aLineData.Count <> 3 then
       // Invalid data found don't load any of the file could be corrupt or an old version
-      FreeAndNil(Result);
       Exit;
-    end;
 
-    if (Result[0] = aClientCode) and
-       (Result[1] = aBudgetName) then
+    if (aLineData[0] = aClientCode) and
+       (aLineData[1] = aBudgetName) then
     begin
       //Found what we are looking for, exit with results
       aIndex := Index;
       Exit;
     end;
   end;
-  // nothing found free results
-  FreeAndNil(Result);
 end;
 
 //------------------------------------------------------------------------------
@@ -183,10 +180,15 @@ begin
       try
         BudgetDefaults.LoadFromFile(fBudgetDefaultFile);
 
-        BudgetLineData := GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex);
+        BudgetLineData := TStringList.Create();
+        try
+          GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex, BudgetLineData);
 
-        if Assigned(BudgetLineData) then
-          Result := BudgetLineData[2];
+          if Assigned(BudgetLineData) then
+            Result := BudgetLineData[2];
+        finally
+          FreeAndNil(BudgetLineData);
+        end;
 
       except
         on e : Exception do
@@ -220,10 +222,15 @@ begin
       begin
         BudgetDefaults.LoadFromFile(fBudgetDefaultFile);
 
-        BudgetLineData := GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex);
+        BudgetLineData := TStringList.Create();
+        try
+          GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex, BudgetLineData);
 
-        if Assigned(BudgetLineData) then
-          BudgetDefaults.Strings[LineIndex] := aClientCode + ',' + aBudgetName + ',' + aFileLocation;
+          if Assigned(BudgetLineData) then
+            BudgetDefaults.Strings[LineIndex] := aClientCode + ',' + aBudgetName + ',' + aFileLocation;
+        finally
+          FreeAndNil(BudgetLineData);
+        end;
       end;
 
       if LineIndex = -1 then // not found
