@@ -96,7 +96,10 @@ begin
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
+  begin
     aBudget.bGstAmounts[aMonthIndex] := DoRoundUpHalves(moGSTAmount + moAmount);
+    aBudget.bNonRoundedGstAmounts[aMonthIndex] := moGSTAmount + moAmount;
+  end;
 
   // Ensure GST amount sign is correct
   pnSign := ExpectedSign(pAccount.chAccount_Type);
@@ -136,7 +139,10 @@ begin
   moAmount := aBudget.bAmounts[aMonthIndex];
   moGSTAmount := CalculateGSTFromNett(aClient, aDate, moAmount, byGST_Class);
   if not IsGSTAccountCode(aClient, aBudget.bAccount) then
+  begin
     aBudget.bGstAmounts[aMonthIndex] := DoRoundUpHalves(moGSTAmount + moAmount);
+    aBudget.bNonRoundedGstAmounts[aMonthIndex] := moGSTAmount + moAmount;
+  end;
 
   // Add to total (positive or negative)
   GSTAmount := GSTAmount + moGSTAmount;
@@ -272,8 +278,11 @@ begin
 
   for iRow := 0 to High(GSTAmounts) do
   begin
-    if ApplyGSTAmounts[iRow] then    
+    if ApplyGSTAmounts[iRow] then
+    begin
       aBudget[iRow].bGstAmounts[aMonthIndex] := DoRoundUpHalves(GSTAmounts[iRow]);
+      aBudget[iRow].bNonRoundedGstAmounts[aMonthIndex] := GSTAmounts[iRow];
+    end;
   end;
     
 end;
@@ -315,6 +324,7 @@ begin
       for iMonth := 1 to 12 do
       begin
         aBudgetData[iRow].bGstAmounts[iMonth] := 0;
+        aBudgetData[iRow].bNonRoundedGstAmounts[iMonth] := 0;
       end;
     end;
   end;

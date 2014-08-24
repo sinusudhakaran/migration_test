@@ -38,6 +38,7 @@ type
      PercentAccount     : Bk5CodeStr; // Only used if the figures for this row are calculated from a % of another account code, empty otherwise
      Percentage         : double; // Only used if PercentAccount is not empty, see above
      bGstAmounts        : Array[1..12] of integer;
+     bNonRoundedGstAmounts : Array[1..12] of double;
      bTotalWithGST      : integer;
      ShowGstAmounts     : Boolean;
    end;
@@ -122,6 +123,7 @@ uses
   BudgetUnitPriceEntry,
   BKbdIO,
   GenUtils,
+  BudgetAutoGST,
   GSTCalc32;
 
 { TBudgetImportExport }
@@ -272,8 +274,27 @@ var
   DataIndex     : integer;
   HeaderLine    : string;
   DataLine      : string;
-  OkToWriteLine : Boolean;
   UseGST        : Boolean;
+  IsNonPostingCode : boolean;
+  IsUnusedChart : boolean;
+  TotalGSTNonRounded : double;
+
+  //----------------------------------------------------------------------------
+  function CheckIfLineIsUsed(aDataIndex : integer) : boolean;
+  var
+    curDateIndex : integer;
+  begin
+    Result := false;
+    for curDateIndex := 1 to 12 do
+    begin
+      if ((aData[aDataIndex].ShowGstAmounts = true) and (aData[DataIndex].bGstAmounts[curDateIndex] <> 0)) or
+         ((aData[DataIndex].ShowGstAmounts = false) and (aData[DataIndex].bAmounts[curDateIndex] <> 0)) then
+      begin
+        Result := true;
+        exit;
+      end;
+    end;
+  end;
 begin
   Result := false;
   aMsg := '';
@@ -296,93 +317,70 @@ begin
       begin
         if (aData[DataIndex].bAccount = '') then
           Continue;
-        if not (aIncludeNonPostingChartCodes or
-                aData[DataIndex].bIsPosting) then
-        begin
-          // 'Include Non-Posting Chart codes' is unticked, and this is a non-posting chart code
-          OkToWriteLine := false; // No non-posting chart codes.
-        end else
-        begin
-          OkToWriteLine := true;
-          // Non-posting codes are shown even if they are unused, as long as the
-          // 'Include Non-Posting Codes' checkbox is checked
-          if aData[DataIndex].bIsPosting and not aIncludeUnusedChartCodes then
-          begin
-            OkToWriteLine := false;
-            for DateIndex := 1 to 12 do
-            begin
-              if GSTInclusive and aData[DataIndex].bIsGSTAccountCode then
-              begin
-                if aIncludeUnusedChartCodes then
-                  DataLine := DataLine + '0'
-                else
-                  break; // Don't include this line of data, it will be all zeros and we don't want those in this case
-              end
-              else if aData[DataIndex].ShowGstAmounts or GSTInclusive then
-                DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
-              else
-                DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
 
-              if ((aData[DataIndex].ShowGstAmounts = true) and (aData[DataIndex].bGstAmounts[DateIndex] <> 0)) or
-                 ((aData[DataIndex].ShowGstAmounts = false) and (aData[DataIndex].bAmounts[DateIndex] <> 0)) then
-              begin
-                OkToWriteLine := true;
-                break;
-              end;
-            end;
-          end;
+        IsNonPostingCode := not aData[DataIndex].bIsPosting;
+        IsUnusedChart := not CheckIfLineIsUsed(DataIndex);
+
+        if (not aIncludeNonPostingChartCodes and IsNonPostingCode) then
+          Continue;
+
+        if (not (aIncludeNonPostingChartCodes and IsNonPostingCode)) and
+          (not aIncludeUnusedChartCodes and IsUnusedChart) then
+          Continue;
+
+        aData[DataIndex].bTotal := 0;
+        TotalGSTNonRounded := 0;
+        for DateIndex := 1 to 12 do
+        begin
+          TotalGSTNonRounded := TotalGSTNonRounded +
+                                aData[DataIndex].bNonRoundedGstAmounts[DateIndex];
+          aData[DataIndex].bTotal := aData[DataIndex].bTotal +
+                                     aData[DataIndex].bAmounts[DateIndex];
         end;
+        aData[DataIndex].bTotalWithGST := DoRoundUpHalves(TotalGSTNonRounded);
 
-        if OkToWriteLine then
+        DataLine := '';
+
+        // Add a space if account is not numeric
+        if aPrefixAccountCode then
+          DataLine := DataLine + '"' + ACCOUNT_CODE_PREFIX + aData[DataIndex].bAccount + '",'
+        else
+          DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",';
+
+        DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
+        if aData[DataIndex].bIsPosting then
         begin
-          aData[DataIndex].bTotal := 0;
-          for DateIndex := 1 to 12 do
-            aData[DataIndex].bTotal := aData[DataIndex].bTotal +
-                                       aData[DataIndex].bAmounts[DateIndex];
-
-          DataLine := '';
-
-          // Add a space if account is not numeric
-          if aPrefixAccountCode then
-            DataLine := DataLine + '"' + ACCOUNT_CODE_PREFIX + aData[DataIndex].bAccount + '",'
+          if GSTInclusive then
+            UseGST := not aData[DataIndex].bIsGSTAccountCode
           else
-            DataLine := DataLine + '"' + aData[DataIndex].bAccount + '",';
+            UseGST := aData[DataIndex].bIsGSTAccountCode;
 
-          DataLine := DataLine + '"' + aData[DataIndex].bDesc + '",';
+          // Non posting chart codes shouldn't display a total in the budget
+          if UseGST then
+            DataLine := DataLine + IntToStr(aData[DataIndex].bTotalWithGST) + ','
+          else
+            DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
+        end else
+          DataLine := DataLine + ',';
+
+        for DateIndex := 1 to 12 do
+        begin
           if aData[DataIndex].bIsPosting then
           begin
-            if GSTInclusive then
-              UseGST := not aData[DataIndex].bIsGSTAccountCode
+            if aIncludeUnusedChartCodes and GSTInclusive and aData[DataIndex].bIsGSTAccountCode then
+              DataLine := DataLine + '0'
+            // Non posting chart codes shouldn't display amounts in the budget
+            else if aData[DataIndex].ShowGstAmounts or GSTInclusive then
+              DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
             else
-              UseGST := aData[DataIndex].bIsGSTAccountCode;
-
-            // Non posting chart codes shouldn't display a total in the budget
-            if UseGST then
-              DataLine := DataLine + IntToStr(aData[DataIndex].bTotalWithGST) + ','
-            else
-              DataLine := DataLine + IntToStr(aData[DataIndex].bTotal) + ',';
-          end else
-            DataLine := DataLine + ',';
-
-          for DateIndex := 1 to 12 do
-          begin
-            if aData[DataIndex].bIsPosting then
-            begin
-              if aIncludeUnusedChartCodes and GSTInclusive and aData[DataIndex].bIsGSTAccountCode then
-                DataLine := DataLine + '0'
-              // Non posting chart codes shouldn't display amounts in the budget
-              else if aData[DataIndex].ShowGstAmounts or GSTInclusive then
-                DataLine := DataLine + IntToStr(aData[DataIndex].bGstAmounts[DateIndex])
-              else
-                DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
-            end;
-
-            if DateIndex < 12 then
-              DataLine := DataLine +  ',';
+              DataLine := DataLine + IntToStr(aData[DataIndex].bAmounts[DateIndex]);
           end;
 
-          Writeln(OutputFile, DataLine );
+          if DateIndex < 12 then
+            DataLine := DataLine +  ',';
         end;
+
+        Writeln(OutputFile, DataLine );
       end;
 
       Result := true;
@@ -595,6 +593,7 @@ begin
       end else
         Result[BudgetIndex].bAmounts[MonthIndex]  := aBudgetData[BudgetIndex].bAmounts[MonthIndex];
       Result[BudgetIndex].bGstAmounts[MonthIndex] := aBudgetdata[BudgetIndex].bGstAmounts[MonthIndex];
+      Result[BudgetIndex].bNonRoundedGstAmounts[MonthIndex] := aBudgetdata[BudgetIndex].bNonRoundedGstAmounts[MonthIndex];
       Result[BudgetIndex].bQuantitys[MonthIndex]  := aBudgetData[BudgetIndex].bQuantitys[MonthIndex];
       Result[BudgetIndex].bUnitPrices[MonthIndex] := aBudgetData[BudgetIndex].bUnitPrices[MonthIndex];
     end;

@@ -1005,6 +1005,8 @@ begin
               // Need to recalculate the shown GST inclusive amount so that it's the stored raw amount + GST, which may
               // differ slightly from the GST inclusive amount entered by the user
               RawAmount := FData[RowNum-1].bAmounts[ColNum-MonthBase];
+              FData[RowNum-1].bNonRoundedGstAmounts[ColNum-MonthBase] :=
+                RawAmount + CalculateGSTFromNett(MyClient, dtMonth, RawAmount, GST_Class);
               FData[RowNum-1].bGSTAmounts[ColNum-MonthBase] :=
                 DoRoundUpHalves(RawAmount + CalculateGSTFromNett(MyClient, dtMonth, RawAmount, GST_Class));
             end else
@@ -1835,7 +1837,7 @@ var
   MonthIndex: Integer;
   CorrectRow: Boolean;
 
-  function GetGSTAmount(moAmount: Money; AccountCode: string): integer;
+  function GetGSTAmount(moAmount: Money; AccountCode: string; var aNonRounded : double): integer;
   var
     dtMonth: TStDate;
     pAccount: pAccount_Rec;
@@ -1848,6 +1850,8 @@ var
     if not assigned(pAccount) then
       exit;
     GST_Class := pAccount.chGST_Class;
+
+    aNonRounded := moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class);
     Result := DoRoundUpHalves(moAmount + CalculateGSTFromNett(MyClient, dtMonth, moAmount, GST_Class));
   end;
 
@@ -1904,13 +1908,16 @@ begin
         if Assigned(pBudgetRec) then
         begin
           FData[I].bAmounts[MonthIndex]     := DoRoundUpHalves(FData[I].bDetailLine.bdBudget[MonthIndex]);
-          FData[I].bGstAmounts[MonthIndex]  := GetGSTAmount(FData[I].bAmounts[MonthIndex], NewCode);
+          FData[I].bGstAmounts[MonthIndex]  := GetGSTAmount(FData[I].bAmounts[MonthIndex],
+                                                            NewCode,
+                                                            FData[I].bNonRoundedGstAmounts[MonthIndex]);
           FData[I].bQuantitys[MonthIndex]   := FData[I].bDetailLine.bdQty_Budget[MonthIndex];
           FData[I].bUnitPrices[MonthIndex]  := FData[I].bDetailLine.bdEach_Budget[MonthIndex];
         end
         else
         begin
           FData[I].bAmounts[MonthIndex]     := 0;
+          FData[I].bNonRoundedGstAmounts[MonthIndex] := 0;
           FData[I].bGSTAmounts[MonthIndex]  := 0;
           FData[I].bQuantitys[MonthIndex]   := 0;
           FData[I].bUnitPrices[MonthIndex]  := 0;
