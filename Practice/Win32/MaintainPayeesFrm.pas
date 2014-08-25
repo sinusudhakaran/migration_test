@@ -8,7 +8,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ImgList, ComCtrls, ToolWin, bkDefs,
   PayeeObj,
-  OSFont;
+  OSFont, StdCtrls, ExtCtrls;
 
 type
   TfrmMaintainPayees = class(TForm)
@@ -23,6 +23,8 @@ type
     ToolButton2: TToolButton;
     tbHelpSep: TToolButton;
     tbHelp: TToolButton;
+    pnlInactive: TPanel;
+    chkShowInactive: TCheckBox;
     procedure tbCloseClick(Sender: TObject);
     procedure tbNewClick(Sender: TObject);
     procedure tbEditClick(Sender: TObject);
@@ -37,6 +39,7 @@ type
     procedure lvPayeesKeyPress(Sender: TObject; var Key: Char);
     procedure lvPayeesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure chkShowInactiveClick(Sender: TObject);
   private
     { Private declarations }
     CurrentSortCol : integer;
@@ -122,6 +125,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPayees.RefreshPayeeList;
 var
+   NewColumn: TListColumn;
    NewItem : TListItem;
    Payee : TPayee;
    i : integer;
@@ -133,16 +137,41 @@ begin
 
      if not Assigned(myClient) then exit;
 
+      // Delete inactive column (if it's there)
+     if (lvPayees.Columns.Count = 3) then
+       lvPayees.Columns.Delete(2);
+
+     // Show inactive column?
+     if chkShowInactive.Checked then
+     begin
+       NewColumn := lvPayees.Columns.Add;
+       NewColumn.Caption := 'Inactive';
+       NewColumn.Width := 60;
+     end;
+
+     SetListViewColWidth(lvPayees, 0, 60);
+
      with MyClient, clPayee_List do
      for i := 0 to Pred(itemCount) do
      begin
         Payee := Payee_At(i);
+
+        if Payee.pdFields.pdInactive and not chkShowInactive.Checked then
+          continue;
 
         NewItem := lvPayees.Items.Add;
 
         NewItem.Caption := inttostr(Payee.pdNumber);
         NewItem.Imageindex := -1;
         NewItem.SubItems.AddObject(Payee.pdName,TObject(Payee));
+
+        if chkShowInactive.Checked then
+        begin
+          if Payee.pdFields.pdInactive then
+            NewItem.SubItems.Add('Yes')
+          else
+            NewItem.SubItems.Add('No');
+        end;
      end;
 
      DoSortByColNo( CurrentSortCol);
@@ -357,6 +386,12 @@ begin
          end;
       end;
    end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMaintainPayees.chkShowInactiveClick(Sender: TObject);
+begin
+  RefreshPayeeList;
 end;
 
 //------------------------------------------------------------------------------

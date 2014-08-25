@@ -4,7 +4,7 @@ object frmMaintainPayees: TfrmMaintainPayees
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Maintain Payee List'
   ClientHeight = 420
-  ClientWidth = 451
+  ClientWidth = 467
   Color = clBtnFace
   DefaultMonitor = dmMainForm
   Font.Charset = DEFAULT_CHARSET
@@ -22,7 +22,7 @@ object frmMaintainPayees: TfrmMaintainPayees
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 451
+    Width = 467
     Height = 22
     AutoSize = True
     ButtonWidth = 58
@@ -106,8 +106,8 @@ object frmMaintainPayees: TfrmMaintainPayees
   object lvPayees: TListView
     Left = 0
     Top = 22
-    Width = 451
-    Height = 398
+    Width = 467
+    Height = 363
     Align = alClient
     Columns = <
       item
@@ -129,5 +129,25 @@ object frmMaintainPayees: TfrmMaintainPayees
     OnDblClick = lvPayeesDblClick
     OnKeyPress = lvPayeesKeyPress
     OnSelectItem = lvPayeesSelectItem
+    ExplicitWidth = 451
+    ExplicitHeight = 398
+  end
+  object pnlInactive: TPanel
+    Left = 0
+    Top = 385
+    Width = 467
+    Height = 35
+    Align = alBottom
+    TabOrder = 2
+    ExplicitWidth = 451
+    object chkShowInactive: TCheckBox
+      Left = 8
+      Top = 8
+      Width = 97
+      Height = 17
+      Caption = 'Show Inactive'
+      TabOrder = 0
+      OnClick = chkShowInactiveClick
+    end
   end
 end
