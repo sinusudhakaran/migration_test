@@ -33,7 +33,7 @@ object FindReplaceDlg: TFindReplaceDlg
       Anchors = [akTop, akRight]
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 0
+      TabOrder = 1
     end
     object BtnOK: TButton
       Left = 324
@@ -42,7 +42,7 @@ object FindReplaceDlg: TFindReplaceDlg
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'OK'
-      TabOrder = 1
+      TabOrder = 0
       OnClick = BtnOKClick
     end
   end
