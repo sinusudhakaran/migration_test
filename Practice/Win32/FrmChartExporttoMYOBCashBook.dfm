@@ -226,7 +226,8 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     end
   end
   object SaveDialog: TSaveDialog
-    Filter = 'CSV Files (*.CSV)|*.CSV'
+    DefaultExt = 'csv'
+    Filter = 'Comma Separated (CSV)|*.CSV'
     Title = 'Save Entries to'
     Left = 456
     Top = 280
