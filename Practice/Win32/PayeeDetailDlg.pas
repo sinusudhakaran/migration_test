@@ -1567,6 +1567,12 @@ begin
    tsContractorDetails.Visible := (MyClient.clFields.clCountry = whAustralia);
    tsContractorDetails.TabVisible := (MyClient.clFields.clCountry = whAustralia);
 
+   if (MyClient.clFields.clCountry = whNewZealand) then
+   begin
+     chkInactive.Left := 443;
+     chkInactive.Top := 19;
+   end;
+
    // Skip Focus on Payee Number
    if chkContractorPayee.Visible and not AddContractorPayee then
    begin
