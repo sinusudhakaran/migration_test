@@ -717,17 +717,11 @@ begin
   // I kept the Borders here so we can see the controls when developing but when running
   // they need to be removed
   pnlInstitution.BevelOuter  := bvNone;
-//  pnlInstData1.BevelOuter     := bvNone;
-//  pnlInstData2.BevelOuter     := bvNone;
-//  pnlInstData3.BevelOuter     := bvNone;
-//  pnlInstLabels1.BevelOuter   := bvNone;
-//  pnlInstLabels2.BevelOuter   := bvNone;
-//  pnlInstLabels3.BevelOuter   := bvNone;
   pnlClient.BevelOuter       := bvNone;
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
   pnlClientSpacer.BevelOuter := bvNone;
-  pnlData.BevelOuter         := bvNone;
+//  pnlData.BevelOuter         := bvNone;
   pnlInstTop.BevelOuter      := bvNone;
 end;
 
