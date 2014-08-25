@@ -475,7 +475,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Height = 34
         BevelInner = bvRaised
         BevelOuter = bvLowered
-        TabOrder = 4
+        TabOrder = 5
         object chkIncludeCash: TCheckBox
           Left = 8
           Top = 7
@@ -551,7 +551,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Height = 37
         BevelInner = bvRaised
         BevelOuter = bvLowered
-        TabOrder = 5
+        TabOrder = 6
         object chkPromptToUseBudget: TCheckBox
           Left = 8
           Top = 8
@@ -572,7 +572,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Height = 55
         BevelInner = bvRaised
         BevelOuter = bvLowered
-        TabOrder = 6
+        TabOrder = 4
         object rbSummarisedNonPost: TRadioButton
           Left = 133
           Top = 30

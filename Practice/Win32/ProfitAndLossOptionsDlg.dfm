@@ -421,7 +421,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Height = 37
         BevelInner = bvRaised
         BevelOuter = bvLowered
-        TabOrder = 4
+        TabOrder = 5
         object chkPromptToUseBudget: TCheckBox
           Left = 7
           Top = 8
@@ -442,14 +442,14 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Height = 55
         BevelInner = bvRaised
         BevelOuter = bvLowered
-        TabOrder = 5
+        TabOrder = 4
         object rbSummarisedNonPost: TRadioButton
           Left = 133
           Top = 30
           Width = 113
           Height = 17
           Caption = 'Summarised'
-          TabOrder = 0
+          TabOrder = 2
         end
         object rbDetailedNonPost: TRadioButton
           Left = 25
@@ -467,7 +467,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 253
           Height = 17
           Caption = 'Include Non-Posting Chart Code Titles'
-          TabOrder = 2
+          TabOrder = 0
           OnClick = chkPrintNonPostingChartCodeTitlesClick
         end
       end
