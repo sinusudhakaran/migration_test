@@ -1,8 +1,8 @@
-$|BK_FILE_VERSION  = 184;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 185;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
-$|BK_FILE_VERSION_STR = '5.38';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+$|BK_FILE_VERSION_STR = '5.39';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
 $|
 $|(*
 $|    History  :     31    New format for GST class codes ( delimited string)
@@ -220,6 +220,7 @@ $|  5.25            181    Memorisations upgrade, code only
 $|  5.25            182    New Table TPR Payer Detail
 $|  5.25	    183	   Changed length of Statement Details fields in several records to 200
 $|  5.26            184    Fix for journals being scanned for suggested mems 
+$|  5.27            185    Payee Inactive
 $|*)
 
 
@@ -571,6 +572,7 @@ F|InstitutionAccountNumber|S|9
 F|IsIndividual|Y
 F|AddressLine2|S|38
 F|StateId|I
+F|Inactive|Y
 C|Amount|TLB
 C|Total|$
 C|Temp Tag|L

@@ -355,6 +355,7 @@ begin
     FAuditNamesArray[90,110] := 'IsIndividual';
     FAuditNamesArray[90,111] := 'AddressLine2';
     FAuditNamesArray[90,112] := 'StateId';
+    FAuditNamesArray[90,113] := 'Inactive';
 
    FAuditTableArray[95] := 'Payee_Line';
     FAuditNamesArray[95,97] := 'Account';

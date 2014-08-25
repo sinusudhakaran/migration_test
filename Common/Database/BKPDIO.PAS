@@ -67,6 +67,7 @@ CONST
    tkpdIsIndividual                     = 110 ;
    tkpdAddressLine2                     = 111 ;
    tkpdStateId                          = 112 ;
+   tkpdInactive                         = 113 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -113,6 +114,7 @@ Begin
       F.WriteBooleanValue( tkpdIsIndividual , pdIsIndividual );
       F.WriteStringValue( tkpdAddressLine2 , pdAddressLine2 );
       F.WriteIntegerValue( tkpdStateId , pdStateId );
+      F.WriteBooleanValue( tkpdInactive , pdInactive );
       F.WriteToken( tkEnd_Payee_Detail );
    end;
 end; { of Write_Payee_Detail_Rec }
@@ -156,6 +158,7 @@ Begin
          tkpdIsIndividual                     : pdIsIndividual := F.ReadBooleanValue;
          tkpdAddressLine2                     : pdAddressLine2 := F.ReadStringValue;
          tkpdStateId                          : pdStateId := F.ReadIntegerValue;
+         tkpdInactive                         : pdInactive := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -202,7 +205,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkpdNumber to tkpdStateId do begin
+  for i := tkpdNumber to tkpdInactive do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -330,6 +333,11 @@ begin
   if (P1.pdStateId <> P2.pdStateId) then begin
     P3.pdStateId := P1.pdStateId;
     ChangedFields[i] := tkpdStateId;
+    Inc(i);
+  end;
+  if (P1.pdInactive <> P2.pdInactive) then begin
+    P3.pdInactive := P1.pdInactive;
+    ChangedFields[i] := tkpdInactive;
     Inc(i);
   end;
 

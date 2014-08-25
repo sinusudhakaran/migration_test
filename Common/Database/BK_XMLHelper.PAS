@@ -1349,6 +1349,7 @@ begin
 	SetBoolAttr(Result, 'IsIndividual', pdIsIndividual);
 	SetTextAttr(Result, 'AddressLine2', pdAddressLine2);
 	SetIntAttr(Result, 'StateId', pdStateId);
+	SetBoolAttr(Result, 'Inactive', pdInactive);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1386,6 +1387,7 @@ begin
 	pdIsIndividual := GetBoolAttr(Result, 'IsIndividual');
 	pdAddressLine2 := GetTextAttr(Result, 'AddressLine2');
 	pdStateId := GetIntAttr(Result, 'StateId');
+	pdInactive := GetBoolAttr(Result, 'Inactive');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Detail_Rec');
 	end;

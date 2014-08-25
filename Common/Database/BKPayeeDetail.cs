@@ -183,6 +183,14 @@ namespace BankLink.Practice.BooksIO
 		public Int32 StateId { get; set; }
 
 
+
+		/// <summary>
+		/// Inactive property
+		/// </summary>
+		[XmlAttribute("Inactive", DataType = "boolean")]
+		public bool Inactive { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -218,6 +226,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteBooleanValue(110, IsIndividual);
 			s.WriteShortStringValue(111, AddressLine2);
 			s.WriteInt32Value(112, StateId);
+			s.WriteBooleanValue(113, Inactive);
 			s.WriteToken(91);
 		}
 
@@ -298,6 +307,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 112 :
 				StateId = s.ReadInt32Value("StateId");
+				break;
+			case 113 :
+				Inactive = s.ReadBooleanValue("Inactive");
 				break;
 			case BeginToken :
 			case EndToken :
