@@ -184,7 +184,7 @@ begin
         try
           GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex, BudgetLineData);
 
-          if Assigned(BudgetLineData) then
+          if (Assigned(BudgetLineData)) and (LineIndex > -1) then
             Result := BudgetLineData[2];
         finally
           FreeAndNil(BudgetLineData);
@@ -226,7 +226,7 @@ begin
         try
           GetDefFileLineData(BudgetDefaults, aClientCode, aBudgetName, LineIndex, BudgetLineData);
 
-          if Assigned(BudgetLineData) then
+          if (Assigned(BudgetLineData)) and (LineIndex > -1) then
             BudgetDefaults.Strings[LineIndex] := aClientCode + ',' + aBudgetName + ',' + aFileLocation;
         finally
           FreeAndNil(BudgetLineData);
