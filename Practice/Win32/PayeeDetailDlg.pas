@@ -106,6 +106,7 @@ type
     Label7: TLabel;
     edtBankBSB: TEdit;
     edtBankAccount: TEdit;
+    chkInactive: TCheckBox;
 
     procedure tblSplitActiveCellMoving(Sender: TObject; Command: Word;
       var RowNum, ColNum: Integer);
@@ -1445,6 +1446,7 @@ begin
      mskABN.Text := Payee.pdFields.pdABN;
      edtBankBsb.Text := Payee.pdFields.pdInstitutionBSB;
      edtBankAccount.Text := Payee.pdFields.pdInstitutionAccountNumber;
+     chkInactive.Checked := Payee.pdFields.pdInactive;
 
      SplitIndex := 1;
      for i := Payee.pdLines.First to Payee.pdLines.Last do begin
@@ -1526,6 +1528,7 @@ begin
      mskABN.Text := '';
      edtBankBsb.Text := '';
      edtBankAccount.Text := '';
+     chkInactive.Checked := false;
 
      // user is adding a new payee so find the current highest number and inc
      NewPayee := 0;
@@ -1820,6 +1823,7 @@ begin
     aPayee.pdFields.pdABN := mskABN.Text;
     aPayee.pdFields.pdInstitutionBSB := edtBankBsb.Text;
     aPayee.pdFields.pdInstitutionAccountNumber := edtBankAccount.Text;
+    aPayee.pdFields.pdInactive := chkInactive.Checked;
 
     aPayee.pdLines.FreeAll;
     for i := 1 to GLCONST.Max_py_Lines do

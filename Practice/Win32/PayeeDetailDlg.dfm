@@ -133,7 +133,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Top = 0
     Width = 1103
     Height = 521
-    ActivePage = tsContractorDetails
+    ActivePage = tsPayeeDetails
     Align = alClient
     TabOrder = 2
     OnChange = PageControl1Change
@@ -194,13 +194,13 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnUserCommand = tblSplitUserCommand
           CellData = (
             'dlgPayeeDetail.Header'
-            'dlgPayeeDetail.ColAcct'
-            'dlgPayeeDetail.ColDesc'
-            'dlgPayeeDetail.colNarration'
-            'dlgPayeeDetail.ColGSTCode'
-            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.colLineType'
             'dlgPayeeDetail.colPercent'
-            'dlgPayeeDetail.colLineType')
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColDesc'
+            'dlgPayeeDetail.ColAcct')
           RowData = (
             21)
           ColData = (
@@ -316,12 +316,12 @@ object dlgPayeeDetail: TdlgPayeeDetail
           RangeLow = {00000000000000000000}
         end
         object chkContractorPayee: TCheckBox
-          Left = 387
-          Top = 16
+          Left = 515
+          Top = 19
           Width = 117
           Height = 17
           Caption = '&Contractor Payee'
-          TabOrder = 1
+          TabOrder = 2
           Visible = False
         end
         object eName: TEdit
@@ -331,9 +331,17 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Height = 24
           BorderStyle = bsNone
           MaxLength = 40
-          TabOrder = 2
+          TabOrder = 1
           OnChange = eNameChange
           OnEnter = eNameEnter
+        end
+        object chkInactive: TCheckBox
+          Left = 515
+          Top = 50
+          Width = 97
+          Height = 17
+          Caption = 'Inactive'
+          TabOrder = 3
         end
       end
     end
@@ -794,7 +802,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -813,6 +820,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
