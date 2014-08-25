@@ -91,7 +91,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
     Top = 0
     Width = 632
     Height = 447
-    ActivePage = tbsOptions
+    ActivePage = tbsAdvanced
     Align = alClient
     TabOrder = 0
     object tbsOptions: TTabSheet
@@ -579,7 +579,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 113
           Height = 17
           Caption = 'Summarised'
-          TabOrder = 0
+          TabOrder = 2
           OnClick = ControlChange
         end
         object rbDetailedNonPost: TRadioButton
@@ -599,7 +599,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 253
           Height = 17
           Caption = 'Include Non-Posting Chart Code Titles'
-          TabOrder = 2
+          TabOrder = 0
           OnClick = ControlChange
         end
       end
