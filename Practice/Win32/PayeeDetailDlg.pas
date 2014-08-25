@@ -21,7 +21,7 @@ uses
   OvcTCBmp, OvcTCGly, OvcEF, OvcPB, OvcNF, Buttons, OvcABtn, globals,
   OvcTCPic, BkConst, glConst, OvcTCSim, moneydef,
   PayeeObj, ComCtrls, Menus,
-  OSFont, Mask, BKNumericEdit;                  
+  OSFont, Mask, BKNumericEdit;
 
 {----------------------------------------------------}
 type
@@ -200,6 +200,7 @@ type
   public
     { Public declarations }
     function Execute(AddContractorPayee: Boolean = False) : boolean;
+
   end;
 
   function EditPayeeDetail(APayee : TPayee) : boolean;
@@ -1528,6 +1529,7 @@ begin
      mskABN.Text := '';
      edtBankBsb.Text := '';
      edtBankAccount.Text := '';
+     chkInactive.Visible := false;
      chkInactive.Checked := false;
 
      // user is adding a new payee so find the current highest number and inc
@@ -1593,7 +1595,6 @@ begin
      BKHelpSetUp(MyDlg, BKH_Editing_a_payee);
      MyDlg.Caption := 'Edit Payee Details';
      MyDlg.Payee := aPayee;
-
 
      if MyDlg.execute then
      with Mydlg do
