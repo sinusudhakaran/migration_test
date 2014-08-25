@@ -20,7 +20,7 @@ type
   TPayeeSpendingReport = class(TBKReport)
   private
   protected
-    procedure GetNarration(var aNotesList : TStringList);
+    procedure GetNarration(aColumnIndex : integer; var aNotesList : TStringList);
     procedure PutNarration(Notes: string);
     procedure FillTempTransactionList(var aTranList : TTransaction_List);
     procedure CalcPeriodStartandEndDates(aTranList : TTransaction_List;
@@ -229,7 +229,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TPayeeSpendingReport.GetNarration(var aNotesList : TStringList);
+procedure TPayeeSpendingReport.GetNarration(aColumnIndex : integer; var aNotesList : TStringList);
 var
   NoteIndex, ColWidth, OldWidth : Integer;
   ColsToSkip : integer;
@@ -252,7 +252,7 @@ begin
 
   NoteIndex := 0;
   repeat
-    ColWidth := RenderEngine.RenderColumnWidth(CurrDetail.Count, aNotesList[NoteIndex]);
+    ColWidth := RenderEngine.RenderColumnWidth(aColumnIndex, aNotesList[NoteIndex]);
 
     if (ColWidth < Length(aNotesList[NoteIndex])) then
     begin
@@ -559,7 +559,7 @@ var
     NotesList := TStringList.Create();
     try
       NotesList.Text := aNarration;
-      GetNarration(NotesList);
+      GetNarration(2, NotesList);
 
       if aPeriodEndDate = 0 then
         PutString(bkDate2Str( aPeriodStartDate))
