@@ -603,6 +603,7 @@ end;
 
 const
   t_PayeeList = 'Payees';
+  SHOW_NETANDGST_NODENAME = 'Show Net and GST';
 
 procedure TPayeeParameters.ReadFromNode(Value: IXMLNode);
 var s : string;
@@ -639,7 +640,7 @@ begin
    if sametext(s,'Quarterly') then ShowTotals := ptQuart else
    ShowTotals := -1;
 
-   NetandGstAmounts := GetNodeBool(Value,'NetGstAmounts',False);
+   NetandGstAmounts := GetNodeBool(Value,SHOW_NETANDGST_NODENAME,False);
 end;
 
 procedure TPayeeParameters.Reset;
@@ -691,7 +692,7 @@ begin
   ptQuart   : SetNodeTextStr(Value,'Totals','Quarterly');
   end;
 
-  SetNodeBool(Value,'NetGstAmounts',NetandGstAmounts);
+  SetNodeBool(Value,SHOW_NETANDGST_NODENAME,NetandGstAmounts);
 
   if NoCodes then
       ClearSetting(Value,t_PayeeList);
