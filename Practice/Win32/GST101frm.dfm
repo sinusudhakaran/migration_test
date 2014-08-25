@@ -137,7 +137,7 @@ object frmGST101: TfrmGST101
     Top = 0
     Width = 633
     Height = 685
-    ActivePage = TsPart1B
+    ActivePage = TSPart3
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -7320,7 +7320,7 @@ object frmGST101: TfrmGST101
               Color = clWhite
               ParentColor = False
               ShowAccelChar = False
-              TabOrder = 0
+              TabOrder = 3
             end
             object lbl26: TStaticText
               Left = 478
@@ -7336,7 +7336,7 @@ object frmGST101: TfrmGST101
               Color = clWhite
               ParentColor = False
               ShowAccelChar = False
-              TabOrder = 1
+              TabOrder = 2
             end
             object lbTaxToPay: TStaticText
               Left = 478
@@ -7352,7 +7352,7 @@ object frmGST101: TfrmGST101
               Color = clWhite
               ParentColor = False
               ShowAccelChar = False
-              TabOrder = 2
+              TabOrder = 4
             end
             object E25: TOvcNumericField
               Left = 478
@@ -7375,7 +7375,7 @@ object frmGST101: TfrmGST101
               Options = []
               ParentCtl3D = False
               PictureMask = '###,###,###.##'
-              TabOrder = 3
+              TabOrder = 1
               OnChange = E25Change
               OnKeyDown = nClosingDebtKeyDown
               RangeHigh = {73B2DBB9838916F2FE43}
@@ -7402,7 +7402,7 @@ object frmGST101: TfrmGST101
               Options = []
               ParentCtl3D = False
               PictureMask = '###,###,###.##'
-              TabOrder = 4
+              TabOrder = 0
               OnChange = nFringeChange
               OnKeyDown = nClosingDebtKeyDown
               RangeHigh = {73B2DBB9838916F2FE43}
