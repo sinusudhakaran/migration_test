@@ -514,6 +514,7 @@ var
   end;
 
 begin
+  NextNode := nil;
   SelAccount := '';
   SelStatement := '';
   NextAccount := '';

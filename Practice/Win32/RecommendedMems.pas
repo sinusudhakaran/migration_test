@@ -578,15 +578,10 @@ var
           begin
             for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
             begin
-              try
-                Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
-                if AddMemorisationIfUnique(Account, CandidateMem1, FirstCandidatePos, LastCandidatePos) then
-                  Break;
-              except
-                ShowMessage('Account = ' + Account.baFields.baBank_Account_Number + ', ' +
-                            'FirstCandidatePos = ' + IntToStr(FirstCandidatePos) + ', ' +
-                            'LastCandidatePos = ' + IntToStr(LastCandidatePos));
-              end;
+              Account := MyClient.clBank_Account_List.Bank_Account_At(AccountsPos);
+
+              if AddMemorisationIfUnique(Account, CandidateMem1, FirstCandidatePos, LastCandidatePos) then
+                Break;
             end; // for AccountsPos := MyClient.clBank_Account_List.First to MyClient.clBank_Account_List.Last do
           end; // if RunningUnitTest
         end; // if not ExclusionFound
