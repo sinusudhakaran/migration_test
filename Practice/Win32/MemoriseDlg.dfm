@@ -250,7 +250,7 @@ object dlgMemorise: TdlgMemorise
       MaxLength = 8
       Options = [efoCaretToEnd]
       PictureMask = 'DD/mm/yy'
-      TabOrder = 18
+      TabOrder = 19
       OnDblClick = eDateFromDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
@@ -281,7 +281,7 @@ object dlgMemorise: TdlgMemorise
       MaxLength = 8
       Options = [efoCaretToEnd]
       PictureMask = 'DD/mm/yy'
-      TabOrder = 19
+      TabOrder = 21
       OnDblClick = eDateFromDblClick
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
@@ -293,7 +293,7 @@ object dlgMemorise: TdlgMemorise
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Applies from'
-      TabOrder = 20
+      TabOrder = 18
       OnClick = cbFromClick
     end
     object cbTo: TCheckBox
@@ -303,7 +303,7 @@ object dlgMemorise: TdlgMemorise
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Applies to'
-      TabOrder = 21
+      TabOrder = 20
       OnClick = cbToClick
     end
     object cbMinus: TComboBox
@@ -351,7 +351,7 @@ object dlgMemorise: TdlgMemorise
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      TabOrder = 1
+      TabOrder = 0
       object sbtnPayee: TSpeedButton
         AlignWithMargins = True
         Left = 74
@@ -480,7 +480,7 @@ object dlgMemorise: TdlgMemorise
       LockedRowsCell = Header
       Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
       ParentCtl3D = False
-      TabOrder = 0
+      TabOrder = 1
       OnActiveCellChanged = tblSplitActiveCellChanged
       OnActiveCellMoving = tblSplitActiveCellMoving
       OnBeginEdit = tblSplitBeginEdit
@@ -495,15 +495,15 @@ object dlgMemorise: TdlgMemorise
       OnUserCommand = tblSplitUserCommand
       CellData = (
         'dlgMemorise.Header'
-        'dlgMemorise.ColAcct'
-        'dlgMemorise.ColDesc'
-        'dlgMemorise.colNarration'
-        'dlgMemorise.ColPayee'
-        'dlgMemorise.colJob'
-        'dlgMemorise.ColGSTCode'
-        'dlgMemorise.ColAmount'
+        'dlgMemorise.colLineType'
         'dlgMemorise.ColPercent'
-        'dlgMemorise.colLineType')
+        'dlgMemorise.ColAmount'
+        'dlgMemorise.ColGSTCode'
+        'dlgMemorise.colJob'
+        'dlgMemorise.ColPayee'
+        'dlgMemorise.colNarration'
+        'dlgMemorise.ColDesc'
+        'dlgMemorise.ColAcct')
       RowData = (
         21)
       ColData = (
@@ -563,7 +563,7 @@ object dlgMemorise: TdlgMemorise
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
-      TabOrder = 1
+      TabOrder = 2
       OnClick = btnOKClick
     end
     object btnCancel: TButton
@@ -574,7 +574,7 @@ object dlgMemorise: TdlgMemorise
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btnCancelClick
     end
     object Panel4: TPanel
@@ -662,12 +662,12 @@ object dlgMemorise: TdlgMemorise
     end
     object btnCopy: TButton
       Left = 492
-      Top = 19
+      Top = 20
       Width = 89
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'Copy to New'
-      TabOrder = 3
+      TabOrder = 1
       OnClick = btnCopyClick
     end
   end
@@ -709,6 +709,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -844,6 +845,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -864,7 +866,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
