@@ -3698,8 +3698,9 @@ var
                     ceDescription:
                     begin
                       pA := MyClient.clChart.FindCode(pD.dsAccount);
-                      if TestText(pA.chAccount_Description) then
-                        Exit;
+                      if Assigned(pA) then
+                        if TestText(pA.chAccount_Description) then
+                          Exit;
                     end;
 
                     ceAmount:       if TestMoney(pD.dsAmount, True) then
