@@ -593,7 +593,7 @@ var
     end;
 
     // Can't generate the report?
-    sFileName := DataDir + sReportName;
+    sFileName := UserDir + sReportName;
     if not GenerateToFile(sFileName, iReportFormat) then
     begin
       DoError('Unable to generate report to file', false);
