@@ -211,7 +211,7 @@ object frmCAF: TfrmCAF
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 332
+        Width = 342
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -228,7 +228,7 @@ object frmCAF: TfrmCAF
       object edtInstitutionName: TEdit
         Left = 148
         Top = 10
-        Width = 340
+        Width = 344
         Height = 24
         TabStop = False
         Anchors = [akLeft, akTop, akRight]
@@ -247,7 +247,7 @@ object frmCAF: TfrmCAF
       object edtBranch: TEdit
         Left = 148
         Top = 45
-        Width = 340
+        Width = 344
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -365,6 +365,7 @@ object frmCAF: TfrmCAF
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          OnChange = edtNameOfAccount1Change
           OnEnter = edt1Exit
         end
         object mskAccountNumber1: TMaskValidateEdit
@@ -390,7 +391,7 @@ object frmCAF: TfrmCAF
           OnValidateEdit = mskAccountNumber1ValidateEdit
         end
         object edtAccountNumber1: TEdit
-          Left = 8
+          Left = 27
           Top = 65
           Width = 342
           Height = 24
@@ -423,6 +424,7 @@ object frmCAF: TfrmCAF
           MaxLength = 8
           ParentFont = False
           TabOrder = 1
+          OnChange = edtClientCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
         end
@@ -442,6 +444,7 @@ object frmCAF: TfrmCAF
           MaxLength = 10
           ParentFont = False
           TabOrder = 3
+          OnChange = edtCostCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
         end
@@ -576,6 +579,7 @@ object frmCAF: TfrmCAF
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          OnChange = edtNameOfAccount2Change
         end
         object mskAccountNumber2: TMaskValidateEdit
           Left = 8
@@ -600,7 +604,7 @@ object frmCAF: TfrmCAF
           OnValidateEdit = mskAccountNumber2ValidateEdit
         end
         object edtAccountNumber2: TEdit
-          Left = 8
+          Left = 27
           Top = 65
           Width = 342
           Height = 24
@@ -633,6 +637,7 @@ object frmCAF: TfrmCAF
           MaxLength = 8
           ParentFont = False
           TabOrder = 1
+          OnChange = edtClientCode2Change
         end
         object edtCostCode2: TEdit
           Left = 464
@@ -650,6 +655,7 @@ object frmCAF: TfrmCAF
           MaxLength = 10
           ParentFont = False
           TabOrder = 3
+          OnChange = edtCostCode2Change
         end
       end
       object pnlInstLabels2: TPanel
@@ -781,6 +787,7 @@ object frmCAF: TfrmCAF
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+          OnChange = edtNameOfAccount3Change
         end
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
@@ -805,7 +812,7 @@ object frmCAF: TfrmCAF
           OnValidateEdit = mskAccountNumber3ValidateEdit
         end
         object edtAccountNumber3: TEdit
-          Left = 8
+          Left = 27
           Top = 65
           Width = 342
           Height = 24

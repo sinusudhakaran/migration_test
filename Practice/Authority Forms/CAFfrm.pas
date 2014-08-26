@@ -117,8 +117,10 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure mskAccountNumber1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure mskAccountNumber1Exit(Sender: TObject);
     procedure mskAccountNumber1Enter(Sender: TObject);
+    procedure mskAccountNumber1Exit(Sender: TObject);
+    procedure mskAccountNumber2Exit(Sender: TObject);
+    procedure mskAccountNumber3Exit(Sender: TObject);
     procedure mskAccountNumber1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure chkDataSecureNewClick(Sender: TObject);
@@ -136,21 +138,26 @@ type
     procedure edtAccountNumber2Exit(Sender: TObject);
     procedure mskAccountNumber2Change(Sender: TObject);
     procedure mskAccountNumber2Enter(Sender: TObject);
-    procedure mskAccountNumber2Exit(Sender: TObject);
     procedure mskAccountNumber2KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure mskAccountNumber2MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure mskAccountNumber2ValidateEdit(var aRunExistingValidate: Boolean);
     procedure mskAccountNumber2ValidateError(var aRaiseError: Boolean);
-    procedure mskAccountNumber3Change(Sender: TObject);
     procedure mskAccountNumber3Enter(Sender: TObject);
-    procedure mskAccountNumber3Exit(Sender: TObject);
     procedure mskAccountNumber3KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure mskAccountNumber3MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure mskAccountNumber3ValidateEdit(var aRunExistingValidate: Boolean);
+    procedure edtNameOfAccount1Change(Sender: TObject);
+    procedure edtClientCode1Change(Sender: TObject);
+    procedure edtCostCode1Change(Sender: TObject);
+    procedure edtNameOfAccount2Change(Sender: TObject);
+    procedure edtClientCode2Change(Sender: TObject);
+    procedure edtCostCode2Change(Sender: TObject);
+    procedure edtNameOfAccount3Change(Sender: TObject);
+    procedure mskAccountNumber3Change(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -180,13 +187,22 @@ type
     function ValidateForm: Boolean;
     procedure SetImportFile(const Value: string);
 
-    procedure UpdateMask;
+    procedure UpdateMask1;
     procedure ClearForm();
     procedure SetDataSentToClient(aEnabled : boolean);
     procedure SetExistingClient(aEnabled : boolean);
 
     function ValidateAccount(aAccountNumber : string; WhichAccount: integer; var aFailedReason : string;
                              var aShowDlg : boolean) : boolean;
+    function CheckAccount1Filled: boolean;
+    function CheckAccount2Filled: boolean;
+    function CheckAccount3Filled: boolean;
+    procedure ToggleAccountFields;
+    procedure ToggleAccount1Controls(Value: boolean);
+    procedure ToggleAccount2Controls(Value: boolean);
+    procedure ToggleAccount3Controls(Value: boolean);
+    procedure UpdateMask2;
+    procedure UpdateMask3;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -303,6 +319,7 @@ begin
     cmbInstitution.Width := edtBranch.Width;
 
   cmbInstitution.SetFocus;
+  ToggleAccountFields;
 end;
 
 //------------------------------------------------------------------------------
@@ -420,6 +437,56 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TfrmCAF.CheckAccount1Filled: boolean;
+begin
+  Result := (edtNameOfAccount1.Text  <> '') or
+            (edtClientCode1.Text     <> '') or
+            (mskAccountNumber1.Text  <> '') or
+            (edtCostCode1.Text       <> '');
+end;
+
+//------------------------------------------------------------------------------
+function TfrmCAF.CheckAccount2Filled: boolean;
+begin
+  Result := (edtNameOfAccount2.Text  <> '') or
+            (edtClientCode2.Text     <> '') or
+            (mskAccountNumber2.Text  <> '') or
+            (edtCostCode2.Text       <> '');
+end;
+
+//------------------------------------------------------------------------------
+function TfrmCAF.CheckAccount3Filled: boolean;
+begin
+  Result := (edtNameOfAccount3.Text  <> '') or
+            (edtClientCode3.Text     <> '') or
+            (mskAccountNumber3.Text  <> '') or
+            (edtCostCode3.Text       <> '');
+end;
+
+//------------------------------------------------------------------------------
+// We want to force users to fill in the account boxes from top to bottom. This procedure
+// ensures that a user will not be able to fill in details for an account box if the
+// fields for the box above it are empty
+procedure TfrmCAF.ToggleAccountFields;
+begin
+  if not CheckAccount1Filled then
+  begin
+    ToggleAccount2Controls(False);
+    ToggleAccount3Controls(False);
+  end
+  else if not CheckAccount2Filled then
+  begin
+    ToggleAccount2Controls(True);
+    ToggleAccount3Controls(False);
+  end
+  else
+  begin
+    ToggleAccount2Controls(True);
+    ToggleAccount3Controls(True);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TfrmCAF.ValidateForm: Boolean;
 
   procedure ShowAccValidationError(AccNumberText: string);
@@ -480,8 +547,14 @@ begin
     else
     begin
       MaskValidateAccNumber1();
+      MaskValidateAccNumber2();
+      MaskValidateAccNumber3();
       if fValidAccount1 = false then
         ShowAccValidationError(mskAccountNumber1.EditText);
+      if (fValidAccount2 = false) and CheckAccount2Filled then
+        ShowAccValidationError(mskAccountNumber2.EditText);
+      if (fValidAccount3 = false) and CheckAccount3Filled then
+        ShowAccValidationError(mskAccountNumber3.EditText);
     end;
 
     if fValidAccount1 = false then
@@ -537,13 +610,33 @@ end;
 procedure TfrmCAF.mskAccountNumber1Change(Sender: TObject);
 begin
   fValidAccount1 := false;
+  ToggleAccountFields;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumber1Enter(Sender: TObject);
 begin
-  UpdateMask;
+  UpdateMask1;
   mskAccountNumber1.SetFocus;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumber2Enter(Sender: TObject);
+begin
+  UpdateMask2;
+  mskAccountNumber2.SetFocus;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumber3Change(Sender: TObject);
+begin
+  fValidAccount3 := false;
+end;
+
+procedure TfrmCAF.mskAccountNumber3Enter(Sender: TObject);
+begin
+  UpdateMask3;
+  mskAccountNumber3.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
@@ -551,6 +644,18 @@ procedure TfrmCAF.MaskValidateAccNumber(AccountNumText: string; WhichAccount: in
 var
   FailedReason : string;
   ShowDlg : boolean;
+
+  // We don't want to show an error for accounts which don't have any of their details filled
+  function AreAnyAccountDetailsFilled: boolean;
+  begin
+    Result := False;
+    case WhichAccount of
+      1: Result := CheckAccount1Filled;
+      2: Result := CheckAccount2Filled;
+      3: Result := CheckAccount3Filled;
+    end;
+  end;
+
 begin
   // Calls Validation on Exit of Account Number Control
   fCurrentDisplayError := '';
@@ -562,11 +667,9 @@ begin
   if not ValidateAccount(AccountNumText, 1, FailedReason, ShowDlg) then
   begin
     if ShowDlg then
-    begin
       ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
                                  trim(fMaskHint.RemoveUnusedCharsFromAccNumber(AccountNumText)), FailedReason);
-    end
-    else
+    if AreAnyAccountDetailsFilled then         
     begin
       case WhichAccount of
         1: lblMaskErrorHint1.Caption := FailedReason;
@@ -586,16 +689,19 @@ begin
   fValidateError := false;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.MaskValidateAccNumber1;
 begin
   MaskValidateAccNumber(mskAccountNumber1.EditText, 1);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.MaskValidateAccNumber2;
 begin
   MaskValidateAccNumber(mskAccountNumber2.EditText, 2);
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCAF.MaskValidateAccNumber3;
 begin
   MaskValidateAccNumber(mskAccountNumber3.EditText, 3);
@@ -608,24 +714,49 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumber2Exit(Sender: TObject);
+begin
+  MaskValidateAccNumber2();
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumber3Exit(Sender: TObject);
+begin
+  MaskValidateAccNumber3();
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumber1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  UpdateMask;
+  UpdateMask1;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumber2KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  UpdateMask2;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCAF.mskAccountNumber3KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  UpdateMask3;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumber1MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  UpdateMask;
+  UpdateMask1;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.mskAccountNumber1ValidateEdit(var aRunExistingValidate: Boolean);
 begin
-  aRunExistingValidate := false;
-
+  aRunExistingValidate := false; 
   fValidateError := mskAccountNumber1.DoValidation;
 end;
 
@@ -637,78 +768,43 @@ end;
 
 procedure TfrmCAF.mskAccountNumber2Change(Sender: TObject);
 begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber2Enter(Sender: TObject);
-begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber2Exit(Sender: TObject);
-begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber2KeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-//
+  fValidAccount2 := false;
+  ToggleAccountFields;
 end;
 
 procedure TfrmCAF.mskAccountNumber2MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-//
+  UpdateMask2;
 end;
 
-procedure TfrmCAF.mskAccountNumber2ValidateEdit(
-  var aRunExistingValidate: Boolean);
+procedure TfrmCAF.mskAccountNumber2ValidateEdit(var aRunExistingValidate: Boolean);
 begin
-//
+  aRunExistingValidate := false; 
+  fValidateError := mskAccountNumber2.DoValidation;
 end;
 
 procedure TfrmCAF.mskAccountNumber2ValidateError(var aRaiseError: Boolean);
 begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber3Change(Sender: TObject);
-begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber3Enter(Sender: TObject);
-begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber3Exit(Sender: TObject);
-begin
-//
-end;
-
-procedure TfrmCAF.mskAccountNumber3KeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-//
+  aRaiseError := false;
 end;
 
 procedure TfrmCAF.mskAccountNumber3MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-//
+  UpdateMask3;
 end;
 
 procedure TfrmCAF.mskAccountNumber3ValidateEdit(
   var aRunExistingValidate: Boolean);
 begin
-//
+  aRunExistingValidate := false; 
+  fValidateError := mskAccountNumber3.DoValidation;
 end;
 
 procedure TfrmCAF.mskAccountNumber3ValidateError(var aRaiseError: Boolean);
 begin
-//
+  aRaiseError := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -889,32 +985,7 @@ begin
 
   cmbInstitution.DroppedDown := oldInstDroppedDown;
 
-  lblNameOfAccount1.enabled      := enableControls;
-  edtNameOfAccount1.enabled      := enableControls;
-  lblAccount1.enabled            := enableControls;
-  mskAccountNumber1.enabled      := enableControls;
-  lblClientCode1.enabled         := enableControls;
-  edtClientCode1.Enabled         := enableControls;
-  lblCostCode1.Enabled           := enableControls;
-  edtCostCode1.Enabled           := enableControls;
-
-  lblNameOfAccount2.enabled      := enableControls;
-  edtNameOfAccount2.enabled      := enableControls;
-  lblAccount2.enabled            := enableControls;
-  mskAccountNumber2.enabled      := enableControls;
-  lblClientCode2.enabled         := enableControls;
-  edtClientCode2.Enabled         := enableControls;
-  lblCostCode2.Enabled           := enableControls;
-  edtCostCode2.Enabled           := enableControls;
-
-  lblNameOfAccount3.enabled      := enableControls;
-  edtNameOfAccount3.enabled      := enableControls;
-  lblAccount3.enabled            := enableControls;
-  mskAccountNumber3.enabled      := enableControls;
-  lblClientCode3.enabled         := enableControls;
-  edtClientCode3.Enabled         := enableControls;
-  lblCostCode3.Enabled           := enableControls;
-  edtCostCode3.Enabled           := enableControls;
+  ToggleAccountFields;
 
   edtBranch.Enabled             := enableControls;
   lblBranch.Enabled             := enableControls;
@@ -926,11 +997,55 @@ begin
   lblAccountHintLine3.Repaint;
 end;
 
+procedure TfrmCAF.ToggleAccount1Controls(Value: boolean);
+begin
+  lblNameOfAccount1.enabled      := Value;
+  edtNameOfAccount1.enabled      := Value;
+  lblAccount1.enabled            := Value;
+  mskAccountNumber1.enabled      := Value;
+  lblClientCode1.enabled         := Value;
+  edtClientCode1.Enabled         := Value;
+  lblCostCode1.Enabled           := Value;
+  edtCostCode1.Enabled           := Value;
+end;
+
+procedure TfrmCAF.ToggleAccount2Controls(Value: boolean);
+begin
+  lblNameOfAccount2.enabled      := Value;
+  edtNameOfAccount2.enabled      := Value;
+  lblAccount2.enabled            := Value;
+  mskAccountNumber2.enabled      := Value;
+  lblClientCode2.enabled         := Value;
+  edtClientCode2.Enabled         := Value;
+  lblCostCode2.Enabled           := Value;
+  edtCostCode2.Enabled           := Value;
+end;
+
+procedure TfrmCAF.ToggleAccount3Controls(Value: boolean);
+begin
+  lblNameOfAccount3.enabled      := Value;
+  edtNameOfAccount3.enabled      := Value;
+  lblAccount3.enabled            := Value;
+  mskAccountNumber3.enabled      := Value;
+  lblClientCode3.enabled         := Value;
+  edtClientCode3.Enabled         := Value;
+  lblCostCode3.Enabled           := Value;
+  edtCostCode3.Enabled           := Value;
+end;
+
 //------------------------------------------------------------------------------
-procedure TfrmCAF.UpdateMask;
+procedure TfrmCAF.UpdateMask1;
 begin
   fMaskHint.DrawMaskHint(lblAccountHintLine1, mskAccountNumber1, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
+end;
+
+procedure TfrmCAF.UpdateMask2;
+begin
   fMaskHint.DrawMaskHint(lblAccountHintLine2, mskAccountNumber2, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
+end;
+
+procedure TfrmCAF.UpdateMask3;
+begin
   fMaskHint.DrawMaskHint(lblAccountHintLine3, mskAccountNumber3, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
 end;
 
@@ -954,12 +1069,47 @@ end;
 procedure TfrmCAF.edtAccountNumber2Exit(Sender: TObject);
 begin
   fAccountNumber := trim(edtAccountNumber2.Text);
-  fValidAccount1 := (length(fAccountNumber) > 0);
+  fValidAccount2 := (length(fAccountNumber) > 0);
 end;
 
 procedure TfrmCAF.edtAccountNumber3Exit(Sender: TObject);
 begin
+  fAccountNumber := trim(edtAccountNumber3.Text);
+  fValidAccount3 := (length(fAccountNumber) > 0);
+end;
 
+procedure TfrmCAF.edtClientCode1Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtClientCode2Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtCostCode1Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtCostCode2Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtNameOfAccount1Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtNameOfAccount2Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtNameOfAccount3Change(Sender: TObject);
+begin
 end;
 
 //------------------------------------------------------------------------------
