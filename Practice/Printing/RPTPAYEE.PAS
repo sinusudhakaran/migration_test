@@ -689,11 +689,11 @@ Begin
           RenderName();
 
           if params.NetandGstAmounts then
-            RenderAmountLinewithGST(PeriodStartDate, 0,
+            RenderAmountLinewithGST(pTranRec^.txDate_Effective, 0,
                                     GetFormattedReference(pTranRec), '', '', '',
                                     pTranRec^.txGST_Amount , pTranRec^.txTemp_Base_Amount, false)
           else
-            RenderAmountLine(PeriodStartDate, 0, GetFormattedReference(pTranRec),
+            RenderAmountLine(pTranRec^.txDate_Effective, 0, GetFormattedReference(pTranRec),
                              pTranRec^.txTemp_Base_Amount, '', '', '', false);
 
           RenderDetailLine;
