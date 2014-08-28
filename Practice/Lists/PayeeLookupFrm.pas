@@ -21,13 +21,17 @@ uses
 
 type
   TPayeeLookupMode = (pmAll, pmContractors);
-  
+
+  TPayeeAllowed = (paAddNewPayee, paInactivePayees);
+  TPayeeAllowedSet = set of TPayeeAllowed;
+
   TfrmPayeeLookup = class(TForm)
     Grid: TtsGrid;
     Panel1: TPanel;
     sbtnNewPayee: TSpeedButton;
     ActionList1: TActionList;
     actAddNewPayee: TAction;
+    chkIncludeInactivePayees: TCheckBox;
 
     procedure GridCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);
@@ -43,6 +47,7 @@ type
     procedure GridMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure actAddNewPayeeExecute(Sender: TObject);
+    procedure chkIncludeInactivePayeesClick(Sender: TObject);
   private
     FDefaultSortOrder : tPYSSortType;
 
@@ -64,8 +69,13 @@ type
     { Public declarations }
   end;
 
-function LookUpPayee( Guess : ShortString; LookupMode: TPayeeLookupMode = pmAll): Integer;
-function PickPayee(var PayeeCode : Integer; LookupMode: TPayeeLookupMode = pmAll) : Boolean;
+const
+  ALLOWED_DEFAULT = [paAddNewPayee];
+
+function  LookUpPayee(Guess: ShortString; LookupMode: TPayeeLookupMode = pmAll;
+            const aAllowed: TPayeeAllowedSet = ALLOWED_DEFAULT): Integer;
+function  PickPayee(var PayeeCode: Integer; LookupMode: TPayeeLookupMode = pmAll;
+            const aAllowed: TPayeeAllowedSet = ALLOWED_DEFAULT) : Boolean;
 
 //******************************************************************************
 implementation
@@ -102,7 +112,7 @@ begin
   begin
     Caption := 'Select Contractor Payee';
   end;
-  
+
   with Grid do
   Begin
      Rows             := PYSListByName.ItemCount;
@@ -543,7 +553,9 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure ReBuildLists( var SortByNoList : tPYSList; var SortByNameList : tPYSList; aClient : TClientObj; LookupMode: TPayeeLookupMode);
+procedure ReBuildLists( var SortByNoList : tPYSList;
+  var SortByNameList : tPYSList; aClient : TClientObj;
+  LookupMode: TPayeeLookupMode; const aAllowInactivePayees: boolean);
 //this routine builds the sorted list that are used by the lookup
 //a sorted list must exist for each sort order
 var
@@ -563,6 +575,9 @@ begin
   begin
     for i := First to Last do
     begin
+      if Payee_At(i).pdFields.pdInactive and not aAllowInactivePayees then
+        continue;
+      
       if LookupMode = pmContractors then
       begin
         if Payee_At(i).pdFields.pdContractor then
@@ -591,7 +606,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 
-function LookUpPayee( Guess : ShortString; LookupMode: TPayeeLookupMode): Integer;
+function LookUpPayee(Guess: ShortString; LookupMode: TPayeeLookupMode;
+  const aAllowed: TPayeeAllowedSet): Integer;
 const
   ThisMethodName = 'LookUpPayee';
 var
@@ -606,7 +622,8 @@ begin
   NoList   := nil;
   NameList := nil;
 
-  ReBuildLists( NoList, NameList, MyClient, LookupMode);
+  // Don't show inactive payees at this point
+  ReBuildLists( NoList, NameList, MyClient, LookupMode, false);
 
   //if NameList = nil then Exit; //removed 25/09/2002 [MJF]
 
@@ -615,6 +632,16 @@ begin
     LookUpDlg.PYSListByName := NameList;
     LookUpDlg.PYSListByNo   := NoList;
     LookupDlg.PYLookupMode := LookupMode;
+
+    // Add new payee
+    if not (paAddNewPayee in aAllowed) then
+    begin
+      LookUpDlg.sbtnNewPayee.Visible := false;
+      LookUpDlg.chkIncludeInactivePayees.Left := LookUpDlg.sbtnNewPayee.Left;
+    end;
+
+    // Include inactive payees
+    LookUpDlg.chkIncludeInactivePayees.Visible := (paInactivePayees in aAllowed);
 
     if (LookUpDlg.Execute(Guess, rsSingle) = mrOK) then
     begin
@@ -649,7 +676,8 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 End;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PickPayee( var PayeeCode : Integer; LookupMode: TPayeeLookupMode) : Boolean;
+function PickPayee(var PayeeCode: Integer; LookupMode: TPayeeLookupMode;
+  const aAllowed: TPayeeAllowedSet) : Boolean;
 var
   Guess : ShortString;
   No : Integer;
@@ -659,7 +687,7 @@ begin
   //if not HasPayees then exit; //removed 25/09/2002 [MJF]
 
   Guess := ''; if PayeeCode <> 0 then Str( PayeeCode, Guess );
-  No := PayeeLookupFrm.LookUpPayee( Guess, LookupMode);
+  No := PayeeLookupFrm.LookUpPayee( Guess, LookupMode, aAllowed);
 
   if No > 0 then
   begin
@@ -691,7 +719,8 @@ begin
       //clear rows
       Grid.Rows := 0;
       //reload lists
-      ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient, PYLookupMode);
+      ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient,
+        PYLookupMode, chkIncludeInactivePayees.Checked);
       if Self.PYSListByNo = nil then
       begin
         ModalResult := mrCancel;
@@ -720,6 +749,29 @@ begin
     end;
     //resize the window
     ResizeForm;
+  end;
+end;
+
+procedure TfrmPayeeLookup.chkIncludeInactivePayeesClick(Sender: TObject);
+begin
+  //freeze current drawing
+  Grid.BeginUpdate;
+  try
+    //clear rows
+    Grid.Rows := 0;
+    //reload lists
+    ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient,
+      PYLookupMode, chkIncludeInactivePayees.Checked);
+    if Self.PYSListByNo = nil then
+    begin
+      ModalResult := mrCancel;
+      Close;
+    end;
+    //reset row count
+    Grid.Rows := Self.PYSListByName.ItemCount;
+    //allow drawing
+  finally
+    Grid.EndUpdate;
   end;
 end;
 
