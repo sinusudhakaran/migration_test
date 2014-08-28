@@ -164,7 +164,7 @@ function RoundNumberExt(number, base: extended): extended;
 function AddFillerData(aInString: string; aFiller: char; aLength : integer; aLeftSide : boolean): string;
 function AddFillerSpaces(aInString: string; aLength : integer): string;
 function InsFillerZeros(aInString: string; aLength : integer): string;
-function RemoveNonNumericData(aInString : string) : string;
+function RemoveNonNumericData(aInString : string; KeepSpaces: boolean = true) : string;
 
 //******************************************************************************
 Implementation
@@ -1378,7 +1378,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function RemoveNonNumericData(aInString: string): string;
+function RemoveNonNumericData(aInString: string; KeepSpaces: boolean = true): string;
 var
   Index : integer;
 begin
@@ -1386,8 +1386,10 @@ begin
   for Index := 1 to Length(aInString) do
   begin
     if ((aInString[Index] >= '0') and (aInString[Index] <= '9')) or
-       (aInString[Index] = ' ') then
+       ((aInString[Index] = ' ') and KeepSpaces) then
+    begin
       Result := Result + aInString[Index];
+    end;
   end;
 end;
 

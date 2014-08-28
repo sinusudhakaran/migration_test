@@ -158,11 +158,17 @@ type
     procedure edtCostCode2Change(Sender: TObject);
     procedure edtNameOfAccount3Change(Sender: TObject);
     procedure mskAccountNumber3Change(Sender: TObject);
+    procedure edtAccountNumber1Change(Sender: TObject);
+    procedure edtAccountNumber2Change(Sender: TObject);
+    procedure edtAccountNumber3Change(Sender: TObject);
+    procedure edtInstitutionNameChange(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
     fValidAccount3 : boolean;
-    fAccountNumber : string;
+    fAccountNumber1 : string;
+    fAccountNumber2 : string;
+    fAccountNumber3 : string;
     fMaskBsb1 : String;
     fMaskBsb2 : String;
     fMaskBsb3 : String;
@@ -175,7 +181,9 @@ type
     fMaskHint : TMaskHint;
     FImportFile: string;
     fInstitutionType : TInstitutionType;
-    fCurrentDisplayError : string;
+    fCurrentDisplayError1 : string;
+    fCurrentDisplayError2 : string;
+    fCurrentDisplayError3 : string;
 
     procedure MaskValidateAccNumber(AccountNumText: string; WhichAccount: integer);
     procedure MaskValidateAccNumber1();
@@ -211,7 +219,9 @@ type
     property PracticeName : string read fPracticeName write fPracticeName;
 
     property ValidAccount1  : boolean read fValidAccount1  write fValidAccount1;
-    property AccountNumber : string  read fAccountNumber write fAccountNumber;
+    property AccountNumber1 : string  read fAccountNumber1 write fAccountNumber1;
+    property AccountNumber2 : string  read fAccountNumber2 write fAccountNumber2;
+    property AccountNumber3 : string  read fAccountNumber3 write fAccountNumber3;
     property InstitutionType : TInstitutionType read fInstitutionType write fInstitutionType;
   end;
 
@@ -230,7 +240,8 @@ uses
   InstitutionCol,
   BanklinkOnlineServices,
   imagesfrm,
-  AccountValidationErrorDlg;
+  AccountValidationErrorDlg,
+  GenUtils;
 
 Const
   UNIT_NAME = 'TfrmCAF';
@@ -247,7 +258,9 @@ begin
   fValidAccount1 := false;
   fValidAccount2 := false;
   fValidAccount3 := false;
-  fAccountNumber := '';
+  fAccountNumber1 := '';
+  fAccountNumber2 := '';
+  fAccountNumber3 := '';
   fMaskBsb1 := '';
   fMaskBsb2 := '';
   fMaskBsb3 := '';
@@ -296,7 +309,9 @@ begin
   edtClientStartDte.AsDateTime := now();
 
   lblBookSecureLink.hint  := PRACINI_SecureFormLinkAU;
-  fCurrentDisplayError := '';
+  fCurrentDisplayError1 := '';
+  fCurrentDisplayError2 := '';
+  fCurrentDisplayError3 := '';
 
   AppImages.ilFileActions_ClientMgr.GetBitmap(FILE_ACTIONS_INFO2, imgInfoAdditionalMsg.Picture.Bitmap);
 end;
@@ -364,16 +379,25 @@ var
   procedure SetValidAccount(Value: boolean);
   begin
     case WhichAccount of
-      1: fValidAccount1 := false;
-      2: fValidAccount2 := false;
-      3: fValidAccount3 := false;
+      1: fValidAccount1 := Value;
+      2: fValidAccount2 := Value;
+      3: fValidAccount3 := Value;
+    end;
+  end;
+
+  procedure SetAccountNumber(Value: string);
+  begin
+    case WhichAccount of
+      1: fAccountNumber1 := Value;
+      2: fAccountNumber2 := Value;
+      3: fAccountNumber3 := Value;
     end;
   end;
 
 begin
   Result := false;
   SetValidAccount(false);
-  fAccountNumber := '';
+  SetAccountNumber('');
   aShowDlg := true;
 
     // Check if the Mapping File is set to ignore Validation
@@ -384,7 +408,7 @@ begin
     if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).IgnoreValidation then
     begin
       AccNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
-      fAccountNumber := AccNumber;
+      SetAccountNumber(AccNumber);
       SetValidAccount(true);
       Result := true;
       Exit;
@@ -430,7 +454,7 @@ begin
     if Result then
     begin
       SetValidAccount(true);
-      fAccountNumber := AccNumber;
+      SetAccountNumber(AccNumber);
     end;
     aShowDlg := true;
   end;
@@ -438,29 +462,47 @@ end;
 
 //------------------------------------------------------------------------------
 function TfrmCAF.CheckAccount1Filled: boolean;
+var
+  MaskIsEmptyOrMatchesBsb: boolean;
 begin
+  MaskIsEmptyOrMatchesBsb :=
+    (mskAccountNumber1.Text = '') or
+    (RemoveNonNumericData(mskAccountNumber1.Text, false) = fMaskBsb1);
   Result := (edtNameOfAccount1.Text  <> '') or
             (edtClientCode1.Text     <> '') or
-            (mskAccountNumber1.Text  <> '') or
-            (edtCostCode1.Text       <> '');
+            (edtAccountNumber1.Text  <> '') or
+            (edtCostCode1.Text       <> '') or
+            (MaskIsEmptyOrMatchesBsb =  false);
 end;
 
 //------------------------------------------------------------------------------
 function TfrmCAF.CheckAccount2Filled: boolean;
+var
+  MaskIsEmptyOrMatchesBsb: boolean;
 begin
+  MaskIsEmptyOrMatchesBsb :=
+    (mskAccountNumber2.Text = '') or
+    (RemoveNonNumericData(mskAccountNumber2.Text, false) = fMaskBsb2);
   Result := (edtNameOfAccount2.Text  <> '') or
             (edtClientCode2.Text     <> '') or
-            (mskAccountNumber2.Text  <> '') or
-            (edtCostCode2.Text       <> '');
+            (edtAccountNumber2.Text  <> '') or
+            (edtCostCode2.Text       <> '') or
+            (MaskIsEmptyOrMatchesBsb =  false);
 end;
 
 //------------------------------------------------------------------------------
 function TfrmCAF.CheckAccount3Filled: boolean;
+var
+  MaskIsEmptyOrMatchesBsb: boolean;
 begin
+  MaskIsEmptyOrMatchesBsb :=
+    (mskAccountNumber3.Text = '') or
+    (RemoveNonNumericData(mskAccountNumber3.Text, false) = fMaskBsb3);
   Result := (edtNameOfAccount3.Text  <> '') or
             (edtClientCode3.Text     <> '') or
-            (mskAccountNumber3.Text  <> '') or
-            (edtCostCode3.Text       <> '');
+            (edtAccountNumber3.Text  <> '') or
+            (edtCostCode3.Text       <> '') or
+            (MaskIsEmptyOrMatchesBsb =  false);
 end;
 
 //------------------------------------------------------------------------------
@@ -468,7 +510,14 @@ end;
 // ensures that a user will not be able to fill in details for an account box if the
 // fields for the box above it are empty
 procedure TfrmCAF.ToggleAccountFields;
+var
+  ShowAccount1: boolean;
 begin
+  // Don't show the first account if an institution hasn't been selected. If 'other' has been
+  // selected, only show the first account if an institution has been entered into the now
+  // visible edtInstitutionName
+  ShowAccount1 := (cmbInstitution.ItemIndex <> -1);
+  ToggleAccount1Controls(ShowAccount1);
   if not CheckAccount1Filled then
   begin
     ToggleAccount2Controls(False);
@@ -488,12 +537,15 @@ end;
 
 //------------------------------------------------------------------------------
 function TfrmCAF.ValidateForm: Boolean;
+var
+  Account2Filled, Account3Filled: boolean;
+  DoValidateAccount1, DoValidateAccount2, DoValidateAccount3: boolean;
 
-  procedure ShowAccValidationError(AccNumberText: string);
+  procedure ShowAccValidationError(AccNumberText: string; CurrentDisplayError: string);
   begin
     ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
                                trim(fMaskHint.RemoveUnusedCharsFromAccNumber(AccNumberText)),
-                               fCurrentDisplayError);
+                               CurrentDisplayError);
   end;
 
 begin
@@ -531,43 +583,53 @@ begin
     Result := False;
   end;
 
+  Account2Filled := CheckAccount2Filled;
+  Account3Filled := CheckAccount3Filled;
+  DoValidateAccount1 := (fValidAccount1 = false);
+  DoValidateAccount2 := (fValidAccount2 = false) and Account2Filled;
+  DoValidateAccount3 := (fValidAccount3 = false) and Account3Filled;
   //Account Validation
-  if (Result) and (fInstitutionType = inBLO) and not (fValidAccount1 and fValidAccount2 and fValidAccount3) then
+  if (Result) and (fInstitutionType = inBLO) and
+  (DoValidateAccount1 or DoValidateAccount2 or DoValidateAccount3) then
   begin
-    if length(fCurrentDisplayError) > 0 then
+    if (length(fCurrentDisplayError1) > 0) or
+       (length(fCurrentDisplayError2) > 0) or
+       (length(fCurrentDisplayError3) > 0) then
     begin
       // TODO: should show one error for all accounts, not a separate error for each one
-      if (fValidAccount1 = false) then
-        ShowAccValidationError(mskAccountNumber1.EditText);
-      if (fValidAccount2 = false) then
-        ShowAccValidationError(mskAccountNumber2.EditText);
-      if (fValidAccount3 = false) then
-        ShowAccValidationError(mskAccountNumber3.EditText);      
+      if DoValidateAccount1 then
+        ShowAccValidationError(mskAccountNumber1.EditText, fCurrentDisplayError1);
+      if DoValidateAccount2 then
+        ShowAccValidationError(mskAccountNumber2.EditText, fCurrentDisplayError2);
+      if DoValidateAccount3 then
+        ShowAccValidationError(mskAccountNumber3.EditText, fCurrentDisplayError3);      
     end
     else
     begin
       MaskValidateAccNumber1();
-      MaskValidateAccNumber2();
-      MaskValidateAccNumber3();
-      if fValidAccount1 = false then
-        ShowAccValidationError(mskAccountNumber1.EditText);
-      if (fValidAccount2 = false) and CheckAccount2Filled then
-        ShowAccValidationError(mskAccountNumber2.EditText);
-      if (fValidAccount3 = false) and CheckAccount3Filled then
-        ShowAccValidationError(mskAccountNumber3.EditText);
+      if Account2Filled then
+        MaskValidateAccNumber2();
+      if Account3Filled then
+        MaskValidateAccNumber3();
+      if DoValidateAccount1 and (fCurrentDisplayError1 <> '') then
+        ShowAccValidationError(mskAccountNumber1.EditText, fCurrentDisplayError1);
+      if DoValidateAccount2 and (fCurrentDisplayError2 <> '') then
+        ShowAccValidationError(mskAccountNumber2.EditText, fCurrentDisplayError2);
+      if DoValidateAccount3 and (fCurrentDisplayError3 <> '') then
+        ShowAccValidationError(mskAccountNumber3.EditText, fCurrentDisplayError3);
     end;
 
-    if fValidAccount1 = false then
+    if (fValidAccount1 = false) and (fCurrentDisplayError1 <> '') then
     begin
       mskAccountNumber1.SetFocus;
       Result := False;
     end else
-    if fValidAccount2 = false then
+    if (fValidAccount2 = false) and (fCurrentDisplayError2 <> '') then
     begin
       mskAccountNumber2.SetFocus;
       Result := False;
     end else
-    if fValidAccount3 = false then
+    if (fValidAccount3 = false) and (fCurrentDisplayError3 <> '') then
     begin
       mskAccountNumber3.SetFocus;
       Result := False;
@@ -658,13 +720,21 @@ var
 
 begin
   // Calls Validation on Exit of Account Number Control
-  fCurrentDisplayError := '';
   case WhichAccount of
-    1: lblMaskErrorHint1.Caption := '';
-    2: lblMaskErrorHint2.Caption := '';
-    3: lblMaskErrorHint3.Caption := '';
+    1: begin
+      fCurrentDisplayError1 := '';
+      lblMaskErrorHint1.Caption := '';
+    end;
+    2: begin
+      fCurrentDisplayError2 := '';
+      lblMaskErrorHint2.Caption := '';
+    end;
+    3: begin
+      fCurrentDisplayError3 := '';
+      lblMaskErrorHint3.Caption := '';
+    end;
   end;
-  if not ValidateAccount(AccountNumText, 1, FailedReason, ShowDlg) then
+  if not ValidateAccount(AccountNumText, WhichAccount, FailedReason, ShowDlg) then
   begin
     if ShowDlg then
       ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
@@ -672,13 +742,23 @@ begin
     if AreAnyAccountDetailsFilled then         
     begin
       case WhichAccount of
-        1: lblMaskErrorHint1.Caption := FailedReason;
-        2: lblMaskErrorHint2.Caption := FailedReason;
-        3: lblMaskErrorHint3.Caption := FailedReason;
+        1: begin
+          fCurrentDisplayError1 := FailedReason;
+          if not ShowDlg then
+            lblMaskErrorHint1.Caption := FailedReason;
+        end;
+        2: begin
+          fCurrentDisplayError2 := FailedReason;
+          if not ShowDlg then
+            lblMaskErrorHint2.Caption := FailedReason;
+        end;
+        3: begin
+          fCurrentDisplayError3 := FailedReason;
+          if not ShowDlg then
+            lblMaskErrorHint3.Caption := FailedReason;
+        end;
       end;
     end;
-
-    fCurrentDisplayError := FailedReason;
   end;
 
   case WhichAccount of
@@ -883,12 +963,12 @@ begin
       edtAccountNumber1.Text := AccNumber1;
       edtAccountNumber2.Text := AccNumber2;
       edtAccountNumber3.Text := AccNumber3;
-      fAccountNumber := trim(edtAccountNumber1.Text);
-      fValidAccount1 := (length(fAccountNumber) > 0);
-      fAccountNumber := trim(edtAccountNumber2.Text);
-      fValidAccount2 := (length(fAccountNumber) > 0);
-      fAccountNumber := trim(edtAccountNumber3.Text);
-      fValidAccount3 := (length(fAccountNumber) > 0);
+      fAccountNumber1 := trim(edtAccountNumber1.Text);
+      fValidAccount1 := (length(fAccountNumber1) > 0);
+      fAccountNumber2 := trim(edtAccountNumber2.Text);
+      fValidAccount2 := (length(fAccountNumber2) > 0);
+      fAccountNumber3 := trim(edtAccountNumber3.Text);
+      fValidAccount3 := (length(fAccountNumber3) > 0);
     end;
   end;
 
@@ -901,7 +981,9 @@ begin
   mskAccountNumber2.EditText := '';
   mskAccountNumber3.EditMask := '';
   mskAccountNumber3.EditText := '';
-  fCurrentDisplayError := '';
+  fCurrentDisplayError1 := '';
+  fCurrentDisplayError2 := '';
+  fCurrentDisplayError3 := '';
   lblMaskErrorHint1.Caption := '';
   lblMaskErrorHint2.Caption := '';
   lblMaskErrorHint3.Caption := '';
@@ -1002,6 +1084,7 @@ begin
   lblNameOfAccount1.enabled      := Value;
   edtNameOfAccount1.enabled      := Value;
   lblAccount1.enabled            := Value;
+  edtAccountNumber1.enabled      := Value;
   mskAccountNumber1.enabled      := Value;
   lblClientCode1.enabled         := Value;
   edtClientCode1.Enabled         := Value;
@@ -1014,6 +1097,7 @@ begin
   lblNameOfAccount2.enabled      := Value;
   edtNameOfAccount2.enabled      := Value;
   lblAccount2.enabled            := Value;
+  edtAccountNumber2.enabled      := Value;
   mskAccountNumber2.enabled      := Value;
   lblClientCode2.enabled         := Value;
   edtClientCode2.Enabled         := Value;
@@ -1026,6 +1110,7 @@ begin
   lblNameOfAccount3.enabled      := Value;
   edtNameOfAccount3.enabled      := Value;
   lblAccount3.enabled            := Value;
+  edtAccountNumber3.enabled      := Value;
   mskAccountNumber3.enabled      := Value;
   lblClientCode3.enabled         := Value;
   edtClientCode3.Enabled         := Value;
@@ -1060,22 +1145,40 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmCAF.edtAccountNumber1Change(Sender: TObject);
+begin
+  fValidAccount1 := false;
+  ToggleAccountFields;
+end;
+
 procedure TfrmCAF.edtAccountNumber1Exit(Sender: TObject);
 begin
-  fAccountNumber := trim(edtAccountNumber1.Text);
-  fValidAccount1 := (length(fAccountNumber) > 0);
+  fAccountNumber1 := trim(edtAccountNumber1.Text);
+  fValidAccount1 := (length(fAccountNumber1) > 0);
+end;
+
+procedure TfrmCAF.edtAccountNumber2Change(Sender: TObject);
+begin
+  fValidAccount2 := false;
+  ToggleAccountFields;
 end;
 
 procedure TfrmCAF.edtAccountNumber2Exit(Sender: TObject);
 begin
-  fAccountNumber := trim(edtAccountNumber2.Text);
-  fValidAccount2 := (length(fAccountNumber) > 0);
+  fAccountNumber2 := trim(edtAccountNumber2.Text);
+  fValidAccount2 := (length(fAccountNumber2) > 0);
+end;
+
+procedure TfrmCAF.edtAccountNumber3Change(Sender: TObject);
+begin
+  fValidAccount3 := false;
+  ToggleAccountFields;
 end;
 
 procedure TfrmCAF.edtAccountNumber3Exit(Sender: TObject);
 begin
-  fAccountNumber := trim(edtAccountNumber3.Text);
-  fValidAccount3 := (length(fAccountNumber) > 0);
+  fAccountNumber3 := trim(edtAccountNumber3.Text);
+  fValidAccount3 := (length(fAccountNumber3) > 0);
 end;
 
 procedure TfrmCAF.edtClientCode1Change(Sender: TObject);
@@ -1094,6 +1197,11 @@ begin
 end;
 
 procedure TfrmCAF.edtCostCode2Change(Sender: TObject);
+begin
+  ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edtInstitutionNameChange(Sender: TObject);
 begin
   ToggleAccountFields;
 end;
@@ -1133,7 +1241,11 @@ begin
   SetInstitutionControls(inNone);
 
   fMaskBsb1 := '';
-  fAccountNumber := '';
+  fMaskBsb2 := '';
+  fMaskBsb3 := '';
+  fAccountNumber1 := '';
+  fAccountNumber2 := '';
+  fAccountNumber3 := '';
   edtBranch.Text := '';
 
   edtNameOfAccount1.Text := '';
@@ -1165,8 +1277,9 @@ begin
   chkDataSecureNew.Checked := false;
   chkDataSecureExisting.Checked := false;
   chkSupplyAsProvisional.Checked := false;
-  fCurrentDisplayError := '';
-  fCurrentDisplayError := '';
+  fCurrentDisplayError1 := '';
+  fCurrentDisplayError2 := '';
+  fCurrentDisplayError3 := '';
   edtClientStartDte.AsDateTime := now();
 end;
 

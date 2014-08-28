@@ -150,15 +150,15 @@ begin
   if C.Col = fcAccountName then
   begin
     Values.edtNameOfAccount1.Text := GetCellText(C);
-    Values.AccountNumber := '';
+    Values.AccountNumber1 := '';
   end
   else if C.Col = fcBSB then
   begin
-    Values.AccountNumber := GetCellText(C) + Values.AccountNumber;
+    Values.AccountNumber1 := GetCellText(C) + Values.AccountNumber1;
   end
   else if C.Col = fcAccountNo then
   begin
-    Values.AccountNumber := Values.AccountNumber + GetCellText(C);
+    Values.AccountNumber1 := Values.AccountNumber1 + GetCellText(C);
     Values.edtClientStartDte.ClearContents();
     fProvisional := true;
   end
@@ -193,7 +193,7 @@ end;
 //------------------------------------------------------------------------------
 function TCAFReport.HaveNewdata: Boolean;
 begin
-  Result := (Values.AccountNumber > '');
+  Result := (Values.AccountNumber1 > '');
 
   if not Result then
     ResetForm; // Clear the rest
@@ -285,7 +285,7 @@ begin
 
   NewLine(3);
 
-  TextBox('Account Number', Values.AccountNumber, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Account Number', Values.AccountNumber1, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
   TextBox('Cost Code', Values.edtCostCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
@@ -502,7 +502,7 @@ begin
   WasPrinted := True;
 
   if ImportMode then
-    Values.AccountNumber := '';
+    Values.AccountNumber1 := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -549,11 +549,11 @@ begin
         InstIndex := Values.cmbInstitution.ItemIndex;
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
         CAFQRDataAccount.AccountName   := Values.edtNameOfAccount1.text;
-        if Institutions.DoInstituionExceptionCode(Values.AccountNumber,
+        if Institutions.DoInstituionExceptionCode(Values.AccountNumber1,
                                                   TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code) = ieBOQ then
-          CAFQRDataAccount.AccountNumber := Institutions.PadQueensLandAccWithZeros(Values.AccountNumber)
+          CAFQRDataAccount.AccountNumber := Institutions.PadQueensLandAccWithZeros(Values.AccountNumber1)
         else
-          CAFQRDataAccount.AccountNumber := Values.AccountNumber;
+          CAFQRDataAccount.AccountNumber := Values.AccountNumber1;
 
         CAFQRDataAccount.ClientCode    := Values.edtClientCode1.Text;
         CAFQRDataAccount.CostCode      := Values.edtCostCode1.Text;
