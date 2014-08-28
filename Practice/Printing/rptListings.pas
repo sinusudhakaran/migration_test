@@ -2202,6 +2202,8 @@ begin
                  AddColAuto(Job,cLeft,55,GcGap,'Payee Name', jtLeft);
                end;
           end;
+          if not Scheduled then
+            AddColAuto(Job,cLeft,15,GcGap,'Inactive', jtCenter);
 
           //Add Footers
           AddCommonFooter(Job);
@@ -3275,6 +3277,13 @@ begin
                PutInteger(Payee.pdNumber);
                PutString(Payee.pdName);
              end;
+        end;
+        if not fParams.Scheduled then
+        begin
+          if Payee.pdFields.pdInactive then
+            PutString('Y')
+          else
+            PutString('N');
         end;
         RenderDetailLine;
         if FParams.RuleLine then
