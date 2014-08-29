@@ -469,9 +469,7 @@ begin
     (mskAccountNumber1.Text = '') or
     (RemoveNonNumericData(mskAccountNumber1.Text, false) = fMaskBsb1);
   Result := (edtNameOfAccount1.Text  <> '') or
-            (edtClientCode1.Text     <> '') or
             (edtAccountNumber1.Text  <> '') or
-            (edtCostCode1.Text       <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
 end;
 
@@ -484,9 +482,7 @@ begin
     (mskAccountNumber2.Text = '') or
     (RemoveNonNumericData(mskAccountNumber2.Text, false) = fMaskBsb2);
   Result := (edtNameOfAccount2.Text  <> '') or
-            (edtClientCode2.Text     <> '') or
             (edtAccountNumber2.Text  <> '') or
-            (edtCostCode2.Text       <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
 end;
 
@@ -499,9 +495,7 @@ begin
     (mskAccountNumber3.Text = '') or
     (RemoveNonNumericData(mskAccountNumber3.Text, false) = fMaskBsb3);
   Result := (edtNameOfAccount3.Text  <> '') or
-            (edtClientCode3.Text     <> '') or
             (edtAccountNumber3.Text  <> '') or
-            (edtCostCode3.Text       <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
 end;
 
@@ -540,6 +534,7 @@ function TfrmCAF.ValidateForm: Boolean;
 var
   Account2Filled, Account3Filled: boolean;
   DoValidateAccount1, DoValidateAccount2, DoValidateAccount3: boolean;
+  Error1Filled, Error2Filled, Error3Filled: boolean;
 
   procedure ShowAccValidationError(AccNumberText: string; CurrentDisplayError: string);
   begin
@@ -585,23 +580,38 @@ begin
 
   Account2Filled := CheckAccount2Filled;
   Account3Filled := CheckAccount3Filled;
-  DoValidateAccount1 := (fValidAccount1 = false);
-  DoValidateAccount2 := (fValidAccount2 = false) and Account2Filled;
-  DoValidateAccount3 := (fValidAccount3 = false) and Account3Filled;
+  DoValidateAccount1 := True;
+  DoValidateAccount2 := Account2Filled;
+  DoValidateAccount3 := Account3Filled;
+
+  if Result and Account2Filled and (edtNameOfAccount2.Text = '') then
+  begin
+    HelpfulErrorMsg('Please enter the Name of Account.', 0);
+    edtNameOfAccount2.SetFocus;
+    Result := False;
+  end;
+
+  if Result and Account3Filled and (edtNameOfAccount3.Text = '') then
+  begin
+    HelpfulErrorMsg('Please enter the Name of Account.', 0);
+    edtNameOfAccount3.SetFocus;
+    Result := False;
+  end;
+  
   //Account Validation
   if (Result) and (fInstitutionType = inBLO) and
   (DoValidateAccount1 or DoValidateAccount2 or DoValidateAccount3) then
   begin
-    if (length(fCurrentDisplayError1) > 0) or
-       (length(fCurrentDisplayError2) > 0) or
-       (length(fCurrentDisplayError3) > 0) then
+    Error1Filled := (length(fCurrentDisplayError1) > 0);
+    Error2Filled := (length(fCurrentDisplayError2) > 0);
+    Error3Filled := (length(fCurrentDisplayError3) > 0);
+    if Error1Filled or Error2Filled or Error3Filled then
     begin
-      // TODO: should show one error for all accounts, not a separate error for each one
-      if DoValidateAccount1 then
+      if DoValidateAccount1 and Error1Filled then
         ShowAccValidationError(mskAccountNumber1.EditText, fCurrentDisplayError1);
-      if DoValidateAccount2 then
+      if DoValidateAccount2 and Error2Filled then
         ShowAccValidationError(mskAccountNumber2.EditText, fCurrentDisplayError2);
-      if DoValidateAccount3 then
+      if DoValidateAccount3 and Error3Filled then
         ShowAccValidationError(mskAccountNumber3.EditText, fCurrentDisplayError3);      
     end
     else
@@ -707,17 +717,6 @@ var
   FailedReason : string;
   ShowDlg : boolean;
 
-  // We don't want to show an error for accounts which don't have any of their details filled
-  function AreAnyAccountDetailsFilled: boolean;
-  begin
-    Result := False;
-    case WhichAccount of
-      1: Result := CheckAccount1Filled;
-      2: Result := CheckAccount2Filled;
-      3: Result := CheckAccount3Filled;
-    end;
-  end;
-
 begin
   // Calls Validation on Exit of Account Number Control
   case WhichAccount of
@@ -739,24 +738,21 @@ begin
     if ShowDlg then
       ShowAccountValidationError(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Name,
                                  trim(fMaskHint.RemoveUnusedCharsFromAccNumber(AccountNumText)), FailedReason);
-    if AreAnyAccountDetailsFilled then         
-    begin
-      case WhichAccount of
-        1: begin
-          fCurrentDisplayError1 := FailedReason;
-          if not ShowDlg then
-            lblMaskErrorHint1.Caption := FailedReason;
-        end;
-        2: begin
-          fCurrentDisplayError2 := FailedReason;
-          if not ShowDlg then
-            lblMaskErrorHint2.Caption := FailedReason;
-        end;
-        3: begin
-          fCurrentDisplayError3 := FailedReason;
-          if not ShowDlg then
-            lblMaskErrorHint3.Caption := FailedReason;
-        end;
+    case WhichAccount of
+      1: begin
+        fCurrentDisplayError1 := FailedReason;
+        if not ShowDlg then
+          lblMaskErrorHint1.Caption := FailedReason;
+      end;
+      2: begin
+        fCurrentDisplayError2 := FailedReason;
+        if not ShowDlg then
+          lblMaskErrorHint2.Caption := FailedReason;
+      end;
+      3: begin
+        fCurrentDisplayError3 := FailedReason;
+        if not ShowDlg then
+          lblMaskErrorHint3.Caption := FailedReason;
       end;
     end;
   end;
