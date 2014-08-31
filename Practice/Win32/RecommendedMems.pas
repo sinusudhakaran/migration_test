@@ -68,9 +68,6 @@ type
     property  Recommended: TRecommended_Mem_List read fRecommended;
   end;
 
-var
-  recommended_Mems: TRecommended_Mems;
-
 implementation
 
 uses
@@ -286,8 +283,9 @@ end;
 
 function TRecommended_Mems.MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
 var
-  InCodingForm  : boolean;
-  StartTime     : TDateTime;
+  InCodingForm      : boolean;
+  LastKeyPressTime  : TDateTime;
+  StartTime         : TDateTime;
 
   function DoMemsMatch(MemIsMaster: boolean; CandidateMem: TCandidate_Mem; CompareMem: TMemorisation): boolean;
   begin
@@ -737,7 +735,8 @@ begin
       InCodingForm := False;
 
     // Are we in the coding form, and has there been a keypress in the last two seconds?
-    if InCodingForm and (MilliSecondsBetween(StartTime, GetLastCodingFrmKeyPress) <= 2000) then
+    LastKeyPressTime := GetLastCodingFrmKeyPress;
+    if InCodingForm and (MilliSecondsBetween(StartTime, LastKeyPressTime) <= 2000) then
       Exit; // We are and there has, let's not do any scanning so that we don't interfere with the user
 
     // Has it been more than 33 milliseconds yet?

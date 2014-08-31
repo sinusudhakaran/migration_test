@@ -9464,8 +9464,9 @@ end;
 
 procedure TfrmCoding.SetLastKeyPress;
 begin
-  if Assigned(recommended_Mems) then
-    MyClient.clRecommended_Mems.SetLastCodingFrmKeyPress;
+  if Assigned(MyClient) then
+    if Assigned(MyClient.clRecommended_Mems) then    
+      MyClient.clRecommended_Mems.SetLastCodingFrmKeyPress;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
