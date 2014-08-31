@@ -721,6 +721,12 @@ begin
   Result := False;
   if Assigned(myClient) or RunningUnitTest then // Is the client file open?
   begin
+    if MEMSINI_SupportOptions = meiDisableSuggestedMemsAll then
+    begin
+      Result := false;
+      Exit;
+    end;
+
     // Store current time
     StartTime := Time;
 

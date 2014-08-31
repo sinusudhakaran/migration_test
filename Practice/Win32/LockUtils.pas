@@ -22,26 +22,28 @@ uses
   WaitDlg;
 
 const
-  ltMin                 =  1;
-  ltSystemLog           =  2;
-  ltAdminSystem         =  3;
-  ltStartupCheck        =  4;
-  ltPracIni             =  5;
-  ltPracLogo            =  6;
-  ltClientToDoList      =  7;
-  ltClientDetailsCache  =  8;
-  ltClientNotes         =  9;
-  ltPracHeaderFooterImg = 10;
-  ltAdminOptions        = 11;
-  ltUsageStatistics     = 12;
-  ltScheduledReport     = 13;
-  ltCustomDocument      = 14;
-  ltCodingStats         = 15;
-  ltWebNotesupdate      = 16;
-  ltWebNotesdata        = 17;
-  ltExchangeRates       = 18;
+  ltMin                   = 1;
+  ltSystemLog             = 2;
+  ltAdminSystem           = 3;
+  ltStartupCheck          = 4;
+  ltPracIni               = 5;
+  ltPracLogo              = 6;
+  ltClientToDoList        = 7;
+  ltClientDetailsCache    = 8;
+  ltClientNotes           = 9;
+  ltPracHeaderFooterImg   = 10;
+  ltAdminOptions          = 11;
+  ltUsageStatistics       = 12;
+  ltScheduledReport       = 13;
+  ltCustomDocument        = 14;
+  ltCodingStats           = 15;
+  ltWebNotesupdate        = 16;
+  ltWebNotesdata          = 17;
+  ltExchangeRates         = 18;
   ltBlopiServiceAgreement = 19;
-  ltMax                 = 19;
+  ltMemsIni               = 20;
+
+  ltMax = 20;
 
   TimeToWaitForPracINI  = 60;
   TimeToWaitForPracLogo = 30;
@@ -211,7 +213,8 @@ const
       'WebNotes Update',
       'WebNotes Data',
       'Exchange Rates',
-      'BankLink Online Service Agreement');
+      'BankLink Online Service Agreement',
+      'Memorisation INI File');
 
 var
   DebugMe : boolean = false;

@@ -131,6 +131,7 @@ CONST
     {filenames}
     INIFILENAME         = 'BK5WIN.INI';     //c:\windows\
     PRACTICEINIFILENAME = 'BK5PRAC.INI';    //DATADIR
+    MEMSINIFILENAME = 'memorisation.ini';
     DEFAULTTEMPLOGFILENAME = 'BK5WIN_.LOG';
     MAIL_MERGE_PRINT_TEMPLATE_FILENAME = 'BKPrintMerge.doc';
     MAIL_MERGE_EMAIL_TEMPLATE_FILENAME = 'BKEmailMerge.doc';
@@ -672,6 +673,13 @@ var
     PRACINI_IPClientLocking_TCPTimeOut : integer;
     PRACINI_IPClientLocking_ProcessMessageDelay : integer;
     PRACINI_IPClientLocking_GROUP_ID : string;
+
+Type
+    TMemsSupportOptions = (meiFullfunctionality, meiResetMems,
+                           meiDisableSuggestedMemsv2, meiDisableSuggestedMemsAll);
+
+Var
+    MEMSINI_SupportOptions : TMemsSupportOptions;
 
     // Remember email details in case it fails
     Email_Saved: Boolean = False;

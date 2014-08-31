@@ -1,5 +1,5 @@
 unit INISettings;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 {
   Title:  INI settings
 
@@ -14,7 +14,7 @@ unit INISettings;
 
 
 }
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 interface
 
@@ -31,7 +31,10 @@ procedure ReadUsersINI( UserCode : string);
 
 procedure ReadAppINI;
 
-//******************************************************************************
+procedure WriteMemorisationINI_WithLock(aClientCode : string);
+procedure ReadMemorisationINI(aClientCode : string);
+
+//------------------------------------------------------------------------------
 implementation
 uses
   bkqrprntr,
@@ -52,7 +55,8 @@ uses
   bkUrls,
   bkProduct,
   StrUtils,
-  dbCreate;
+  dbCreate,
+  BKIniFiles;
 
 const
    GrpMainForm = 'MainForm';
@@ -93,6 +97,19 @@ const
    GrpPracLinks  = 'Links';
    GrpPracBankLinkOnline = 'BankLinkOnline';
 
+   //Mems Ini groups
+   GrpMemsSupport = 'Support';
+
+   MEM_COMMENTS : Array[ 0..6 ] of String =
+      (  '; Support Section Help',
+         '; 0 = Full suggested mems functionality',
+         '; 1 = Refresh/Reset suggested mems functionality',
+         '; 2 = Disable Suggested Mems v2',
+         '; 3 = Disable Suggested Mems both v1 and v2',
+         '; Format to use is ClientCode=Number e.g. SAMPLE=1',
+         '' );
+
+
    DefLinkGST101 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst101';
    DefLinkGST103 = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=gst103';
    DefLinkTaxAgentGSTReturn = 'https://www.ird.govt.nz/cgi-bin/form.cgi?form=taxagentgstreturn';
@@ -125,8 +142,7 @@ const
       5.27.0      4: Update CES find to be visible
    *)
 
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function BConnectPassKey : string;
 const
    KeyPart1          = 'z3f5b37c';
@@ -137,8 +153,8 @@ begin
    for i := 1 to 8 do
       result := result + KeyPart1[i] + KeyPart2[ i];
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//------------------------------------------------------------------------------
 function GetBK5Ini: string;
 begin
   Result := IncludeTrailingPathDelimiter(ShellGetFolderPath(CSIDL_APPDATA) + 'BankLink\' + SHORTAPPNAME) + INIFILENAME;
@@ -371,7 +387,7 @@ begin
    end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure BK5WriteINI;
 var
   S : String;
@@ -541,7 +557,8 @@ begin
      IniFile.Free;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 {$IFNDEF SmartBooks}
 procedure ReadPracticeINI;
 //reads in any practice wide settings
@@ -780,7 +797,8 @@ begin
      end;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure WritePracticeINI;
 //write back the bk5Prac.ini file with the current values.  Does not write the
 //SecondsToWait entry
@@ -896,7 +914,8 @@ begin
       end;
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure WritePracticeINI_WithLock;
 begin
   FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
@@ -907,7 +926,8 @@ begin
   end;
 end;
 {$ENDIF}
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure UserIniUpgrade(IniFile: TMemIniFile);
 var
   ProcessingPosition: Integer;
@@ -948,7 +968,7 @@ begin
   UserINI_Version := USER_INI_VERSION;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure ReadUsersINI( UserCode : string);
 var
   Filename : string;
@@ -1065,7 +1085,7 @@ begin
   end;
 end;
 
-
+//------------------------------------------------------------------------------
 procedure WriteUsersINI( UserCode : string);
 var
   Filename : string;
@@ -1174,6 +1194,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure ReadAppINI;
 var
   Filename: String;
@@ -1201,5 +1222,104 @@ begin
   end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+procedure CreateMemsFileIfNotExists();
+var
+  MemsIniFile : TextFile;
+  Msg : string;
+  MemCommentIndex : integer;
+begin
+  FileLocking.ObtainLock( ltMemsIni, TimeToWaitForPracINI );
+  try
+    try
+      AssignFile(MemsIniFile, ExecDir + MEMSINIFILENAME);
+      try
+        Rewrite(MemsIniFile);
+
+        for MemCommentIndex := 0 to high(MEM_COMMENTS) do
+          WriteLn(MemsIniFile, MEM_COMMENTS[MemCommentIndex]);
+
+        WriteLn(MemsIniFile, '[' + GrpMemsSupport + ']');
+      finally
+        CloseFile(MemsIniFile);
+      end;
+    except
+      on e : Exception do
+      begin
+        Msg := 'Error creating MemsIniFile - '+ e.Message;
+        LogUtil.LogError( UnitName, Msg);
+      end;
+    end;
+  finally
+    FileLocking.ReleaseLock( ltMemsIni );
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure WriteMemorisationINI(aClientCode : string);
+var
+  MemsIniFile : TCommentMemIniFile;
+  MemCommentIndex : integer;
+  Msg : String;
+begin
+  try
+    MemsIniFile := TCommentMemIniFile.Create(ExecDir + MEMSINIFILENAME);
+    try
+      MemsIniFile.WriteInteger( GrpMemsSupport, aClientCode, ord(MEMSINI_SupportOptions));
+
+      for MemCommentIndex := 0 to high(MEM_COMMENTS) do
+        MemsIniFile.Comments.Add(MEM_COMMENTS[MemCommentIndex]);
+    finally
+      MemsIniFile.UpdateFile;
+      FreeAndNil(MemsIniFile);
+    end;
+  except
+    on e : Exception do
+    begin
+      Msg := 'Error during write of MemsIniFile - '+ e.Message;
+      LogUtil.LogError( UnitName, Msg);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure WriteMemorisationINI_WithLock(aClientCode : string);
+begin
+  if not FileExists( ExecDir + MEMSINIFILENAME) then
+    CreateMemsFileIfNotExists();
+
+  FileLocking.ObtainLock( ltMemsIni, TimeToWaitForPracINI );
+  try
+    WriteMemorisationINI(aClientCode);
+  finally
+    FileLocking.ReleaseLock( ltMemsIni );
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure ReadMemorisationINI(aClientCode : string);
+var
+  MemsIniFile : TCommentMemIniFile;
+  Msg : String;
+begin
+  if not FileExists( ExecDir + MEMSINIFILENAME) then
+    CreateMemsFileIfNotExists();
+
+  try
+    MemsIniFile := TCommentMemIniFile.Create( ExecDir + MEMSINIFILENAME);
+    try
+      MEMSINI_SupportOptions :=
+        TMemsSupportOptions(MemsIniFile.ReadInteger(GrpMemsSupport, aClientCode, 0));
+    finally
+      FreeAndNil(MemsIniFile);
+    end;
+  except
+    on e : Exception do
+    begin
+      Msg := 'Error during read of MemsIniFile - '+ e.Message;
+      LogUtil.LogError( UnitName, Msg);
+    end;
+  end;
+end;
+
 end.

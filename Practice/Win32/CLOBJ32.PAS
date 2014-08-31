@@ -179,6 +179,7 @@ uses
    bkcrc,
    cryptx,
    windows,
+   IniSettings,
 
 {$IFDEF ParserDll}
 {$ELSE}
@@ -674,6 +675,17 @@ begin
            clLast_Auto_Save_CRC       := clCurrent_CRC;
            clTemp_Old_Download_From   := clDownload_From;
         end;
+
+        ReadMemorisationINI(clFields.clCode);
+
+        if MEMSINI_SupportOptions = meiResetMems then
+        begin
+          MEMSINI_SupportOptions := meiFullfunctionality;
+          if Assigned(clRecommended_Mems) then
+            clRecommended_Mems.ResetAll;
+          WriteMemorisationINI_WithLock(clFields.clCode);
+        end;
+
         FOpened := true;
   {$ENDIF}
     finally
