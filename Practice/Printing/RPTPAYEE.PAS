@@ -446,7 +446,6 @@ begin
             pNewDisRec^.dsPayee_Number     := pDisRec^.dsPayee_Number;
             pNewDisRec^.dsNotes            := pDisRec^.dsNotes;
 
-
             trxlist32.AppendDissection( pNewTranRec, pNewDisRec);
             pDisRec := pDisRec.dsNext;
           end;
@@ -496,6 +495,7 @@ var
   Reference : string;
   AccDescStr : string;
 
+  DissectionGSTTotal : Money;
   PeriodGST    : Money;
   PeriodTotal  : Money;
 
@@ -686,19 +686,31 @@ Begin
         //show main transaction if all lines are coded to payee
         if IncludeAllDissectionLines then
         begin
+          DissectionGSTTotal := 0;
+          pDisRec := pTranRec^.txFirst_Dissection;
+          while (pDisRec <> nil) do
+          begin
+            if (IncludeAllDissectionLines) or
+               (pDisRec^.dsPayee_Number = aPayee.pdNumber) then
+            begin
+              DissectionGSTTotal := DissectionGSTTotal + pDisRec^.dsGST_Amount;
+            end;
+            pDisRec := pDisRec^.dsNext;
+          end;
+
           RenderName();
 
           if params.NetandGstAmounts then
             RenderAmountLinewithGST(pTranRec^.txDate_Effective, 0,
                                     GetFormattedReference(pTranRec), '', '', '',
-                                    pTranRec^.txGST_Amount , pTranRec^.txTemp_Base_Amount, false)
+                                    DissectionGSTTotal , pTranRec^.txTemp_Base_Amount, false)
           else
             RenderAmountLine(pTranRec^.txDate_Effective, 0, GetFormattedReference(pTranRec),
                              pTranRec^.txTemp_Base_Amount, '', '', '', false);
 
           RenderDetailLine;
 
-          AddToTotals(pTranRec^.txGST_Amount, pTranRec^.txTemp_Base_Amount);
+          AddToTotals(DissectionGSTTotal, pTranRec^.txTemp_Base_Amount);
 
           SubTotalRendered := False;
         end;
