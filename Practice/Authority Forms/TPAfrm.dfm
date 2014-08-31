@@ -45,7 +45,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 0
     OnClick = btnPreviewClick
-    ExplicitTop = 673
   end
   object btnFile: TButton
     Left = 99
@@ -65,7 +64,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 1
     OnClick = btnFileClick
-    ExplicitTop = 673
   end
   object btnEmail: TButton
     Left = 189
@@ -85,7 +83,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 2
     OnClick = btnEmailClick
-    ExplicitTop = 673
   end
   object btnPrint: TButton
     Left = 281
@@ -105,7 +102,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 3
     OnClick = btnPrintClick
-    ExplicitTop = 673
   end
   object btnImport: TButton
     Left = 372
@@ -122,7 +118,6 @@ object frmTPA: TfrmTPA
     ParentFont = False
     TabOrder = 4
     OnClick = btnImportClick
-    ExplicitTop = 673
   end
   object btnClear: TButton
     Left = 453
@@ -142,7 +137,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 5
     OnClick = btnClearClick
-    ExplicitTop = 673
   end
   object btnCancel: TButton
     Left = 544
@@ -163,7 +157,6 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 6
     OnClick = btnCancelClick
-    ExplicitTop = 673
   end
   object pnlMain: TPanel
     Left = 8
@@ -218,7 +211,7 @@ object frmTPA: TfrmTPA
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 410
+        Width = 406
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -235,7 +228,7 @@ object frmTPA: TfrmTPA
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 295
+        Width = 291
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -254,7 +247,7 @@ object frmTPA: TfrmTPA
       object edtBranch: TEdit
         Left = 151
         Top = 46
-        Width = 410
+        Width = 406
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -299,7 +292,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine: TLabel
           Left = 6
           Top = 40
-          Width = 594
+          Width = 592
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -358,7 +351,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount: TEdit
           Left = 8
           Top = 10
-          Width = 312
+          Width = 310
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -376,7 +369,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 312
+          Width = 310
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -398,7 +391,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber: TEdit
           Left = 8
           Top = 65
-          Width = 312
+          Width = 310
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -416,7 +409,7 @@ object frmTPA: TfrmTPA
         object edtClientCode: TEdit
           Left = 464
           Top = 10
-          Width = 104
+          Width = 102
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -435,7 +428,7 @@ object frmTPA: TfrmTPA
         object edtCostCode: TEdit
           Left = 464
           Top = 65
-          Width = 102
+          Width = 100
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -533,7 +526,7 @@ object frmTPA: TfrmTPA
         object Label7: TLabel
           Left = 6
           Top = 40
-          Width = 594
+          Width = 592
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -566,7 +559,7 @@ object frmTPA: TfrmTPA
         object Edit1: TEdit
           Left = 8
           Top = 10
-          Width = 301
+          Width = 299
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -580,12 +573,11 @@ object frmTPA: TfrmTPA
           ShowHint = True
           TabOrder = 0
           OnEnter = edtExit
-          ExplicitWidth = 312
         end
         object Edit2: TEdit
           Left = 8
           Top = 65
-          Width = 312
+          Width = 310
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -603,7 +595,7 @@ object frmTPA: TfrmTPA
         object Edit3: TEdit
           Left = 464
           Top = 10
-          Width = 104
+          Width = 102
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -622,7 +614,7 @@ object frmTPA: TfrmTPA
         object Edit4: TEdit
           Left = 464
           Top = 65
-          Width = 102
+          Width = 100
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -760,7 +752,7 @@ object frmTPA: TfrmTPA
         object Label11: TLabel
           Left = 6
           Top = 40
-          Width = 594
+          Width = 592
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -793,7 +785,7 @@ object frmTPA: TfrmTPA
         object Edit5: TEdit
           Left = 8
           Top = 10
-          Width = 301
+          Width = 299
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -811,7 +803,7 @@ object frmTPA: TfrmTPA
         object Edit6: TEdit
           Left = 8
           Top = 65
-          Width = 312
+          Width = 310
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -829,7 +821,7 @@ object frmTPA: TfrmTPA
         object Edit7: TEdit
           Left = 464
           Top = 10
-          Width = 104
+          Width = 102
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -848,7 +840,7 @@ object frmTPA: TfrmTPA
         object Edit8: TEdit
           Left = 464
           Top = 65
-          Width = 102
+          Width = 100
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]

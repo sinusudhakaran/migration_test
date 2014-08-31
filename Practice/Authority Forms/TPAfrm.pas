@@ -648,7 +648,6 @@ begin
   pnlInstitution.BevelOuter  := bvNone;
   pnlInstData.BevelOuter     := bvNone;
   pnlInstLabels.BevelOuter   := bvNone;
-  pnlInstSpacer.BevelOuter   := bvNone;
   pnlClient.BevelOuter       := bvNone;
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
@@ -656,7 +655,6 @@ begin
   pnlData.BevelOuter         := bvNone;
   pnlRural.BevelOuter        := bvNone;
   pnlInstTop.BevelOuter      := bvNone;
-  pnlAccountError.BevelOuter := bvNone;
 end;
 
 //------------------------------------------------------------------------------
@@ -799,7 +797,6 @@ begin
 
   lblNameOfAccount.enabled      := enableControls;
   edtNameOfAccount.enabled      := enableControls;
-  lblAccount.enabled            := enableControls;
   mskAccountNumber.enabled      := enableControls;
   lblClientCode.enabled         := enableControls;
   edtClientCode.Enabled         := enableControls;
