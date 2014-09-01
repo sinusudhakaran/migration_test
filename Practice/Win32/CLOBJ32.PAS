@@ -179,10 +179,10 @@ uses
    bkcrc,
    cryptx,
    windows,
-   IniSettings,
 
 {$IFDEF ParserDll}
 {$ELSE}
+   IniSettings,
    baObj32,
    budobj32,
    BKceIO,
