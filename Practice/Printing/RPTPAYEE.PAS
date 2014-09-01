@@ -167,7 +167,7 @@ begin
     begin
       AddColAuto(Self,cLeft,      17.0,Gcgap,'Date', jtLeft);
       AddColAuto(Self,cLeft,      11.0,Gcgap,'Reference', jtLeft);
-      AddFormatColAuto(Self,cLeft,14.0,2,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
       AddColAuto(Self,Cleft,      28.0,Gcgap,'Account', jtLeft);
       AddColAuto(Self,cLeft,       0.0,Gcgap,'Narration', jtLeft);
     end
@@ -175,7 +175,7 @@ begin
     begin
       AddColAuto(Self,cLeft,       8.5,Gcgap,'Date', jtLeft);
       AddColAuto(Self,cLeft,      11.5,Gcgap,'Reference', jtLeft);
-      AddFormatColAuto(Self,cLeft,14.0,2,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
+      AddFormatColAuto(Self,cLeft,14.0,Gcgap,'Amount',jtRight,'#,##0.00;(#,##0.00);-', MyClient.FmtMoneyStrBrackets, true);
       AddColAuto(Self,cLeft,      28.0,Gcgap,'Account', jtLeft);
       AddColAuto(Self,cLeft,       0.0,Gcgap,'Narration', jtLeft);
     end;
@@ -731,7 +731,7 @@ Begin
             AccDescStr := '';
             pAccRec := Params.client.clChart.FindCode(pDisRec^.dsAccount);
             If (pAccRec <> nil) then
-              AccDescStr := Copy(pAccRec^.chAccount_Description, 1, 20 );
+              AccDescStr := pAccRec^.chAccount_Description;
 
             if params.NetandGstAmounts then
               RenderAmountLinewithGST(pTranRec^.txDate_Effective, 0,
@@ -762,7 +762,7 @@ Begin
           AccDescStr := '';
           pAccRec := Params.client.clChart.FindCode(pTranRec^.txAccount);
           If (pAccRec <> nil) then
-            AccDescStr := Copy( pAccRec^.chAccount_Description, 1, 20 );
+            AccDescStr := pAccRec^.chAccount_Description;
 
           if params.NetandGstAmounts then
             RenderAmountLinewithGST(pTranRec^.txDate_Effective, 0,
