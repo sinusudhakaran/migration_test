@@ -690,11 +690,7 @@ Begin
           pDisRec := pTranRec^.txFirst_Dissection;
           while (pDisRec <> nil) do
           begin
-            if (IncludeAllDissectionLines) or
-               (pDisRec^.dsPayee_Number = aPayee.pdNumber) then
-            begin
-              DissectionGSTTotal := DissectionGSTTotal + pDisRec^.dsGST_Amount;
-            end;
+            DissectionGSTTotal := DissectionGSTTotal + pDisRec^.dsGST_Amount;
             pDisRec := pDisRec^.dsNext;
           end;
 
@@ -829,6 +825,7 @@ var
   pDisRec : pDissection_Rec;
 
   GSTTotal : Array of Money;
+  DissectionGSTTotal : Money;
 begin
   BankAccList := params.Client.clBank_Account_List;
   PayeeList   := params.Client.clPayee_List;
@@ -861,7 +858,19 @@ begin
           if Assigned(Payee) then
           begin
             Payee.pdFields.pdTotal := Payee.pdFields.pdTotal + pTranRec^.txTemp_Base_Amount;
-            GSTTotal[PayeeIndex] := GSTTotal[PayeeIndex] + pTranRec^.txGST_Amount;
+
+            DissectionGSTTotal := 0;
+            pDisRec := pTranRec^.txFirst_Dissection;
+            while (pDisRec <> nil) do
+            begin
+              DissectionGSTTotal := DissectionGSTTotal + pDisRec^.dsGST_Amount;
+              pDisRec := pDisRec^.dsNext;
+            end;
+
+            if pTranRec^.txFirst_Dissection <> nil then
+              GSTTotal[PayeeIndex] := GSTTotal[PayeeIndex] + DissectionGSTTotal
+            else
+              GSTTotal[PayeeIndex] := GSTTotal[PayeeIndex] + pTranRec^.txGST_Amount;
           end;
         end
         else
