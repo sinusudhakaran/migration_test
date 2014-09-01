@@ -80,13 +80,17 @@ type
     function GetFinacialYearEnd(aClientStartYear, aToDate : TDateTime) : TDateTime;
     function GetTotalsForPayees() : TPayeeDataList;
   public
-    params : TPayeeParameters;
+    Params: TPayeeParameters;
 
     constructor Create(RptType: TReportType); override;
+    destructor  Destroy; override;
 
+    procedure FillTransactions(var aTransactions: TTransaction_List);
     procedure DoATOExtractCode(aFileName : string);
     procedure DoATOExtractValidation(var aResult : Boolean; var aMsg : string);
-    function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
+    function  ShowPayeeOnReport( aPayeeNo : integer) : boolean;
+    function  PayeeSelected(const aPayeeNo: integer): boolean;
+    function  HasMovement(const aPayeeNo: integer): boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -486,6 +490,13 @@ begin
     begin  
       Payee := MyClient.clPayee_List.Payee_At(Index);
 
+      if Payee.pdFields.pdInactive and
+         not HasMovement(Payee.pdFields.pdNumber) and
+         not PayeeSelected(Payee.pdFields.pdNumber) then
+      begin
+        continue;
+      end;
+
       if Payee.pdFields.pdContractor and ShowPayeeOnReport(Payee.pdFields.pdNumber) then
       begin
         RenderTitleLine(Payee.pdFields.pdName+ ' (' + IntToStr(Payee.pdFields.pdNumber) + ')');
@@ -536,6 +547,13 @@ Begin
     for i := 0 to Length(PayeeDataList) -1 do
     begin
       Payee := PayeeDataList[I].Payee;
+
+      if Payee.pdFields.pdInactive and
+         not HasMovement(Payee.pdFields.pdNumber) and
+         not PayeeSelected(Payee.pdFields.pdNumber) then
+      begin
+        continue;
+      end;
 
       if Payee.pdFields.pdContractor and ShowPayeeOnReport(Payee.pdFields.pdNumber) then
       begin
@@ -1009,6 +1027,110 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+destructor TTaxablePaymentsReport.Destroy;
+begin
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTaxablePaymentsReport.FillTransactions(
+  var aTransactions: TTransaction_List);
+var
+  BankAccIndex : integer;
+  BankAccList : TBank_Account_List;
+
+  TranIndex : integer;
+  ReadTranList : TTransaction_List;
+
+  pTranRec : pTransaction_Rec;
+  pNewTranRec : pTransaction_Rec;
+
+  pDisRec : pDissection_Rec;
+  pNewDisRec : pDissection_Rec;
+
+  PayeeNum : Integer;
+begin
+  BankAccList := params.Client.clBank_Account_List;
+  for BankAccIndex := BankAccList.First to BankAccList.Last do
+  begin
+    ReadTranList := BankAccList.Bank_Account_At(BankAccIndex).baTransaction_List;
+
+    for TranIndex := ReadTranList.First to ReadTranList.Last do
+    begin
+      pTranRec := ReadTranList.Transaction_At(TranIndex);
+
+      If (pTranRec^.txDate_Effective >= Params.Fromdate) and
+         (pTranRec^.txDate_Effective <= Params.Todate) then
+      begin
+        pNewTranRec := aTransactions.New_Transaction;
+
+        pNewTranRec^.txType                  := pTranRec^.txType;
+        pNewTranRec^.txDate_Presented        := pTranRec^.txDate_Presented;
+        pNewTranRec^.txDate_Effective        := pTranRec^.txDate_Effective;
+        pNewTranRec^.txAmount                := pTranRec^.txAmount;
+        pNewTranRec^.txTemp_Base_Amount      := pTranRec^.txTemp_Base_Amount;
+        pNewTranRec^.txGST_Class             := pTranRec^.txGST_Class;
+        pNewTranRec^.txGST_Amount            := pTranRec^.txGST_Amount;
+        pNewTranRec^.txHas_Been_Edited       := pTranRec^.txHas_Been_Edited;
+        pNewTranRec^.txQuantity              := pTranRec^.txQuantity;
+        pNewTranRec^.txCheque_Number         := pTranRec^.txCheque_Number;
+        pNewTranRec^.txReference             := pTranRec^.txReference;
+        pNewTranRec^.txAnalysis              := pTranRec^.txAnalysis;
+        pNewTranRec^.txOrigBB                := pTranRec^.txOrigBB;
+        pNewTranRec^.txOther_Party           := pTranRec^.txOther_Party;
+        pNewTranRec^.txParticulars           := pTranRec^.txParticulars;
+        pNewTranRec^.txGL_Narration          := pTranRec^.txGL_Narration;
+        pNewTranRec^.txAccount               := pTranRec^.txAccount;
+        pNewTranRec^.txCoded_By              := pTranRec^.txCoded_By;
+        pNewTranRec^.txPayee_Number          := pTranRec^.txPayee_Number;
+        pNewTranRec^.txLocked                := pTranRec^.txLocked;
+        pNewTranRec^.txGST_Has_Been_Edited   := pTranRec^.txGST_Has_Been_Edited;
+        pNewTranRec^.txUPI_State             := pTranRec^.txUPI_State;
+        pNewTranRec^.txNotes                 := pTranRec^.txNotes;
+        pNewTranRec^.txTax_Invoice_Available := pTranRec^.txTax_Invoice_Available;
+
+        pDisRec := pTranRec.txFirst_Dissection;
+        if pDisRec <> nil then
+        begin
+          if pNewTranRec^.txPayee_Number = 0 then
+            PayeeNum := pDisRec^.dsPayee_Number
+          else
+            PayeeNum := 0;
+
+          while pDisRec <> nil do
+          begin
+            if PayeeNum <> 0 then
+              if PayeeNum <> pDisRec^.dsPayee_Number then
+                PayeeNum := 0;
+
+            pNewDisRec := bkdsio.New_Dissection_Rec;
+            pNewDisRec^.dsAccount          := pDisRec^.dsAccount;
+            pNewDisRec^.dsReference        := pDisRec^.dsReference;
+            pNewDisRec^.dsAmount           := pDisRec^.dsAmount;
+            pNewDisRec^.dsTemp_Base_Amount := pDisRec^.dsTemp_Base_Amount;
+            pNewDisRec^.dsGST_Class        := pDisRec^.dsGST_Class;
+            pNewDisRec^.dsGST_Amount       := pDisRec^.dsGST_Amount;
+            pNewDisRec^.dsQuantity         := pDisRec^.dsQuantity;
+            pNewDisRec^.dsGL_Narration     := pDisRec^.dsGL_Narration;
+            pNewDisRec^.dsHas_Been_Edited  := pDisRec^.dsHas_Been_Edited;
+            pNewDisRec^.dsGST_Has_Been_Edited := pDisRec^.dsGST_Has_Been_Edited;
+            pNewDisRec^.dsPayee_Number     := pDisRec^.dsPayee_Number;
+            pNewDisRec^.dsNotes            := pDisRec^.dsNotes;
+
+
+            trxlist32.AppendDissection( pNewTranRec, pNewDisRec);
+            pDisRec := pDisRec.dsNext;
+          end;
+          if PayeeNum <> 0 then
+            pNewTranRec^.txPayee_Number := PayeeNum;
+        end;
+        aTransactions.Insert_Transaction_Rec(pNewTranRec, False);
+      end;
+    end;
+  end;
+end;
+
 procedure TTaxablePaymentsReport.DoATOExtractCode(aFileName : string);
 Const
   RUN_TYPE = 'P';
@@ -1216,6 +1338,58 @@ begin
   end;
 
   Result := False;
+end;
+
+//------------------------------------------------------------------------------
+function TTaxablePaymentsReport.PayeeSelected(const aPayeeNo: integer): boolean;
+var
+  i: integer;
+begin
+  result := true;
+
+  with Params do
+  begin
+    for i := Low(RangesArray) to High(RangesArray) do
+    begin
+      with RangesArray[i] do
+      begin
+        if (ToCode <> 0) then
+        begin
+          if (aPayeeNo >= FromCode) and (aPayeeNo <= ToCode) then
+            exit;
+        end
+        else
+        begin
+          if (FromCode <> 0) and (FromCode = aPayeeNo) then
+          begin
+            //special case, if only a from code is specified then match
+            //on the specific code
+            exit;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TTaxablePaymentsReport.HasMovement(const aPayeeNo: integer): boolean;
+var
+  i: integer;
+  PayeeData: TPayeeData;
+begin
+  for i := 0 to High(fPayeeDataList) do
+  begin
+    if (fPayeeDataList[i].Payee.pdNumber = aPayeeNo) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
 end;
 
 end.
