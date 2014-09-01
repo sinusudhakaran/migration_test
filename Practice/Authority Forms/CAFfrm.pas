@@ -156,12 +156,14 @@ type
     procedure edtNameOfAccount2Change(Sender: TObject);
     procedure edtClientCode2Change(Sender: TObject);
     procedure edtCostCode2Change(Sender: TObject);
-    procedure edtNameOfAccount3Change(Sender: TObject);
     procedure mskAccountNumber3Change(Sender: TObject);
     procedure edtAccountNumber1Change(Sender: TObject);
     procedure edtAccountNumber2Change(Sender: TObject);
     procedure edtAccountNumber3Change(Sender: TObject);
     procedure edtInstitutionNameChange(Sender: TObject);
+    procedure edt2Exit(Sender: TObject);
+    procedure edt2KeyPress(Sender: TObject; var Key: Char);
+    procedure edt3Exit(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -1168,7 +1170,6 @@ end;
 procedure TfrmCAF.edtAccountNumber3Change(Sender: TObject);
 begin
   fValidAccount3 := false;
-  ToggleAccountFields;
 end;
 
 procedure TfrmCAF.edtAccountNumber3Exit(Sender: TObject);
@@ -1187,6 +1188,14 @@ begin
   ToggleAccountFields;
 end;
 
+procedure TfrmCAF.edt2Exit(Sender: TObject);
+var
+  e: TEdit;
+begin
+  e := Sender as TEdit;
+  e.Text := Trim(e.Text);
+end;
+
 procedure TfrmCAF.edtCostCode1Change(Sender: TObject);
 begin
   ToggleAccountFields;
@@ -1195,6 +1204,15 @@ end;
 procedure TfrmCAF.edtCostCode2Change(Sender: TObject);
 begin
   ToggleAccountFields;
+end;
+
+procedure TfrmCAF.edt2KeyPress(Sender: TObject; var Key: Char);
+begin
+  if ((Key < 'a') or (Key >'z')) and
+     ((Key < 'A') or (Key >'Z')) and
+     ((Key < '0') or (Key >'9')) and
+     (Key <> #8) then
+    Key := #0;
 end;
 
 procedure TfrmCAF.edtInstitutionNameChange(Sender: TObject);
@@ -1212,10 +1230,6 @@ begin
   ToggleAccountFields;
 end;
 
-procedure TfrmCAF.edtNameOfAccount3Change(Sender: TObject);
-begin
-end;
-
 //------------------------------------------------------------------------------
 procedure TfrmCAF.edt1Exit(Sender: TObject);
 var
@@ -1225,9 +1239,21 @@ begin
   e.Text := Trim(e.Text);
 end;
 
+procedure TfrmCAF.edt3Exit(Sender: TObject);
+var
+  e: TEdit;
+begin
+  e := Sender as TEdit;
+  e.Text := Trim(e.Text);
+end;
+
 procedure TfrmCAF.edt3KeyPress(Sender: TObject; var Key: Char);
 begin
-
+  if ((Key < 'a') or (Key >'z')) and
+     ((Key < 'A') or (Key >'Z')) and
+     ((Key < '0') or (Key >'9')) and
+     (Key <> #8) then
+    Key := #0;
 end;
 
 //------------------------------------------------------------------------------
