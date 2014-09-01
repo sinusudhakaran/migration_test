@@ -213,6 +213,7 @@ type
     procedure ToggleAccount3Controls(Value: boolean);
     procedure UpdateMask2;
     procedure UpdateMask3;
+    procedure FilterKey(var Key: Char);
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -1140,11 +1141,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCAF.edt1KeyPress(Sender: TObject; var Key: Char);
 begin
-  if ((Key < 'a') or (Key >'z')) and
-     ((Key < 'A') or (Key >'Z')) and
-     ((Key < '0') or (Key >'9')) and
-     (Key <> #8) then
-    Key := #0;
+  FilterKey(Key);
 end;
 
 //------------------------------------------------------------------------------
@@ -1213,11 +1210,7 @@ end;
 
 procedure TfrmCAF.edt2KeyPress(Sender: TObject; var Key: Char);
 begin
-  if ((Key < 'a') or (Key >'z')) and
-     ((Key < 'A') or (Key >'Z')) and
-     ((Key < '0') or (Key >'9')) and
-     (Key <> #8) then
-    Key := #0;
+  FilterKey(Key);
 end;
 
 procedure TfrmCAF.edtInstitutionNameChange(Sender: TObject);
@@ -1253,6 +1246,11 @@ begin
 end;
 
 procedure TfrmCAF.edt3KeyPress(Sender: TObject; var Key: Char);
+begin
+  FilterKey(Key);
+end;
+
+procedure TfrmCAF.FilterKey(var Key: Char);
 begin
   if ((Key < 'a') or (Key >'z')) and
      ((Key < 'A') or (Key >'Z')) and
