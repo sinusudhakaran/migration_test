@@ -481,7 +481,7 @@ begin
       Code := 0;
   end;
 
-  if PayeeLookupFrm.PickPayee( Code) then
+  if PayeeLookupFrm.PickPayee(Code, pmAll, [paInactivePayees]) then
   begin
     //if get here then have a code which can be posted to from picklist
     tgRanges.CurrentCell.Value := IntToStr(Code);
