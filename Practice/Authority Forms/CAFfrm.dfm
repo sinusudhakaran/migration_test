@@ -381,7 +381,7 @@ object frmCAF: TfrmCAF
           Font.Name = 'MS Sans Serif'
           Font.Style = []
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 1
           OnChange = mskAccountNumber1Change
           OnEnter = mskAccountNumber1Enter
           OnExit = mskAccountNumber1Exit
@@ -391,7 +391,7 @@ object frmCAF: TfrmCAF
           OnValidateEdit = mskAccountNumber1ValidateEdit
         end
         object edtAccountNumber1: TEdit
-          Left = 8
+          Left = 30
           Top = 65
           Width = 320
           Height = 24
@@ -405,7 +405,7 @@ object frmCAF: TfrmCAF
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 4
+          TabOrder = 2
           OnChange = edtAccountNumber1Change
           OnExit = edtAccountNumber1Exit
         end
@@ -424,7 +424,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           MaxLength = 8
           ParentFont = False
-          TabOrder = 1
+          TabOrder = 3
           OnChange = edtClientCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
@@ -444,7 +444,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           MaxLength = 10
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 4
           OnChange = edtCostCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
@@ -596,7 +596,7 @@ object frmCAF: TfrmCAF
           Font.Name = 'MS Sans Serif'
           Font.Style = []
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 1
           OnChange = mskAccountNumber2Change
           OnEnter = mskAccountNumber2Enter
           OnExit = mskAccountNumber2Exit
@@ -606,7 +606,7 @@ object frmCAF: TfrmCAF
           OnValidateEdit = mskAccountNumber2ValidateEdit
         end
         object edtAccountNumber2: TEdit
-          Left = 8
+          Left = 30
           Top = 65
           Width = 320
           Height = 24
@@ -620,7 +620,7 @@ object frmCAF: TfrmCAF
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 4
+          TabOrder = 2
           OnChange = edtAccountNumber2Change
           OnExit = edtAccountNumber2Exit
         end
@@ -639,7 +639,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           MaxLength = 8
           ParentFont = False
-          TabOrder = 1
+          TabOrder = 3
           OnChange = edtClientCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
@@ -659,7 +659,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           MaxLength = 10
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 4
           OnChange = edtCostCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
@@ -809,7 +809,7 @@ object frmCAF: TfrmCAF
           Font.Name = 'MS Sans Serif'
           Font.Style = []
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 1
           OnChange = mskAccountNumber3Change
           OnEnter = mskAccountNumber3Enter
           OnExit = mskAccountNumber3Exit
@@ -819,7 +819,7 @@ object frmCAF: TfrmCAF
           OnValidateEdit = mskAccountNumber3ValidateEdit
         end
         object edtAccountNumber3: TEdit
-          Left = 8
+          Left = 30
           Top = 65
           Width = 320
           Height = 24
@@ -833,7 +833,7 @@ object frmCAF: TfrmCAF
           ParentFont = False
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 4
+          TabOrder = 2
           OnChange = edtAccountNumber3Change
           OnExit = edtAccountNumber3Exit
         end
@@ -852,7 +852,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           MaxLength = 8
           ParentFont = False
-          TabOrder = 1
+          TabOrder = 3
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
         end
@@ -871,7 +871,7 @@ object frmCAF: TfrmCAF
           Font.Style = []
           MaxLength = 10
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 4
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
         end

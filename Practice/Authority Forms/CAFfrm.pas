@@ -987,6 +987,11 @@ begin
   lblMaskErrorHint3.Caption := '';
   fMaskBsb1 := '';
   fOldInstName := '';
+  // Have moved the edit boxes over a bit so that both controls are visible in the
+  // coding form, however we want them in the same place during execution
+  edtAccountNumber1.Left := mskAccountNumber1.Left;
+  edtAccountNumber2.Left := mskAccountNumber2.Left;
+  edtAccountNumber3.Left := mskAccountNumber3.Left;
 
   oldInstDroppedDown := cmbInstitution.DroppedDown;
 
