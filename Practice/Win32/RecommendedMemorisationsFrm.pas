@@ -100,13 +100,15 @@ uses
   CodingFormCommands,
   GenUtils,
   bkhelp,
+  BKConst,
   Math;
 
 const
   ICON_BUTTON = 0;
   COL_STATEMENTS_DETAILS = 1;
-  MSG_STILL_PROCESSING = 'Practice is still scanning for suggestions, please try again later';
-  MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time';
+  MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
+  MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time.';
+  MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled, please contact Support.';
   ccEntryType = 0;
   ccStatementDetails = 1;
   ccCode = 2;
@@ -396,6 +398,12 @@ var
 begin
   result := '';
 
+  if MEMSINI_SupportOptions = meiDisableSuggestedMemsAll then
+  begin
+    Result := MSG_DISABLED_MEMORISATIONS;
+    Exit;
+  end;
+
   with MyClient.clRecommended_Mems, Candidate.cpFields do
   begin
     if (cpCandidate_ID_To_Process >= cpNext_Candidate_ID) and
@@ -416,7 +424,10 @@ begin
     end
     else
     begin
-      result := MSG_STILL_PROCESSING;
+      if Assigned(AdminSystem) then
+        result := BRAND_PRACTICE_SHORT_NAME + MSG_STILL_PROCESSING
+      else
+        result := BRAND_BOOKS_SHORT_NAME + MSG_STILL_PROCESSING;
     end;
   end
 end;

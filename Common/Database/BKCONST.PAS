@@ -18,6 +18,7 @@ CONST
   BRAND_PRACTICE = 'BankLink Practice';
   BRAND_FULL_PRACTICE = 'MYOB BankLink Practice';
   BRAND_PRACTICE_SHORT_NAME = 'Practice';
+  BRAND_BOOKS_SHORT_NAME = 'Books';
   BRAND_BOOKS = 'BankLink Books';
   BRAND_SECURE = 'BankLink Secure';
   BRAND_SECURE_SHORT = 'Secure';
