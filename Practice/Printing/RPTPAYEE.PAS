@@ -35,7 +35,9 @@ type
     procedure GenerateDetailedPayeeSpendingReport(aDest : TReportDest);
     procedure GenerateSummaryPayeeSpendingReport(aDest : TReportDest);
 
-    function ShowPayeeOnReport( aPayeeNo : integer) : boolean;
+    function  ShowPayeeOnReport( aPayeeNo : integer) : boolean;
+    function  PayeeSelected(const aPayeeNo: integer): boolean;
+    function  HasMovement(const aPayeeNo: integer): boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -901,6 +903,15 @@ begin
   for PayeeIndex := PayeeList.First to PayeeList.Last do
   begin
     Payee := PayeeList.Payee_At(PayeeIndex);
+
+    // Inactive, no movement, and not selected?
+    if Payee.pdFields.pdInactive and
+       (GSTTotal[PayeeIndex] = 0) and
+       not PayeeSelected(Payee.pdNumber) then
+    begin
+      continue;
+    end;
+
     if ShowPayeeOnReport( Payee.pdFields.pdNumber) then
     begin
       if params.NetandGstAmounts then
@@ -936,6 +947,15 @@ begin
   for PayeeIndex := MyClient.clPayee_List.First to MyClient.clPayee_List.Last do
   begin
     Payee := MyClient.clPayee_List.Payee_At(PayeeIndex);
+
+    // Inactive, no movement, and not selected?
+    if Payee.pdFields.pdInactive and
+       not HasMovement(Payee.pdNumber) and
+       not PayeeSelected(Payee.pdNumber) then
+    begin
+      continue;
+    end;
+
     if ShowPayeeOnReport(Payee.pdFields.pdNumber) then
     begin
       DoPayee(Payee);
@@ -973,6 +993,75 @@ begin
         if ( PayeeRange.FromCode <> 0) and ( PayeeRange.FromCode = aPayeeNo) then
           Exit;
     end;
+  end;
+
+  result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TPayeeSpendingReport.PayeeSelected(const aPayeeNo: integer): boolean;
+var
+  RangeIndex : integer;
+  PayeeRange : TPayeeRange;
+begin
+  result := true;
+
+  for RangeIndex := Low(Params.RangesArray) to High(Params.RangesArray) do
+  begin
+    PayeeRange := Params.RangesArray[RangeIndex];
+
+    if (PayeeRange.ToCode <> 0) then
+    begin
+      if (aPayeeNo >= PayeeRange.FromCode) and
+         (aPayeeNo <= PayeeRange.ToCode) then
+      begin
+        Exit;
+      end;
+    end
+    else
+      //special case, if only a from code is specified then match
+      //on the specific code
+      if ( PayeeRange.FromCode <> 0) and ( PayeeRange.FromCode = aPayeeNo) then
+      begin
+        Exit;
+      end;
+  end;
+
+  result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TPayeeSpendingReport.HasMovement(const aPayeeNo: integer): boolean;
+var
+  TranList: TTransaction_List;
+  i: integer;
+  pTransaction: pTransaction_Rec;
+  pDissection: pDissection_Rec;
+begin
+  result := true;
+
+  TranList := TTransaction_List.Create(nil, nil, nil);
+  try
+    FillTempTransactionList(TranList);
+
+    for i := TranList.First to TranList.Last do
+    begin
+      pTransaction := TranList.Transaction_At(i);
+
+      if (pTransaction.txPayee_Number = aPayeeNo) then
+        exit;
+
+      pDissection := pTransaction.txFirst_Dissection;
+      while assigned(pDissection) do
+      begin
+        if (pDissection.dsPayee_Number = aPayeeNo) then
+          exit;
+        pDissection := pDissection.dsNext;
+      end;
+    end;
+
+  finally
+    FreeAndNil(TranList);
   end;
 
   result := false;
