@@ -117,6 +117,10 @@ object frmMaintainPayees: TfrmMaintainPayees
       item
         Caption = 'Payee Name'
         Width = 250
+      end
+      item
+        Caption = 'Inactive'
+        Width = 60
       end>
     HideSelection = False
     MultiSelect = True
@@ -129,8 +133,6 @@ object frmMaintainPayees: TfrmMaintainPayees
     OnDblClick = lvPayeesDblClick
     OnKeyPress = lvPayeesKeyPress
     OnSelectItem = lvPayeesSelectItem
-    ExplicitWidth = 451
-    ExplicitHeight = 398
   end
   object pnlInactive: TPanel
     Left = 0
@@ -139,7 +141,6 @@ object frmMaintainPayees: TfrmMaintainPayees
     Height = 35
     Align = alBottom
     TabOrder = 2
-    ExplicitWidth = 451
     object chkShowInactive: TCheckBox
       Left = 8
       Top = 8

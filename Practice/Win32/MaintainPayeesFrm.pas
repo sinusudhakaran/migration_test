@@ -95,7 +95,6 @@ begin
   bkXPThemes.ThemeForm( Self);
   SearchTerm := '';
   CurrentSortCol := 0;
-  LvUtils.SetListViewColWidth(lvPayees,0);
   DoSortByColNo( 0);
   tbMerge.Enabled := Assigned( AdminSystem) and ( not CurrUser.HasRestrictedAccess);
   SetUpHelp;
@@ -125,7 +124,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmMaintainPayees.RefreshPayeeList;
 var
-   NewColumn: TListColumn;
    NewItem : TListItem;
    Payee : TPayee;
    i : integer;
@@ -137,19 +135,11 @@ begin
 
      if not Assigned(myClient) then exit;
 
-      // Delete inactive column (if it's there)
-     if (lvPayees.Columns.Count = 3) then
-       lvPayees.Columns.Delete(2);
-
      // Show inactive column?
      if chkShowInactive.Checked then
-     begin
-       NewColumn := lvPayees.Columns.Add;
-       NewColumn.Caption := 'Inactive';
-       NewColumn.Width := 60;
-     end;
-
-     SetListViewColWidth(lvPayees, 0, 60);
+       lvPayees.Columns[2].Width := 60
+     else
+       lvPayees.Columns[2].Width := 0;
 
      with MyClient, clPayee_List do
      for i := 0 to Pred(itemCount) do
