@@ -637,12 +637,12 @@ begin
       mskAccountNumber1.SetFocus;
       Result := False;
     end else
-    if (fValidAccount2 = false) and (fCurrentDisplayError2 <> '') then
+    if (fValidAccount2 = false) and (fCurrentDisplayError2 <> '') and Account2Filled then
     begin
       mskAccountNumber2.SetFocus;
       Result := False;
     end else
-    if (fValidAccount3 = false) and (fCurrentDisplayError3 <> '') then
+    if (fValidAccount3 = false) and (fCurrentDisplayError3 <> '') and Account3Filled then
     begin
       mskAccountNumber3.SetFocus;
       Result := False;
