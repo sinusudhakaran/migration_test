@@ -517,13 +517,13 @@ begin
   ToggleAccount1Controls(ShowAccount1);
   if not CheckAccount1Filled then
   begin
-    ToggleAccount2Controls(False);
-    ToggleAccount3Controls(False);
+    ToggleAccount2Controls(CheckAccount2Filled);
+    ToggleAccount3Controls(CheckAccount3Filled);
   end
   else if not CheckAccount2Filled then
   begin
     ToggleAccount2Controls(True);
-    ToggleAccount3Controls(False);
+    ToggleAccount3Controls(CheckAccount3Filled);
   end
   else
   begin
