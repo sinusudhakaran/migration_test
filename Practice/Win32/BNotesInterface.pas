@@ -487,6 +487,8 @@ begin
            for pNo := aClient.clPayee_List.First to aClient.clPayee_List.Last do
              begin
                aPayee := aClient.clPayee_List.Payee_At( pNo);
+               if aPayee.pdFields.pdInactive then
+                 continue;
                aECPayee := ecPayeeObj.TEcPayee.Create;
                aECPayee.pdFields.pdNumber := aPayee.pdNumber;
                aECPayee.pdFields.pdName   := aPayee.pdName;
