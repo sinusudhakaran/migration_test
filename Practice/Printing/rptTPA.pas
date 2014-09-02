@@ -154,20 +154,20 @@ procedure TTPAReport.FillCollumn(C : TCell);
 begin
   if C.Col = fcAccountName then
   begin
-    Values.edtNameOfAccount.Text := GetCellText(C);
-    Values.AccountNumber := '';
+    Values.edtNameOfAccount1.Text := GetCellText(C);
+    Values.AccountNumber1 := '';
   end
   else if C.Col = fcAccountNo then
   begin
     Values.cmbInstitution.ItemIndex := 0;
-    Values.AccountNumber := GetCellText(C);
+    Values.AccountNumber1 := GetCellText(C);
     Values.edtClientStartDte.ClearContents();
     fProvisional := true;
   end
   else if C.Col = fcCostCode then
-    Values.edtCostCode.Text := GetCellText(C)
+    Values.edtCostCode1.Text := GetCellText(C)
   else if C.Col = fcClientCode then
-    Values.edtClientCode.Text := GetCellText(C)
+    Values.edtClientCode1.Text := GetCellText(C)
   else if C.Col = fcDay then
   begin
     TempDay := GetCellText(C);
@@ -200,7 +200,7 @@ end;
 //------------------------------------------------------------------------------
 function TTPAReport.HaveNewdata: Boolean;
 begin
-  Result := (Values.AccountNumber > '');
+  Result := (Values.AccountNumber1 > '');
 
   if not Result then
     ResetForm; // Clear the rest
@@ -276,18 +276,18 @@ begin
   myCanvas.Font.Size := 9;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextBox('Name of Account', Values.edtNameOfAccount.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Name of Account', Values.edtNameOfAccount1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
-  TextBox('Client Code', Values.edtClientCode.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Client Code', Values.edtClientCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
   NewLine(3);
 
-  TextBox('Account Number', Values.AccountNumber, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Account Number', Values.AccountNumber1, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
-  TextBox('Cost Code', Values.edtCostCode.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+  TextBox('Cost Code', Values.edtCostCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
   NewLine(3);
@@ -467,7 +467,7 @@ begin
   WasPrinted := True;
 
   if ImportMode then
-    Values.AccountNumber := '';
+    Values.AccountNumber1 := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -512,10 +512,10 @@ begin
       QrCodeImage := TImage.Create(nil);
       try
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount.text;
-        CAFQRDataAccount.AccountNumber := Values.AccountNumber;
-        CAFQRDataAccount.ClientCode    := Values.edtClientCode.Text;
-        CAFQRDataAccount.CostCode      := Values.edtCostCode.Text;
+        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount1.text;
+        CAFQRDataAccount.AccountNumber := Values.AccountNumber1;
+        CAFQRDataAccount.ClientCode    := Values.edtClientCode1.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCostCode1.Text;
         CAFQRDataAccount.SMSF          := 'N';
 
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
@@ -560,7 +560,7 @@ begin
 
         // Exception code for ANZ and National Bank, removed National bank so must set to NAT when
         // ANZ is selected and Account bank is for national
-        if Institutions.DoInstituionExceptionCode(Values.AccountNumber, CAFQRData.InstitutionCode) = ieNAT then
+        if Institutions.DoInstituionExceptionCode(Values.AccountNumber1, CAFQRData.InstitutionCode) = ieNAT then
           CAFQRData.InstitutionCode := 'NAT';
 
         CAFQRData.InstitutionCountry := TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).CountryCode;
