@@ -1159,6 +1159,8 @@ procedure TfrmCAF.edtAccountNumber1Exit(Sender: TObject);
 begin
   fAccountNumber1 := trim(edtAccountNumber1.Text);
   fValidAccount1 := (length(fAccountNumber1) > 0);
+  if not mskAccountNumber1.Visible then
+    MaskValidateAccNumber1;
 end;
 
 procedure TfrmCAF.edtAccountNumber2Change(Sender: TObject);
@@ -1171,6 +1173,8 @@ procedure TfrmCAF.edtAccountNumber2Exit(Sender: TObject);
 begin
   fAccountNumber2 := trim(edtAccountNumber2.Text);
   fValidAccount2 := (length(fAccountNumber2) > 0);
+  if not mskAccountNumber2.Visible then
+    MaskValidateAccNumber2;
 end;
 
 procedure TfrmCAF.edtAccountNumber3Change(Sender: TObject);
@@ -1182,6 +1186,8 @@ procedure TfrmCAF.edtAccountNumber3Exit(Sender: TObject);
 begin
   fAccountNumber3 := trim(edtAccountNumber3.Text);
   fValidAccount3 := (length(fAccountNumber3) > 0);
+  if not mskAccountNumber3.Visible then
+    MaskValidateAccNumber3;
 end;
 
 procedure TfrmCAF.edtClientCode1Change(Sender: TObject);
