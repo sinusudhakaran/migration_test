@@ -102,10 +102,10 @@ const
 
    MEM_COMMENTS : Array[ 0..6 ] of String =
       (  '; Support Section Help',
-         '; 0 = Full suggested mems functionality',
-         '; 1 = Refresh/Reset suggested mems functionality',
-         '; 2 = Disable Suggested Mems v2',
-         '; 3 = Disable Suggested Mems both v1 and v2',
+         '; 0 = Full Suggested Mems functionality',
+         '; 1 = Refresh/Reset Suggested Mems',
+         '; 2 = Disable Suggested Mems v2 only',
+         '; 3 = Disable Suggested Mems v1 and v2',
          '; Format to use is ClientCode=Number e.g. SAMPLE=1',
          '' );
 
