@@ -884,7 +884,7 @@ begin
             begin
               if ( pDisRec^.dsPayee_number <> 0) then
               begin
-                Payee := PayeeList.Find_Payee_Number( pDisRec^.dsPayee_Number );
+                Payee := PayeeList.Find_Payee_Number_and_Index(pDisRec^.dsPayee_Number, PayeeIndex);
 
                 if Assigned( Payee ) then
                 begin
