@@ -218,7 +218,9 @@ type
     function ValidateForm: Boolean;
     procedure SetImportFile(const Value: string);
 
-    procedure UpdateMask;
+    procedure UpdateMask1;
+    procedure UpdateMask2;
+    procedure UpdateMask3;
     procedure ClearForm();
     procedure SetDataSentToClient(aEnabled : boolean);
     procedure SetExistingClient(aEnabled : boolean);
@@ -291,7 +293,11 @@ begin
 
   RemovePanelBorders;
   lblMaskErrorHint1.Caption := '';
+  lblMaskErrorHint2.Caption := '';
+  lblMaskErrorHint3.Caption := '';
   lblAccountHintLine1.Caption := '';
+  lblAccountHintLine2.Caption := '';
+  lblAccountHintLine3.Caption := '';
 
   // Institution Names
   SortList := TStringList.Create;
@@ -618,12 +624,12 @@ begin
       mskAccountNumber1.SetFocus;
       Result := False;
     end else
-    if (fValidAccount2 = false) and (fCurrentDisplayError2 <> '') then
+    if (fValidAccount2 = false) and (fCurrentDisplayError2 <> '') and Account2Filled then
     begin
       mskAccountNumber2.SetFocus;
       Result := False;
     end else
-    if (fValidAccount3 = false) and (fCurrentDisplayError3 <> '') then
+    if (fValidAccount3 = false) and (fCurrentDisplayError3 <> '') and Account3Filled then
     begin
       mskAccountNumber3.SetFocus;
       Result := False;
@@ -684,13 +690,13 @@ begin
   ToggleAccount1Controls(ShowAccount1);
   if not CheckAccount1Filled then
   begin
-    ToggleAccount2Controls(False);
-    ToggleAccount3Controls(False);
+    ToggleAccount2Controls(CheckAccount2Filled);
+    ToggleAccount3Controls(CheckAccount3Filled);
   end
   else if not CheckAccount2Filled then
   begin
     ToggleAccount2Controls(True);
-    ToggleAccount3Controls(False);
+    ToggleAccount3Controls(CheckAccount3Filled);
   end
   else
   begin
@@ -741,7 +747,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.mskAccountNumber1Enter(Sender: TObject);
 begin
-  UpdateMask;
+  UpdateMask1;
   mskAccountNumber1.SetFocus;
 end;
 
@@ -780,12 +786,12 @@ begin
       end;
       2: begin
         fCurrentDisplayError2 := FailedReason;
-        if not ShowDlg then
+        if CheckAccount2Filled and not ShowDlg then
           lblMaskErrorHint2.Caption := FailedReason;
       end;
       3: begin
         fCurrentDisplayError3 := FailedReason;
-        if not ShowDlg then
+        if CheckAccount3Filled and not ShowDlg then
           lblMaskErrorHint3.Caption := FailedReason;
       end;
     end;
@@ -819,35 +825,39 @@ end;
 
 procedure TfrmTPA.mskAccountNumber3Change(Sender: TObject);
 begin
+  fValidAccount3 := false;
   ToggleAccountFields;
 end;
 
 procedure TfrmTPA.mskAccountNumber3Enter(Sender: TObject);
 begin
-//
+  UpdateMask3;
+  mskAccountNumber3.SetFocus;
 end;
 
 procedure TfrmTPA.mskAccountNumber3KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-//
+  UpdateMask3;
 end;
 
 procedure TfrmTPA.mskAccountNumber3MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-//
+  UpdateMask3;
 end;
 
 procedure TfrmTPA.mskAccountNumber3ValidateEdit(
   var aRunExistingValidate: Boolean);
 begin
-//
+  aRunExistingValidate := false;
+
+  fValidateError := mskAccountNumber3.DoValidation;
 end;
 
 procedure TfrmTPA.mskAccountNumber3ValidateError(var aRaiseError: Boolean);
 begin
-//
+  aRaiseError := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -872,14 +882,14 @@ end;
 procedure TfrmTPA.mskAccountNumber1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  UpdateMask;
+  UpdateMask1;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmTPA.mskAccountNumber1MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  UpdateMask;
+  UpdateMask1;
 end;
 
 //------------------------------------------------------------------------------
@@ -898,35 +908,39 @@ end;
 
 procedure TfrmTPA.mskAccountNumber2Change(Sender: TObject);
 begin
+  fValidAccount2 := false;
   ToggleAccountFields;
 end;
 
 procedure TfrmTPA.mskAccountNumber2Enter(Sender: TObject);
 begin
-//
+  UpdateMask2;
+  mskAccountNumber2.SetFocus;
 end;
 
 procedure TfrmTPA.mskAccountNumber2KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-//
+  UpdateMask2;
 end;
 
 procedure TfrmTPA.mskAccountNumber2MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-//
+  UpdateMask2;
 end;
 
 procedure TfrmTPA.mskAccountNumber2ValidateEdit(
   var aRunExistingValidate: Boolean);
 begin
-//
+  aRunExistingValidate := false;
+
+  fValidateError := mskAccountNumber2.DoValidation;
 end;
 
 procedure TfrmTPA.mskAccountNumber2ValidateError(var aRaiseError: Boolean);
 begin
-//
+  aRaiseError := false;
 end;
 
 //------------------------------------------------------------------------------
@@ -1002,6 +1016,7 @@ begin
   pnlInstData1.BevelOuter     := bvNone;
   pnlInstLabels.BevelOuter   := bvNone;
   pnlClient.BevelOuter       := bvNone;
+  pnlClient.BevelKind        := bkNone;
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
   pnlClientSpacer.BevelOuter := bvNone;
@@ -1043,7 +1058,7 @@ end;
 procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
 const
   PNL_DATA_WIDTH = 148;
-  PNL_DATA_WIDTH_RURAL = 106;
+  PNL_DATA_WIDTH_RURAL = {106}95;
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;
@@ -1208,9 +1223,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmTPA.UpdateMask;
+procedure TfrmTPA.UpdateMask1;
 begin
   fMaskHint.DrawMaskHint(lblAccountHintLine1, mskAccountNumber1, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
+end;
+
+procedure TfrmTPA.UpdateMask2;
+begin
+  fMaskHint.DrawMaskHint(lblAccountHintLine2, mskAccountNumber2, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
+end;
+
+procedure TfrmTPA.UpdateMask3;
+begin
+  fMaskHint.DrawMaskHint(lblAccountHintLine3, mskAccountNumber3, self.Color, $00000000, $00000000, clInfoBk, clMedGray , 8);
 end;
 
 //------------------------------------------------------------------------------
@@ -1264,6 +1289,13 @@ procedure TfrmTPA.edtAccountNumber1Exit(Sender: TObject);
 begin
   fAccountNumber1 := trim(edtAccountNumber1.Text);
   fValidAccount1 := (length(fAccountNumber1) > 0);
+  if not mskAccountNumber1.Visible then
+  begin
+    if (edtAccountNumber1.Text = '') then
+      MaskValidateAccNumber('', 1)
+    else
+      lblMaskErrorHint1.Caption := '';
+  end;
 end;
 
 procedure TfrmTPA.edtAccountNumber2Change(Sender: TObject);
@@ -1275,6 +1307,13 @@ procedure TfrmTPA.edtAccountNumber2Exit(Sender: TObject);
 begin
   fAccountNumber2 := trim(edtAccountNumber2.Text);
   fValidAccount2 := (length(fAccountNumber2) > 0);
+  if not mskAccountNumber2.Visible then
+  begin
+    if (edtAccountNumber2.Text = '') then
+      MaskValidateAccNumber('', 2)
+    else
+      lblMaskErrorHint2.Caption := '';
+  end;
 end;
 
 procedure TfrmTPA.edtAccountNumber3Change(Sender: TObject);
@@ -1286,6 +1325,13 @@ procedure TfrmTPA.edtAccountNumber3Exit(Sender: TObject);
 begin
   fAccountNumber3 := trim(edtAccountNumber3.Text);
   fValidAccount3 := (length(fAccountNumber3) > 0);
+  if not mskAccountNumber3.Visible then
+  begin
+    if (edtAccountNumber3.Text = '') then
+      MaskValidateAccNumber('', 3)
+    else
+      lblMaskErrorHint3.Caption := '';
+  end;
 end;
 
 procedure TfrmTPA.edtClientCode1Change(Sender: TObject);
@@ -1456,6 +1502,8 @@ begin
   Result := (edtNameOfAccount2.Text  <> '') or
             (edtAccountNumber2.Text  <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
+  if not Result then
+    lblMaskErrorHint2.Caption := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -1469,6 +1517,8 @@ begin
   Result := (edtNameOfAccount3.Text  <> '') or
             (edtAccountNumber3.Text  <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
+  if not Result then
+    lblMaskErrorHint3.Caption := '';
 end;
 
 //------------------------------------------------------------------------------

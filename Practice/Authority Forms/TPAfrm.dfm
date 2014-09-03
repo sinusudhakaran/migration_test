@@ -33,7 +33,7 @@ object frmTPA: TfrmTPA
     Height = 25
     Hint = 'Preview the Third Party Authority Form'
     Anchors = [akLeft, akBottom]
-    Caption = 'Preview'
+    Caption = 'Previe&w'
     Default = True
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -53,7 +53,7 @@ object frmTPA: TfrmTPA
     Height = 25
     Hint = 'Save the Third Party Authority Form to a file'
     Anchors = [akLeft, akBottom]
-    Caption = 'File'
+    Caption = 'Fil&e'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -72,7 +72,7 @@ object frmTPA: TfrmTPA
     Height = 25
     Hint = 'Email the Third Party Authority Form to the client'
     Anchors = [akLeft, akBottom]
-    Caption = 'Email'
+    Caption = 'E&mail'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -91,7 +91,7 @@ object frmTPA: TfrmTPA
     Height = 25
     Hint = 'Print the Third Party Authority Form'
     Anchors = [akLeft, akBottom]
-    Caption = 'Print'
+    Caption = '&Print'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -104,7 +104,7 @@ object frmTPA: TfrmTPA
     OnClick = btnPrintClick
   end
   object btnImport: TButton
-    Left = 372
+    Left = 523
     Top = 707
     Width = 75
     Height = 25
@@ -120,7 +120,7 @@ object frmTPA: TfrmTPA
     OnClick = btnImportClick
   end
   object btnClear: TButton
-    Left = 453
+    Left = 604
     Top = 707
     Width = 85
     Height = 25
@@ -139,7 +139,7 @@ object frmTPA: TfrmTPA
     OnClick = btnClearClick
   end
   object btnCancel: TButton
-    Left = 544
+    Left = 695
     Top = 707
     Width = 80
     Height = 25
@@ -211,7 +211,7 @@ object frmTPA: TfrmTPA
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 382
+        Width = 370
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -222,13 +222,13 @@ object frmTPA: TfrmTPA
         Font.Style = []
         ItemHeight = 16
         ParentFont = False
-        TabOrder = 2
+        TabOrder = 0
         OnChange = cmbInstitutionChange
       end
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 267
+        Width = 255
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -247,7 +247,7 @@ object frmTPA: TfrmTPA
       object edtBranch: TEdit
         Left = 148
         Top = 46
-        Width = 382
+        Width = 370
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -259,7 +259,7 @@ object frmTPA: TfrmTPA
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 0
+        TabOrder = 2
         OnExit = edt1Exit
       end
     end
@@ -292,7 +292,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 580
+          Width = 574
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -351,7 +351,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -370,7 +370,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -392,7 +392,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber1: TEdit
           Left = 36
           Top = 65
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -411,7 +411,7 @@ object frmTPA: TfrmTPA
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 95
+          Width = 89
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -431,7 +431,7 @@ object frmTPA: TfrmTPA
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 95
+          Width = 89
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -517,7 +517,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 580
+          Width = 574
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -550,7 +550,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount2: TEdit
           Left = 8
           Top = 10
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -569,7 +569,7 @@ object frmTPA: TfrmTPA
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 95
+          Width = 89
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -581,7 +581,7 @@ object frmTPA: TfrmTPA
           Font.Style = []
           MaxLength = 8
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 3
           OnChange = edtClientCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
@@ -589,7 +589,7 @@ object frmTPA: TfrmTPA
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 95
+          Width = 89
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -601,7 +601,7 @@ object frmTPA: TfrmTPA
           Font.Style = []
           MaxLength = 10
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 4
           OnChange = edtCostCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
@@ -609,7 +609,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber2: TMaskValidateEdit
           Left = 9
           Top = 65
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -619,7 +619,7 @@ object frmTPA: TfrmTPA
           Font.Name = 'MS Sans Serif'
           Font.Style = []
           ParentFont = False
-          TabOrder = 4
+          TabOrder = 2
           OnChange = mskAccountNumber2Change
           OnEnter = mskAccountNumber2Enter
           OnExit = mskAccountNumber2Exit
@@ -631,7 +631,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber2: TEdit
           Left = 36
           Top = 65
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -769,7 +769,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 580
+          Width = 574
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -802,7 +802,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount3: TEdit
           Left = 8
           Top = 10
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -821,7 +821,7 @@ object frmTPA: TfrmTPA
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 95
+          Width = 89
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -833,7 +833,7 @@ object frmTPA: TfrmTPA
           Font.Style = []
           MaxLength = 8
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 3
           OnChange = edtClientCode3Change
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
@@ -841,7 +841,7 @@ object frmTPA: TfrmTPA
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 95
+          Width = 89
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -853,7 +853,7 @@ object frmTPA: TfrmTPA
           Font.Style = []
           MaxLength = 10
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 4
           OnChange = edtCostCode3Change
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
@@ -861,7 +861,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -871,7 +871,7 @@ object frmTPA: TfrmTPA
           Font.Name = 'MS Sans Serif'
           Font.Style = []
           ParentFont = False
-          TabOrder = 4
+          TabOrder = 2
           OnChange = mskAccountNumber3Change
           OnEnter = mskAccountNumber3Enter
           OnExit = mskAccountNumber3Exit
@@ -883,7 +883,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber3: TEdit
           Left = 36
           Top = 65
-          Width = 308
+          Width = 302
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -1023,16 +1023,16 @@ object frmTPA: TfrmTPA
       end
     end
     object pnlRural: TPanel
-      Left = 2
-      Top = 595
+      Left = 4
+      Top = 584
       Width = 612
-      Height = 98
+      Height = 97
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
       DesignSize = (
         612
-        98)
+        97)
       object lblRuralInstitutions: TLabel
         Left = 25
         Top = 18
@@ -1087,16 +1087,16 @@ object frmTPA: TfrmTPA
       Left = 4
       Top = 508
       Width = 612
-      Height = 81
+      Height = 93
       Color = clWhite
       ParentBackground = False
       TabOrder = 4
       DesignSize = (
         612
-        81)
+        93)
       object lblSecureCode: TLabel
         Left = 282
-        Top = 51
+        Top = 67
         Width = 79
         Height = 16
         Caption = 'Secure Code'
@@ -1177,7 +1177,7 @@ object frmTPA: TfrmTPA
       end
       object chkDataSecureExisting: TCheckBox
         Left = 25
-        Top = 51
+        Top = 67
         Width = 239
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
@@ -1211,7 +1211,7 @@ object frmTPA: TfrmTPA
       end
       object edtSecureCode: TEdit
         Left = 383
-        Top = 48
+        Top = 64
         Width = 178
         Height = 24
         Anchors = [akLeft, akTop, akRight]
@@ -1225,7 +1225,7 @@ object frmTPA: TfrmTPA
         TabOrder = 2
       end
       object chkSupplyAsProvisional: TCheckBox
-        Left = 22
+        Left = 25
         Top = 131
         Width = 393
         Height = 17
