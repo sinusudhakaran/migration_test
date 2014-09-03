@@ -487,6 +487,8 @@ begin
   Result := (edtNameOfAccount2.Text  <> '') or
             (edtAccountNumber2.Text  <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
+  if not Result then
+    lblMaskErrorHint2.Caption := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -500,6 +502,8 @@ begin
   Result := (edtNameOfAccount3.Text  <> '') or
             (edtAccountNumber3.Text  <> '') or
             (MaskIsEmptyOrMatchesBsb =  false);
+  if not Result then
+    lblMaskErrorHint3.Caption := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -749,12 +753,12 @@ begin
       end;
       2: begin
         fCurrentDisplayError2 := FailedReason;
-        if not ShowDlg then
+        if CheckAccount2Filled and not ShowDlg then
           lblMaskErrorHint2.Caption := FailedReason;
       end;
       3: begin
         fCurrentDisplayError3 := FailedReason;
-        if not ShowDlg then
+        if CheckAccount3Filled and not ShowDlg then
           lblMaskErrorHint3.Caption := FailedReason;
       end;
     end;
