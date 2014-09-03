@@ -496,8 +496,8 @@ type
     procedure ResumeService;
 
     function GetInstitutionList(out aBloArrayOfInstitution : TBloArrayOfInstitution) : TBloResult;
-    function ValidateAccount(aAccountNumber, aInstCode, aCountryCode : string; var aFailedReason : string; aSupressProgress : boolean) : Boolean;
-    function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation; aSupressProgress : boolean) : TBloResult;
+    function ValidateAccount(aAccountNumber, aInstCode, aCountryCode : string; var aFailedReason : string; aSupressProgress : boolean) : TBloResult;
+    function ValidateAccountList(var aValidateAccountList : TBloArrayOfAccountValidation; aSupressProgress : boolean; var aErrorString : string) : TBloResult;
     function GetPracUpgReminderMsg(var aLatestVersion, aReminderVersion, aReminderMessage : string; aSupressProgress : boolean): TBloResult;
 
     procedure ResetExceptionTest;
@@ -1849,7 +1849,7 @@ function TProductConfigService.MessageResponseHasError(
   AMesageresponse: MessageResponse; ErrorText: string; SimpleError: boolean = false;
   ContextMsgInt: integer = 0; ContextErrorCode: string = ''; ReportResponseErrors: Boolean = True): Boolean;
 const
-  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s %s. Please see the details below or contact ' + BRAND_SUPPORT + ' for assistance.';
+  MAIN_ERROR_MESSAGE =  BKPRACTICENAME + ' is unable to %s. Please see the details below or contact ' + BRAND_SUPPORT + ' for assistance.';
 var
   ErrorMessage: string;
   ErrIndex : integer;
@@ -1913,12 +1913,12 @@ begin
           AddLine(Details, 'StackTrace', AMesageresponse.Exceptions[ErrIndex].StackTrace);
         end;
 
-        if ReportResponseErrors and (Length(AMesageresponse.Exceptions) > 0) then
+        if ReportResponseErrors and (Details.Count > 0) then
         begin
           HelpfulErrorMsg(ErrorMessage, 0, False, Details.Text, not SimpleError);
         end;
         
-        LogUtil.LogMsg(lmError,'ERRORMOREFRM',Details.Text);
+        LogUtil.LogMsg(lmError, 'ERRORMOREFRM', Details.Text);
       finally
         Details.Free;
       end;
@@ -2918,12 +2918,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ValidateAccount(aAccountNumber, aInstCode, aCountryCode: string; var aFailedReason: string; aSupressProgress : boolean): Boolean;
+function TProductConfigService.ValidateAccount(aAccountNumber, aInstCode, aCountryCode: string; var aFailedReason: string; aSupressProgress : boolean): TBloResult;
 var
   AccountList: TBloArrayOfAccountValidation;
+  ErrorString : string;
 begin
   aFailedReason := '';
-  Result := false;
+  Result := bloFailedFatal;
 
   SetLength(AccountList, 1);
   AccountList[0] := TBloAccountValidation.create;
@@ -2935,12 +2936,20 @@ begin
     AccountList[0].FailureReason    := '';
     AccountList[0].ValidationPassed := false;
 
-    if (ValidateAccountList(AccountList, aSupressProgress) in [bloSuccess, bloFailedNonFatal]) then
+    Result := ValidateAccountList(AccountList, aSupressProgress, ErrorString);
+    if (Result = bloSuccess) then
     begin
-      Result := AccountList[0].ValidationPassed;
-      if not result then
+      if not AccountList[0].ValidationPassed then
+      begin
+        Result := bloFailedFatal;
         aFailedReason := AccountList[0].FailureReason;
+      end;
     end
+    else if (Result = bloFailedNonFatal) then
+    begin
+      aFailedReason := ErrorString;
+    end;
+
   finally
     FreeAndNil(AccountList[0]);
     SetLength(AccountList, 0);
@@ -2948,14 +2957,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TProductConfigService.ValidateAccountList(var aValidateAccountList: TBloArrayOfAccountValidation; aSupressProgress : boolean): TBloResult;
+function TProductConfigService.ValidateAccountList(var aValidateAccountList: TBloArrayOfAccountValidation; aSupressProgress : boolean; var aErrorString : string): TBloResult;
+Const
+  VALUE_CANNT_BE_NULL = 'Value cannot be null';
 var
   BlopiInterface  : IBlopiServiceFacade;
   MsgResponse     : MessageResponseOfArrayOfAccountValidationMIdCYrSK;
   ResponceError   : Boolean;
+  ErrIndex : integer;
 begin
   Result := bloFailedNonFatal;
   Screen.Cursor := crHourGlass;
+  aErrorString := '';
 
   if not aSupressProgress then
   begin
@@ -2975,7 +2988,7 @@ begin
                                                        AdminSystem.fdFields.fdBankLink_Connect_Password,
                                                        aValidateAccountList);
 
-        ResponceError := MessageResponseHasError(MsgResponse, 'Validate Account List from');
+        ResponceError := MessageResponseHasError(MsgResponse, 'Validate Account List from',false,0,'',not aSupressProgress);
 
         if not ResponceError then
         begin
@@ -2994,8 +3007,27 @@ begin
         end
         else
         begin
-          LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List was not validated from ' + BRAND_ONLINE + '.');
-          result := bloFailedFatal;
+          if length(MsgResponse.Exceptions) > 0 then
+          begin
+            if pos(VALUE_CANNT_BE_NULL, MsgResponse.Exceptions[0].Message_) > 0 then
+            begin
+              for ErrIndex := 0 to high(MsgResponse.Exceptions) do
+              begin
+                aErrorString := aErrorString + 'Message' + MsgResponse.Exceptions[ErrIndex].Message_ + #13#10;
+                aErrorString := aErrorString + 'Source' + MsgResponse.Exceptions[ErrIndex].Source + #13#10;
+                aErrorString := aErrorString + 'StackTrace' + MsgResponse.Exceptions[ErrIndex].StackTrace + #13#10;
+              end;
+
+              LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List was not validated from ' + BRAND_ONLINE + '.' +
+                             #13#10 + aErrorString);
+              result := bloFailedNonFatal;
+            end;
+          end
+          else
+          begin
+            LogUtil.LogMsg(lmInfo, UNIT_NAME, 'Account List was not validated from ' + BRAND_ONLINE + '.');
+            result := bloFailedFatal;
+          end;
         end;
 
       finally

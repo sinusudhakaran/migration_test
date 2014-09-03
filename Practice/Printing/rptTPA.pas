@@ -492,7 +492,8 @@ begin
      (Assigned(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex])) and
      (Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex] is TInstitutionItem) then
   begin
-    if TInstitutionItem(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex]).IgnoreValidation then
+    if (TInstitutionItem(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex]).IgnoreValidation) or
+       (TInstitutionItem(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex]).NoValidationRules) then
       Exit;
   end;
 

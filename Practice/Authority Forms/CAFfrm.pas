@@ -285,6 +285,8 @@ begin
       if (TInstitutionItem(Institutions.Items[Index]).CountryCode = COUNTRY_CODE) and
        (TInstitutionItem(Institutions.Items[Index]).Enabled) then
       begin
+        TInstitutionItem(Institutions.Items[Index]).NoValidationRules := false;
+
         if TInstitutionItem(Institutions.Items[Index]).HasNewName then
           SortList.AddObject(TInstitutionItem(Institutions.Items[Index]).NewName, TInstitutionItem(Institutions.Items[Index]))
         else
@@ -378,6 +380,7 @@ var
   InstCode : string;
   AccNumber : string;
   AccNumberText : string;
+  BloResult : TBloResult;
 
   procedure SetValidAccount(Value: boolean);
   begin
@@ -408,7 +411,8 @@ begin
      (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
      (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
   begin
-    if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).IgnoreValidation then
+    if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).IgnoreValidation) or
+       (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NoValidationRules) then
     begin
       AccNumber := trim(fMaskHint.RemoveUnusedCharsFromAccNumber(aAccountNumber));
       SetAccountNumber(AccNumber);
@@ -450,14 +454,18 @@ begin
     // Exception code for Bank of Queensland to insert zeros into the account portion of the account number
     // less than 10 zeros and more than 7
     if Institutions.DoInstituionExceptionCode(AccNumber, InstCode) = ieBOQ then
-      Result := ProductConfigService.ValidateAccount(Institutions.PadQueensLandAccWithZeros(AccNumber), InstCode, COUNTRY_CODE, aFailedReason, true)
+      BloResult := ProductConfigService.ValidateAccount(Institutions.PadQueensLandAccWithZeros(AccNumber), InstCode, COUNTRY_CODE, aFailedReason, true)
     else
-      Result := ProductConfigService.ValidateAccount(AccNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
+      BloResult := ProductConfigService.ValidateAccount(AccNumber, InstCode, COUNTRY_CODE, aFailedReason, true);
 
-    if Result then
+    if BloResult = bloFailedNonFatal then
+      TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NoValidationRules := true;
+
+    if BloResult in [bloSuccess, bloFailedNonFatal] then
     begin
       SetValidAccount(true);
       SetAccountNumber(AccNumber);
+      Result := true;
     end;
     aShowDlg := true;
   end;
@@ -723,7 +731,6 @@ procedure TfrmCAF.MaskValidateAccNumber(AccountNumText: string; WhichAccount: in
 var
   FailedReason : string;
   ShowDlg : boolean;
-
 begin
   // Calls Validation on Exit of Account Number Control
   case WhichAccount of

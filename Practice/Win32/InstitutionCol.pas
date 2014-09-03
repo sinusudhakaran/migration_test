@@ -39,6 +39,7 @@ type
     FHasNewMask : Boolean;
     FNewMask : string;
     FIgnoreValidation : boolean;
+    FNoValidationRules : boolean;
   public
     property AccountEditMask: WideString read FAccountEditMask write FAccountEditMask;
     property Active: Boolean read FActive write FActive;
@@ -64,6 +65,7 @@ type
     property HasNewMask : Boolean read FHasNewMask write FHasNewMask;
     property NewMask : string read FNewMask write FNewMask;
     property IgnoreValidation : boolean read FIgnoreValidation write FIgnoreValidation;
+    property NoValidationRules : boolean read FNoValidationRules write FNoValidationRules;
   end;
 
   //----------------------------------------------------------------------------
@@ -279,6 +281,7 @@ begin
     NewInstitutionItem.HasNewMask := false;
     NewInstitutionItem.NewMask := '';
     NewInstitutionItem.IgnoreValidation := false;
+    NewInstitutionItem.NoValidationRules := false;
 
     if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
     begin
