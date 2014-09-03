@@ -101,6 +101,8 @@ type
     pnlClientData: TPanel;
     edtClientStartDte: TOvcPictureField;
     pnlClientSpacer: TPanel;
+    lblOrContactiBizz: TLabel;
+    lbliBizz: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -164,6 +166,9 @@ type
     procedure edt2Exit(Sender: TObject);
     procedure edt2KeyPress(Sender: TObject; var Key: Char);
     procedure edt3Exit(Sender: TObject);
+    procedure lbliBizzClick(Sender: TObject);
+    procedure lbliBizzMouseEnter(Sender: TObject);
+    procedure lbliBizzMouseLeave(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -250,6 +255,7 @@ Const
   UNIT_NAME = 'TfrmCAF';
   COUNTRY_CODE = 'AU';
   OTHER_BANK_WIDTH = 108;
+  IBIZZ_MESSAGE = 'Please contact iBizz.';
 
 { TfrmTPA }
 //------------------------------------------------------------------------------
@@ -365,6 +371,21 @@ end;
 procedure TfrmCAF.lblBookSecureLinkMouseLeave(Sender: TObject);
 begin
   lblBookSecureLink.Font.Style := [];
+end;
+
+procedure TfrmCAF.lbliBizzClick(Sender: TObject);
+begin
+  HelpfulInfoMsg(IBIZZ_MESSAGE, 0 );
+end;
+
+procedure TfrmCAF.lbliBizzMouseEnter(Sender: TObject);
+begin
+  lbliBizz.Font.Style := [fsUnderline];
+end;
+
+procedure TfrmCAF.lbliBizzMouseLeave(Sender: TObject);
+begin
+  lbliBizz.Font.Style := [];
 end;
 
 //------------------------------------------------------------------------------
@@ -917,6 +938,8 @@ begin
   lblNoteAddFormReq.Visible := aEnabled;
   lblBookSecureLink.Visible := aEnabled;
   imgInfoAdditionalMsg.Visible := aEnabled;
+  lblOrContactiBizz.Visible := aEnabled;
+  lbliBizz.Visible := aEnabled;
 
   if aEnabled then
     chkDataSecureExisting.Checked := false;

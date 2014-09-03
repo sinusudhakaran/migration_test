@@ -168,6 +168,170 @@ object frmCAF: TfrmCAF
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
+    object pnlData: TPanel
+      Left = 3
+      Top = 483
+      Width = 757
+      Height = 160
+      BevelEdges = [beLeft, beRight, beBottom]
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Color = clWhite
+      ParentBackground = False
+      TabOrder = 3
+      DesignSize = (
+        753
+        158)
+      object lblSecureCode: TLabel
+        Left = 283
+        Top = 75
+        Width = 79
+        Height = 16
+        Caption = 'Secure Code'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
+      object imgInfoAdditionalMsg: TImage
+        Left = 24
+        Top = 50
+        Width = 16
+        Height = 16
+      end
+      object lblNoteAddFormReq: TLabel
+        Left = 44
+        Top = 50
+        Width = 194
+        Height = 16
+        Caption = 'An additional form is required for '
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblBookSecureLink: TLabel
+        Left = 238
+        Top = 50
+        Width = 85
+        Height = 16
+        Caption = 'Books Secure'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = lblBookSecureLinkClick
+        OnMouseEnter = lblBookSecureLinkMouseEnter
+        OnMouseLeave = lblBookSecureLinkMouseLeave
+      end
+      object lblOrContactiBizz: TLabel
+        Left = 326
+        Top = 50
+        Width = 12
+        Height = 16
+        Caption = 'or'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = False
+        Transparent = True
+      end
+      object lbliBizz: TLabel
+        Left = 342
+        Top = 50
+        Width = 30
+        Height = 16
+        Caption = 'iBizz.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        OnClick = lbliBizzClick
+        OnMouseEnter = lbliBizzMouseEnter
+        OnMouseLeave = lbliBizzMouseLeave
+      end
+      object chkDataSecureExisting: TCheckBox
+        Left = 24
+        Top = 75
+        Width = 230
+        Height = 17
+        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Data sent to existing secure client'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 1
+        OnClick = chkDataSecureExistingClick
+      end
+      object chkDataSecureNew: TCheckBox
+        Left = 24
+        Top = 27
+        Width = 326
+        Height = 17
+        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Data sent direct to new secure client'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 0
+        OnClick = chkDataSecureNewClick
+      end
+      object edtSecureCode: TEdit
+        Left = 382
+        Top = 72
+        Width = 259
+        Height = 24
+        Anchors = [akLeft, akTop, akRight]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        MaxLength = 8
+        ParentFont = False
+        TabOrder = 2
+      end
+      object chkSupplyAsProvisional: TCheckBox
+        Left = 24
+        Top = 123
+        Width = 479
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Supply as provisional if account is not available from the Bank'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 3
+        OnClick = chkDataSecureNewClick
+      end
+    end
     object pnlInstTop: TPanel
       Left = 3
       Top = 2
@@ -211,7 +375,7 @@ object frmCAF: TfrmCAF
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 408
+        Width = 400
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -228,7 +392,7 @@ object frmCAF: TfrmCAF
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 293
+        Width = 285
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -243,12 +407,11 @@ object frmCAF: TfrmCAF
         TabOrder = 1
         Visible = False
         OnChange = edtInstitutionNameChange
-        ExplicitWidth = 297
       end
       object edtBranch: TEdit
         Left = 148
         Top = 45
-        Width = 408
+        Width = 400
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -262,7 +425,6 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 2
         OnExit = edt1Exit
-        ExplicitWidth = 412
       end
     end
     object pnlInstitution: TPanel
@@ -295,7 +457,7 @@ object frmCAF: TfrmCAF
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 570
+          Width = 566
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -354,7 +516,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -369,12 +531,11 @@ object frmCAF: TfrmCAF
           TabOrder = 0
           OnChange = edtNameOfAccount1Change
           OnEnter = edt1Exit
-          ExplicitWidth = 318
         end
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -392,12 +553,11 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber1MouseDown
           OnValidateError = mskAccountNumber1ValidateError
           OnValidateEdit = mskAccountNumber1ValidateEdit
-          ExplicitWidth = 318
         end
         object edtAccountNumber1: TEdit
           Left = 30
           Top = 65
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -412,12 +572,11 @@ object frmCAF: TfrmCAF
           TabOrder = 2
           OnChange = edtAccountNumber1Change
           OnExit = edtAccountNumber1Exit
-          ExplicitWidth = 318
         end
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 103
+          Width = 99
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -433,12 +592,11 @@ object frmCAF: TfrmCAF
           OnChange = edtClientCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
-          ExplicitWidth = 105
         end
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 103
+          Width = 99
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -454,7 +612,6 @@ object frmCAF: TfrmCAF
           OnChange = edtCostCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
-          ExplicitWidth = 105
         end
       end
       object pnlInstLabels1: TPanel
@@ -515,7 +672,7 @@ object frmCAF: TfrmCAF
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 570
+          Width = 566
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -574,7 +731,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount2: TEdit
           Left = 8
           Top = 10
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -589,12 +746,11 @@ object frmCAF: TfrmCAF
           TabOrder = 0
           OnChange = edtNameOfAccount2Change
           OnEnter = edt2Exit
-          ExplicitWidth = 318
         end
         object mskAccountNumber2: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -612,12 +768,11 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber2MouseDown
           OnValidateError = mskAccountNumber2ValidateError
           OnValidateEdit = mskAccountNumber2ValidateEdit
-          ExplicitWidth = 318
         end
         object edtAccountNumber2: TEdit
           Left = 30
           Top = 65
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -632,12 +787,11 @@ object frmCAF: TfrmCAF
           TabOrder = 2
           OnChange = edtAccountNumber2Change
           OnExit = edtAccountNumber2Exit
-          ExplicitWidth = 318
         end
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 103
+          Width = 99
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -653,12 +807,11 @@ object frmCAF: TfrmCAF
           OnChange = edtClientCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
-          ExplicitWidth = 105
         end
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 103
+          Width = 99
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -674,7 +827,6 @@ object frmCAF: TfrmCAF
           OnChange = edtCostCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
-          ExplicitWidth = 105
         end
       end
       object pnlInstLabels2: TPanel
@@ -734,7 +886,7 @@ object frmCAF: TfrmCAF
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 570
+          Width = 566
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -793,7 +945,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount3: TEdit
           Left = 8
           Top = 10
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -807,12 +959,11 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 0
           OnEnter = edt3Exit
-          ExplicitWidth = 318
         end
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -830,12 +981,11 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber3MouseDown
           OnValidateError = mskAccountNumber3ValidateError
           OnValidateEdit = mskAccountNumber3ValidateEdit
-          ExplicitWidth = 318
         end
         object edtAccountNumber3: TEdit
           Left = 30
           Top = 65
-          Width = 316
+          Width = 312
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -850,12 +1000,11 @@ object frmCAF: TfrmCAF
           TabOrder = 2
           OnChange = edtAccountNumber3Change
           OnExit = edtAccountNumber3Exit
-          ExplicitWidth = 318
         end
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 103
+          Width = 99
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -870,12 +1019,11 @@ object frmCAF: TfrmCAF
           TabOrder = 3
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
-          ExplicitWidth = 105
         end
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 103
+          Width = 99
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -890,7 +1038,6 @@ object frmCAF: TfrmCAF
           TabOrder = 4
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
-          ExplicitWidth = 105
         end
       end
       object pnlInstLabels3: TPanel
@@ -931,140 +1078,6 @@ object frmCAF: TfrmCAF
           Font.Style = []
           ParentFont = False
         end
-      end
-    end
-    object pnlData: TPanel
-      Left = 3
-      Top = 483
-      Width = 757
-      Height = 160
-      BevelEdges = [beLeft, beRight, beBottom]
-      BevelKind = bkFlat
-      BevelOuter = bvNone
-      Color = clWhite
-      ParentBackground = False
-      TabOrder = 3
-      DesignSize = (
-        753
-        158)
-      object lblSecureCode: TLabel
-        Left = 283
-        Top = 75
-        Width = 79
-        Height = 16
-        Caption = 'Secure Code'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
-      object imgInfoAdditionalMsg: TImage
-        Left = 24
-        Top = 50
-        Width = 16
-        Height = 16
-      end
-      object lblNoteAddFormReq: TLabel
-        Left = 44
-        Top = 50
-        Width = 194
-        Height = 16
-        Caption = 'An additional form is required for '
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
-      object lblBookSecureLink: TLabel
-        Left = 238
-        Top = 50
-        Width = 88
-        Height = 16
-        Caption = 'Books Secure.'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlue
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = lblBookSecureLinkClick
-        OnMouseEnter = lblBookSecureLinkMouseEnter
-        OnMouseLeave = lblBookSecureLinkMouseLeave
-      end
-      object chkDataSecureExisting: TCheckBox
-        Left = 24
-        Top = 75
-        Width = 223
-        Height = 17
-        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Data sent to existing secure client'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 1
-        OnClick = chkDataSecureExistingClick
-        ExplicitWidth = 227
-      end
-      object chkDataSecureNew: TCheckBox
-        Left = 24
-        Top = 27
-        Width = 334
-        Height = 17
-        Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Data sent direct to new secure client'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 0
-        OnClick = chkDataSecureNewClick
-        ExplicitWidth = 338
-      end
-      object edtSecureCode: TEdit
-        Left = 382
-        Top = 72
-        Width = 267
-        Height = 24
-        Anchors = [akLeft, akTop, akRight]
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        MaxLength = 8
-        ParentFont = False
-        TabOrder = 2
-        ExplicitWidth = 271
-      end
-      object chkSupplyAsProvisional: TCheckBox
-        Left = 24
-        Top = 123
-        Width = 487
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Supply as provisional if account is not available from the Bank'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 3
-        OnClick = chkDataSecureNewClick
-        ExplicitWidth = 491
       end
     end
     object pnlClient: TPanel
