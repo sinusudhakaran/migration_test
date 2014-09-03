@@ -1327,25 +1327,27 @@ begin
    //NOTE: Annual statements are due 28 Feb the following year
    //      Is setup for monthly GST then amounts are always due 21st of next mth
 
-   DueDate              := IncDate( BasToDate,21,0,0);
-
-   if isAnnualStatement then begin
+   if isAnnualStatement then
+   begin
       StDateToDMY( BasToDate, d, m, y);
       DueDate := DMYtoStDate( 28, 2 , y+1, BKDATEEPOCH);
    end
-   else begin
-      //if GST is monthly then form is due on 21st
-      if MyClient.clFields.clGST_Period = gpQuarterly then begin
-         //if GST is annually then form is due on 28th
-         DueDate              := IncDate( BasToDate,28,0,0);
-         StDateToDMY( DueDate, d, m, y);
-         if ( m = 1) then begin
-            m := 2;
-            DueDate := DMYtoSTDate( d, m, y, BKDATEEPOCH);
-         end;
-      end;
+   else if isQuarterlyStatement then
+   begin
+     DueDate := IncDate( BasToDate,28,0,0);
+     StDateToDMY( DueDate, d, m, y);
+     if ( m = 1) then
+     begin
+        m := 2;
+        DueDate := DMYtoSTDate( d, m, y, BKDATEEPOCH);
+     end;
+   end
+   else
+   begin
+     DueDate := IncDate( BasToDate,21,0,0);
    end;
-   PaymentDate          := DueDate;
+
+   PaymentDate := DueDate;
 end;
 //------------------------------------------------------------------------------
 
