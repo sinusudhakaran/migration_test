@@ -445,7 +445,7 @@ begin
   NewLine;
   TextLine(BRAND_FULL_NAME + ' in accordance with the ' + BRAND_GROUP_NAME + ' Privacy Disclosure Statement (www.myob.com.au/privacy-disclosure)', OutputLeft, OutputRight);
   NewLine;
-  TextLine('and the ' + BRAND_FULL_NAME + ' Privacy Policy (http://www.banklink.com.au/index.php/privacy).', OutputLeft, OutputRight);
+  TextLine('and the ' + BRAND_FULL_NAME + ' Privacy Policy (www.banklink.com.au/privacy).', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   // Footer works from the bottom up so we align with the bottom properly
@@ -468,7 +468,7 @@ begin
 
   NewLineUp(2);
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (((values.InstitutionType = inOther) and (values.chkSupplyAsProvisional.Checked)) or (fProvisional)));
-  TextLine('Please supply the account above as a Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account(s) above as a Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp(2);
   myCanvas.Font.Style := [fsBold];
   TextLine('Additional Information to assist ' + BRAND_FULL_NAME + ' processing', OutputLeft + BoxMargin2 , OutputRight);

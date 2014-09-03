@@ -434,7 +434,7 @@ begin
   NewLineUp;
   HalfNewLineUp;
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (((values.InstitutionType = inOther) and (values.chkSupplyAsProvisional.Checked)) or (fProvisional)));
-  TextLine('Please supply the account above as a Provisional Account if it is not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account(s) above as a Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp;
   HalfNewLineUp;
   myCanvas.Font.Style := [fsBold];

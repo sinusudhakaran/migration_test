@@ -592,7 +592,7 @@ begin
     PDFFormFieldItemCheckBox.ShpClear.Width := PDFFormFieldItemCheckBox.ShpClear.Width + 615;
     PDFFormFieldItemCheckBox.Checkbox.Width := PDFFormFieldItemCheckBox.Checkbox.Width + 600;
     PDFFormFieldItemCheckBox.Checkbox.Caption :=
-      'Please supply the account above as a Provisional Account if it is not available from the Bank';
+      'Please supply the account(s) above as a Provisional Account(s) if they are not available from the Bank';
 
     if fInstitution = istUKNormal then
       PDFFormFieldItemCheckBox.Checkbox.Font.Size := PDFFormFieldItemCheckBox.Checkbox.Font.Size - 1
