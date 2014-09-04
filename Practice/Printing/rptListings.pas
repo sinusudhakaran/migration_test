@@ -2166,10 +2166,23 @@ begin
 
           //Build the columns
           cLeft := GCLeft;
-          AddColAuto(Job,cLeft,30,GcGap,'Account', jtLeft);
-          AddColAuto(Job,cLeft,40,GcGap,'Narration',jtLeft);
-          AddColAuto(Job,cLeft,15,GcGap, MyClient.TaxSystemNameUC + ' Class', jtLeft );
-          AddColAuto(Job,cLeft,15,GcGap,'Amount/Percent',jtRight);
+          if Scheduled then
+          begin
+            // Normal settings
+            AddColAuto(Job,cLeft,30,GcGap,'Account', jtLeft);
+            AddColAuto(Job,cLeft,40,GcGap,'Narration',jtLeft);
+            AddColAuto(Job,cLeft,15,GcGap, MyClient.TaxSystemNameUC + ' Class', jtLeft );
+            AddColAuto(Job,cLeft,15,GcGap,'Amount/Percent',jtRight);
+          end
+          else
+          begin
+            // Extra column
+            AddColAuto(Job,cLeft,25,GcGap,'Account', jtLeft);
+            AddColAuto(Job,cLeft,35,GcGap,'Narration',jtLeft);
+            AddColAuto(Job,cLeft,10,GcGap, MyClient.TaxSystemNameUC + ' Class', jtLeft );
+            AddColAuto(Job,cLeft,15,GcGap,'Amount/Percent',jtRight);
+            AddColAuto(Job,cLeft,10,GcGap,'Inactive', jtCenter);
+          end;
 
           //Add Footers
           AddCommonFooter(Job);
@@ -3264,6 +3277,16 @@ begin
           else
             SkipColumn;
           end;
+
+          // Inactive column
+          if not fParams.Scheduled then
+          begin
+            if Payee.pdFields.pdInactive then
+              PutString('Yes')
+            else
+              SkipColumn;
+          end;
+
           RenderDetailLine;
 
         end;
