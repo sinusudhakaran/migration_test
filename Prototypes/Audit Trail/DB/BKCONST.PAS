@@ -2096,7 +2096,13 @@ const
 
   mcNewContributionsToPreviousNonComplyingFund = 14;
   mcNewNonMandatedContributions = 15;
-  mcNewGovtCoContributions = 16; mcnewMax = mcNewGovtCoContributions;
+  mcNewGovtCoContributions = 16;
+
+  mcNewContributionReservesPersonalConcessional = 17;
+  mcNewContributionReservesPersonalNonConcessional = 18;
+  mcNewContributionReservesEmployerConcessional = 19;
+
+  mcNewLowIncomeSuperContributions = 20; mcnewMax = mcNewLowIncomeSuperContributions;
 
   mcNewNames : Array[ mcNewMin..mcnewMax ] of String[ 53 ] =
 
@@ -2116,7 +2122,11 @@ const
       'Transferred from Reserves Non Assessable',
       'Contributions to Previous Non Complying Fund',
       'Non Mandated Contributions',
-      'Govt Co Contributions'
+      'Govt Co Contributions',
+      'Contribution Reserves (Personal Concessional)',
+      'Contribution Reserves (Personal Non Concessional)',
+      'Contribution Reserves (Employer Concessional)',
+      'Low Income Super Contributions'
       );
 
  mcNewCharacters : Array[mcNewMin..mcNewMax] of string[3] =
@@ -2136,7 +2146,11 @@ const
       '13',
       '14',
       '15',
-      '16'
+      '16',
+      '17',
+      '18',
+      '19',
+      '20'
       );
 
   RESTRICTED_MODE_STRING = 'Restricted to Account and Amount';

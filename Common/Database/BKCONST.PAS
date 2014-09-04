@@ -2228,7 +2228,9 @@ const
 
   mcNewContributionReservesPersonalConcessional = 17;
   mcNewContributionReservesPersonalNonConcessional = 18;
-  mcNewContributionReservesEmployerConcessional = 19; mcnewMax = mcNewContributionReservesEmployerConcessional;
+  mcNewContributionReservesEmployerConcessional = 19;
+
+  mcNewLowIncomeSuperContributions = 20; mcnewMax = mcNewLowIncomeSuperContributions;
 
   mcNewNames : Array[ mcNewMin..mcnewMax ] of String[ 53 ] =
 
@@ -2251,7 +2253,8 @@ const
       'Govt Co Contributions',
       'Contribution Reserves (Personal Concessional)',
       'Contribution Reserves (Personal Non Concessional)',
-      'Contribution Reserves (Employer Concessional)'
+      'Contribution Reserves (Employer Concessional)',
+      'Low Income Super Contributions'
       );
 
  mcNewCharacters : Array[mcNewMin..mcNewMax] of string[3] =
@@ -2274,7 +2277,8 @@ const
       '16',
       '17',
       '18',
-      '19'
+      '19',
+      '20'
       );
 
   RESTRICTED_MODE_STRING = 'Restricted to Account and Amount';
