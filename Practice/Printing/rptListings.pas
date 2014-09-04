@@ -3196,10 +3196,16 @@ begin
   PayeeList := TList.Create;
   try
     //Add to list
-    for i := MyClient.clPayee_List.First to MyClient.clPayee_List.Last do begin
+    for i := MyClient.clPayee_List.First to MyClient.clPayee_List.Last do
+    begin
       Payee := MyClient.clPayee_List.Payee_At(i);
+
+      if fParams.Scheduled and Payee.pdFields.pdInactive then
+        continue;
+
       PayeeList.Add(Payee);
     end;
+
     //Sort
     case FParams.SortBy of
       0: PayeeList.Sort(PayeeSortByName);
