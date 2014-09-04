@@ -3886,7 +3886,11 @@ var
    NewIndex,
    OldIndex : integer;
 begin
-   if ( WorkTranList.ItemCount > 0 ) then begin
+   if ( WorkTranList.ItemCount > 0 ) then
+   begin
+      if tblCoding.InEditingState then
+        tblCoding.StopEditingState(true);
+
       //save current trans pointer and reload then reposition
       //ActiveRow transaction pointer may not be valid due to
       //deletion of underlying transaction. eg UPC match
@@ -9092,8 +9096,8 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingExit(Sender: TObject);
 begin
-   tblCoding.Colors.Locked := clBtnFace;
-   tblCoding.Colors.LockedText := clBtnShadow;
+  tblCoding.Colors.Locked := clBtnFace;
+  tblCoding.Colors.LockedText := clBtnShadow;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingDblClick(Sender: TObject);
