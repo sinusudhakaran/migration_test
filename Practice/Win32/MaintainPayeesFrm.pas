@@ -155,13 +155,8 @@ begin
         NewItem.Imageindex := -1;
         NewItem.SubItems.AddObject(Payee.pdName,TObject(Payee));
 
-        if chkShowInactive.Checked then
-        begin
-          if Payee.pdFields.pdInactive then
-            NewItem.SubItems.Add('Yes')
-          else
-            NewItem.SubItems.Add('No');
-        end
+        if chkShowInactive.Checked and Payee.pdFields.pdInactive then
+          NewItem.SubItems.Add('Yes')
         else
           NewItem.SubItems.Add('');
      end;
