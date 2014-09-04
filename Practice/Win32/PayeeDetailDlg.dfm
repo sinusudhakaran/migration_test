@@ -27,14 +27,14 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Height = 13
     Caption = 'A&BN'
   end
-  object Panel3: TPanel
+  object pnlButtons: TPanel
     Left = 0
     Top = 521
     Width = 1103
     Height = 50
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 0
+    TabOrder = 1
     DesignSize = (
       1103
       50)
@@ -135,14 +135,10 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Height = 521
     ActivePage = tsContractorDetails
     Align = alClient
-    TabOrder = 2
+    TabOrder = 0
     OnChange = PageControl1Change
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlMain: TPanel
         Left = 0
         Top = 101
@@ -150,7 +146,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         Height = 392
         Align = alClient
         BevelOuter = bvLowered
-        TabOrder = 0
+        TabOrder = 1
         object tblSplit: TOvcTable
           Left = 1
           Top = 30
@@ -183,7 +179,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           LockedRowsCell = Header
           Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
           ParentCtl3D = False
-          TabOrder = 0
+          TabOrder = 1
           OnActiveCellChanged = tblSplitActiveCellChanged
           OnActiveCellMoving = tblSplitActiveCellMoving
           OnBeginEdit = tblSplitBeginEdit
@@ -197,7 +193,14 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
           CellData = (
-            'dlgPayeeDetail.Header')
+            'dlgPayeeDetail.Header'
+            'dlgPayeeDetail.ColAcct'
+            'dlgPayeeDetail.ColDesc'
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.colPercent'
+            'dlgPayeeDetail.colLineType')
           RowData = (
             21)
           ColData = (
@@ -237,7 +240,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Height = 29
           Align = alTop
           BevelOuter = bvNone
-          TabOrder = 1
+          TabOrder = 0
           object sbtnChart: TSpeedButton
             AlignWithMargins = True
             Left = 3
@@ -273,7 +276,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         Width = 1095
         Height = 101
         Align = alTop
-        TabOrder = 1
+        TabOrder = 0
         object Label2: TLabel
           Left = 16
           Top = 20
@@ -313,12 +316,12 @@ object dlgPayeeDetail: TdlgPayeeDetail
           RangeLow = {00000000000000000000}
         end
         object chkContractorPayee: TCheckBox
-          Left = 515
-          Top = 19
+          Left = 563
+          Top = 50
           Width = 117
           Height = 17
           Caption = '&Contractor Payee'
-          TabOrder = 2
+          TabOrder = 3
           Visible = False
         end
         object eName: TEdit
@@ -333,22 +336,18 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnEnter = eNameEnter
         end
         object chkInactive: TCheckBox
-          Left = 515
-          Top = 50
+          Left = 563
+          Top = 19
           Width = 97
           Height = 17
-          Caption = 'Inactive'
-          TabOrder = 3
+          Caption = '&Inactive'
+          TabOrder = 2
         end
       end
     end
     object tsContractorDetails: TTabSheet
       Caption = 'Contractor Details'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblPhoneNumber: TLabel
         Left = 596
         Top = 253
@@ -580,7 +579,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Width = 57
           Height = 24
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 16
           TabOrder = 3
           OnChange = cmbStateChange
         end

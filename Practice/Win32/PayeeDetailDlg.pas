@@ -30,7 +30,7 @@ type
 
 type
   TdlgPayeeDetail = class(TForm)
-    Panel3: TPanel;
+    pnlButtons: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
     pnlTotalAmounts: TPanel;
