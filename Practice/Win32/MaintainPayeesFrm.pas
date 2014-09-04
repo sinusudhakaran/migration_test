@@ -137,7 +137,7 @@ begin
 
      // Show inactive column?
      if chkShowInactive.Checked then
-       lvPayees.Columns[2].Width := 60
+       lvPayees.Columns[2].Width := 90
      else
        lvPayees.Columns[2].Width := 0;
 
@@ -161,7 +161,9 @@ begin
             NewItem.SubItems.Add('Yes')
           else
             NewItem.SubItems.Add('No');
-        end;
+        end
+        else
+          NewItem.SubItems.Add('');
      end;
 
      DoSortByColNo( CurrentSortCol);

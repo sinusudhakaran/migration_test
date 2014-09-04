@@ -120,7 +120,7 @@ object frmMaintainPayees: TfrmMaintainPayees
       end
       item
         Caption = 'Inactive'
-        Width = 60
+        Width = 90
       end>
     HideSelection = False
     MultiSelect = True
