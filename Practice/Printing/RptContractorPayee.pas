@@ -1382,9 +1382,10 @@ var
 begin
   for i := 0 to High(fPayeeDataList) do
   begin
-    if (fPayeeDataList[i].Payee.pdNumber = aPayeeNo) then
+    PayeeData := fPayeeDataList[i];
+    if (PayeeData.Payee.pdNumber = aPayeeNo) then
     begin
-      result := true;
+      result := (PayeeData.TotalGST > 0);
       exit;
     end;
   end;
