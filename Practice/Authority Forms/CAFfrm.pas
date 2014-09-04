@@ -661,8 +661,7 @@ begin
   end;
   
   //Account Validation
-  if (Result) and (fInstitutionType = inBLO) and
-  (DoValidateAccount1 or DoValidateAccount2 or DoValidateAccount3) then
+  if (Result) and (fInstitutionType = inBLO) then
   begin
     Error1Filled := (length(fCurrentDisplayError1) > 0);
     Error2Filled := (length(fCurrentDisplayError2) > 0);
@@ -954,7 +953,6 @@ begin
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
   pnlClientSpacer.BevelOuter := bvNone;
-//  pnlData.BevelOuter         := bvNone;
   pnlInstTop.BevelOuter      := bvNone;
 end;
 
