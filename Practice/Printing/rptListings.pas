@@ -3287,9 +3287,9 @@ begin
         if not fParams.Scheduled then
         begin
           if Payee.pdFields.pdInactive then
-            PutString('Y')
+            PutString('Yes')
           else
-            PutString('N');
+            SkipColumn;
         end;
         RenderDetailLine;
         if FParams.RuleLine then
