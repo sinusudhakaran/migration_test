@@ -117,12 +117,11 @@ begin
   AssignFile(TestFile, aFilePath);
   Rewrite(TestFile);
   try
-    Writeln(TestFile, 'CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME, NEW_MASK, IGNORE_VALIDATION,');
-    Writeln(TestFile, 'Code04,Name 04,UK,1, ,New Name 04,MASK01,0,');
-    Writeln(TestFile, 'Code01,Name 01,NZ,0, , , ,1,');
-    Writeln(TestFile, 'Code02,Name 02,NZ,1,Code01, , ,0,');
-    Writeln(TestFile, 'Code03,Name 03,AU,1, ,New Name 03, ,0,');
-
+    Writeln(TestFile, 'CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME, NEW_MASK, IGNORE_VALIDATION, SHOW_ADDFORM,');
+    Writeln(TestFile, 'Code04,Name 04,UK,1, ,New Name 04,MASK01,0,0,');
+    Writeln(TestFile, 'Code01,Name 01,NZ,0, , , ,1,0,');
+    Writeln(TestFile, 'Code02,Name 02,NZ,1,Code01, , ,0,0,');
+    Writeln(TestFile, 'Code03,Name 03,AU,1, ,New Name 03, ,0,0,');  
   finally
     closefile(TestFile);
   end;
@@ -173,6 +172,7 @@ begin
     Check(TInstitutionItem(fInstitutions.Items[0]).HasNewMask = false);
     Check(TInstitutionItem(fInstitutions.Items[0]).NewMask = '');
     Check(TInstitutionItem(fInstitutions.Items[0]).IgnoreValidation = false);
+    Check(TInstitutionItem(fInstitutions.Items[0]).ShowAdditionalForms = false);
 
     Check(TInstitutionItem(fInstitutions.Items[1]).AccountEditMask = '00000000000009999999;0;');
     Check(TInstitutionItem(fInstitutions.Items[1]).Active = true);
@@ -195,6 +195,7 @@ begin
     Check(TInstitutionItem(fInstitutions.Items[1]).HasNewMask = false);
     Check(TInstitutionItem(fInstitutions.Items[1]).NewMask = '');
     Check(TInstitutionItem(fInstitutions.Items[1]).IgnoreValidation = false);
+    Check(TInstitutionItem(fInstitutions.Items[1]).ShowAdditionalForms = false);
 
     Check(TInstitutionItem(fInstitutions.Items[2]).AccountEditMask = '\0\3-0000-0000000-\000;0;');
     Check(TInstitutionItem(fInstitutions.Items[2]).Active = true);
@@ -217,6 +218,7 @@ begin
     Check(TInstitutionItem(fInstitutions.Items[2]).HasNewMask = false);
     Check(TInstitutionItem(fInstitutions.Items[2]).NewMask = '');
     Check(TInstitutionItem(fInstitutions.Items[2]).IgnoreValidation = false);
+    Check(TInstitutionItem(fInstitutions.Items[2]).ShowAdditionalForms = false);
 
     Check(TInstitutionItem(fInstitutions.Items[3]).AccountEditMask = '\9\4\1\-000\ 000000000;0;');
     Check(TInstitutionItem(fInstitutions.Items[3]).Active = true);
@@ -239,6 +241,7 @@ begin
     Check(TInstitutionItem(fInstitutions.Items[3]).HasNewMask = false);
     Check(TInstitutionItem(fInstitutions.Items[3]).NewMask = '');
     Check(TInstitutionItem(fInstitutions.Items[3]).IgnoreValidation = false);
+    Check(TInstitutionItem(fInstitutions.Items[3]).ShowAdditionalForms = false);
   finally
     FreeTestCoreData;
   end;

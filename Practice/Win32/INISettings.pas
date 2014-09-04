@@ -676,6 +676,7 @@ begin
         PRACINI_SecureFormLinkNZ := ReadString(GrpPracLinks,'SecureFormLinkNZ', TUrls.DefSecureFormLinkNZ);
         PRACINI_SecureFormLinkAU := ReadString(GrpPracLinks,'SecureFormLinkAU', TUrls.DefSecureFormLinkAU);
         PRACINI_IBizzFormLinkAU := ReadString(GrpPracLinks,'IBizzFormLinkAU', TUrls.DefIBizzFormLinkAU);
+        PRACINI_AdditionalFormLinkAU := ReadString(GrpPracLinks,'AdditionalFormLinkAU', TUrls.DefAdditionalFormLinkAU);
 
         // Sets Defaults if no data exists
         if IsPractice then
@@ -860,6 +861,7 @@ begin
            WriteString(GrpPracLinks, 'SecureFormLinkNZ',PRACINI_SecureFormLinkNZ);
            WriteString(GrpPracLinks, 'SecureFormLinkAU',PRACINI_SecureFormLinkAU);
            WriteString(GrpPracLinks, 'IBizzFormLinkAU',PRACINI_IBizzFormLinkAU);
+           WriteString(GrpPracLinks, 'AdditionalFormLinkAU',PRACINI_AdditionalFormLinkAU);
 
 {$IFDEF SmartLink}
            WriteString( GrpPracFingerTips,'URL', PRACINI_FingertipsURL);

@@ -103,6 +103,7 @@ type
     pnlClientSpacer: TPanel;
     lblOrContactiBizz: TLabel;
     lbliBizz: TLabel;
+    lblAdditionalFormRequired: TLabel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -169,6 +170,9 @@ type
     procedure lbliBizzClick(Sender: TObject);
     procedure lbliBizzMouseEnter(Sender: TObject);
     procedure lbliBizzMouseLeave(Sender: TObject);
+    procedure lblAdditionalFormRequiredClick(Sender: TObject);
+    procedure lblAdditionalFormRequiredMouseEnter(Sender: TObject);
+    procedure lblAdditionalFormRequiredMouseLeave(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -349,6 +353,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmCAF.lblAdditionalFormRequiredClick(Sender: TObject);
+var
+  link : string;
+begin
+  link := PRACINI_AdditionalFormLinkAU;
+
+  if length(link) = 0 then
+    exit;
+
+  ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
+end;
+
+procedure TfrmCAF.lblAdditionalFormRequiredMouseEnter(Sender: TObject);
+begin
+  lblAdditionalFormRequired.Font.Style := [fsUnderline];
+end;
+
+procedure TfrmCAF.lblAdditionalFormRequiredMouseLeave(Sender: TObject);
+begin
+  lblAdditionalFormRequired.Font.Style := [];
+end;
+
 procedure TfrmCAF.lblBookSecureLinkClick(Sender: TObject);
 var
   link : string;
@@ -1092,6 +1118,8 @@ begin
               mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
               mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
             end;
+            lblAdditionalFormRequired.Visible :=
+              TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).ShowAdditionalForms;
           end;
           fMaskBsb1 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text);
           fMaskBsb2 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber2.Text);

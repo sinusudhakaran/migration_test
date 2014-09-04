@@ -620,6 +620,7 @@ var
     PRACINI_SecureFormLinkNZ            : String = '';
     PRACINI_SecureFormLinkAU            : String = '';
     PRACINI_IBizzFormLinkAU             : String = '';
+    PRACINI_AdditionalFormLinkAU        : String = '';
 
     PRACINI_OnlineLink                  : String = '';
 

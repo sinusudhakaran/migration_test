@@ -29,6 +29,7 @@ type
     class function DefSecureFormLinkNZ: String; static;
     class function DefSecureFormLinkAU: String; static;
     class function DefIBizzFormLinkAU: String; static;
+    class function DefAdditionalFormLinkAU: String; static;
 
     class property WebSites[Index: Integer]: String read GetWebSites;
     class property WebSiteURLs[Index: Integer]: String read GetWebSiteURLs;
@@ -286,6 +287,11 @@ end;
 class function TUrls.DefIBizzFormLinkAU: String;
 begin
   Result := 'http://www.banklink.co.nz';
+end;
+
+class function TUrls.DefAdditionalFormLinkAU: String;
+begin
+  Result := 'http://www.banklink.com.au/clientresources/forms/loading_new_accounts_au';
 end;
 
 end.

@@ -40,6 +40,7 @@ type
     FNewMask : string;
     FIgnoreValidation : boolean;
     FNoValidationRules : boolean;
+    FShowAdditionalForms : boolean;
   public
     property AccountEditMask: WideString read FAccountEditMask write FAccountEditMask;
     property Active: Boolean read FActive write FActive;
@@ -66,6 +67,7 @@ type
     property NewMask : string read FNewMask write FNewMask;
     property IgnoreValidation : boolean read FIgnoreValidation write FIgnoreValidation;
     property NoValidationRules : boolean read FNoValidationRules write FNoValidationRules;
+    property ShowAdditionalForms : boolean read FShowAdditionalForms write FShowAdditionalForms;
   end;
 
   //----------------------------------------------------------------------------
@@ -113,6 +115,7 @@ const
   NEW_NAME            = 5;
   NEW_MASK            = 6;
   IGNORE_VALIDATION   = 7;
+  SHOW_ADDFORM        = 8;
 
 var
   fInstitutions : TInstitutions;
@@ -282,6 +285,7 @@ begin
     NewInstitutionItem.NewMask := '';
     NewInstitutionItem.IgnoreValidation := false;
     NewInstitutionItem.NoValidationRules := false;
+    NewInstitutionItem.ShowAdditionalForms := false;
 
     if CountryCodes.Find(NewInstitutionItem.CountryCode, CountryIndex) = false then
     begin
@@ -305,7 +309,7 @@ begin
   CsvFile := TStringList.Create;
 
   try
-    CsvFile.Add('CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME, NEW_MASK');
+    CsvFile.Add('CODE, NAME, COUNTRY_CODE, ENABLED, RURAL_MAIN_CODE, NEW_NAME, NEW_MASK, SHOW_ADDFORM');
 
     for ItemIndex := 0 to length(BloArrayOfInstitution) - 1 do
     begin
@@ -349,14 +353,15 @@ begin
 
       if FindItem(CommaLine[INST_CODE], CommaLine[INST_COUNTRY_CODE], FoundInstitutionItem) then
       begin
-        FoundInstitutionItem.Enabled          := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
-        FoundInstitutionItem.HasRuralCode     := (length(trim(CommaLine[RURAL_CODE])) > 0);
-        FoundInstitutionItem.RuralCode        := CommaLine[RURAL_CODE];
-        FoundInstitutionItem.HasNewName       := (length(trim(CommaLine[NEW_NAME])) > 0);
-        FoundInstitutionItem.NewName          := CommaLine[NEW_NAME];
-        FoundInstitutionItem.HasNewMask       := (length(trim(CommaLine[NEW_MASK])) > 0);
-        FoundInstitutionItem.NewMask          := CommaLine[NEW_MASK];
-        FoundInstitutionItem.IgnoreValidation := GetBoolFromString(CommaLine[IGNORE_VALIDATION], false);
+        FoundInstitutionItem.Enabled              := GetBoolFromString(CommaLine[INST_ENABLED], true); //defaults to true on error
+        FoundInstitutionItem.HasRuralCode         := (length(trim(CommaLine[RURAL_CODE])) > 0);
+        FoundInstitutionItem.RuralCode            := CommaLine[RURAL_CODE];
+        FoundInstitutionItem.HasNewName           := (length(trim(CommaLine[NEW_NAME])) > 0);
+        FoundInstitutionItem.NewName              := CommaLine[NEW_NAME];
+        FoundInstitutionItem.HasNewMask           := (length(trim(CommaLine[NEW_MASK])) > 0);
+        FoundInstitutionItem.NewMask              := CommaLine[NEW_MASK];
+        FoundInstitutionItem.IgnoreValidation     := GetBoolFromString(CommaLine[IGNORE_VALIDATION], false);
+        FoundInstitutionItem.ShowAdditionalForms  := GetBoolFromString(CommaLine[SHOW_ADDFORM], false);
       end;
     end;
 
