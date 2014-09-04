@@ -461,7 +461,12 @@ begin
      //have both clients open, begin copying.. only copy code if it doesnt exist in chart
      for i := FromClient.clPayee_List.First to FromClient.clPayee_List.Last do
      begin
-       SourcePayee    := FromClient.clPayee_List.Payee_At(i);
+       SourcePayee := FromClient.clPayee_List.Payee_At(i);
+
+       // Inactive payee?
+       if SourcePayee.pdFields.pdInactive then
+         continue;
+
        DuplicateFound :=  Assigned( MyClient.clPayee_List.Find_Payee_Number(SourcePayee.pdNumber))
                           or Assigned( MyClient.clPayee_List.Find_Payee_Name( SourcePayee.pdName));
 
