@@ -311,7 +311,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '999999'
-          TabOrder = 3
+          TabOrder = 0
           RangeHigh = {3F420F00000000000000}
           RangeLow = {00000000000000000000}
         end
@@ -321,7 +321,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Width = 117
           Height = 17
           Caption = '&Contractor Payee'
-          TabOrder = 2
+          TabOrder = 3
           Visible = False
         end
         object eName: TEdit
@@ -331,7 +331,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Height = 24
           BorderStyle = bsNone
           MaxLength = 40
-          TabOrder = 0
+          TabOrder = 1
           OnChange = eNameChange
           OnEnter = eNameEnter
         end
@@ -341,7 +341,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Width = 97
           Height = 17
           Caption = '&Inactive'
-          TabOrder = 1
+          TabOrder = 2
         end
       end
     end

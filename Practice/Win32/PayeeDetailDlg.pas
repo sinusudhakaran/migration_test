@@ -1567,6 +1567,10 @@ begin
    tsContractorDetails.Visible := (MyClient.clFields.clCountry = whAustralia);
    tsContractorDetails.TabVisible := (MyClient.clFields.clCountry = whAustralia);
 
+   // Don't stop if there is only one tab
+   if (MyClient.clFields.clCountry = whNewZealand) then
+     tsPayeeDetails.TabStop := false;
+
    if (MyClient.clFields.clCountry = whNewZealand) then
    begin
      chkInactive.Left := 443;
