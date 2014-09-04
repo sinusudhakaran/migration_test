@@ -906,7 +906,7 @@ begin
 
     // Inactive, no movement, and not selected?
     if Payee.pdFields.pdInactive and
-       (GSTTotal[PayeeIndex] = 0) and
+       not HasMovement(Payee.pdNumber) and
        not PayeeSelected(Payee.pdNumber) then
     begin
       continue;
