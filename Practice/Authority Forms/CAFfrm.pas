@@ -1389,6 +1389,7 @@ begin
   fCurrentDisplayError2 := '';
   fCurrentDisplayError3 := '';
   edtClientStartDte.AsDateTime := now();
+  lblAdditionalFormRequired.Visible := False;
 end;
 
 //------------------------------------------------------------------------------
