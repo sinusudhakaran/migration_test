@@ -71,6 +71,9 @@ Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice S
 Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"
 Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
 
+[InstallDelete]
+Type: files; Name: "{app}\Client Authority Form.pdf"
+
 [Run]
 Filename: "{app}\BK5WIN.EXE"; Description : "Start MYOB BankLink Practice"; WorkingDir: "{app}"; Flags: postinstall nowait;
 
