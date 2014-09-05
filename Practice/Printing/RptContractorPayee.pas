@@ -971,6 +971,10 @@ begin
       if (Payee.pdFields.pdStateId = MAX_STATE) and
          (Payee.pdFields.pdCountry = '') then
         AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Country from Other Functions | Payees');
+
+      if (Length(Payee.pdFields.pdPhone_Number) > 15) then
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Phone Number from Other Functions | Payees');
+
     end;
   finally
     FreeAndNil(PayeeSortedList);
