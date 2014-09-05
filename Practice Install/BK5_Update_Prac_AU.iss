@@ -63,7 +63,6 @@ Source: "Practice CD Files\Templates\ELITE.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Practice CD Files\Templates\MYOBACC.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "Practice CD Files\Templates\CLASS.TPM"; DestDir : "{app}\TEMPLATE"
 
-Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
 
 Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"

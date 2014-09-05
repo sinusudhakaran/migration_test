@@ -59,7 +59,6 @@ Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
 Source: "3rd Party\zint.dll"; DestDir: "{app}"
 Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 
-Source: "AuthorityForms\Client Authority Form.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
 
 Source: "Practice CD Files\AU Samples\CHALET.BK5"; DestDir: "{app}\SAMPLES"
