@@ -384,6 +384,8 @@ object frmCAF: TfrmCAF
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
         Visible = False
         OnClick = lblAdditionalFormRequiredClick
         OnMouseEnter = lblAdditionalFormRequiredMouseEnter

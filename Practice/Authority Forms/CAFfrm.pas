@@ -324,6 +324,8 @@ begin
   edtClientStartDte.AsDateTime := now();
 
   lblBookSecureLink.hint  := PRACINI_SecureFormLinkAU;
+  lblAdditionalFormRequired.hint := PRACINI_AdditionalFormLinkAU;
+  lbliBizz.hint := IBIZZ_MESSAGE;
   fCurrentDisplayError1 := '';
   fCurrentDisplayError2 := '';
   fCurrentDisplayError3 := '';
