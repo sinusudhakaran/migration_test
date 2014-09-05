@@ -1567,14 +1567,20 @@ begin
    tsContractorDetails.Visible := (MyClient.clFields.clCountry = whAustralia);
    tsContractorDetails.TabVisible := (MyClient.clFields.clCountry = whAustralia);
 
-   // Don't stop if there is only one tab
-   if (MyClient.clFields.clCountry = whNewZealand) then
-     tsPayeeDetails.TabStop := false;
-
+   // Misc changes for New Zealand
    if (MyClient.clFields.clCountry = whNewZealand) then
    begin
+     // Don't stop if there is only one tab
+     PageControl1.TabStop := false;
+
+     // Move the inactive checkbox
      chkInactive.Left := 443;
      chkInactive.Top := 19;
+
+     // Change the tab order
+     chkInactive.TabOrder := 0;
+     nPayeeNo.TabOrder := 1;
+     eName.TabOrder := 2;
    end;
 
    // Skip Focus on Payee Number
