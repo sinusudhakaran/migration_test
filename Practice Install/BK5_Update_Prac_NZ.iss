@@ -58,7 +58,6 @@ Source: "3rd Party\libeay32.dll"; DestDir: "{app}"
 Source: "3rd Party\zint.dll"; DestDir: "{app}"
 Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 
-Source: "AuthorityForms\Third Party Authority.pdf"; DestDir: "{app}"
 Source: "AuthorityForms\TPA_Generator.xlt"; DestDir: "{app}"
 
 Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
