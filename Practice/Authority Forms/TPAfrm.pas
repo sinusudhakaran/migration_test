@@ -505,7 +505,7 @@ begin
      (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
      (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
   begin
-    InstCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
+    InstCode := GetInstitutionCode();
 
     // Exception code for ANZ and National Bank, removed National bank so must set to NAT when
     // ANZ is selected and Account bank is for national
