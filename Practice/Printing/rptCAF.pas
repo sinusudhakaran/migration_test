@@ -277,6 +277,7 @@ begin
   myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
+  // Account 1
   TextBox('Name of Account', Values.edtNameOfAccount1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
@@ -289,6 +290,40 @@ begin
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
   TextBox('Cost Code', Values.edtCostCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  NewLine(3);
+  DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin - 20);
+
+  // Account 2
+  TextBox('Name of Account', Values.edtNameOfAccount2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+  TextBox('Client Code', Values.edtClientCode2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  NewLine(3);
+
+  TextBox('Account Number', Values.AccountNumber2, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+
+  TextBox('Cost Code', Values.edtCostCode2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  NewLine(3);
+  DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin - 20);
+
+  // Account 3
+  TextBox('Name of Account', Values.edtNameOfAccount3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+  TextBox('Client Code', Values.edtClientCode3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  NewLine(3);
+
+  TextBox('Account Number', Values.AccountNumber3, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+
+  TextBox('Cost Code', Values.edtCostCode3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
   NewLine(3);
@@ -561,17 +596,25 @@ begin
         CAFQRDataAccount.SMSF          := 'N';
 
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := '';
-        CAFQRDataAccount.AccountNumber := '';
-        CAFQRDataAccount.ClientCode    := '';
-        CAFQRDataAccount.CostCode      := '';
+        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount2.text;
+        if Institutions.DoInstituionExceptionCode(Values.AccountNumber2,
+                                                  TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code) = ieBOQ then
+          CAFQRDataAccount.AccountNumber := Institutions.PadQueensLandAccWithZeros(Values.AccountNumber2)
+        else
+          CAFQRDataAccount.AccountNumber := Values.AccountNumber2;
+        CAFQRDataAccount.ClientCode    := Values.edtClientCode2.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCostCode2.Text;
         CAFQRDataAccount.SMSF          := 'N';
 
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := '';
-        CAFQRDataAccount.AccountNumber := '';
-        CAFQRDataAccount.ClientCode    := '';
-        CAFQRDataAccount.CostCode      := '';
+        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount3.text;
+        if Institutions.DoInstituionExceptionCode(Values.AccountNumber3,
+                                                  TInstitutionItem(Values.cmbInstitution.Items.Objects[InstIndex]).Code) = ieBOQ then
+          CAFQRDataAccount.AccountNumber := Institutions.PadQueensLandAccWithZeros(Values.AccountNumber3)
+        else
+          CAFQRDataAccount.AccountNumber := Values.AccountNumber3;
+        CAFQRDataAccount.ClientCode    := Values.edtClientCode3.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCostCode3.Text;
         CAFQRDataAccount.SMSF          := 'N';
 
         // Always set day to 1 for Caf
