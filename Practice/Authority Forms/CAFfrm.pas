@@ -951,7 +951,7 @@ begin
   // I kept the Borders here so we can see the controls when developing but when running
   // they need to be removed
   pnlInstitution.BevelOuter  := bvNone;
-  pnlClient.BevelKind        := bkNone;
+//  pnlClient.BevelKind        := bkNone;
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
   pnlClientSpacer.BevelOuter := bvNone;
