@@ -4312,6 +4312,42 @@ const
     end;
   end;
 
+  function OneCharacterPhoneNumber(const aPhoneNumber: string): boolean;
+  var
+    chFirst: char;
+    i: integer;
+  begin
+    result := false;
+
+    if (aPhoneNumber = '') then
+      exit;
+
+    chFirst := aPhoneNumber[1];
+
+    for i := 1 to Length(aPhoneNumber) do
+    begin
+      if (aPhoneNumber[i] <> chFirst) then
+        exit;
+    end;
+
+    result := true;
+  end;
+
+  procedure UpgradeToVersion185;
+  var
+    i: integer;
+    sPhoneNumber: string;
+    Payee: TPayee;
+  begin
+    for i := 0 to aClient.clPayee_List.ItemCount-1 do
+    begin
+      Payee := aClient.clPayee_List.Payee_At(i);
+      sPhoneNumber := Payee.pdFields.pdPhone_Number;
+      if OneCharacterPhoneNumber(sPhoneNumber) then
+        Payee.pdFields.pdPhone_Number := '';
+    end;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4696,6 +4732,13 @@ begin
       begin
         UpgradeToVersion184;
         clFile_Version := 184;
+      end;
+
+      // Payee "clean up"
+      if (CLFile_Version < 185) then
+      begin
+        UpgradeToVersion185;
+        clFile_Version := 185;
       end;
    end;
 end;
