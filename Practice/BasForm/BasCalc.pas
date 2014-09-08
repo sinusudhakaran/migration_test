@@ -1320,34 +1320,38 @@ begin
       BasPeriod         := gpMonthly;
    end;
 
-   //Returns are due on the 28th of the next month after the end of the period
-   //if quarterly.
-   //Assume that ToDate is an EOM date, so add 28 days
-   //The except is return which are due in jan.  These have an extra month.
-   //NOTE: Annual statements are due 28 Feb the following year
-   //      Is setup for monthly GST then amounts are always due 21st of next mth
+  //Returns are due on the 28th of the next month after the end of the period
+  //if quarterly.
+  //Assume that ToDate is an EOM date, so add 28 days
+  //The except is return which are due in jan.  These have an extra month.
+  //NOTE: Annual statements are due 28 Feb the following year
+  //      Is setup for monthly GST then amounts are always due 21st of next mth
 
-   if isAnnualStatement then
-   begin
-      StDateToDMY( BasToDate, d, m, y);
-      DueDate := DMYtoStDate( 28, 2 , y+1, BKDATEEPOCH);
-   end
-   else if isQuarterlyStatement then
-   begin
-     DueDate := IncDate( BasToDate,28,0,0);
-     StDateToDMY( DueDate, d, m, y);
-     if ( m = 1) then
-     begin
+  DueDate := IncDate(BasToDate, 21, 0, 0);
+
+  if isAnnualStatement then
+  begin
+    StDateToDMY(BasToDate, d, m, y);
+    DueDate := DMYtoStDate(28, 2, y+1, BKDATEEPOCH);
+  end
+  else
+  begin
+    //if GST is monthly then form is due on 21st
+    if (MyClient.clFields.clGST_Period = gpQuarterly) and
+       (MyClient.clFields.clBAS_PAYG_Withheld_Period <> gpMonthly) then
+    begin
+      //if GST is annually then form is due on 28th
+      DueDate := IncDate(BasToDate, 28, 0, 0);
+      StDateToDMY(DueDate, d, m, y);
+      if (m = 1) then
+      begin
         m := 2;
-        DueDate := DMYtoSTDate( d, m, y, BKDATEEPOCH);
-     end;
-   end
-   else
-   begin
-     DueDate := IncDate( BasToDate,21,0,0);
-   end;
+        DueDate := DMYtoSTDate(d, m, y, BKDATEEPOCH);
+      end;
+    end;
+  end;
 
-   PaymentDate := DueDate;
+  PaymentDate := DueDate;
 end;
 //------------------------------------------------------------------------------
 
