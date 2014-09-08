@@ -973,7 +973,7 @@ begin
         AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Country from Other Functions | Payees');
 
       if (Length(Payee.pdFields.pdPhone_Number) > 15) then
-        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Phone Number from Other Functions | Payees');
+        AddError('Payee No. ' + inttostr(Payee.pdFields.pdNumber) + ': Phone Number from Other Functions | Payees exceeds the ATO''s maximum length. Please shorten to 15 characters or less.');
 
     end;
   finally
