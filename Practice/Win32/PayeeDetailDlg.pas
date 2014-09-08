@@ -1578,20 +1578,13 @@ begin
      chkInactive.Top := 19;
 
      // Change the tab order
-     chkInactive.TabOrder := 0;
-     nPayeeNo.TabOrder := 1;
+     nPayeeNo.TabOrder := 0;
+     chkInactive.TabOrder := 1;
      eName.TabOrder := 2;
    end;
 
    // Skip Focus on Payee Number
-   if chkContractorPayee.Visible and not AddContractorPayee then
-   begin
-     ActiveControl := chkContractorPayee;
-   end
-   else
-   begin
-     ActiveControl := eName;
-   end;
+   ActiveControl := eName;
 
    fLoading  := false;
    ShowModal;
