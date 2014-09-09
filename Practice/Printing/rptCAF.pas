@@ -331,21 +331,26 @@ begin
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
 
   //----------------------------------------------------------------------------
-  NewLine;
+  myCanvas.Font.Size := 8;
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
+  HalfNewLine;
   myCanvas.Font.Size := 12;
   myCanvas.Font.Style := [fsBold];
   CurrLineSize := GetCurrLineSizeNoInflation;
   TextLine('CLIENT AUTHORITY', OutputLeft + 100, OutputRight - 100, jtCenter);
+  myCanvas.Font.Size := 8;
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   DrawBox(XYSizeRect(OutputLeft, OutputTop, OutputRight, CurrYPos + BoxMargin2 + 10));
 
   //----------------------------------------------------------------------------
 //  NewLine;
-  myCanvas.Font.Size := 7;
+  myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
+  NewLine(2);
+  myCanvas.Font.Size := 8;
   TextLine('To:', NumColumn, OutputRight);
-  NewLine;
   TextLine('The Manager,', OutputLeft, OutputRight);
   TextLine('and', XPosTwoThirds-60, OutputRight);
   TextLine('The General Manager,', XPosTwoThirds+60, OutputRight);
@@ -355,6 +360,7 @@ begin
   NewLine;
   TextLine('("' + BRAND_FULL_NAME + '")', XPosTwoThirds+60, OutputRight);
   NewLine;
+  myCanvas.Font.Size := 7;
   CurrYPos := TempCurrYPos;
   if Values.cmbInstitution.itemindex = 0 then
     BankText := Values.edtInstitutionName.text + '   ' + Values.edtBranch.Text
@@ -363,17 +369,20 @@ begin
   TextBox('', BankText, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           0, OutputLeft, XPosTwoThirds-120, CurrYPos, CurrYPos + BoxHeight);
   CurrYPos := GetTextYPos(CurrYPos);
-  NewLine(2);
-  CurrYPos := CurrYPos + 3;
   myCanvas.Font.Size := 8;
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
+  NewLine(1);
+  HalfNewLine;
+  myCanvas.Font.Size := 7;
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
+  CurrYPos := CurrYPos + 3;
   TextLine('(Bank)', OutputLeft, OutputRight);
   TextLine('(Branch)', OutputLeft+300, OutputRight);
   NewLine;
   TextLine('("the Bank")', OutputLeft, OutputRight);
-//  myCanvas.Font.Size := 8;
+  myCanvas.Font.Size := 8;
 
   //----------------------------------------------------------------------------
-//  NewLine;
   HalfNewLine;
   DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
   Point2StartTest := 'I/We hereby AUTHORISE the Bank and ' + BRAND_FULL_NAME + ' as at and from the first of';
@@ -396,17 +405,19 @@ begin
             XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight, true);
   end;
 
-
+  myCanvas.Font.Size := 8;
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   TextLine('1.', NumColumn, OutputRight);
   TextLine('to forward all data and', XPosTwoThirds + 200, OutputRight);
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
-  HalfNewLine;
   CurrYPos := CurrYPos + 8;
-  TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account designated above to each', OutputLeft, OutputRight);
+  TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account(s) designated above to each', OutputLeft, OutputRight);
   NewLine;
-  HalfNewLine;
   TextLine('other and to', OutputLeft, OutputRight);
+  myCanvas.Font.Size := 7;
+  CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   HalfNewLine;
   TextBox('', Values.PracticeName, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
@@ -414,15 +425,14 @@ begin
   TextBox('', Values.PracticeCode, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds-100, XPosTwoThirds-100, XPosTwoThirds+400, CurrYPos, CurrYPos + BoxHeight);
   CurrYPos := GetTextYPos(CurrYPos);
-  NewLine(2);
+  NewLine(1);
+  HalfNewLine;
   CurrYPos := CurrYPos + 5;
-//  myCanvas.Font.Size := 7;
   TextLine('("my/our advisors")', OutputLeft, OutputRight);
   TextLine('(Practice Code)', XPosTwoThirds-100, OutputRight);
-//  myCanvas.Font.Size := 8;
+  myCanvas.Font.Size := 8;
 
   //----------------------------------------------------------------------------
-  // NewLine(2);
   NewLine;
   HalfNewLine;
   TextLine('2.', NumColumn, OutputRight);
@@ -433,7 +443,6 @@ begin
   NewLine;
   TextLine('the Bank accepts no responsibility for the actions of ' + BRAND_FULL_NAME + ', my/our advisors or any other third party;', IndentColumn, OutputRight);
   NewLine;
-//  HalfNewLine;
   TextLine('b)', OutputLeft, OutputRight);
   TextLine('unless otherwise required or prohibited by any applicable law (including the Australian Consumer Law), neither the Bank nor', IndentColumn, OutputRight);
   NewLine;
@@ -446,8 +455,6 @@ begin
   TextLine(BRAND_FULL_NAME + ' (whether jointly, severally or jointly and severally) include or extend to any special or consequential loss or', IndentColumn, OutputRight);
   NewLine;
   TextLine('damage suffered by me/us.', IndentColumn, OutputRight);
-//  NewLine;
-//  TextLine('', IndentColumn, OutputRight);
 
   //----------------------------------------------------------------------------
   NewLine;
@@ -506,7 +513,7 @@ begin
 
   NewLineUp(2);
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (((values.InstitutionType = inOther) and (values.chkSupplyAsProvisional.Checked)) or (fProvisional)));
-  TextLine('Please supply the account(s) above as a Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp(2);
   myCanvas.Font.Style := [fsBold];
   TextLine('Additional Information to assist ' + BRAND_FULL_NAME + ' processing', OutputLeft + BoxMargin2 , OutputRight);
@@ -518,22 +525,24 @@ begin
   //----------------------------------------------------------------------------
   NewLineUp(2);
   myCanvas.Font.Style := [];
-//  myCanvas.Font.Size := 7;
+  myCanvas.Font.Size := 7;
   TextLine('(Account signatory)', OutputLeft, OutputRight);
   TextLine('(Account signatory)', OutputRight - 200, OutputRight);
-//  myCanvas.Font.Size := 8;
+  myCanvas.Font.Size := 8;
+  NewLineUp;
+  TextLine('........................................................................................................', OutputLeft, OutputRight);
+  TextLine('........................................................................................................', XPosOneHalf + 100, OutputRight);
+  NewLineUp(2);
+  HalfNewLineUp;
+  myCanvas.Font.Size := 7;
+  TextLine('(Account signatory)', OutputLeft, OutputRight);
+  TextLine('(Account signatory)', OutputRight - 200, OutputRight);
+  myCanvas.Font.Size := 8;
   NewLineUp;
   TextLine('........................................................................................................', OutputLeft, OutputRight);
   TextLine('........................................................................................................', XPosOneHalf + 100, OutputRight);
   NewLineUp(3);
-//  myCanvas.Font.Size := 7;
-  TextLine('(Account signatory)', OutputLeft, OutputRight);
-  TextLine('(Account signatory)', OutputRight - 200, OutputRight);
-//  myCanvas.Font.Size := 8;
-  NewLineUp;
-  TextLine('........................................................................................................', OutputLeft, OutputRight);
-  TextLine('........................................................................................................', XPosOneHalf + 100, OutputRight);
-  NewLineUp(3);
+  HalfNewLineUp;
   TextLine('Dated this ................. day of ..................................................... 20............', OutputLeft, OutputRight);
 
 
