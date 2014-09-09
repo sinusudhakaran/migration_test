@@ -1334,11 +1334,15 @@ begin
     StDateToDMY(BasToDate, d, m, y);
     DueDate := DMYtoStDate(28, 2, y+1, BKDATEEPOCH);
   end
-  else
+  else if (MyClient.clFields.clGST_Period = gpQuarterly) then
   begin
-    //if GST is monthly then form is due on 21st
-    if (MyClient.clFields.clGST_Period = gpQuarterly) and
-       (MyClient.clFields.clBAS_PAYG_Withheld_Period <> gpMonthly) then
+    if (MyClient.clFields.clBAS_PAYG_Withheld_Period = gpMonthly) then
+    begin
+      StDateToDMY(DueDate, d, m, y);
+      if m in [4, 7, 10, 1] then
+        DueDate := IncDate(BasToDate, 28, 0, 0);
+    end
+    else
     begin
       //if GST is annually then form is due on 28th
       DueDate := IncDate(BasToDate, 28, 0, 0);
