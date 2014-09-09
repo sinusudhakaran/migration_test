@@ -273,10 +273,12 @@ begin
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
 
   //----------------------------------------------------------------------------
-  NewLine;
   myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
+  CurrLineSize := CurrLineSize - 8;
+  NewLine;
+  CurrLineSize := CurrLineSize + 8;
   // Account 1
   TextBox('Name of Account', Values.edtNameOfAccount1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
@@ -284,7 +286,8 @@ begin
   TextBox('Client Code', Values.edtClientCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
-  NewLine(3);
+  NewLine(2);
+  CurrYPos := CurrYPos + 19;
 
   TextBox('Account Number', Values.AccountNumber1, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
@@ -296,12 +299,14 @@ begin
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin - 20);
 
   // Account 2
+  CurrYPos := CurrYPos + 9;
   TextBox('Name of Account', Values.edtNameOfAccount2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
   TextBox('Client Code', Values.edtClientCode2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
-  NewLine(3);
+  NewLine(2);
+  HalfNewLine;
 
   TextBox('Account Number', Values.AccountNumber2, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
@@ -313,12 +318,14 @@ begin
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin - 20);
 
   // Account 3
+  CurrYPos := CurrYPos + 9;
   TextBox('Name of Account', Values.edtNameOfAccount3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
   TextBox('Client Code', Values.edtClientCode3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
-  NewLine(3);
+  NewLine(2);
+  HalfNewLine;
 
   TextBox('Account Number', Values.AccountNumber3, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
@@ -348,7 +355,8 @@ begin
   myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
-  NewLine(2);
+  NewLine;
+  HalfNewLine;
   myCanvas.Font.Size := 8;
   TextLine('To:', NumColumn, OutputRight);
   TextLine('The Manager,', OutputLeft, OutputRight);
