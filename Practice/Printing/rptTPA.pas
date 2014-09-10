@@ -355,7 +355,8 @@ begin
   CurrLineSize := GetCurrLineSizeNoInflation;
   // NewLine;
   HalfNewLine;
-  TextLine('To:', NumColumn, OutputRight);
+  TextLine('To:', OutputLeft, OutputRight);
+  NewLine;
   TextLine('The Manager,', OutputLeft, OutputRight);
   TextLine('and', XPosTwoThirds-60, OutputRight);
   TextLine('The General Manager,', XPosTwoThirds+60, OutputRight);
@@ -407,7 +408,7 @@ begin
 
   TextLine('you and each of you are hereby authorised to disclose and/or', OutputLeft + 760, OutputRight);
   NewLine;
-  TextLine('make use of all data and information relating to my/our bank account designated above which may be required in', OutputLeft, OutputRight);
+  TextLine('make use of all data and information relating to my/our bank account(s) designated above which may be required in', OutputLeft, OutputRight);
   NewLine;
   TextLine('connection with the performance of the processing services under any E.D.P. Services Contract which you or either of', OutputLeft, OutputRight);
   NewLine;
@@ -448,6 +449,7 @@ begin
   //----------------------------------------------------------------------------
   CurrYPos := OutputBottom;
   NewLineUp(2);
+  myCanvas.Font.Size := 8;
 
   if (Values.cmbInstitution.ItemIndex > 0) and
      (TInstitutionItem(Values.cmbInstitution.Items.Objects[Values.cmbInstitution.ItemIndex]).HasRuralCode) then
@@ -482,7 +484,7 @@ begin
   NewLineUp;
   HalfNewLineUp;
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (((values.InstitutionType = inOther) and (values.chkSupplyAsProvisional.Checked)) or (fProvisional)));
-  TextLine('Please supply the account(s) above as a Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
   NewLineUp;
   HalfNewLineUp;
   myCanvas.Font.Style := [fsBold];
@@ -495,20 +497,22 @@ begin
   CreateQRCode(MyCanvas, XYSizeRect(OutputRight-((OutputBottom-CurrYPos-40)+20), CurrYPos + 20, OutputRight-20, OutputBottom-20));
 
   //----------------------------------------------------------------------------
-  NewLineUp(3);
+  NewLineUp(2);
   myCanvas.Font.Style := [];
   myCanvas.Font.Size := 8;
   TextLine('(Signature of Third Party)', OutputLeft, OutputRight);
   myCanvas.Font.Size := 9;
   NewLineUp;
   TextLine('....................................................................................................................', OutputLeft, OutputRight);
-  NewLineUp(4);
+  NewLineUp(2);
+  HalfNewLineUp;
   myCanvas.Font.Size := 8;
   TextLine('(Print name of Third Party)', OutputLeft, OutputRight);
   myCanvas.Font.Size := 9;
   NewLineUp;
   TextLine('....................................................................................................................', OutputLeft, OutputRight);
-  NewLineUp(4);
+  NewLineUp(3);
+  HalfNewLineUp;
   TextLine('Dated this ................. day of ..................................................... 20............', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
