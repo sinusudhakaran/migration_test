@@ -1381,17 +1381,35 @@ end;
 //------------------------------------------------------------------------------
 function TTaxablePaymentsReport.HasMovement(const aPayeeNo: integer): boolean;
 var
+  TranList: TTransaction_List;
   i: integer;
-  PayeeData: TPayeeData;
+  pTransaction: pTransaction_Rec;
+  pDissection: pDissection_Rec;
 begin
-  for i := 0 to High(fPayeeDataList) do
-  begin
-    PayeeData := fPayeeDataList[i];
-    if (PayeeData.Payee.pdNumber = aPayeeNo) then
+  result := true;
+
+  TranList := TTransaction_List.Create(nil, nil, nil);
+  try
+    FillTransactions(TranList);
+
+    for i := TranList.First to TranList.Last do
     begin
-      result := (PayeeData.TotalGST > 0);
-      exit;
+      pTransaction := TranList.Transaction_At(i);
+
+      if (pTransaction.txPayee_Number = aPayeeNo) then
+        exit;
+
+      pDissection := pTransaction.txFirst_Dissection;
+      while assigned(pDissection) do
+      begin
+        if (pDissection.dsPayee_Number = aPayeeNo) then
+          exit;
+        pDissection := pDissection.dsNext;
+      end;
     end;
+
+  finally
+    FreeAndNil(TranList);
   end;
 
   result := false;
