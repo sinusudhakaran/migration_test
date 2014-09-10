@@ -357,7 +357,6 @@ begin
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   HalfNewLine;
-  myCanvas.Font.Size := 8;
   TextLine('To:', NumColumn, OutputRight);
   TextLine('The Manager,', OutputLeft, OutputRight);
   TextLine('and', XPosTwoThirds-60, OutputRight);
@@ -395,30 +394,29 @@ begin
   DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
   Point2StartTest := 'I/We hereby AUTHORISE the Bank and ' + BRAND_FULL_NAME + ' as at and from the first of';
   TextWidth := CanvasRenderEng.GetTextLength(Point2StartTest);
+  CurrYPos := CurrYPos - 18;
 
   if length(trim(Values.edtClientStartDte.Text)) <= 4 then
   begin
     TextBox(Point2StartTest,
             '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight - 6, true);
     TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight, true);
+            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight - 6, true);
   end
   else
   begin
     TextBox(Point2StartTest,
-            moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight, true);
+            UpperCase(moNames[Month]), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight - 6, true);
     TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight, true);
+            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight - 6, true);
   end;
 
-  myCanvas.Font.Size := 8;
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   TextLine('1.', NumColumn, OutputRight);
   TextLine('to forward all data and', XPosTwoThirds + 200, OutputRight);
-  CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   CurrYPos := CurrYPos + 8;
   TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account(s) designated above to each', OutputLeft, OutputRight);
