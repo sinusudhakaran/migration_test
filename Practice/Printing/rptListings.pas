@@ -2179,7 +2179,7 @@ begin
             // Extra column
             AddColAuto(Job,cLeft,25,GcGap,'Account', jtLeft);
             AddColAuto(Job,cLeft,35,GcGap,'Narration',jtLeft);
-            AddColAuto(Job,cLeft,10,GcGap, MyClient.TaxSystemNameUC + ' Class', jtLeft );
+            AddColAuto(Job,cLeft,15,GcGap, MyClient.TaxSystemNameUC + ' Class', jtLeft );
             AddColAuto(Job,cLeft,15,GcGap,'Amount/Percent',jtRight);
             AddColAuto(Job,cLeft,10,GcGap,'Inactive', jtCenter);
           end;
