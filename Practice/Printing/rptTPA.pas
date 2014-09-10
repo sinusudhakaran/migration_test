@@ -227,6 +227,8 @@ var
   XPosOneThirds, XPosTwoThirds : integer;
   XPosOneHalf : integer;
   YPosThreeQuaters : integer;
+  NumColumn : integer;
+  IndentColumn : integer;
 begin
   //assume we have a canvas of A4 proportions as per GST forms
   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
@@ -249,13 +251,15 @@ begin
   XPosOneThirds    := OutputLeft + round((OutputRight - OutputLeft) * (1/3));
   XPosOneHalf      := OutputLeft + round((OutputRight - OutputLeft) / 2);
   YPosThreeQuaters := OutputTop +  round((OutputBottom - OutputTop) * 3/4);
+  NumColumn        := OutputLeft - 60;
+  IndentColumn     := OutputLeft + 60;
 
   BoxMargin2 := BoxMargin * 2;
 
   //----------------------------------------------------------------------------
   TextLine(BRAND_FULL_NAME,OutputLeft + BoxMargin2, OutputRight);
   NewLine;
-  myCanvas.Font.Size := 8;
+  myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
   TextLine('A Division of Media Transfer Services Limited', OutputLeft + BoxMargin2, OutputRight);
@@ -272,17 +276,19 @@ begin
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
 
   //----------------------------------------------------------------------------
-  NewLine;
-  myCanvas.Font.Size := 9;
+  CurrYPos := CurrYPos + 29;
+  myCanvas.Font.Size := 8;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
+
+  // Account 1
   TextBox('Name of Account', Values.edtNameOfAccount1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
 
   TextBox('Client Code', Values.edtClientCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
-  NewLine(3);
+  CurrYPos := CurrYPos + 85;
 
   TextBox('Account Number', Values.AccountNumber1, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
@@ -290,25 +296,66 @@ begin
   TextBox('Cost Code', Values.edtCostCode1.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
 
-  NewLine(3);
+  CurrYPos := CurrYPos + 85;
+  DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
+  CurrYPos := CurrYPos + 30;
+
+  // Account 2
+  TextBox('Name of Account', Values.edtNameOfAccount2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+
+  TextBox('Client Code', Values.edtClientCode2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  CurrYPos := CurrYPos + 85;
+
+  TextBox('Account Number', Values.AccountNumber2, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+
+  TextBox('Cost Code', Values.edtCostCode2.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  CurrYPos := CurrYPos + 85;
+  DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
+  CurrYPos := CurrYPos + 30;
+
+  // Account 3
+  TextBox('Name of Account', Values.edtNameOfAccount3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+
+  TextBox('Client Code', Values.edtClientCode3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  CurrYPos := CurrYPos + 85;
+
+  TextBox('Account Number', Values.AccountNumber3, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          OutputLeft + BoxMargin2, OutputLeft + BoxMargin + 270, XPosTwoThirds - BoxMargin, CurrYPos, CurrYPos + BoxHeight);
+
+  TextBox('Cost Code', Values.edtCostCode3.Text, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
+          XPosTwoThirds + BoxMargin, XPosTwoThirds + BoxMargin + 175, OutputRight - BoxMargin2, CurrYPos, CurrYPos + BoxHeight);
+
+  CurrYPos := CurrYPos + 85;
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
 
   //----------------------------------------------------------------------------
-  NewLine;
+//  NewLine;
+  CurrYPos := CurrYPos + 12;
   myCanvas.Font.Size := 16;
   myCanvas.Font.Style := [fsBold];
   CurrLineSize := GetCurrLineSizeNoInflation;
   TextLine('THIRD PARTY AUTHORITY', OutputLeft + 100, OutputRight - 100, jtCenter);
   NewLine;
-  DrawBox(XYSizeRect(OutputLeft, OutputTop, OutputRight, CurrYPos + BoxMargin2 + 10));
+  DrawBox(XYSizeRect(OutputLeft, OutputTop, OutputRight, CurrYPos + BoxMargin2 - 20{+ 10}));
 
   //----------------------------------------------------------------------------
-  NewLine;
+  // NewLine;
+  // HalfNewLine;
   myCanvas.Font.Size := 9;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextLine('To:', OutputLeft, OutputRight);
-  NewLine;
+  // NewLine;
+  HalfNewLine;
+  TextLine('To:', NumColumn, OutputRight);
   TextLine('The Manager,', OutputLeft, OutputRight);
   TextLine('and', XPosTwoThirds-60, OutputRight);
   TextLine('The General Manager,', XPosTwoThirds+60, OutputRight);
@@ -318,6 +365,7 @@ begin
   NewLine;
   TextLine('("' + BRAND_FULL_NAME + '")', XPosTwoThirds+60, OutputRight);
   NewLine;
+  myCanvas.Font.Size := 8;
   CurrYPos := TempCurrYPos;
   if Values.cmbInstitution.itemindex = 0 then
     BankText := Values.edtInstitutionName.text + '   ' + Values.edtBranch.Text
@@ -329,7 +377,6 @@ begin
   NewLine;
   HalfNewLine;
   CurrYPos := CurrYPos + 3;
-  myCanvas.Font.Size := 8;
   TextLine('(Bank and Branch Name)', OutputLeft, OutputRight);
   myCanvas.Font.Size := 9;
 
@@ -339,21 +386,21 @@ begin
   if length(trim(Values.edtClientStartDte.Text)) <= 4 then
   begin
     TextBox('As from the', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + 175, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + 175, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight - 2, true);
     TextBox('day of', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight - 2, true);
     TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft + 640, OutputLeft + 680, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft + 640, OutputLeft + 685, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight - 2, true);
   end
   else
   begin
     DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
     TextBox('As from the', inttoStr(Day), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + 175, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight, true);
-    TextBox('day of', moNames[Month], myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft, OutputLeft + 175, OutputLeft + 230, CurrYPos, CurrYPos + BoxHeight - 2, true);
+    TextBox('day of', UpperCase(moNames[Month]), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
+            OutputLeft + 240, OutputLeft + 340, OutputLeft + 620, CurrYPos, CurrYPos + BoxHeight - 2, true);
     TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft + 640, OutputLeft + 680, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight, true);
+            OutputLeft + 640, OutputLeft + 685, OutputLeft + 740, CurrYPos, CurrYPos + BoxHeight - 2, true);
   end;
 
   NewLine;
@@ -365,7 +412,8 @@ begin
   TextLine('connection with the performance of the processing services under any E.D.P. Services Contract which you or either of', OutputLeft, OutputRight);
   NewLine;
   TextLine('you may now or hereafter have with', OutputLeft, OutputRight);
-  NewLine(2);
+  NewLine;
+  HalfNewLine;
   TextBox('', Values.PracticeName, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
           0, OutputLeft, XPosTwoThirds-300, CurrYPos, CurrYPos + BoxHeight);
   TextBox('', Values.PracticeCode, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
@@ -373,14 +421,15 @@ begin
   CurrYPos := GetTextYPos(CurrYPos);
   NewLine;
   HalfNewLine;
-  CurrYPos := CurrYPos + 3;
+  CurrYPos := CurrYPos + 8;
   myCanvas.Font.Size := 8;
   TextLine('(my/our advisors)', OutputLeft, OutputRight);
   TextLine('(Practice Code)', XPosTwoThirds-100, OutputRight);
   myCanvas.Font.Size := 9;
 
   //----------------------------------------------------------------------------
-  NewLine(2);
+  NewLine(1);
+  HalfNewLine;
   TextLine('and neither of you shall be liable for delays, non-performance, failure to perform, processing errors or any other', OutputLeft, OutputRight);
   NewLine;
   TextLine('matter or thing arising out of this authority or the contract which occur for reasons beyond your control and under', OutputLeft, OutputRight);
@@ -398,7 +447,6 @@ begin
   // Footer works from the bottom up so we align with the bottom properly
   //----------------------------------------------------------------------------
   CurrYPos := OutputBottom;
-  myCanvas.Font.Size := 8;
   NewLineUp(2);
 
   if (Values.cmbInstitution.ItemIndex > 0) and
@@ -520,17 +568,17 @@ begin
         CAFQRDataAccount.SMSF          := 'N';
 
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := '';
-        CAFQRDataAccount.AccountNumber := '';
-        CAFQRDataAccount.ClientCode    := '';
-        CAFQRDataAccount.CostCode      := '';
+        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount2.text;
+        CAFQRDataAccount.AccountNumber := Values.AccountNumber2;
+        CAFQRDataAccount.ClientCode    := Values.edtClientCode2.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCostCode2.Text;
         CAFQRDataAccount.SMSF          := 'N';
 
         CAFQRDataAccount := TCAFQRDataAccount.Create(CAFQRData);
-        CAFQRDataAccount.AccountName   := '';
-        CAFQRDataAccount.AccountNumber := '';
-        CAFQRDataAccount.ClientCode    := '';
-        CAFQRDataAccount.CostCode      := '';
+        CAFQRDataAccount.AccountName   := Values.edtNameOfAccount3.text;
+        CAFQRDataAccount.AccountNumber := Values.AccountNumber3;
+        CAFQRDataAccount.ClientCode    := Values.edtClientCode3.Text;
+        CAFQRDataAccount.CostCode      := Values.edtCostCode3.Text;
         CAFQRDataAccount.SMSF          := 'N';
 
         // Day , Month , Year
