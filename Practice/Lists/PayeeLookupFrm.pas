@@ -59,6 +59,7 @@ type
 
     procedure ResortMaintainCurrentPos( NewSortOrder : tPYSSortType);
     function GetCurrentlySelectedItem: TPYSObj;
+    procedure SpaceColumns;
     { Private declarations }
   public
     CurrentSearchKey  : ShortString;
@@ -101,6 +102,7 @@ Const
 
    NameCol = 2;
    NoCol   = 1;
+   InactiveCol = 3;
 
 {$R *.DFM}
 
@@ -116,7 +118,7 @@ begin
   with Grid do
   Begin
      Rows             := PYSListByName.ItemCount;
-     Cols             := 2;
+     Cols             := 3;
      Align            := alClient;
      EditMode         := emNone;
      RowSelectMode    := SelectMode;
@@ -151,6 +153,16 @@ begin
         Heading     := 'Number';
         Visible     := True;
         Width       := 80;
+        ControlType := ctText;
+        SortPicture := TSGrid.spNone;
+     end;
+
+     with Col[ InactiveCol ] do
+     Begin
+        Alignment   := taLeftJustify;
+        Heading     := 'Inactive';
+        Visible     := True;
+        Width       := 0;
         ControlType := ctText;
         SortPicture := TSGrid.spNone;
      end;
@@ -202,6 +214,7 @@ const
    ThisMethodName = 'TfrmPayeeLookup.GridCellLoaded';
 Var
    PYS : TPYSObj;
+   sInactive: string;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -214,9 +227,13 @@ begin
 
    Assert( Assigned( PYS ), 'PYS is NIL in '+ThisMethodName );
 
+   if PYS.PYSPayee.pdFields.pdInactive then
+    sInactive := 'Yes';
+
    case DataCol of
       NameCol : Value := PYS.pysPayee.pdName;
       NoCol   : Value := IntToStr( PYS.pysPayee.pdNumber );
+      InactiveCol : Value := sInactive;
    end;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -487,7 +504,7 @@ const
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-   Grid.Col[ NameCol ].Width := ClientWidth - Grid.Col[ NoCol  ].Width;
+   SpaceColumns;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -504,7 +521,7 @@ begin
    InitialSearchBlank := (CurrentSearchKey = '');
    with Grid do
    Begin
-      Col[ NameCol ].Width := ClientWidth - Col[ NoCol  ].Width;
+      SpaceColumns;
       SetFocus;
    end;
    DoNewSearch;
@@ -516,7 +533,7 @@ begin
      Grid.PutCellInView( 1, 1 );
    end;
    CurrentSearchKey := '';
-   
+
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -759,6 +776,11 @@ begin
   try
     //clear rows
     Grid.Rows := 0;
+    if chkIncludeInactivePayees.Checked then
+      Grid.Col[InactiveCol].Width := 80
+    else
+      Grid.Col[InactiveCol].Width := 0;
+    SpaceColumns;
     //reload lists
     ReBuildLists( Self.PYSListByNo, Self.PYSListByName, MyClient,
       PYLookupMode, chkIncludeInactivePayees.Checked);
@@ -824,6 +846,12 @@ begin
     PYSSortByName : result := PYSListByName.PYSObj_At( Grid.CurrentDataRow - 1);
     PYSSortByNo : result := PYSListByNo.PYSObj_At( Grid.CurrentDataRow - 1);
   end;
+end;
+
+procedure TfrmPayeeLookup.SpaceColumns;
+begin
+  with Grid do
+    Col[NameCol].Width := ClientWidth - Col[NoCol].Width - Col[InactiveCol].Width;
 end;
 
 Initialization
