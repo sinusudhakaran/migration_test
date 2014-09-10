@@ -139,6 +139,10 @@ object dlgPayeeDetail: TdlgPayeeDetail
     OnChange = PageControl1Change
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pnlMain: TPanel
         Left = 0
         Top = 101
@@ -193,14 +197,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
           CellData = (
-            'dlgPayeeDetail.Header'
-            'dlgPayeeDetail.ColAcct'
-            'dlgPayeeDetail.ColDesc'
-            'dlgPayeeDetail.colNarration'
-            'dlgPayeeDetail.ColGSTCode'
-            'dlgPayeeDetail.ColAmount'
-            'dlgPayeeDetail.colPercent'
-            'dlgPayeeDetail.colLineType')
+            'dlgPayeeDetail.Header')
           RowData = (
             21)
           ColData = (
@@ -802,6 +799,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -820,7 +818,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False

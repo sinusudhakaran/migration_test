@@ -1364,7 +1364,8 @@ begin
    fLoading  := true;
    okPressed := false;
    EditMode  := false;
-   PageControl1.ActivePageIndex := 0;
+
+   // Note: don't set ActivePageIndex here yet, leave that at the bottom
 
    {set init values}
 
@@ -1582,6 +1583,9 @@ begin
      chkInactive.TabOrder := 1;
      eName.TabOrder := 2;
    end;
+
+   // Note: leave this here, moving it up causes tab order issues with page 2
+   PageControl1.ActivePageIndex := 0;
 
    // Skip Focus on Payee Number
    ActiveControl := eName;
