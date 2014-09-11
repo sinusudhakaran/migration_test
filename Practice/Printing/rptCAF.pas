@@ -390,7 +390,7 @@ begin
   myCanvas.Font.Size := 8;
 
   //----------------------------------------------------------------------------
-  HalfNewLine;
+  NewLine;
   DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
   Point2StartTest := 'I/We hereby AUTHORISE the Bank and ' + BRAND_FULL_NAME + ' as at and from the first of';
   TextWidth := CanvasRenderEng.GetTextLength(Point2StartTest);
@@ -418,7 +418,6 @@ begin
   TextLine('1.', NumColumn, OutputRight);
   TextLine('to forward all data and', XPosTwoThirds + 200, OutputRight);
   NewLine;
-  CurrYPos := CurrYPos + 8;
   TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account(s) designated above to each', OutputLeft, OutputRight);
   NewLine;
   TextLine('other and to', OutputLeft, OutputRight);
