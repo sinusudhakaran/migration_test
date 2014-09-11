@@ -86,7 +86,8 @@ type
                           var aMsg : string;
                           aIncludeNonPostingChartCodes: boolean;
                           aPrefixAccountCode: boolean = false;
-                          GSTInclusive: boolean = false): boolean;
+                          GSTInclusive: boolean = false;
+                          const aAutoCalculateGST: boolean = false): boolean;
 
     function CopyBudgetData(aBudgetData : TBudgetData; SubtractGST: boolean;
                             BudgetStartDate: integer) : TBudgetData;
@@ -271,7 +272,8 @@ function TBudgetImportExport.ExportBudget(aBudgetFilePath: string;
                                           var aMsg : string;
                                           aIncludeNonPostingChartCodes: boolean;
                                           aPrefixAccountCode: boolean;
-                                          GSTInclusive: boolean): boolean;
+                                          GSTInclusive: boolean;
+                                          const aAutoCalculateGST: boolean): boolean;
 const
   ThisMethodName = 'ExportBudget';
 var
@@ -360,7 +362,7 @@ begin
           if GSTInclusive then
             UseGST := not aData[DataIndex].bIsGSTAccountCode
           else
-            UseGST := aData[DataIndex].bIsGSTAccountCode;
+            UseGST := aData[DataIndex].bIsGSTAccountCode and aAutoCalculateGST;
 
           // Non posting chart codes shouldn't display a total in the budget
           if UseGST then

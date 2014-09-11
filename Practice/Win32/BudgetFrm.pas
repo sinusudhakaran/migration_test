@@ -3134,7 +3134,8 @@ begin
                                            Budget.buFields.buStart_Date, MsgStr,
                                            IncludeNonPostingChartCodes,
                                            bPrefixAccountCode,
-                                           ShowFiguresGSTInclusive) then
+                                           ShowFiguresGSTInclusive,
+                                           AutoCalculateGST) then
         begin
           BudgetImportExport.SetDefaultFileLocation(MyClient.clFields.clCode, RemoveInvalidCharacters(edtName.Text{Budget.buFields.buName}) , BudgetFilePath);
 
