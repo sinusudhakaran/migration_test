@@ -544,8 +544,6 @@ begin
         For i := 0 to aClient.clPayee_List.ItemCount-1 do
         Begin
           Payee := aClient.clPayee_List.Payee_At( I );
-          if Payee.pdFields.pdInactive then
-            continue;
           Case FieldNo of
             1 : Begin
                   WN( Payee.pdNumber );

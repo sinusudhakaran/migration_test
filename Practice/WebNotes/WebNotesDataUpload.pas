@@ -98,7 +98,7 @@ type
     property UseCustomCompanyContact: Boolean read FUseCustomCompanyContact write FUseCustomCompanyContact;
     property CustomCompanyContactName: String read FCustomCompanyContactName write FCustomCompanyContactName;
     property CustomCompanyContactEmail: String read FCustomCompanyContactEmail write FCustomCompanyContactEmail;
-    
+
     function GetBatchXML: string;
 
     function TestReply(Reply: string): Boolean;
@@ -769,6 +769,9 @@ begin
   for I := FClient.clPayee_List.First to FClient.clPayee_List.Last do
     with FClient.clPayee_List.Payee_At(I) do
     begin
+      if pdFields.pdInactive then
+        continue;
+
       PayeeNode := PayeesNode.AddChild(nPayee);
       SetTextAttr(PayeeNode, nNumber, IntToStr(pdNumber));
       SetTextAttr(PayeeNode, nName, pdName);
