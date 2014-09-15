@@ -534,8 +534,18 @@ begin
     begin
       FNames := 'PAYEE_NUMBER,PAYEE_NAME';
 
+      // Determine rowCount
+      Count := 0;
+      For i := 0 to aClient.clPayee_List.ItemCount-1 do
+      begin
+        Payee := aClient.clPayee_List.Payee_At(i);
+        if Payee.pdFields.pdInactive then
+          continue;
+        Inc(Count);
+      end;
+
       Write( F, '<var name = "Payee List">' ); CRLF;
-      Write( F, '<recordset rowCount="', aClient.clPayee_List.ItemCount, '" fieldNames="', FNames, '">' ); CRLF;
+      Write( F, '<recordset rowCount="', Count, '" fieldNames="', FNames, '">' ); CRLF;
 
       Count := 0;
       For FieldNo := 1 to 2 do
@@ -544,6 +554,8 @@ begin
         For i := 0 to aClient.clPayee_List.ItemCount-1 do
         Begin
           Payee := aClient.clPayee_List.Payee_At( I );
+          if Payee.pdFields.pdInactive then
+            continue;
           Case FieldNo of
             1 : Begin
                   WN( Payee.pdNumber );
@@ -572,6 +584,8 @@ begin
         For i := 0 to aClient.clPayee_List.ItemCount-1 do
         Begin
           Payee := aClient.clPayee_List.Payee_At( I );
+          if Payee.pdFields.pdInactive then
+            continue;
           For j := 0 to Payee.pdLinesCount-1 do
           Begin
             pPL := Payee.pdLines.PayeeLine_At( j );
