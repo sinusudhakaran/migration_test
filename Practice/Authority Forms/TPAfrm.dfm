@@ -918,14 +918,14 @@ object frmTPA: TfrmTPA
       Left = 3
       Top = 464
       Width = 757
-      Height = 35
+      Height = 43
       BevelEdges = [beLeft, beTop, beRight]
       BevelKind = bkFlat
       BevelOuter = bvNone
       TabOrder = 2
       object pnlClientLabel: TPanel
         Left = 0
-        Top = 5
+        Top = 13
         Width = 144
         Height = 31
         Color = clWhite
@@ -947,7 +947,7 @@ object frmTPA: TfrmTPA
       end
       object pnlClientData: TPanel
         Left = 145
-        Top = 4
+        Top = 12
         Width = 122
         Height = 116
         Color = clWhite
@@ -988,7 +988,7 @@ object frmTPA: TfrmTPA
       end
       object pnlClientSpacer: TPanel
         Left = 267
-        Top = 1
+        Top = 9
         Width = 344
         Height = 116
         Color = clWhite
@@ -998,7 +998,7 @@ object frmTPA: TfrmTPA
     end
     object pnlData: TPanel
       Left = 3
-      Top = 495
+      Top = 503
       Width = 757
       Height = 88
       BevelEdges = [beLeft, beRight, beBottom]
@@ -1055,7 +1055,7 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lblBookSecureLinkMouseLeave
       end
       object lblOrContactiBizz: TLabel
-        Left = 325
+        Left = 328
         Top = 36
         Width = 12
         Height = 16
@@ -1128,7 +1128,7 @@ object frmTPA: TfrmTPA
       object edtSecureCode: TEdit
         Left = 384
         Top = 59
-        Width = 307
+        Width = 150
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -1159,7 +1159,7 @@ object frmTPA: TfrmTPA
     end
     object pnlRural: TPanel
       Left = 3
-      Top = 581
+      Top = 589
       Width = 757
       Height = 97
       BevelEdges = [beLeft, beRight, beBottom]
