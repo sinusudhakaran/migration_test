@@ -61,8 +61,6 @@ type
     radDateShown: TRadioButton;
     mskAccountNumber1: TMaskValidateEdit;
     edtAccountNumber1: TEdit;
-    pnlInstLabels: TPanel;
-    lblNameOfAccount: TLabel;
     lblMaskErrorHint1: TLabel;
     lblClientCode1: TLabel;
     lblCostCode1: TLabel;
@@ -1021,9 +1019,8 @@ begin
   // they need to be removed
   pnlInstitution.BevelOuter  := bvNone;
   pnlInstData1.BevelOuter     := bvNone;
-  pnlInstLabels.BevelOuter   := bvNone;
-  pnlClient.BevelOuter       := bvNone;
-  pnlClient.BevelKind        := bkNone;
+//  pnlClient.BevelOuter       := bvNone;
+//  pnlClient.BevelKind        := bkNone;
   pnlClientLabel.BevelOuter  := bvNone;
   pnlClientData.BevelOuter   := bvNone;
   pnlClientSpacer.BevelOuter := bvNone;
@@ -1064,8 +1061,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.SetInstitutionControls(aInstitutionType : TInstitutionType);
 const
-  PNL_DATA_WIDTH = 148;
-  PNL_DATA_WIDTH_RURAL = {106}95;
+  PNL_DATA_WIDTH = 183;
+  PNL_DATA_WIDTH_RURAL = 95;
 var
   enableControls : boolean;
   oldInstDroppedDown : boolean;

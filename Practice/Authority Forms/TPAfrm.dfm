@@ -211,7 +211,7 @@ object frmTPA: TfrmTPA
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 362
+        Width = 338
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -228,7 +228,7 @@ object frmTPA: TfrmTPA
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 247
+        Width = 223
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -247,7 +247,7 @@ object frmTPA: TfrmTPA
       object edtBranch: TEdit
         Left = 148
         Top = 46
-        Width = 362
+        Width = 338
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -277,7 +277,7 @@ object frmTPA: TfrmTPA
       TabOrder = 1
       object pnlInstData1: TPanel
         Left = 145
-        Top = 1
+        Top = 2
         Width = 615
         Height = 120
         BevelEdges = [beTop, beRight, beBottom]
@@ -292,7 +292,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 570
+          Width = 558
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -351,7 +351,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -370,7 +370,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -392,7 +392,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber1: TEdit
           Left = 36
           Top = 65
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -411,7 +411,7 @@ object frmTPA: TfrmTPA
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 85
+          Width = 73
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -431,7 +431,7 @@ object frmTPA: TfrmTPA
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 85
+          Width = 73
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -449,33 +449,6 @@ object frmTPA: TfrmTPA
           OnKeyPress = edt1KeyPress
         end
       end
-      object pnlInstLabels: TPanel
-        Left = 3
-        Top = 1
-        Width = 144
-        Height = 120
-        BevelEdges = [beLeft, beTop, beBottom]
-        BevelKind = bkFlat
-        BevelOuter = bvNone
-        BevelWidth = 2
-        BorderWidth = 1
-        Color = clWhite
-        ParentBackground = False
-        TabOrder = 1
-        object lblNameOfAccount: TLabel
-          Left = 23
-          Top = 13
-          Width = 102
-          Height = 16
-          Caption = 'Name of Account'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -15
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-      end
       object pnlInstData2: TPanel
         Left = 145
         Top = 127
@@ -484,7 +457,7 @@ object frmTPA: TfrmTPA
         BevelEdges = [beTop, beRight, beBottom]
         BevelKind = bkFlat
         BevelOuter = bvNone
-        TabOrder = 2
+        TabOrder = 1
         DesignSize = (
           613
           116)
@@ -517,7 +490,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 570
+          Width = 558
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -550,7 +523,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount2: TEdit
           Left = 8
           Top = 10
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -569,7 +542,7 @@ object frmTPA: TfrmTPA
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 85
+          Width = 73
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -589,7 +562,7 @@ object frmTPA: TfrmTPA
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 85
+          Width = 73
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -609,7 +582,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber2: TMaskValidateEdit
           Left = 9
           Top = 65
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -631,7 +604,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber2: TEdit
           Left = 36
           Top = 65
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -660,7 +633,7 @@ object frmTPA: TfrmTPA
         BorderWidth = 1
         Color = clWhite
         ParentBackground = False
-        TabOrder = 3
+        TabOrder = 2
         object lblNameOfAccount2: TLabel
           Left = 23
           Top = 13
@@ -690,7 +663,7 @@ object frmTPA: TfrmTPA
       end
       object pnlInstLabels1: TPanel
         Left = 3
-        Top = 1
+        Top = 2
         Width = 144
         Height = 120
         BevelEdges = [beLeft, beTop, beBottom]
@@ -700,7 +673,7 @@ object frmTPA: TfrmTPA
         BorderWidth = 1
         Color = clWhite
         ParentBackground = False
-        TabOrder = 4
+        TabOrder = 3
         object lblNameOfAccount1: TLabel
           Left = 23
           Top = 13
@@ -736,7 +709,7 @@ object frmTPA: TfrmTPA
         BevelEdges = [beTop, beRight, beBottom]
         BevelKind = bkFlat
         BevelOuter = bvNone
-        TabOrder = 5
+        TabOrder = 4
         DesignSize = (
           613
           116)
@@ -769,7 +742,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 570
+          Width = 558
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -802,7 +775,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount3: TEdit
           Left = 8
           Top = 10
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -821,7 +794,7 @@ object frmTPA: TfrmTPA
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 85
+          Width = 73
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -841,7 +814,7 @@ object frmTPA: TfrmTPA
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 85
+          Width = 73
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -861,7 +834,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -883,7 +856,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber3: TEdit
           Left = 36
           Top = 65
-          Width = 298
+          Width = 286
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -912,7 +885,7 @@ object frmTPA: TfrmTPA
         BorderWidth = 1
         Color = clWhite
         ParentBackground = False
-        TabOrder = 6
+        TabOrder = 5
         object lblNameOfAccount3: TLabel
           Left = 23
           Top = 13
@@ -942,10 +915,11 @@ object frmTPA: TfrmTPA
       end
     end
     object pnlClient: TPanel
-      Left = 2
-      Top = 467
+      Left = 3
+      Top = 464
       Width = 757
       Height = 35
+      BevelEdges = [beLeft, beTop, beRight]
       BevelKind = bkFlat
       BevelOuter = bvNone
       TabOrder = 2
@@ -958,7 +932,7 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 0
         object lblStartDate: TLabel
-          Left = 23
+          Left = 24
           Top = 2
           Width = 59
           Height = 16
@@ -980,7 +954,7 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 1
         object edtClientStartDte: TOvcPictureField
-          Left = 6
+          Left = 3
           Top = 0
           Width = 85
           Height = 24
@@ -1022,81 +996,23 @@ object frmTPA: TfrmTPA
         TabOrder = 2
       end
     end
-    object pnlRural: TPanel
-      Left = 4
-      Top = 584
-      Width = 612
-      Height = 97
+    object pnlData: TPanel
+      Left = 3
+      Top = 495
+      Width = 757
+      Height = 88
+      BevelEdges = [beLeft, beRight, beBottom]
+      BevelKind = bkFlat
+      BevelOuter = bvNone
       Color = clWhite
       ParentBackground = False
       TabOrder = 3
       DesignSize = (
-        612
-        97)
-      object lblRuralInstitutions: TLabel
-        Left = 25
-        Top = 18
-        Width = 102
-        Height = 16
-        Caption = 'Rural Institutions :'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-      end
-      object radReDateTransactions: TRadioButton
-        Left = 56
-        Top = 43
-        Width = 525
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Re-date transactions to Payment Date'
-        Checked = True
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 0
-        TabStop = True
-        OnKeyDown = radReDateTransactionsKeyDown
-        OnMouseDown = radReDateTransactionsMouseDown
-      end
-      object radDateShown: TRadioButton
-        Left = 56
-        Top = 71
-        Width = 525
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Date shown on statement (not re-dated)'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 1
-        OnKeyDown = radDateShownKeyDown
-        OnMouseDown = radDateShownMouseDown
-      end
-    end
-    object pnlData: TPanel
-      Left = 4
-      Top = 508
-      Width = 612
-      Height = 93
-      Color = clWhite
-      ParentBackground = False
-      TabOrder = 4
-      DesignSize = (
-        612
-        93)
+        753
+        86)
       object lblSecureCode: TLabel
         Left = 282
-        Top = 67
+        Top = 61
         Width = 79
         Height = 16
         Caption = 'Secure Code'
@@ -1108,8 +1024,8 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object lblNoteAddFormReq: TLabel
-        Left = 45
-        Top = 26
+        Left = 46
+        Top = 36
         Width = 194
         Height = 16
         Caption = 'An additional form is required for '
@@ -1121,8 +1037,8 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object lblBookSecureLink: TLabel
-        Left = 239
-        Top = 26
+        Left = 240
+        Top = 36
         Width = 85
         Height = 16
         Caption = 'Books Secure'
@@ -1139,8 +1055,8 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lblBookSecureLinkMouseLeave
       end
       object lblOrContactiBizz: TLabel
-        Left = 327
-        Top = 26
+        Left = 325
+        Top = 36
         Width = 12
         Height = 16
         Caption = 'or'
@@ -1152,14 +1068,14 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object imgInfoAdditionalMsg: TImage
-        Left = 25
-        Top = 26
+        Left = 26
+        Top = 36
         Width = 16
         Height = 16
       end
       object lbliBizz: TLabel
-        Left = 342
-        Top = 26
+        Left = 343
+        Top = 36
         Width = 30
         Height = 16
         Caption = 'iBizz.'
@@ -1176,9 +1092,9 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lbliBizzMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
-        Left = 25
-        Top = 67
-        Width = 239
+        Left = 26
+        Top = 61
+        Width = 368
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -1193,9 +1109,9 @@ object frmTPA: TfrmTPA
         OnClick = chkDataSecureExistingClick
       end
       object chkDataSecureNew: TCheckBox
-        Left = 25
-        Top = 3
-        Width = 239
+        Left = 26
+        Top = 10
+        Width = 368
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -1210,9 +1126,9 @@ object frmTPA: TfrmTPA
         OnClick = chkDataSecureNewClick
       end
       object edtSecureCode: TEdit
-        Left = 383
-        Top = 64
-        Width = 178
+        Left = 384
+        Top = 59
+        Width = 307
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -1225,9 +1141,9 @@ object frmTPA: TfrmTPA
         TabOrder = 2
       end
       object chkSupplyAsProvisional: TCheckBox
-        Left = 25
-        Top = 131
-        Width = 393
+        Left = 26
+        Top = 112
+        Width = 522
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Supply as provisional if account is not available from the Bank'
@@ -1239,6 +1155,70 @@ object frmTPA: TfrmTPA
         ParentFont = False
         TabOrder = 3
         OnClick = chkDataSecureNewClick
+      end
+    end
+    object pnlRural: TPanel
+      Left = 3
+      Top = 581
+      Width = 757
+      Height = 97
+      BevelEdges = [beLeft, beRight, beBottom]
+      BevelKind = bkFlat
+      BevelOuter = bvNone
+      Color = clWhite
+      ParentBackground = False
+      TabOrder = 4
+      DesignSize = (
+        753
+        95)
+      object lblRuralInstitutions: TLabel
+        Left = 26
+        Top = 13
+        Width = 102
+        Height = 16
+        Caption = 'Rural Institutions :'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
+      object radReDateTransactions: TRadioButton
+        Left = 57
+        Top = 38
+        Width = 654
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Re-date transactions to Payment Date'
+        Checked = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 0
+        TabStop = True
+        OnKeyDown = radReDateTransactionsKeyDown
+        OnMouseDown = radReDateTransactionsMouseDown
+      end
+      object radDateShown: TRadioButton
+        Left = 57
+        Top = 71
+        Width = 654
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Date shown on statement (not re-dated)'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 1
+        OnKeyDown = radDateShownKeyDown
+        OnMouseDown = radDateShownMouseDown
       end
     end
   end
