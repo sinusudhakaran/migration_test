@@ -439,6 +439,7 @@ type
     tbRecommendedMemorisations: TRzToolButton;
     mniExportCharttoMYOBCashBooks1: TMenuItem;
     mniAssert: TMenuItem;
+    mniListManual: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -727,6 +728,7 @@ type
     procedure tmrMemScanTimer(Sender: TObject);
     procedure mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
     procedure mniAssertClick(Sender: TObject);
+    procedure mniListManualClick(Sender: TObject);
   private
     { Private declarations }
     FClientInstance,
@@ -3167,6 +3169,11 @@ begin
    DoModalReport(REPORT_LIST_PAYEE, rdNone);
 end;
 //------------------------------------------------------------------------------
+procedure TfrmMain.mniListManualClick(Sender: TObject);
+begin
+//  DoModalReport(REPORT_LIST_Manual, rdNone);
+end;
+
 procedure TfrmMain.mniListMemorisationsClick(Sender: TObject);
 begin
    DoModalReport( Report_List_Memorisations, rdNone, BKH_List_memorisations);
