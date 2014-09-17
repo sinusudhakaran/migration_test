@@ -263,7 +263,8 @@ uses
   BanklinkOnlineServices,
   imagesfrm,
   AccountValidationErrorDlg,
-  GenUtils;
+  GenUtils,
+  WarningMoreFrm;
 
 Const
   UNIT_NAME = 'TPAfrm';
@@ -531,6 +532,9 @@ var
   Account2Filled, Account3Filled: boolean;
   DoValidateAccount1, DoValidateAccount2, DoValidateAccount3: boolean;
   Error1Filled, Error2Filled, Error3Filled: boolean;
+  InstCode: string;
+  NumANZ06Accounts, NumANZOtherAccounts: integer;
+  ErrorMsg: string;
 
   procedure ShowAccValidationError(AccNumberText: string; CurrentDisplayError: string);
   begin
@@ -597,6 +601,46 @@ begin
   //Account Validation
   if (Result) and (fInstitutionType = inBLO) then
   begin
+    InstCode := GetInstitutionCode();
+    if (Institutions.DoInstituionExceptionCode(mskAccountNumber1.EditText, InstCode) = ieNAT) then
+      InstCode := 'NAT';
+
+    if (InstCode = 'ANZ') or (InstCode = 'NAT') then
+    begin
+      NumANZ06Accounts := 0;
+      NumANZOtherAccounts := 0;
+
+      if (Copy(mskAccountNumber1.EditText, 1, 2) = '06') then
+        inc(NumANZ06Accounts)
+      else
+        inc(NumANZOtherAccounts);
+
+      if (RemoveNonNumericData(mskAccountNumber2.Text, false) <> fMaskBsb2) then
+      begin
+        if (Copy(mskAccountNumber2.EditText, 1, 2) = '06') then
+          inc(NumANZ06Accounts)
+        else
+          inc(NumANZOtherAccounts);
+      end;
+
+      if (RemoveNonNumericData(mskAccountNumber3.Text, false) <> fMaskBsb3) then
+      begin
+        if (Copy(mskAccountNumber3.EditText, 1, 2) = '06') then
+          inc(NumANZ06Accounts)
+        else
+          inc(NumANZOtherAccounts);
+      end;
+
+      if (NumANZ06Accounts > 0) and (NumANZOtherAccounts > 0) then
+      begin
+        ErrorMsg := 'You cannot have accounts starting with 06 and 01, 11 on the same form. ' +
+                    'Please submit a new form for 06 accounts and one for 01, 11 accounts.';
+        HelpfulWarningMsg(ErrorMsg,0);
+        Result := False;
+        Exit;
+      end;
+    end;
+
     Error1Filled := (length(fCurrentDisplayError1) > 0);
     Error2Filled := (length(fCurrentDisplayError2) > 0);
     Error3Filled := (length(fCurrentDisplayError3) > 0);
