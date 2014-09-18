@@ -29,6 +29,9 @@ uses
   procedure DoListBankAccountsReport(Dest : TReportDest;
                               RptBatch : TReportBase = nil);
 
+  procedure DoListManualAccountsReport(Dest : TReportDest;
+                                       RptBatch : TReportBase = nil);
+
   procedure DoListEntriesReport(Dest : TReportDest;
                               ShowJournalOnly : boolean;
                               RptBatch : TReportBase = nil);
@@ -2107,6 +2110,48 @@ begin
     Job.Free;
     Param.Free;
    end;
+end;
+
+procedure DoListManualAccountsReport(Dest : TReportDest;
+                                     RptBatch : TReportBase = nil);
+var
+  Job           : TBKReport;
+  Param         : TRPTParameters;
+  cleft         : Double;
+  ButtonPressed : integer;
+
+  function maketitle: string;
+  begin
+    Result := Report_List_Names[Report_List_Manual];
+  end;
+
+begin
+  if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed) then
+  begin
+    case ButtonPressed of
+       BTN_PRINT    : Dest := rdPrinter;
+       BTN_PREVIEW  : Dest := rdScreen;
+       BTN_FILE     : Dest := rdFile;
+    else
+       Dest := rdScreen;
+    end;
+  end
+  else
+  begin
+    Dest := rdNone;
+    exit;
+  end;
+
+  Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
+  Job := TBKReport.Create(ReportTypes.rptListings);
+
+  try
+    Job.LoadReportSettings(UserPrintSettings,
+                           param.MakeRptName(Report_List_Names[Report_List_Manual]));
+  finally
+    Job.Free;
+    Param.Free;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

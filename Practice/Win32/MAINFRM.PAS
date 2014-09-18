@@ -3178,8 +3178,7 @@ begin
               'Are you sure you want to run this report now?',
               DLG_NO, 0) = DLG_YES then
   begin
-    ShowMessage('test');
-//  DoModalReport(REPORT_LIST_Manual, rdNone);
+    DoModalReport(Report_List_Manual, rdNone);
   end;
 
 end;

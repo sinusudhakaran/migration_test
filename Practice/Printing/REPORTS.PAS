@@ -253,6 +253,7 @@ begin
       [
          Report_List_Entries,
          Report_List_BankAccts,
+         Report_List_Manual,
          Report_List_Ledger,
          Report_Summary_List_Ledger,
          Report_Coding,
@@ -388,6 +389,7 @@ begin
          REPORT_LIST_JOURNALS      : DoListEntriesReport(Destination,true,RptBatch);
          REPORT_LIST_BANKACCTS     : DoListBankAccountsReport(Destination,RptBatch);
          REPORT_LIST_PAYEE         : DoListPayeesReport(Destination,RptBatch);
+         REPORT_LIST_MANUAL        : DoListManualAccountsReport(Destination,RptBatch);
          REPORT_LIST_LEDGER        : DoListLedgerReport(Destination,RptBatch);
          REPORT_LIST_DIVISIONS     : RptListings.DoListDivisions( Destination,RptBatch);
          REPORT_LIST_SUBGROUPS     : RptListings.DoListSubGroups( Destination,RptBatch);
