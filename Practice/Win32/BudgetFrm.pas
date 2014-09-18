@@ -643,8 +643,8 @@ begin
   end;
   if IncludeGST and not IsGSTAccountCode then
     Result := DoRoundUpHalves(GSTAmount);
-  if ISGSTAccountCode and GetAutoCalculateGST then
-    Result := GetControlCodeTotal(pAccount.chAccount_Code);
+  //if ISGSTAccountCode and GetAutoCalculateGST then
+  //  Result := GetControlCodeTotal(pAccount.chAccount_Code);
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
