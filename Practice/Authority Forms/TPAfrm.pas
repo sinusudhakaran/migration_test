@@ -570,19 +570,34 @@ begin
     Result := False;
   end;
 
-  // Account Number
-  if Result and (fInstitutionType = inOther) and (edtAccountNumber1.text = '') then
-  begin
-    HelpfulErrorMsg('Please enter an Account Number.', 0);
-    edtAccountNumber1.SetFocus;
-    Result := False;
-  end;
-
   Account2Filled := CheckAccount2Filled;
   Account3Filled := CheckAccount3Filled;
   DoValidateAccount1 := True;
   DoValidateAccount2 := Account2Filled;
   DoValidateAccount3 := Account3Filled;
+
+  // Account Number
+  if Result and (fInstitutionType = inOther) then
+  begin
+    if (edtAccountNumber1.text = '') then
+    begin
+      HelpfulErrorMsg('Please enter an Account Number.', 0);
+      edtAccountNumber1.SetFocus;
+      Result := False;
+    end else
+    if (Account2Filled and (edtAccountNumber2.text = '')) then
+    begin
+      HelpfulErrorMsg('Please enter an Account Number.', 0);
+      edtAccountNumber2.SetFocus;
+      Result := False;
+    end else
+    if (Account3Filled and (edtAccountNumber3.text = '')) then
+    begin
+      HelpfulErrorMsg('Please enter an Account Number.', 0);
+      edtAccountNumber3.SetFocus;
+      Result := False;
+    end;
+  end;
 
   if Result and Account2Filled and (edtNameOfAccount2.Text = '') then
   begin
