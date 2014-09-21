@@ -32,6 +32,8 @@ uses
   procedure DoListManualAccountsReport(Dest : TReportDest;
                                        RptBatch : TReportBase = nil);
 
+  procedure ListManualAccountsDetail(Sender: TObject);
+
   procedure DoListEntriesReport(Dest : TReportDest;
                               ShowJournalOnly : boolean;
                               RptBatch : TReportBase = nil);
@@ -2062,7 +2064,7 @@ begin
     end;
   RenderDetailGrandTotal('');
   end;
-end;
+end;       
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -2112,6 +2114,35 @@ begin
    end;
 end;
 
+procedure ListManualAccountsDetail(Sender: TObject);
+var
+   i            : integer;
+   Bank_Account : TBank_Account;
+   LastCode     : string;
+   CurrentCode  : string;
+begin
+  CurrentCode := '';
+  for i := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
+  begin
+    Bank_Account := MyClient.clBank_Account_List.Bank_Account_At(i);
+    if not Bank_Account.IsManual then
+      Continue;
+
+    LastCode := CurrentCode;
+    CurrentCode := MyClient.clFields.clCode;
+    if (LastCode <> CurrentCode) then
+      TBKReport(Sender).PutString(MyClient.clFields.clCode)
+    else
+      TBKReport(Sender).PutString('');
+    TBKReport(Sender).PutString(Bank_Account.baFields.baBank_Account_Number);
+    TBKReport(Sender).PutString(Bank_Account.baFields.baBank_Account_Name);
+    TBKReport(Sender).PutString(bkDate2Str(Bank_Account.baTransaction_List.FirstPresDate));
+    TBKReport(Sender).PutString(bkDate2Str(Bank_Account.baTransaction_List.LastPresDate));
+    TBKReport(Sender).PutString(IntToStr(Bank_Account.baTransaction_List.ItemCount));
+    TBKReport(Sender).RenderDetailLine;
+  end;
+end;
+
 procedure DoListManualAccountsReport(Dest : TReportDest;
                                      RptBatch : TReportBase = nil);
 var
@@ -2126,32 +2157,54 @@ var
   end;
 
 begin
-  if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed) then
-  begin
-    case ButtonPressed of
-       BTN_PRINT    : Dest := rdPrinter;
-       BTN_PREVIEW  : Dest := rdScreen;
-       BTN_FILE     : Dest := rdFile;
+  repeat
+    if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed) then
+    begin
+      case ButtonPressed of
+         BTN_PRINT    : Dest := rdPrinter;
+         BTN_PREVIEW  : Dest := rdScreen;
+         BTN_FILE     : Dest := rdFile;
+      else
+         Dest := rdScreen;
+      end;
+    end
     else
-       Dest := rdScreen;
+    begin
+      Dest := rdNone;
+      exit;
     end;
-  end
-  else
-  begin
-    Dest := rdNone;
-    exit;
-  end;
 
-  Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
-  Job := TBKReport.Create(ReportTypes.rptListings);
+    Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
+    Job := TBKReport.Create(ReportTypes.rptListings);
 
-  try
-    Job.LoadReportSettings(UserPrintSettings,
-                           param.MakeRptName(Report_List_Names[Report_List_Manual]));
-  finally
-    Job.Free;
-    Param.Free;
-  end;
+    try
+      Job.LoadReportSettings(UserPrintSettings,
+                             param.MakeRptName(Report_List_Names[Report_List_Manual]));
+
+      //Add Headers
+      AddCommonHeader(Job);
+      AddJobHeader(Job,siTitle,'List Manual Bank Accounts',true);
+      AddJobHeader(Job,siSubTitle,'',true);
+
+      //Build the columns
+      cLeft := gcLeft;
+      AddColAuto(Job, cLeft, 12, gcgap, 'Client Code' , jtLeft);
+      AddColAuto(Job, cLeft, 25, gcgap, 'Account No'  , jtLeft);
+      AddColAuto(Job, cLeft, 30, gcgap, 'Account Name', jtLeft);
+      AddColAuto(Job, cLeft, 10, gcgap, 'Entries From', jtLeft);
+      AddColAuto(Job, cleft, 10, gcgap, 'Entries To'  , jtLeft);
+      AddColAuto(Job, cleft, 10, gcgap, 'No. of Entries' , jtRight);
+
+      //Add Footers
+      AddCommonFooter(Job);
+
+      Job.OnBKPrint := ListManualAccountsDetail;
+      Job.Generate(Dest, Param);
+    finally
+      Job.Free;
+      Param.Free;
+    end;
+  until False;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
