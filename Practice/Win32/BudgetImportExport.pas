@@ -327,6 +327,9 @@ begin
         if (aData[DataIndex].bAccount = '') then
           Continue;
 
+        if (GSTInclusive) and (aData[DataIndex].bIsGSTAccountCode) then
+          Continue;
+
         IsNonPostingCode := not aData[DataIndex].bIsPosting;
         IsUnusedChart := not CheckIfLineIsUsed(DataIndex);
 
