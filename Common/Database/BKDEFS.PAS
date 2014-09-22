@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 725;
-   BK_IOLIB_Date    = '25/08/14';
-   BK_FILE_VERSION  = 185;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 726;
+   BK_IOLIB_Date    = '22/09/14';
+   BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.39';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.40';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -234,6 +234,7 @@ Const
      5.25	    183	   Changed length of Statement Details fields in several records to 200
      5.26            184    Fix for journals being scanned for suggested mems 
      5.27            185    Payee Inactive
+     5.28            186    Account Inactive
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
@@ -574,6 +575,7 @@ Type
       chLinked_Account_CS                : String[ 20 ];       { Stored }
       chHide_In_Basic_Chart              : Boolean;       { Stored }
       chAudit_Record_ID                  : Integer;       { Stored }
+      chInactive                         : Boolean;       { Stored }
       chTemp_Quantity                    : TDynamic_Balances_Rec;
       chTemp_Amount                      : TDynamic_Balances_Rec;
       chTemp_Base_Amount                 : TDynamic_Balances_Rec;

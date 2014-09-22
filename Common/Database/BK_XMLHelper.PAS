@@ -1170,6 +1170,7 @@ begin
 	SetTextAttr(Result, 'LinkedAccountCS', chLinked_Account_CS);
 	SetBoolAttr(Result, 'HideInBasicChart', chHide_In_Basic_Chart);
 	SetIntAttr(Result, 'AuditRecordID', chAudit_Record_ID);
+	SetBoolAttr(Result, 'Inactive', chInactive);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1206,6 +1207,7 @@ begin
 	chLinked_Account_CS := GetTextAttr(Result, 'LinkedAccountCS');
 	chHide_In_Basic_Chart := GetBoolAttr(Result, 'HideInBasicChart');
 	chAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	chInactive := GetBoolAttr(Result, 'Inactive');
 	except
 		on E: Exception do ReRaise (E, 'Reading TAccount_Rec');
 	end;

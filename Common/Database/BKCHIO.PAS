@@ -66,6 +66,7 @@ CONST
    tkchLinked_Account_CS                = 99 ;
    tkchHide_In_Basic_Chart              = 100 ;
    tkchAudit_Record_ID                  = 101 ;
+   tkchInactive                         = 102 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -114,6 +115,7 @@ Begin
       F.WriteStringValue( tkchLinked_Account_CS , chLinked_Account_CS );
       F.WriteBooleanValue( tkchHide_In_Basic_Chart , chHide_In_Basic_Chart );
       F.WriteIntegerValue( tkchAudit_Record_ID , chAudit_Record_ID );
+      F.WriteBooleanValue( tkchInactive , chInactive );
       F.WriteToken( tkEnd_Account );
    end;
 end; { of Write_Account_Rec }
@@ -169,6 +171,7 @@ Begin
          tkchLinked_Account_CS                : chLinked_Account_CS := F.ReadStringValue;
          tkchHide_In_Basic_Chart              : chHide_In_Basic_Chart := F.ReadBooleanValue;
          tkchAudit_Record_ID                  : chAudit_Record_ID := F.ReadIntegerValue;
+         tkchInactive                         : chInactive := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -218,7 +221,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkchAccount_Code to tkchAudit_Record_ID do begin
+  for i := tkchAccount_Code to tkchInactive do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -343,6 +346,11 @@ begin
   if (P1.chAudit_Record_ID <> P2.chAudit_Record_ID) then begin
     P3.chAudit_Record_ID := P1.chAudit_Record_ID;
     ChangedFields[i] := tkchAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.chInactive <> P2.chInactive) then begin
+    P3.chInactive := P1.chInactive;
+    ChangedFields[i] := tkchInactive;
     Inc(i);
   end;
 

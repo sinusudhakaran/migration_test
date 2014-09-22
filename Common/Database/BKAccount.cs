@@ -173,6 +173,14 @@ namespace BankLink.Practice.BooksIO
 		public Int32 AuditRecordID { get; set; }
 
 
+
+		/// <summary>
+		/// Inactive property
+		/// </summary>
+		[XmlAttribute("Inactive", DataType = "boolean")]
+		public bool Inactive { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -207,6 +215,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteShortStringValue(99, LinkedAccountCS);
 			s.WriteBooleanValue(100, HideInBasicChart);
 			s.WriteInt32Value(101, AuditRecordID);
+			s.WriteBooleanValue(102, Inactive);
 			s.WriteToken(81);
 		}
 
@@ -284,6 +293,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 101 :
 				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 102 :
+				Inactive = s.ReadBooleanValue("Inactive");
 				break;
 			case BeginToken :
 			case EndToken :
