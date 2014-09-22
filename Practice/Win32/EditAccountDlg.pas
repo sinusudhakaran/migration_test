@@ -54,6 +54,7 @@ type
     chkBasic: TCheckBox;
     lblAltCodeName: TLabel;
     eAltCode: TEdit;
+    chkInactive: TCheckBox;
 
     procedure chkPostingClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -357,6 +358,7 @@ begin
     eDesc.Text           := Account.chAccount_Description;
     chkPosting.Checked   := Account.chPosting_Allowed;
     chkBasic.Checked     := not Account.chHide_In_Basic_Chart;
+    chkInactive.Checked  := Account.chInactive;
     LoadLinkedAccounts( Account);
 
     //report groups
@@ -397,6 +399,8 @@ begin
 
     chkPosting.Checked := true;
     chkBasic.Checked := true;
+    chkInactive.Visible := false;
+    chkInactive.Checked := false;
 
     LoadLinkedAccounts( nil);
   end;
@@ -554,6 +558,7 @@ begin
    Acct.chAccount_Description := eDesc.text;
    Acct.chPosting_Allowed := chkPosting.checked;
    Acct.chHide_In_Basic_Chart := not chkBasic.Checked;
+   Acct.chInactive := chkInactive.Checked;
    //gst
    if cmbGST.ItemIndex > 0 then begin
       Acct.chGST_Class := Integer( cmbGST.Items.Objects[ cmbGST.ItemIndex]);
