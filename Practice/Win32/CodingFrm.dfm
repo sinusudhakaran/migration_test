@@ -3,7 +3,7 @@ object frmCoding: TfrmCoding
   Top = 293
   Anchors = []
   Caption = 'Code Bank Statements'
-  ClientHeight = 478
+  ClientHeight = 530
   ClientWidth = 728
   Color = clBtnFace
   ParentFont = True
@@ -26,7 +26,7 @@ object frmCoding: TfrmCoding
   TextHeight = 13
   object barCodingStatus: TStatusBar
     Left = 0
-    Top = 454
+    Top = 485
     Width = 728
     Height = 24
     AutoHint = True
@@ -69,7 +69,7 @@ object frmCoding: TfrmCoding
     Left = 0
     Top = 63
     Width = 728
-    Height = 301
+    Height = 332
     RowLimit = 2
     LockedCols = 0
     LeftCol = 0
@@ -150,7 +150,7 @@ object frmCoding: TfrmCoding
   end
   object RzSizePanel1: TRzSizePanel
     Left = 0
-    Top = 364
+    Top = 395
     Width = 728
     Height = 90
     Align = alBottom
@@ -521,6 +521,22 @@ object frmCoding: TfrmCoding
       TabOrder = 1
       OnClick = btnFindClick
     end
+  end
+  object tcWindows: TRzTabControl
+    Left = 0
+    Top = 509
+    Width = 728
+    Height = 21
+    Align = alBottom
+    TabIndex = 0
+    TabOrder = 6
+    TabOrientation = toBottom
+    Tabs = <
+      item
+        Caption = 'Tab1'
+      end>
+    OnTabClick = tcWindowsTabClick
+    FixedDimension = 19
   end
   object cntController: TOvcController
     EntryCommands.TableList = (

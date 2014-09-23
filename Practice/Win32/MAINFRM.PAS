@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont, Progress, BudgetImportExport;
+  OSFont, Progress, BudgetImportExport, RzTabs;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -834,6 +834,9 @@ type
     SavedAutoSaveInterval : Integer;
     SavedAutoSaveClient : string;
     UsingCustomPracticeLogo : boolean;
+
+    procedure UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
+
     Property MemScanIsBusy : boolean read fMemScanIsBusy write SetMemScanIsBusy;
     procedure DoMainFormCommand( command : byte; Modal : boolean = true); overload;
     procedure DoMainFormCommand( command : byte; Sender : TObject; Modal : boolean = true); overload;
@@ -4472,6 +4475,54 @@ begin
      if assigned(FLastActiveMDIChild) then begin
         FLastActiveMDIChild.Invalidate; // repaint it..
      end;
+  end;
+end;
+
+procedure TfrmMain.UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
+var                                       
+  TabIndex, StrPos : Integer;
+  TempStr : string;
+  TabList : TStringList;
+  TabItem : TRzTabCollectionItem;
+begin
+  TabList := TStringList.Create;
+  try
+    aTabWindow.TabIndex := -1;
+    for TabIndex := Pred(aTabWindow.Tabs.Count) downto 0 do
+      aTabWindow.Tabs.Delete(TabIndex);
+
+    for TabIndex := 0 to Pred(MDIChildCount) do
+    begin
+      if (MDIChildren[TabIndex].Caption <> aActionedPage) and
+         ((MDIChildren[TabIndex] is TfrmCoding) or
+          (MDIChildren[TabIndex] is TfrmBudget)) then
+      begin
+        TempStr := StringReplace(MDIChildren[TabIndex].Caption, '&', '&&', [rfReplaceAll]);
+        StrPos := Pos('Code Entries', TempStr);
+        if StrPos > 0 then
+          TempStr := Copy(TempStr, 14, Length(TempStr))
+        else
+        begin
+          StrPos := Pos('Edit Budget', TempStr);
+          if StrPos > 0 then
+            TempStr := Copy(TempStr, 13, Length(TempStr));
+        end;
+        TabList.AddObject(TempStr, MDIChildren[TabIndex]);
+      end;
+    end;
+
+    TabList.Sort;
+
+    for TabIndex := 0 to Pred(TabList.Count) do
+    begin
+      TabItem := aTabWindow.Tabs.Add;
+      TabItem.Caption := TabList.Strings[TabIndex];
+      TabItem.Tag := Integer(TabList.Objects[TabIndex]);
+    end;
+
+    aTabWindow.TabIndex := -1;
+  finally
+    TabList.Free;
   end;
 end;
 

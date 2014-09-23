@@ -42,7 +42,7 @@ uses
    Controls, ComCtrls, Classes, Forms, BkConst,
    BAObj32, MoneyDef, BKDefs, Globals, ColFmtListObj, OvcEF, OvcPB, OvcPF,
    WorkRecDefs, RzButton,
-   OsFont, ovctcbmp;
+   OsFont, ovctcbmp, RzTabs;
 
 type
   TdlgJournal = class(Tform)
@@ -143,6 +143,7 @@ type
     btnCancel: TButton;
     BtnCal: TButton;
     CelAltChartCode: TOvcTCString;
+    tcWindows: TRzTabControl;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tblJournalGetCellData(Sender: TObject; RowNum,
@@ -259,6 +260,7 @@ type
     procedure btnClearClick(Sender: TObject);
     procedure eDateUntilDblClick(Sender: TObject);
     procedure BtnCalClick(Sender: TObject);
+    procedure tcWindowsTabClick(Sender: TObject);
   private
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
@@ -382,6 +384,8 @@ type
     procedure RedrawRow(Row: integer = 0);
   public
     { Public declarations }
+    procedure UpdateTabs(aActionedPage: string = '');
+
   end;
 
   function EditJournalEntry(const BA: TBank_Account; const pT: pTransaction_rec; aJournalType: integer; HelpCtx: integer; defAction: Integer) : boolean;
@@ -439,8 +443,6 @@ uses
 {$R *.DFM}
 
 const
-   UnitName = 'JOURNALDLG';
-
    //**** ALWAYS ADD NEW COLUMNS ONTO THE END BECAUSE ID IS STORED FOR CONFIG COLUMNS
    ceAccount        = 0;    ceMin = 0;
    ceReference      = 1;
@@ -481,10 +483,10 @@ const
    PANELPROGRESS = 1;
    PANELTEXT     = 2;
    PANELREVDATE  = 3;
+   UnitName = 'JOURNALDLG';
 
-
-
-
+var
+  DebugMe       : boolean = false;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgJournal.FormCreate(Sender: TObject);
@@ -1402,6 +1404,20 @@ begin
       end;
    end;
 end;
+
+//------------------------------------------------------------------------------
+procedure TdlgJournal.UpdateTabs(aActionedPage : string = '');
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgJournal.tblJournalBeginEdit(Sender: TObject; RowNum,
   ColNum: Integer; var AllowIt: Boolean);
@@ -5831,5 +5847,18 @@ begin
    cbRepeat.Enabled := Standing;
 
 end;
+
+procedure TdlgJournal.tcWindowsTabClick(Sender: TObject);
+var
+  obj : TObject;
+begin
+  obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
+  if obj is TForm then
+    TForm(obj).BringToFront;
+end;
+
+//------------------------------------------------------------------------------
+initialization
+   DebugMe := DebugUnit(UnitName);
 
 end.

@@ -192,7 +192,7 @@ type
     procedure UpdateRefresh;
     { Private declarations }
     procedure wmsyscommand( var msg: TWMSyscommand ); message wm_syscommand;
-    procedure UpdateTabs(ActionedPage: string = '');
+    procedure UpdateTabs(aActionedPage: string = '');
     procedure UMRefreshExchangeGainLoss(var Msg: TMessage); message UM_REFRESH_EXCHANGE_GAIN_LOSS;
   protected
     function GetGlobalRedrawForeign: boolean; override;
@@ -2011,52 +2011,17 @@ begin
     inherited;
 end;
 
-procedure TfrmClientHomePage.UpdateTabs(ActionedPage: string = '');
-var                                       
-  i,x : Integer;
-  s: string;
-  l: TStringList;
+//------------------------------------------------------------------------------
+procedure TfrmClientHomePage.UpdateTabs(aActionedPage : string = '');
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter UpdateTabs');
-  l := TStringList.Create;
-  try
-    tcWindows.TabIndex := -1;
-    for i := Pred(tcWindows.Tabs.Count) downto 0 do
-      tcWindows.Tabs.Delete(i);
-    for i := 0 to Pred(frmMain.MDIChildCount) do
-    begin
-      if (frmMain.MDIChildren[i].Caption <> ActionedPage) and
-         ((frmMain.MDIChildren[i] is TfrmCoding) or
-          (frmMain.MDIChildren[i] is TfrmBudget)) then
-      begin
-        s := StringReplace(frmMain.MDIChildren[i].Caption, '&', '&&', [rfReplaceAll]);
-        x := Pos('Code Entries', s);
-        if x > 0 then
-          s := Copy(s, 14, Length(s))
-        else
-        begin
-          x := Pos('Edit Budget', s);
-          if x > 0 then
-            s := Copy(s, 13, Length(s));
-        end;
-        l.AddObject(s, frmMain.MDIChildren[i]);
-      end;
-    end;
-    l.Sort;
-    for i := 0 to Pred(l.Count) do
-    begin
-      with tcWindows.Tabs.Add do
-      begin
-        Caption := l.Strings[i];
-        Tag := Integer(l.Objects[i]);
-      end;
-    end;
-    pnlTabs.Visible := tcWindows.Tabs.Count > 0;
-    tcWindows.TabIndex := -1;
-  finally
-    l.Free;
-  end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit UpdateTabs');
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  pnlTabs.Visible := tcWindows.Tabs.Count > 0;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
 end;
 
 procedure TfrmClientHomePage.UpdateWebNotes(var Msg: TMessage);

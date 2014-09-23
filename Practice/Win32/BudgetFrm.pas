@@ -41,7 +41,7 @@ uses
   BroadcastSystem,
   GstCalc32,
   clObj32,
-  CodingFormCommands;
+  CodingFormCommands, RzTabs;
   
 type
   TfrmBudget = class(TForm)
@@ -108,6 +108,7 @@ type
     mniEnterPercentage: TMenuItem;
     rgGST: TRadioGroup;
     tmrUnusedRows: TTimer;
+    tcWindows: TRzTabControl;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -171,6 +172,8 @@ type
     procedure actAutoCalculateGSTExecute(Sender: TObject);
     procedure rgGSTClick(Sender: TObject);
     procedure tmrUnusedRowsTimer(Sender: TObject);
+    procedure tcWindowsClick(Sender: TObject);
+    procedure tcWindowsTabClick(Sender: TObject);
   private
     { Private declarations }
     FHint                 : THintWindow;
@@ -267,6 +270,8 @@ type
 
   public
     { Public declarations }
+    procedure UpdateTabs(aActionedPage: string = '');
+
     property Budget  : TBudget read FBudget write SetBudget;
     property IsClosing : Boolean read FIsClosing write SetIsClosing;
     function FormIsInEditMode: boolean;
@@ -1551,7 +1556,20 @@ begin
   HideEnabled := UnusedRowsShowing;
   frmMain.tbBudgetHide.Enabled := HideEnabled;
   mniHideUnused.Enabled := HideEnabled;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.UpdateTabs(aActionedPage : string = '');
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
 end;
 
 //------------------------------------------------------------------------------
@@ -3766,6 +3784,20 @@ begin
       RefreshGST;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+procedure TfrmBudget.tcWindowsTabClick(Sender: TObject);
+var
+  obj : TObject;
+begin
+  obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
+  if obj is TForm then
+    TForm(obj).BringToFront;
+end;
+
+procedure TfrmBudget.tcWindowsClick(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------

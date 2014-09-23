@@ -3,7 +3,7 @@ object frmBudget: TfrmBudget
   Top = 235
   ActiveControl = tblBudget
   Caption = 'Enter Budget - <Budget Name>'
-  ClientHeight = 453
+  ClientHeight = 495
   ClientWidth = 770
   Color = clBtnFace
   ParentFont = True
@@ -25,7 +25,7 @@ object frmBudget: TfrmBudget
   TextHeight = 13
   object stsDissect: TStatusBar
     Left = 0
-    Top = 434
+    Top = 455
     Width = 770
     Height = 19
     Panels = <
@@ -44,7 +44,7 @@ object frmBudget: TfrmBudget
     Left = 0
     Top = 44
     Width = 770
-    Height = 390
+    Height = 411
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 3
@@ -309,6 +309,23 @@ object frmBudget: TfrmBudget
       TabOrder = 1
       OnClick = rgGSTClick
     end
+  end
+  object tcWindows: TRzTabControl
+    Left = 0
+    Top = 474
+    Width = 770
+    Height = 21
+    Align = alBottom
+    TabIndex = 0
+    TabOrder = 3
+    TabOrientation = toBottom
+    Tabs = <
+      item
+        Caption = 'Tab1'
+      end>
+    OnClick = tcWindowsClick
+    OnTabClick = tcWindowsTabClick
+    FixedDimension = 19
   end
   object DissectController: TOvcController
     EntryCommands.TableList = (

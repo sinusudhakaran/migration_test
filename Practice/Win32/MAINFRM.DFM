@@ -2,7 +2,7 @@ object frmMain: TfrmMain
   Left = 315
   Top = 258
   Caption = 'TT'
-  ClientHeight = 862
+  ClientHeight = 854
   ClientWidth = 965
   Color = 10459904
   Constraints.MinHeight = 360
@@ -24,7 +24,7 @@ object frmMain: TfrmMain
   OnShow = FormShow
   DesignSize = (
     965
-    862)
+    854)
   PixelsPerInch = 96
   TextHeight = 13
   object imgPracticeLogo: TImage
@@ -94,7 +94,7 @@ object frmMain: TfrmMain
   end
   object MainStatus: TStatusBar
     Left = 0
-    Top = 838
+    Top = 830
     Width = 965
     Height = 24
     Panels = <

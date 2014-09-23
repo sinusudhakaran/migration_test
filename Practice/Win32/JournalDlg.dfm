@@ -4,7 +4,7 @@ object dlgJournal: TdlgJournal
   ActiveControl = tblJournal
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Enter Journal'
-  ClientHeight = 438
+  ClientHeight = 477
   ClientWidth = 799
   Color = clBtnFace
   Constraints.MinHeight = 240
@@ -28,7 +28,7 @@ object dlgJournal: TdlgJournal
   TextHeight = 13
   object stbJournal: TStatusBar
     Left = 0
-    Top = 417
+    Top = 435
     Width = 799
     Height = 21
     Panels = <
@@ -57,7 +57,7 @@ object dlgJournal: TdlgJournal
     Left = 0
     Top = 80
     Width = 799
-    Height = 257
+    Height = 275
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 0
@@ -302,7 +302,7 @@ object dlgJournal: TdlgJournal
   end
   object pBottom: TPanel
     Left = 0
-    Top = 337
+    Top = 355
     Width = 799
     Height = 80
     Align = alBottom
@@ -454,6 +454,22 @@ object dlgJournal: TdlgJournal
       TabOrder = 7
       OnClick = BtnCalClick
     end
+  end
+  object tcWindows: TRzTabControl
+    Left = 0
+    Top = 456
+    Width = 799
+    Height = 21
+    Align = alBottom
+    TabIndex = 0
+    TabOrder = 5
+    TabOrientation = toBottom
+    Tabs = <
+      item
+        Caption = 'Tab1'
+      end>
+    OnTabClick = tcWindowsTabClick
+    FixedDimension = 19
   end
   object JournalController: TOvcController
     EntryCommands.TableList = (

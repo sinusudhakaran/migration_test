@@ -19,7 +19,7 @@ uses
   ueList32,
   ColFmtListObj,
 
-  jpeg, ExtDlgs, ovctccbx,osfont, RzButton;
+  jpeg, ExtDlgs, ovctccbx,osfont, RzButton, RzTabs;
 
 const
    WM_DoNewJournal = WM_User + 601;
@@ -120,6 +120,7 @@ type
     celCoreTransactionId: TOvcTCString;
     lblRecommendedMemorisations: TLabel;
     tmrMemLabel: TTimer;
+    tcWindows: TRzTabControl;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -309,6 +310,7 @@ type
     procedure celAnalysisChange(Sender: TObject);
     procedure lblRecommendedMemorisationsClick(Sender: TObject);
     procedure tmrMemLabelTimer(Sender: TObject);
+    procedure tcWindowsTabClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -496,6 +498,8 @@ type
   protected
     { Protected declarations }
   public
+    procedure UpdateTabs(aActionedPage: string = '');
+
     { Public declarations }
     function GetLastKeyPress: TDateTime;
     procedure ProcessExternalCmd(Command : TExternalCmd);
@@ -698,6 +702,7 @@ const
 
 var
    DefaultPositions : array[0..ceMax] of integer;
+   DebugMe       : boolean = false;
 
 
 // Redraw main form on minimize
@@ -7939,6 +7944,19 @@ begin
   lblRecommendedMemorisations.Visible := ShowLblRecommendedMemorisations;
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmCoding.UpdateTabs(aActionedPage : string = '');
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.ShowCodingHint(const RowNum, ColNum: Integer;
   HintMsg: String);
@@ -10200,5 +10218,18 @@ begin
   tblCoding.InvalidateTable; // repaint notes icons
   tblCoding.Repaint;
 end;
+
+procedure TfrmCoding.tcWindowsTabClick(Sender: TObject);
+var
+  obj : TObject;
+begin
+  obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
+  if obj is TForm then
+    TForm(obj).BringToFront;
+end;
+
+//------------------------------------------------------------------------------
+initialization
+   DebugMe := DebugUnit(UnitName);
 
 end.
