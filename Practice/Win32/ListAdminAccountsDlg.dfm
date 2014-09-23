@@ -23,7 +23,7 @@ object dlgAdminAccountOptions: TdlgAdminAccountOptions
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = 'Preview'
+    Caption = 'Previe&w'
     Default = True
     DragCursor = crDefault
     TabOrder = 0
@@ -35,7 +35,7 @@ object dlgAdminAccountOptions: TdlgAdminAccountOptions
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = 'File'
+    Caption = 'Fil&e'
     TabOrder = 1
     OnClick = btnFileClick
   end
@@ -56,7 +56,7 @@ object dlgAdminAccountOptions: TdlgAdminAccountOptions
     Width = 75
     Height = 23
     Anchors = [akRight, akBottom]
-    Caption = 'Print'
+    Caption = '&Print'
     TabOrder = 2
     OnClick = btnPrintClick
   end
