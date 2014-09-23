@@ -572,61 +572,23 @@ var
   pAccount      : pAccount_Rec;
   IsGSTAccountCode: boolean;
 
-  function GetControlCodeTotal(ControlCode: string): integer;
-  var
-    j,MonthInt            : integer;
-    pAccount2             : pAccount_Rec;
-    GST_Class2            : byte;
-    dtMonth2              : TStDate;
-    MatchingAccountFound  : boolean;
-    MonthGST              : double;
-    RowTotal              : double;
-    GSTTotal              : double;
-  begin
-    Result := 0;
-    GSTTotal := 0;
-    MatchingAccountFound := False;
-    for j := Low(FData) to High(FData) do
-    begin
-      RowTotal := 0;
-      if not ((FData[j].bIsPosting = False) or FData[j].bIsGSTAccountCode) then
-      begin
-        pAccount2 := MyClient.clChart.FindCode(FData[j].bAccount);
-        if Assigned(pAccount2) then
-        begin
-          if (MyClient.clFields.clGST_Account_Codes[pAccount2.chGST_Class] = ControlCode) then
-          begin
-            for MonthInt := MonthMin to MonthMax do
-            begin
-              dtMonth2 := FBudget.buFields.buStart_Date;
-              dtMonth2 := IncDate(dtMonth2, 0, MonthInt - (MonthBase + 1), 0);
-              GST_Class2 := pAccount2.chGST_Class;
-              MonthGST := CalculateGSTFromNett(MyClient, dtMonth2, FData[j].bAmounts[MonthInt-MonthBase], GST_Class2);
-              RowTotal := RowTotal + MonthGST;
-            end;
-            if (SignOf(RowTotal) <> ExpectedSign(pAccount2.chAccount_Type)) then
-              RowTotal := RowTotal * -1;
-            MatchingAccountFound := True;
-          end;
-        end;
-      end;
-      GSTTotal := GSTTotal + RowTotal;
-    end;
-    if MatchingAccountFound then
-      Result := DoRoundUpHalves(GSTTotal);    
-  end;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
   Result := 0;
   GSTAmount := 0;
+
   pAccount := MyClient.clChart.FindCode(FData[RowNum - 1].bAccount);
   GST_Class := pAccount.chGST_Class;
   IsGSTAccountCode := FData[RowNum - 1].bIsGSTAccountCode;
+
   if IsGSTAccountCode and ShowFiguresGSTInclusive then
   begin
     Result := 0; // GST is already included in the figures for other rows, so we don't need to fill in GST account codes
     Exit;
   end;
+
   for i := MonthMin to MonthMax do
   begin
     dtMonth := FBudget.buFields.buStart_Date;
@@ -636,7 +598,7 @@ begin
       if not (GetAutoCalculateGST or ShowFiguresGSTInclusive) then
         Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase]
       else
-        Result := Result + FData[RowNum - 1].bGstAmounts[i - MonthBase];
+        GSTAmount := GSTAmount + FData[RowNum - 1].bNonRoundedGstAmounts[i - MonthBase];
     end
     else if IncludeGST then
     begin
@@ -646,11 +608,13 @@ begin
     else
       Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase];
   end;
-  if IncludeGST and not IsGSTAccountCode then
+
+  if (GetAutoCalculateGST or ShowFiguresGSTInclusive) or
+     (IncludeGST and not IsGSTAccountCode) then
     Result := DoRoundUpHalves(GSTAmount);
-  //if ISGSTAccountCode and GetAutoCalculateGST then
-  //  Result := GetControlCodeTotal(pAccount.chAccount_Code);
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------

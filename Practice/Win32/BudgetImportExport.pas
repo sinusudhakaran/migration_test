@@ -327,7 +327,9 @@ begin
         if (aData[DataIndex].bAccount = '') then
           Continue;
 
-        if (GSTInclusive) and (aData[DataIndex].bIsGSTAccountCode) then
+        if (GSTInclusive) and
+           (aData[DataIndex].bIsGSTAccountCode) and
+           (aAutoCalculateGST) then
           Continue;
 
         IsNonPostingCode := not aData[DataIndex].bIsPosting;
