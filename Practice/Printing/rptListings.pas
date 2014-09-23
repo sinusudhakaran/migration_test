@@ -29,9 +29,6 @@ uses
   procedure DoListBankAccountsReport(Dest : TReportDest;
                               RptBatch : TReportBase = nil);
 
-  procedure DoListManualAccountsReport(Dest : TReportDest;
-                                       RptBatch : TReportBase = nil);
-
   procedure ListManualAccountsDetail(Sender: TObject);
 
   procedure DoListEntriesReport(Dest : TReportDest;
@@ -2141,70 +2138,6 @@ begin
     TBKReport(Sender).PutString(IntToStr(Bank_Account.baTransaction_List.ItemCount));
     TBKReport(Sender).RenderDetailLine;
   end;
-end;
-
-procedure DoListManualAccountsReport(Dest : TReportDest;
-                                     RptBatch : TReportBase = nil);
-var
-  Job           : TBKReport;
-  Param         : TRPTParameters;
-  cleft         : Double;
-  ButtonPressed : integer;
-
-  function maketitle: string;
-  begin
-    Result := Report_List_Names[Report_List_Manual];
-  end;
-
-begin
-  repeat
-    if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed) then
-    begin
-      case ButtonPressed of
-         BTN_PRINT    : Dest := rdPrinter;
-         BTN_PREVIEW  : Dest := rdScreen;
-         BTN_FILE     : Dest := rdFile;
-      else
-         Dest := rdScreen;
-      end;
-    end
-    else
-    begin
-      Dest := rdNone;
-      exit;
-    end;
-
-    Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
-    Job := TBKReport.Create(ReportTypes.rptListings);
-
-    try
-      Job.LoadReportSettings(UserPrintSettings,
-                             param.MakeRptName(Report_List_Names[Report_List_Manual]));
-
-      //Add Headers
-      AddCommonHeader(Job);
-      AddJobHeader(Job,siTitle,'List Manual Bank Accounts',true);
-      AddJobHeader(Job,siSubTitle,'',true);
-
-      //Build the columns
-      cLeft := gcLeft;
-      AddColAuto(Job, cLeft, 12, gcgap, 'Client Code' , jtLeft);
-      AddColAuto(Job, cLeft, 25, gcgap, 'Account No'  , jtLeft);
-      AddColAuto(Job, cLeft, 30, gcgap, 'Account Name', jtLeft);
-      AddColAuto(Job, cLeft, 10, gcgap, 'Entries From', jtLeft);
-      AddColAuto(Job, cleft, 10, gcgap, 'Entries To'  , jtLeft);
-      AddColAuto(Job, cleft, 10, gcgap, 'No. of Entries' , jtRight);
-
-      //Add Footers
-      AddCommonFooter(Job);
-
-      Job.OnBKPrint := ListManualAccountsDetail;
-      Job.Generate(Dest, Param);
-    finally
-      Job.Free;
-      Param.Free;
-    end;
-  until False;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

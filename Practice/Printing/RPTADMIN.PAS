@@ -20,7 +20,7 @@ unit rptAdmin;
 interface
 
 uses
-   bkHelp,ReportDefs, Scheduled, Classes, SchedRepUtils, TSGrid, ListChargesDlg;
+   bkHelp,ReportDefs, Scheduled, Classes, SchedRepUtils, TSGrid, ListChargesDlg, UBatchBase;
 
 procedure DoDownloadReport(var Dest : TReportDest);
 
@@ -30,6 +30,11 @@ procedure DoReportsDue(var Dest : TReportDest; srOptions : TSchReportOptions);
 
 procedure DoListAdminBankAccounts(NonActiveOnly : Boolean; var Dest : TReportDest;
                                   ProvisionalOnly : Boolean = false);
+
+procedure DoListManualAccountsReport(Dest : TReportDest;
+                                     RptBatch : TReportBase = nil);
+
+procedure ListManualAccountsDetail(Sender: TObject);                                     
 
 procedure DoClientsByStaffMember(var Dest : TReportDest);
 
@@ -113,7 +118,8 @@ uses
    ClientSelectFme,
    AuditMgr, BKTXIO, BKCLIO, ExchangeRateList, GSTCALC32,
    bkBranding,
-   bkProduct;
+   bkProduct,
+   rptParams;
 
 type
    //Client status record for whats due list
@@ -1918,6 +1924,136 @@ begin
   until False;
 end;
 
+procedure DoListManualAccountsReport(Dest : TReportDest;
+                                     RptBatch : TReportBase = nil);
+var
+  Job           : TBKReport;
+  Param         : TRPTParameters;
+  cleft         : Double;
+  ButtonPressed : integer;
+
+  function maketitle: string;
+  begin
+    Result := Report_List_Names[Report_List_Manual];
+  end;
+
+begin
+  repeat
+    if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed) then
+    begin
+      case ButtonPressed of
+         BTN_PRINT    : Dest := rdPrinter;
+         BTN_PREVIEW  : Dest := rdScreen;
+         BTN_FILE     : Dest := rdFile;
+      else
+         Dest := rdScreen;
+      end;
+    end
+    else
+      Exit;
+
+    Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
+    Job := TBKReport.Create(ReportTypes.rptListings);
+
+    try
+      Job.LoadReportSettings(UserPrintSettings,
+                             param.MakeRptName(Report_List_Names[Report_List_Manual]));
+
+      //Add Headers
+      AddCommonHeader(Job);
+      AddJobHeader(Job,siTitle,'List Manual Bank Accounts',true);
+      AddJobHeader(Job,siSubTitle,'',true);
+
+      //Build the columns
+      cLeft := gcLeft;
+      AddColAuto(Job, cLeft, 12, gcgap, 'Client Code' , jtLeft);
+      AddColAuto(Job, cLeft, 25, gcgap, 'Account No'  , jtLeft);
+      AddColAuto(Job, cLeft, 30, gcgap, 'Account Name', jtLeft);
+      AddColAuto(Job, cLeft, 10, gcgap, 'Entries From', jtLeft);
+      AddColAuto(Job, cleft, 10, gcgap, 'Entries To'  , jtLeft);
+      AddColAuto(Job, cleft, 10, gcgap, 'No. of Entries' , jtRight);
+
+      //Add Footers
+      AddCommonFooter(Job);
+
+      Job.OnBKPrint := ListManualAccountsDetail;
+      Job.Generate(Dest, Param);
+    finally
+      Job.Free;
+      Param.Free;
+    end;
+  until False;
+end;
+
+//------------------------------------------------------------------------------
+procedure ListManualAccountsDetail(Sender: TObject);
+var
+  i             : integer;
+  Bank_Account  : TBank_Account;
+  LastCode      : string;
+  CurrentCode   : string;
+  Found         : longint;
+  SearchRec     : TSearchRec;
+  aClient       : TClientObj;
+  ClientCode    : string;
+  FileName      : string;
+  ClientCodes   : TStringList;
+  ClientCodeNum : integer;
+begin
+  CurrentCode := '';
+
+  ClientCodes := TStringList.Create;
+  try
+    ClientCodes.Duplicates := dupIgnore; // Won't add duplicates, but won't fail if we try to add one
+    Found := FindFirst( Globals.DataDir + '*' + Globals.FileExtn, faAnyFile, SearchRec);
+    
+    while (Found = 0) do
+    begin
+      // Check if client is in system account list, skip if it is, since it can't be manual
+      if (AdminSystem.fdSystem_Client_File_List.FindCode(SearchRec.Name) = nil) then
+      begin
+        FileName := ExtractFileName(SearchRec.Name);
+        ClientCode := Copy(FileName, 1, AnsiPos('.', FileName) - 1);
+        ClientCodes.Add(ClientCode);
+      end;
+      Found := FindNext(SearchRec);
+    end;
+
+    for ClientCodeNum := 0 to ClientCodes.Count - 1 do
+    begin
+      OpenAClientForRead(ClientCodes.Strings[ClientCodeNum], aClient);
+      if Assigned(aClient) then
+      try
+        begin
+          for i := 0 to aClient.clBank_Account_List.ItemCount - 1 do
+          begin
+            Bank_Account := aClient.clBank_Account_List.Bank_Account_At(i);
+            if not Bank_Account.IsManual then
+              Continue; // Manual accounts only
+
+            LastCode := CurrentCode;
+            CurrentCode := aClient.clFields.clCode;
+            if (LastCode <> CurrentCode) then
+              TBKReport(Sender).PutString(CurrentCode)
+            else
+              TBKReport(Sender).PutString('');
+            TBKReport(Sender).PutString(Bank_Account.baFields.baBank_Account_Number);
+            TBKReport(Sender).PutString(Bank_Account.baFields.baBank_Account_Name);
+            TBKReport(Sender).PutString(bkDate2Str(Bank_Account.baTransaction_List.FirstPresDate));
+            TBKReport(Sender).PutString(bkDate2Str(Bank_Account.baTransaction_List.LastPresDate));
+            TBKReport(Sender).PutString(IntToStr(Bank_Account.baTransaction_List.ItemCount));
+            TBKReport(Sender).RenderDetailLine;
+          end;
+        end;
+      finally
+        FreeAndNil(aClient);
+      end;
+    end;
+  finally
+    FreeAndNil(ClientCodes);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 Function TransIsCoded(const aClient : TClientObj; const T : pTransaction_Rec ): Boolean;
 //special version since normal IsCoded works on the myClient object
@@ -3336,8 +3472,6 @@ begin
     if pcf.cfArchived
     or pcf.cfForeign_File then
        Continue;
-
-      
 
     if AOptions.ClientInSelection(pCF) then begin
        //This client is in the report, Make a New record;
