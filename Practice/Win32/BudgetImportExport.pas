@@ -329,7 +329,8 @@ begin
 
         if (GSTInclusive) and
            (aData[DataIndex].bIsGSTAccountCode) and
-           (aAutoCalculateGST) then
+           (aAutoCalculateGST) and
+           (not aIncludeUnusedChartCodes) then
           Continue;
 
         IsNonPostingCode := not aData[DataIndex].bIsPosting;
