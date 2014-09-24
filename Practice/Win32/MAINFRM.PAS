@@ -3179,7 +3179,7 @@ begin
               'complete as it must access transaction archive information' + #13 +
               'from the file system.' + #13#13 +
               'Are you sure you want to run this report now?',
-              DLG_NO, 0) = DLG_YES then
+              DLG_YES, 0) = DLG_YES then
   begin
     DoModalReport(Report_List_Manual, rdNone);
   end;
