@@ -1956,6 +1956,7 @@ begin
     Job := TBKReport.Create(ReportTypes.rptListings);
 
     try
+      Job.IsAdmin := True;
       Job.LoadReportSettings(UserPrintSettings,
                              param.MakeRptName(Report_List_Names[Report_List_Manual]));
 
@@ -1971,7 +1972,7 @@ begin
       AddColAuto(Job, cLeft, 30, gcgap, 'Account Name', jtLeft);
       AddColAuto(Job, cLeft, 10, gcgap, 'Entries From', jtLeft);
       AddColAuto(Job, cleft, 10, gcgap, 'Entries To'  , jtLeft);
-      AddColAuto(Job, cleft, 10, gcgap, 'No. of Entries' , jtRight);
+      AddColAuto(Job, cleft, 10, gcgap, 'No of Entries' , jtRight);
 
       //Add Footers
       AddCommonFooter(Job);
