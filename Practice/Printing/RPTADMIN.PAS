@@ -1961,6 +1961,7 @@ begin
                              param.MakeRptName(Report_List_Names[Report_List_Manual]));
 
       //Add Headers
+      AddAdminHeader(Job);
       AddCommonHeader(Job);
       AddJobHeader(Job,siTitle,'List Manual Bank Accounts',true);
       AddJobHeader(Job,siSubTitle,'',true);
