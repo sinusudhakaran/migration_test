@@ -211,7 +211,7 @@ object frmTPA: TfrmTPA
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 330
+        Width = 326
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -228,7 +228,7 @@ object frmTPA: TfrmTPA
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 215
+        Width = 211
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -247,7 +247,7 @@ object frmTPA: TfrmTPA
       object edtBranch: TEdit
         Left = 148
         Top = 46
-        Width = 330
+        Width = 326
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -292,7 +292,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 554
+          Width = 552
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -351,7 +351,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -370,7 +370,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -392,7 +392,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber1: TEdit
           Left = 36
           Top = 65
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -406,12 +406,13 @@ object frmTPA: TfrmTPA
           ShowHint = True
           TabOrder = 1
           OnChange = edtAccountNumber1Change
+          OnEnter = edtAccountNumber1Enter
           OnExit = edtAccountNumber1Exit
         end
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 69
+          Width = 67
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -431,7 +432,7 @@ object frmTPA: TfrmTPA
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 69
+          Width = 67
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -490,7 +491,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 554
+          Width = 552
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -523,7 +524,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount2: TEdit
           Left = 8
           Top = 10
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -542,7 +543,7 @@ object frmTPA: TfrmTPA
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 69
+          Width = 67
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -562,7 +563,7 @@ object frmTPA: TfrmTPA
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 69
+          Width = 67
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -582,7 +583,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber2: TMaskValidateEdit
           Left = 9
           Top = 65
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -604,7 +605,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber2: TEdit
           Left = 36
           Top = 65
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -618,6 +619,7 @@ object frmTPA: TfrmTPA
           ShowHint = True
           TabOrder = 1
           OnChange = edtAccountNumber2Change
+          OnEnter = edtAccountNumber2Enter
           OnExit = edtAccountNumber2Exit
         end
       end
@@ -742,7 +744,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 554
+          Width = 552
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -775,7 +777,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount3: TEdit
           Left = 8
           Top = 10
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -794,7 +796,7 @@ object frmTPA: TfrmTPA
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 69
+          Width = 67
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -814,7 +816,7 @@ object frmTPA: TfrmTPA
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 69
+          Width = 67
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -834,7 +836,7 @@ object frmTPA: TfrmTPA
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -856,7 +858,7 @@ object frmTPA: TfrmTPA
         object edtAccountNumber3: TEdit
           Left = 36
           Top = 65
-          Width = 282
+          Width = 280
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -870,6 +872,7 @@ object frmTPA: TfrmTPA
           ShowHint = True
           TabOrder = 1
           OnChange = edtAccountNumber3Change
+          OnEnter = edtAccountNumber3Enter
           OnExit = edtAccountNumber3Exit
         end
       end
@@ -1094,7 +1097,7 @@ object frmTPA: TfrmTPA
       object chkDataSecureExisting: TCheckBox
         Left = 26
         Top = 61
-        Width = 360
+        Width = 356
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -1111,7 +1114,7 @@ object frmTPA: TfrmTPA
       object chkDataSecureNew: TCheckBox
         Left = 26
         Top = 10
-        Width = 360
+        Width = 356
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -1128,7 +1131,7 @@ object frmTPA: TfrmTPA
       object edtSecureCode: TEdit
         Left = 384
         Top = 59
-        Width = 142
+        Width = 138
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -1143,10 +1146,10 @@ object frmTPA: TfrmTPA
       object chkSupplyAsProvisional: TCheckBox
         Left = 26
         Top = 112
-        Width = 514
+        Width = 510
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Supply as provisional if account is not available from the Bank'
+        Caption = 'Supply as provisional if account(s) are not available from the Bank'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -1187,7 +1190,7 @@ object frmTPA: TfrmTPA
       object radReDateTransactions: TRadioButton
         Left = 57
         Top = 38
-        Width = 646
+        Width = 642
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Re-date transactions to Payment Date'
@@ -1206,7 +1209,7 @@ object frmTPA: TfrmTPA
       object radDateShown: TRadioButton
         Left = 57
         Top = 71
-        Width = 646
+        Width = 642
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Date shown on statement (not re-dated)'

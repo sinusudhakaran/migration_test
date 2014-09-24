@@ -182,6 +182,9 @@ type
     procedure mskAccountNumber3Change(Sender: TObject);
     procedure edtAccountNumber3Change(Sender: TObject);
     procedure edtCostCode3Change(Sender: TObject);
+    procedure edtAccountNumber1Enter(Sender: TObject);
+    procedure edtAccountNumber2Enter(Sender: TObject);
+    procedure edtAccountNumber3Enter(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -192,6 +195,9 @@ type
     fMaskBsb1 : String;
     fMaskBsb2 : String;
     fMaskBsb3 : String;
+    Acc1ExitTriggered: boolean;
+    Acc2ExitTriggered: boolean;
+    Acc3ExitTriggered: boolean;
     fOldInstName : string;
 
     fValidateError : boolean;
@@ -233,6 +239,7 @@ type
     procedure ToggleAccount1Controls(Value: boolean);
     procedure ToggleAccount2Controls(Value: boolean);
     procedure ToggleAccount3Controls(Value: boolean);
+    procedure RunExitEvents;
   public
     { Public declarations }
     property ButtonPressed: Byte read FButton;
@@ -288,6 +295,9 @@ begin
   fMaskBsb1 := '';
   fMaskBsb2 := '';
   fMaskBsb3 := '';
+  Acc1ExitTriggered := True;
+  Acc2ExitTriggered := True;
+  Acc3ExitTriggered := True;
   fMaskHint := TMaskHint.create;
 
   RemovePanelBorders;
@@ -1348,6 +1358,11 @@ begin
   ToggleAccountFields;
 end;
 
+procedure TfrmTPA.edtAccountNumber1Enter(Sender: TObject);
+begin
+  Acc1ExitTriggered := False;
+end;
+
 procedure TfrmTPA.edtAccountNumber1Exit(Sender: TObject);
 begin
   fAccountNumber1 := trim(edtAccountNumber1.Text);
@@ -1359,11 +1374,17 @@ begin
     else
       lblMaskErrorHint1.Caption := '';
   end;
+  Acc1ExitTriggered := True;
 end;
 
 procedure TfrmTPA.edtAccountNumber2Change(Sender: TObject);
 begin
   ToggleAccountFields;
+end;
+
+procedure TfrmTPA.edtAccountNumber2Enter(Sender: TObject);
+begin
+  Acc2ExitTriggered := False;
 end;
 
 procedure TfrmTPA.edtAccountNumber2Exit(Sender: TObject);
@@ -1377,11 +1398,17 @@ begin
     else
       lblMaskErrorHint2.Caption := '';
   end;
+  Acc2ExitTriggered := True;
 end;
 
 procedure TfrmTPA.edtAccountNumber3Change(Sender: TObject);
 begin
   ToggleAccountFields;
+end;
+
+procedure TfrmTPA.edtAccountNumber3Enter(Sender: TObject);
+begin
+  Acc3ExitTriggered := False;
 end;
 
 procedure TfrmTPA.edtAccountNumber3Exit(Sender: TObject);
@@ -1395,6 +1422,7 @@ begin
     else
       lblMaskErrorHint3.Caption := '';
   end;
+  Acc3ExitTriggered := True;
 end;
 
 procedure TfrmTPA.edtClientCode1Change(Sender: TObject);
@@ -1499,11 +1527,28 @@ begin
   fCurrentDisplayError3 := '';
   edtClientStartDte.AsDateTime := now();
   radReDateTransactions.Checked := true;
+
+  cmbInstitution.SetFocus;
+end;
+
+//------------------------------------------------------------------------------
+// This is to deal with situations where Preview, File, etc. have been clicked
+// before the exit event has been run for one of the account number fields
+procedure TfrmTPA.RunExitEvents;
+begin
+  if not Acc1ExitTriggered then
+    edtAccountNumber1Exit(self);
+  if not Acc2ExitTriggered then
+    edtAccountNumber2Exit(self);
+  if not Acc3ExitTriggered then
+    edtAccountNumber3Exit(self);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmTPA.btnPreviewClick(Sender: TObject);
 begin
+  RunExitEvents;
+
   if ValidateForm then
   begin
     FButton := BTN_PREVIEW;
@@ -1514,6 +1559,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.btnFileClick(Sender: TObject);
 begin
+  RunExitEvents;
+  
   if ValidateForm then
   begin
     FButton := BTN_FILE;
@@ -1524,6 +1571,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.btnEmailClick(Sender: TObject);
 begin
+  RunExitEvents;
+  
   if ValidateForm then
   begin
     FButton := BTN_EMAIL;
@@ -1534,6 +1583,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTPA.btnPrintClick(Sender: TObject);
 begin
+  RunExitEvents;
+  
   if ValidateForm then
   begin
     FButton := BTN_PRINT;

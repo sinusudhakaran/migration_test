@@ -144,7 +144,7 @@ Begin
    Write( XFile, '"', AAmount/100:0:2, '",' );
 
    if (Globals.PRACINI_ExtractQuantity) then
-     Write( XFile, '"', GetQuantityStringForExtract(Abs( AQuantity)), '",' )
+     Write( XFile, '"', GetQuantityStringForExtract(AQuantity), '",' )
    else
      Write( XFile, '"', GetQuantityStringForExtract(0), '",' );
 

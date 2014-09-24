@@ -609,8 +609,8 @@ begin
       Result := Result + FData[RowNum - 1].bAmounts[i - MonthBase];
   end;
 
-  if (GetAutoCalculateGST or ShowFiguresGSTInclusive) or
-     (IncludeGST and not IsGSTAccountCode) then
+  if ((IsGSTAccountCode) and ((GetAutoCalculateGST or ShowFiguresGSTInclusive))) or
+     ((not IsGSTAccountCode) and IncludeGST) then
     Result := DoRoundUpHalves(GSTAmount);
 
   if DebugMe then
