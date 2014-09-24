@@ -31,7 +31,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = 'Preview'
+    Caption = 'Previe&w'
     Default = True
     DragCursor = crDefault
     TabOrder = 4
@@ -43,7 +43,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = 'File'
+    Caption = 'Fil&e'
     TabOrder = 5
     OnClick = btnFileClick
   end
@@ -64,7 +64,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    Caption = 'Print'
+    Caption = '&Print'
     TabOrder = 6
     OnClick = btnPrintClick
   end
