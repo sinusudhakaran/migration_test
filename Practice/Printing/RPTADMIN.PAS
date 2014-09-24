@@ -1953,7 +1953,7 @@ begin
       Exit;
 
     Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
-    Job := TBKReport.Create(ReportTypes.rptListings);
+    Job := TBKReport.Create(ReportTypes.rptOther);
 
     try
       Job.IsAdmin := True;
@@ -1963,16 +1963,16 @@ begin
       //Add Headers
       AddAdminHeader(Job);
       AddCommonHeader(Job);
-      AddJobHeader(Job,siTitle,'List Manual Bank Accounts',true);
+      AddJobHeader(Job,siTitle,maketitle,true);
       AddJobHeader(Job,siSubTitle,'',true);
 
       //Build the columns
       cLeft := gcLeft;
-      AddColAuto(Job, cLeft, 12, gcgap, 'Client Code' , jtLeft);
-      AddColAuto(Job, cLeft, 25, gcgap, 'Account No'  , jtLeft);
-      AddColAuto(Job, cLeft, 30, gcgap, 'Account Name', jtLeft);
-      AddColAuto(Job, cLeft, 10, gcgap, 'Entries From', jtLeft);
-      AddColAuto(Job, cleft, 10, gcgap, 'Entries To'  , jtLeft);
+      AddColAuto(Job, cLeft, 12, gcgap, 'Client Code'   , jtLeft);
+      AddColAuto(Job, cLeft, 25, gcgap, 'Account No'    , jtLeft);
+      AddColAuto(Job, cLeft, 30, gcgap, 'Account Name'  , jtLeft);
+      AddColAuto(Job, cLeft, 10, gcgap, 'Entries From'  , jtLeft);
+      AddColAuto(Job, cleft, 10, gcgap, 'Entries To'    , jtLeft);
       AddColAuto(Job, cleft, 10, gcgap, 'No of Entries' , jtRight);
 
       //Add Footers
