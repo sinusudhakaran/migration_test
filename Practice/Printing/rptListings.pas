@@ -29,8 +29,6 @@ uses
   procedure DoListBankAccountsReport(Dest : TReportDest;
                               RptBatch : TReportBase = nil);
 
-  procedure ListManualAccountsDetail(Sender: TObject);
-
   procedure DoListEntriesReport(Dest : TReportDest;
                               ShowJournalOnly : boolean;
                               RptBatch : TReportBase = nil);
@@ -2109,35 +2107,6 @@ begin
     Job.Free;
     Param.Free;
    end;
-end;
-
-procedure ListManualAccountsDetail(Sender: TObject);
-var
-   i            : integer;
-   Bank_Account : TBank_Account;
-   LastCode     : string;
-   CurrentCode  : string;
-begin
-  CurrentCode := '';
-  for i := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
-  begin
-    Bank_Account := MyClient.clBank_Account_List.Bank_Account_At(i);
-    if not Bank_Account.IsManual then
-      Continue;
-
-    LastCode := CurrentCode;
-    CurrentCode := MyClient.clFields.clCode;
-    if (LastCode <> CurrentCode) then
-      TBKReport(Sender).PutString(MyClient.clFields.clCode)
-    else
-      TBKReport(Sender).PutString('');
-    TBKReport(Sender).PutString(Bank_Account.baFields.baBank_Account_Number);
-    TBKReport(Sender).PutString(Bank_Account.baFields.baBank_Account_Name);
-    TBKReport(Sender).PutString(bkDate2Str(Bank_Account.baTransaction_List.FirstPresDate));
-    TBKReport(Sender).PutString(bkDate2Str(Bank_Account.baTransaction_List.LastPresDate));
-    TBKReport(Sender).PutString(IntToStr(Bank_Account.baTransaction_List.ItemCount));
-    TBKReport(Sender).RenderDetailLine;
-  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
