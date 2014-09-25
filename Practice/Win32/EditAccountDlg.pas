@@ -88,6 +88,7 @@ type
     procedure edtLinkedAccount2KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure edtLinkedAccount2KeyPress(Sender: TObject; var Key: Char);
+    procedure chkInactiveClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -147,7 +148,8 @@ uses
   ImagesFrm,
   infoMorefrm,
   winutils,
-  YesNoDlg, clObj32, CustomHeadingsListObj, chList32, CountryUtils;
+  YesNoDlg, clObj32, CustomHeadingsListObj, chList32, CountryUtils,
+  AccountInactive;
 
 {$R *.DFM}
 
@@ -222,6 +224,12 @@ begin
    cmbGST.Hint               :=
                              'Select the ' + FTaxName + ' Class to apply to this Account Code|' +
                              'Select the ' + FTaxName + ' Class to apply to this Account Code';
+end;
+//------------------------------------------------------------------------------
+procedure TdlgEditAccount.chkInactiveClick(Sender: TObject);
+begin
+  if chkInactive.Checked then
+    DisplayMemorisationPayee_AccountUsed(eCode.Text);
 end;
 //------------------------------------------------------------------------------
 procedure TdlgEditAccount.chkPostingClick(Sender: TObject);
