@@ -582,7 +582,7 @@ begin
      exit;
    end;
 
-   if ReportType in [REPORT_ADMIN_ACCOUNTS,REPORT_ADMIN_INACTIVE_ACCOUNTS] then begin
+   if ReportType in [REPORT_ADMIN_ACCOUNTS,REPORT_ADMIN_INACTIVE_ACCOUNTS,REPORT_LIST_MANUAL] then begin
       if (AskYesNo( Report_List_Names[ReportType], 'The ' + Report_List_Names[ReportType] + ' Report may take a while '+
                  'to complete as it must access transaction archive information from the file system. '#13#13+
                  'Are you sure you want to run this report now?',DLG_YES,0 ) <> DLG_YES )
