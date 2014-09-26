@@ -322,7 +322,9 @@ var
   SystemMemorisation: pSystem_Memorisation_List_Rec;
 
   function AccountState  (Ba : tBank_Account ): Integer;
-  var I,J : Integer;
+  var
+    I,J     : Integer;
+    IsActive: boolean;
   begin
      Result := STATES_ALERT;
      for I := Ba.baMemorisations_List.First to ba.baMemorisations_List.Last do
@@ -330,7 +332,7 @@ var
           for J := mdLines.First to mdLines.Last do
              with mdLines.MemorisationLine_At(J)^ do
                 if mlAccount <> '' then
-                   if not MyClient.clChart.CanCodeto(mlaccount, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+                   if not MyClient.clChart.CanCodeto(mlaccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
                       exit;
      // Still Here...                 
      Result := 0;
@@ -520,15 +522,16 @@ end;
 
 function TfrmMaintainMem.LoadMemorisations(Bank_Account: TBank_Account): Integer;
 var
-   i,j : integer;
-   m : TMemorisation;
-   newItem : TListItem;
-   CodedTo : string;
-   EntryType : string;
-   Rev       : boolean;
-   Invalid   : boolean;
-   Country   : Byte;
-   MemLine : pMemorisation_Line_Rec;
+   i,j        : integer;
+   m          : TMemorisation;
+   newItem    : TListItem;
+   CodedTo    : string;
+   EntryType  : string;
+   Rev        : boolean;
+   Invalid    : boolean;
+   Country    : Byte;
+   MemLine    : pMemorisation_Line_Rec;
+   IsActive   : boolean;
 begin
    //check if we were working on a MASTER file and if we need to save it.
    Result := 0;
@@ -588,7 +591,7 @@ begin
          MemLine := m.mdLines.MemorisationLine_At(j);
          if MemLine^.mlAccount <> '' then begin
             CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
-            if not MyClient.clChart.CanCodeTo(MemLine^.mlaccount,HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) ) then begin
+            if not MyClient.clChart.CanCodeTo(MemLine^.mlaccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) ) then begin
                Invalid := True;
                Result := STATES_ALERT;
             end;

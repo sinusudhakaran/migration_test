@@ -91,8 +91,9 @@ Function IsCoded( aClient : TClientObj; CONST T : pTransaction_Rec ): Boolean; o
 Const
    ThisMethodName = 'IsCoded';
 Var
-   OK    : Boolean;
-   DS    : pDissection_Rec;
+   OK       : Boolean;
+   DS       : pDissection_Rec;
+   IsActive : boolean;
 Var
    Msg : String;
 Begin
@@ -112,7 +113,7 @@ Begin
          DS := txFirst_Dissection;
          While ( DS<>NIL ) and OK do With DS^, aClient.clFields do
          Begin
-            OK := aClient.clChart.CanCodeTo( dsAccount );
+            OK := aClient.clChart.CanCodeTo( dsAccount, IsActive );
 
             //check CA systems GST Range
             if IsCASystems( aClient) and (not CASystemsGSTOK( aClient, dsGST_Class)) then ok := false;
@@ -121,7 +122,7 @@ Begin
       end
       else
       with aClient.clfields do  Begin
-         OK := aClient.clChart.CanCodeTo( txAccount );
+         OK := aClient.clChart.CanCodeTo( txAccount, IsActive );
 
          //check CA Systems GST Range
          if IsCASystems( aClient) and (not CASystemsGSTOK( aClient, txGST_Class)) then ok := false;

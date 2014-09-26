@@ -2464,6 +2464,7 @@ const
    var
       i,j,line       : integer;
       mem            : pMemorised_Transaction_Rec;
+      IsActive       : boolean;
    begin
       with aClient.clBank_Account_List do begin
          for i := 0 to Pred( ItemCount) do with Bank_Account_At( i) do begin
@@ -2472,7 +2473,7 @@ const
                for line := 1 to 10 do begin
                   if ( not mem^.mxFrom_Master_List) and
                      ( mem^.mxAccount[ line] <> '') and
-                     ( aClient.clChart.CanCodeTo( mem^.mxAccount[ line])) and
+                     ( aClient.clChart.CanCodeTo( mem^.mxAccount[ line], IsActive)) and
                      ( mem^.mxGST_Class[ line] = 0) then
                   begin
                      //have found a line with a valid code that has a blank gst class

@@ -301,6 +301,7 @@ var D1, D2, I: Integer;
     FindStr,
     ReplaceStr,
     PMsg: string;
+    IsActive: boolean;
 
     procedure HandleError(Sheet: tTabSheet; Control: TWinControl; Msg: string);
     begin
@@ -330,7 +331,7 @@ begin
      Exit;
   end;
 
-  if not MyClient.clChart.CanCodeTo(ReplaceStr) then begin
+  if not MyClient.clChart.CanCodeTo(ReplaceStr, IsActive) then begin
      if AskYesNo(
           format('Cannot Post to "%s".',[ReplaceStr]),
           format('Cannot post to "%s".'#13'Do you want to continue?',[ReplaceStr]),

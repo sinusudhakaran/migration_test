@@ -1102,6 +1102,7 @@ var
    GSTClass : byte;
    GSTAmount: double;
    Payee    : integer;
+   IsActive : boolean;
 begin
    //verify values
    if not ValidDataRow(RowNum) then exit;
@@ -1112,7 +1113,7 @@ begin
       ceAccount: begin
          Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
          if (Account <> '') then begin
-            if not MyClient.clChart.CanCodeTo( Account ) then begin
+            if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
                ErrorSound;
 {$IFDEF SmartBooks}
                AllowIt := false;  //smartbooks requires a valid account code
@@ -1377,10 +1378,11 @@ procedure TdlgDissection.AccountEdited( pD : pWorkDissect_Rec );
 var
   NewClass   : byte;
   NewGST     : money;
+  IsActive   : boolean;
 begin
   UpdateBaseAmounts(pD);
   with pD^ do begin
-     if MyClient.clChart.CanCodeTo( dtAccount) then begin
+     if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
         CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtLocal_Amount, NewClass, NewGST);
         dtGST_Class  := NewClass;
         dtGST_Amount := NewGST;
@@ -1422,12 +1424,14 @@ end;
 
 procedure TdlgDissection.AmountEdited( pD : pWorkDissect_Rec );
 //update other fields that change when amount changes
+var
+  IsActive: boolean;
 begin
   UpdateBaseAmounts(pD);
   with pD^ do begin
      dtPercent_Amount := 0;
      dtAmount_Type_Is_Percent := False;
-     if MyClient.clChart.CanCodeTo( dtAccount) then begin
+     if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
         //recalculate the gst using the current class.  No need to change the GST has been edited flag
         //because its status will stay the same.
         dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class);
@@ -1454,6 +1458,7 @@ procedure TdlgDissection.PercentEdited( pD : pWorkDissect_Rec );
 //update other fields that change when percent changes
 var
   Remainder: Money;
+  IsActive: boolean;
 begin
   UpdateBaseAmounts(pD);
   with pD^ do
@@ -1465,7 +1470,7 @@ begin
     UpdateBaseAmounts(pD);
     dtHas_Been_Edited := True;
     dtAmount_Type_Is_Percent := True;
-    if MyClient.clChart.CanCodeTo( dtAccount) then
+    if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then
       dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtLocal_Amount, dtGST_Class)
     else
       if ( dtAccount = '' ) then dtHas_Been_Edited := false;
@@ -2039,6 +2044,7 @@ var
   S         : String;
   NotesIcon : TNotesIcon;
   pD        : pWorkDissect_Rec;
+  IsActive  : boolean;
 begin
   If ( data = nil ) then
     exit;
@@ -2048,7 +2054,7 @@ begin
   TableCanvas.Brush.Color      := CellAttr.caColor;
 
   S := ShortString( Data^ );
-  If not ( ( S='' ) or ( S=BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S ) or
+  If not ( ( S='' ) or ( S=BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) or
     ( CellAttr.CaColor = clHighLight ) ) then
   Begin
     TableCanvas.Brush.Color := clRed;
@@ -2701,8 +2707,9 @@ function TdlgDissection.FindUnCoded(const TheCurrentRow: integer): integer;
    function DissectLineUncoded(pD : pWorkDissect_Rec) : boolean;
    var
      Coded : boolean;
+     IsActive : boolean;
    begin
-     Coded := MyClient.clChart.CanCodeTo(pD^.dtAccount);
+     Coded := MyClient.clChart.CanCodeTo(pD^.dtAccount, IsActive);
 {$IFNDEF SmartBooks}
      //check CA systems GST Range
      if IsCASystems and (not CASystemsGSTOK(GetGSTClassNo( MyClient, Chr( pD^.dtGST_Class )))) then coded := false;
@@ -3044,6 +3051,7 @@ var
    Remainder: Double;
    GSTTotal   : Double;
    Percent: Double;
+   IsActive: boolean;
 begin
   SavedAmount := 0;
   UseSavedAmount := False;
@@ -3150,7 +3158,7 @@ begin
      Key := #0;
      //see if account code is valid, if not exit
      pD   := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-     if not ( MyClient.clChart.CanCodeTo( pD^.dtAccount)) then exit;
+     if not ( MyClient.clChart.CanCodeTo( pD^.dtAccount, IsActive)) then exit;
      //see if we can insert a row
      //count valid lines below this line
      LineNo := tblDissect.ActiveRow;

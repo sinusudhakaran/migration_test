@@ -1866,9 +1866,10 @@ procedure TdlgHistorical.AccountEdited(pT : pTransaction_Rec);
 var
   NewClass   : byte;
   NewGST     : money;
+  IsActive   : boolean;
 begin
   with pT^ do begin
-     if MyClient.clChart.CanCodeTo( txAccount) then begin
+     if MyClient.clChart.CanCodeTo( txAccount, IsActive) then begin
 //        CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, NewClass, NewGST);
         CalculateGST( MyClient, txDate_Effective, txAccount, Local_Amount, NewClass, NewGST);
         txGST_Class  := NewClass;
@@ -2534,6 +2535,7 @@ var
    GSTClass : byte;
    GSTAmt   : double;
    Payee    : integer;
+   IsActive : boolean;
 //   ChequeNo : longint;
 //   S        : string;
 //   l        : integer;
@@ -2549,7 +2551,7 @@ begin
          ceAccount: begin
             Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
             if (Account <> '') then begin
-               if not MyClient.clChart.CanCodeTo( Account ) then begin
+               if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
                   ErrorSound;
 {$IFDEF SmartBooks}
                   AllowIt := false;  //smartbooks requires a valid account code
@@ -4253,15 +4255,16 @@ procedure TdlgHistorical.celAccountOwnerDraw(Sender: TObject;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 // If the account code is invalid, show it in read
 var
-  R   : TRect;
-  C   : TCanvas;
-  S   : String;
+  R       : TRect;
+  C       : TCanvas;
+  S       : String;
+  IsActive: boolean;
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
   if CellAttr.caColor = clHighlight then exit;
   S := ShortString( Data^ );
-  If ( S='' ) or ( S=DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S ) then exit;
+  If ( S='' ) or ( S=DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) then exit;
   R := CellRect;
   C := TableCanvas;
   //paint background

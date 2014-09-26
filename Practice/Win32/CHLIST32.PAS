@@ -45,7 +45,7 @@ type
       function    GuessNextCode( ACode: String): pAccount_Rec;
 
       function    CodeIsThere( ACode : String ): Boolean;
-      function    CanCodeTo ( ACode : String; WithAtlCode: Boolean = False ): Boolean;
+      function    CanCodeTo ( ACode : String; var CodeIsActive: boolean; WithAtlCode: Boolean = False): Boolean;
       function    MatchAltCode(ACode: string): string;
       function    CanCodeTo_NumericSearch( ACode : String; var FoundCode: string ): Boolean;
       function    CanPressEnterNow (var ACode : ShortString; NoAtlCode: Boolean = False): Boolean;
@@ -596,7 +596,7 @@ Begin
    CodeIsThere := FindCode( ACode )<>NIL;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-function TChart.CanCodeTo(ACode : String; WithAtlCode: Boolean = False): Boolean;
+function TChart.CanCodeTo(ACode : String; var CodeIsActive: boolean; WithAtlCode: Boolean = False): Boolean;
 const
   ThisMethodName = 'TChart.CanCodeTo';
 Var
@@ -613,7 +613,9 @@ Begin
 
    Result := False;
    pCh := FindCode( ACode );
+
    If Assigned( pCH ) then begin
+      CodeIsActive := not pCh^.chInactive;
       Result := pCh^.chPosting_Allowed;
       Exit;
    end;
@@ -621,7 +623,10 @@ Begin
    if WithAtlCode then begin
        pCh := FAltChart.FindCode(ACode);
        if Assigned( pCH ) then
+       begin
+         CodeIsActive := not pCh^.chInactive;
          Result := pCh^.chPosting_Allowed;
+       end;
    end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

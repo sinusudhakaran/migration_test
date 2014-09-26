@@ -89,6 +89,7 @@ VAR
    NoDigits       : Integer;
    IsDissected    : Boolean;
    checkMasterMX  : boolean;
+   IsActive       : boolean;
 
 //   MasterMemList  : TMaster_Memorisations_List;
    MasterMemList  : TMemorisations_List;
@@ -726,7 +727,7 @@ Begin
                          //to see if a match found now ie.  Try to find '010'
                          AnalysisMatchFound := false;
                          while (not AnalysisMatchFound) and ( Length( TestCode) <= Length( Mask)) do begin
-                             AnalysisMatchFound := clChart.CanCodeTo ( TestCode );
+                             AnalysisMatchFound := clChart.CanCodeTo ( TestCode, IsActive );
                              if not AnalysisMatchFound then // Try sub-accounts
                              begin
                                AnalysisMatchFound := clChart.CanCodeTo_NumericSearch(TestCode, SubCode);

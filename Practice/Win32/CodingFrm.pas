@@ -4339,6 +4339,7 @@ procedure TfrmCoding.AccountEdited(pT : pTransaction_Rec);
 //blank by default.
 Var
   IsEldersAccount : boolean;
+  IsActive        : boolean;
 Begin
    With pT^ do
    Begin
@@ -4354,7 +4355,7 @@ Begin
       end;
 
       { The user has entered an Account Code }
-      If not MyClient.clChart.CanCodeTo( txAccount ) then
+      If not MyClient.clChart.CanCodeTo( txAccount, IsActive ) then
       Begin { If they have entered an invalid account code, flag the entry as manually coded so
               that the AutoCode doesn't try to recode it. }
          if (txCoded_By <> cbManualSuper) then //Won't recode so keep
@@ -5209,6 +5210,7 @@ var
    GSTAmt   : double;
    Payee, aDate : integer;
    MaintainMemScanStatus: boolean;
+   IsActive: boolean;
 begin
   MaintainMemScanStatus := False;
 
@@ -5230,7 +5232,7 @@ begin
             MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
             Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
             if (Account <> '') then begin
-               if not MyClient.clChart.CanCodeTo( Account ) then begin
+               if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
                   ErrorSound;
                end;
             end;
@@ -6162,6 +6164,7 @@ Const
 var
   R         : TRect;
   S         : String;
+  IsActive  : boolean;
 begin
   If ( data = nil ) then exit;
 
@@ -6170,7 +6173,7 @@ begin
   TableCanvas.Brush.Color      := CellAttr.caColor;
 
   S := ShortString( Data^ );
-  If not ( ( S='' ) or ( S= BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S ) or
+  If not ( ( S='' ) or ( S= BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) or
     ( CellAttr.CaColor = clHighLight ) ) then
   Begin
     TableCanvas.Brush.Color := clRed;

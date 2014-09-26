@@ -2060,22 +2060,23 @@ end;
 Function TransIsCoded(const aClient : TClientObj; const T : pTransaction_Rec ): Boolean;
 //special version since normal IsCoded works on the myClient object
 Var
-   OK    : Boolean;
-   DS    : pDissection_Rec;
+   OK       : Boolean;
+   DS       : pDissection_Rec;
+   IsActive : boolean;
 Begin
    With aClient, T^ do begin
       If txFirst_Dissection <> nil then begin
          OK := TRUE;
          DS := txFirst_Dissection;
          while ( DS<>NIL ) and OK do With DS^, clFields do begin
-            OK := clChart.CanCodeTo( dsAccount );
+            OK := clChart.CanCodeTo( dsAccount, IsActive );
             //check CA systems GST Range
             if IsCASystems( aClient) and (not CASystemsGSTOK( aClient, dsGST_Class)) then ok := false;
             DS := dsNext;
          end;
       end
       else with clfields do begin
-         OK := clChart.CanCodeTo( txAccount );
+         OK := clChart.CanCodeTo( txAccount, IsActive );
          //check CA Systems GST Range}
          if IsCASystems( aClient) and (not CASystemsGSTOK( aClient, txGST_Class)) then ok := false;
       end;

@@ -1699,9 +1699,10 @@ procedure TdlgPayeeDetail.ColAcctOwnerDraw(Sender: TObject;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 // If the code is invalid, show it in red
 var
-  R   : TRect;
-  C   : TCanvas;
-  S   : String;
+  R         : TRect;
+  C         : TCanvas;
+  S         : String;
+  IsActive  : boolean;
 const
   margin = 4;
   procedure PaintCommentIndicator(CommentColor: TColor);
@@ -1727,7 +1728,7 @@ begin
    if CellAttr.caColor <> clHighlight then begin
       if (S = '')
       or (S = BKCONST.DISSECT_DESC)
-      or MyClient.clChart.CanCodeTo(S) then begin
+      or MyClient.clChart.CanCodeTo(S, IsActive) then begin
          // Ok.
          TableCanvas.Brush.Color := CellAttr.caColor;
          TableCanvas.FillRect(R);

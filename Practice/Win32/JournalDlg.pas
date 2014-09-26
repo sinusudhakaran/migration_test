@@ -1469,6 +1469,7 @@ var
    GSTClass : byte;
    GSTAmt   : double;
    Payee    : integer;
+   IsActive : boolean;
 begin
    //verify values
    if not ValidDataRow(RowNum) then exit;
@@ -1479,7 +1480,7 @@ begin
       ceAccount: begin
          Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
          if (Account <> '') then begin
-            if not MyClient.clChart.CanCodeTo( Account ) then begin
+            if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
                ErrorSound;
 {$IFDEF SmartBooks}
                AllowIt := false;  //smartbooks requires a valid account code
@@ -1684,9 +1685,10 @@ procedure TdlgJournal.AccountEdited( pJ : pWorkJournal_Rec );
 var
   NewClass   : byte;
   NewGST     : money;
+  IsActive   : boolean;
 begin
   with pJ^ do begin
-     if MyClient.clChart.CanCodeTo( dtAccount) then begin
+     if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
         CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, NewClass, NewGST);
         dtGST_Class  := NewClass;
 
@@ -1758,9 +1760,11 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgJournal.AmountEdited( pJ : pWorkJournal_Rec );
 //update other fields that change when amount changes
+var
+  IsActive: boolean;
 begin
   with pJ^ do begin
-     if MyClient.clChart.CanCodeTo( dtAccount) then begin
+     if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
         //recalculate the gst using the current class.  No need to change the GST has been edited flag
         //because its status will stay the same.
         dtGST_Amount := CalculateGSTForClass( MyClient, pTran^.txDate_Effective, dtAmount, dtGST_Class);
@@ -2260,15 +2264,16 @@ procedure TdlgJournal.celAccountOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 var
-  R   : TRect;
-  C   : TCanvas;
-  S   : String;
+  R       : TRect;
+  C       : TCanvas;
+  S       : String;
+  IsActive: boolean;
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
   if CellAttr.caColor = clHighlight then exit;
   S := ShortString( Data^ );
-  If ( S='' ) or ( S=BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S ) then exit;
+  If ( S='' ) or ( S=BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) then exit;
   R := CellRect;
   C := TableCanvas;
   //paint background
@@ -2828,9 +2833,10 @@ function TdlgJournal.FindUnCoded(const TheCurrentRow: integer): integer;
 
    function DissectLineUncoded(pJ : pWorkJournal_Rec) : boolean;
    var
-     Coded : boolean;
+     Coded    : boolean;
+     IsActive : boolean;
    begin
-     Coded := MyClient.clChart.CanCodeTo(pJ^.dtAccount);
+     Coded := MyClient.clChart.CanCodeTo(pJ^.dtAccount, IsActive);
 {$IFNDEF SmartBooks}
      //check CA systems GST Range
      if IsCASystems and (not CASystemsGSTOK(pJ^.dtGST_Class)) then coded := false;

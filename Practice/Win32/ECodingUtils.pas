@@ -49,12 +49,14 @@ const
 procedure UpdateTransGSTFields( aClient : TClientObj; pT : BKDEFS.pTransaction_Rec;
   BankPrefix : string; CodedBy: Byte);
 var
- NewClass   : byte;
- NewGST     : money;
- IsEldersAccount : boolean;
+ NewClass         : byte;
+ NewGST           : money;
+ IsEldersAccount  : boolean;
+ IsActive         : boolean;
+ txAccount        : boolean;
 begin
  with pT^ do begin
-    if aClient.clChart.CanCodeTo( txAccount) then begin
+    if aClient.clChart.CanCodeTo( txAccount, IsActive) then begin
        IsEldersAccount := ( BankPrefix = EldersPrefix) and ( aClient.clFields.clCountry = whAustralia);
                                          // misc dr,  misc cr
        if not ( IsEldersAccount and ( txType in [9,10])) then begin

@@ -190,6 +190,7 @@ var
   D: pDissection_Rec;
   Uncoded, Coded, AddedHeading: Boolean;
   cf: TfrmCoding;
+  IsActive: boolean;  
 {$IFDEF USEWORD}
   wrdSelection, wrdApp, wrdDoc: Variant;
   Row: Integer;
@@ -294,7 +295,7 @@ begin
                 while D <> nil do // Check every dissection line
                 begin
                   // Work out if the dissection is uncoded
-                  Coded := MyClient.clChart.CanCodeTo(D.dsAccount);
+                  Coded := MyClient.clChart.CanCodeTo(D.dsAccount, IsActive);
                   if IsCASystems(MyClient) and (not CASystemsGSTOK(MyClient, D.dsGST_Class)) then
                     Coded := False;
 

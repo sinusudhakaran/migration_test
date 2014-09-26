@@ -2654,6 +2654,7 @@ procedure TdlgMemorise.ColAcctOwnerDraw(Sender: TObject;
 var
   R: TRect;
   S: String;
+  CodeIsActive: boolean;
 const
   margin = 4;
   procedure PaintCommentIndicator(CommentColor: TColor);
@@ -2678,9 +2679,12 @@ begin
    if CellAttr.caColor <> clHighlight then begin
       if (S = '')
       or (S = BKCONST.DISSECT_DESC)
-      or MyClient.clChart.CanCodeTo(S,HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then begin
+      or MyClient.clChart.CanCodeTo(S,CodeIsActive,HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then begin
          // Ok.
-         TableCanvas.Brush.Color := CellAttr.caColor;
+         if CodeIsActive then
+           TableCanvas.Brush.Color := CellAttr.caColor
+         else
+           TableCanvas.Brush.Color := clYellow;
          TableCanvas.FillRect(R);
          TableCanvas.Font.Color := clWindowtext;
       end else begin
