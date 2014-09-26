@@ -106,6 +106,8 @@ type
     DivisionNames  : Array of TDivisionNamesRec;
     FHasAlternativeCode: Boolean;
 
+    fIgnoreEvents: boolean;
+
     // ---------------------
     function OKtoPost : boolean;
     Procedure AccountTypeChanged;
@@ -228,6 +230,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgEditAccount.chkInactiveClick(Sender: TObject);
 begin
+  if fIgnoreEvents then
+    exit;
+
   if chkInactive.Checked then
     DisplayMemorisationPayee_AccountUsed(eCode.Text);
 end;
@@ -359,6 +364,7 @@ begin
   SetupSubGroupList;
 
   {load values}
+  fIgnoreEvents := true;
   if Assigned(Account) then
   begin
     eCode.Text           := Account.chAccount_Code;
@@ -412,6 +418,7 @@ begin
 
     LoadLinkedAccounts( nil);
   end;
+  fIgnoreEvents := false;
 
   if not Assigned(AdminSystem) then
     chkBasic.Visible := false; //in books they can't add an item to the full chart.

@@ -52,6 +52,8 @@ type
     Label2: TLabel;
     lblAltCodeName: TLabel;
     LblAltCode: TLabel;
+    tbInactive: TRzToolButton;
+    RzSpacer3: TRzSpacer;
     procedure tbCloseClick(Sender: TObject);
     procedure tbEditClick(Sender: TObject);
     procedure lvChartDblClick(Sender: TObject);
@@ -82,6 +84,7 @@ type
     procedure chkPostingClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure chkBasicClick(Sender: TObject);
+    procedure tbInactiveClick(Sender: TObject);
   private
     { Private declarations }
     CheckAnyEdit     : Boolean;
@@ -100,6 +103,7 @@ type
     FTaxName         : String;
     FHasAlternativeCode: Boolean;
     AltCodeModifier: integer;
+    fShowInactive: boolean;
 
     procedure RefreshChartList;
 
@@ -126,6 +130,8 @@ type
     procedure SetHasAlternativeCode(const Value: Boolean);
     property HasAlternativeCode: Boolean read FHasAlternativeCode write SetHasAlternativeCode;
     function CorrectedColNum(ColNum: integer): integer;
+
+    procedure UpdateInactiveColumn;
   public
     { Public declarations }
     function Execute : boolean;
@@ -181,6 +187,10 @@ const
    c_Division = 6;
    c_Basic = 7;
    c_Post = 8;
+   c_Inactive = 9;
+
+   // Column width
+   w_Inactive = 60;
 
 
 { TfrmMaintainChart }
@@ -311,6 +321,7 @@ begin
         NewItem.SubItems.Add('');                         {divisions}
         NewItem.SubItems.Add('');                         {basic}
         NewItem.SubItems.Add('');                         {posting}
+        NewItem.SubItems.Add('');                         {inactive}
         RefreshItem(Account,NewItem);
       end;
     end;
@@ -676,7 +687,7 @@ Var
 begin
   Item.Caption      := p.chAccount_Code;
   Item.SubItems[CorrectedColNum(c_Desc) - 1]  := p.chAccount_Description;
-  if HasAlternativeCode then  
+  if HasAlternativeCode then
     Item.SubItems[c_AltCode - 1]  := p.chAlternative_Code;
 
   if p.chAccount_Type in [atMin..atMax] then
@@ -720,6 +731,11 @@ begin
      item.SubItems[CorrectedColNum(c_Post) -1] := 'Y'
   else
     Item.SubItems[CorrectedColNum(c_Post) -1] := '';
+
+  if p.chInactive then
+    Item.SubItems[CorrectedColNum(c_Inactive) - 1] := 'Y'
+  else
+    Item.SubItems[CorrectedColNum(c_Inactive) - 1] := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -974,6 +990,10 @@ begin
     chkPosting.Top := chkBasic.Top;
     lblPosting.Top := lblBasic.Top;
   end;
+
+  // Inactive column
+  fShowInactive := assigned(AdminSystem);
+  UpdateInactiveColumn;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMaintainChart.SetUpHelp;
@@ -1524,6 +1544,34 @@ end;
 procedure TfrmMaintainChart.tbHelpClick(Sender: TObject);
 begin
   BKHelpShowContext( tbHelp.HelpContext);
+end;
+
+procedure TfrmMaintainChart.tbInactiveClick(Sender: TObject);
+begin
+  fShowInactive := not fShowInactive;
+
+  UpdateInactiveColumn;
+end;
+
+procedure TfrmMaintainChart.UpdateInactiveColumn;
+var
+  iColumn: integer;
+begin
+  iColumn := CorrectedColNum(c_Inactive);
+
+  // Show inactive column?
+  if fShowInactive then
+  begin
+    tbInactive.Caption := 'Hide &Inactive';
+
+    lvChart.Columns[iColumn].Width := w_Inactive;
+  end
+  else
+  begin
+    tbInactive.Caption := 'Show &Inactive';
+
+    lvChart.Columns[iColumn].Width := 0;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

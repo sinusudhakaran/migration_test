@@ -285,6 +285,9 @@ begin
           NewAccount.chLinked_Account_OS      := ExistingAccount.chLinked_Account_OS;
           NewAccount.chLinked_Account_CS      := ExistingAccount.chLinked_Account_CS;
           NewAccount.chHide_In_Basic_Chart    := ExistingAccount.chHide_In_Basic_Chart;
+
+          // Reset Inactive
+          NewAccount.chInactive := false;
        end else
           NewAccount.chAccount_Type := atNone; // N/A
 
