@@ -1436,7 +1436,8 @@ begin
   edtClientStartDte.AsDateTime := now();
   lblAdditionalFormRequired.Visible := False;
 
-  cmbInstitution.SetFocus;
+  if Self.Visible then
+    cmbInstitution.SetFocus;
 end;
 
 //------------------------------------------------------------------------------

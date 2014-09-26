@@ -269,7 +269,7 @@ object frmCAF: TfrmCAF
       object chkDataSecureExisting: TCheckBox
         Left = 24
         Top = 75
-        Width = 219
+        Width = 215
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -286,7 +286,7 @@ object frmCAF: TfrmCAF
       object chkDataSecureNew: TCheckBox
         Left = 24
         Top = 27
-        Width = 294
+        Width = 290
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -303,7 +303,7 @@ object frmCAF: TfrmCAF
       object edtSecureCode: TEdit
         Left = 382
         Top = 72
-        Width = 142
+        Width = 138
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -318,7 +318,7 @@ object frmCAF: TfrmCAF
       object chkSupplyAsProvisional: TCheckBox
         Left = 24
         Top = 123
-        Width = 447
+        Width = 443
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 
@@ -396,7 +396,7 @@ object frmCAF: TfrmCAF
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 368
+        Width = 364
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -413,7 +413,7 @@ object frmCAF: TfrmCAF
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 253
+        Width = 249
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -432,7 +432,7 @@ object frmCAF: TfrmCAF
       object edtBranch: TEdit
         Left = 148
         Top = 45
-        Width = 368
+        Width = 364
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -478,7 +478,7 @@ object frmCAF: TfrmCAF
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 550
+          Width = 548
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -537,7 +537,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -556,7 +556,7 @@ object frmCAF: TfrmCAF
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -578,7 +578,7 @@ object frmCAF: TfrmCAF
         object edtAccountNumber1: TEdit
           Left = 30
           Top = 65
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -598,7 +598,7 @@ object frmCAF: TfrmCAF
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 83
+          Width = 81
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -618,7 +618,7 @@ object frmCAF: TfrmCAF
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 83
+          Width = 81
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -694,7 +694,7 @@ object frmCAF: TfrmCAF
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 550
+          Width = 548
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -753,7 +753,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount2: TEdit
           Left = 8
           Top = 10
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -772,7 +772,7 @@ object frmCAF: TfrmCAF
         object mskAccountNumber2: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -794,7 +794,7 @@ object frmCAF: TfrmCAF
         object edtAccountNumber2: TEdit
           Left = 30
           Top = 65
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -814,7 +814,7 @@ object frmCAF: TfrmCAF
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 83
+          Width = 81
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -834,7 +834,7 @@ object frmCAF: TfrmCAF
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 83
+          Width = 81
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -909,7 +909,7 @@ object frmCAF: TfrmCAF
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 550
+          Width = 548
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -968,7 +968,7 @@ object frmCAF: TfrmCAF
         object edtNameOfAccount3: TEdit
           Left = 8
           Top = 10
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -986,7 +986,7 @@ object frmCAF: TfrmCAF
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -1008,7 +1008,7 @@ object frmCAF: TfrmCAF
         object edtAccountNumber3: TEdit
           Left = 30
           Top = 65
-          Width = 296
+          Width = 294
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -1028,7 +1028,7 @@ object frmCAF: TfrmCAF
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 83
+          Width = 81
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -1047,7 +1047,7 @@ object frmCAF: TfrmCAF
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 83
+          Width = 81
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]

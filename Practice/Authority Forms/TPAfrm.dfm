@@ -211,7 +211,7 @@ object frmTPA: TfrmTPA
       object cmbInstitution: TComboBox
         Left = 148
         Top = 10
-        Width = 326
+        Width = 322
         Height = 24
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -220,7 +220,7 @@ object frmTPA: TfrmTPA
         Font.Height = -15
         Font.Name = 'MS Sans Serif'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 0
         OnChange = cmbInstitutionChange
@@ -228,7 +228,7 @@ object frmTPA: TfrmTPA
       object edtInstitutionName: TEdit
         Left = 263
         Top = 10
-        Width = 211
+        Width = 207
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -243,11 +243,12 @@ object frmTPA: TfrmTPA
         TabOrder = 1
         Visible = False
         OnExit = edt1Exit
+        ExplicitWidth = 211
       end
       object edtBranch: TEdit
         Left = 148
         Top = 46
-        Width = 326
+        Width = 322
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -261,6 +262,7 @@ object frmTPA: TfrmTPA
         ShowHint = True
         TabOrder = 2
         OnExit = edt1Exit
+        ExplicitWidth = 326
       end
     end
     object pnlInstitution: TPanel
@@ -292,7 +294,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine1: TLabel
           Left = 6
           Top = 40
-          Width = 552
+          Width = 550
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -351,7 +353,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount1: TEdit
           Left = 8
           Top = 10
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -366,11 +368,12 @@ object frmTPA: TfrmTPA
           TabOrder = 0
           OnChange = edtNameOfAccount1Change
           OnEnter = edt1Exit
+          ExplicitWidth = 280
         end
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -388,11 +391,12 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumber1MouseDown
           OnValidateError = mskAccountNumber1ValidateError
           OnValidateEdit = mskAccountNumber1ValidateEdit
+          ExplicitWidth = 280
         end
         object edtAccountNumber1: TEdit
           Left = 36
           Top = 65
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -408,11 +412,12 @@ object frmTPA: TfrmTPA
           OnChange = edtAccountNumber1Change
           OnEnter = edtAccountNumber1Enter
           OnExit = edtAccountNumber1Exit
+          ExplicitWidth = 280
         end
         object edtClientCode1: TEdit
           Left = 464
           Top = 10
-          Width = 67
+          Width = 65
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -428,11 +433,12 @@ object frmTPA: TfrmTPA
           OnChange = edtClientCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
+          ExplicitWidth = 67
         end
         object edtCostCode1: TEdit
           Left = 464
           Top = 65
-          Width = 67
+          Width = 65
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -448,6 +454,7 @@ object frmTPA: TfrmTPA
           OnChange = edtCostCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
+          ExplicitWidth = 67
         end
       end
       object pnlInstData2: TPanel
@@ -491,7 +498,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine2: TLabel
           Left = 6
           Top = 40
-          Width = 552
+          Width = 550
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -524,7 +531,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount2: TEdit
           Left = 8
           Top = 10
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -539,11 +546,12 @@ object frmTPA: TfrmTPA
           TabOrder = 0
           OnChange = edtNameOfAccount2Change
           OnEnter = edt2Exit
+          ExplicitWidth = 280
         end
         object edtClientCode2: TEdit
           Left = 464
           Top = 10
-          Width = 67
+          Width = 65
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -559,11 +567,12 @@ object frmTPA: TfrmTPA
           OnChange = edtClientCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
+          ExplicitWidth = 67
         end
         object edtCostCode2: TEdit
           Left = 464
           Top = 65
-          Width = 67
+          Width = 65
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -579,11 +588,12 @@ object frmTPA: TfrmTPA
           OnChange = edtCostCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
+          ExplicitWidth = 67
         end
         object mskAccountNumber2: TMaskValidateEdit
           Left = 9
           Top = 65
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -601,11 +611,12 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumber2MouseDown
           OnValidateError = mskAccountNumber2ValidateError
           OnValidateEdit = mskAccountNumber2ValidateEdit
+          ExplicitWidth = 280
         end
         object edtAccountNumber2: TEdit
           Left = 36
           Top = 65
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -621,6 +632,7 @@ object frmTPA: TfrmTPA
           OnChange = edtAccountNumber2Change
           OnEnter = edtAccountNumber2Enter
           OnExit = edtAccountNumber2Exit
+          ExplicitWidth = 280
         end
       end
       object pnlInstLabels2: TPanel
@@ -744,7 +756,7 @@ object frmTPA: TfrmTPA
         object lblAccountHintLine3: TLabel
           Left = 6
           Top = 40
-          Width = 552
+          Width = 550
           Height = 31
           Alignment = taCenter
           Anchors = [akLeft, akTop, akRight]
@@ -777,7 +789,7 @@ object frmTPA: TfrmTPA
         object edtNameOfAccount3: TEdit
           Left = 8
           Top = 10
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -792,11 +804,12 @@ object frmTPA: TfrmTPA
           TabOrder = 0
           OnChange = edtNameOfAccount3Change
           OnEnter = edt3Exit
+          ExplicitWidth = 280
         end
         object edtClientCode3: TEdit
           Left = 464
           Top = 10
-          Width = 67
+          Width = 65
           Height = 24
           Hint = 'The client code from BankLink or your general ledger'
           Anchors = [akLeft, akTop, akRight]
@@ -812,11 +825,12 @@ object frmTPA: TfrmTPA
           OnChange = edtClientCode3Change
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
+          ExplicitWidth = 67
         end
         object edtCostCode3: TEdit
           Left = 464
           Top = 65
-          Width = 67
+          Width = 65
           Height = 24
           Hint = 'The cost code from your practice management or billing system'
           Anchors = [akLeft, akTop, akRight]
@@ -832,11 +846,12 @@ object frmTPA: TfrmTPA
           OnChange = edtCostCode3Change
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
+          ExplicitWidth = 67
         end
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
           Top = 65
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           AutoSelect = False
@@ -854,11 +869,12 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumber3MouseDown
           OnValidateError = mskAccountNumber3ValidateError
           OnValidateEdit = mskAccountNumber3ValidateEdit
+          ExplicitWidth = 280
         end
         object edtAccountNumber3: TEdit
           Left = 36
           Top = 65
-          Width = 280
+          Width = 278
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -874,6 +890,7 @@ object frmTPA: TfrmTPA
           OnChange = edtAccountNumber3Change
           OnEnter = edtAccountNumber3Enter
           OnExit = edtAccountNumber3Exit
+          ExplicitWidth = 280
         end
       end
       object s: TPanel
@@ -1097,7 +1114,7 @@ object frmTPA: TfrmTPA
       object chkDataSecureExisting: TCheckBox
         Left = 26
         Top = 61
-        Width = 356
+        Width = 352
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -1110,11 +1127,12 @@ object frmTPA: TfrmTPA
         ParentFont = False
         TabOrder = 1
         OnClick = chkDataSecureExistingClick
+        ExplicitWidth = 356
       end
       object chkDataSecureNew: TCheckBox
         Left = 26
         Top = 10
-        Width = 356
+        Width = 352
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -1127,11 +1145,12 @@ object frmTPA: TfrmTPA
         ParentFont = False
         TabOrder = 0
         OnClick = chkDataSecureNewClick
+        ExplicitWidth = 356
       end
       object edtSecureCode: TEdit
         Left = 384
         Top = 59
-        Width = 138
+        Width = 134
         Height = 24
         Anchors = [akLeft, akTop, akRight]
         Font.Charset = DEFAULT_CHARSET
@@ -1142,14 +1161,17 @@ object frmTPA: TfrmTPA
         MaxLength = 8
         ParentFont = False
         TabOrder = 2
+        ExplicitWidth = 138
       end
       object chkSupplyAsProvisional: TCheckBox
         Left = 26
         Top = 112
-        Width = 510
+        Width = 506
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Supply as provisional if account(s) are not available from the Bank'
+        Caption = 
+          'Supply as provisional if account(s) are not available from the B' +
+          'ank'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -15
@@ -1158,6 +1180,7 @@ object frmTPA: TfrmTPA
         ParentFont = False
         TabOrder = 3
         OnClick = chkDataSecureNewClick
+        ExplicitWidth = 510
       end
     end
     object pnlRural: TPanel
@@ -1190,7 +1213,7 @@ object frmTPA: TfrmTPA
       object radReDateTransactions: TRadioButton
         Left = 57
         Top = 38
-        Width = 642
+        Width = 638
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Re-date transactions to Payment Date'
@@ -1205,11 +1228,12 @@ object frmTPA: TfrmTPA
         TabStop = True
         OnKeyDown = radReDateTransactionsKeyDown
         OnMouseDown = radReDateTransactionsMouseDown
+        ExplicitWidth = 642
       end
       object radDateShown: TRadioButton
         Left = 57
         Top = 71
-        Width = 642
+        Width = 638
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Date shown on statement (not re-dated)'
@@ -1222,6 +1246,7 @@ object frmTPA: TfrmTPA
         TabOrder = 1
         OnKeyDown = radDateShownKeyDown
         OnMouseDown = radDateShownMouseDown
+        ExplicitWidth = 642
       end
     end
   end

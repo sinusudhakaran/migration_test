@@ -1528,7 +1528,8 @@ begin
   edtClientStartDte.AsDateTime := now();
   radReDateTransactions.Checked := true;
 
-  cmbInstitution.SetFocus;
+  if Self.Visible then  
+    cmbInstitution.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
