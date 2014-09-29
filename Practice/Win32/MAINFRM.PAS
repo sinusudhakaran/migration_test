@@ -836,6 +836,7 @@ type
     UsingCustomPracticeLogo : boolean;
 
     procedure UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
+    procedure UpdateAllWindowTabs(aActionedPage: string = '');
 
     Property MemScanIsBusy : boolean read fMemScanIsBusy write SetMemScanIsBusy;
     procedure DoMainFormCommand( command : byte; Modal : boolean = true); overload;
@@ -1074,12 +1075,20 @@ uses
   BillingDocReaderFrm,
   UpgradeHelper,
   dlgReportOptions,
-  ZipUtils, clObj32, baObj32, trxList32, CombineAccountsDlg, CombineManualAccountsDlg,
-  UsageUtils, SyDefs, QueryTx,
+  ZipUtils,
+  clObj32,
+  baObj32,
+  trxList32,
+  CombineAccountsDlg,
+  CombineManualAccountsDlg,
+  UsageUtils,
+  SyDefs,
+  QueryTx,
   EnterPwdDlg,
   Chartremapfrm,
   ListChargesDlg,
-  CountryUtils, HSBCDemo,
+  CountryUtils,
+  HSBCDemo,
   CustomDocEditorFrm,
   frmExchangeRates,
   BankLinkOnlineServices,
@@ -1092,6 +1101,7 @@ uses
   BroadcastSystem,
   UpgradeReminder,
   RecommendedMemorisationsFrm,
+  JournalDlg,
   ChartExportToMYOBCashbook;
   //StockBalancesDlg;
 
@@ -4514,6 +4524,33 @@ begin
     aTabWindow.TabIndex := -1;
   finally
     TabList.Free;
+  end;
+end;
+
+procedure TfrmMain.UpdateAllWindowTabs(aActionedPage: string = '');
+var                                       
+  TabIndex : Integer;
+begin
+  for TabIndex := 0 to Pred(MDIChildCount) do
+  begin
+    if (MDIChildren[TabIndex].Caption = aActionedPage) then
+      continue;
+
+    if (MDIChildren[TabIndex] is TfrmCoding) then
+       TfrmCoding(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+
+    if (MDIChildren[TabIndex] is TfrmBudget) then
+       TfrmBudget(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+
+    if (MDIChildren[TabIndex] is TdlgJournal) then
+       TdlgJournal(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+
+    if (MDIChildren[TabIndex] is TfrmClientHomePage) then
+       TfrmClientHomePage(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+
+    //if (MDIChildren[TabIndex].Caption <> aActionedPage) and
+    //   ((MDIChildren[TabIndex] is TfrmCoding) or
+    //    (MDIChildren[TabIndex] is TfrmBudget)) then
   end;
 end;
 

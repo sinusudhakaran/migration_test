@@ -109,6 +109,7 @@ type
     rgGST: TRadioGroup;
     tmrUnusedRows: TTimer;
     tcWindows: TRzTabControl;
+    pnlLine: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure tblBudgetGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -172,7 +173,6 @@ type
     procedure actAutoCalculateGSTExecute(Sender: TObject);
     procedure rgGSTClick(Sender: TObject);
     procedure tmrUnusedRowsTimer(Sender: TObject);
-    procedure tcWindowsClick(Sender: TObject);
     procedure tcWindowsTabClick(Sender: TObject);
   private
     { Private declarations }
@@ -270,6 +270,7 @@ type
 
   public
     { Public declarations }
+    procedure ActivateCurrentTab(aTabIndex : integer);
     procedure UpdateTabs(aActionedPage: string = '');
 
     property Budget  : TBudget read FBudget write SetBudget;
@@ -337,6 +338,8 @@ uses
    ImportBudgetResultsDlg,
    usageutils,
    BudgetAutoGST,
+   CodingFrm,
+   JournalDlg,
    glConst;
 
 const
@@ -1521,19 +1524,6 @@ begin
   frmMain.tbBudgetHide.Enabled := HideEnabled;
   mniHideUnused.Enabled := HideEnabled;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmBudget.UpdateTabs(aActionedPage : string = '');
-begin
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
-
-  frmMain.UpdateTabs(tcWindows, aActionedPage);
-  tcWindows.Visible := tcWindows.Tabs.Count > 0;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
 end;
 
 //------------------------------------------------------------------------------
@@ -3750,18 +3740,47 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+//------------------------------------------------------------------------------
+procedure TfrmBudget.ActivateCurrentTab(aTabIndex : integer);
+begin
+  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.UpdateTabs(aActionedPage : string = '');
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmBudget.tcWindowsTabClick(Sender: TObject);
 var
   obj : TObject;
 begin
   obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
   if obj is TForm then
+  begin
     TForm(obj).BringToFront;
-end;
 
-procedure TfrmBudget.tcWindowsClick(Sender: TObject);
-begin
+    if (obj is TfrmCoding) then
+      TfrmCoding(obj).ActivateCurrentTab(tcWindows.TabIndex);
 
+    if (obj is TfrmBudget) then
+      TfrmBudget(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TdlgJournal) then
+      TdlgJournal(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TfrmClientHomePage) then
+      TfrmClientHomePage(obj).ActivateCurrentTab(tcWindows.TabIndex);
+  end;
 end;
 
 //------------------------------------------------------------------------------

@@ -144,6 +144,7 @@ type
     BtnCal: TButton;
     CelAltChartCode: TOvcTCString;
     tcWindows: TRzTabControl;
+    pnlLine: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tblJournalGetCellData(Sender: TObject; RowNum,
@@ -384,6 +385,7 @@ type
     procedure RedrawRow(Row: integer = 0);
   public
     { Public declarations }
+    procedure ActivateCurrentTab(aTabIndex : integer);
     procedure UpdateTabs(aActionedPage: string = '');
 
   end;
@@ -437,8 +439,14 @@ uses
    trxList32,
    WarningMoreFrm,
    WinUtils,
-   YesNoDlg, ConfigColumnsFrm, NewReportUtils, CountryUtils,
-   Files, MAINFRM;
+   YesNoDlg,
+   ConfigColumnsFrm,
+   NewReportUtils,
+   CountryUtils,
+   Files,
+   BudgetFrm,
+   CodingFrm,
+   MAINFRM;
 
 {$R *.DFM}
 
@@ -1403,19 +1411,6 @@ begin
          Panels[PANELTEXT].Text := Format( '<%s> %s INVALID!', [ Code, Copy( pA^.chAccount_Description, 1, 16 ) ] );
       end;
    end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgJournal.UpdateTabs(aActionedPage : string = '');
-begin
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
-
-  frmMain.UpdateTabs(tcWindows, aActionedPage);
-  tcWindows.Visible := tcWindows.Tabs.Count > 0;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -5854,13 +5849,47 @@ begin
 
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgJournal.ActivateCurrentTab(aTabIndex : integer);
+begin
+  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgJournal.UpdateTabs(aActionedPage : string = '');
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgJournal.tcWindowsTabClick(Sender: TObject);
 var
   obj : TObject;
 begin
   obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
   if obj is TForm then
+  begin
     TForm(obj).BringToFront;
+
+    if (obj is TfrmCoding) then
+      TfrmCoding(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TfrmBudget) then
+      TfrmBudget(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TdlgJournal) then
+      TdlgJournal(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TfrmClientHomePage) then
+      TfrmClientHomePage(obj).ActivateCurrentTab(tcWindows.TabIndex);
+  end;
 end;
 
 //------------------------------------------------------------------------------

@@ -192,7 +192,6 @@ type
     procedure UpdateRefresh;
     { Private declarations }
     procedure wmsyscommand( var msg: TWMSyscommand ); message wm_syscommand;
-    procedure UpdateTabs(aActionedPage: string = '');
     procedure UMRefreshExchangeGainLoss(var Msg: TMessage); message UM_REFRESH_EXCHANGE_GAIN_LOSS;
   protected
     function GetGlobalRedrawForeign: boolean; override;
@@ -205,6 +204,9 @@ type
     function GetAbandon : boolean; override;
     procedure SetAbandon(const Value: Boolean); override;
   public
+    procedure ActivateCurrentTab(aTabIndex : integer);
+    procedure UpdateTabs(aActionedPage: string = '');
+
     function GetFillDate: integer; override;
     procedure Lock; override;
     procedure Unlock; override;
@@ -215,7 +217,8 @@ type
 function ClientHomePage: TBaseClientHomepage;
 procedure SetClientHomePageToNil;   //called by SimpleUIHomepage
 
-procedure RefreshHomepage (Value : THP_Refresh = THP_RefreshAll; ActionedPage: string = '');
+procedure RefreshHomepage (aValue : THP_Refresh = THP_RefreshAll;
+                           aActionedPage: string = '');
 
 procedure CloseClientHomepage;
 procedure AbandonClientHomePage;
@@ -251,6 +254,7 @@ uses
   YesNoDlg,
   ExchangeGainLossWiz,
   LockUtils,
+  JournalDlg,
   RecommendedMems;
 {$R *.dfm}
 
@@ -314,40 +318,48 @@ begin
     FClientHomePage.GlobalRedrawForeign := Value;
 end;
 
-procedure RefreshHomepage (Value : THP_Refresh = THP_RefreshAll; ActionedPage: string = '');
+procedure RefreshHomepage (aValue : THP_Refresh = THP_RefreshAll;
+                           aActionedPage: string = '');
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshHomepage');
-  if assigned(MyClient) then begin
-     // Something to refresh..
-     if assigned(FClientHomePage) then
-     begin
-        //already have a homepage, just queue the request
-        FClientHomePage.RefreshRequest := Value;
-     end
-     else
-     begin// have no Homepage but do have an open client file
-        // But I DO want one...
-        if HRP_Init in Value then
-        begin
-           ClientHomePage.TheClient := MyClient; //this triggers the form create
-        end;
-     end;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,UnitName,'Enter RefreshHomepage');
 
-     //see if a client homepage was created
-     if Assigned( FclientHomePage) then
-     begin
-       Assert((FClientHomePage is TfrmClientHomePage) OR (FClientHomePage is TfrmSimpleUIHomepage), 'Unknown homepage created');
-       //special processing depending on version of homepage that was created
-       if FClientHomePage is TfrmClientHomePage then
-       begin
-         TfrmClientHomePage(FClientHomePage).UpdateTabs(ActionedPage);
-         TfrmClientHomePage(FClientHomePage).RefreshCoding(True);
-       end;
-     end;
-  end else
-     //Should not have a Homepage...
-     CloseClientHomepage;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshHomepage');
+  if assigned(MyClient) then
+  begin
+    // Something to refresh..
+    if assigned(FClientHomePage) then
+    begin
+      //already have a homepage, just queue the request
+      FClientHomePage.RefreshRequest := aValue;
+    end
+    else
+    begin// have no Homepage but do have an open client file
+      // But I DO want one...
+      if HRP_Init in aValue then
+      begin
+         ClientHomePage.TheClient := MyClient; //this triggers the form create
+      end;
+    end;
+
+    //see if a client homepage was created
+    if Assigned( FclientHomePage) then
+    begin
+      Assert((FClientHomePage is TfrmClientHomePage) OR (FClientHomePage is TfrmSimpleUIHomepage), 'Unknown homepage created');
+      //special processing depending on version of homepage that was created
+      if FClientHomePage is TfrmClientHomePage then
+      begin
+        TfrmClientHomePage(FClientHomePage).UpdateTabs(aActionedPage);
+        TfrmClientHomePage(FClientHomePage).RefreshCoding(True);
+        frmMain.UpdateAllWindowTabs(aActionedPage);
+      end;
+    end;
+  end
+  else
+    //Should not have a Homepage...
+    CloseClientHomepage;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshHomepage');
 end;
 
 procedure CloseClientHomepage;
@@ -2011,6 +2023,17 @@ begin
     inherited;
 end;
 
+procedure TfrmClientHomePage.UpdateWebNotes(var Msg: TMessage);
+begin
+   RefreshFiles;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientHomePage.ActivateCurrentTab(aTabIndex : integer);
+begin
+  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientHomePage.UpdateTabs(aActionedPage : string = '');
 begin
@@ -2024,20 +2047,31 @@ begin
     LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
 end;
 
-procedure TfrmClientHomePage.UpdateWebNotes(var Msg: TMessage);
-begin
-   RefreshFiles;
-end;
-
+//------------------------------------------------------------------------------
 procedure TfrmClientHomePage.tcWindowsTabClick(Sender: TObject);
 var
   obj : TObject;
 begin
   obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
   if obj is TForm then
+  begin
     TForm(obj).BringToFront;
+
+    if (obj is TfrmCoding) then
+      TfrmCoding(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TfrmBudget) then
+      TfrmBudget(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TdlgJournal) then
+      TdlgJournal(obj).ActivateCurrentTab(tcWindows.TabIndex);
+
+    if (obj is TfrmClientHomePage) then
+      TfrmClientHomePage(obj).ActivateCurrentTab(tcWindows.TabIndex);
+  end;
 end;
 
+//------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UnitName);
   FClientHomePage := nil;

@@ -3,7 +3,7 @@ object frmCoding: TfrmCoding
   Top = 293
   Anchors = []
   Caption = 'Code Bank Statements'
-  ClientHeight = 530
+  ClientHeight = 571
   ClientWidth = 728
   Color = clBtnFace
   ParentFont = True
@@ -26,7 +26,7 @@ object frmCoding: TfrmCoding
   TextHeight = 13
   object barCodingStatus: TStatusBar
     Left = 0
-    Top = 485
+    Top = 525
     Width = 728
     Height = 24
     AutoHint = True
@@ -64,12 +64,13 @@ object frmCoding: TfrmCoding
     UseSystemFont = False
     OnClick = barCodingStatusClick
     OnMouseUp = barCodingStatusMouseUp
+    ExplicitTop = 485
   end
   object tblCoding: TOvcTable
     Left = 0
     Top = 63
     Width = 728
-    Height = 332
+    Height = 372
     RowLimit = 2
     LockedCols = 0
     LeftCol = 0
@@ -112,6 +113,7 @@ object frmCoding: TfrmCoding
     OnMouseUp = tblCodingMouseUp
     OnMouseWheel = BkMouseWheelHandler
     OnTopLeftCellChanged = tblCodingTopLeftCellChanged
+    ExplicitHeight = 332
     CellData = (
       'frmCoding.hdrColumnHeadings')
     RowData = (
@@ -150,7 +152,7 @@ object frmCoding: TfrmCoding
   end
   object RzSizePanel1: TRzSizePanel
     Left = 0
-    Top = 395
+    Top = 435
     Width = 728
     Height = 90
     Align = alBottom
@@ -162,6 +164,7 @@ object frmCoding: TfrmCoding
     TabOrder = 3
     VisualStyle = vsGradient
     OnResize = RzSizePanel1Resize
+    ExplicitTop = 395
     object pnlNotes: TPanel
       Left = 0
       Top = 10
@@ -523,7 +526,7 @@ object frmCoding: TfrmCoding
   end
   object tcWindows: TRzTabControl
     Left = 0
-    Top = 509
+    Top = 550
     Width = 728
     Height = 21
     Align = alBottom
@@ -535,7 +538,19 @@ object frmCoding: TfrmCoding
         Caption = 'Tab1'
       end>
     OnTabClick = tcWindowsTabClick
+    ExplicitTop = 509
     FixedDimension = 19
+  end
+  object pnlLine: TPanel
+    Left = 0
+    Top = 549
+    Width = 728
+    Height = 1
+    Align = alBottom
+    TabOrder = 7
+    ExplicitLeft = 272
+    ExplicitTop = 528
+    ExplicitWidth = 185
   end
   object cntController: TOvcController
     EntryCommands.TableList = (
@@ -616,6 +631,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblCoding
@@ -635,6 +651,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblCoding
@@ -655,6 +672,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblCoding
@@ -1030,7 +1048,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblCoding
     Left = 624
@@ -1046,7 +1063,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     Table = tblCoding
     OnChange = celLocalCurrencyAmountChange

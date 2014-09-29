@@ -206,6 +206,8 @@ object frmClientHomePage: TfrmClientHomePage
         OnHeaderClick = ClientTreeHeaderClick
         OnHeaderDraw = ClientTreeHeaderDraw
         OnKeyDown = ClientTreeKeyDown
+        ExplicitLeft = 0
+        ExplicitTop = 1
         Columns = <
           item
             MinWidth = 100
