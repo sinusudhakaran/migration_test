@@ -565,11 +565,14 @@ var
       Candidate.cpFields.cpCandidate_ID_To_Process :=
         Candidate.cpFields.cpCandidate_ID_To_Process + 1;
       LineIsInvalid := False;
-      if not MyClient.clChart.CanCodeTo(CandidateMem1.cmFields.cmAccount, IsActive,
-                                        HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
-        LineIsInvalid := True
-      else if not IsActive then
-        LineIsInvalid := True;
+      if Assigned(MyClient) then
+      begin
+        if not MyClient.clChart.CanCodeTo(CandidateMem1.cmFields.cmAccount, IsActive,
+                                          HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+          LineIsInvalid := True
+        else if not IsActive then
+          LineIsInvalid := True;
+      end;
       // Does the candidate have a count >= 3, is manually coded, and isn't dissected?
       if (CandidateMem1.cmFields.cmCount >= 3) and
          (CandidateMem1.cmFields.cmCoded_By = cbManual) and
@@ -776,12 +779,15 @@ begin
           This also solves the problem where MemScan is called while loading a
           zip stream. VCLZip calls ProcessMessages from there (can be turned
           off if required). }
-        if (Candidates.ItemCount <> 0) then
+        if not Assigned(TestAccount) then
         begin
-          { More processing to do?
-            Note: don't give control to DoRecommendedProcessing yet }
-          if fMemsV2.DoProcessing then
-            continue;
+          if (Candidates.ItemCount <> 0) then
+          begin
+            { More processing to do?
+              Note: don't give control to DoRecommendedProcessing yet }
+            if fMemsV2.DoProcessing then
+              continue;
+          end;
         end;
 
         // Unscanned list is empty, so do recommended processing
