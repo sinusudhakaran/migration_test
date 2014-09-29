@@ -376,56 +376,61 @@ var
   PreviousGSTClass : integer;
   WasPosting: Boolean;
 begin
-  if not tbEdit.Enabled then
-    Exit; //if button isn't enabled then they can't edit (even if they double click or use enter);
+  try
+    if not tbEdit.Enabled then
+      Exit; //if button isn't enabled then they can't edit (even if they double click or use enter);
 
-  SearchTerm := '';
-  if lvChart.Selected <> nil then
-  begin
-    //force only the first item to be selected
-    ForceOnlyOneSelected;
+    SearchTerm := '';
+    if lvChart.Selected <> nil then
+    begin
+      //force only the first item to be selected
+      ForceOnlyOneSelected;
 
-    p        := pAccount_Rec(lvChart.Selected.SubItems.Objects[0]);
-    cIndex   := MyClient.clChart.IndexOf(p); //need because key may change
-    WasCode  := p^.chAccount_Code;
-    WasDesc  := P^.chAccount_Description;
-    WasPosting := P^.chPosting_Allowed;
-    PreviousGSTClass := p^.chGST_Class;
+      p        := pAccount_Rec(lvChart.Selected.SubItems.Objects[0]);
+      cIndex   := MyClient.clChart.IndexOf(p); //need because key may change
+      WasCode  := p^.chAccount_Code;
+      WasDesc  := P^.chAccount_Description;
+      WasPosting := P^.chPosting_Allowed;
+      PreviousGSTClass := p^.chGST_Class;
 
-    if EditChartAccount(p, tbNew.Enabled) then begin
-      ChartChanged := True;
-      if ( WasCode <> p^.chAccount_Code ) then begin
-         LockRequired := True;
-         //list key has changed so remove item and readd it
-         with MyClient.clChart do begin
-            AtDelete(cIndex);
-            Insert(p);
-         end;
-         LogUtil.LogMsg(lmInfo, UnitName, 'Changed code from '+WasCode+
-                                          ' to ' + p^.chAccount_Code );
-         RefreshChartList;
+      if EditChartAccount(p, tbNew.Enabled) then begin
+        ChartChanged := True;
+        if ( WasCode <> p^.chAccount_Code ) then begin
+           LockRequired := True;
+           //list key has changed so remove item and readd it
+           with MyClient.clChart do begin
+              AtDelete(cIndex);
+              Insert(p);
+           end;
+           LogUtil.LogMsg(lmInfo, UnitName, 'Changed code from '+WasCode+
+                                            ' to ' + p^.chAccount_Code );
+           RefreshChartList;
 
-         //reposition list view on edited item
-         lvUtils.SelectListViewItem(lvChart, lvChart.FindCaption(0,p^.chAccount_Code,false,true,true));
-      end
-      else begin
-         RefreshItem(p,lvChart.Selected);
-         lvChart.UpdateItems(lvChart.Selected.Index,lvChart.Selected.Index);
+           //reposition list view on edited item
+           lvUtils.SelectListViewItem(lvChart, lvChart.FindCaption(0,p^.chAccount_Code,false,true,true));
+        end
+        else begin
+           RefreshItem(p,lvChart.Selected);
+           lvChart.UpdateItems(lvChart.Selected.Index,lvChart.Selected.Index);
+        end;
+
+        //test for gst change
+        if p^.chGST_Class <> PreviousGSTClass  then begin
+           ApplyGSTRequired := True;
+           LockRequired := True;
+        end;
+
+        if (WasDesc <> P^.chAccount_Description)
+        or (WasPosting <> P^.chPosting_Allowed) then
+            LockRequired := True;
+
       end;
 
-      //test for gst change
-      if p^.chGST_Class <> PreviousGSTClass  then begin
-         ApplyGSTRequired := True;
-         LockRequired := True;
-      end;
-
-      if (WasDesc <> P^.chAccount_Description)
-      or (WasPosting <> P^.chPosting_Allowed) then
-          LockRequired := True;
-
+      UpdateQuickSetWindow;
     end;
-
-    UpdateQuickSetWindow;
+  finally
+    if ChartChanged then
+      MyClient.clRecommended_Mems.RescanCandidates;
   end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -46,6 +46,7 @@ type
 
     function MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
     procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
+    procedure RescanCandidates;
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(AccountNo: string); Overload;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
@@ -88,7 +89,8 @@ uses
   LogUtil,
   DebugTimer,
   SyDefs,
-  mxFiles32;
+  mxFiles32,
+  Software;
 
 const
   UnitName = 'RecommendedMems';
@@ -439,6 +441,9 @@ var
     CandidateToProcess        : integer;
     LastCandidatePos          : integer;
     NextCandidateID           : integer;
+    IsActive                  : boolean;
+    LineIsInvalid             : boolean;
+    C2CodeIsValid             : boolean;
 
     // Returns true if we should exclude the candidate
     function CheckForExclusions: boolean;
@@ -489,16 +494,29 @@ var
           else
             C2AccountIsCurrentAccount := True;
 
+          // Candidates with invalid or inactive chart codes should not exclude other candidates
+          C2CodeIsValid := True;
+          if Assigned(MyClient) and (CandidateMem2.cmFields.cmAccount <> '') then
+          begin
+            if not MyClient.clChart.CanCodeTo(CandidateMem2.cmFields.cmAccount, IsActive,
+                                              HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+              C2CodeIsValid := False
+            else if not IsActive then
+              C2CodeIsValid := False;
+          end;
+
           {
           if ((AccountCodesDiffer and not EitherAccountIsBlank) or
           (CodedByIsManual = false)) and
-          (Candidate2HasBlankCode = false) then
+          (Candidate2HasBlankCode = false) and
+          C2CodeIsValid then
           }
           // This part has been split up a bit to make it more readable, rather than
           // cramming all the conditions into one big If Statement
           if (((not C2CodedByIsManual) or AccountCodesDiffer) and
           (not C2HasBlankCode)) and
-          C2AccountIsCurrentAccount then
+          C2AccountIsCurrentAccount and
+          C2CodeIsValid then
           begin
             // Don't recommend this candidate
             Result := True;
@@ -546,10 +564,17 @@ var
       // Increment next candidate to process
       Candidate.cpFields.cpCandidate_ID_To_Process :=
         Candidate.cpFields.cpCandidate_ID_To_Process + 1;
+      LineIsInvalid := False;
+      if not MyClient.clChart.CanCodeTo(CandidateMem1.cmFields.cmAccount, IsActive,
+                                        HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+        LineIsInvalid := True
+      else if not IsActive then
+        LineIsInvalid := True;
       // Does the candidate have a count >= 3, is manually coded, and isn't dissected?
       if (CandidateMem1.cmFields.cmCount >= 3) and
          (CandidateMem1.cmFields.cmCoded_By = cbManual) and
-         (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) then
+         (CandidateMem1.cmFields.cmAccount <> DISSECT_DESC) and
+         (not LineIsInvalid) then // sorry for the double negative here :/
       begin
 //        Assert((CandidateMem1.cmFields.cmAccount <> ''), 'Blank account code and manual coding should be mutually exclusive');
         if not GetMatchingCandidateRange(CandidateMem1.cmFields.cmStatement_Details,
@@ -863,11 +888,16 @@ begin
       Unscanned.Insert(NewUnscannedTran);
   end;
 
+  RescanCandidates;
+end;
+
+// Scan the candidate list again and rebuild the suggested mems list
+procedure TRecommended_Mems.RescanCandidates;
+begin
   // Rescan candidates later (for both MemsV2 as well as MemsV1)
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   fMemsV2.Reset;
-
-  // Clear recommended memorisation list
+  // Clear suggested memorisation list
   Recommended.FreeAll;
 end;
 
