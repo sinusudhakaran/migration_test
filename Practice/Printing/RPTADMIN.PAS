@@ -1952,7 +1952,7 @@ begin
     else
       Exit;
 
-    Param := TRPTParameters.Create(ord(Report_List_Manual), MyClient, RptBatch);
+    Param := TRPTParameters.Create(ord(Report_List_Manual), nil, RptBatch);
     Job := TBKReport.Create(ReportTypes.rptOther);
 
     try
@@ -1962,7 +1962,6 @@ begin
 
       //Add Headers
       AddAdminHeader(Job);
-      AddCommonHeader(Job);
       AddJobHeader(Job,siTitle,maketitle,true);
       AddJobHeader(Job,siSubTitle,'',true);
 
