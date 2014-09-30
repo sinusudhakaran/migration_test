@@ -1477,6 +1477,13 @@ var
   BankPrefix : string;
   ValidLineFound : boolean;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
+  MemLine : pMemorisation_Line_Rec;
+  IsActive: boolean;
+  DoInvalidWarning: boolean;
+  DoInactiveWarning: boolean;
+  InvalidCodes: TStringList;
+  InactiveCodes: TStringList;
+  WarningMsg: string;
 
 const
   ThisMethodName = 'OKtoPost';
@@ -1671,7 +1678,80 @@ begin
       end;
    end;
 
+   DoInvalidWarning := False;
+   DoInactiveWarning := False;
+   InvalidCodes := TStringList.Create;
+   InvalidCodes.Sorted := True;
+   InvalidCodes.Duplicates := dupIgnore;
+   InactiveCodes := TStringList.Create;
+   InactiveCodes.Sorted := True;
+   InactiveCodes.Duplicates := dupIgnore;
+   try
+     for i := 1 to GLCONST.Max_mx_Lines do
+     begin
+       if SplitLineIsValid(i) then
+       begin
+         MemLine := BKMLIO.New_Memorisation_Line_Rec;
+         with MemLine^ do
+         begin
+           mlAccount := SplitData[i].AcctCode;
+           if not MyClient.clChart.CanCodeto(mlAccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+           begin
+             DoInvalidWarning := True;
+             InvalidCodes.Add(mlAccount);
+           end else
+           if not IsActive then
+           begin
+             DoInactiveWarning := True;
+             InactiveCodes.Add(mlAccount);
+           end;
+         end;
+       end;
+     end;
 
+     if DoInvalidWarning and not DoInactiveWarning then
+     begin
+       if (InvalidCodes.Count > 1) then
+       begin
+         WarningMsg := 'Several account codes are invalid:' + #13;
+         for i := 0 to InvalidCodes.Count - 1 do
+           WarningMsg := WarningMsg + InvalidCodes.Strings[i] + #13;
+         WarningMsg := WarningMsg + #13 +
+                       'Do you want to continue?';
+       end else
+         WarningMsg := 'Account code ' + InvalidCodes.Strings[0] + ' is invalid, do you want to continue?';
+     end else
+     if DoInactiveWarning and not DoInvalidWarning then
+     begin
+       if (InactiveCodes.Count > 1) then
+       begin
+         WarningMsg := 'Several account codes are inactive:' + #13;
+         for i := 0 to InactiveCodes.Count - 1 do
+           WarningMsg := WarningMsg + InactiveCodes.Strings[i] + #13;
+         WarningMsg := WarningMsg + #13 +
+                       'Do you want to continue?';
+       end else
+         WarningMsg := 'Account code ' + InactiveCodes.Strings[0] + ' is inactive, do you want to continue?';
+     end else
+     if DoInvalidWarning and DoInactiveWarning then
+     begin
+       WarningMsg := 'Several account codes are invalid or inactive:' + #13;
+       for i := 0 to InactiveCodes.Count - 1 do
+           WarningMsg := WarningMsg + InactiveCodes.Strings[i] + #13;
+       for i := 0 to InvalidCodes.Count - 1 do
+           WarningMsg := WarningMsg + InvalidCodes.Strings[i] + #13;
+       WarningMsg := WarningMsg + #13 +
+                     'Do you want to continue?';
+     end;   
+
+     if DoInvalidWarning or DoInactiveWarning then     
+       if (AskYesNo('Warning', WarningMsg, DLG_YES, 0, false) = DLG_NO) then
+         exit;
+
+   finally
+     FreeAndNil(InvalidCodes);
+     FreeAndNil(InactiveCodes);
+   end;
 
    result := true;
 end;
