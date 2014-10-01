@@ -1730,7 +1730,10 @@ begin
       or (S = BKCONST.DISSECT_DESC)
       or MyClient.clChart.CanCodeTo(S, IsActive) then begin
          // Ok.
-         TableCanvas.Brush.Color := CellAttr.caColor;
+         if IsActive then         
+           TableCanvas.Brush.Color := CellAttr.caColor
+         else
+           TableCanvas.Brush.Color := clYellow;
          TableCanvas.FillRect(R);
          TableCanvas.Font.Color := clWindowtext;
       end else begin
