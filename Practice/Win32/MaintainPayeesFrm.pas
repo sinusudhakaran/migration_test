@@ -85,7 +85,8 @@ uses
   BKPLIO,
   GSTCalc32,
   GenUtils,
-  AuditMgr;
+  AuditMgr,
+  Software;
 
 {$R *.DFM}
 
@@ -127,6 +128,9 @@ var
    NewItem : TListItem;
    Payee : TPayee;
    i : integer;
+   PayeeAccount: string;
+   CodeIsActive: boolean;
+   CodeIsValid: boolean;
 begin
    lvPayees.Items.beginUpdate;
    try
@@ -145,6 +149,9 @@ begin
      for i := 0 to Pred(itemCount) do
      begin
         Payee := Payee_At(i);
+        PayeeAccount := Payee.pdLines.PayeeLine_At(i)^.plAccount;
+        CodeIsValid := MyClient.clChart.CanCodeto(PayeeAccount, CodeIsActive,
+                                                  HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used));
 
         if Payee.pdFields.pdInactive and not chkShowInactive.Checked then
           continue;
@@ -152,7 +159,10 @@ begin
         NewItem := lvPayees.Items.Add;
 
         NewItem.Caption := inttostr(Payee.pdNumber);
-        NewItem.Imageindex := -1;
+        if not (CodeIsValid and CodeIsActive) then
+          NewItem.ImageIndex := STATES_ALERT
+        else
+          NewItem.Imageindex := -1;
         NewItem.SubItems.AddObject(Payee.pdName,TObject(Payee));
 
         if chkShowInactive.Checked and Payee.pdFields.pdInactive then
