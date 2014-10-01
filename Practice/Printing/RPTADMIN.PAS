@@ -1968,8 +1968,8 @@ begin
       //Build the columns
       cLeft := gcLeft;
       AddColAuto(Job, cLeft, 12, gcgap, 'Client Code'   , jtLeft);
-      AddColAuto(Job, cLeft, 25, gcgap, 'Account No'    , jtLeft);
-      AddColAuto(Job, cLeft, 30, gcgap, 'Account Name'  , jtLeft);
+      AddColAuto(Job, cLeft, 14, gcgap, 'Account No'    , jtLeft);
+      AddColAuto(Job, cLeft, 41, gcgap, 'Account Name'  , jtLeft);
       AddColAuto(Job, cLeft, 10, gcgap, 'Entries From'  , jtLeft);
       AddColAuto(Job, cleft, 10, gcgap, 'Entries To'    , jtLeft);
       AddColAuto(Job, cleft, 10, gcgap, 'No of Entries' , jtRight);
