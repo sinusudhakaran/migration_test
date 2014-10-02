@@ -42,6 +42,7 @@ type
     rbBasic: TRadioButton;
     btnRefreshChart: TButton;
     pnlRefreshChart: TPanel;
+    chkShowInactive: TCheckBox;
 
     procedure GridCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);
@@ -58,6 +59,7 @@ type
     procedure rbBasicClick(Sender: TObject);
     procedure btnRefreshChartClick(Sender: TObject);
     procedure GridColResized(Sender: TObject; RowColnr: Integer);
+    procedure chkShowInactiveClick(Sender: TObject);
   private
     FFilter: TAcctFilterFunction;
     FDefaultSortOrder : tchsSortType;
@@ -126,6 +128,7 @@ Const
   CodeCol  = 2;
   DescCol  = 3;
   AltCodeCol  = 4;
+  InactiveCol = 5;
 
   Glyph    : TBitMap = nil;
   GlyphColWidth = 22;
@@ -216,7 +219,8 @@ begin
 
          CodeCol  : Value := CHS^.chsAccount_Ptr^.chAccount_Code;
          DescCol  : Value := CHS^.chsAccount_Ptr^.chAccount_Description;
-         AltCodeCol  : Value := CHS^.chsAccount_Ptr^.chAlternative_Code ;
+         AltCodeCol  : Value := CHS^.chsAccount_Ptr^.chAlternative_Code;
+         InactiveCol : Value := CHS^.chsAccount_Ptr^.chInactive;
       end;
    end;
    
@@ -369,6 +373,11 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmAcctLookup.chkShowInactiveClick(Sender: TObject);
+begin
+  Grid.Col[InactiveCol].Visible := chkShowInactive.Checked;
+end;
+
 procedure TfrmAcctLookup.DoNewSearch(Startup: Boolean = False);
 const
    ThisMethodName = 'TfrmAcctLookup.DoNewSearch';
@@ -797,8 +806,7 @@ begin
             Width       := 120;
             ControlType := ctText;
             SortPicture := TSGrid.spNone;
-         end;
-
+         end;         
 
          with Col[ DescCol ] do
          Begin
@@ -809,6 +817,17 @@ begin
             ControlType := ctText;
             SortPicture := TSGrid.spNone;
          end;
+
+         with Col[ InactiveCol ] do
+         begin
+           Alignment   := taLeftJustify;
+           Heading     := 'Inactive';
+           Visible     := False;
+           Width       := 50;
+           ControlType := ctText;
+           SortPicture := TSGrid.spNone;
+         end;
+
          LookUpDlg.CurrentSortOrder := chsSortByCode;
 
          if tCHSSortType(UserINI_Chart_Lookup_Sort_Column) = chsSortByDesc then
@@ -920,10 +939,11 @@ procedure TfrmAcctLookup.SetHasAlternativeCode(const Value: Boolean);
 begin
   FHasAlternativeCode := Value;
   if FHasAlternativeCode then
-     Grid.Cols := AltCodeCol
+    Grid.Cols := AltCodeCol
   else
-     Grid.Cols := DescCol;
-
+    Grid.Cols := DescCol;
+  if chkShowInactive.Checked then
+    Grid.Cols := Grid.Cols + 1;
 end;
 
 function TfrmAcctLookup.GetCurrentlySelectedItem: pchsRec;
