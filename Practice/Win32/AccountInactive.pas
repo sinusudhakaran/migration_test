@@ -23,12 +23,18 @@ uses
   function  Payees_AccountUsed(const aAccount: string): boolean;
 
   // GUI helpers
-  procedure DisplayMemorisationPayee_AccountUsed(const aAccount: string);
+  procedure DisplayMemorisationPayee_AccountUsed(const aAccount: string
+              ); overload;
+
+  procedure DisplayMemorisationPayee_AccountUsed(const aAccounts: array of string
+              ); overload;
 
 
 implementation
 
 uses
+  SysUtils,
+  Classes,
   WarningMoreFrm;
 
 //------------------------------------------------------------------------------
@@ -60,10 +66,8 @@ end;
 //------------------------------------------------------------------------------
 function ClientMemorisations_AccountUsed(const aAccount: string): boolean;
 var
-  bInMem: boolean;
   i: integer;
   BankAccount: TBank_Account;
-  bInPayee: boolean;
 begin
   for i := 0 to MyClient.clBank_Account_List.ItemCount-1 do
   begin
@@ -143,33 +147,102 @@ end;
 //------------------------------------------------------------------------------
 procedure DisplayMemorisationPayee_AccountUsed(const aAccount: string);
 var
-  bInMemorisations: boolean;
-  bInPayees: boolean;
+  Accounts: array of string;
+begin
+  SetLength(Accounts, 1);
+  Accounts[0] := aAccount;
+  DisplayMemorisationPayee_AccountUsed(Accounts);
+end;
+
+procedure DisplayMemorisationPayee_AccountUsed(const aAccounts: array of string
+  ); overload;
+var
+  MemorisationAccounts: TStringList;
+  PayeeAccounts: TStringList;
+  i: integer;
+  sAccount: string;
+  sAccounts: string;
   sMsg: string;
 begin
-  bInMemorisations := Memorisations_AccountUsed(aAccount);
-  bInPayees := Payees_AccountUsed(aAccount);
+  try
+    MemorisationAccounts := TStringList.Create;
+    PayeeAccounts := TStringList.Create;
 
-  if (bInMemorisations and bInPayees) then
-  begin
-    sMsg :=
-      'Account Code '+aAccount+' is currently used in memorisation(s) and payee(s).'+sLineBreak+
-      'You can update Memorisations from Other Functions | Memorised Entries, and Payees from Other Functions | Payees.';
-    HelpfulWarningMsg(sMsg, 0);
-  end
-  else if bInMemorisations then
-  begin
-    sMsg :=
-      'Account Code '+aAccount+' is currently used in memorisation(s).'+sLineBreak+
-      'You can update these from Other Functions | Memorised Entries.';
-    HelpfulWarningMsg(sMsg, 0);
-  end
-  else if bInPayees then
-  begin
-    sMsg :=
-    'Account Code '+aAccount+' is currently used in payee(s).'+sLineBreak+
-    'You can update these from Other Functions | Payees.';
-    HelpfulWarningMsg(sMsg, 0);
+    // Split them up, and see if they need a warning message
+    for i := 0 to High(aAccounts) do
+    begin
+      sAccount := aAccounts[i];
+
+      if Memorisations_AccountUsed(sAccount) then
+        MemorisationAccounts.Add(sAccount);
+
+      if Payees_AccountUsed(sAccount) then
+        PayeeAccounts.Add(sAccount);
+    end;
+
+    // Compose account codes
+    for i := 0 to MemorisationAccounts.Count-1 do
+    begin
+      if (sAccounts <> '') then
+        sAccounts := sAccounts + ', ';
+      sAccounts := sAccounts + MemorisationAccounts[i]
+    end;
+    for i := 0 to PayeeAccounts.Count-1 do
+    begin
+      if (sAccounts <> '') then
+        sAccounts := sAccounts + ', ';
+      sAccounts := sAccounts + PayeeAccounts[i]
+    end;
+
+    // Determine how to display the messages
+    if (MemorisationAccounts.Count > 1) and (PayeeAccounts.Count > 1) or
+       (MemorisationAccounts.Count > 1) and (PayeeAccounts.Count > 0) or
+       (MemorisationAccounts.Count > 0) and (PayeeAccounts.Count > 1) then
+    begin
+      sMsg :=
+        'Account Codes '+sAccounts+' are currently used in memorisation(s) and payee(s).'+sLineBreak+
+        'You can update Memorisations from Other Functions | Memorised Entries, and Payees from Other Functions | Payees.';
+      HelpfulWarningMsg(sMsg, 0);
+    end
+    else if (MemorisationAccounts.Count > 1) and (PayeeAccounts.Count = 0) then
+    begin
+      sMsg :=
+        'Account Codes '+sAccounts+' are currently used in memorisation(s).'+sLineBreak+
+        'You can update these from Other Functions | Memorised Entries.';
+      HelpfulWarningMsg(sMsg, 0);
+    end
+    else if (MemorisationAccounts.Count = 0) and (PayeeAccounts.Count > 1) then
+    begin
+      sMsg :=
+      'Account Codes '+sAccounts+' are currently used in payee(s).'+sLineBreak+
+      'You can update these from Other Functions | Payees.';
+      HelpfulWarningMsg(sMsg, 0);
+    end
+    else if (MemorisationAccounts.Count = 1) and (PayeeAccounts.Count = 1) then
+    begin
+      sMsg :=
+        'Account Codes '+sAccounts+' are currently used in memorisation(s) and payee(s).'+sLineBreak+
+        'You can update Memorisations from Other Functions | Memorised Entries, and Payees from Other Functions | Payees.';
+      HelpfulWarningMsg(sMsg, 0);
+    end
+    else if (MemorisationAccounts.Count = 1) then
+    begin
+      sMsg :=
+        'Account Code '+sAccounts+' is currently used in memorisation(s).'+sLineBreak+
+        'You can update these from Other Functions | Memorised Entries.';
+      HelpfulWarningMsg(sMsg, 0);
+    end
+    else if (PayeeAccounts.Count = 1) then
+    begin
+      sMsg :=
+      'Account Code '+sAccounts+' is currently used in payee(s).'+sLineBreak+
+      'You can update these from Other Functions | Payees.';
+      HelpfulWarningMsg(sMsg, 0);
+    end
+
+  finally
+    FreeAndNil(MemorisationAccounts);
+    FreeAndNil(PayeeAccounts);
   end;
 end;
 

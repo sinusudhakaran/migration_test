@@ -54,6 +54,8 @@ type
     LblAltCode: TLabel;
     tbInactive: TRzToolButton;
     RzSpacer3: TRzSpacer;
+    lblInactive: TLabel;
+    chkInactive: TCheckBox;
     procedure tbCloseClick(Sender: TObject);
     procedure tbEditClick(Sender: TObject);
     procedure lvChartDblClick(Sender: TObject);
@@ -85,6 +87,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure chkBasicClick(Sender: TObject);
     procedure tbInactiveClick(Sender: TObject);
+    procedure chkInactiveClick(Sender: TObject);
   private
     { Private declarations }
     CheckAnyEdit     : Boolean;
@@ -117,6 +120,7 @@ type
     procedure SetSubType(sTypeNo: integer; MoveAfter : boolean = True);
     procedure SetPosting(isPosting: Boolean; MoveAfter: Boolean = True);
     procedure SetBasic(HideInBasic: Boolean; MoveAfter: Boolean = True);
+    procedure SetInactive(const aInactive: boolean; const aMoveAfter: boolean = true);
     procedure DoResort( ColToSortOn : integer);
 
     procedure ForceOnlyOneSelected;
@@ -132,6 +136,7 @@ type
     function CorrectedColNum(ColNum: integer): integer;
 
     procedure UpdateInactiveColumn;
+    procedure SetInActiveNoEvents(const aValue: boolean);
   public
     { Public declarations }
     function Execute : boolean;
@@ -169,7 +174,8 @@ uses
   ComboUtils,
   Progress,
   CountryUtils,
-  AuditMgr, MAINFRM;
+  AuditMgr, MAINFRM,
+  AccountInactive;
 
 
 {$R *.DFM}
@@ -947,6 +953,17 @@ begin
 
 end;
 
+procedure TfrmMaintainChart.SetInActiveNoEvents(const aValue: boolean);
+var
+  Event: TNotifyEvent;
+begin
+  // Workaround: we don't want OnCLick events to run with dialogs in some cases
+  Event := chkInactive.OnClick;
+  chkInactive.OnClick := nil;
+  chkInactive.Checked := aValue;
+  chkInactive.OnClick := Event;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMaintainChart.lvChartColumnClick(Sender: TObject;
   Column: TListColumn);
@@ -992,9 +1009,13 @@ begin
   //if the basic checkbox is hidden, move the posting checkbox up so it doesn't look funny
   if not chkBasic.Visible then
   begin
+    chkInactive.Top := chkPosting.Top;
+    lblInactive.Top := lblPosting.Top;
     chkPosting.Top := chkBasic.Top;
     lblPosting.Top := lblBasic.Top;
   end;
+  chkInactive.Enabled := assigned(AdminSystem);
+  lblInactive.Enabled := chkInactive.Enabled;
 
   // Inactive column
   fShowInactive := assigned(AdminSystem);
@@ -1257,6 +1278,7 @@ begin
     lblDivisions.Caption := '';
     chkPosting.Checked  := false;
     chkBasic.Checked := false;
+    chkInactive.Checked := false;
 
     cmbReportGroup.ItemIndex := -1;
     cmbSubGroup.ItemIndex    := -1;
@@ -1321,11 +1343,19 @@ begin
     else
       chkPosting.caption := 'No';
 
+    // Basic
     chkBasic.checked := not pAcct^.chHide_In_Basic_Chart;
     if chkBasic.checked then
       chkBasic.caption := 'Yes'
     else
       chkBasic.caption := 'No';
+
+    // Inactive
+    chkInactive.Checked := pAcct.chInactive;
+    if chkInactive.Checked then
+      chkInactive.Caption := 'Yes'
+    else
+      chkInactive.Caption := 'No';
 
     //see if items are all the same
     RG_Same := true;
@@ -1631,6 +1661,46 @@ begin
   UpdateQuickSetWindow;
 end;
 
+procedure TfrmMaintainChart.SetInactive(const aInactive: boolean;
+  const aMoveAfter: boolean);
+var
+  p : pAccount_Rec;
+  i : integer;
+  Accounts : array of string;
+  iCount: integer;
+begin
+  //cycle through selected items
+  for i := 0 to Pred(lvChart.Items.Count) do
+  begin
+    if lvChart.Items[i].Selected then
+    begin
+      p := pAccount_Rec(lvChart.Items[i].SubItems.Objects[0]);
+
+      if (aInactive <> p.chInactive) then
+      begin
+        p.chInactive := aInactive;
+        RefreshItem(p, lvChart.Items[i]);
+        lvChart.UpdateItems(i, i);
+
+        if aInactive then
+        begin
+          iCount := Length(Accounts);
+          SetLength(Accounts, iCount+1);
+          Accounts[iCount] := p.chAccount_Code;
+        end;
+      end;
+    end;
+  end;
+
+  // Display warnings
+  DisplayMemorisationPayee_AccountUsed(Accounts);
+
+  if (lvChart.SelCount = 1) and aMoveAfter then
+    MoveDownOne;
+
+  UpdateQuickSetWindow;
+end;
+
 procedure TfrmMaintainChart.chkPostingClick(Sender: TObject);
 begin
   SetPosting(chkPosting.Checked, false);
@@ -1645,6 +1715,11 @@ end;
 procedure TfrmMaintainChart.chkBasicClick(Sender: TObject);
 begin
   SetBasic(not chkBasic.Checked, False);
+end;
+
+procedure TfrmMaintainChart.chkInactiveClick(Sender: TObject);
+begin
+  SetInactive(chkInactive.Checked, false);
 end;
 
 end.
