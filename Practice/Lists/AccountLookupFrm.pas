@@ -64,6 +64,7 @@ type
     FFilter: TAcctFilterFunction;
     FDefaultSortOrder : tchsSortType;
     FHasAlternativeCode: Boolean;
+    FHasInactiveCol: Boolean;
     fShowRefreshChart : boolean;
     fHasChartBeenRefreshed : boolean;
 
@@ -80,7 +81,9 @@ type
     procedure SetSize;
     procedure RefreshGrid;
     procedure SetHasAlternativeCode(const Value: Boolean);
+    procedure SetHasInactiveCol(const Value: Boolean);
     property HasAlternativeCode: Boolean read FHasAlternativeCode write SetHasAlternativeCode;
+    property HasInactiveCol: Boolean read FHasInactiveCol write SetHasInactiveCol;
   public
     { Public declarations }
 
@@ -88,7 +91,8 @@ type
     CurrentSortOrder  : tCHSSortType;
     CHSListByCode     : TCHSList;
     CHSListByDesc     : TCHSList;
-    CHSListByAltCode : TCHSList;
+    CHSListByAltCode  : TCHSList;
+    CHSListByInactive : TCHSList;
 
     property Filter : TAcctFilterFunction read FFilter write SetFilter;
     property ShowRefreshChart : boolean read fShowRefreshChart write fShowRefreshChart;
@@ -204,6 +208,7 @@ begin
        chsSortByCode : CHS := CHSListByCode.CHSRec_At( Pred( DataRow ) );
        chsSortByDesc : CHS := CHSListByDesc.CHSRec_At( Pred( DataRow ) );
        chsSortByAltCode : CHS := CHSListByAltCode.CHSRec_At( Pred( DataRow ) );
+       chsSortByInactive : CHS := CHSListByInactive.CHSRec_At( Pred( DataRow ) );
    end;
 
    Assert( Assigned( CHS ), 'CHS is NIL in '+ThisMethodName );
@@ -220,7 +225,13 @@ begin
          CodeCol  : Value := CHS^.chsAccount_Ptr^.chAccount_Code;
          DescCol  : Value := CHS^.chsAccount_Ptr^.chAccount_Description;
          AltCodeCol  : Value := CHS^.chsAccount_Ptr^.chAlternative_Code;
-         InactiveCol : Value := CHS^.chsAccount_Ptr^.chInactive;
+         InactiveCol :
+           begin
+             if CHS^.chsAccount_Ptr^.chInactive then             
+               Value := 'Y'
+             else
+               Value := '';
+           end;
       end;
    end;
    
@@ -251,7 +262,8 @@ Begin
             Grid.Col[ DescCol ].SortPicture := TSGrid.spNone;
             if FHasAlternativeCode then
                Grid.Col[ AltCodeCol ].SortPicture := TSGrid.spNone;
-
+            if FHasInactiveCol then
+               Grid.Col[ InactiveCol ].SortPicture := TSGrid.spNone;
          end;
       chsSortByDesc : 
          Begin
@@ -259,13 +271,25 @@ Begin
             Grid.Col[ DescCol ].SortPicture := TSGrid.spDown;
             if FHasAlternativeCode then
                Grid.Col[ AltCodeCol ].SortPicture := TSGrid.spNone;
+            if FHasInactiveCol then
+               Grid.Col[ InactiveCol ].SortPicture := TSGrid.spNone;
          end;
        chsSortByAltCode :
          Begin
             Grid.Col[ AltCodeCol ].SortPicture := TSGrid.spDown;
             Grid.Col[ CodeCol ].SortPicture := TSGrid.spNone;
             Grid.Col[ DescCol ].SortPicture := TSGrid.spNone;
+            if FHasInactiveCol then
+               Grid.Col[ InactiveCol ].SortPicture := TSGrid.spNone;
          end;
+       chsSortByInactive :
+         Begin
+           Grid.Col[ CodeCol ].SortPicture := TSGrid.spNone;
+           Grid.Col[ DescCol ].SortPicture := TSGrid.spNone;
+           if FHasAlternativeCode then
+             Grid.Col[ AltCodeCol ].SortPicture := TSGrid.spNone;
+           Grid.Col[ InactiveCol ].SortPicture := TSGrid.spDown;
+         End;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -285,6 +309,7 @@ begin
     CodeCol : NewSortOrder := chsSortByCode;
     DescCol : NewSortOrder := chsSortByDesc;
     AltCodeCol : NewSortOrder := chsSortByAltCode;
+    InactiveCol : NewSortOrder := chsSortByInactive;
   end;
 
   SetColumnSortOrder(NewSortOrder);
@@ -341,6 +366,7 @@ begin
             chsSortByCode : with CHSListByCode do pCH := CHSRec_At( Pred( i ) );
             chsSortByDesc : with CHSListByDesc do pCH := CHSRec_At( Pred( i ) );
             chsSortByAltCode : with CHSListByAltCode do pCH := CHSRec_At( Pred( i ) );
+            chsSortByInactive : with CHSListByInactive do pCH := CHSRec_At( Pred( i ) );
          end;
          if not pCH^.chsAccount_Ptr^.chPosting_Allowed then 
          Begin
@@ -375,7 +401,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmAcctLookup.chkShowInactiveClick(Sender: TObject);
 begin
-  Grid.Col[InactiveCol].Visible := chkShowInactive.Checked;
+  HasInactiveCol := chkShowInactive.Checked;
+  FormResize(self);
+  RefreshGrid;
 end;
 
 procedure TfrmAcctLookup.DoNewSearch(Startup: Boolean = False);
@@ -390,15 +418,18 @@ Var
    SaveSearchKey : ShortString;
    CFound,
    DFound,
-   AFound        : Boolean;
+   AFound,
+   IFound        : Boolean;
    FoundInBoth   : Boolean;
    FoundInNone   : Boolean;
    CRow,
    DRow,
-   ARow          : Integer;
+   ARow,
+   IRow          : Integer;
    NewCRow,
    NewDRow,
-   NewARow       : Integer;
+   NewARow,
+   NewIRow       : Integer;
    LastChar      : char;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -443,9 +474,21 @@ Begin
    end else
       AFound := false;
 
+   IRow := -1;
+   if FHasInactiveCol then
+   begin
+     IRow := CHSListByInactive.HasMatch( CurrentSearchKey );
+     IFound := (IRow >= 0);
+     if (not IFound) then
+       IRow := Succ( CHSListByInactive.SearchFor( CurrentSearchKey ) );
+   end
+   else
+     IFound := false;
+
    FoundInNone := (not CFound)
               and (not DFound)
-              and (not AFound);
+              and (not AFound)
+              and (not IFound);
 
    SaveSearchKey := CurrentSearchKey;
 
@@ -471,9 +514,18 @@ Begin
          NewARow := -1;
       end;
 
+      if FHasInactiveCol then
+      begin
+        NewIRow := CHSListByInactive.HasMatch( CurrentSearchKey );
+        if (NewIRow = -1) then
+          NewIRow := Succ(CHSListByInactive.SearchFor(CurrentSearchKey));
+      end else
+        NewIRow := -1;
+
       if (NewCRow >= 0)
       or (NewDRow >= 0)
-      or (NewARow >=0) then
+      or (NewARow >=0)
+      or (NewIRow >= 0) then
       Begin
          // Start a new search
          CFound := (NewCRow >= 0);
@@ -481,8 +533,9 @@ Begin
          DFound := (NewDRow >= 0);
          DRow := NewDRow;
          AFound := (NewARow >= 0);
-         ARow := NewARow
-
+         ARow := NewARow;
+         IFound := (NewIRow >= 0);
+         IRow := NewIRow;
       end
       else
          CurrentSearchKey := SaveSearchKey;
@@ -504,6 +557,8 @@ Begin
       NewSortOrder := chsSortByCode
    else if DFound  then
       NewSortOrder := chsSortByDesc
+   else if (IFound and FHasInactiveCol) then
+      NewSortOrder := chsSortByInactive
    else if FHasAlternativeCode then
       NewSortOrder := chsSortByAltCode;
 
@@ -522,6 +577,7 @@ Begin
       chsSortByCode : Grid.CurrentDataRow := CRow;
       chsSortByDesc : Grid.CurrentDataRow := DRow;
       chsSortByAltCode : Grid.CurrentDataRow := ARow;
+      chsSortByInactive : Grid.CurrentDataRow := IRow;
    end;
 
    if (Grid.CurrentDataRow > 0) then
@@ -564,7 +620,10 @@ begin
 
    if FHasAlternativeCode then
       inc(FixedWidth,  Grid.Col[AltCodeCol].Width);
-      
+
+   if FHasInactiveCol then
+      inc(FixedWidth, Grid.Col[InactiveCol].Width);
+     
    Grid.Col[ DescCol ].Width := ClientWidth - FixedWidth - 4;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -639,6 +698,7 @@ begin
   bkXPThemes.ThemeForm( Self);
   HasAlternativeCode :=
     HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
+  HasInactiveCol := chkShowInactive.Checked; // should be false at FormCreate
 
   SetSize;
   if not Assigned( Glyph ) then
@@ -684,7 +744,8 @@ Var
    i           : Integer;
    TempListC,
    TempListD,
-   TempListA  : TCHSList;
+   TempListA,
+   TempListI  : TCHSList;
    IncludeAccount : boolean;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -701,6 +762,8 @@ begin
       TempListC := tCHSList.Create( chsSortByCode );
       TempListD := tCHSList.Create( chsSortByDesc );
       TempListA := tCHSList.Create( chsSortByAltCode );
+      TempListI := tCHSList.Create( chsSortByInactive );
+      TempListI.Duplicates := True;
       Try
         TempListC.Use_Xlon_Sort_Order := UseXlonSort;
 
@@ -714,12 +777,13 @@ begin
                  IncludeAccount := true;
 
                if Account_At(i).chHide_In_Basic_Chart and LookupDlg.ShowBasicChart then
-                Continue;
+                 Continue;
 
                if IncludeAccount then begin
                  TempListC.Insert( NewCHSRec( Account_At( i ) ) );
                  TempListD.Insert( NewCHSRec( Account_At( i ) ) );
                  TempListA.Insert( NewCHSRec( Account_At( i ) ) );
+                 TempListI.Insert( NewCHSRec( Account_At( i ) ) );
                end;
             end;
       Finally
@@ -738,15 +802,22 @@ begin
             TempListA.Free;
             TempListA := nil;
          end;
+         if TempListI.ItemCount = 0 then
+         Begin
+            TempListI.Free;
+            TempListI := nil;
+         end;
       end;
       if ( TempListC = nil )
       or ( TempListD = nil )
-      or ( TempListA = nil )then
+      or ( TempListA = nil )
+      or ( TempListI = nil )then
          Exit;
 
       LookUpDlg.CHSListByCode := TempListC;
       LookUpDlg.CHSListByDesc := TempListD;
       LookUpDlg.CHSListByAltCode := TempListA;
+      LookUpDlg.CHSListByInactive := TempListI;
 
       LookupDlg.rbBasic.OnClick := LookupDlg.rbBasicClick;
       LookupDlg.rbFull.OnClick := LookupDlg.rbFullClick;
@@ -796,7 +867,6 @@ begin
             ControlType := ctText;
             SortPicture := TSGrid.spDown;
          end;
-
 
          if LookUpDlg.HasAlternativeCode then with Col[ AltCodeCol ] do
          Begin
@@ -861,6 +931,16 @@ begin
                       for i := 0 to Pred( ItemCount ) do if LookUpDlg.Grid.RowSelected[ i+1 ] then
                           Result := LookUpDlg.CHSListByAltCode.CHSRec_At( i )^.chsAccount_Ptr^.chAccount_Code;
                end;
+            chsSortByInactive :
+              Begin
+                for i := 0 to Pred( LookupDlg.CHSListByInactive.ItemCount ) do if LookUpDlg.Grid.RowSelected[ i+1 ] then
+                begin
+                  if LookUpDlg.CHSListByInactive.CHSRec_At( i )^.chsAccount_Ptr^.chInactive then
+                    Result := 'Y'
+                  else
+                    Result := 'N'
+                end;
+              End;
          end;
       end;
 
@@ -879,6 +959,11 @@ begin
       Begin
          LookUpDlg.CHSListByAltCode.Free;
          LookUpDlg.CHSListByAltCode := nil;
+      end;
+      if Assigned(LookupDlg.CHSListByInactive) then
+      begin
+        LookUpDlg.CHSListByInactive.Free;
+         LookUpDlg.CHSListByInactive := nil;
       end;
       LookUpDlg.Free;
    end;
@@ -938,12 +1023,13 @@ end;
 procedure TfrmAcctLookup.SetHasAlternativeCode(const Value: Boolean);
 begin
   FHasAlternativeCode := Value;
-  if FHasAlternativeCode then
-    Grid.Cols := AltCodeCol
-  else
-    Grid.Cols := DescCol;
-  if chkShowInactive.Checked then
-    Grid.Cols := Grid.Cols + 1;
+  Grid.Col[AltCodeCol].Visible := FHasAlternativeCode;
+end;
+
+procedure TfrmAcctLookup.SetHasInactiveCol(const Value: Boolean);
+begin
+  FHasInactiveCol := Value;
+  Grid.Col[InactiveCol].Visible := FHasInactiveCol;
 end;
 
 function TfrmAcctLookup.GetCurrentlySelectedItem: pchsRec;
@@ -958,6 +1044,7 @@ begin
     chSSortByCode : result := chSListByCode.CHSRec_At( Grid.CurrentDataRow - 1);
     chSSortByDesc : result := chSListByDesc.CHSRec_At( Grid.CurrentDataRow - 1);
     chSSortByAltCode : result := chSListByAltCode.CHSRec_At( Grid.CurrentDataRow - 1);
+    chsSortByInactive : result := chsListByInactive.CHSRec_At(Grid.CurrentDataRow - 1);
   end;
 end;
 
@@ -998,6 +1085,7 @@ begin
         chSSortByDesc : ItemIndex := IndexOf( CurrentItem.chsAccount_Ptr.chAccount_Code, chSListByDesc);
         chSSortByCode : ItemIndex := IndexOf( CurrentItem.chsAccount_Ptr.chAccount_Code, chSListByCode);
         chSSortByAltCode : ItemIndex := IndexOf( CurrentItem.chsAccount_Ptr.chAccount_Code, chSListByAltCode);
+        chsSortByInactive : ItemIndex := IndexOf(CurrentItem.chsAccount_Ptr.chAccount_Code, chsListByInactive);
       end;
     end;
 
@@ -1047,6 +1135,8 @@ begin
      with MyClient.clChart.Account_At( I )^ do
      Begin
        if (chHide_In_Basic_Chart) and ShowBasicChart then
+         Continue
+       else if MyClient.clChart.Account_At(i).chInactive and not self.chkShowInactive.Checked then
          Continue
        else
          Inc(cCount);
@@ -1102,6 +1192,11 @@ begin
                   for i := 0 to Pred( ItemCount ) do if Grid.RowSelected[ i+1 ] then
                       Code := CHSListByAltCode.CHSRec_At( i )^.chsAccount_Ptr^.chAccount_Code;
            end;
+        chsSortByInactive :
+          Begin
+            for i := 0 to Pred( chsListByInactive.ItemCount ) do if Grid.RowSelected[ i+1 ] then
+              Code := CHSListByInactive.CHSRec_At( i )^.chsAccount_Ptr^.chAccount_Code;                
+          End;
      end;
      CHSListByCode.DeleteAll;
      CHSListByDesc.DeleteAll;
@@ -1116,7 +1211,9 @@ begin
              IncludeAccount := true;
 
            if Account_At(i).chHide_In_Basic_Chart and ShowBasicChart then
-            Continue;
+             Continue;
+           if Account_At(i).chInactive and not self.chkShowInactive.Checked then
+             Continue;
 
            if IncludeAccount then begin
              CHSListByCode.Insert( NewCHSRec( Account_At( i ) ) );

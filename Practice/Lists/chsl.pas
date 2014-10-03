@@ -30,7 +30,7 @@ Type
       chsKey         : string[ MaxKeyLength ];  // Updated when we insert into the list
    end;
 
-   tCHSSortType = (chsSortByCode, chsSortByDesc, chsSortByAltCode);
+   tCHSSortType = (chsSortByCode, chsSortByDesc, chsSortByAltCode, chsSortByInactive);
 
    tCHSList = class( TExtdSortedCollection )
       Seq         : Integer;
@@ -116,6 +116,13 @@ Begin
                   Move( S[1], Key[ CodeKeyLengthUsed + 1 ], Ord( S[0] ) );
                   Key[0] := Char( CodeKeyLengthUsed + 4);  //for integer
                   Result := Key;
+             end;
+            CHSSortByInactive   :
+             begin { 1 Byte Key }
+               if chInActive then
+                  Result := 'Y'
+               else
+                  Result := 'N';
              end;
        end;
    end;
