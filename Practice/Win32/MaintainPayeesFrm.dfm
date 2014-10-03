@@ -126,7 +126,7 @@ object frmMaintainPayees: TfrmMaintainPayees
     MultiSelect = True
     ReadOnly = True
     RowSelect = True
-    SmallImages = AppImages.States
+    SmallImages = AppImages.Maintain
     TabOrder = 1
     ViewStyle = vsReport
     OnColumnClick = lvPayeesColumnClick

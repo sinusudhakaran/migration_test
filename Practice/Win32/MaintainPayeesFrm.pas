@@ -127,10 +127,11 @@ procedure TfrmMaintainPayees.RefreshPayeeList;
 var
    NewItem : TListItem;
    Payee : TPayee;
-   i : integer;
+   i,j : integer;
    PayeeAccount: string;
    CodeIsActive: boolean;
    CodeIsValid: boolean;
+   ACodeIsInvalidOrInactive: boolean;
 begin
    lvPayees.Items.beginUpdate;
    try
@@ -149,9 +150,18 @@ begin
      for i := 0 to Pred(itemCount) do
      begin
         Payee := Payee_At(i);
-        PayeeAccount := Payee.pdLines.PayeeLine_At(i)^.plAccount;
-        CodeIsValid := MyClient.clChart.CanCodeto(PayeeAccount, CodeIsActive,
-                                                  HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used));
+        ACodeIsInvalidOrInactive := False;
+        for j := 0 to Payee.pdLinesCount - 1 do
+        begin
+          PayeeAccount := Payee.pdLines.PayeeLine_At(j)^.plAccount;
+          CodeIsValid := MyClient.clChart.CanCodeto(PayeeAccount, CodeIsActive,
+                                                    HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used));
+          if not (CodeIsValid and CodeIsActive) then
+          begin
+            ACodeIsInvalidOrInactive := True;
+            break;
+          end;              
+        end;
 
         if Payee.pdFields.pdInactive and not chkShowInactive.Checked then
           continue;
@@ -159,8 +169,8 @@ begin
         NewItem := lvPayees.Items.Add;
 
         NewItem.Caption := inttostr(Payee.pdNumber);
-        if not (CodeIsValid and CodeIsActive) then
-          NewItem.ImageIndex := STATES_ALERT
+        if ACodeIsInvalidOrInactive then
+          NewItem.ImageIndex := MAINTAIN_ALERT
         else
           NewItem.Imageindex := -1;
         NewItem.SubItems.AddObject(Payee.pdName,TObject(Payee));
