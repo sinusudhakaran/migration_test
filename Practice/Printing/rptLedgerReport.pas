@@ -1662,10 +1662,17 @@ begin
          else
            P := Chart.FindNextCode(LastCodePrinted, False);
          // Some conditions to handle invalid codes
-         OKToPrint := ((not IsValidCode) and Assigned(P) and (P^.chAccount_Code < Code)) or // this code is invalid but next valid code is less than this one - need to show it
-                      ((not IsValidCode) and (LastCodePrinted = LastValidCode) and (LastCodePrinted <> NULLCODE)) and // this code is invalid but last was valid - need to show any between last and this
-                      (not Client.clBank_Account_List.IsExchangeGainLossCode(p.chAccount_Code));
-                      
+         OKToPrint := (not IsValidCode) and
+                      (Assigned(P)) and
+                      (P^.chAccount_Code < Code); // this code is invalid but next valid code is less than this one - need to show it
+
+         OKToPrint := ((not OKToPrint) and
+                       (Assigned(P)) and
+                       (not IsValidCode) and
+                       (mgr.LastCodePrinted = mgr.LastValidCode) and
+                       (mgr.LastCodePrinted <> NULLCODE)) and // this code is invalid but last was valid - need to show any between last and this
+                       (not TListLedgerReport(mgr.ReportJob).params.Client.clBank_Account_List.IsExchangeGainLossCode(p.chAccount_Code));
+
          if Assigned(P) and (IsValidCode or OKToPrint) then
            while (Code <> '') and (P^.chAccount_Code <> Code) and (P^.chAccount_Code < Code) do
            begin                      
