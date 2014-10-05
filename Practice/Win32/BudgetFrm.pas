@@ -3661,7 +3661,10 @@ begin
     if not fShowZeros then
     begin
       UpdatePercentageRows(False);
-      DoHideUnused;
+
+      RefreshTableWithData(false, true, true);
+
+      //DoHideUnused;
     end;
     tmrUnusedRows.Enabled := False;
   end;
