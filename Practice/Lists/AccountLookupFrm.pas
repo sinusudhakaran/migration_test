@@ -1224,6 +1224,7 @@ begin
    finally
      Grid.Rows := CHSListByCode.ItemCount;
      CurrentsearchKey := Code;
+     SetSize;
      Grid.EnableRedraw := True;
      DoNewSearch;
      Grid.RefreshData( roBoth, rpNone );
