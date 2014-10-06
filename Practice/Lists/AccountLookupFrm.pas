@@ -778,6 +778,8 @@ begin
 
                if Account_At(i).chHide_In_Basic_Chart and LookupDlg.ShowBasicChart then
                  Continue;
+                if Account_At(i).chInactive then
+                  Continue;
 
                if IncludeAccount then begin
                  TempListC.Insert( NewCHSRec( Account_At( i ) ) );
