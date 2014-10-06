@@ -1939,7 +1939,7 @@ var
 
 begin
   repeat
-    if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed) then
+    if SimpleSelectReportDest(Report_List_Names[Report_List_Manual], ButtonPressed, BKH_List_Manual_Bank_Accounts) then
     begin
       case ButtonPressed of
          BTN_PRINT    : Dest := rdPrinter;

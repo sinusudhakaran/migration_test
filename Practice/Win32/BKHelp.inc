@@ -615,6 +615,7 @@ const
   BKH_Suggested_memorisations = 2150;
   BKH_Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice = 2114;
   BKH_Export_chart_to_COMPANY_NAME1_Essentials_Cashbook = 2151;
+  BKH_List_Manual_Bank_Accounts = 2152;
 
 var
   //filename of HTML help file
