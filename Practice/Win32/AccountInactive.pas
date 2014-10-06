@@ -130,13 +130,16 @@ begin
   for iPayee := 0 to MyClient.clPayee_List.Last do
   begin
     Payee := MyClient.clPayee_List.Payee_At(iPayee);
-    for iLine := 0 to Payee.pdLines.Last do
+    if not Payee.pdFields.pdInactive then
     begin
-      Line := Payee.pdLines.PayeeLine_At(iLine);
-      if (Line.plAccount = aAccount) then
+      for iLine := 0 to Payee.pdLines.Last do
       begin
-        result := true;
-        exit;
+        Line := Payee.pdLines.PayeeLine_At(iLine);
+        if (Line.plAccount = aAccount) then
+        begin
+          result := true;
+          exit;
+        end;
       end;
     end;
   end;
