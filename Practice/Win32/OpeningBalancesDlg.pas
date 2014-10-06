@@ -563,7 +563,8 @@ begin
          or ( pA.chAccount_Type in BalanceSheetReportGroupsSet)
          or ( pA^.chTemp_Money_Value <> 0 ) then
       begin
-        FAccountList.Insert( pA);
+        if not pA^.chInactive then
+          FAccountList.Insert( pA);
       end;
    end;
 end;
