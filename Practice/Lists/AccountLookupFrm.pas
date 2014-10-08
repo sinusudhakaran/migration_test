@@ -35,6 +35,11 @@ uses
 type
   TAcctFilterFunction = function(const pAcct : pAccount_Rec) : boolean;
 
+  TDisplayOption = (
+    doShowInactive
+  );
+  TDisplayOptions = set of TDisplayOption;
+
   TfrmAcctLookup = class(TForm)
     Grid: TtsGrid;
     pnlBasic: TPanel;
@@ -99,9 +104,21 @@ type
     property HasChartBeenRefreshed : boolean read fHasChartBeenRefreshed write fHasChartBeenRefreshed;
   end;
 
-function  LookUpChart( Guess : ShortString; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ): ShortString;
-function  PickAccount( var AcctCode : string; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  ) : boolean;
-procedure PickCodeForEdit( Sender: TObject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True  );
+function  LookUpChart( Guess : ShortString; var aHasChartBeenRefreshed : boolean;
+            FilterFunction : TAcctFilterFunction = nil;
+            ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True;
+            DisplayOptions: TDisplayOptions = []
+            ): ShortString;
+function  PickAccount( var AcctCode : string;
+            var aHasChartBeenRefreshed : boolean;
+            FilterFunction : TAcctFilterFunction = nil;
+            ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True;
+            DisplayOptions: TDisplayOptions = []
+            ) : boolean;
+procedure PickCodeForEdit( Sender: TObject;
+            FilterFunction : TAcctFilterFunction = nil;
+            ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True;
+            DisplayOptions: TDisplayOptions = [] );
 
 //------------------------------------------------------------------------------
 implementation
@@ -735,7 +752,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function LookUpChart( Guess : ShortString; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ; ShowRefreshChart : Boolean = True ): ShortString;
+Function LookUpChart( Guess : ShortString; var aHasChartBeenRefreshed : boolean;
+  FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True ;
+  ShowRefreshChart : Boolean = True; DisplayOptions: TDisplayOptions = []
+  ): ShortString;
 
 Const
   ThisMethodName = 'LookUpChart';
@@ -758,6 +778,7 @@ begin
       LookupDlg.Filter := FilterFunction;
       if not ShowOptions then
         LookupDlg.pnlBasic.Visible := False;
+      LookupDlg.chkShowInactive.Visible := (doShowInactive in DisplayOptions);
       //load lists
       TempListC := tCHSList.Create( chsSortByCode );
       TempListD := tCHSList.Create( chsSortByDesc );
@@ -878,7 +899,7 @@ begin
             Width       := 120;
             ControlType := ctText;
             SortPicture := TSGrid.spNone;
-         end;         
+         end;
 
          with Col[ DescCol ] do
          Begin
@@ -915,7 +936,7 @@ begin
          aHasChartBeenRefreshed := LookUpDlg.HasChartBeenRefreshed;
 
          case LookUpDlg.CurrentSortOrder of
-            chsSortByCode : 
+            chsSortByCode :
                Begin
                    with LookUpDlg.CHSListByCode do
                       for i := 0 to Pred( ItemCount ) do if LookUpDlg.Grid.RowSelected[ i+1 ] then
@@ -973,18 +994,24 @@ begin
 End;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PickAccount( var AcctCode : string; var aHasChartBeenRefreshed : boolean; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True ) : Boolean;
+function PickAccount( var AcctCode : string;
+  var aHasChartBeenRefreshed : boolean;
+  FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True;
+  ShowRefreshChart : Boolean = True; DisplayOptions: TDisplayOptions = []
+  ) : Boolean;
 // Creates Chart Account Lookup form positioned on passed AcctCode.
 // User can select/search for chart code
 begin
   Result := False;
   if not HasAChart then exit;
-  AcctCode := AccountLookupFrm.LookUpChart( AcctCode, aHasChartBeenRefreshed, FilterFunction, ShowOptions, ShowRefreshChart );
+  AcctCode := AccountLookupFrm.LookUpChart( AcctCode, aHasChartBeenRefreshed, FilterFunction, ShowOptions, ShowRefreshChart, DisplayOptions );
   if AcctCode<>'' then Result := True;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure PickCodeForEdit(Sender : Tobject; FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True; ShowRefreshChart : Boolean = True );
+procedure PickCodeForEdit(Sender : Tobject;
+  FilterFunction : TAcctFilterFunction = nil; ShowOptions: Boolean = True;
+  ShowRefreshChart : Boolean = True; DisplayOptions: TDisplayOptions = [] );
 var
   S : string;
   HasChartBeenRefreshed : boolean;
@@ -994,7 +1021,7 @@ begin
 
    TEdit(Sender).SetFocus;
    S := TEdit(Sender).Text;
-   if PickAccount( S, HasChartBeenRefreshed, FilterFunction, ShowOptions, ShowRefreshChart) then
+   if PickAccount( S, HasChartBeenRefreshed, FilterFunction, ShowOptions, ShowRefreshChart, DisplayOptions) then
      TEdit(Sender).text := S;
    TEdit(Sender).SelStart := length(S);
 end;
