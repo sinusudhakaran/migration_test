@@ -94,7 +94,8 @@ procedure TFindReplaceDlg.btnFindChartClick(Sender: TObject);
 var
   HasChartBeenRefreshed : boolean;
 begin
-  EFind.Text :=  LookUpChart(EFind.Text, HasChartBeenRefreshed);
+  EFind.Text := LookUpChart(EFind.Text, HasChartBeenRefreshed, nil, true, true,
+    [doShowInactive]);
 end;
 
 procedure TFindReplaceDlg.BtnOKClick(Sender: TObject);
@@ -108,7 +109,8 @@ procedure TFindReplaceDlg.btnReplaceChartClick(Sender: TObject);
 var
   HasChartBeenRefreshed : boolean;
 begin
-  EReplace.Text :=  LookUpChart(EReplace.Text, HasChartBeenRefreshed);
+  EReplace.Text := LookUpChart(EReplace.Text, HasChartBeenRefreshed, nil, true,
+    true, [doShowInactive]);
 end;
 
 function TFindReplaceDlg.FindReplace: Boolean;
