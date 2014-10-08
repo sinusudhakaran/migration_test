@@ -1645,7 +1645,7 @@ begin
     tgEarnings.CurrentDataCol := ColEarningsAccount;
 
   Code := tgEarnings.CurrentCell.Value;
-  if PickAccount(Code, HasChartBeenRefreshed, EarningsFilter) then
+  if PickAccount(Code, HasChartBeenRefreshed, EarningsFilter, true, true, [doShowInactive]) then
   begin
     tgEarnings.CurrentCell.Value := Code;
     tgEarnings.EndEdit( false);
