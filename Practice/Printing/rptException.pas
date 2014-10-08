@@ -495,6 +495,9 @@ begin
                   PrintMe := PrintMe OR
                   ( ExceedsBounds( Account, mActualOrBudget, mLastYear));
 
+               if Account^.chInactive then
+                 PrintMe := False;                  
+
                If PrintMe then
                Begin
                   Inc( ECount );

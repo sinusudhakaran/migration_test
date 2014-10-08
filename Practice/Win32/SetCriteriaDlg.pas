@@ -96,6 +96,7 @@ type
           Code       : Bk5CodeStr;
           Desc       : string[60];
           PostAllow  : Boolean;
+          Inactive   : Boolean;
           dvUp,
           dvDown,
           dpvUp,
@@ -122,17 +123,18 @@ begin
 
   //Load Data
   with MyClient.clChart do begin
-     SetLength(DataArray, ItemCount);
-     for i := 0 to ItemCount -1 do with Account_At(i)^, DataArray[i] do begin
-        Code      := chAccount_Code;
-        Desc      := chAccount_Description;
-        PostAllow := chPosting_Allowed;
-        dvUp      := Money2Double(chMoney_Variance_Up);
-        dvDown    := Money2Double(chMoney_Variance_Down);
-        dpvUp     := Money2Double(chPercent_Variance_Up);
-        dpvDown   := Money2Double(chPercent_Variance_Down);
-     end;
-     tbData.rowLimit := itemCount+1;
+    SetLength(DataArray, ItemCount);
+    for i := 0 to ItemCount -1 do with Account_At(i)^, DataArray[i] do begin
+      Code      := chAccount_Code;
+      Desc      := chAccount_Description;
+      PostAllow := chPosting_Allowed;
+      Inactive  := chInactive;
+      dvUp      := Money2Double(chMoney_Variance_Up);
+      dvDown    := Money2Double(chMoney_Variance_Down);
+      dpvUp     := Money2Double(chPercent_Variance_Up);
+      dpvDown   := Money2Double(chPercent_Variance_Down);
+    end;
+    tbData.rowLimit := itemCount+1;
   end;
 
   //Set width of form to use more of the available area if greater than 640
@@ -225,6 +227,8 @@ begin
               5: data := @dpvDown;
             end; {case}
          end;
+         if DataArray[RowNum-1].Inactive then
+           tbData.Rows.Hidden[RowNum] := True;
       end;
    end;
 end;
