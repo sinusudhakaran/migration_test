@@ -316,19 +316,22 @@ begin
       Account := Account_At(i);
       if Assigned(AdminSystem) or not Account.chHide_In_Basic_Chart then
       begin
-        NewItem := lvChart.Items.Add;
-        NewItem.ImageIndex := -1;
-        NewItem.Caption := Account.chAccount_Code;
-        NewItem.SubItems.AddObject('',TObject(Account));  {desc}
-        NewItem.SubItems.Add('');                         {type}
-        NewItem.SubItems.Add('');                         {Alt Code}
-        NewItem.SubItems.Add('');                         {Subtype}
-        NewItem.SubItems.Add('');                         {gst}
-        NewItem.SubItems.Add('');                         {divisions}
-        NewItem.SubItems.Add('');                         {basic}
-        NewItem.SubItems.Add('');                         {posting}
-        NewItem.SubItems.Add('');                         {inactive}
-        RefreshItem(Account,NewItem);
+        if fShowInactive or (not Account.chInactive) then
+        begin
+          NewItem := lvChart.Items.Add;
+          NewItem.ImageIndex := -1;
+          NewItem.Caption := Account.chAccount_Code;
+          NewItem.SubItems.AddObject('',TObject(Account));  {desc}
+          NewItem.SubItems.Add('');                         {type}
+          NewItem.SubItems.Add('');                         {Alt Code}
+          NewItem.SubItems.Add('');                         {Subtype}
+          NewItem.SubItems.Add('');                         {gst}
+          NewItem.SubItems.Add('');                         {divisions}
+          NewItem.SubItems.Add('');                         {basic}
+          NewItem.SubItems.Add('');                         {posting}
+          NewItem.SubItems.Add('');                         {inactive}
+          RefreshItem(Account,NewItem);
+        end;
       end;
     end;
     DoResort( CurrSortCol);
@@ -1586,6 +1589,7 @@ begin
   fShowInactive := not fShowInactive;
 
   UpdateInactiveColumn;
+  RefreshChartList;
 end;
 
 procedure TfrmMaintainChart.UpdateInactiveColumn;
