@@ -1089,7 +1089,7 @@ begin
   else
     Code := '';
 
-  if PickAccount(Code, HasChartBeenRefreshed) then
+  if PickAccount(Code, HasChartBeenRefreshed, nil, true, true, [doShowInactive]) then
   begin
     if HasChartBeenRefreshed then
       ReportParams.RefreshChart;
