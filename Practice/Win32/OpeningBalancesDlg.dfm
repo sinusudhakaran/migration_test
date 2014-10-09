@@ -19,16 +19,16 @@ object dlgOpeningBalances: TdlgOpeningBalances
   TextHeight = 13
   object pnlFooter: TPanel
     Left = 0
-    Top = 416
+    Top = 392
     Width = 622
-    Height = 79
+    Height = 103
     Align = alBottom
     Ctl3D = False
     ParentCtl3D = False
     TabOrder = 2
     DesignSize = (
       622
-      79)
+      103)
     object lblAmountRemText: TLabel
       Left = 8
       Top = 8
@@ -45,7 +45,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     end
     object lblInvalidAccountsUsed: TLabel
       Left = 8
-      Top = 32
+      Top = 55
       Width = 412
       Height = 16
       Caption = 'WARNING: You have amounts posted to non-balance sheet accounts'
@@ -59,17 +59,18 @@ object dlgOpeningBalances: TdlgOpeningBalances
     end
     object btnOK: TButton
       Left = 456
-      Top = 45
+      Top = 69
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
       ModalResult = 1
       TabOrder = 1
+      ExplicitTop = 45
     end
     object btnCancel: TButton
       Left = 536
-      Top = 45
+      Top = 69
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -77,6 +78,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
+      ExplicitTop = 45
     end
     object chkHideNonBS: TCheckBox
       Left = 387
@@ -89,6 +91,17 @@ object dlgOpeningBalances: TdlgOpeningBalances
       State = cbChecked
       TabOrder = 0
       OnClick = chkHideNonBSClick
+    end
+    object chkHideInactive: TCheckBox
+      Left = 387
+      Top = 32
+      Width = 97
+      Height = 17
+      Caption = 'Hide &Inactive'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
+      OnClick = chkHideInactiveClick
     end
   end
   object pnlHeader: TPanel
@@ -126,7 +139,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     Left = 0
     Top = 78
     Width = 622
-    Height = 338
+    Height = 314
     Hint = 'Test hint'
     Align = alClient
     AlwaysShowScrollBar = ssVertical
@@ -169,6 +182,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     OnMouseMove = tgBalancesMouseMove
     OnPaintCell = tgBalancesPaintCell
     OnStartCellEdit = tgBalancesStartCellEdit
+    ExplicitHeight = 338
     ColProperties = <
       item
         DataCol = 1

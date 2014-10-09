@@ -41,6 +41,7 @@ type
     ActionList1: TActionList;
     acForeignCurrency: TAction;
     Enterforeigncurrencybalance1: TMenuItem;
+    chkHideInactive: TCheckBox;
     procedure tgBalancesCellLoaded(Sender: TObject; DataCol,
       DataRow: Integer; var Value: Variant);
     procedure FormCreate(Sender: TObject);
@@ -64,6 +65,7 @@ type
       Y: Integer);
     procedure tgBalancesEndRowEdit(Sender: TObject; DataRow: Integer;
       var Cancel: Boolean);
+    procedure chkHideInactiveClick(Sender: TObject);
   private
     { Private declarations }
     ThisClient             : TClientObj;
@@ -559,12 +561,13 @@ begin
    FAccountList.DeleteAll;
    for i := 0 to Pred( ThisClient.clChart.ItemCount) do begin
       pA  := ThisClient.clChart.Account_At( i);
+      if pA.chInactive and chkHideInactive.Checked then
+        continue;
       if ( not chkHideNonBS.checked)
          or ( pA.chAccount_Type in BalanceSheetReportGroupsSet)
          or ( pA^.chTemp_Money_Value <> 0 ) then
       begin
-        if not pA^.chInactive then
-          FAccountList.Insert( pA);
+        FAccountList.Insert( pA);
       end;
    end;
 end;
@@ -577,8 +580,16 @@ begin
   if Assigned(pAccount) then begin
     EnterForeignCurrencyBalance(pAccount, AsAtDate);
     tgBalances.Refresh;
-    UpdateAmountRemaining;    
+    UpdateAmountRemaining;
   end;
+end;
+
+procedure TdlgOpeningBalances.chkHideInactiveClick(Sender: TObject);
+begin
+   tgBalances.Rows := 0;
+   LoadChartIntoList;
+   ConfigureGrid;
+   tgBalances.Refresh;
 end;
 
 procedure TdlgOpeningBalances.chkHideNonBSClick(Sender: TObject);
