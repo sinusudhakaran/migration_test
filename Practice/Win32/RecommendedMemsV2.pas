@@ -1495,9 +1495,11 @@ end;
 //------------------------------------------------------------------------------
 function TMemsV2.IsValidAccount(const aAccount: string): boolean;
 var
-  IsActive: boolean;
+  bActive: boolean;
 begin
-  result := MyClient.clChart.CanCodeTo(aAccount, IsActive) or IsDissected(aAccount);
+  result :=
+    (MyClient.clChart.CanCodeTo(aAccount, bActive) and bActive) or
+    IsDissected(aAccount);
 end;
 
 //------------------------------------------------------------------------------
