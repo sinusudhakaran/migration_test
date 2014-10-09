@@ -1186,16 +1186,19 @@ begin
        begin
          PayeeLine := BKPLIO.New_Payee_Line_Rec;
          PayeeLine.plAccount := SplitData[i].AcctCode;
-         if not MyClient.clChart.CanCodeto(PayeeLine.plAccount, IsActive,
-                                           HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+         if (PayeeLine.plAccount <> '') then
          begin
-           DoInvalidWarning := True;
-           InvalidCodes.Add(PayeeLine.plAccount);
-         end else
-         if not IsActive then
-         begin
-           DoInactiveWarning := True;
-           InactiveCodes.Add(PayeeLine.plAccount);
+           if not MyClient.clChart.CanCodeto(PayeeLine.plAccount, IsActive,
+                                             HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+           begin
+             DoInvalidWarning := True;
+             InvalidCodes.Add(PayeeLine.plAccount);
+           end else
+           if not IsActive then
+           begin
+             DoInactiveWarning := True;
+             InactiveCodes.Add(PayeeLine.plAccount);
+           end;
          end;
        end;
      end;
