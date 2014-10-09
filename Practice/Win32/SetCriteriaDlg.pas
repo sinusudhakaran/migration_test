@@ -197,6 +197,7 @@ procedure TdlgSetCriteria.FormDestroy(Sender: TObject);
 begin
    DataArray := nil;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.btnOKClick(Sender: TObject);
 begin
@@ -227,11 +228,15 @@ begin
               5: data := @dpvDown;
             end; {case}
          end;
-         if DataArray[RowNum-1].Inactive then
+         if DataArray[RowNum-1].Inactive or not DataArray[RowNum-1].PostAllow then
+         begin
            tbData.Rows.Hidden[RowNum] := True;
+           Refresh;
+         end;
       end;
    end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.tbDataGetCellAttributes(Sender: TObject;
   RowNum, ColNum: Integer; var CellAttr: TOvcCellAttributes);
@@ -256,23 +261,20 @@ begin
   if colNum < 2 then colNum := 2;
   if colNum > 5 then colNum := 5;
   
-  //Skip Heading Rows in Chart
-  if not DataArray[ RowNum - 1 ].PostAllow then begin
-     case Command of
-        ccUp: begin
-           if RowNum > 1 then
-              Dec(RowNum)
-           else
-              Inc(RowNum);
-        end;
-        else begin
-           if RowNum = tbData.RowLimit then
-              Dec(RowNum)
-           else
-              Inc(RowNum);
-        end;
-     end; {case}
-  end;  
+  case Command of
+    ccUp: begin
+       if RowNum > 1 then
+          Dec(RowNum)
+       else
+          Inc(RowNum);
+    end;
+    else begin
+       if RowNum = tbData.RowLimit then
+          Dec(RowNum)
+       else
+          Inc(RowNum);
+    end;
+  end; {case}
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.colDollarPlusOwnerDraw(Sender: TObject;
