@@ -55,6 +55,7 @@ var
  IsActive         : boolean;
  txAccount        : boolean;
 begin
+ IsActive := True;
  with pT^ do begin
     if aClient.clChart.CanCodeTo( txAccount, IsActive) then begin
        IsEldersAccount := ( BankPrefix = EldersPrefix) and ( aClient.clFields.clCountry = whAustralia);

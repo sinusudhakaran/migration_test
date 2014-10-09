@@ -539,6 +539,7 @@ var
     end;
 
   begin
+    IsActive := True;
     if DebugMe then
       CreateDebugTimer('TRecommended_Mems.DoRecommendedMemProcessing');
 

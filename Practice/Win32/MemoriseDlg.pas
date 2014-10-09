@@ -1488,6 +1488,7 @@ var
 const
   ThisMethodName = 'OKtoPost';
 begin
+   IsActive := True;
    Result := false;
    FMemorisationsList := nil;
 
@@ -2749,6 +2750,8 @@ const
   end;
 
 begin
+   CodeIsActive := True;
+
    If (data = nil) then
       exit;
 

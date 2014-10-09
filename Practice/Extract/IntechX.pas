@@ -165,6 +165,7 @@ Procedure IntechWrite(  ADate    : TStDate;
       i           : Byte;
       IsActive    : boolean;
    Begin
+      IsActive := True;
       if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
       If MyClient.clChart.CanCodeTo( ACode, IsActive ) then
          Write( XFile, 'b' )

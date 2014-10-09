@@ -196,6 +196,7 @@ var
   Row: Integer;
 {$ENDIF}
 begin
+  IsActive := True;
   StartDate := MinValidDate;
   EndDate := MaxValidDate;
   SelectedList  := TStringList.Create;

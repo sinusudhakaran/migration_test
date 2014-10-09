@@ -315,6 +315,7 @@ var D1, D2, I: Integer;
     end;
 
 begin
+  IsActive := True;
   Result := False;
   FindStr := Trim(EFind.Text);
   if FindStr = '' then begin

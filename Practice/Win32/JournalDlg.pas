@@ -1469,6 +1469,7 @@ begin
    //verify values
    if not ValidDataRow(RowNum) then exit;
 
+   IsActive := True;
    pJ := WorkJournal.Items[ RowNum-1 ];
    FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
    case FieldID of
@@ -1682,6 +1683,7 @@ var
   NewGST     : money;
   IsActive   : boolean;
 begin
+  IsActive := True;
   with pJ^ do begin
      if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
         CalculateGST( MyClient, pTran^.txDate_Effective, dtAccount, dtAmount, NewClass, NewGST);
@@ -1758,6 +1760,7 @@ procedure TdlgJournal.AmountEdited( pJ : pWorkJournal_Rec );
 var
   IsActive: boolean;
 begin
+  IsActive := True;
   with pJ^ do begin
      if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
         //recalculate the gst using the current class.  No need to change the GST has been edited flag
@@ -2267,6 +2270,7 @@ begin
   If ( data = nil ) then exit;
   //if selected dont do anything
   if CellAttr.caColor = clHighlight then exit;
+  IsActive := True;
   S := ShortString( Data^ );
   If ( S='' ) or ( S=BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) then exit;
   R := CellRect;
@@ -2831,6 +2835,7 @@ function TdlgJournal.FindUnCoded(const TheCurrentRow: integer): integer;
      Coded    : boolean;
      IsActive : boolean;
    begin
+     IsActive := True;
      Coded := MyClient.clChart.CanCodeTo(pJ^.dtAccount, IsActive);
 {$IFNDEF SmartBooks}
      //check CA systems GST Range

@@ -4344,6 +4344,7 @@ Var
   IsEldersAccount : boolean;
   IsActive        : boolean;
 Begin
+   IsActive := True;
    With pT^ do
    Begin
       If (txAccount = '') then begin

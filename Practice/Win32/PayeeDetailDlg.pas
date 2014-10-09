@@ -1058,6 +1058,7 @@ var
   InactiveCodes: TStringList;
   WarningMsg: string;
 begin
+   IsActive := True;
    result := false;
 
    //trim payee name
@@ -1799,6 +1800,8 @@ const
 
 
 begin
+  IsActive := True;
+
   If (data = nil) then
       exit;
 

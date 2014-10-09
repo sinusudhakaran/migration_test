@@ -127,6 +127,7 @@ Var
   Forex : Boolean;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
 Begin
+   IsActive := True;
    try
      if Assigned(frmMain) then
      begin

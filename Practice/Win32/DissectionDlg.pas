@@ -1104,6 +1104,8 @@ var
    Payee    : integer;
    IsActive : boolean;
 begin
+   IsActive := True;
+
    //verify values
    if not ValidDataRow(RowNum) then exit;
 
@@ -1380,6 +1382,8 @@ var
   NewGST     : money;
   IsActive   : boolean;
 begin
+  IsActive := True;
+
   UpdateBaseAmounts(pD);
   with pD^ do begin
      if MyClient.clChart.CanCodeTo( dtAccount, IsActive) then begin
@@ -1427,6 +1431,8 @@ procedure TdlgDissection.AmountEdited( pD : pWorkDissect_Rec );
 var
   IsActive: boolean;
 begin
+  IsActive := True;
+
   UpdateBaseAmounts(pD);
   with pD^ do begin
      dtPercent_Amount := 0;
@@ -1460,6 +1466,8 @@ var
   Remainder: Money;
   IsActive: boolean;
 begin
+  IsActive := True;
+
   UpdateBaseAmounts(pD);
   with pD^ do
   begin
@@ -2048,6 +2056,8 @@ var
 begin
   If ( data = nil ) then
     exit;
+
+  IsActive := True;
 
   TableCanvas.Font             := CellAttr.caFont;
   TableCanvas.Font.Color       := CellAttr.caFontColor;
@@ -2709,6 +2719,7 @@ function TdlgDissection.FindUnCoded(const TheCurrentRow: integer): integer;
      Coded : boolean;
      IsActive : boolean;
    begin
+     IsActive := True;
      Coded := MyClient.clChart.CanCodeTo(pD^.dtAccount, IsActive);
 {$IFNDEF SmartBooks}
      //check CA systems GST Range
@@ -3053,6 +3064,7 @@ var
    Percent: Double;
    IsActive: boolean;
 begin
+  IsActive := True;
   SavedAmount := 0;
   UseSavedAmount := False;
   {treat value as percentage}

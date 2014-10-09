@@ -1868,6 +1868,7 @@ var
   NewGST     : money;
   IsActive   : boolean;
 begin
+  IsActive := True;
   with pT^ do begin
      if MyClient.clChart.CanCodeTo( txAccount, IsActive) then begin
 //        CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, NewClass, NewGST);
@@ -2542,6 +2543,8 @@ var
 begin
    //verify values
    if not ValidDataRow(RowNum) then exit;
+
+   IsActive := True;
 
    with HistTranList do begin
       pT := Transaction_At(RowNum-1);
@@ -4263,6 +4266,7 @@ begin
   If ( data = nil ) then exit;
   //if selected dont do anything
   if CellAttr.caColor = clHighlight then exit;
+  IsActive := True;
   S := ShortString( Data^ );
   If ( S='' ) or ( S=DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) then exit;
   R := CellRect;

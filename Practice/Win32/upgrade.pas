@@ -2466,6 +2466,7 @@ const
       mem            : pMemorised_Transaction_Rec;
       IsActive       : boolean;
    begin
+      IsActive := True;
       with aClient.clBank_Account_List do begin
          for i := 0 to Pred( ItemCount) do with Bank_Account_At( i) do begin
             for j := 0 to Pred( baOld_Memorised_Transaction_List.ItemCount) do begin

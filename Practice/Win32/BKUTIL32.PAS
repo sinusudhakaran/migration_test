@@ -97,6 +97,7 @@ Var
 Var
    Msg : String;
 Begin
+   IsActive := True;
    If not Assigned( aClient) Then
    Begin
       Msg := 'aClient is NIL';

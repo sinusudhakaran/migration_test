@@ -326,6 +326,7 @@ var
     I,J     : Integer;
     IsActive: boolean;
   begin
+     IsActive := True;
      Result := STATES_ALERT;
      for I := Ba.baMemorisations_List.First to ba.baMemorisations_List.Last do
      begin
@@ -546,6 +547,7 @@ var
    IsActive       : boolean;
    LineIsInvalid  : boolean;
 begin
+   IsActive := True;
    //check if we were working on a MASTER file and if we need to save it.
    Result := 0;
 //   CheckMasterSaveNeeded;

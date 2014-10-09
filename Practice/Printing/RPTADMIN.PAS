@@ -2063,6 +2063,7 @@ Var
    DS       : pDissection_Rec;
    IsActive : boolean;
 Begin
+   IsActive := True;
    With aClient, T^ do begin
       If txFirst_Dissection <> nil then begin
          OK := TRUE;

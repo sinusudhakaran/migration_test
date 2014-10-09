@@ -133,6 +133,7 @@ var
    CodeIsValid: boolean;
    ACodeIsInvalidOrInactive: boolean;
 begin
+   CodeIsActive := True;
    lvPayees.Items.beginUpdate;
    try
      MsgBar('Load Payees',true);
