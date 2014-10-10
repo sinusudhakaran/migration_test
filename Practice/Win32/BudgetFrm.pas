@@ -1336,6 +1336,27 @@ begin
         Continue;
     end;
 
+    // Inactive rows get hidden when there's no data behind them
+    if Account.chInactive then
+    begin
+      HasData := false;
+
+      if Assigned(pBudgetRec) then
+      begin
+        for MonthIndex := 1 to 12 do
+        begin
+          if (pBudgetRec.bdBudget[MonthIndex] <> 0) or (pBudgetRec.bdPercent_Account <> '') then
+          begin
+            HasData := true;
+            break;
+          end;
+        end;
+      end;
+
+      if not HasData then
+        Continue;
+    end;
+
     FData[aDataIndex].bAccount := Account.chAccount_Code;
     FData[aDataIndex].bDesc    := Account.chAccount_Description;
     FData[aDataIndex].bIsPosting := Account.chPosting_Allowed;
