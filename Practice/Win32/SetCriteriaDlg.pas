@@ -85,7 +85,8 @@ uses
   ovcConst,
   errorMoreFrm,
   warningMorefrm,
-  CountryUtils;
+  CountryUtils,
+  BKDefs;
 
 const
    tcDitto   = ccUserFirst + 1;
@@ -212,31 +213,82 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.tbDataGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
-begin
-   data := nil;
+var
+  pAcct : pAccount_Rec;
 
-   with MyClient.clChart do
-   begin
-      if (rowNum > 0) and ((rowNum -1) < ItemCount) and  Assigned(DataArray) then begin
-         with DataArray[RowNum-1] do begin
-            case ColNum of
-              0: data := @Code;
-              1: data := @Desc;
-              2: data := @dvUp;
-              3: data := @dvDown;
-              4: data := @dpvUp;
-              5: data := @dpvDown;
-            end; {case}
-         end;
-         if DataArray[RowNum-1].Inactive or not DataArray[RowNum-1].PostAllow then
-         begin
-           tbData.Rows.Hidden[RowNum] := True;
-           Refresh;
-         end;
+  procedure HideRow;
+  begin
+    if (RowNum = 0) then
+      Exit;
+    tbData.Rows.Hidden[RowNum] := True;
+    if (ColNum = 0) then
+    begin
+     tbData.InvalidateRow(RowNum);
+     tbData.Refresh;
+    end;
+  end;
+
+  // There appears to be a bug in OvcTable where, if the first row is hidden, the
+  // top left cell shows the value of the hidden row rather than the next row.
+  //
+  // I have had to workaround this issue below by prematurely returning the value
+  // of the next row (which is what will be shown anyway) if the current row
+  // is going to be hidden.
+  //
+  // Of course, there could be several sequential inactive/non-posting rows, so
+  // we have to loop through until we find the next row which will actually be shown 
+
+  procedure GetNextCode;
+  var
+    i: integer;
+  begin
+    data := nil;
+    for i := rowNum to High(DataArray) do
+    begin
+      pAcct := MyClient.clChart.FindCode(DataArray[i].Code);
+      if (pAcct.chPosting_Allowed and not pAcct.chInactive) then
+      begin
+        data := @DataArray[i].Code;
+        break;
       end;
-   end;
-end;
+    end;
+  end;
 
+begin
+  data := nil;
+
+  with MyClient.clChart do
+  begin
+    if ((rowNum -1) < ItemCount) and  Assigned(DataArray) then
+    begin
+      if (rowNum > 0) then
+      begin
+        with DataArray[RowNum-1] do begin
+          case ColNum of
+            0:
+              begin  
+                pAcct := MyClient.clChart.FindCode(DataArray[RowNum-1].Code);
+                if (pAcct.chInactive or not pAcct.chPosting_Allowed) and (ItemCount > 1) and (RowNum = 1) then
+                  GetNextCode
+                else
+                  data := @Code;
+              end;
+            1: data := @Desc;
+            2: data := @dvUp;
+            3: data := @dvDown;
+            4: data := @dpvUp;
+            5: data := @dpvDown;
+          end; {case}
+        end;
+        if DataArray[RowNum-1].Inactive or not DataArray[RowNum-1].PostAllow then
+          HideRow;
+      end
+      else
+        HideRow;
+    end;
+  end;
+end;
+         
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.tbDataGetCellAttributes(Sender: TObject;
   RowNum, ColNum: Integer; var CellAttr: TOvcCellAttributes);
@@ -260,21 +312,6 @@ begin
   end;
   if colNum < 2 then colNum := 2;
   if colNum > 5 then colNum := 5;
-  
-  case Command of
-    ccUp: begin
-       if RowNum > 1 then
-          Dec(RowNum)
-       else
-          Inc(RowNum);
-    end;
-    else begin
-       if RowNum = tbData.RowLimit then
-          Dec(RowNum)
-       else
-          Inc(RowNum);
-    end;
-  end; {case}
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.colDollarPlusOwnerDraw(Sender: TObject;
@@ -345,23 +382,46 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.DuplicateLine;
 var
-   RowNum : integer;
-   Msg : TWMKey;
+  RowNum : integer;
+  Msg : TWMKey;
+  PrevRow : integer;
+
+  function GetLastValidRow: integer;
+  var
+    i     : Integer;
+    pAcct : pAccount_Rec;
+  begin
+    Result := -1;
+    for i := RowNum - 1 downto 0 do
+    begin
+      pAcct := MyClient.clChart.FindCode(DataArray[i].Code);
+      if (pAcct.chPosting_Allowed and not pAcct.chInactive) then
+      begin
+        Result := i;
+        break;
+      end;
+    end;
+  end;
+
 begin
-   RowNum := tbData.ActiveRow-1;
+  RowNum := tbData.ActiveRow-1;
 
-   if RowNum <= 0 then exit;
-   if (pos('*',DataArray[RowNum].code) > 0) or (pos('*',DataArray[RowNum-1].code)> 0) then exit;
+  if RowNum <= 0 then exit;
+  PrevRow := GetLastValidRow;
+  if (PrevRow = -1) then
+    exit;
+  if (pos('*',DataArray[RowNum].code) > 0) or (pos('*',DataArray[PrevRow].code)> 0) then
+    exit;
 
-   DataArray[RowNum].dvUp := DataArray[Rownum-1].dvUp;
-   DataArray[RowNum].dvDown := DataArray[Rownum-1].dvDown;
-   DataArray[RowNum].dpvUp := DataArray[Rownum-1].dpvUp;
-   DataArray[RowNum].dpvDown := DataArray[Rownum-1].dpvDown;
+  DataArray[RowNum].dvUp := DataArray[PrevRow].dvUp;
+  DataArray[RowNum].dvDown := DataArray[PrevRow].dvDown;
+  DataArray[RowNum].dpvUp := DataArray[PrevRow].dpvUp;
+  DataArray[RowNum].dpvDown := DataArray[PrevRow].dpvDown;
 
-   tbData.InvalidateRow(tbData.ActiveRow);
+  tbData.InvalidateRow(tbData.ActiveRow);
 
-   Msg.CharCode := vk_down;
-   ColCode.SendKeyToTable(Msg);
+  Msg.CharCode := vk_down;
+  ColCode.SendKeyToTable(Msg);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSetCriteria.tbDataActiveCellChanged(Sender: TObject; RowNum,
