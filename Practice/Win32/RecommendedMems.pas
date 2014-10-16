@@ -1164,11 +1164,16 @@ begin
   try
     if Assigned(frmMain) then    
       frmMain.MemScanIsBusy := True;
+
+    // Mems1 reset
     Candidates.FreeAll;
     Recommended.FreeAll;
     Unscanned.FreeAll;
     Candidate.cpFields.cpCandidate_ID_To_Process := 1;
     Candidate.cpFields.cpNext_Candidate_ID := 1;
+
+    // Mems2 reset
+    fMemsV2.Reset;
   finally
     if Assigned(frmMain) then    
       frmMain.MemScanIsBusy := False;
