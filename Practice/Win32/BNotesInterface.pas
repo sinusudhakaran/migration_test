@@ -471,6 +471,9 @@ begin
             Account := aClient.clChart.Account_At( chNo);
             ECAcct  := ecchio.New_Account_Rec;
 
+            if Account.chInactive then
+              continue;
+
             ECAcct.chAccount_Code            := Account.chAccount_Code;
             ECAcct.chAccount_Description     := Account.chAccount_Description;
             ECAcct.chGST_Class               := Account.chGST_Class;
