@@ -499,6 +499,8 @@ begin
       Begin
         with aClient.clChart.Account_At( I )^ do
         Begin
+          if chInactive then
+            continue;
           if not chHide_In_Basic_Chart then
             Inc(cCount);
         end;
@@ -511,6 +513,8 @@ begin
         Begin
           with aClient.clChart.Account_At( I )^ do
           Begin
+            if chInactive then
+              continue;
             if chHide_In_Basic_Chart then
               Continue;
             Case FieldNo of
