@@ -525,6 +525,9 @@ begin
   for I := FClient.clChart.First to FClient.clChart.Last do
     with FClient.clChart.Account_At(I)^ do
     begin
+      if chInactive then
+        continue;
+
       // add The Node...
       EntryNode := ChartNode.AddChild(nChartEntry);
 
