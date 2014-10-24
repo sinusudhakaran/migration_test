@@ -1082,6 +1082,10 @@ begin
      for i := 0 to Pred(FromClient.clChart.ItemCount) do
      begin
        SourceAccount := FromClient.clChart.Account_At(i);
+
+       if SourceAccount.chInactive then
+         continue;
+
        DestAccount   := MyClient.clChart.FindCode(SourceAccount.chAccount_Code);
 
        if (DestAccount = nil) then
