@@ -916,7 +916,7 @@ begin
            Alignment   := taLeftJustify;
            Heading     := 'Inactive';
            Visible     := False;
-           Width       := 50;
+           Width       := 80;
            ControlType := ctText;
            SortPicture := TSGrid.spNone;
          end;
