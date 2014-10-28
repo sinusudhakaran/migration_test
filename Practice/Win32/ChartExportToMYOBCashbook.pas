@@ -547,6 +547,9 @@ begin
   begin
     AccountRec := MyClient.clChart.Account_At(ChartIndex);
 
+    if AccountRec.chInactive then
+      continue;
+
     AddChartExportItem(not AccountRec.chHide_In_Basic_Chart,
                        AccountRec.chAccount_Code,
                        AccountRec.chAccount_Description,
@@ -1365,6 +1368,9 @@ begin
   for ChartIndex := 0 to MyClient.clChart.ItemCount-1 do
   begin
     AccountRec := MyClient.clChart.Account_At(ChartIndex);
+
+    if AccountRec.chInactive then
+      continue;
 
     if length(AccountRec.chAccount_Code) > 10 then
       aErrors.Add(AccountRec.chAccount_Code + ' - ' + AccountRec.chAccount_Description);
