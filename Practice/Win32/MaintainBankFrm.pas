@@ -65,6 +65,7 @@ type
     FUpdateRefNeeded: boolean;
     AccountChanged : Boolean;
     FVendorColumns: TObjectList;
+    fContraColumn: integer;
 
     FCurrencyColumn: TListColumn;
     FGainLossColumn: TListColumn;
@@ -164,6 +165,7 @@ begin
     ShowCurrencyColumn;
 
   //Contra column
+  fContraColumn := lvBank.Columns.Count;
   ContraColumn := lvBank.Columns.Add;
   ContraColumn.Caption := 'Contra';
   ContraColumn.Width := 100;
@@ -495,6 +497,30 @@ procedure TfrmMaintainBank.lvBankCustomDrawSubItem(Sender: TCustomListView;
       Result := Result + lvBank.Columns[ItemIndex].Width;
   end;
 
+  function DisplayInactive: boolean;
+  var
+    sCode: string;
+    pAccount: pAccount_Rec;
+  begin
+    result := false;
+
+    if (SubItem <> fContraColumn) then
+      exit;
+
+    if (cdsSelected in State) then
+      exit;
+
+    if (cdsFocused in State) then
+      exit;
+
+    sCode := Item.SubItems[SubItem-1];
+    pAccount := MyClient.clChart.FindCode(sCode);
+    if not assigned(pAccount) then
+      exit;
+
+    result := pAccount.chInactive;
+  end;
+
 var
   ItemRect : TRect;
   SubItemRect : TRect;
@@ -523,6 +549,13 @@ begin
 
   SubItemLeft := ItemRect.Left + GetSubItemLeft(SubItemIndex);
   SubItemTop  := ItemRect.Top + 2;
+
+  if DisplayInactive then
+  begin
+    Sender.Canvas.Brush.Color := clYellow;
+    Sender.Canvas.FillRect(SubItemRect);
+    Sender.Canvas.Brush.Color := clWindow;
+  end;
 
   if (SubItem >= fOnlineVendorStartCol) and
      (SubItem <= fOnlineVendorEndCol) then
