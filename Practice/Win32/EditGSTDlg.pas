@@ -2160,23 +2160,33 @@ var
   S   : String;
   IsValid : boolean;
   pAcct   : pAccount_Rec;
+  IsInactive: boolean;
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
   if CellAttr.caColor = clHighlight then exit;
+
   S := ShortString( Data^ );
+  if (S = '') then
+    exit;
 
   pAcct   := MyClient.clChart.FindCode( S);
   IsValid := Assigned( pAcct) and
              (pAcct^.chAccount_Type in [ atGSTReceivable, atGSTPayable]) and
              pAcct^.chPosting_Allowed;
 
-  If ( S = '') or IsValid then exit;
+  IsInactive := Assigned(pAcct) and pAcct.chInactive;
+
+  if IsValid and not IsInactive then
+    exit;
 
   R := CellRect;
   C := TableCanvas;
   //paint background
-  C.Brush.Color := clRed;
+  if not IsValid then
+    C.Brush.Color := clRed
+  else
+    C.Brush.Color := clYellow;
   C.FillRect( R );
   //paint border
   C.Pen.Color := CellAttr.caColor;
@@ -2184,7 +2194,8 @@ begin
   C.Polyline( [ Point( R.Left, R.Bottom-1), Point( R.Right, R.Bottom-1) ]);
   {draw data}
   InflateRect( R, -2, -2 );
-  C.Font.Color := clWhite;
+  if not IsValid then
+    C.Font.Color := clWhite;
   DrawText(C.Handle, PChar( S ), StrLen( PChar( S ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
   DoneIt := True;
 end;
