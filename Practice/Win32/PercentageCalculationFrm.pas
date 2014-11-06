@@ -124,7 +124,10 @@ var
   IsValid     : boolean;
   pAcct       : pAccount_Rec;
   s           : string;
+  IsInactive  : boolean;
 begin
+  IsInactive := false;
+
   // Check validity of account code
   s       := Trim(edtAccountCode.Text);
   if (s = '') then
@@ -150,10 +153,18 @@ begin
       ErrorMsg  := 'You cannot enter a non-posting code.';
     end else
       IsValid := True;
+
+    if assigned(pAcct) and pAcct.chInactive then
+      IsInactive := true;
   end;
 
   if IsValid or (s = '') then
-    edtAccountCode.Color := clWindow
+  begin
+    if IsInactive then
+      edtAccountCode.Color := clYellow
+    else
+      edtAccountCode.Color := clWindow;
+  end
   else
     edtAccountCode.Color := clRed;
   Result := IsValid;
@@ -173,7 +184,7 @@ begin
     begin
       lblAccountCodeDesc.Caption := pAcct^.chAccount_Description;
       CaptionSet := True;
-    end
+    end;
   end;
   lblAccountCodeDesc.Visible := CaptionSet;
 end;
