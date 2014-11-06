@@ -180,11 +180,17 @@ begin
   else
     lblContraDesc.Caption := '';
 
-  if (S = '') or ( IsValid) then begin
+  if (S = '') or ( IsValid) then
+  begin
     txtCode.Font.Color := clWindowText;
-    txtCode.Color      := clWindow;
+
+    if assigned(pAcct) and pAcct.chInactive then
+      txtCode.Color := clYellow
+    else
+      txtCode.Color := clWindow;
   end
-  else begin
+  else
+  begin
     txtCode.Font.Color := clWhite;
     txtCode.Color      := clRed;
   end;
