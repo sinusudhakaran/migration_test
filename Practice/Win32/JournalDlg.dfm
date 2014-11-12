@@ -28,7 +28,7 @@ object dlgJournal: TdlgJournal
   TextHeight = 13
   object stbJournal: TStatusBar
     Left = 0
-    Top = 468
+    Top = 489
     Width = 799
     Height = 21
     Panels = <
@@ -52,12 +52,13 @@ object dlgJournal: TdlgJournal
     ParentFont = True
     UseSystemFont = False
     OnMouseUp = stbJournalMouseUp
+    ExplicitTop = 468
   end
   object tblJournal: TOvcTable
     Left = 0
     Top = 80
     Width = 799
-    Height = 308
+    Height = 329
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 0
@@ -86,6 +87,7 @@ object dlgJournal: TdlgJournal
     OnMouseDown = tblJournalMouseDown
     OnMouseUp = tblJournalMouseUp
     OnTopLeftCellChanging = tblJournalTopLeftCellChanging
+    ExplicitHeight = 308
     CellData = (
       'dlgJournal.hdrColumnHeadings')
     RowData = (
@@ -302,12 +304,13 @@ object dlgJournal: TdlgJournal
   end
   object pBottom: TPanel
     Left = 0
-    Top = 388
+    Top = 409
     Width = 799
     Height = 80
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
+    ExplicitTop = 388
     DesignSize = (
       799
       80)
@@ -455,29 +458,14 @@ object dlgJournal: TdlgJournal
       OnClick = BtnCalClick
     end
   end
-  object tcWindows: TRzTabControl
-    Left = 0
-    Top = 490
-    Width = 799
-    Height = 21
-    Align = alBottom
-    TabIndex = 0
-    TabOrder = 5
-    TabOrientation = toBottom
-    Tabs = <
-      item
-        Caption = 'Tab1'
-      end>
-    OnTabClick = tcWindowsTabClick
-    FixedDimension = 19
-  end
   object pnlLine: TPanel
     Left = 0
-    Top = 489
+    Top = 510
     Width = 799
     Height = 1
     Align = alBottom
-    TabOrder = 6
+    TabOrder = 5
+    ExplicitTop = 489
   end
   object JournalController: TOvcController
     EntryCommands.TableList = (
@@ -516,7 +504,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnKeyPress = celAmountKeyPress
@@ -535,7 +522,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnChange = celGstAmtChange
@@ -555,7 +541,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblJournal
     OnChange = celQuantityChange
@@ -604,7 +589,6 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -626,7 +610,6 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -648,7 +631,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Left = 448

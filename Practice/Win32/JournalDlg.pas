@@ -143,7 +143,6 @@ type
     btnCancel: TButton;
     BtnCal: TButton;
     CelAltChartCode: TOvcTCString;
-    tcWindows: TRzTabControl;
     pnlLine: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -261,7 +260,6 @@ type
     procedure btnClearClick(Sender: TObject);
     procedure eDateUntilDblClick(Sender: TObject);
     procedure BtnCalClick(Sender: TObject);
-    procedure tcWindowsTabClick(Sender: TObject);
   private
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
@@ -384,10 +382,6 @@ type
     procedure CopyActionType(pJ : pWorkJournal_Rec);
     procedure RedrawRow(Row: integer = 0);
   public
-    { Public declarations }
-    procedure ActivateCurrentTab(aTabIndex : integer);
-    procedure UpdateTabs(aActionedPage: string = '');
-
   end;
 
   function EditJournalEntry(const BA: TBank_Account; const pT: pTransaction_rec; aJournalType: integer; HelpCtx: integer; defAction: Integer) : boolean;
@@ -5852,49 +5846,6 @@ begin
                      and cbRepeat.Checked;
    cbRepeat.Enabled := Standing;
 
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgJournal.ActivateCurrentTab(aTabIndex : integer);
-begin
-  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgJournal.UpdateTabs(aActionedPage : string = '');
-begin
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
-
-  frmMain.UpdateTabs(tcWindows, aActionedPage);
-  tcWindows.Visible := tcWindows.Tabs.Count > 0;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
-end;
-
-//------------------------------------------------------------------------------
-procedure TdlgJournal.tcWindowsTabClick(Sender: TObject);
-var
-  obj : TObject;
-begin
-  obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
-  if obj is TForm then
-  begin
-    TForm(obj).BringToFront;
-
-    if (obj is TfrmCoding) then
-      TfrmCoding(obj).ActivateCurrentTab(tcWindows.TabIndex);
-
-    if (obj is TfrmBudget) then
-      TfrmBudget(obj).ActivateCurrentTab(tcWindows.TabIndex);
-
-    if (obj is TdlgJournal) then
-      TdlgJournal(obj).ActivateCurrentTab(tcWindows.TabIndex);
-
-    if (obj is TfrmClientHomePage) then
-      TfrmClientHomePage(obj).ActivateCurrentTab(tcWindows.TabIndex);
-  end;
 end;
 
 //------------------------------------------------------------------------------
