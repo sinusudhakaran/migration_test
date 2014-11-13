@@ -16,7 +16,7 @@ Unit chartutils;
 
 Interface
 uses
-  chList32, clObj32;
+  chList32, clObj32, BKchIO;
 
 Function LoadChartFrom(ClientCode: string; Var aFileName: string; aInitDir: string;
    aFilter: string; DefExtn: string; HelpCtx: Integer) : boolean;
@@ -167,6 +167,7 @@ const
   ThisMethodName = 'MergeCharts';
 var
   ni : integer;
+  ei : integer;
   NewAccount,
   ExistingAccount : pAccount_Rec;
   AllowGSTClassToBeCleared : boolean;
@@ -230,6 +231,27 @@ begin
        ChangesList.Free;
      end;
 
+     // Don't delete inactive chart codes
+     for ei := 0 to ClientChart.ItemCount-1 do
+     begin
+       ExistingAccount := ClientChart.Account_At(ei);
+
+       // Add existing inactive accounts to the new chart
+       if not ExistingAccount.chInactive then
+         continue;
+
+       // Prevent duplicates
+       NewAccount := NewChart.FindCode(ExistingAccount.chAccount_Code);
+       if assigned(NewAccount) then
+         continue;
+
+       // Note: all the other fields will be transferred below
+       NewAccount := New_Account_Rec;
+       NewAccount.chAccount_Code := ExistingAccount.chAccount_Code;
+       NewAccount.chAccount_Description := ExistingAccount.chAccount_Description;
+       NewChart.Insert(NewAccount);
+     end;
+
      //Merge the existing chart into the New Chart
      for ni := 0 to NewChart.ItemCount -1 do
      begin
@@ -285,6 +307,7 @@ begin
           NewAccount.chLinked_Account_OS      := ExistingAccount.chLinked_Account_OS;
           NewAccount.chLinked_Account_CS      := ExistingAccount.chLinked_Account_CS;
           NewAccount.chHide_In_Basic_Chart    := ExistingAccount.chHide_In_Basic_Chart;
+          NewAccount.chInactive               := ExistingAccount.chInactive;
 
        end else
           NewAccount.chAccount_Type := atNone; // N/A
