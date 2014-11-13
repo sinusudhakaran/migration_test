@@ -4542,9 +4542,6 @@ begin
     if (MDIChildren[TabIndex] is TfrmBudget) then
        TfrmBudget(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
 
-    if (MDIChildren[TabIndex] is TdlgJournal) then
-       TdlgJournal(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
-
     if (MDIChildren[TabIndex] is TfrmClientHomePage) then
        TfrmClientHomePage(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
 

@@ -10250,9 +10250,6 @@ begin
     if (obj is TfrmBudget) then
       TfrmBudget(obj).ActivateCurrentTab(tcWindows.TabIndex);
 
-    if (obj is TdlgJournal) then
-      TdlgJournal(obj).ActivateCurrentTab(tcWindows.TabIndex);
-
     if (obj is TfrmClientHomePage) then
       TfrmClientHomePage(obj).ActivateCurrentTab(tcWindows.TabIndex);
   end;
