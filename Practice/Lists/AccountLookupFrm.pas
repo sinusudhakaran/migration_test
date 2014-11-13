@@ -1230,6 +1230,7 @@ begin
      CHSListByCode.DeleteAll;
      CHSListByDesc.DeleteAll;
      CHSListByAltCode.DeleteAll;
+     CHSListByInactive.DeleteAll;
      with MyClient.clChart do
         for i := 0 to Pred( ItemCount ) do
         Begin
@@ -1248,6 +1249,7 @@ begin
              CHSListByCode.Insert( NewCHSRec( Account_At( i ) ) );
              CHSListByDesc.Insert( NewCHSRec( Account_At( i ) ) );
              CHSListByAltCode.Insert( NewCHSRec( Account_At( i ) ) );
+             CHSListByInactive.Insert( NewCHSRec( Account_At( i ) ) );
            end;
         end;
    finally
