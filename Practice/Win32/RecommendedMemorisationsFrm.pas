@@ -675,6 +675,7 @@ begin
       begin
         Recommended.AtDelete(i);
         FreeAndNil(pData.RecommendedMem);
+        vstTree.DeleteNode(aNode);
         break;
       end;
     end;
