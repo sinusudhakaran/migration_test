@@ -1194,7 +1194,7 @@ begin
         RefreshBankAccountList;
 
         //try to download any new transactions into the client
-        SyncClientToAdmin(MyClient,false);
+        SyncClientToAdmin(MyClient,false,true,false,false,false,true,false);
 
         //*** Flag Audit ***
         MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);

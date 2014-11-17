@@ -14,7 +14,7 @@ uses
 
 procedure SyncClientToAdmin(aClient : TClientObj; Silent : boolean; MergeTrx : boolean = true;
   IsCheckOut: Boolean = False; IsScheduledReports: Boolean = false; AutoMerge: Boolean = false;
-  UpdateStats: Boolean = True);
+  UpdateStats: Boolean = True; DoUpdateRecMemCandidates: Boolean = True);
 procedure SyncAdminToClient(AdminClientRec : pClient_File_Rec; aClient : TClientObj);
 
 procedure RefreshContactDetails( aClient : TClientObj; pCF : pClient_File_Rec; SyncDirection : byte);
@@ -556,7 +556,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure SyncClientToAdmin(aClient : TClientObj; Silent : Boolean; MergeTrx : boolean = true;
   IsCheckOut: Boolean = False; IsScheduledReports: Boolean = false; AutoMerge: Boolean = false;
-  UpdateStats: Boolean = True);
+  UpdateStats: Boolean = True; DoUpdateRecMemCandidates: Boolean = True);
 //merge trx should only be false when we just want to update details like
 //practice email, website, user email etc
 const
@@ -672,7 +672,7 @@ begin
        //Check for New Data - must belong to this admin and has data from set to dlAdminSystem}
        if (not aClient.clFields.clSuppress_Check_for_New_TXns) and
           (aClient.clFields.clDownload_From = dlAdminSystem) then
-          MergeNewDataYN(aClient, Silent, IsCheckOut, not AutoMerge, IsScheduledReports);
+          MergeNewDataYN(aClient, Silent, IsCheckOut, not AutoMerge, IsScheduledReports, DoUpdateRecMemCandidates);
      end;
   end;
   if (not IsScheduledReports) and UpdateStats then
