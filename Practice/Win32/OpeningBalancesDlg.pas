@@ -561,7 +561,7 @@ begin
    FAccountList.DeleteAll;
    for i := 0 to Pred( ThisClient.clChart.ItemCount) do begin
       pA  := ThisClient.clChart.Account_At( i);
-      if pA.chInactive and chkHideInactive.Checked then
+      if pA.chInactive and chkHideInactive.Checked and (pA.chTemp_Money_Value = 0) then
         continue;
       if ( not chkHideNonBS.checked)
          or ( pA.chAccount_Type in BalanceSheetReportGroupsSet)
