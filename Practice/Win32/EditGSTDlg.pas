@@ -2194,7 +2194,9 @@ begin
   C.Polyline( [ Point( R.Left, R.Bottom-1), Point( R.Right, R.Bottom-1) ]);
   {draw data}
   InflateRect( R, -2, -2 );
-  if not IsValid then
+  if IsValid then
+    C.Font.Color := clWindowText
+  else
     C.Font.Color := clWhite;
   DrawText(C.Handle, PChar( S ), StrLen( PChar( S ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
   DoneIt := True;
