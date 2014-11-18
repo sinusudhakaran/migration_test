@@ -130,7 +130,8 @@ type
     function Execute : boolean;
   end;
 
-function EditChartAccount(eAccount : pAccount_rec; AllowCodeChange: Boolean = True) : boolean;
+function EditChartAccount(eAccount : pAccount_rec; AllowCodeChange: Boolean = True;
+                          chkInactiveEnabled: Boolean = True) : boolean;
 function AddChartAccount( var nAccount : pAccount_Rec) : boolean;
 
 //******************************************************************************
@@ -247,7 +248,8 @@ begin
    SendMessage(cmbGST.Handle, CB_SETDROPPEDWIDTH, 345, 0);
 end;
 //------------------------------------------------------------------------------
-function EditChartAccount(eAccount: pAccount_rec; AllowCodeChange: Boolean = True) : boolean;
+function EditChartAccount(eAccount: pAccount_rec; AllowCodeChange: Boolean = True;
+                          chkInactiveEnabled: Boolean = True) : boolean;
 var
   MyDlg : TdlgEditAccount;
 begin
@@ -263,6 +265,7 @@ begin
     MyDlg.OldGroup := eAccount.chAccount_Type;
     MyDlg.OldSubGroup := eAccount.chSubtype;
     MyDlg.eCode.Enabled := AllowCodeChange;
+    MyDlg.chkInactive.Enabled := chkInactiveEnabled;
     //MyDlg.eAltCode.Enabled := AllowCodeChange;  not for now..
     if MyDlg.Execute then begin
        {write back new values}

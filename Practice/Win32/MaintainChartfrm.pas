@@ -402,7 +402,7 @@ begin
       WasPosting := P^.chPosting_Allowed;
       PreviousGSTClass := p^.chGST_Class;
 
-      if EditChartAccount(p, tbNew.Enabled) then begin
+      if EditChartAccount(p, tbNew.Enabled, chkInactive.Enabled) then begin
         ChartChanged := True;
         if ( WasCode <> p^.chAccount_Code ) then begin
            LockRequired := True;
