@@ -35,6 +35,7 @@ implementation
 uses
   SysUtils,
   Classes,
+  Dialogs,
   WarningMoreFrm;
 
 //------------------------------------------------------------------------------
@@ -222,45 +223,43 @@ begin
        (MemorisationAccounts.Count > 0) and (PayeeAccounts.Count > 1) then
     begin
       sMsg :=
-        sAccountCodes+'currently used in memorisation(s) and payee(s).'+sLineBreak+
+        sAccountCodes+'currently used in memorisation(s) and payee(s).'+sLineBreak+sLineBreak+
         'You can update Memorisations from Other Functions | Memorised Entries, and Payees from Other Functions | Payees.';
-      HelpfulWarningMsg(sMsg, 0);
     end
     else if (MemorisationAccounts.Count > 1) and (PayeeAccounts.Count = 0) then
     begin
       sMsg :=
-        sAccountCodes+'currently used in memorisation(s).'+sLineBreak+
+        sAccountCodes+'currently used in memorisation(s).'+sLineBreak+sLineBreak+
         'You can update these from Other Functions | Memorised Entries.';
-      HelpfulWarningMsg(sMsg, 0);
     end
     else if (MemorisationAccounts.Count = 0) and (PayeeAccounts.Count > 1) then
     begin
       sMsg :=
-        sAccountCodes+'currently used in payee(s).'+sLineBreak+
+        sAccountCodes+'currently used in payee(s).'+sLineBreak+sLineBreak+
         'You can update these from Other Functions | Payees.';
-      HelpfulWarningMsg(sMsg, 0);
     end
     else if (MemorisationAccounts.Count = 1) and (PayeeAccounts.Count = 1) then
     begin
       sMsg :=
-        sAccountCodes+'currently used in memorisation(s) and payee(s).'+sLineBreak+
+        sAccountCodes+'currently used in memorisation(s) and payee(s).'+sLineBreak+sLineBreak+
         'You can update Memorisations from Other Functions | Memorised Entries, and Payees from Other Functions | Payees.';
-      HelpfulWarningMsg(sMsg, 0);
     end
     else if (MemorisationAccounts.Count = 1) then
     begin
       sMsg :=
-        sAccountCodes+'currently used in memorisation(s).'+sLineBreak+
+        sAccountCodes+'currently used in memorisation(s).'+sLineBreak+sLineBreak+
         'You can update these from Other Functions | Memorised Entries.';
-      HelpfulWarningMsg(sMsg, 0);
     end
     else if (PayeeAccounts.Count = 1) then
     begin
       sMsg :=
-        sAccountCodes+'currently used in payee(s).'+sLineBreak+
+        sAccountCodes+'currently used in payee(s).'+sLineBreak+sLineBreak+
         'You can update these from Other Functions | Payees.';
+    end;
+
+    // Display
+    if (sMsg <> '') then
       HelpfulWarningMsg(sMsg, 0);
-    end
 
   finally
     FreeAndNil(MemorisationAccounts);
