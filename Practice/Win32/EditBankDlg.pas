@@ -1349,8 +1349,18 @@ begin
     DescLabel.Caption := '';
 
   if (S = '') or ( IsValid) then begin
-    Edit.Font.Color := clWindowText;
-    Edit.Color      := clWindow;
+    // Determine color
+    if assigned(pAcct) and pAcct.chInactive then
+    begin
+      Edit.Font.Color := clWindowText;
+      Edit.Color := clYellow;
+    end
+    else
+    begin
+      Edit.Font.Color := clWindowText;
+      Edit.Color := clWindow;
+    end;
+
     S := Edit.Text;
     Edit.BorderStyle := bsNone;
     Edit.BorderStyle := bsSingle;
