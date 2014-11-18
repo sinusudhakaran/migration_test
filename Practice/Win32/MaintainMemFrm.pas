@@ -613,8 +613,11 @@ begin
               LineIsInvalid := True;
             if LineIsInvalid then
             begin
-              Invalid := True;
-              Result := STATES_ALERT;
+              if (m.mdFields.mdUntil_Date = 0) then
+              begin
+                Invalid := True;
+                Result := STATES_ALERT;
+              end;
             end;
          end;
        end;
