@@ -139,6 +139,7 @@ type
      ShowSubTypes : boolean;
      ShowDivisions: boolean;
      ShowBasicChart: Boolean;
+     ShowInactive: boolean;
      Chart: TCustomSortChart;
    end;
 
@@ -1773,6 +1774,16 @@ begin
             PutString( 'Y' )
          else
             PutString( '' );
+
+         // Inactive
+         if ShowInactive then
+         begin
+           if chInactive then
+             PutString('Y')
+           else
+             PutString('');
+         end;
+
          RenderDetailLine;
       end;
    end;
@@ -1785,6 +1796,7 @@ function DoChartListReport(Dest : TReportDest;
                            RptBatch : TReportBase = nil) : boolean; overload;
 var
    Job : TChartListReport;
+   DescSpace: double;
    AdditionalSpace : integer;
    MissingColumns  : integer;
    i,j : integer;
@@ -1852,6 +1864,7 @@ begin
      Job.ShowSubTypes  := SubTypesFound;
      Job.ShowDivisions := DivisionFound;
      Job.ShowBasicChart:= ShowBasic;
+     Job.ShowInactive := not Scheduled;
      AdditionalSpace := 0;
      MissingColumns  := 0;
 
@@ -1882,10 +1895,14 @@ begin
      //Build the columns
      cLeft := GcLeft;
      AddColAuto(Job, cLeft,10.0 , Gcgap,'Code',jtLeft);
+
+     // Description
+     DescSpace := 25.0;
      if not ShowBasic then
-        AddColAuto(Job, cLeft,19.0 + AdditionalSpace, Gcgap,'Description',jtLeft)
-     else
-        AddColAuto(Job, cLeft,25.0 + AdditionalSpace, Gcgap,'Description',jtLeft);
+       DescSpace := DescSpace - 6.0;
+     if Job.ShowInactive then
+       DescSpace := DescSpace - 6.0;
+     AddColAuto(Job, cLeft, DescSpace + AdditionalSpace, Gcgap,'Description',jtLeft);
 
      if HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
         AddColAuto(Job, cLeft,10.0 , Gcgap,
@@ -1906,6 +1923,9 @@ begin
         AddColAuto(Job,cLeft,6.0,Gcgap,'Basic',jtLeft);
 
      AddColAuto(Job,cLeft,6.0,Gcgap,'Posting',jtLeft);
+
+     if Job.ShowInactive then
+       AddColAuto(Job,cLeft,6.0,Gcgap,'Inactive',jtLeft);
 
      //Add Footers
      AddCommonFooter(Job);
