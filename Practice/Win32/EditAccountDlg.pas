@@ -910,9 +910,20 @@ begin
 end;
 
 procedure TdlgEditAccount.edtLinkedAccount1Change(Sender: TObject);
+var
+  Edit: TEdit;
+  pAcct: pAccount_Rec;
 begin
   CheckforMaskChar( TEdit( Sender),RemovingMask);
   UpdateLinkedAccounts;
+
+  // Set background color
+  Edit := (Sender as TEdit);
+  pAcct := MyClient.clChart.FindCode(Edit.Text);
+  if assigned(pAcct) and pAcct.chInactive then
+    Edit.Color := clYellow
+  else
+    Edit.Color := clWindow;
 end;
 
 procedure TdlgEditAccount.edtLinkedAccount1KeyDown(Sender: TObject;
