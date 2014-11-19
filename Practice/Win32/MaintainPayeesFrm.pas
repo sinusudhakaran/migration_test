@@ -155,13 +155,16 @@ begin
         for j := 0 to Payee.pdLinesCount - 1 do
         begin
           PayeeAccount := Payee.pdLines.PayeeLine_At(j)^.plAccount;
-          CodeIsValid := MyClient.clChart.CanCodeto(PayeeAccount, CodeIsActive,
-                                                    HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used));
-          if not (CodeIsValid and CodeIsActive) then
+          if (PayeeAccount <> '') then
           begin
-            ACodeIsInvalidOrInactive := True;
-            break;
-          end;              
+            CodeIsValid := MyClient.clChart.CanCodeto(PayeeAccount, CodeIsActive,
+                                                      HasAlternativeChartCode(MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used));
+            if not (CodeIsValid and CodeIsActive) then
+            begin
+              ACodeIsInvalidOrInactive := True;
+              break;
+            end;
+          end;
         end;
 
         if Payee.pdFields.pdInactive and not chkShowInactive.Checked then
