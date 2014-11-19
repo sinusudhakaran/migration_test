@@ -609,15 +609,12 @@ begin
             LineIsInvalid := False;
             if not MyClient.clChart.CanCodeTo(MemLine^.mlaccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used) ) then
               LineIsInvalid := True
-            else if not IsActive then
+            else if (m.mdFields.mdUntil_Date = 0) and not IsActive then
               LineIsInvalid := True;
             if LineIsInvalid then
             begin
-              if (m.mdFields.mdUntil_Date = 0) then
-              begin
-                Invalid := True;
-                Result := STATES_ALERT;
-              end;
+              Invalid := True;
+              Result := STATES_ALERT;
             end;
          end;
        end;
