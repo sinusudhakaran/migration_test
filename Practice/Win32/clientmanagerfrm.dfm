@@ -158,6 +158,7 @@ object frmClientManager: TfrmClientManager
         end
         item
           Action = actMigrate
+          Caption = 'Migrate to MYOB Essentials Cashbook'
         end
         item
           Caption = '-'
@@ -211,7 +212,7 @@ object frmClientManager: TfrmClientManager
           Action = actHelp
         end>
       Opened = True
-      OpenedHeight = 528
+      OpenedHeight = 544
       Caption = 'Client Maintenance'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
