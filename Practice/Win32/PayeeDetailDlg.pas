@@ -1061,7 +1061,10 @@ var
 begin
    IsActive := True;
    result := false;
-   PayeeHasBeenActivated := Payee.pdFields.pdInactive and not chkInactive.Checked;
+   if Assigned(Payee) then   
+     PayeeHasBeenActivated := Payee.pdFields.pdInactive and not chkInactive.Checked
+   else
+     PayeeHasBeenActivated := False;
 
    //trim payee name
    eName.Text := Trim( eName.Text);
