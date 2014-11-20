@@ -157,6 +157,9 @@ object frmClientManager: TfrmClientManager
           Action = actDeleteFile
         end
         item
+          Action = actMigrate
+        end
+        item
           Caption = '-'
         end
         item
@@ -208,7 +211,7 @@ object frmClientManager: TfrmClientManager
           Action = actHelp
         end>
       Opened = True
-      OpenedHeight = 508
+      OpenedHeight = 528
       Caption = 'Client Maintenance'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -474,13 +477,12 @@ object frmClientManager: TfrmClientManager
             0000001008060000001FF3FF61000000017352474200AECE1CE9000000046741
             4D410000B18F0BFC6105000000097048597300000EBC00000EBC0195BC724900
             00001874455874536F667477617265005061696E742E4E45542076332E313072
-            B22592000000AC49444154384F9593DB0DC02008455DC9995CCB995C898AA845
-            B8D4F48398281C2E0F13112568AD102D8B7CFABD0FEE41AD66670306400EC0C1
-            E2AC9E26F40ED88E692828594E86BDE0B3E44381CECEC1CB869A40C50B50D939
-            C00102151B606BAF454AE073F703A81080C9BE6AD63D5810DB8B01883ACF80DB
-            4460F68FBD7113C1D967C3500976220200DB8CA6A0FD24AEAF7204B08B64936C
-            009AC0AF1EE831A24F74FB58F82BDF24A8F7072AE8D967758DBB870000000049
-            454E44AE426082}
+            B22592000000A449444154384FA550DB11803008EB4ACED4B59CC995904729B4
+            4D4F4F3F221020A41622C2B82A75A07EC34AF2C2751E0B76420B11C3896EA223
+            6918893EC829C77A58F41AB9188A182ABAECD0F6C64514E9BA60119011E0A227
+            F9BAE0ACF60489CE2117964CD795E25A04109F5DE827C818945AED03DE448D80
+            D79F905DE0EB6D083D41915C98C03CC0906507EA3F0A08BF75D0FA9270F6F31F
+            1863226FE1CB21F019546E2AE8D9675187A8750000000049454E44AE426082}
           ShowHint = True
           Transparent = True
           Visible = False
@@ -927,6 +929,12 @@ object frmClientManager: TfrmClientManager
       Caption = 'Account Status'
       ImageIndex = 39
       OnExecute = actAccountStatusExecute
+    end
+    object actMigrate: TAction
+      Category = 'Manage'
+      Caption = 'actMigrate'
+      ImageIndex = 24
+      OnExecute = actMigrateExecute
     end
   end
   object tmrUpdateClientDetails: TTimer

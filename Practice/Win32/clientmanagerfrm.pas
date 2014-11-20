@@ -169,6 +169,7 @@ type
     actICAF: TAction;
     actAccountStatus: TAction;
     imgRight: TImage;
+    actMigrate: TAction;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 
@@ -252,9 +253,9 @@ type
     procedure ClientLookupvtClientsGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
       var CellText: WideString);
-    procedure rzgCommunicateItems5Click(Sender: TObject);
     procedure actICAFExecute(Sender: TObject);
     procedure actAccountStatusExecute(Sender: TObject);
+    procedure actMigrateExecute(Sender: TObject);
 
   private
     fDoNotRefreshLookup : boolean;
@@ -880,10 +881,6 @@ begin
       UserINI_GS_Column_Positions[ i] := -1;
       UserINI_GS_Column_Widths[ i] := -1;
     end;
-end;
-
-procedure TfrmClientManager.rzgCommunicateItems5Click(Sender: TObject);
-begin
 end;
 
 //------------------------------------------------------------------------------
@@ -2522,6 +2519,11 @@ end;
 procedure TfrmClientManager.actMergeEmailExecute(Sender: TObject);
 begin
   ProcessModalCommand(cm_mcMergeEMail);
+end;
+
+procedure TfrmClientManager.actMigrateExecute(Sender: TObject);
+begin
+//
 end;
 
 //------------------------------------------------------------------------------
