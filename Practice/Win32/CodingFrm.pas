@@ -369,6 +369,7 @@ type
     FIsForex : Boolean;
     FSearchText: string;
     FLastKeyPress: TDateTime;
+    fMDIChildSortedIndex : integer;
 
     procedure SetLastKeyPress;
     procedure SetUpHelp;
@@ -499,8 +500,9 @@ type
   protected
     { Protected declarations }
   public
+    procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
     procedure ActivateCurrentTab(aTabIndex : integer);
-    procedure UpdateTabs(aActionedPage: string = '');
+    procedure UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
 
     { Public declarations }
     function GetLastKeyPress: TDateTime;
@@ -525,6 +527,7 @@ type
     property EndDate: TStDate read TranDateTo;
     property SearchText: string read FSearchText write SetSearchText;
     property SearchVisible: Boolean read GetSearchVisible write SetSearchVisible;
+    property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
   end;
 
   procedure DoCoding(CodingOptions: TCodingOptions = []);
@@ -711,11 +714,24 @@ var
 // Redraw main form on minimize
 procedure TfrmCoding.WMSysCommand(var msg: TWMSyscommand);
 begin
-  if ((msg.CmdType and $FFF0) = SC_MINIMIZE) or
-     ((msg.CmdType and $FFF0) = SC_RESTORE) then
-    exit
-  else
-    inherited;
+  case (msg.CmdType and $FFF0) of
+    sc_NextWindow:
+    begin
+      frmMain.NextSortedMDI();
+      msg.Result := 0;
+    end;
+    sc_PrevWindow:
+    begin
+      frmMain.PrevSortedMDI();
+      msg.Result := 0;
+    end;
+    SC_MINIMIZE:
+      Exit;
+    SC_RESTORE:
+      Exit;
+    else
+      inherited;
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SetUpHelp;
@@ -1093,6 +1109,7 @@ procedure TfrmCoding.FormCreate(Sender: TObject);
 
 begin
   bkXPThemes.ThemeForm( Self);
+  MDIChildSortedIndex := -1;
   SetLength( tmpBuffer, MaxNarrationEditLength + 1);
   FCountry := MyClient.clFields.clCountry;
 
@@ -7393,6 +7410,10 @@ begin
                   SC_MAXIMIZE,
                   MF_BYCOMMAND or MFS_GRAYED );
    Repaint;
+
+   if (MDIChildSortedIndex > -1) and
+     (tcWindows.Visible) then
+    ActivateCurrentTabUsingMDI(MDIChildSortedIndex);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormDeactivate(Sender: TObject);
@@ -10214,21 +10235,32 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCoding.ActivateCurrentTab(aTabIndex : integer);
+procedure TfrmCoding.ActivateCurrentTabUsingMDI(aMDIIndex: integer);
+var
+  TabIndex : integer;
 begin
-  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+  TabIndex := frmMain.GetTabIndex(tcWindows, aMDIIndex);
+  if TabIndex > -1 then
+    ActivateCurrentTab(TabIndex);
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCoding.UpdateTabs(aActionedPage : string = '');
+procedure TfrmCoding.ActivateCurrentTab(aTabIndex : integer);
+begin
+  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+  frmMain.SetActiveMDI(tcWindows, aTabIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCoding.UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
 
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
 
   frmMain.UpdateTabs(tcWindows, aActionedPage);
-
-  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+  tcWindows.Visible := tcWindows.Tabs.Count > 2;
+  ActivateCurrentTabUsingMDI(aActiveMDIIndex);
 
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');

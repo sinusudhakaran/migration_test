@@ -3615,11 +3615,24 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.wmsyscommand(var msg: TWMSyscommand);
 begin
-  if (not FIsGlobal) and (((msg.CmdType and $FFF0) = SC_MINIMIZE) or
-     ((msg.CmdType and $FFF0) = SC_RESTORE)) then
-    exit
-  else
-    inherited;
+  case (msg.CmdType and $FFF0) of
+    sc_NextWindow:
+    begin
+      frmMain.NextSortedMDI();
+      msg.Result := 0;
+    end;
+    sc_PrevWindow:
+    begin
+      frmMain.PrevSortedMDI();
+      msg.Result := 0;
+    end;
+    SC_MINIMIZE:
+      Exit;
+    SC_RESTORE:
+      Exit;
+    else
+      inherited;
+  end;
 end;
 
 //------------------------------------------------------------------------------

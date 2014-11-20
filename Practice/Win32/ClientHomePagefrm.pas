@@ -158,6 +158,7 @@ type
     procedure acForexRatesMissingExecute(Sender: TObject);
     procedure RefreshExchangeRates;
     procedure acExchangeGainLossExecute(Sender: TObject);
+
   private
     FTheClient: TClientObj;
     TreeList: TCHPBaseList;
@@ -177,7 +178,8 @@ type
     fRefreshRequestRecursionLevel: integer;
     FInRefreshExchangeGainLoss: Boolean;
     fSuppressExchangeGainLoss: boolean;
-    
+    fMDIChildSortedIndex : integer;
+
     procedure RefreshCoding(RedrawForeign: boolean);
     procedure RefreshClient;
     procedure RefreshTodo;
@@ -204,13 +206,16 @@ type
     function GetAbandon : boolean; override;
     procedure SetAbandon(const Value: Boolean); override;
   public
+    procedure ActivateCurrentTabUsingMDI(aMDIIndex : integer);
     procedure ActivateCurrentTab(aTabIndex : integer);
-    procedure UpdateTabs(aActionedPage: string = '');
+    procedure UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
+    procedure ActivateMDIChild(aTabIndex: integer);
 
     function GetFillDate: integer; override;
     procedure Lock; override;
     procedure Unlock; override;
     procedure ProcessExternalCmd(Command : TExternalCmd); override;
+    property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
     { Public declarations }
   end;
 
@@ -348,7 +353,7 @@ begin
       //special processing depending on version of homepage that was created
       if FClientHomePage is TfrmClientHomePage then
       begin
-        TfrmClientHomePage(FClientHomePage).UpdateTabs(aActionedPage);
+        //TfrmClientHomePage(FClientHomePage).UpdateTabs(aActionedPage);
         TfrmClientHomePage(FClientHomePage).RefreshCoding(True);
         frmMain.UpdateAllWindowTabs(aActionedPage);
       end;
@@ -821,6 +826,10 @@ begin
   EnableMenuItem( GetSystemMenu( handle, False ),
                   SC_MAXIMIZE,
                   MF_BYCOMMAND or MFS_GRAYED );
+
+  if (MDIChildSortedIndex > -1) and
+     (tcWindows.Visible) then
+    ActivateCurrentTabUsingMDI(MDIChildSortedIndex);
 end;
 
 procedure TfrmClientHomePage.FormClose(Sender: TObject;
@@ -854,7 +863,8 @@ const
 
 begin
    FInRefreshExchangeGainLoss := False;
-   
+
+   MDIChildSortedIndex := -1;
    fDoNotRefresh := false;
    bkXPThemes.ThemeForm(Self);
    BKHelpSetUp(self, BKH_The_Client_Home_Page);
@@ -2014,45 +2024,46 @@ begin
    end;
 end;
 
-procedure TfrmClientHomePage.wmsyscommand(var msg: TWMSyscommand);
-begin
-  if ((msg.CmdType and $FFF0) = SC_MINIMIZE) or
-     ((msg.CmdType and $FFF0) = SC_RESTORE) then
-    exit
-  else
-    inherited;
-end;
-
 procedure TfrmClientHomePage.UpdateWebNotes(var Msg: TMessage);
 begin
    RefreshFiles;
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmClientHomePage.ActivateCurrentTab(aTabIndex : integer);
+procedure TfrmClientHomePage.wmsyscommand(var msg: TWMSyscommand);
 begin
-  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
-end;
-
-//------------------------------------------------------------------------------
-procedure TfrmClientHomePage.UpdateTabs(aActionedPage : string = '');
-begin
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
-
-  frmMain.UpdateTabs(tcWindows, aActionedPage);
-  pnlTabs.Visible := tcWindows.Tabs.Count > 0;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
+  case (msg.CmdType and $FFF0) of
+    sc_NextWindow:
+    begin
+      frmMain.NextSortedMDI();
+      msg.Result := 0;
+    end;
+    sc_PrevWindow:
+    begin
+      frmMain.PrevSortedMDI();
+      msg.Result := 0;
+    end;
+    SC_MINIMIZE:
+      Exit;
+    SC_RESTORE:
+      Exit;
+    else
+      inherited;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmClientHomePage.tcWindowsTabClick(Sender: TObject);
+begin
+  ActivateMDIChild(tcWindows.TabIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientHomePage.ActivateMDIChild(aTabIndex: integer);
 var
   obj : TObject;
 begin
-  obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
+  obj := TObject(tcWindows.Tabs[aTabIndex].Tag);
   if obj is TForm then
   begin
     TForm(obj).BringToFront;
@@ -2066,6 +2077,37 @@ begin
     if (obj is TfrmClientHomePage) then
       TfrmClientHomePage(obj).ActivateCurrentTab(tcWindows.TabIndex);
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientHomePage.ActivateCurrentTabUsingMDI(aMDIIndex: integer);
+var
+  TabIndex : integer;
+begin
+  TabIndex := frmMain.GetTabIndex(tcWindows, aMDIIndex);
+  if TabIndex > -1 then
+    ActivateCurrentTab(TabIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientHomePage.ActivateCurrentTab(aTabIndex : integer);
+begin
+  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+  frmMain.SetActiveMDI(tcWindows, aTabIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmClientHomePage.UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  frmMain.UpdateTabs(tcWindows, aActionedPage);
+  pnlTabs.Visible := tcWindows.Tabs.Count > 2;
+  ActivateCurrentTabUsingMDI(aActiveMDIIndex);
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
 end;
 
 //------------------------------------------------------------------------------

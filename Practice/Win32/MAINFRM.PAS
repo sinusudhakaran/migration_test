@@ -729,8 +729,9 @@ type
     procedure mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
     procedure mniAssertClick(Sender: TObject);
     procedure mniListManualClick(Sender: TObject);
+
+    procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
   private
-    { Private declarations }
     FClientInstance,
     FPrevClientProc : TFarProc;
     Image1Top, Image1Left, Image1Width, Image1Height : Integer;
@@ -748,7 +749,8 @@ type
     FLastActiveMDIChild: Forms.TForm;
     FLastActiveMDIChild2: Forms.TForm;
     FAdminSystemFound: boolean;
-    //DataThread: TDataThread;
+    fMDIChildSortedList : TStringList;
+    fMDIChildSortedIndex : integer;
 
     procedure SetExportdatatoBanklinkOnlineVisiblility();
 
@@ -758,7 +760,6 @@ type
     procedure AddMenuItems( OwnerMenu : TPopUpMenu; Source : TMenuItem; Dest : TMenuItem );
     procedure AssignMenuItems( OwnerMenu : TPopUpMenu; Source : TMenuItem; Dest : TMenuItem );
 
-    //procedure MenuAssignToPopUp( Option : String; MPopUp : TPopUpMenu );
     procedure ExitBankLink;
     procedure SetupHelp;
     procedure DoCodingTBarCommand(command: TExternalCmd);
@@ -825,6 +826,9 @@ type
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
     procedure UpdateActions; override;
+    function GetMDIChildSortedList : TStringList;
+
+    property MDIChildSortedList : TStringList read GetMDIChildSortedList write fMDIChildSortedList;
   public
     { Public declarations }
     ProgressBar1        : TProgressBar;
@@ -835,6 +839,12 @@ type
     SavedAutoSaveClient : string;
     UsingCustomPracticeLogo : boolean;
 
+    function GetTabIndex(aTabWindow : TRzTabControl; aMDIIndex: integer): integer;
+    procedure SetActiveMDI(aTabWindow : TRzTabControl; aTabIndex: integer);
+
+    procedure NextSortedMDI();
+    procedure PrevSortedMDI();
+    procedure ActivateMDIChild(aMDIIndex: integer);
     procedure UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
     procedure UpdateAllWindowTabs(aActionedPage: string = '');
 
@@ -861,6 +871,8 @@ type
     procedure mniBatchReportsClick(Sender: TObject);
     procedure RefreshUserControls;
     procedure UpdateWindowsAfterChartRefresh();
+
+    property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
   end;
 
 
@@ -1156,20 +1168,21 @@ begin
   Msg.Result := 1;
 end;
 
-{procedure TfrmMain.WMSyscommand(var Message: TWmSysCommand);
+procedure TfrmMain.WMSyscommand(var Message: TWmSysCommand);
 begin
   case (Message.CmdType and $FFF0) of
-    SC_MINIMIZE: begin
-          ShowWindow(Handle, SW_MINIMIZE);
-          Message.Result := 0;
-       end;
-    SC_RESTORE: begin
-          ShowWindow(Handle, SW_RESTORE);
-          Message.Result := 0;
-       end;
-    else inherited;
-   end;
-end;}
+    sc_NextWindow:
+    begin
+      Message.Result := 0;
+    end;
+    sc_PrevWindow:
+    begin
+      Message.Result := 0;
+    end;
+    else
+      inherited;
+  end;
+end;
 
 procedure TfrmMain.WMEndSession(var Msg : TWMEndSession);
 begin
@@ -1177,7 +1190,6 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   fMemScanIsBusy := False;
@@ -1281,6 +1293,7 @@ begin
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.actGetFromFolderExecute(Sender: TObject);
 begin
@@ -1980,7 +1993,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil( AdminSystem);              
+  FreeAndNil( fMDIChildSortedList);
+  FreeAndNil( AdminSystem);
   FreeAndNil( GlobalAdminSnapshot);
 
   //remove redirect of messge handler to ClientWndProc
@@ -2368,7 +2382,7 @@ end;
 
 procedure TfrmMain.SetLastActiveMDIChild(const Value: Forms.TForm);
 begin
-   FLastActiveMDIChild := Value;
+  FLastActiveMDIChild := Value;
 end;
 
 procedure TfrmMain.SetMemScanIsBusy(Value: boolean);
@@ -2704,6 +2718,7 @@ begin
    SendCmdToAllCodingWindows( ecRecodeTrans);
    SendCmdToAllCodingWindows( ecUpdatePopups);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniOFAccountingSystemClick(Sender: TObject);
 begin
@@ -2920,6 +2935,7 @@ begin
   Import32.RefreshChart;
   SendCmdToAllCodingWindows( ecRecodeTrans);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniOFRefreshChartClick(Sender: TObject);
 begin
@@ -3360,10 +3376,19 @@ end;
 
 procedure TfrmMain.mniBusinessNormsClick(Sender: TObject);
 begin
-   DoModalReport(REPORT_GST_BUSINESSNORMS, rdNone);
+  DoModalReport(REPORT_GST_BUSINESSNORMS, rdNone);
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+function TfrmMain.GetMDIChildSortedList: TStringList;
+begin
+  if not Assigned(fMDIChildSortedList) then
+    fMDIChildSortedList := TStringList.Create;
+
+  Result := fMDIChildSortedList;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMain.GSTOverrides1Click(Sender: TObject);
 begin
   DoModalReport( REPORT_GST_OVERRIDES, rdNone);
@@ -3668,6 +3693,7 @@ begin
      end;
    end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniAddHistoricalClick(Sender: TObject);
 begin
@@ -4469,7 +4495,7 @@ begin
      end else HadMenu := False;
 
      finally
-        UnlockMainForm;
+       UnlockMainForm;
      end;
      //Update;
      if HadMenu then // menu Changed
@@ -4479,26 +4505,117 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+function TfrmMain.GetTabIndex(aTabWindow : TRzTabControl; aMDIIndex: integer): integer;
+var
+  TabIndex : integer;
+begin
+  Result := -1;
+  for TabIndex := 0 to aTabWindow.Tabs.Count-1 do
+  begin
+    if (aTabWindow.Tabs[TabIndex].Caption = MDIChildSortedList.Strings[aMDIIndex]) then
+    begin
+      Result := TabIndex;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMain.SetActiveMDI(aTabWindow: TRzTabControl; aTabIndex: integer);
+var
+  MDIIndex : integer;
+begin
+  for MDIIndex := 0 to MDIChildSortedList.Count-1 do
+  begin
+    if (aTabWindow.Tabs[aTabIndex].Caption = MDIChildSortedList.Strings[MDIIndex]) then
+    begin
+      fMDIChildSortedIndex := MDIIndex;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMain.NextSortedMDI();
+var
+  NextTabIndex : integer;
+begin
+  if MDIChildSortedList.Count < 2 then
+    Exit;
+
+  if (fMDIChildSortedIndex < (MDIChildSortedList.Count-1)) then
+    fMDIChildSortedIndex := fMDIChildSortedIndex + 1
+  else
+    fMDIChildSortedIndex := 0;
+
+  ActivateMDIChild(fMDIChildSortedIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMain.PrevSortedMDI();
+var
+  PrevTabIndex : integer;
+begin
+  if MDIChildSortedList.Count < 2 then
+    Exit;
+
+  if (fMDIChildSortedIndex > 0) then
+    fMDIChildSortedIndex := fMDIChildSortedIndex - 1
+  else
+    fMDIChildSortedIndex := MDIChildSortedList.Count - 1;
+
+  ActivateMDIChild(fMDIChildSortedIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmMain.ActivateMDIChild(aMDIIndex: integer);
+var
+  obj : TObject;
+begin
+  obj := TObject(MDIChildSortedList.Objects[aMDIIndex]);
+  if obj is TForm then
+  begin
+    TForm(obj).BringToFront;
+
+    if (obj is TfrmCoding) then
+      TfrmCoding(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
+
+    if (obj is TfrmBudget) then
+      TfrmBudget(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
+
+    if (obj is TfrmClientHomePage) then
+      TfrmClientHomePage(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMain.UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
-var                                       
+var
   TabIndex, StrPos : Integer;
+  MDIIndex : integer;
   TempStr : string;
   TabList : TStringList;
   TabItem : TRzTabCollectionItem;
+  CurMDIIndex : integer;
+  ActiveCaption : string;
 begin
+  fMDIChildSortedIndex := 0;
+  MDIChildSortedList.Clear;
   TabList := TStringList.Create;
   try
     aTabWindow.TabIndex := -1;
     for TabIndex := Pred(aTabWindow.Tabs.Count) downto 0 do
       aTabWindow.Tabs.Delete(TabIndex);
 
-    for TabIndex := 0 to Pred(MDIChildCount) do
+    for MDIIndex := 0 to Pred(MDIChildCount) do
     begin
-      if (MDIChildren[TabIndex].Caption <> aActionedPage) and
-         ((MDIChildren[TabIndex] is TfrmCoding) or
-          (MDIChildren[TabIndex] is TfrmBudget)) then
+      if (MDIChildren[MDIIndex].Caption <> aActionedPage) and
+         ((MDIChildren[MDIIndex] is TfrmCoding) or
+          (MDIChildren[MDIIndex] is TfrmBudget) or
+          (MDIChildren[MDIIndex] is TfrmClientHomePage)) then
       begin
-        TempStr := StringReplace(MDIChildren[TabIndex].Caption, '&', '&&', [rfReplaceAll]);
+        TempStr := StringReplace(MDIChildren[MDIIndex].Caption, '&', '&&', [rfReplaceAll]);
         StrPos := Pos('Code Entries', TempStr);
         if StrPos > 0 then
           TempStr := Copy(TempStr, 14, Length(TempStr))
@@ -4508,46 +4625,76 @@ begin
           if StrPos > 0 then
             TempStr := Copy(TempStr, 13, Length(TempStr));
         end;
-        TabList.AddObject(TempStr, MDIChildren[TabIndex]);
-      end;
+        TabList.AddObject(TempStr, MDIChildren[MDIIndex]);
+      end
+      else
+        TempStr := MDIChildren[MDIIndex].Caption;
+
+      if MDIChildren[MDIIndex].Active then
+        ActiveCaption := MDIChildren[MDIIndex].Caption;
+
+      CurMDIIndex := MDIChildSortedList.AddObject(TempStr, MDIChildren[MDIIndex]);
     end;
 
     TabList.Sort;
-
     for TabIndex := 0 to Pred(TabList.Count) do
     begin
       TabItem := aTabWindow.Tabs.Add;
       TabItem.Caption := TabList.Strings[TabIndex];
       TabItem.Tag := Integer(TabList.Objects[TabIndex]);
     end;
-
     aTabWindow.TabIndex := -1;
+
+    MDIChildSortedList.Sort;
+    for CurMDIIndex := 0 to MDIChildSortedList.Count-1 do
+    begin
+      if (TForm(MDIChildSortedList.Objects[CurMDIIndex]).Caption = ActiveCaption) then
+      begin
+        fMDIChildSortedIndex := CurMDIIndex;
+
+      end;
+    end;
   finally
     TabList.Free;
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmMain.UpdateAllWindowTabs(aActionedPage: string = '');
-var                                       
-  TabIndex : Integer;
+var
+  MDIIndex : Integer;
 begin
-  for TabIndex := 0 to Pred(MDIChildCount) do
+  // Updates all the window Tabs
+  for MDIIndex := 0 to Pred(MDIChildCount) do
   begin
-    if (MDIChildren[TabIndex].Caption = aActionedPage) then
+    if (MDIChildren[MDIIndex].caption = aActionedPage) then
       continue;
 
-    if (MDIChildren[TabIndex] is TfrmCoding) then
-       TfrmCoding(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+    if (MDIChildren[MDIIndex] is TfrmCoding) then
+      TfrmCoding(MDIChildren[MDIIndex]).UpdateTabs(fMDIChildSortedIndex, aActionedPage);
 
-    if (MDIChildren[TabIndex] is TfrmBudget) then
-       TfrmBudget(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+    if (MDIChildren[MDIIndex] is TfrmBudget) then
+      TfrmBudget(MDIChildren[MDIIndex]).UpdateTabs(fMDIChildSortedIndex, aActionedPage);
 
-    if (MDIChildren[TabIndex] is TfrmClientHomePage) then
-       TfrmClientHomePage(MDIChildren[TabIndex]).UpdateTabs(aActionedPage);
+    if (MDIChildren[MDIIndex] is TfrmClientHomePage) then
+      TfrmClientHomePage(MDIChildren[MDIIndex]).UpdateTabs(fMDIChildSortedIndex, aActionedPage);
+  end;
 
-    //if (MDIChildren[TabIndex].Caption <> aActionedPage) and
-    //   ((MDIChildren[TabIndex] is TfrmCoding) or
-    //    (MDIChildren[TabIndex] is TfrmBudget)) then
+  // Now that the Tabs are updated send the sorted index to each MDI Child with tabs
+  // to be used when menu is selected
+  for MDIIndex := 0 to Pred(MDIChildSortedList.Count) do
+  begin
+    if (MDIChildSortedList.Strings[MDIIndex] = aActionedPage) then
+      continue;
+
+    if (MDIChildSortedList.Objects[MDIIndex] is TfrmCoding) then
+      TfrmCoding(MDIChildSortedList.Objects[MDIIndex]).MDIChildSortedIndex := MDIIndex;
+
+    if (MDIChildSortedList.Objects[MDIIndex] is TfrmBudget) then
+      TfrmBudget(MDIChildSortedList.Objects[MDIIndex]).MDIChildSortedIndex := MDIIndex;
+
+    if (MDIChildSortedList.Objects[MDIIndex] is TfrmClientHomePage) then
+      TfrmClientHomePage(MDIChildSortedList.Objects[MDIIndex]).MDIChildSortedIndex := MDIIndex;
   end;
 end;
 

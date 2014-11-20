@@ -192,6 +192,7 @@ type
     FIsClosing: Boolean; {current edit values for record}
     FChart: TCustomSortChart;
     frmPercentageCalculation: TfrmPercentageCalculation;
+    fMDIChildSortedIndex : integer;
 
     procedure InitTable;
     function  RowNumOK(RowNum : integer): boolean;
@@ -270,8 +271,9 @@ type
 
   public
     { Public declarations }
+    procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
     procedure ActivateCurrentTab(aTabIndex : integer);
-    procedure UpdateTabs(aActionedPage: string = '');
+    procedure UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
 
     property Budget  : TBudget read FBudget write SetBudget;
     property IsClosing : Boolean read FIsClosing write SetIsClosing;
@@ -282,6 +284,8 @@ type
 
     procedure ProcessExternalCmd(command: TExternalCmdBudget); overload;
     procedure ProcessExternalCmd(command : TExternalCmd); overload;
+
+    property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
   end;
 
 var
@@ -379,14 +383,29 @@ var
 //------------------------------------------------------------------------------
 procedure TfrmBudget.WMSysCommand(var msg: TWMSyscommand);
 const
-   ThisMethodName = 'WMSysCommand';
+  ThisMethodName = 'WMSysCommand';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-  if ((msg.CmdType and $FFF0) = SC_MINIMIZE) or
-     ((msg.CmdType and $FFF0) = SC_RESTORE) then
-    exit
-  else
-    inherited;
+
+  case (msg.CmdType and $FFF0) of
+    sc_NextWindow:
+    begin
+      frmMain.NextSortedMDI();
+      msg.Result := 0;
+    end;
+    sc_PrevWindow:
+    begin
+      frmMain.PrevSortedMDI();
+      msg.Result := 0;
+    end;
+    SC_MINIMIZE:
+      Exit;
+    SC_RESTORE:
+      Exit;
+    else
+      inherited;
+  end;
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -399,6 +418,7 @@ var
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    tmrUnusedRows.Enabled := False;
+   MDIChildSortedIndex := -1;
    //Use a copy of the client chart that can be sorted
    fShowZeros := true;
    FChart := TCustomSortChart.Create(nil);
@@ -2614,6 +2634,11 @@ begin
   if FClearButton<>nil then
       FClearButton.DropDownMenu := popClearItems;
   Repaint;
+
+  if (MDIChildSortedIndex > -1) and
+     (tcWindows.Visible) then
+    ActivateCurrentTabUsingMDI(MDIChildSortedIndex);
+    
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );  
 end;
 
@@ -3765,19 +3790,31 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBudget.ActivateCurrentTab(aTabIndex : integer);
+procedure TfrmBudget.ActivateCurrentTabUsingMDI(aMDIIndex: integer);
+var
+  TabIndex : integer;
 begin
-  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+  TabIndex := frmMain.GetTabIndex(tcWindows, aMDIIndex);
+  if TabIndex > -1 then
+    ActivateCurrentTab(TabIndex);
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmBudget.UpdateTabs(aActionedPage : string = '');
+procedure TfrmBudget.ActivateCurrentTab(aTabIndex : integer);
+begin
+  tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
+  frmMain.SetActiveMDI(tcWindows, aTabIndex);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmBudget.UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
 
   frmMain.UpdateTabs(tcWindows, aActionedPage);
-  tcWindows.Visible := tcWindows.Tabs.Count > 0;
+  tcWindows.Visible := tcWindows.Tabs.Count > 2;
+  ActivateCurrentTabUsingMDI(aActiveMDIIndex);
 
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
