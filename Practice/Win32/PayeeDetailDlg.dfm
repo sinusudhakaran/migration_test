@@ -139,10 +139,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     OnChange = PageControl1Change
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlMain: TPanel
         Left = 0
         Top = 101
@@ -197,7 +193,14 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
           CellData = (
-            'dlgPayeeDetail.Header')
+            'dlgPayeeDetail.Header'
+            'dlgPayeeDetail.colLineType'
+            'dlgPayeeDetail.colPercent'
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColDesc'
+            'dlgPayeeDetail.ColAcct')
           RowData = (
             21)
           ColData = (
@@ -345,10 +348,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     object tsContractorDetails: TTabSheet
       Caption = 'Contractor Details'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblPhoneNumber: TLabel
         Left = 596
         Top = 253
@@ -580,7 +579,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Width = 57
           Height = 24
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 16
           TabOrder = 3
           OnChange = cmbStateChange
         end
@@ -803,7 +802,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -822,6 +820,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False

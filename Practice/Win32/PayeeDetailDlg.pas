@@ -1057,9 +1057,11 @@ var
   InvalidCodes: TStringList;
   InactiveCodes: TStringList;
   WarningMsg: string;
+  PayeeHasBeenActivated: boolean;
 begin
    IsActive := True;
    result := false;
+   PayeeHasBeenActivated := Payee.pdFields.pdInactive and not chkInactive.Checked;
 
    //trim payee name
    eName.Text := Trim( eName.Text);
@@ -1180,24 +1182,27 @@ begin
    InactiveCodes.Sorted := True;
    InactiveCodes.Duplicates := dupIgnore;
    try
-     for i := 1 to GLCONST.Max_py_Lines do
+     if PayeeHasBeenActivated then // only show warnings if the payee was inactive but is now active
      begin
-       if SplitLineIsValid(i) then
+       for i := 1 to GLCONST.Max_py_Lines do
        begin
-         PayeeLine := BKPLIO.New_Payee_Line_Rec;
-         PayeeLine.plAccount := SplitData[i].AcctCode;
-         if (PayeeLine.plAccount <> '') then
+         if SplitLineIsValid(i) then
          begin
-           if not MyClient.clChart.CanCodeto(PayeeLine.plAccount, IsActive,
-                                             HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+           PayeeLine := BKPLIO.New_Payee_Line_Rec;
+           PayeeLine.plAccount := SplitData[i].AcctCode;
+           if (PayeeLine.plAccount <> '') then
            begin
-             DoInvalidWarning := True;
-             InvalidCodes.Add(PayeeLine.plAccount);
-           end else
-           if not IsActive then
-           begin
-             DoInactiveWarning := True;
-             InactiveCodes.Add(PayeeLine.plAccount);
+             if not MyClient.clChart.CanCodeto(PayeeLine.plAccount, IsActive,
+                                               HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+             begin
+               DoInvalidWarning := True;
+               InvalidCodes.Add(PayeeLine.plAccount);
+             end else
+             if not IsActive then
+             begin
+               DoInactiveWarning := True;
+               InactiveCodes.Add(PayeeLine.plAccount);
+             end;
            end;
          end;
        end;

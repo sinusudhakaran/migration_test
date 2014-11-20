@@ -1487,6 +1487,8 @@ var
 
 const
   ThisMethodName = 'OKtoPost';
+  ShowInactiveWarnings = false;
+  ShowInvalidWarnings = false;
 begin
    IsActive := True;
    Result := false;
@@ -1698,13 +1700,19 @@ begin
            mlAccount := SplitData[i].AcctCode;
            if not MyClient.clChart.CanCodeto(mlAccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
            begin
-             DoInvalidWarning := True;
-             InvalidCodes.Add(mlAccount);
+             if ShowInvalidWarnings then
+             begin
+               DoInvalidWarning := True;
+               InvalidCodes.Add(mlAccount);
+             end;
            end else
            if not IsActive then
            begin
-             DoInactiveWarning := True;
-             InactiveCodes.Add(mlAccount);
+             if ShowInactiveWarnings then
+             begin
+               DoInactiveWarning := True;
+               InactiveCodes.Add(mlAccount);
+             end;
            end;
          end;
        end;
