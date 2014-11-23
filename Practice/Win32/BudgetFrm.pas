@@ -2658,6 +2658,8 @@ const
   ThisMethodName = 'FormDestroy';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  frmMain.UpdateAllWindowTabs(Caption);
+
    FreeAndNil(FChart);
    if Assigned(ExceptionsToHideUnused) then
      FreeAndNil(ExceptionsToHideUnused);
@@ -3794,6 +3796,9 @@ procedure TfrmBudget.ActivateCurrentTabUsingMDI(aMDIIndex: integer);
 var
   TabIndex : integer;
 begin
+  if not Assigned(tcWindows) then
+    Exit;
+
   TabIndex := frmMain.GetTabIndex(tcWindows, aMDIIndex);
   if TabIndex > -1 then
     ActivateCurrentTab(TabIndex);

@@ -842,6 +842,8 @@ type
     function GetTabIndex(aTabWindow : TRzTabControl; aMDIIndex: integer): integer;
     procedure SetActiveMDI(aTabWindow : TRzTabControl; aTabIndex: integer);
 
+    procedure RemoveMDI(aMDIindex : integer);
+
     procedure NextSortedMDI();
     procedure PrevSortedMDI();
     procedure ActivateMDIChild(aMDIIndex: integer);
@@ -4537,9 +4539,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmMain.RemoveMDI(aMDIindex : integer);
+begin
+  MDIChildSortedList.Delete(aMDIindex);
+  if fMDIChildSortedIndex > (MDIChildSortedList.Count-1) then
+    fMDIChildSortedIndex := (MDIChildSortedList.Count-1);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmMain.NextSortedMDI();
-var
-  NextTabIndex : integer;
 begin
   if MDIChildSortedList.Count < 2 then
     Exit;
@@ -4554,8 +4562,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmMain.PrevSortedMDI();
-var
-  PrevTabIndex : integer;
 begin
   if MDIChildSortedList.Count < 2 then
     Exit;
@@ -4610,8 +4616,10 @@ begin
 
     for MDIIndex := 0 to Pred(MDIChildCount) do
     begin
-      if (MDIChildren[MDIIndex].Caption <> aActionedPage) and
-         ((MDIChildren[MDIIndex] is TfrmCoding) or
+      if (MDIChildren[MDIIndex].Caption = aActionedPage) then
+        continue;
+
+      if ((MDIChildren[MDIIndex] is TfrmCoding) or
           (MDIChildren[MDIIndex] is TfrmBudget) or
           (MDIChildren[MDIIndex] is TfrmClientHomePage)) then
       begin
@@ -4633,7 +4641,7 @@ begin
       if MDIChildren[MDIIndex].Active then
         ActiveCaption := MDIChildren[MDIIndex].Caption;
 
-      CurMDIIndex := MDIChildSortedList.AddObject(TempStr, MDIChildren[MDIIndex]);
+      MDIChildSortedList.AddObject(TempStr, MDIChildren[MDIIndex]);
     end;
 
     TabList.Sort;

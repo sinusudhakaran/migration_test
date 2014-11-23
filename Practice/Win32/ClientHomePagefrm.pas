@@ -938,8 +938,11 @@ begin
 end;
 
 procedure TfrmClientHomePage.FormDestroy(Sender: TObject);
-var I : Integer;
+var
+  I : Integer;
 begin
+  frmMain.UpdateAllWindowTabs(Caption);
+
   UnRegisterWebNotesUpdate(Self.Handle);
 
   OutputDebugString( 'TfrmClientHomePage.FormDestroy' );
@@ -2084,6 +2087,9 @@ procedure TfrmClientHomePage.ActivateCurrentTabUsingMDI(aMDIIndex: integer);
 var
   TabIndex : integer;
 begin
+  if not Assigned(tcWindows) then
+    Exit;
+
   TabIndex := frmMain.GetTabIndex(tcWindows, aMDIIndex);
   if TabIndex > -1 then
     ActivateCurrentTab(TabIndex);

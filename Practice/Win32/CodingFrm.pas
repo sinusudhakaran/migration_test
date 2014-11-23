@@ -3964,15 +3964,18 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormDestroy(Sender: TObject);
 begin
-   if Assigned( FHint ) then begin
-      if FHint.HandleAllocated then FHint.ReleaseHandle;
-      FHint.Free;
-      FHint := nil;
-   end;
-   WorkTranList.Free;
-   ColumnFmtList.Free;
-   UEList.Free;
-   SetLength( tmpBuffer, 0);   //free memory associated with temp buffer of char
+  frmMain.UpdateAllWindowTabs(Caption);
+
+  if Assigned( FHint ) then
+  begin
+    if FHint.HandleAllocated then FHint.ReleaseHandle;
+    FHint.Free;
+    FHint := nil;
+  end;
+  WorkTranList.Free;
+  ColumnFmtList.Free;
+  UEList.Free;
+  SetLength( tmpBuffer, 0);   //free memory associated with temp buffer of char
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.InitController;
@@ -10239,6 +10242,9 @@ procedure TfrmCoding.ActivateCurrentTabUsingMDI(aMDIIndex: integer);
 var
   TabIndex : integer;
 begin
+  if not Assigned(tcWindows) then
+    Exit;
+
   TabIndex := frmMain.GetTabIndex(tcWindows, aMDIIndex);
   if TabIndex > -1 then
     ActivateCurrentTab(TabIndex);
