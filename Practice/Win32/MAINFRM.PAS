@@ -4513,6 +4513,10 @@ var
   TabIndex : integer;
 begin
   Result := -1;
+
+  if (aMDIIndex > MDIChildSortedList.count-1) then
+    Exit;
+
   for TabIndex := 0 to aTabWindow.Tabs.Count-1 do
   begin
     if (aTabWindow.Tabs[TabIndex].Caption = MDIChildSortedList.Strings[aMDIIndex]) then
