@@ -1716,6 +1716,7 @@ var
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
   DissRec : tDissection_Rec;
+  CodeActive : Boolean;
   CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
@@ -1738,7 +1739,12 @@ begin
     Exit;
 
   Mgr.ContraCodePrinted := NullCode;
-  IsValidCode := Assigned(ReportParams.Chart.FindCode( Code ));
+  AccRec := ReportParams.Chart.FindCode( Code );
+  IsValidCode := Assigned(AccRec);
+
+  CodeActive := true;
+  if Assigned(AccRec) then
+    CodeActive := not AccRec^.chInactive;
 
   //code has changed
   if ( Code <> Mgr.LastCodePrinted) then
@@ -1747,7 +1753,7 @@ begin
     begin
       //code has changed so print totals;
       if (Mgr.AccountHasActivity or
-          (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected))) and
+          (ReportParams.PrintEmptyCodes and (CodeActive or CodeSelected))) and
          (not TListLedgerReport(Mgr.ReportJob).DoneSubTotal) then
       begin
         PrintSummaryListLedgerLine( Mgr, Mgr.LastCodePrinted, TListLedgerReport(Mgr.ReportJob));
@@ -2474,6 +2480,7 @@ var
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
   CodeSelected : boolean;
+  CodeActive : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -2490,7 +2497,12 @@ begin
   if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code, CodeSelected) then
     Exit;
 
-  IsValidCode := Assigned(ReportParams.Chart.FindCode(Code));
+  AccRec := ReportParams.Chart.FindCode( Code );
+  IsValidCode := Assigned(AccRec);
+
+  CodeActive := true;
+  if Assigned(AccRec) then
+    CodeActive := not AccRec^.chInactive;
 
   //code has changed
   if (Code <> Mgr.LastCodePrinted) then
@@ -2498,7 +2510,7 @@ begin
     if (Mgr.LastCodePrinted <> NullCode) then
     begin
       //code has changed so print totals
-      if (Mgr.AccountHasActivity or (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected))) and
+      if (Mgr.AccountHasActivity or (ReportParams.PrintEmptyCodes and (CodeActive or CodeSelected))) and
          (not TListLedgerReport(Mgr.ReportJob).DoneSubTotal) then
         PrintSummaryListLedgerLine(Mgr, Mgr.LastCodePrinted, TListLedgerReport(Mgr.ReportJob));
 
@@ -2878,7 +2890,7 @@ var
   AccRec : pAccount_Rec;
   RendStr : string;
   IsContras : Boolean;
-  CodeSelected : boolean;
+  CodeSelected : Boolean;
 begin
   NET_AMOUNT_CAPTION := Params.Client.CurrencySymbol + ' Net';
 
@@ -2943,7 +2955,7 @@ begin
     //need to print final figures for last code
     if Params.Summaryreport then
     begin
-      if (TravMgr.AccountHasActivity or (Params.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected))) and
+      if (TravMgr.AccountHasActivity or Params.PrintEmptyCodes) and
          (not DoneSubTotal) and
          (TravMgr.LastCodePrinted <> NullCode) then
         PrintSummaryListLedgerLine( TravMgr, TravMgr.LastCodePrinted, Self);
