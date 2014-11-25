@@ -72,7 +72,7 @@ type
     Params : TLRParameters;
     DoneSubTotal: Boolean;               // has displayed subtotals line
     SplitCode: string;                   // Used to re-print the code title if a page splits it up
-    function ShowCodeOnReport( aCode : string) : boolean;
+    function ShowCodeOnReport( aCode : string; var aCodeSelected : boolean) : boolean;
     procedure BKPrint;  override;
     procedure AfterNewPage(aDetailPending : Boolean);  override;
   end;
@@ -1272,6 +1272,7 @@ var
   RenderStr : string;
   IsValidCode, IsContras: boolean;
   LegRpt : TListLedgerReport;
+  CodeSelected : boolean;
 begin
   Result := True;
 
@@ -1326,7 +1327,7 @@ begin
             (AccRec^.chAccount_Code < aCode) do
       begin
         //is code in range?
-        if TListLedgerReport(aReport).ShowCodeOnReport( AccRec^.chAccount_Code) then
+        if TListLedgerReport(aReport).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
         begin
           RenderStr := AccRec^.chAccount_Code + '  ' + AccRec^.chAccount_Description;
 
@@ -1339,7 +1340,7 @@ begin
           // show if contra or showing empty posting codes or showing non-posting codes with a balance
 
           if (IsContras or
-              (aReportParams.PrintEmptyCodes and
+              ((aReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
                (AccRec^.chPosting_Allowed or
                 (aReportParams.ShowBalances and
                  (GetOpeningBalanceAmount(aReportParams.Client,AccRec^.chAccount_Code) <> 0))))) then
@@ -1418,6 +1419,7 @@ var
   Report : TListLedgerReport;
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
+  CodeSelected : boolean;
 begin
   TravMgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(TravMgr.ReportJob);
@@ -1429,7 +1431,7 @@ begin
   if not IsBankAccountIncluded(Report, TravMgr) then
     Exit;
   //Code in range?
-  if not TListLedgerReport(Report).ShowCodeOnReport(Code) then
+  if not TListLedgerReport(Report).ShowCodeOnReport(Code, CodeSelected) then
     Exit;
   // has txn already been printed during contras?
   // if we have printed contras then we have gone thru all codes again from
@@ -1457,6 +1459,7 @@ var
   Code  : Bk5CodeStr;
   Report: TListLedgerReport;
   ReportParams: TLRParameters;
+  CodeSelected : boolean;
 begin
   TravMgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(TravMgr.ReportJob);
@@ -1468,7 +1471,7 @@ begin
     Exit;
 
   //is code in range?
-  if not TListLedgerReport(Report).ShowCodeOnReport( Code) then
+  if not TListLedgerReport(Report).ShowCodeOnReport(Code, CodeSelected) then
     Exit;
 
   // has tx already been printed during contras?
@@ -1500,6 +1503,8 @@ var
   Report : TListLedgerReport;
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
+  CodeActive : boolean;
+  CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -1511,7 +1516,7 @@ begin
     exit;
 
   //is code in range?
-  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code) then
+  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code, CodeSelected) then
     exit;
 
   // has tx already been printed during contras?
@@ -1520,7 +1525,13 @@ begin
     exit;
 
   Mgr.ContraCodePrinted := NullCode;
-  IsValidCode := Assigned(ReportParams.Chart.FindCode( Code ));
+
+  AccRec := ReportParams.Chart.FindCode( Code );
+  IsValidCode := Assigned(AccRec);
+
+  CodeActive := true;
+  if Assigned(AccRec) then
+    CodeActive := not AccRec^.chInactive;
 
   //code has changed
   if ( Code <> Mgr.LastCodePrinted) then
@@ -1528,7 +1539,7 @@ begin
     if ( Mgr.LastCodePrinted <> NullCode) then
     begin
       //code has changed so print totals
-      if (Mgr.AccountHasActivity or ReportParams.PrintEmptyCodes) and
+      if (Mgr.AccountHasActivity or (ReportParams.PrintEmptyCodes and (CodeActive or CodeSelected))) and
          (not TListLedgerReport(Mgr.ReportJob).DoneSubTotal) then
         PrintSummaryListLedgerLine( Mgr, Mgr.LastCodePrinted, TListLedgerReport(Mgr.ReportJob));
 
@@ -1576,10 +1587,10 @@ begin
       while (Code <> '') and (AccRec^.chAccount_Code <> Code) and (AccRec^.chAccount_Code < Code) do
       begin
         //is code in range?
-        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code) then
+        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
         begin
           IsContras := IsThisAContraCode(AccRec^.chAccount_Code, Mgr.ReportJob);
-          IsEmpty := ReportParams.PrintEmptyCodes and
+          IsEmpty := (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
                     (AccRec^.chPosting_Allowed or
                      (ReportParams.ShowBalances and
                       (GetOpeningBalanceAmount(ReportParams.Client, AccRec^.chAccount_Code) <> 0)));
@@ -1705,6 +1716,7 @@ var
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
   DissRec : tDissection_Rec;
+  CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -1717,7 +1729,7 @@ begin
     Exit;
 
   //is code in range?
-  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code) then
+  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code, CodeSelected) then
     Exit;
 
   // has tx already been printed during contras?
@@ -1735,7 +1747,7 @@ begin
     begin
       //code has changed so print totals;
       if (Mgr.AccountHasActivity or
-          ReportParams.PrintEmptyCodes) and
+          (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected))) and
          (not TListLedgerReport(Mgr.ReportJob).DoneSubTotal) then
       begin
         PrintSummaryListLedgerLine( Mgr, Mgr.LastCodePrinted, TListLedgerReport(Mgr.ReportJob));
@@ -1789,10 +1801,10 @@ begin
             (AccRec^.chAccount_Code < Code) do
       begin
         //is code in range?
-        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code) then
+        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
         begin
           IsContras := IsThisAContraCode(AccRec^.chAccount_Code, Mgr.ReportJob);
-          IsEmpty := ReportParams.PrintEmptyCodes and
+          IsEmpty := (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
                      (AccRec^.chPosting_Allowed or
                       (ReportParams.ShowBalances and
                        (GetOpeningBalanceAmount(ReportParams.Client,AccRec^.chAccount_Code) <> 0)));
@@ -1914,6 +1926,7 @@ var
   Report : TListLedgerReport;
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
+  CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -1926,7 +1939,7 @@ begin
     Exit;
 
   //is code in range?
-  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code) then
+  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code, CodeSelected) then
     exit;
 
   // has txn already been printed during contras?
@@ -1991,13 +2004,13 @@ begin
             (AccRec^.chAccount_Code < Code) do
       begin
         //is code in range?
-        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code) then
+        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
         begin
           RendStr := AccRec^.chAccount_Code + '  ' + AccRec^.chAccount_Description;
           IsContras := IsThisAContraCode(AccRec^.chAccount_Code, Mgr.ReportJob);
 
           // show if contra or showing empty posting codes or showing non-posting codes with a balance
-          if (IsContras or (ReportParams.PrintEmptyCodes and
+          if (IsContras or ((ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
               (AccRec^.chPosting_Allowed or
                (ReportParams.ShowBalances and
                 (GetOpeningBalanceAmount(ReportParams.Client,AccRec^.chAccount_Code) <> 0))))) then
@@ -2116,6 +2129,7 @@ var
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
   DissRec : tDissection_Rec;
+  CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -2129,7 +2143,7 @@ begin
    Exit;
 
   //is code in range?
-  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code) then
+  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code, CodeSelected) then
     exit;
 
   // has tx already been printed during contras?
@@ -2173,11 +2187,11 @@ begin
        while (Code <> '') and (AccRec^.chAccount_Code <> Code) and (AccRec^.chAccount_Code < Code) do
        begin
          //is code in range?
-         if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code) then
+         if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
          begin
            With AccRec^ do RendStr := chAccount_Code + '  ' + chAccount_Description;
            IsContras := IsThisAContraCode(AccRec^.chAccount_Code, Mgr.ReportJob);
-           if (IsContras or (ReportParams.PrintEmptyCodes and
+           if (IsContras or ((ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
                    (AccRec^.chPosting_Allowed or (ReportParams.ShowBalances and (GetOpeningBalanceAmount(ReportParams.Client,AccRec^.chAccount_Code) <> 0))))) then
            begin
              Mgr.ReportJob.RenderTitleLine(RendStr);
@@ -2283,6 +2297,7 @@ var
   Report : TListLedgerReport;
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
+  CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -2295,7 +2310,7 @@ begin
     exit;
 
   //is code in range?
-  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport(Code) then
+  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport(Code, CodeSelected) then
     exit;
 
   IsValidCode := Assigned(ReportParams.Chart.FindCode(Code));
@@ -2348,7 +2363,7 @@ begin
             (AccRec^.chAccount_Code < Code) do
       begin
         //is code in range?
-        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code) then
+        if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
         begin
           RendStr := AccRec^.chAccount_Code + '  ' + AccRec^.chAccount_Description;
 
@@ -2356,7 +2371,7 @@ begin
 
           // show if contra or showing empty posting codes or showing non-posting codes with a balance
           if (IsContras or
-              (ReportParams.PrintEmptyCodes and
+              ((ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
                ReportParams.Client.clBank_Account_List.IsExchangeGainLossCode(AccRec.chAccount_Code) and
               (AccRec^.chPosting_Allowed or
               (ReportParams.ShowBalances and
@@ -2458,6 +2473,7 @@ var
   Report : TListLedgerReport;
   ReportParams : TLRParameters;
   TranRec : TTransaction_Rec;
+  CodeSelected : boolean;
 begin
   Mgr := TListLedgerTMgr(aSender);
   Report := TListLedgerReport(Mgr.ReportJob);
@@ -2471,7 +2487,7 @@ begin
     Exit;
 
   //is code in range?
-  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code) then
+  if not TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( Code, CodeSelected) then
     Exit;
 
   IsValidCode := Assigned(ReportParams.Chart.FindCode(Code));
@@ -2482,7 +2498,7 @@ begin
     if (Mgr.LastCodePrinted <> NullCode) then
     begin
       //code has changed so print totals
-      if (Mgr.AccountHasActivity or ReportParams.PrintEmptyCodes) and
+      if (Mgr.AccountHasActivity or (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected))) and
          (not TListLedgerReport(Mgr.ReportJob).DoneSubTotal) then
         PrintSummaryListLedgerLine(Mgr, Mgr.LastCodePrinted, TListLedgerReport(Mgr.ReportJob));
 
@@ -2539,10 +2555,10 @@ begin
              (AccRec^.chAccount_Code < Code) do
        begin
          //is code in range?
-         if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code) then
+         if TListLedgerReport(Mgr.ReportJob).ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
          begin
            IsContras := IsThisAContraCode(AccRec^.chAccount_Code, Mgr.ReportJob);
-           IsEmpty := ReportParams.PrintEmptyCodes and
+           IsEmpty := (ReportParams.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
                       (AccRec^.chPosting_Allowed or
                        (ReportParams.ShowBalances and
                         (GetOpeningBalanceAmount(ReportParams.Client, AccRec^.chAccount_Code) <> 0)));
@@ -2812,11 +2828,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TListLedgerReport.ShowCodeOnReport(aCode: string): boolean;
+function TListLedgerReport.ShowCodeOnReport(aCode: string; var aCodeSelected : boolean): boolean;
 var
   RangeArrIndex : integer;
 begin
   result := true;
+  aCodeSelected := false;
 
   if Params.ShowAllCodes then
   begin
@@ -2833,14 +2850,20 @@ begin
         begin
           if (Params.Client.AccountCodeCompare(aCode, FromCode) >= 0) and
              (Params.Client.AccountCodeCompare(aCode, ToCode) <= 0) then
+          begin
+            aCodeSelected := true;
             Exit;
+          end;
         end
         else
           //special case, if only a from code is specified then match
           //on the specific code
           if (FromCode <> '') and
              (FromCode = aCode) then
+          begin
+            aCodeSelected := true;
             Exit;
+          end;
       end;
     end;
   end;
@@ -2855,6 +2878,7 @@ var
   AccRec : pAccount_Rec;
   RendStr : string;
   IsContras : Boolean;
+  CodeSelected : boolean;
 begin
   NET_AMOUNT_CAPTION := Params.Client.CurrencySymbol + ' Net';
 
@@ -2919,7 +2943,7 @@ begin
     //need to print final figures for last code
     if Params.Summaryreport then
     begin
-      if (TravMgr.AccountHasActivity or Params.PrintEmptyCodes) and
+      if (TravMgr.AccountHasActivity or (Params.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected))) and
          (not DoneSubTotal) and
          (TravMgr.LastCodePrinted <> NullCode) then
         PrintSummaryListLedgerLine( TravMgr, TravMgr.LastCodePrinted, Self);
@@ -2970,13 +2994,13 @@ begin
       while Assigned(AccRec) do
       begin
         //is code in range?
-        if ShowCodeOnReport( AccRec^.chAccount_Code) then
+        if ShowCodeOnReport( AccRec^.chAccount_Code, CodeSelected) then
         begin
           RendStr := AccRec^.chAccount_Code + '  ' + AccRec^.chAccount_Description;
           IsContras := IsThisAContraCode(AccRec^.chAccount_Code, Self);
 
           if IsContras or
-             (Params.PrintEmptyCodes and
+             ((Params.PrintEmptyCodes and (not AccRec^.chInactive or CodeSelected)) and
               (AccRec^.chPosting_Allowed or
                (Params.ShowBalances and
                 (GetOpeningBalanceAmount(Params.Client,AccRec^.chAccount_Code) <> 0)))) and
