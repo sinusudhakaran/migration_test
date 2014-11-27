@@ -610,7 +610,7 @@ begin
   //Add Headers
   AddCommonHeader(Job);
 
-  AddJobHeader(Job,siTitle,'Taxable Payments Report (Detailed)',true);
+  AddJobHeader(Job,siTitle,'Taxable Payments Annual Report (Detailed)',true);
   AddjobHeader(Job,siSubTitle, Format('For the period from %s to %s', [bkdate2Str(Job.Params.Fromdate), bkDate2Str(Job.Params.ToDate)]), True);
   AddjobHeader(Job,siSubTitle,'',True);
 
@@ -647,7 +647,7 @@ begin
   //Add Headers
   AddCommonHeader(Job);
 
-  AddJobHeader(Job,siTitle,'Taxable Payments Report (Summarised)',true);
+  AddJobHeader(Job,siTitle,'Taxable Payments Annual Report (Summarised)',true);
   AddjobHeader(Job,siSubTitle, Format('For the period from %s to %s', [bkdate2Str(Job.Params.Fromdate), bkDate2Str(Job.Params.ToDate)]), True);
   AddjobHeader(Job,siSubTitle,'',True);
 

@@ -2,7 +2,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 'Taxable Payments Report'
+  Caption = 'Taxable Payments Annual Report'
   ClientHeight = 294
   ClientWidth = 592
   Color = clBtnFace
