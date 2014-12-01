@@ -355,7 +355,7 @@ type
  TfrmClientMaint = class(TfrmClientManager)
    constructor Create(AOwner: tComponent); override;
  end;
- 
+
 //------------------------------------------------------------------------------
 function DoClientManager(L, T, H, W: Integer) : boolean;
 procedure CloseClientManager(ProcessMessage: Boolean = True);
@@ -469,7 +469,7 @@ const
   cm_mcPrintAllTasks      = 27;
   cm_mcAssignBulkExport   = 28;
   cm_mcSendOnline         = 29;
-  cm_mcCAFAccountStatus   = 30; 
+  cm_mcCAFAccountStatus   = 30;
 
   md_ClientManager   = 0;
   md_GlobalSetup     = 1;
@@ -2522,8 +2522,45 @@ begin
 end;
 
 procedure TfrmClientManager.actMigrateExecute(Sender: TObject);
+var
+  AClientIsCheckedOut, AClientIsUnsynced: boolean;
+  Client: pClient_File_Rec;
+  i: integer;
+  SelectedList: TStringList;
+  Prospect, Active, Unsync: boolean;
 begin
-//
+  AClientIsCheckedOut := False;
+  AClientIsUnsynced := False;
+  SelectedList := TStringList.Create;
+  try
+    SelectedList.Delimiter := GLOBALS.ClientCodeDelimiter;
+    SelectedList.StrictDelimiter := True;
+    SelectedList.DelimitedText := ClientLookup.SelectedCodes;
+
+    for i := 0 to SelectedList.Count - 1 do
+    begin
+      Client := AdminSystem.fdSystem_Client_File_List.FindCode(SelectedList.Strings[i]);
+      AClientIsCheckedOut := (Client.cfFile_Status = fsCheckedOut);
+      if AClientIsCheckedOut then
+        break;
+    end;
+    ClientLookup.GetSelectionTypes(Prospect, Active, AClientIsUnsynced);
+
+    // TODO: also need to check for archived and read-only (opened by another user) clients
+    if (AClientIsCheckedOut and AClientIsUnsynced) then
+      ShowMessage('You cannot migrate checked out or unsynchronised clients')
+    else if AClientIsCheckedOut then         
+      ShowMessage('You cannot migrate checked out clients')
+    else if AClientIsUnsynced then
+      ShowMessage('You cannot migrate unsynchronised clients')
+    else
+    begin
+      // TODO: check if already logged into My.MYOB, if so move to confirmation window instead
+            
+    end;
+  finally
+    SelectedList.Free;
+  end;
 end;
 
 //------------------------------------------------------------------------------
