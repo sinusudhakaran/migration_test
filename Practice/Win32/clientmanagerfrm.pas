@@ -434,7 +434,9 @@ uses
   CAFOutputSelectorFrm,
   ModalProgressFrm,
   LockUtils,  
-  InstitutionCol, bkProduct;
+  InstitutionCol,
+  CashBookMigrationWiz,
+  bkProduct;
 
 {$R *.dfm}
 
@@ -1292,6 +1294,7 @@ begin
     actMergeDoc.Enabled := not NoClientSelected;
     actMergeEmail.Enabled := not NoClientSelected;
     actSend.Enabled := (not ProspectSelected) and (SingleClientSelected);
+    actMigrate.Enabled := not NoClientSelected;
 
     if FIsGlobal then // Never use in global setup
     begin
@@ -2522,14 +2525,15 @@ begin
 end;
 
 procedure TfrmClientManager.actMigrateExecute(Sender: TObject);
-var
+{var
   AClientIsCheckedOut, AClientIsUnsynced: boolean;
   Client: pClient_File_Rec;
   i: integer;
   SelectedList: TStringList;
-  Prospect, Active, Unsync: boolean;
+  Prospect, Active, Unsync: boolean;}
 begin
-  AClientIsCheckedOut := False;
+  RunCashBookMigrationWizard;
+  {AClientIsCheckedOut := False;
   AClientIsUnsynced := False;
   SelectedList := TStringList.Create;
   try
@@ -2549,18 +2553,19 @@ begin
     // TODO: also need to check for archived and read-only (opened by another user) clients
     if (AClientIsCheckedOut and AClientIsUnsynced) then
       ShowMessage('You cannot migrate checked out or unsynchronised clients')
-    else if AClientIsCheckedOut then         
+    else if AClientIsCheckedOut then
       ShowMessage('You cannot migrate checked out clients')
     else if AClientIsUnsynced then
       ShowMessage('You cannot migrate unsynchronised clients')
     else
     begin
       // TODO: check if already logged into My.MYOB, if so move to confirmation window instead
-            
+
     end;
   finally
     SelectedList.Free;
-  end;
+  end; }
+
 end;
 
 //------------------------------------------------------------------------------
