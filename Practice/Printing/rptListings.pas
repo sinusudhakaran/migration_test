@@ -1721,6 +1721,9 @@ begin
          if ShowBasicChart and chHide_In_Basic_Chart then
            Continue;
 
+         if not ShowInactive and chInactive then
+           continue;
+
          PutString( chAccount_Code );
          PutString( chAccount_Description );
 
