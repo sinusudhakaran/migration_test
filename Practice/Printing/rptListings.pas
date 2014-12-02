@@ -1800,6 +1800,7 @@ function DoChartListReport(Dest : TReportDest;
 var
    Job : TChartListReport;
    DescSpace: double;
+   AccountGroupSpace: double;
    AdditionalSpace : integer;
    MissingColumns  : integer;
    i,j : integer;
@@ -1903,16 +1904,17 @@ begin
      DescSpace := 25.0;
      if not ShowBasic then
        DescSpace := DescSpace - 6.0;
-     if Job.ShowInactive then
-       DescSpace := DescSpace - 6.0;
      AddColAuto(Job, cLeft, DescSpace + AdditionalSpace, Gcgap,'Description',jtLeft);
 
      if HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
         AddColAuto(Job, cLeft,10.0 , Gcgap,
         AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used),jtLeft);
 
+     AccountGroupSpace := 12.0 + AdditionalSpace;
+     if Job.ShowInactive then
+       AccountGroupSpace := AccountGroupSpace - 6.0;
 
-     AddColAuto(Job, cLeft,12.0 + AdditionalSpace, Gcgap,'Account Group',jtLeft);
+     AddColAuto(Job, cLeft, AccountGroupSpace, Gcgap,'Account Group',jtLeft);
 
      if SubTypesFound then
         AddColAuto(Job,cLeft,12.0 + AdditionalSpace, Gcgap,'Sub-group',jtLeft);
