@@ -115,9 +115,9 @@ end;
 //------------------------------------------------------------------------------
 function Memorisations_AccountUsed(const aAccount: string): boolean;
 begin
-  result :=
-    ClientMemorisations_AccountUsed(aAccount) or
-    SystemMemorisations_AccountUsed(aAccount);
+  result := ClientMemorisations_AccountUsed(aAccount);
+
+  // Note: don't include master memorisations here from
 end;
 
 //------------------------------------------------------------------------------
