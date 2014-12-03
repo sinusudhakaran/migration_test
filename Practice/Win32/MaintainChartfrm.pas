@@ -384,6 +384,7 @@ var
   WasCode, WasDesc : string;
   PreviousGSTClass : integer;
   WasPosting: Boolean;
+  WasInactive: boolean;
 begin
   try
     if not tbEdit.Enabled then
@@ -401,6 +402,7 @@ begin
       WasDesc  := P^.chAccount_Description;
       WasPosting := P^.chPosting_Allowed;
       PreviousGSTClass := p^.chGST_Class;
+      WasInactive := P^.chInactive;
 
       if EditChartAccount(p, tbNew.Enabled, chkInactive.Enabled) then begin
         ChartChanged := True;
@@ -419,8 +421,15 @@ begin
            lvUtils.SelectListViewItem(lvChart, lvChart.FindCaption(0,p^.chAccount_Code,false,true,true));
         end
         else begin
-           RefreshItem(p,lvChart.Selected);
-           lvChart.UpdateItems(lvChart.Selected.Index,lvChart.Selected.Index);
+          if not fShowInactive and (WasInactive <> p^.chInactive) then
+          begin
+            RefreshChartList;
+          end
+          else
+          begin
+            RefreshItem(p,lvChart.Selected);
+            lvChart.UpdateItems(lvChart.Selected.Index,lvChart.Selected.Index);
+          end;
         end;
 
         //test for gst change
