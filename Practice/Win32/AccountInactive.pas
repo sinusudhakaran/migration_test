@@ -50,6 +50,11 @@ begin
   for iMem := 0 to aList.Last do
   begin
     Memorisation := aList.Memorisation_At(iMem);
+
+    // If "Applies To" is set then ignore
+    if (Memorisation.mdFields.mdDate_Last_Applied > 0) then
+      continue;
+
     for iLine := 0 to Memorisation.mdLines.Last do
     begin
       MemorisationLine := Memorisation.mdLines.MemorisationLine_At(iLine);
