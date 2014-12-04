@@ -353,6 +353,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Caption = 'tabOverview'
         ExplicitLeft = 0
         ExplicitTop = 10
+        ExplicitWidth = 0
         ExplicitHeight = 359
         DesignSize = (
           736
@@ -379,6 +380,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         ImageIndex = 1
         ExplicitLeft = 8
         ExplicitTop = 10
+        ExplicitWidth = 0
         ExplicitHeight = 359
         DesignSize = (
           736
@@ -542,6 +544,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         ParentFont = False
         ExplicitLeft = 8
         ExplicitTop = 10
+        ExplicitWidth = 0
         ExplicitHeight = 359
         DesignSize = (
           736
@@ -644,6 +647,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         ImageIndex = 3
         ExplicitLeft = 8
         ExplicitTop = 9
+        ExplicitWidth = 0
         ExplicitHeight = 359
         DesignSize = (
           736
@@ -720,6 +724,9 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
         ExplicitHeight = 359
         DesignSize = (
           736
@@ -787,6 +794,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         ImageIndex = 5
         ExplicitLeft = 8
         ExplicitTop = 9
+        ExplicitWidth = 0
         ExplicitHeight = 359
         object Label1: TLabel
           Left = 288
@@ -805,7 +813,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Left = 248
           Top = 171
           Width = 215
-          Height = 14
+          Height = 16
           Caption = 'Take me to MYOB accounts Cashbook'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText

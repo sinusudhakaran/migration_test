@@ -33,8 +33,8 @@ uses
   GainLossFrm,
   OleCtrls,
   SHDocVw,
-  BKWebBrowser, RzPrgres;
-
+  BKWebBrowser,
+  RzPrgres;
 
 type
   TFrmCashBookMigrationWiz = class(TForm)
@@ -158,7 +158,8 @@ uses
   CountryUtils,
   ForexHelpers,
   InfoMoreFrm,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  CashbookMigration;
 
 const
   mtOverview           = 1; mtMin = 1;
@@ -451,14 +452,11 @@ begin
   lblTitle.Caption := StepTitles[fCurrentStepID];
   lblDescription.Caption := StepDescriptions[fCurrentStepID];
 
-  HTMLString := '<HTML> <HEAD> <TITLE>test</TITLE> </HEAD> <BODY>test</body> </HTML>';
-
-  {case fCurrentStepID of
-    mtOverview           : BKOverviewWebBrowser.LoadFromString(HTMLString);
-    mtTermsAndConditions : BKTermsWebBrowser.LoadFromString(HTMLString);
-  end; }
-
   UpdateControls;
+
+  case fCurrentStepID of
+    mtProgress : MigrateCashbook.PostDataToCashBook();
+  end;
 end;
 
 //------------------------------------------------------------------------------
