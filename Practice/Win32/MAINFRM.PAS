@@ -3385,7 +3385,9 @@ end;
 function TfrmMain.GetMDIChildSortedList: TStringList;
 begin
   if not Assigned(fMDIChildSortedList) then
+  begin
     fMDIChildSortedList := TStringList.Create;
+  end;
 
   Result := fMDIChildSortedList;
 end;
@@ -4609,6 +4611,7 @@ var
   TabItem : TRzTabCollectionItem;
   CurMDIIndex : integer;
   ActiveCaption : string;
+  PreviousStr : string;
 begin
   fMDIChildSortedIndex := 0;
   MDIChildSortedList.Clear;
@@ -4648,23 +4651,36 @@ begin
       MDIChildSortedList.AddObject(TempStr, MDIChildren[MDIIndex]);
     end;
 
+    PreviousStr := '';
     TabList.Sort;
     for TabIndex := 0 to Pred(TabList.Count) do
     begin
+      if (PreviousStr = TabList.Strings[TabIndex]) and
+         (TabIndex > 0) then
+        continue;
+
       TabItem := aTabWindow.Tabs.Add;
       TabItem.Caption := TabList.Strings[TabIndex];
       TabItem.Tag := Integer(TabList.Objects[TabIndex]);
+      PreviousStr := TabItem.Caption;
     end;
     aTabWindow.TabIndex := -1;
 
     MDIChildSortedList.Sort;
+    PreviousStr := '';
+    for CurMDIIndex := MDIChildSortedList.Count-1 downto 0 do
+    begin
+      if (PreviousStr = MDIChildSortedList.Strings[CurMDIIndex]) and
+         (CurMDIIndex < (MDIChildSortedList.Count-1)) then
+        MDIChildSortedList.Delete(CurMDIIndex)
+      else
+        PreviousStr := MDIChildSortedList.Strings[CurMDIIndex];
+    end;
+
     for CurMDIIndex := 0 to MDIChildSortedList.Count-1 do
     begin
       if (TForm(MDIChildSortedList.Objects[CurMDIIndex]).Caption = ActiveCaption) then
-      begin
         fMDIChildSortedIndex := CurMDIIndex;
-
-      end;
     end;
   finally
     TabList.Free;
