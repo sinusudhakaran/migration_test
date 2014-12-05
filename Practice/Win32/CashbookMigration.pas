@@ -171,6 +171,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.ClearJson();
+begin
+
+end;
+
+//------------------------------------------------------------------------------
 function TCashbookMigration.Login(const aUserName: string;
   const aPassword: string; var aToken: string): boolean;
 var
@@ -266,6 +272,7 @@ var
   JsonString : TlkJSONstring;
   Max : integer;
 begin
+  Result := nil;
   DummyData := '[' +
                '{' +
                '''id'':''1-14TBO0P'',' +
