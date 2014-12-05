@@ -7,7 +7,8 @@ uses
   Windows,
   SysUtils,
   Classes,
-  uLkJSON;
+  uLkJSON,
+  HttpsProgressFrm;
 
 type
   { 
@@ -72,6 +73,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    function  Login(const aUserName: string; const aPassword: string;
+                var aToken: string): boolean;
 
     function PostDataToCashBook() : boolean;
 
@@ -157,6 +161,62 @@ begin
   FreeAndNil(fCashbookClientData);
   FreeAndNil(fJson);
   inherited;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.Login(const aUserName: string;
+  const aPassword: string; var aToken: string): boolean;
+var
+  PostData: TStringList;
+  js: TlkJSONobject;
+  sResponse: string;
+  sError: string;
+begin
+  result := false;
+
+  // Setup REST request
+  PostData := nil;
+  js := nil;
+  try
+    try
+      PostData := TStringList.Create;
+      PostData.Delimiter := '&';
+      PostData.StrictDelimiter := true;
+
+      PostData.Values['client_id'] := 'ge64vzfgx2c93msbhu84vb53';
+      PostData.Values['client_secret'] := '4wUpbF9m49wCMMepb5mZhMDG';
+      PostData.Values['username'] := aUserName;
+      PostData.Values['password'] := aPassword;
+      PostData.Values['grant_type'] := 'password';
+      PostData.Values['scope'] := 'CompanyFile AccountantsFramework';
+
+      // Cancelled?
+      if not DoHttpSecure(
+        'https://secure.myob.com/oauth2/v1/authorize',
+        PostData.DelimitedText,
+        sResponse,
+        sError) then
+      begin
+        exit;
+      end;
+
+      // Parse JSON result
+      js := TlkJSON.ParseText(sResponse) as TlkJSONobject;
+
+      // Get token
+      aToken := js.GetString('access_token');
+
+      result := true;
+
+    except
+      // Ignore specifics
+      exit;
+    end;
+
+  finally
+    FreeAndNil(PostData);
+    FreeAndNil(js);
+  end;
 end;
 
 //------------------------------------------------------------------------------
