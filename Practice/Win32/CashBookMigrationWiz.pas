@@ -263,6 +263,8 @@ begin
 
   fLoggedIn := true;
 
+  MigrateCashbook.GetCashbookFirmIDs();
+
   UpdateControls();
 end;
 
