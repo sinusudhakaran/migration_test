@@ -11,18 +11,6 @@ uses
   HttpsProgressFrm;
 
 type
-  { 
-  "business": {
-    "abn": "53004085616”, 
-    "name": “Business Name”, 
-    "business_type": "Products”,
-    "client_code": “BIZ1”, 
-    "firm_id": "1-14TBO0P”,
-    “financial_year_start_month”: 9 
-  }
-
-
-
   //----------------------------------------------------------------------------
   TBusinessData = class
   private
@@ -64,12 +52,27 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  TFirm = class(TCollectionItem)
+  private
+  protected
+  public
+  end;
+
+  //----------------------------------------------------------------------------
+  TFirms = class(TCollection)
+  private
+  protected
+  public
+  end;
+
+  //----------------------------------------------------------------------------
   TCashbookMigration = class
   private
     fCashbookClientData : TCashbookClientData;
     fJson : TlkJSONobject;
 
   protected
+    procedure ClearJson();
   public
     constructor Create;
     destructor Destroy; override;
@@ -78,6 +81,7 @@ type
                 var aToken: string): boolean;
 
     function PostDataToCashBook() : boolean;
+    function GetCashbookFirmIDs() : TFirms;
 
     property CashbookClientData : TCashbookClientData read fCashbookClientData write fCashbookClientData;
   end;
@@ -87,6 +91,9 @@ type
 
 //------------------------------------------------------------------------------
 implementation
+
+uses
+  Globals;
 
 var
   fCashbookMigration : TCashbookMigration;
@@ -228,6 +235,8 @@ var
 begin
   Result := false;
 
+  ClearJson();
+
   CashbookClientData.BusinessData.ABN := '53004085616';
   CashbookClientData.BusinessData.BusinessName := 'Business Name';
   CashbookClientData.BusinessData.BusinessType := 'Products';
@@ -236,10 +245,9 @@ begin
   CashbookClientData.BusinessData.FinancialYearStartMonth := 9;
   CashbookClientData.CreateData;
 
-  AssignFile(JsonFile, 'c:\testing\CashbookData.json');
+  AssignFile(JsonFile, DATADIR + 'CashbookData.json');
   try
     Rewrite(JsonFile);
-
 
     Level := 0;
     OutString := GenerateReadableText(fJson,Level);
@@ -249,6 +257,34 @@ begin
   end;
 
   Result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.GetCashbookFirmIDs: TFirms;
+var
+  DummyData : string;
+  JsonString : TlkJSONstring;
+  Max : integer;
+begin
+  DummyData := '[' +
+               '{' +
+               '''id'':''1-14TBO0P'',' +
+               '''name'':''CashBook Accountant Firm AU''' +
+               '},' +
+               '{' +
+               '''id'':''3-48272'',' +
+               '''name'':''CashBook Accountant Firm NZ''' +
+               '}'+
+               ']';
+
+  DummyData := '[{''id'': "1-14TBO0P'',''name'': ''CashBook Accountant Firm AU''},{''id'': ''3-48272'',''name'': ''CashBook Accountant Firm NZ''}]';
+
+  ClearJson();
+  FreeAndNil(fJson);
+  fJson := TlkJSON.ParseText(DummyData) as TlkJSONobject;
+
+  if Assigned(fJson) then
+    Max := fJson.Count;
 end;
 
 //------------------------------------------------------------------------------
