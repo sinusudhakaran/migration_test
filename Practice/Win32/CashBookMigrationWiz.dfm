@@ -25,7 +25,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 451
     DesignSize = (
       744
       42)
@@ -81,7 +80,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
     BevelOuter = bvNone
     Caption = 'pnlWizard'
     TabOrder = 0
-    ExplicitHeight = 446
     object Bevel2: TBevel
       Left = 0
       Top = 69
@@ -340,21 +338,15 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabComplete
+      ActivePage = tabMYOBCredentials
       Align = alClient
       Style = tsButtons
       TabHeight = 5
       TabOrder = 1
       TabStop = False
       TabWidth = 5
-      ExplicitTop = 75
-      ExplicitHeight = 374
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
-        ExplicitLeft = 0
-        ExplicitTop = 10
-        ExplicitWidth = 0
-        ExplicitHeight = 359
         DesignSize = (
           736
           362)
@@ -378,10 +370,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
-        ExplicitLeft = 8
-        ExplicitTop = 10
-        ExplicitWidth = 0
-        ExplicitHeight = 359
         DesignSize = (
           736
           362)
@@ -496,7 +484,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 164
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 1
-          ExplicitHeight = 161
           object Label6: TLabel
             Left = 30
             Top = 27
@@ -542,10 +529,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Font.Style = []
         ImageIndex = 2
         ParentFont = False
-        ExplicitLeft = 8
-        ExplicitTop = 10
-        ExplicitWidth = 0
-        ExplicitHeight = 359
         DesignSize = (
           736
           362)
@@ -556,7 +539,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 351
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitHeight = 348
           object chkCreateCashBook: TCheckBox
             Left = 37
             Top = 32
@@ -645,10 +627,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 3
         Caption = 'tabTermsAndConditions'
         ImageIndex = 3
-        ExplicitLeft = 8
-        ExplicitTop = 9
-        ExplicitWidth = 0
-        ExplicitHeight = 359
         DesignSize = (
           736
           362)
@@ -707,12 +685,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Height = 251
             Align = alClient
             TabOrder = 0
-            ExplicitLeft = 217
-            ExplicitTop = 48
-            ExplicitWidth = 144
-            ExplicitHeight = 155
+            ExplicitWidth = 716
+            ExplicitHeight = 297
             ControlData = {
-              4C000000004A0000B21E00000000000000000000000000000000000000000000
+              4C000000A8480000F11900000000000000000000000000000000000000000000
               000000004C000000000000000000000001000000E0D057007335CF11AE690800
               2B2E126208000000000000004C0000000114020000000000C000000000000046
               8000000000000000000000000000000000000000000000000000000000000000
@@ -724,10 +700,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 359
         DesignSize = (
           736
           362)
@@ -738,7 +710,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 351
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitHeight = 348
           object lblProgressTitle: TLabel
             Left = 150
             Top = 128
@@ -792,10 +763,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 5
         Caption = 'tabComplete'
         ImageIndex = 5
-        ExplicitLeft = 8
-        ExplicitTop = 9
-        ExplicitWidth = 0
-        ExplicitHeight = 359
         object Label1: TLabel
           Left = 288
           Top = 130

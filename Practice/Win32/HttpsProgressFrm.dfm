@@ -1,9 +1,10 @@
 object frmHttpsProgress: TfrmHttpsProgress
   Left = 0
   Top = 0
+  BorderStyle = bsDialog
   Caption = 'Secure Http'
-  ClientHeight = 81
-  ClientWidth = 235
+  ClientHeight = 91
+  ClientWidth = 245
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,6 +13,7 @@ object frmHttpsProgress: TfrmHttpsProgress
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object lblStatus: TLabel
@@ -34,6 +36,7 @@ object frmHttpsProgress: TfrmHttpsProgress
     Width = 75
     Height = 25
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 1
     OnClick = btnCancelClick
   end

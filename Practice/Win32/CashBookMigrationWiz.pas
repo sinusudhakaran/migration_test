@@ -253,13 +253,33 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.btnLoginClick(Sender: TObject);
+var
+  sToken: string;
 begin
+{$IFDEF DEBUG}
+  edtUser.Text := 'cloudbursttestone@gmail.com';
+  edtPassword.Text := 'Cloudburst1';
+{$ENDIF}
+
+  // Basic check
   if (edtUser.text = '') or (edtPassword.text = '')  then
   begin
     HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
     edtUser.SetFocus;
     Exit;
   end;
+
+  // Actual login
+  if not MigrateCashbook.Login(edtUser.Text, edtPassword.Text, sToken) then
+  begin
+    HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
+    edtUser.SetFocus;
+    exit;
+  end;
+
+{$IFDEF DEBUG}
+  ShowMessage('Token='+sToken);
+{$ENDIF}
 
   fLoggedIn := true;
 

@@ -6,6 +6,9 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ipscore, ipshttps, ulkJSON;
 
+const
+  UM_START = WM_USER;
+
 type
   TfrmHttpsProgress = class(TForm)
     lblStatus: TLabel;
@@ -37,14 +40,17 @@ type
     procedure ipsHTTPSTransfer(Sender: TObject; Direction,
       BytesTransferred: Integer; Text: string);
     procedure btnCancelClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    fURL: string;
+    fRequest: string;
     fResponse: string;
     fError: string;
 
     procedure HeartBeat;
 
-    procedure Start(const aURL: string; const aRequest: string);
+    procedure UMStart(var aMsg: TMessage); message UM_START;
 
   public
     { Public declarations }
@@ -68,7 +74,8 @@ begin
   try
     Progress := TfrmHttpsProgress.Create(Application.MainForm);
 
-    Progress.Start(aURL, aRequest);
+    Progress.fURL := aURL;
+    Progress.fRequest := aRequest;
 
     mrResult := Progress.ShowModal;
     result := (mrResult = mrOk);
@@ -80,10 +87,21 @@ begin
   end;
 end;
 
-procedure TfrmHttpsProgress.Start(const aURL: string; const aRequest: string);
+procedure TfrmHttpsProgress.FormCreate(Sender: TObject);
 begin
-  ipsHTTPS.PostData := aRequest;
-  ipsHTTPS.Post(aURL);
+  PostMessage(Handle, UM_START, 0, 0);
+end;
+
+procedure TfrmHttpsProgress.UMStart(var aMsg: TMessage);
+begin
+  ipsHTTPS.ContentType := 'application/x-www-form-urlencoded';
+  ipsHTTPS.PostData := fRequest;
+  ipsHTTPS.Post(fURL);
+
+  fResponse := ipsHTTPS.TransferredData;
+
+  if (ModalResult = mrNone) then
+    ModalResult := mrOk;
 end;
 
 procedure TfrmHttpsProgress.HeartBeat;
@@ -125,6 +143,8 @@ procedure TfrmHttpsProgress.ipsHTTPSError(Sender: TObject; ErrorCode: Integer;
   const Description: string);
 begin
   HeartBeat;
+  fError := Description;
+  ModalResult := mrAbort;
 end;
 
 procedure TfrmHttpsProgress.ipsHTTPSHeader(Sender: TObject; const Field,
