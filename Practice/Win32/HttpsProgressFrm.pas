@@ -10,6 +10,12 @@ const
   UM_START = WM_USER;
 
 type
+  THttpHeaders = record
+    ContentType: string;
+    Accept: string;
+    Authorization: string;
+  end;
+
   TfrmHttpsProgress = class(TForm)
     lblStatus: TLabel;
     prgProgress: TProgressBar;
@@ -44,6 +50,7 @@ type
   private
     { Private declarations }
     fURL: string;
+    fHeaders: THttpHeaders;
     fRequest: string;
     fResponse: string;
     fError: string;
@@ -57,15 +64,16 @@ type
 
   end;
 
-  function  DoHttpSecure(const aURL: string; const aRequest: string;
-              var aResponse: string; var aError: string): boolean;
+  function  DoHttpSecure(const aURL: string; const aHeaders: THttpHeaders;
+              const aRequest: string; var aResponse: string; var aError: string
+              ): boolean;
 
 implementation
 
 {$R *.dfm}
 
-function DoHttpSecure(const aURL: string; const aRequest: string;
-  var aResponse: string; var aError: string): boolean;
+function DoHttpSecure(const aURL: string; const aHeaders: THttpHeaders;
+  const aRequest: string; var aResponse: string; var aError: string): boolean;
 var
   Progress: TfrmHttpsProgress;
   mrResult: TModalResult;
@@ -75,6 +83,7 @@ begin
     Progress := TfrmHttpsProgress.Create(Application.MainForm);
 
     Progress.fURL := aURL;
+    Progress.fHeaders := aHeaders;
     Progress.fRequest := aRequest;
 
     mrResult := Progress.ShowModal;
@@ -94,8 +103,12 @@ end;
 
 procedure TfrmHttpsProgress.UMStart(var aMsg: TMessage);
 begin
-  ipsHTTPS.ContentType := 'application/x-www-form-urlencoded';
+  ipsHTTPS.ContentType := fHeaders.ContentType;
+  ipsHTTPS.Accept := fHeaders.Accept;
+  ipsHTTPS.Authorization := fHeaders.Authorization;
+
   ipsHTTPS.PostData := fRequest;
+
   ipsHTTPS.Post(fURL);
 
   fResponse := ipsHTTPS.TransferredData;

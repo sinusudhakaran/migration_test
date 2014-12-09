@@ -253,8 +253,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.btnLoginClick(Sender: TObject);
-var
-  sToken: string;
 begin
 {$IFDEF DEBUG}
   edtUser.Text := 'cloudbursttestone@gmail.com';
@@ -270,20 +268,16 @@ begin
   end;
 
   // Actual login
-  if not MigrateCashbook.Login(edtUser.Text, edtPassword.Text, sToken) then
+  if not MigrateCashbook.Login(edtUser.Text, edtPassword.Text) then
   begin
     HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
     edtUser.SetFocus;
     exit;
   end;
 
-{$IFDEF DEBUG}
-  ShowMessage('Token='+sToken);
-{$ENDIF}
-
   fLoggedIn := true;
 
-  MigrateCashbook.GetCashbookFirmIDs();
+  // TODO: MigrateCashbook.GetCashbookFirmIDs();
 
   UpdateControls();
 end;
@@ -476,9 +470,11 @@ begin
 
   UpdateControls;
 
+  { TODO
   case fCurrentStepID of
     mtProgress : MigrateCashbook.PostDataToCashBook();
   end;
+  }
 end;
 
 //------------------------------------------------------------------------------

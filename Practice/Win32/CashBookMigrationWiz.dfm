@@ -347,6 +347,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       TabWidth = 5
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -370,6 +374,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -529,6 +537,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Font.Style = []
         ImageIndex = 2
         ParentFont = False
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -627,6 +639,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 3
         Caption = 'tabTermsAndConditions'
         ImageIndex = 3
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -700,6 +716,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -763,6 +783,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 5
         Caption = 'tabComplete'
         ImageIndex = 5
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object Label1: TLabel
           Left = 288
           Top = 130
