@@ -49,6 +49,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    fVerb: string;
     fURL: string;
     fHeaders: THttpHeaders;
     fRequest: string;
@@ -64,16 +65,17 @@ type
 
   end;
 
-  function  DoHttpSecure(const aURL: string; const aHeaders: THttpHeaders;
-              const aRequest: string; var aResponse: string; var aError: string
-              ): boolean;
+  function  DoHttpSecure(const aVerb: string; const aURL: string;
+              const aHeaders: THttpHeaders; const aRequest: string;
+              var aResponse: string; var aError: string): boolean;
 
 implementation
 
 {$R *.dfm}
 
-function DoHttpSecure(const aURL: string; const aHeaders: THttpHeaders;
-  const aRequest: string; var aResponse: string; var aError: string): boolean;
+function DoHttpSecure(const aVerb: string; const aURL: string;
+  const aHeaders: THttpHeaders; const aRequest: string; var aResponse: string;
+  var aError: string): boolean;
 var
   Progress: TfrmHttpsProgress;
   mrResult: TModalResult;
@@ -82,6 +84,7 @@ begin
   try
     Progress := TfrmHttpsProgress.Create(Application.MainForm);
 
+    Progress.fVerb := aVerb;
     Progress.fURL := aURL;
     Progress.fHeaders := aHeaders;
     Progress.fRequest := aRequest;
@@ -107,9 +110,15 @@ begin
   ipsHTTPS.Accept := fHeaders.Accept;
   ipsHTTPS.Authorization := fHeaders.Authorization;
 
-  ipsHTTPS.PostData := fRequest;
-
-  ipsHTTPS.Post(fURL);
+  if (fVerb = 'GET') then
+  begin
+    ipsHTTPs.Get(fURL);
+  end
+  else
+  begin
+    ipsHTTPS.PostData := fRequest;
+    ipsHTTPS.Post(fURL);
+  end;
 
   fResponse := ipsHTTPS.TransferredData;
 

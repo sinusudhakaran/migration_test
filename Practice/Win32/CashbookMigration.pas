@@ -70,8 +70,9 @@ type
     fCashbookClientData: TCashbookClientData;
     fToken: string;
 
-    function  DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONobject;
-                var aResponse: TlkJSONobject; var aError: string): boolean;
+    function  DoHttpSecureJson(const aVerb: string; const aURL: string;
+                const aRequest: TlkJSONobject; var aResponse: TlkJSONobject;
+                var aError: string): boolean;
 
   public
     constructor Create;
@@ -187,9 +188,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.DoHttpSecureJson(const aURL: string;
-  const aRequest: TlkJSONobject; var aResponse: TlkJSONobject;
-  var aError: string): boolean;
+function TCashbookMigration.DoHttpSecureJson(const aVerb: string;
+  const aURL: string; const aRequest: TlkJSONobject;
+  var aResponse: TlkJSONobject; var aError: string): boolean;
 var
   Headers: THttpHeaders;
   sRequest: string;
@@ -206,7 +207,7 @@ begin
 
     sRequest := TlkJSON.GenerateText(aRequest);
 
-    if not DoHttpSecure(aURL, Headers, sRequest, sResponse, aError) then
+    if not DoHttpSecure(aVerb, aURL, Headers, sRequest, sResponse, aError) then
       exit;
 
     aResponse := TlkJSON.ParseText(sResponse) as TlkJSONobject;
@@ -254,6 +255,7 @@ begin
 
       // Cancelled?
       if not DoHttpSecure(
+        'POST',
         'https://secure.myob.com/oauth2/v1/authorize',
         Headers,
         PostData.DelimitedText,
