@@ -71,7 +71,7 @@ type
     fToken: string;
 
     function  DoHttpSecureJson(const aVerb: string; const aURL: string;
-                const aRequest: TlkJSONobject; var aResponse: TlkJSONobject;
+                const aRequest: TlkJSONbase; var aResponse: TlkJSONbase;
                 var aError: string): boolean;
 
   public
@@ -189,8 +189,8 @@ end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.DoHttpSecureJson(const aVerb: string;
-  const aURL: string; const aRequest: TlkJSONobject;
-  var aResponse: TlkJSONobject; var aError: string): boolean;
+  const aURL: string; const aRequest: TlkJSONbase;
+  var aResponse: TlkJSONbase; var aError: string): boolean;
 var
   Headers: THttpHeaders;
   sRequest: string;
@@ -210,12 +210,13 @@ begin
     if not DoHttpSecure(aVerb, aURL, Headers, sRequest, sResponse, aError) then
       exit;
 
-    aResponse := TlkJSON.ParseText(sResponse) as TlkJSONobject;
+    aResponse := TlkJSON.ParseText(sResponse);
     if not assigned(aResponse) then
       exit;
   except
     on E: Exception do
     begin
+      aError := E.Message;
       exit;
     end;
   end;
@@ -246,12 +247,12 @@ begin
       PostData.Delimiter := '&';
       PostData.StrictDelimiter := true;
 
-      PostData.Values['client_id'] := 'ge64vzfgx2c93msbhu84vb53';
-      PostData.Values['client_secret'] := '4wUpbF9m49wCMMepb5mZhMDG';
+      PostData.Values['client_id'] := 'bankLink-practice5';
+      PostData.Values['client_secret'] := 'z1sb6ggkfhlOXip';
       PostData.Values['username'] := aUserName;
       PostData.Values['password'] := aPassword;
       PostData.Values['grant_type'] := 'password';
-      PostData.Values['scope'] := 'CompanyFile AccountantsFramework';
+      PostData.Values['scope'] := 'AccountantsFramework mydot.contacts.read mydot.assets.read Assets la.global';
 
       // Cancelled?
       if not DoHttpSecure(
@@ -272,6 +273,8 @@ begin
 
       // Get token
       fToken := js.GetString('access_token');
+      if (fToken = '') then
+        exit;
 
       result := true;
 

@@ -255,8 +255,8 @@ end;
 procedure TFrmCashBookMigrationWiz.btnLoginClick(Sender: TObject);
 begin
 {$IFDEF DEBUG}
-  edtUser.Text := 'cloudbursttestone@gmail.com';
-  edtPassword.Text := 'Cloudburst1';
+  edtUser.Text := 'cashbook@gmail.com';
+  edtPassword.Text := 'password1';
 {$ENDIF}
 
   // Basic check
