@@ -52,7 +52,7 @@ begin
     Memorisation := aList.Memorisation_At(iMem);
 
     // If "Applies To" is set then ignore
-    if (Memorisation.mdFields.mdDate_Last_Applied > 0) then
+    if (Memorisation.mdFields.mdUntil_Date > 0) then
       continue;
 
     for iLine := 0 to Memorisation.mdLines.Last do
