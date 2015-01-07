@@ -2453,33 +2453,38 @@ begin
 end;
 
 procedure TCHPBaseList.OnKeyDown(var Key: Word; Shift: TShiftState);
-var lNode: PVirtualNode;
-    CheckAction: Boolean;
-    I: Integer;
+var
+  lNode: PVirtualNode;
+  CheckAction: Boolean;
+  I: Integer;
 begin
 
   CheckAction := False;
-  if (Key = VK_Return) then begin
-      lNode := Tree.GetFirstSelected;
-      while assigned(lNode) do begin
-         if CheckCodingItem (GetNodeItem(lNode)) then
-             // make sure all coding screens are closed...
-             CheckAction := true;
-             Break;
-         lNode := Tree.GetNextSelected(LNode);
+  if (Key = VK_Return) then
+  begin
+    lNode := Tree.GetFirstSelected;
+    while assigned(lNode) do
+    begin
+      if CheckCodingItem (GetNodeItem(lNode)) then
+      begin
+        // make sure all coding screens are closed...
+        CheckAction := true;
+        Break;
       end;
-   end;
+      lNode := Tree.GetNextSelected(LNode);
+    end;
+  end;
 
-   inherited;
+  inherited;
 
-   if CheckAction then begin
-       for I := 0 to Pred(frmMain.MDIChildCount) do
-        if (frmMain.MDIChildren[i] is TfrmCoding) then
-         Exit;
+  if CheckAction then
+  begin
+    for I := 0 to Pred(frmMain.MDIChildCount) do
+      if (frmMain.MDIChildren[i] is TfrmCoding) then
+        Exit;
 
-       HelpfulInfoMsg('There are no Entries in the selected range.',0);
-   end;
-
+    HelpfulInfoMsg('There are no Entries in the selected range.',0);
+  end;
 end;
 
 procedure TCHPBaseList.SetClient(const Value: TClientObj);

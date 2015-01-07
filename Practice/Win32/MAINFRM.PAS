@@ -4621,6 +4621,8 @@ begin
     for TabIndex := Pred(aTabWindow.Tabs.Count) downto 0 do
       aTabWindow.Tabs.Delete(TabIndex);
 
+    // Build Internal Tab List from Valid MDIChildren windows and save active window
+    // Re Build Global MDI List from current MDIChildren
     for MDIIndex := 0 to Pred(MDIChildCount) do
     begin
       if (MDIChildren[MDIIndex].Caption = aActionedPage) then
@@ -4651,6 +4653,7 @@ begin
       MDIChildSortedList.AddObject(TempStr, MDIChildren[MDIIndex]);
     end;
 
+    // Sort Internal Tab List and then remove duplicates using Caption Names
     PreviousStr := '';
     TabList.Sort;
     for TabIndex := 0 to Pred(TabList.Count) do
@@ -4666,6 +4669,7 @@ begin
     end;
     aTabWindow.TabIndex := -1;
 
+    // Sort Global Internal MDI List and then remove duplicates using Caption Names
     MDIChildSortedList.Sort;
     PreviousStr := '';
     for CurMDIIndex := MDIChildSortedList.Count-1 downto 0 do
@@ -4677,6 +4681,7 @@ begin
         PreviousStr := MDIChildSortedList.Strings[CurMDIIndex];
     end;
 
+    // Set Active Page
     for CurMDIIndex := 0 to MDIChildSortedList.Count-1 do
     begin
       if (TForm(MDIChildSortedList.Objects[CurMDIIndex]).Caption = ActiveCaption) then

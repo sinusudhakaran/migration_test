@@ -624,6 +624,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblCoding
@@ -643,6 +644,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblCoding
@@ -663,6 +665,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblCoding
@@ -1038,7 +1041,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblCoding
     Left = 624
@@ -1054,7 +1056,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     Table = tblCoding
     OnChange = celLocalCurrencyAmountChange
