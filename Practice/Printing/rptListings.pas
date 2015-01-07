@@ -1797,176 +1797,194 @@ function DoChartListReport(Dest : TReportDest;
                            Scheduled : boolean;
                            FaxParams : TFaxParameters = nil;
                            RptBatch : TReportBase = nil) : boolean; overload;
+const
+  COL_CODE_WIDTH : extended = 10.0;
+  COL_DESCRIPTION_WIDTH : extended = 19.0;
+  COL_ALT_CHART_CODE_WIDTH : extended = 10.0;
+  COL_ACC_GROUP_WIDTH : extended = 11.0;
+  COL_SUB_GROUP_WIDTH : extended = 11.0;
+  COL_DIVISION_WIDTH : extended = 8.0;
+  COL_CLASS_WIDTH : extended = 12.0;
+  COL_BASIC_WIDTH : extended = 6.0;
+  COL_POSTING_WIDTH : extended = 6.0;
+  COL_INACTIVE_WIDTH : extended = 6.0;
 var
-   Job : TChartListReport;
-   DescSpace: double;
-   AccountGroupSpace: double;
-   AdditionalSpace : integer;
-   MissingColumns  : integer;
-   i,j : integer;
-   SubTypesFound : boolean;
-   DivisionFound : boolean;
-   cLeft         : double;
-   ShowBasic     : Boolean;
-   JobParam : TRPTParameters;
+  Job : TChartListReport;
+  AdditionalSpace : extended;
+  MissingColumns  : integer;
+  i,j : integer;
+  SubTypesFound : boolean;
+  DivisionFound : boolean;
+  cLeft         : double;
+  ShowBasic     : Boolean;
+  ShowAltChartCode : boolean;
+  AltChartCodeName : string;
+  JobParam : TRPTParameters;
 begin
-   result := false;  //result only used by faxing
+  result := false;  //result only used by faxing
 
+  JobParam := TRPTParameters.Create(ord(Report_List_Chart),MyClient,Rptbatch);
+  JobParam.Scheduled := Scheduled;
+  try
 
-   JobParam := TRPTParameters.Create(ord(Report_List_Chart),MyClient,Rptbatch);
-   JobParam.Scheduled := Scheduled;
-   try
-
-   ShowBasic := JobParam.GetBatchBool('Show_Basic', True);
-   repeat
-   //if (Dest = rdNone) then
-   //or JobParam.BatchSetup then
-   if not Scheduled then
-   begin
-     if GetChartReportOptions(ShowBasic, JobParam) then
-     case JobParam.RunBtn of
-         BTN_PRINT   : Dest := rdPrinter;
-         BTN_PREVIEW : Dest := rdScreen;
-         BTN_FILE    : Dest := rdFile;
-         BTN_EMAIL   : Dest := rdEmail;
-         BTN_SAVE  : begin
-             JobParam.SaveNodeSettings;
-             JobParam.SetBatchBool('Show_Basic', ShowBasic);
-             Exit;
-         end;
-     end
-     else
-         exit;
-   end;
-
-
-   //see if client has divisions or sub types setup, if none found then
-   //dont show on report, if this is the case then we can expand the other columns
-   SubTypesFound := false;
-   DivisionFound := false;
-
-   with JobParam.Chart do
-   begin
-      for i := 0 to Pred( ItemCount) do
+    ShowBasic := JobParam.GetBatchBool('Show_Basic', True);
+    repeat
+      //if (Dest = rdNone) then
+      //or JobParam.BatchSetup then
+      if not Scheduled then
       begin
-         if Account_At( i)^.chSubtype <> 0 then
+        if GetChartReportOptions(ShowBasic, JobParam) then
+        case JobParam.RunBtn of
+          BTN_PRINT   : Dest := rdPrinter;
+          BTN_PREVIEW : Dest := rdScreen;
+          BTN_FILE    : Dest := rdFile;
+          BTN_EMAIL   : Dest := rdEmail;
+          BTN_SAVE  : begin
+               JobParam.SaveNodeSettings;
+               JobParam.SetBatchBool('Show_Basic', ShowBasic);
+               Exit;
+          end;
+        end
+        else
+          exit;
+      end;
+
+
+      //see if client has divisions or sub types setup, if none found then
+      //dont show on report, if this is the case then we can expand the other columns
+      SubTypesFound := false;
+      DivisionFound := false;
+
+      with JobParam.Chart do
+      begin
+        for i := 0 to Pred( ItemCount) do
+        begin
+          if Account_At( i)^.chSubtype <> 0 then
             SubTypesFound := true;
 
-         for j := 1 to Max_Divisions do
-            if Account_At( i)^.chPrint_in_Division[ j] then begin
-               DivisionFound := true;
-            end;
-      end;
-   end;
-
-
-   Job := TChartListReport.Create(ReportTypes.rptListings);
-   try
-     Job.Chart := JobParam.Chart;
-     Job.LoadReportSettings(Settings,
-         JobParam.MakeRptName( Report_List_Names[REPORT_LIST_CHART]));
-     Job.ShowSubTypes  := SubTypesFound;
-     Job.ShowDivisions := DivisionFound;
-     Job.ShowBasicChart:= ShowBasic;
-     Job.ShowInactive := not Scheduled;
-     AdditionalSpace := 0;
-     MissingColumns  := 0;
-
-     if not SubTypesFound then begin
-        AdditionalSpace := AdditionalSpace + 12;
-        Inc( MissingColumns);
-     end;
-
-     if not DivisionFound then begin
-        AdditionalSpace := AdditionalSpace + 10;
-        Inc( MissingColumns);
-     end;
-
-     if not HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then begin
-        AdditionalSpace := AdditionalSpace + 10;
-     end;
-
-
-     //additional space is spread across account group, sub group, division and gst cols
-     if AdditionalSpace <> 0 then
-        AdditionalSpace := AdditionalSpace div ( 5 - MissingColumns);
-
-     //Add Headers
-     AddCommonHeader(Job);
-     AddJobHeader(Job,siTitle,'CHART OF ACCOUNTS',true);
-     AddJobHeader(Job,siSubTitle,'',true);
-
-     //Build the columns
-     cLeft := GcLeft;
-     AddColAuto(Job, cLeft,10.0 , Gcgap,'Code',jtLeft);
-
-     // Description
-     DescSpace := 25.0;
-     if not ShowBasic then
-       DescSpace := DescSpace - 6.0;
-     AddColAuto(Job, cLeft, DescSpace + AdditionalSpace, Gcgap,'Description',jtLeft);
-
-     if HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
-        AddColAuto(Job, cLeft,10.0 , Gcgap,
-        AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used),jtLeft);
-
-     AccountGroupSpace := 12.0 + AdditionalSpace;
-     if Job.ShowInactive then
-       AccountGroupSpace := AccountGroupSpace - 6.0;
-
-     AddColAuto(Job, cLeft, AccountGroupSpace, Gcgap,'Account Group',jtLeft);
-
-     if SubTypesFound then
-        AddColAuto(Job,cLeft,12.0 + AdditionalSpace, Gcgap,'Sub-group',jtLeft);
-
-     if DivisionFound then
-        AddColAuto(Job,cLeft,10.0 + AdditionalSpace, Gcgap,'Divisions',jtLeft);
-
-     AddColAuto(Job,cLeft,14.0 + AdditionalSpace,Gcgap, MyClient.TaxSystemNameUC + ' Class', jtLeft );
-
-     if not ShowBasic then
-        AddColAuto(Job,cLeft,6.0,Gcgap,'Basic',jtLeft);
-
-     AddColAuto(Job,cLeft,6.0,Gcgap,'Posting',jtLeft);
-
-     if Job.ShowInactive then
-       AddColAuto(Job,cLeft,6.0,Gcgap,'Inactive',jtLeft);
-
-     //Add Footers
-     AddCommonFooter(Job);
-
-     Job.OnBKPrint := ListChartDetail;
-     if Scheduled and ( Dest = rdEmail ) then
-     begin
-        //special case for scheduled reports.  Don't want the user to be asked
-        //what file name to use
-        case MyClient.clFields.clEmail_Report_Format of
-          rfCSV :
-            Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHC', rfCSV, JobParam);
-          rfFixedWidth :
-            Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHT', rfFixedWidth, JobParam);
-          rfPDF :
-            Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHP', rfPDF, JobParam);
-          rfExcel :
-            Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHX', rfExcel, JobParam);
+          for j := 1 to Max_Divisions do
+          begin
+            if Account_At( i)^.chPrint_in_Division[ j] then
+              DivisionFound := true;
+          end;
         end;
-     end
-     else
-     if ( Dest = rdFax) then
-     begin
-       result := Job.GenerateToFax(FaxParams, AdminSystem.fdFields.fdSched_Rep_Fax_Transport, JobParam)
-     end
-     else
-       Job.Generate(Dest, Jobparam);
+      end;
 
-   finally
-    Job.Free;
-   end;
 
-   until Jobparam.RunExit(Dest);
-   finally
-      JobParam.Free;
-   end;
+      Job := TChartListReport.Create(ReportTypes.rptListings);
+      try
+        Job.Chart := JobParam.Chart;
+        Job.LoadReportSettings(Settings,
+           JobParam.MakeRptName( Report_List_Names[REPORT_LIST_CHART]));
+        Job.ShowSubTypes   := SubTypesFound;
+        Job.ShowDivisions  := DivisionFound;
+        Job.ShowBasicChart := ShowBasic;
+        Job.ShowInactive   := not Scheduled;
+        ShowAltChartCode := HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
+        AltChartCodeName := '';
+        AdditionalSpace := 0;
+        MissingColumns  := 0;
+
+        // Calculate Additional Space and how many columns are affected
+        if not ShowAltChartCode then
+          AdditionalSpace := AdditionalSpace + COL_ALT_CHART_CODE_WIDTH
+        else
+          AltChartCodeName := AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
+
+        if not SubTypesFound then
+        begin
+          AdditionalSpace := AdditionalSpace + COL_SUB_GROUP_WIDTH;
+          Inc( MissingColumns);
+        end;
+
+        if not DivisionFound then
+        begin
+          AdditionalSpace := AdditionalSpace + COL_DIVISION_WIDTH;
+          Inc( MissingColumns);
+        end;
+
+        if ShowBasic then
+        begin
+          AdditionalSpace := AdditionalSpace + COL_BASIC_WIDTH;
+        end;
+
+        if not Job.ShowInactive then
+        begin
+          AdditionalSpace := AdditionalSpace + COL_INACTIVE_WIDTH;
+        end;
+
+        //additional space is spread across account group, sub group, division and gst cols
+        if AdditionalSpace <> 0 then
+          AdditionalSpace := AdditionalSpace / ( 5 - MissingColumns);
+
+        //Add Headers
+        AddCommonHeader(Job);
+        AddJobHeader(Job,siTitle,'CHART OF ACCOUNTS',true);
+        AddJobHeader(Job,siSubTitle,'',true);
+
+        //Build the columns
+        cLeft := GcLeft;
+
+        // Setup Columns
+        AddColAuto(Job, cLeft, COL_CODE_WIDTH, Gcgap, 'Code', jtLeft);
+
+        AddColAuto(Job, cLeft, COL_DESCRIPTION_WIDTH + AdditionalSpace, Gcgap, 'Description', jtLeft);
+
+        if ShowAltChartCode then
+          AddColAuto(Job, cLeft, COL_ALT_CHART_CODE_WIDTH, Gcgap, AltChartCodeName, jtLeft);
+
+        AddColAuto(Job, cLeft, COL_ACC_GROUP_WIDTH + AdditionalSpace, Gcgap, 'Account Group', jtLeft);
+
+        if SubTypesFound then
+          AddColAuto(Job, cLeft, COL_SUB_GROUP_WIDTH + AdditionalSpace, Gcgap, 'Sub-group', jtLeft);
+
+        if DivisionFound then
+          AddColAuto(Job, cLeft, COL_DIVISION_WIDTH + AdditionalSpace, Gcgap, 'Divisions', jtLeft);
+
+        AddColAuto(Job, cLeft, COL_CLASS_WIDTH + AdditionalSpace, Gcgap, MyClient.TaxSystemNameUC + ' Class', jtLeft);
+
+        if not ShowBasic then
+          AddColAuto(Job, cLeft, COL_BASIC_WIDTH, Gcgap, 'Basic', jtLeft);
+
+        AddColAuto(Job, cLeft, COL_POSTING_WIDTH, Gcgap, 'Posting', jtLeft);
+
+        if Job.ShowInactive then
+          AddColAuto(Job,cLeft, COL_INACTIVE_WIDTH, Gcgap, 'Inactive', jtLeft);
+
+        //Add Footers
+        AddCommonFooter(Job);
+
+        Job.OnBKPrint := ListChartDetail;
+        if Scheduled and ( Dest = rdEmail ) then
+        begin
+          //special case for scheduled reports.  Don't want the user to be asked
+          //what file name to use
+          case MyClient.clFields.clEmail_Report_Format of
+            rfCSV :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHC', rfCSV, JobParam);
+            rfFixedWidth :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHT', rfFixedWidth, JobParam);
+            rfPDF :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHP', rfPDF, JobParam);
+            rfExcel :
+              Job.GenerateToFile( EmailOutboxDir + MyClient.clFields.clCode + '.CHX', rfExcel, JobParam);
+          end;
+        end
+        else if ( Dest = rdFax) then
+        begin
+          result := Job.GenerateToFax(FaxParams, AdminSystem.fdFields.fdSched_Rep_Fax_Transport, JobParam)
+        end
+        else
+          Job.Generate(Dest, Jobparam);
+
+      finally
+        Job.Free;
+      end;
+
+    until Jobparam.RunExit(Dest);
+  finally
+    JobParam.Free;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure DoChartListReport(Dest : TReportDest;
