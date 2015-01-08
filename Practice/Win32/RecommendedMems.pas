@@ -52,8 +52,8 @@ type
     procedure LoadFromFile(var S: TIOStream);
 
     function MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
-    procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
-    procedure RescanCandidates;
+    procedure UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean; IsBulk : boolean = false);
+    procedure RescanCandidates(IsBulk : boolean = false);
     procedure SetLastCodingFrmKeyPress;
     procedure RemoveAccountFromMems(AccountNo: string); Overload;
     procedure RemoveAccountFromMems(BankAccount: TBank_Account); Overload;
@@ -886,7 +886,7 @@ end;
 //
 // You can put the contents of the entire method (the method you call this from) in the try/finally if
 // you like, this is probably the easiest and safest way, I have done this most of the time.
-procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
+procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean; IsBulk : boolean);
 const
   ThisMethodName = 'UpdateCandidateMems';
 var
@@ -904,7 +904,7 @@ begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
 
-  if DebugMe then
+  if (DebugMe and (not IsBulk)) then
   begin
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
     StartTickCount := GetTickCount;
@@ -970,9 +970,9 @@ begin
       Unscanned.Insert(NewUnscannedTran);
   end;
 
-  RescanCandidates;
+  RescanCandidates(IsBulk);
 
-  if DebugMe then
+  if (DebugMe and (not IsBulk)) then
   begin
     TimeTaken := (GetTickCount - StartTickCount)/1000;
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
@@ -980,11 +980,11 @@ begin
 end;
 
 // Scan the candidate list again and rebuild the suggested mems list
-procedure TRecommended_Mems.RescanCandidates;
+procedure TRecommended_Mems.RescanCandidates(IsBulk : boolean);
 const
   ThisMethodName = 'RescanCandidates';
 begin
-  if DebugMe then
+  if (DebugMe and (not IsBulk)) then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
 
   // Rescan candidates later (for both MemsV2 as well as MemsV1)
@@ -1019,13 +1019,14 @@ begin
     for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
       PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount], RunningUnitTest);
 
+  finally
+    fPopulateUnscannedLists := false;
+
     if DebugMe then
     begin
       TimeTaken := (GetTickCount - StartTickCount)/1000;
       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
     end;
-  finally
-    fPopulateUnscannedLists := false;
   end;
 end;
 
@@ -1046,14 +1047,14 @@ begin
   Exit; // bkmap shouldn't build suggested mems
   {$IFEND}
 
+  if BankAccount.IsAJournalAccount then
+    Exit; // don't scan journals
+
   if (DebugMe and (not fPopulateUnscannedLists)) then
   begin
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
     StartTickCount := GetTickCount();
   end;
-
-  if BankAccount.IsAJournalAccount then
-    Exit; // don't scan journals
 
   MaintainMemScanStatus := False;
   try

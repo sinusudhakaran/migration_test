@@ -56,10 +56,12 @@ uses
   Admin32,
   SystemMemorisationList,
   SYDEFS,
-  MainFrm;
+  MainFrm,
+  windows;
 
 const
    DebugMe : Boolean = FALSE;
+   UnitName = 'Autocode32';
 
 { ---------------------------------------------------------------------- }
 
@@ -68,6 +70,8 @@ Procedure AutoCodeEntries( aClient : TClientObj;
                            CONST EntryType : Byte;
                            CONST FromDate, ToDate : LongInt;
                            DoUpdateRecMemCandidates: boolean = True);
+const
+  ThisMethodName = 'AutoCodeEntries';
 
 VAR
    Mask           : Bk5CodeStr;
@@ -126,7 +130,20 @@ Var
   Msg : String;
   Forex : Boolean;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
-Begin
+  StartTickCount : int64;
+  TimeTaken : double;
+begin
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    if DoUpdateRecMemCandidates then
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' DoUpdateRecMemCandidates = true')
+    else
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' DoUpdateRecMemCandidates = false');
+
+    StartTickCount := GetTickCount();
+  end;
+
    IsActive := True;
    try
      if Assigned(frmMain) then
@@ -141,6 +158,9 @@ Begin
            Exit; // This procedure is for Bank Accounts only
         If baTransaction_List.ItemCount = 0 then
            Exit;
+
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Account - ' + BA.baFields.baBank_Account_Number);
 
         Forex := BA.IsAForexAccount;
 
@@ -266,7 +286,7 @@ Begin
 
               // Update recommended memorisation scanning
               if DoUpdateRecMemCandidates then
-                aClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True);
+                aClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True, True);
 
               //clear any existing coding
               txAccount         := '';
@@ -765,6 +785,12 @@ Begin
      if Assigned(frmMain) then
        if not MaintainMemScanStatus then
          frmMain.MemScanIsBusy := False;
+
+     if DebugMe then
+     begin
+       TimeTaken := (GetTickCount - StartTickCount)/1000;
+       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+     end;
    end;
 end; { of AUTOCODE }
 
@@ -824,8 +850,10 @@ begin
    
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Initialization
-   DebugMe := LogUtil.DebugUnit( 'AUTOCODE' );
+initialization
+begin
+  DebugMe := DebugUnit(UnitName);
+end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 END.
