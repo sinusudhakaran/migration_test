@@ -21,6 +21,9 @@ uses
 type
   TRecommended_Mems = class(TObject)
   private
+    fLastTickCount : int64;
+    fCandMemBusy : boolean;
+
     fBankAccount: TBank_Account;
     fBankAccounts: TBank_Account_List;
 
@@ -35,6 +38,8 @@ type
     function GetLastCodingFrmKeyPress: TDateTime;
     function GetMatchingCandidateRange(StatementDetails: string; var FirstCandidatePos,
                                        LastCandidatePos: integer): boolean;
+  protected
+    procedure SetCandMemBusy(aValue : boolean);
   public
     constructor Create(const aBankAccounts: TBank_Account_List); reintroduce; overload;
     constructor Create(const aBankAccount: TBank_Account); reintroduce; overload;
@@ -67,6 +72,8 @@ type
     property  Candidate: TCandidate_Mem_Processing read fCandidate;
     property  Candidates: TCandidate_Mem_List read fCandidates;
     property  Recommended: TRecommended_Mem_List read fRecommended;
+
+    property CandMemBusy : boolean read fCandMemBusy write SetCandMemBusy;
   end;
 
 implementation
@@ -98,6 +105,8 @@ const
 
 constructor TRecommended_Mems.Create(const aBankAccounts: TBank_Account_List);
 begin
+  fLastTickCount := 0;
+  fCandMemBusy := false;
   fBankAccounts := aBankAccounts;
 
   fUnscanned := TUnscanned_Transaction_List.Create;
@@ -139,13 +148,32 @@ begin
   fBankAccounts := aBankAccounts;
 end;
 
+procedure TRecommended_Mems.SetCandMemBusy(aValue: boolean);
+begin
+  if fCandMemBusy <> aValue then
+  begin
+    if DebugMe then
+    begin
+      if aValue then
+        LogUtil.LogMsg(lmDebug, UnitName, ' Candidate Mem Scan Started, Unscanned Count = ' + inttostr(fUnscanned.ItemCount))
+      else
+        LogUtil.LogMsg(lmDebug, UnitName, ' Candidate Mem Scan Finished')
+    end;
+
+    fCandMemBusy := aValue;
+  end;
+end;
+
 procedure TRecommended_Mems.LoadFromFile(var S: TIOStream);
 const
-  ThisMethodName = 'TRecommended_Mems.LoadFromStream';
+  ThisMethodName = 'LoadFromFile';
 var
   Token : byte;
   Msg   : String;
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start Load from File');
+
   Token := s.ReadToken;
 
   while (Token <> tkEndSection) do
@@ -164,6 +192,9 @@ begin
 
     Token := S.ReadToken;
   end;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End Load from File');
 end;
 
 // Pass in a Statement Details string, and this procedure will put the position of the
@@ -262,7 +293,12 @@ begin
 end;
 
 procedure TRecommended_Mems.SaveToFile(var S: TIOStream);
+const
+  ThisMethodName = 'SaveToFile';
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start Save to File');
+
   S.WriteToken(tkBeginRecommended_Mems);
 
   fUnscanned.SaveToFile(S);
@@ -271,6 +307,9 @@ begin
   fRecommended.SaveToFile(S);
 
   S.WriteToken(tkEndSection);
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End Save to File');
 end;
 
 function TRecommended_Mems.GetLastCodingFrmKeyPress: TDateTime;
@@ -284,6 +323,8 @@ begin
 end;
 
 function TRecommended_Mems.MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
+const
+  ThisMethodName = 'MemScan';
 var
   InCodingForm      : boolean;
   LastKeyPressTime  : TDateTime;
@@ -742,8 +783,18 @@ var
     end;
   end;
 begin
-  if DebugMe then
-    CreateDebugTimer('TRecommended_Mems.MemScan');
+  {if DebugMe then
+  begin
+    if fLastTickCount > getTickCount then
+      fLastTickCount := getTickCount;
+
+    if (fLastTickCount + 1000) > getTickCount then
+    begin
+      fLastTickCount := getTickCount;
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Unscanned Item Count = ' + inttostr(Unscanned.ItemCount));
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Unscanned Item Count = ' + inttostr(Unscanned.ItemCount));
+    end;
+  end; }
 
   Result := False;
   if Assigned(myClient) or RunningUnitTest then // Is the client file open?
@@ -774,6 +825,7 @@ begin
       // Is the unscanned list empty?
       if (Unscanned.ItemCount = 0) then
       begin
+        CandMemBusy := false;
         { Before data is available, Unscanned.ItemCount is called several times
           which puts fMemsV2 in the 'finished' state. We check to see if there
           are any candidates at all.
@@ -802,6 +854,7 @@ begin
       end
       else
       begin
+        CandMemBusy := true;
         // There are still unscanned transactions, so do candidate processing
         DoCandidateMemProcessing;
       end;
