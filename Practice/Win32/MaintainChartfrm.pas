@@ -107,6 +107,7 @@ type
     FHasAlternativeCode: Boolean;
     AltCodeModifier: integer;
     fShowInactive: boolean;
+    fFirstSelectedItem : TListItem;
 
     procedure RefreshChartList;
 
@@ -1253,10 +1254,23 @@ end;
 
 procedure TfrmMaintainChart.lvChartSelectItem(Sender: TObject;
   Item: TListItem; Selected: Boolean);
+var
+  ItemIndex : integer;
 begin
   SearchTerm := '';
-  if (Selected) then
-    UpdateQuickSetWindow;
+  if lvChart.SelCount = 1 then
+  begin
+    for ItemIndex := 0 to lvChart.Items.Count - 1 do
+    begin
+      if lvChart.Items[ItemIndex].Selected then
+      begin
+        fFirstSelectedItem := lvChart.Items[ItemIndex];
+        break;
+      end;
+    end;
+  end;
+
+  UpdateQuickSetWindow;
 end;
 
 procedure TfrmMaintainChart.UpdateQuickSetWindow;
@@ -1277,16 +1291,26 @@ begin
   S := '';
   pAcct := nil;
 
-  while ( i < lvChart.Items.Count) and ( pAcct = nil) do begin
-    if lvChart.Items[ i].Selected then begin
+  while ( i < lvChart.Items.Count) and ( pAcct = nil) do
+  begin
+    if lvChart.Items[ i].Selected then
+    begin
       pAcct := pAccount_Rec(lvChart.Items[ i].SubItems.Objects[0]);
       if (Assigned(pAcct)) then
         S := S + pAcct^.chAccount_Code + ',';
     end;
     Inc(i);
   end;
+
+  if Assigned(fFirstSelectedItem) and (lvChart.SelCount > 0) then
+  begin
+    pAcct := pAccount_Rec(fFirstSelectedItem.SubItems.Objects[0]);
+  end;
+
   LblAltCode.Caption := '';
-  if not Assigned( pAcct) then begin
+
+  if not Assigned( pAcct) then
+  begin
     //blank everything
     lblCode.Caption := '';
 
@@ -1304,13 +1328,16 @@ begin
     cmbSubGroup.Enabled      := false;
     cmbGST.Enabled           := false;
   end
-  else begin
-    if lvChart.SelCount = 1 then begin
+  else
+  begin
+    if lvChart.SelCount = 1 then
+    begin
       lblCode.Caption := pAcct^.chAccount_Code;
       lblDesc.Caption := pAcct^.chAccount_Description;
       lblDesc.Enabled := true;
     end
-    else begin
+    else
+    begin
       lblCode.Caption := '';
       LblAltCode.Caption := '';
       lblDesc.Caption := 'multiple accounts';
@@ -1341,7 +1368,8 @@ begin
 
     //division
     S := '';
-    for i := 1 to Max_Divisions do begin
+    for i := 1 to Max_Divisions do
+    begin
       if pAcct.chPrint_in_Division[i] then
       begin
         if (S = '') then
@@ -1386,7 +1414,8 @@ begin
       if lvChart.Items[i].Selected then
       begin
         pTest := pAccount_Rec(lvChart.Items[ i].SubItems.Objects[0]);
-        if Assigned( pTest) then begin
+        if Assigned( pTest) then
+        begin
            RG_Same   := RG_Same and ( pTest.chAccount_Type  = pAcct.chAccount_Type);
            SG_Same   := SG_Same and ( pTest.chSubtype       = pAcct.chSubtype);
            GST_Same  := GST_Same and ( pTest.chGST_Class    = pAcct.chGST_Class);
