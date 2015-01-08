@@ -21,8 +21,10 @@ uses
 type
   TRecommended_Mems = class(TObject)
   private
-    fLastTickCount : int64;
+    fStartTickCount : int64;
     fCandMemBusy : boolean;
+    fRemoveAccounts : boolean;
+    fPopulateUnscannedLists : boolean;
 
     fBankAccount: TBank_Account;
     fBankAccounts: TBank_Account_List;
@@ -105,8 +107,10 @@ const
 
 constructor TRecommended_Mems.Create(const aBankAccounts: TBank_Account_List);
 begin
-  fLastTickCount := 0;
+  fStartTickCount := 0;
+  fRemoveAccounts := false;
   fCandMemBusy := false;
+  fPopulateUnscannedLists := false;
   fBankAccounts := aBankAccounts;
 
   fUnscanned := TUnscanned_Transaction_List.Create;
@@ -149,15 +153,23 @@ begin
 end;
 
 procedure TRecommended_Mems.SetCandMemBusy(aValue: boolean);
+var
+  TimeTaken : double;
 begin
   if fCandMemBusy <> aValue then
   begin
     if DebugMe then
     begin
       if aValue then
-        LogUtil.LogMsg(lmDebug, UnitName, ' Candidate Mem Scan Started, Unscanned Count = ' + inttostr(fUnscanned.ItemCount))
+      begin
+        LogUtil.LogMsg(lmDebug, UnitName, 'CandidateMemScan Start, Unscanned Count = ' + inttostr(fUnscanned.ItemCount));
+        fStartTickCount := GetTickCount();
+      end
       else
-        LogUtil.LogMsg(lmDebug, UnitName, ' Candidate Mem Scan Finished')
+      begin
+        TimeTaken := (GetTickCount - fStartTickCount)/1000;
+        LogUtil.LogMsg(lmDebug, UnitName, 'CandidateMemScan End - Time Taken ' + floattostr(TimeTaken) + ' seconds.')
+      end;
     end;
 
     fCandMemBusy := aValue;
@@ -875,6 +887,8 @@ end;
 // You can put the contents of the entire method (the method you call this from) in the try/finally if
 // you like, this is probably the easiest and safest way, I have done this most of the time.
 procedure TRecommended_Mems.UpdateCandidateMems(TranRec: pTransaction_Rec; IsEditOrInsertOperation: boolean);
+const
+  ThisMethodName = 'UpdateCandidateMems';
 var
   Account               : TBank_Account;
   CandidateInt          : integer;
@@ -884,9 +898,17 @@ var
   MatchingCandidatePos  : integer;
   NewUnscannedTran      : TUnscanned_Transaction;
   utIndex               : integer;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
+
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount;
+  end;
 
   // Search CandidateMems for a matching key. We can use binary search because
   // CandidateMems has been created in alphabetical order according to the
@@ -949,11 +971,22 @@ begin
   end;
 
   RescanCandidates;
+
+  if DebugMe then
+  begin
+    TimeTaken := (GetTickCount - StartTickCount)/1000;
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+  end;
 end;
 
 // Scan the candidate list again and rebuild the suggested mems list
 procedure TRecommended_Mems.RescanCandidates;
+const
+  ThisMethodName = 'RescanCandidates';
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+
   // Rescan candidates later (for both MemsV2 as well as MemsV1)
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   fMemsV2.Reset;
@@ -963,30 +996,62 @@ end;
 
 // Builds the unscanned transactions list for all bank accounts
 procedure TRecommended_Mems.PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
+const
+  ThisMethodName = 'PopulateUnscannedListAllAccounts';
 var
   iBankAccount: integer;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
-  // TODO: add simple dialog (no progress bar)
-  // Unscanned and Candidates must be empty
-  if (Unscanned.ItemCount <> 0) or (Candidates.ItemCount <> 0) then
-    exit;
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount();
+  end;
 
-  for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
-    PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount], RunningUnitTest);
+  fPopulateUnscannedLists := true;
+  try
+    // TODO: add simple dialog (no progress bar)
+    // Unscanned and Candidates must be empty
+    if (Unscanned.ItemCount <> 0) or (Candidates.ItemCount <> 0) then
+      exit;
+
+    for iBankAccount := 0 to fBankAccounts.ItemCount-1 do
+      PopulateUnscannedListOneAccount(fBankAccounts[iBankAccount], RunningUnitTest);
+
+    if DebugMe then
+    begin
+      TimeTaken := (GetTickCount - StartTickCount)/1000;
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+    end;
+  finally
+    fPopulateUnscannedLists := false;
+  end;
 end;
 
 // Builds the unscanned transactions list for one bank account
 procedure TRecommended_Mems.PopulateUnscannedListOneAccount(BankAccount: TBank_Account; RunningUnitTest: boolean);
+const
+  ThisMethodName = 'PopulateUnscannedListOneAccount';
 var
   iTransaction: integer;
   MaintainMemScanStatus: boolean;
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
   utIndex: integer;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
   {$IF Defined(MAPCHECK) or Defined(BKRELINK)}
   Exit; // bkmap shouldn't build suggested mems
   {$IFEND}
+
+  if (DebugMe and (not fPopulateUnscannedLists)) then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount();
+  end;
+
   if BankAccount.IsAJournalAccount then
     Exit; // don't scan journals
 
@@ -1023,6 +1088,12 @@ begin
 
   Candidate.cpFields.cpCandidate_ID_To_Process := 1;
   Candidate.cpFields.cpNext_Candidate_ID := 1;
+
+  if (DebugMe and (not fPopulateUnscannedLists)) then
+  begin
+    TimeTaken := (GetTickCount - StartTickCount)/1000;
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+  end;
 end;
 
 // Removes an account from candidates and recommended mems. Should be called when:
@@ -1032,11 +1103,21 @@ end;
 // EDIT: this will now complete wipe out the recommendations, otherwise we run
 // into duplicate recommendations under certain circumstances, eg. bug 87884 in TFS
 procedure TRecommended_Mems.RemoveAccountFromMems(AccountNo: string);
+const
+  ThisMethodName = 'RemoveAccountFromMems (Single)';
 var
   i: integer;
   LoopStart: integer;
   MaintainMemScanStatus: boolean;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
+  if (DebugMe and (not fRemoveAccounts)) then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount();
+  end;
+
   MaintainMemScanStatus := False;
   try
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
@@ -1067,6 +1148,12 @@ begin
 
     // Will need to rebuild recommended mems later, so set ID To Process back to the start of Candidates
     fCandidate.cpFields.cpCandidate_ID_To_Process := 1;
+
+    if (DebugMe and (not fRemoveAccounts)) then
+    begin
+      TimeTaken := (GetTickCount - StartTickCount)/1000;
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+    end;
   finally
     if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
       if not MaintainMemScanStatus then
@@ -1081,23 +1168,59 @@ end;
 
 // Removes all accounts from candidates and recommended mems
 procedure TRecommended_Mems.RemoveAccountsFromMems(DoPopulate: boolean = True);
+const
+  ThisMethodName = 'RemoveAccountsFromMems.1';
 var
   AccountList : TStringList;
   i           : integer;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
-  AccountList := TStringList.Create;
-  for i := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
-    AccountList.Add(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baBank_Account_Number);
-  RemoveAccountsFromMems(AccountList, DoPopulate);
+  fRemoveAccounts := true;
+  try
+    if DebugMe then
+    begin
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+      StartTickCount := GetTickCount();
+    end;
+
+    AccountList := TStringList.Create;
+    for i := 0 to MyClient.clBank_Account_List.ItemCount - 1 do
+      AccountList.Add(MyClient.clBank_Account_List.Bank_Account_At(i).baFields.baBank_Account_Number);
+    RemoveAccountsFromMems(AccountList, DoPopulate);
+
+    if DebugMe then
+    begin
+      TimeTaken := (GetTickCount - StartTickCount)/1000;
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+    end;
+
+  finally
+    fRemoveAccounts := false;
+  end;
 end;
 
 // Removes a given list of accounts from candidates and recommended mems
 procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TStringList; DoPopulate: boolean = True);
+const
+  ThisMethodName = 'RemoveAccountsFromMems.2';
 var
   BankAccount: TBank_Account;
   i: integer;
   MaintainMemScanStatus: boolean;
+  NoTiming : boolean;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
+  NoTiming := fRemoveAccounts;
+  fRemoveAccounts := true;
+
+  if (DebugMe and (not NoTiming)) then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount();
+  end;
+
   MaintainMemScanStatus := False;
   try
     if Assigned(frmMain) then
@@ -1119,20 +1242,42 @@ begin
         PopulateUnscannedListOneAccount(BankAccount, False);
       end;
     end;
+
+    if (DebugMe and (not NoTiming)) then
+    begin
+      TimeTaken := (GetTickCount - StartTickCount)/1000;
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+    end;
   finally
     if Assigned(frmMain) then
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := False;
+
+    fRemoveAccounts := false;
   end;
 end;
 
 // Removes a given list of accounts from candidates and recommended mems
 procedure TRecommended_Mems.RemoveAccountsFromMems(AccountList: TBank_Account_List; DoPopulate: boolean = True);
+const
+  ThisMethodName = 'RemoveAccountsFromMems.3';
 var
   i: integer;
   MaintainMemScanStatus: boolean;
+  NoTiming : boolean;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
+  NoTiming := fRemoveAccounts;
+  fRemoveAccounts := true;
   MaintainMemScanStatus := False;
+
+  if (DebugMe and (not NoTiming)) then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount();
+  end;
+
   try
     if Assigned(frmMain) then
     begin
@@ -1148,10 +1293,18 @@ begin
     if DoPopulate then
       for i := 0 to AccountList.ItemCount - 1 do
         PopulateUnscannedListOneAccount(AccountList.Bank_Account_At(i), False);
+
+    if (DebugMe and (not NoTiming)) then
+    begin
+      TimeTaken := (GetTickCount - StartTickCount)/1000;
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+    end;
+
   finally
     if Assigned(frmMain) then
       if not MaintainMemScanStatus then
         frmMain.MemScanIsBusy := False;
+    fRemoveAccounts := false;
   end;
 end;
 
@@ -1194,9 +1347,19 @@ begin
 end;
 
 procedure TRecommended_Mems.RepopulateRecommendedMems;
+const
+  ThisMethodName = 'RepopulateRecommendedMems';
 var
   RecMemScanningComplete: boolean;
+  StartTickCount : int64;
+  TimeTaken : double;
 begin
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+    StartTickCount := GetTickCount;
+  end;
+
   MyClient.clRecommended_Mems.Recommended.FreeAll;
 
   MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
@@ -1209,11 +1372,22 @@ begin
     if RecMemScanningComplete then
       break;
   end;
+
+  if DebugMe then
+  begin
+    TimeTaken := (GetTickCount - StartTickCount)/1000;
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
+  end;
 end;
 
 // Clears the suggested mem data
 procedure TRecommended_Mems.ResetAll;
+const
+  ThisMethodName = 'ResetAll';
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
+
   try
     if Assigned(frmMain) then    
       frmMain.MemScanIsBusy := True;
