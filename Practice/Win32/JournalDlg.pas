@@ -4693,34 +4693,22 @@ procedure TdlgJournal.tmrPayeeTimer(Sender: TObject);
 var
   pJ  : pWorkJournal_Rec;
   OldPayeeNo: Integer;
-  MaintainMemScanStatus: boolean;
 begin
-   MaintainMemScanStatus := False;
-   try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-     end;
-     tmrPayee.Enabled := False;
-     if PayeeRow <= 0 then
-        Exit;
-     pJ := WorkJournal.Items[PayeeRow-1];
-     if ( pJ^.dtPayee_Number <> tmpPayee ) then begin
-        //tblJournal.ActiveCol := ColumnFmtList.GetColNumOfField(cePayee);
-        OldPayeeNo := pJ^.dtPayee_Number;
-        pJ^.dtPayee_Number  := tmpPayee;
-        if PayeeEdited(pJ,PayeeRow) then
-           pJ^.dtHas_Been_Edited := true
-        else
-           pJ^.dtPayee_Number := OldPayeeNo;
-        RedrawRow(PayeeRow);
-        PayeeRow := -1;
-     end;
-   finally
-     if Assigned(frmMain) then
-       if not MaintainMemScanStatus then
-         frmMain.MemScanIsBusy := False;
+   tmrPayee.Enabled := False;
+   if PayeeRow <= 0 then
+      Exit;
+   pJ := WorkJournal.Items[PayeeRow-1];
+   if ( pJ^.dtPayee_Number <> tmpPayee ) then
+   begin
+      //tblJournal.ActiveCol := ColumnFmtList.GetColNumOfField(cePayee);
+      OldPayeeNo := pJ^.dtPayee_Number;
+      pJ^.dtPayee_Number  := tmpPayee;
+      if PayeeEdited(pJ,PayeeRow) then
+         pJ^.dtHas_Been_Edited := true
+      else
+         pJ^.dtPayee_Number := OldPayeeNo;
+      RedrawRow(PayeeRow);
+      PayeeRow := -1;
    end;
 end;
 

@@ -21,6 +21,7 @@ uses
 type
   TRecommended_Mems = class(TObject)
   private
+    fMemScanRefCount : integer;
     fStartTickCount : int64;
     fCandMemBusy : boolean;
     fRemoveAccounts : boolean;
@@ -28,12 +29,12 @@ type
 
     fBankAccount: TBank_Account;
     fBankAccounts: TBank_Account_List;
+    fLastCodingFrmKeyPress: TDateTime;
 
     fUnscanned: TUnscanned_Transaction_List;
     fCandidate: TCandidate_Mem_Processing;
     fCandidates: TCandidate_Mem_List;
     fRecommended: TRecommended_Mem_List;
-    FLastCodingFrmKeyPress: TDateTime;
 
     fMemsV2: TMemsV2;
 
@@ -64,10 +65,16 @@ type
     procedure PopulateUnscannedListAllAccounts(RunningUnitTest: boolean);
     procedure RemoveRecommendedMems(Account: string; EntryType: byte; StatementDetails: string;
                                     AddedMasterMem: boolean);
-    procedure RepopulateRecommendedMems;
+
+    function DetermineStatus(aBankAccountNumber: string) : string;
+
     function GetCountOfRecMemsInAccount(AccountNo: string): integer;
     procedure ResetAll;
     procedure SetBankAccount(Value: TBank_Account);
+
+    procedure StartMemScan();
+    procedure StopMemScan();
+    function CanMemBeScanned() : boolean;
 
     property  BankAccount: TBank_Account read fBankAccount write SetBankAccount;
     property  Unscanned: TUnscanned_Transaction_List read fUnscanned;
@@ -107,6 +114,9 @@ const
 
 constructor TRecommended_Mems.Create(const aBankAccounts: TBank_Account_List);
 begin
+  fMemScanRefCount := 0;
+  StopMemScan;
+
   fStartTickCount := 0;
   fRemoveAccounts := false;
   fCandMemBusy := false;
@@ -132,6 +142,8 @@ end;
 
 destructor TRecommended_Mems.Destroy;
 begin
+  StopMemScan;
+
   FreeAndNil(fMemsV2);
 
   FreeAndNil(fCandidates);
@@ -140,6 +152,49 @@ begin
   FreeAndNil(fRecommended);
 
   inherited;
+end;
+
+function TRecommended_Mems.DetermineStatus(aBankAccountNumber: string): string;
+const
+  MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time.';
+  MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled, please contact Support.';
+  MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
+var
+  AccountHasRecMems : boolean;
+  RecommendIndex    : integer;
+begin
+  result := '';
+
+  if MEMSINI_SupportOptions = meiDisableSuggestedMemsAll then
+  begin
+    Result := MSG_DISABLED_MEMORISATIONS;
+    Exit;
+  end;
+
+  if (Candidate.cpFields.cpCandidate_ID_To_Process >= Candidate.cpFields.cpNext_Candidate_ID) and
+     (Candidate.cpFields.cpNext_Candidate_ID <> 1) then
+  begin
+    AccountHasRecMems := False;
+
+    for RecommendIndex := 0 to Recommended.ItemCount - 1 do
+    begin
+      if (Recommended.Recommended_Mem_At(RecommendIndex).rmFields.rmBank_Account_Number = aBankAccountNumber) then
+      begin
+        AccountHasRecMems := True;
+        break;
+      end;
+    end;
+
+    if not AccountHasRecMems then
+      result := MSG_NO_MEMORISATIONS;
+  end
+  else
+  begin
+    if Assigned(AdminSystem) then
+      result := BRAND_PRACTICE_SHORT_NAME + MSG_STILL_PROCESSING
+    else
+      result := BRAND_BOOKS_SHORT_NAME + MSG_STILL_PROCESSING;
+  end;
 end;
 
 procedure TRecommended_Mems.SetBankAccount(Value: TBank_Account);
@@ -186,23 +241,28 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start Load from File');
 
-  Token := s.ReadToken;
+  StopMemScan;
+  try
+    Token := s.ReadToken;
 
-  while (Token <> tkEndSection) do
-  begin
-    case Token of
-      tkBeginUnscanned_Transaction_List : fUnscanned.LoadFromFile(S);
-      tkBegin_Candidate_Mem_Processing  : fCandidate.LoadFromFile(S);
-      tkBeginCandidate_Mem_List         : fCandidates.LoadFromFile(S);
-      tkBeginRecommended_Mem_List       : fRecommended.LoadFromFile(S);
-    else
-      begin { Should never happen }
-        Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
-        raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+    while (Token <> tkEndSection) do
+    begin
+      case Token of
+        tkBeginUnscanned_Transaction_List : fUnscanned.LoadFromFile(S);
+        tkBegin_Candidate_Mem_Processing  : fCandidate.LoadFromFile(S);
+        tkBeginCandidate_Mem_List         : fCandidates.LoadFromFile(S);
+        tkBeginRecommended_Mem_List       : fRecommended.LoadFromFile(S);
+      else
+        begin { Should never happen }
+          Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
+          raise ETokenException.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+        end;
       end;
-    end;
 
-    Token := S.ReadToken;
+      Token := S.ReadToken;
+    end;
+  finally
+    StartMemScan;
   end;
 
   if DebugMe then
@@ -332,6 +392,22 @@ end;
 procedure TRecommended_Mems.SetLastCodingFrmKeyPress;
 begin
   FLastCodingFrmKeyPress := Time;
+end;
+
+procedure TRecommended_Mems.StartMemScan;
+begin
+  if fMemScanRefCount > 0 then
+    dec(fMemScanRefCount);
+end;
+
+procedure TRecommended_Mems.StopMemScan;
+begin
+  inc(fMemScanRefCount);
+end;
+
+function TRecommended_Mems.CanMemBeScanned: boolean;
+begin
+  CanMemBeScanned := (fMemScanRefCount = 0);
 end;
 
 function TRecommended_Mems.MemScan(RunningUnitTest: boolean; TestAccount: TBank_Account): boolean;
@@ -795,82 +871,77 @@ var
     end;
   end;
 begin
-  {if DebugMe then
-  begin
-    if fLastTickCount > getTickCount then
-      fLastTickCount := getTickCount;
-
-    if (fLastTickCount + 1000) > getTickCount then
-    begin
-      fLastTickCount := getTickCount;
-      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Unscanned Item Count = ' + inttostr(Unscanned.ItemCount));
-      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Unscanned Item Count = ' + inttostr(Unscanned.ItemCount));
-    end;
-  end; }
-
   Result := False;
-  if Assigned(myClient) or RunningUnitTest then // Is the client file open?
-  begin
-    if MEMSINI_SupportOptions = meiDisableSuggestedMemsAll then
+
+  if (not CanMemBeScanned) then
+    Exit;
+
+  if (MEMSINI_SupportOptions = meiDisableSuggestedMemsAll) then
+    Exit;
+
+  // only allows one instance of MemScan to run
+  StopMemScan();
+  try
+
+    if Assigned(myClient) or RunningUnitTest then // Is the client file open?
     begin
-      Result := false;
-      Exit;
-    end;
+      // Store current time
+      StartTime := Time;
 
-    // Store current time
-    StartTime := Time;
-
-    // Are we in the coding screen?
-    if Assigned(Screen.ActiveForm) then
-      InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName)
-    else
-      InCodingForm := False;
-
-    // Are we in the coding form, and has there been a keypress in the last two seconds?
-    LastKeyPressTime := GetLastCodingFrmKeyPress;
-    if InCodingForm and (MilliSecondsBetween(StartTime, LastKeyPressTime) <= 2000) then
-      Exit; // We are and there has, let's not do any scanning so that we don't interfere with the user
-
-    // Has it been more than 33 milliseconds yet?
-    while ((MilliSecondsBetween(StartTime, Time) < 33) or RunningUnitTest) do
-    begin
-      // Is the unscanned list empty?
-      if (Unscanned.ItemCount = 0) then
-      begin
-        CandMemBusy := false;
-        { Before data is available, Unscanned.ItemCount is called several times
-          which puts fMemsV2 in the 'finished' state. We check to see if there
-          are any candidates at all.
-          This also solves the problem where MemScan is called while loading a
-          zip stream. VCLZip calls ProcessMessages from there (can be turned
-          off if required). }
-        if not Assigned(TestAccount) then
-        begin
-          if (Candidates.ItemCount <> 0) then
-          begin
-            { More processing to do?
-              Note: don't give control to DoRecommendedProcessing yet }
-            if fMemsV2.DoProcessing then
-              continue;
-          end;
-        end;
-
-        // Unscanned list is empty, so do recommended processing
-        if DoRecommendedMemProcessing then
-        begin
-          // Unscanned transaction list is empty, candidate and recommended mem
-          // processing is done, nothing left to do, time to crack a beer
-          Result := True;
-          Exit;
-        end;
-      end
+      // Are we in the coding screen?
+      if Assigned(Screen.ActiveForm) then
+        InCodingForm := (TfrmCoding.ClassName = Screen.ActiveForm.ClassName)
       else
+        InCodingForm := False;
+
+      // Are we in the coding form, and has there been a keypress in the last two seconds?
+      LastKeyPressTime := GetLastCodingFrmKeyPress;
+      if InCodingForm and (MilliSecondsBetween(StartTime, LastKeyPressTime) <= 2000) then
+        Exit; // We are and there has, let's not do any scanning so that we don't interfere with the user
+
+      // Has it been more than 33 milliseconds yet?
+      while ((MilliSecondsBetween(StartTime, Time) < 33) or RunningUnitTest) do
       begin
-        CandMemBusy := true;
-        // There are still unscanned transactions, so do candidate processing
-        DoCandidateMemProcessing;
+        // Is the unscanned list empty?
+        if (Unscanned.ItemCount = 0) then
+        begin
+          CandMemBusy := false;
+          { Before data is available, Unscanned.ItemCount is called several times
+            which puts fMemsV2 in the 'finished' state. We check to see if there
+            are any candidates at all.
+            This also solves the problem where MemScan is called while loading a
+            zip stream. VCLZip calls ProcessMessages from there (can be turned
+            off if required). }
+          if not Assigned(TestAccount) then
+          begin
+            if (Candidates.ItemCount <> 0) then
+            begin
+              { More processing to do?
+                Note: don't give control to DoRecommendedProcessing yet }
+              if fMemsV2.DoProcessing then
+                continue;
+            end;
+          end;
+
+          // Unscanned list is empty, so do recommended processing
+          if DoRecommendedMemProcessing then
+          begin
+            // Unscanned transaction list is empty, candidate and recommended mem
+            // processing is done, nothing left to do, time to crack a beer
+            Result := True;
+            Exit;
+          end;
+        end
+        else
+        begin
+          CandMemBusy := true;
+          // There are still unscanned transactions, so do candidate processing
+          DoCandidateMemProcessing;
+        end;
       end;
     end;
+  finally
+    StartMemScan();
   end;
 end;
 
@@ -910,67 +981,73 @@ begin
     StartTickCount := GetTickCount;
   end;
 
-  // Search CandidateMems for a matching key. We can use binary search because
-  // CandidateMems has been created in alphabetical order according to the
-  // Statement Details field.
-  // Key =
-  // * Entry Type
-  // * Bank Account Number
-  // * Coding Type
-  // * Account Code
-  // * Statement Details
-  Account := TBank_Account(TranRec.txBank_Account);
-  if not GetMatchingCandidateRange(TranRec.txStatement_Details,
-                                   FirstCandidatePos,
-                                    LastCandidatePos) then
-    Exit;
-  MatchingCandidatePos := -1;
-  if (FirstCandidatePos > -1) then
-  begin
-    for CandidateInt := FirstCandidatePos to LastCandidatePos do
+  StopMemScan;
+  try
+
+    // Search CandidateMems for a matching key. We can use binary search because
+    // CandidateMems has been created in alphabetical order according to the
+    // Statement Details field.
+    // Key =
+    // * Entry Type
+    // * Bank Account Number
+    // * Coding Type
+    // * Account Code
+    // * Statement Details
+    Account := TBank_Account(TranRec.txBank_Account);
+    if not GetMatchingCandidateRange(TranRec.txStatement_Details,
+                                     FirstCandidatePos,
+                                      LastCandidatePos) then
+      Exit;
+    MatchingCandidatePos := -1;
+    if (FirstCandidatePos > -1) then
     begin
-      CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
-      // Statement details has already been matched, no need to check it again
-      if (CandidateMemRec.cmType = TranRec.txType) and
-      (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
-      (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
-      (CandidateMemRec.cmAccount = TranRec.txAccount) then
+      for CandidateInt := FirstCandidatePos to LastCandidatePos do
       begin
-        MatchingCandidatePos := CandidateInt;
-        break;
+        CandidateMemRec := Candidates.Candidate_Mem_At(CandidateInt).cmFields;
+        // Statement details has already been matched, no need to check it again
+        if (CandidateMemRec.cmType = TranRec.txType) and
+        (CandidateMemRec.cmBank_Account_Number = Account.baFields.baBank_Account_Number) and
+        (CandidateMemRec.cmCoded_By = TranRec.txCoded_By) and
+        (CandidateMemRec.cmAccount = TranRec.txAccount) then
+        begin
+          MatchingCandidatePos := CandidateInt;
+          break;
+        end;
       end;
     end;
-  end;
 
-  // Has a match been found?
-  if (MatchingCandidatePos <> -1) then
-  begin
-    CandidateMemRec := Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields;
-    // Decrease count in matching CandidateMem
-    Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount := CandidateMemRec.cmCount - 1;
-    // Does the count for this CandidateMem now equal zero?
-    if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
-      // Yes, so remove this candidate from the candidate list
-      Candidates.AtFree(MatchingCandidatePos);
-  end;
+    // Has a match been found?
+    if (MatchingCandidatePos <> -1) then
+    begin
+      CandidateMemRec := Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields;
+      // Decrease count in matching CandidateMem
+      Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount := CandidateMemRec.cmCount - 1;
+      // Does the count for this CandidateMem now equal zero?
+      if (Candidates.Candidate_Mem_At(MatchingCandidatePos).cmFields.cmCount = 0) then
+        // Yes, so remove this candidate from the candidate list
+        Candidates.AtFree(MatchingCandidatePos);
+    end;
 
-  // Is this an edit operation (rather than a delete)?
-  if IsEditOrInsertOperation then
-  begin
-    // Add modified transaction to unscanned list. We can use the old details
-    // (bank account and sequence number), because they don't change when a
-    // transaction gets modified by the user
-    NewUnscannedTran := TUnscanned_Transaction.Create;
-    NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
-    NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
-    utIndex := -1;
-    if Unscanned.Search(NewUnscannedTran, utIndex) then
-      FreeAndNil(NewUnscannedTran)
-    else
-      Unscanned.Insert(NewUnscannedTran);
-  end;
+    // Is this an edit operation (rather than a delete)?
+    if IsEditOrInsertOperation then
+    begin
+      // Add modified transaction to unscanned list. We can use the old details
+      // (bank account and sequence number), because they don't change when a
+      // transaction gets modified by the user
+      NewUnscannedTran := TUnscanned_Transaction.Create;
+      NewUnscannedTran.utFields.utBank_Account_Number := Account.baFields.baBank_Account_Number;
+      NewUnscannedTran.utFields.utSequence_No := TranRec.txSequence_No;
+      utIndex := -1;
+      if Unscanned.Search(NewUnscannedTran, utIndex) then
+        FreeAndNil(NewUnscannedTran)
+      else
+        Unscanned.Insert(NewUnscannedTran);
+    end;
 
-  RescanCandidates(IsBulk);
+    RescanCandidates(IsBulk);
+  finally
+    StartMemScan;
+  end;
 
   if (DebugMe and (not IsBulk)) then
   begin
@@ -987,11 +1064,16 @@ begin
   if (DebugMe and (not IsBulk)) then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
 
-  // Rescan candidates later (for both MemsV2 as well as MemsV1)
-  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-  fMemsV2.Reset;
-  // Clear suggested memorisation list
-  Recommended.FreeAll;
+  StopMemScan;
+  try
+    // Rescan candidates later (for both MemsV2 as well as MemsV1)
+    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    fMemsV2.Reset;
+    // Clear suggested memorisation list
+    Recommended.FreeAll;
+  finally
+    StartMemScan;
+  end;
 end;
 
 // Builds the unscanned transactions list for all bank accounts
@@ -1009,6 +1091,7 @@ begin
     StartTickCount := GetTickCount();
   end;
 
+  StopMemScan;
   fPopulateUnscannedLists := true;
   try
     // TODO: add simple dialog (no progress bar)
@@ -1021,6 +1104,7 @@ begin
 
   finally
     fPopulateUnscannedLists := false;
+    StartMemScan;
 
     if DebugMe then
     begin
@@ -1036,7 +1120,6 @@ const
   ThisMethodName = 'PopulateUnscannedListOneAccount';
 var
   iTransaction: integer;
-  MaintainMemScanStatus: boolean;
   New: TUnscanned_Transaction;
   Transaction: pTransaction_Rec;
   utIndex: integer;
@@ -1056,15 +1139,8 @@ begin
     StartTickCount := GetTickCount();
   end;
 
-  MaintainMemScanStatus := False;
+  StopMemScan;
   try
-    if not RunningUnitTest then
-    begin
-      if Assigned(frmMain) then
-        MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      if Assigned(frmMain) then
-        frmMain.MemScanIsBusy := True;
-    end;
     for iTransaction := 0 to BankAccount.baTransaction_List.ItemCount-1 do
     begin
       Transaction := BankAccount.baTransaction_List.Transaction_At(iTransaction);
@@ -1080,15 +1156,12 @@ begin
           Unscanned.Insert(New);
       end;
     end;
-  finally
-    if Assigned(frmMain) then
-      if not RunningUnitTest then
-        if not MaintainMemScanStatus then
-          frmMain.MemScanIsBusy := False;
-  end;
 
-  Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-  Candidate.cpFields.cpNext_Candidate_ID := 1;
+    Candidate.cpFields.cpCandidate_ID_To_Process := 1;
+    Candidate.cpFields.cpNext_Candidate_ID := 1;
+  finally
+    StartMemScan;
+  end;
 
   if (DebugMe and (not fPopulateUnscannedLists)) then
   begin
@@ -1109,7 +1182,6 @@ const
 var
   i: integer;
   LoopStart: integer;
-  MaintainMemScanStatus: boolean;
   StartTickCount : int64;
   TimeTaken : double;
 begin
@@ -1119,13 +1191,8 @@ begin
     StartTickCount := GetTickCount();
   end;
 
-  MaintainMemScanStatus := False;
+  StopMemScan;
   try
-    if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
     // Delete all unscanned transactions with this account number,
     // so that we don't have to worry about duplicates being added
     LoopStart := Unscanned.ItemCount - 1; // Deletions will lower the item count, so we have to get this value before doing any deletions
@@ -1156,9 +1223,7 @@ begin
       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
     end;
   finally
-    if Assigned(frmMain) then // false for unit tests, which don't need to set this boolean anyway
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    StartMemScan;
   end;
 end;
 
@@ -1178,6 +1243,7 @@ var
   TimeTaken : double;
 begin
   fRemoveAccounts := true;
+  StopMemScan;
   try
     if DebugMe then
     begin
@@ -1197,6 +1263,7 @@ begin
     end;
 
   finally
+    StartMemScan;
     fRemoveAccounts := false;
   end;
 end;
@@ -1208,7 +1275,6 @@ const
 var
   BankAccount: TBank_Account;
   i: integer;
-  MaintainMemScanStatus: boolean;
   NoTiming : boolean;
   StartTickCount : int64;
   TimeTaken : double;
@@ -1222,14 +1288,8 @@ begin
     StartTickCount := GetTickCount();
   end;
 
-  MaintainMemScanStatus := False;
+  StopMemScan;
   try
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
-
     Unscanned.FreeAll;
 
     for i := 0 to AccountList.Count - 1 do
@@ -1250,10 +1310,7 @@ begin
       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
     end;
   finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
-
+    StartMemScan;
     fRemoveAccounts := false;
   end;
 end;
@@ -1264,14 +1321,12 @@ const
   ThisMethodName = 'RemoveAccountsFromMems.3';
 var
   i: integer;
-  MaintainMemScanStatus: boolean;
   NoTiming : boolean;
   StartTickCount : int64;
   TimeTaken : double;
 begin
   NoTiming := fRemoveAccounts;
   fRemoveAccounts := true;
-  MaintainMemScanStatus := False;
 
   if (DebugMe and (not NoTiming)) then
   begin
@@ -1279,13 +1334,8 @@ begin
     StartTickCount := GetTickCount();
   end;
 
+  StopMemScan;
   try
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
-
     Unscanned.FreeAll;
 
     for i := 0 to AccountList.ItemCount - 1 do
@@ -1302,9 +1352,7 @@ begin
     end;
 
   finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    StartMemScan;
     fRemoveAccounts := false;
   end;
 end;
@@ -1318,19 +1366,24 @@ var
   i: integer;
   memRec: tRecommended_Mem_Rec;
 begin
-  for i := Recommended.Last downto Recommended.First do
-  begin
-    memRec := Recommended.Recommended_Mem_At(i).rmFields;
-    if ((memRec.rmBank_Account_Number = Account) or AddedMasterMem) and
-    (memRec.rmType = EntryType) and
-    (CompareText(memRec.rmStatement_Details, StatementDetails) = 0) then
+  StopMemScan;
+  try
+    for i := Recommended.Last downto Recommended.First do
     begin
-      Recommended.AtFree(i);
-      if (Account <> '') then
-        // We've created a normal (non-master) mem, so there should only be
-        // one matching recommended mem, so we don't need to keep looking
-        break;
+      memRec := Recommended.Recommended_Mem_At(i).rmFields;
+      if ((memRec.rmBank_Account_Number = Account) or AddedMasterMem) and
+      (memRec.rmType = EntryType) and
+      (CompareText(memRec.rmStatement_Details, StatementDetails) = 0) then
+      begin
+        Recommended.AtFree(i);
+        if (Account <> '') then
+          // We've created a normal (non-master) mem, so there should only be
+          // one matching recommended mem, so we don't need to keep looking
+          break;
+      end;
     end;
+  finally
+    StartMemScan;
   end;
 end;
 
@@ -1347,40 +1400,6 @@ begin
   end;
 end;
 
-procedure TRecommended_Mems.RepopulateRecommendedMems;
-const
-  ThisMethodName = 'RepopulateRecommendedMems';
-var
-  RecMemScanningComplete: boolean;
-  StartTickCount : int64;
-  TimeTaken : double;
-begin
-  if DebugMe then
-  begin
-    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
-    StartTickCount := GetTickCount;
-  end;
-
-  MyClient.clRecommended_Mems.Recommended.FreeAll;
-
-  MyClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-
-  fMemsV2.Reset;
-
-  while True do
-  begin
-    RecMemScanningComplete := MyClient.clRecommended_Mems.MemScan(false, nil);     
-    if RecMemScanningComplete then
-      break;
-  end;
-
-  if DebugMe then
-  begin
-    TimeTaken := (GetTickCount - StartTickCount)/1000;
-    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
-  end;
-end;
-
 // Clears the suggested mem data
 procedure TRecommended_Mems.ResetAll;
 const
@@ -1389,10 +1408,8 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
 
+  StopMemScan;
   try
-    if Assigned(frmMain) then    
-      frmMain.MemScanIsBusy := True;
-
     // Mems1 reset
     Candidates.FreeAll;
     Recommended.FreeAll;
@@ -1403,8 +1420,7 @@ begin
     // Mems2 reset
     fMemsV2.Reset;
   finally
-    if Assigned(frmMain) then    
-      frmMain.MemScanIsBusy := False;
+    StartMemScan;
   end;
 end;
 

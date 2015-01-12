@@ -1233,6 +1233,9 @@ begin
          ImportECodingFileFromFile( MyClient, FileName,true, ecDestWebX);
        end;
      end;
+
+     // The Client has been opened by the user we can start the mems scan timer
+     MyClient.clRecommended_Mems.StartMemScan;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -1249,77 +1252,85 @@ var
   rMsg      : string; //review message
   BackupRequired, WasChanged : boolean;
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Result := False;
-   if Assigned(MyClient) then
-   begin
-      try
-        MsgBar('Closing Client',true);
-        if not CloseMDIChildren(Assigned(AdminSystem) and (not Globals.ApplicationIsTerminating) and DoClientHomePage) then
-          //could not close all the child windows
-          Exit;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-        //Check the status of the client file. Don't save if it has been openned Read Only
-        if (not MyClient.clFields.clFile_Read_Only) then begin
-           MyClient.clFields.clFavourite_Report_XML := BatchReports.XMLString;
-           WasChanged := DoClientSave(true, MyClient);
-        end else
-           WasChanged := False;
+  Result := False;
 
-        if Interactive then
+  if Assigned(MyClient) then
+  begin
+    try
+      MsgBar('Closing Client',true);
+      if not CloseMDIChildren(Assigned(AdminSystem) and (not Globals.ApplicationIsTerminating) and DoClientHomePage) then
+        //could not close all the child windows
+        Exit;
+
+      MyClient.clRecommended_Mems.StopMemScan;
+
+      //Check the status of the client file. Don't save if it has been openned Read Only
+      if (not MyClient.clFields.clFile_Read_Only) then begin
+         MyClient.clFields.clFavourite_Report_XML := BatchReports.XMLString;
+         WasChanged := DoClientSave(true, MyClient);
+      end else
+         WasChanged := False;
+
+      if Interactive then
+      begin
+        if Assigned( AdminSystem) then
         begin
-          if Assigned( AdminSystem) then
+          //if prompt is on the ask user about tasks
+          if (AdminSystem.fdFields.fdTask_Tracking_Prompt_Type = ttOnlyIfOutstanding)
+          and (not CurrUser.HasRestrictedAccess) then
           begin
-            //if prompt is on the ask user about tasks
-            if (AdminSystem.fdFields.fdTask_Tracking_Prompt_Type = ttOnlyIfOutstanding)
-            and (not CurrUser.HasRestrictedAccess) then
-            begin
-              pCF := AdminSystem.fdSystem_Client_File_List.FindCode( MyClient.clFields.clCode);
-              if Assigned( pCF) then
-                ShowTasks := ( pCF^.cfPending_ToDo_Count > 0) and (( pCF^.cfNext_ToDo_Rem_Date = 0) or
-                                                                   ( pCF^.cfNext_ToDo_Rem_Date < CurrentDate))
-              else
-                ShowTasks := false;
-
-              if ShowTasks then
-              begin
-                aMsg := 'There are one or more overdue tasks';
-                rMsg := 'Do you want to review them now?';
-
-                aMsg := aMsg + ' for client ' + pCF^.cfFile_Code + ' : ' + pCF^.cfFile_Name + #13#13 + rMsg;
-
-                ShowTasks := AskYesNo( 'Closing Client ' + pCF^.cfFile_Code+ '...',
-                                       aMsg, DLG_YES, 0) = DLG_YES;
-              end;
-            end
+            pCF := AdminSystem.fdSystem_Client_File_List.FindCode( MyClient.clFields.clCode);
+            if Assigned( pCF) then
+              ShowTasks := ( pCF^.cfPending_ToDo_Count > 0) and (( pCF^.cfNext_ToDo_Rem_Date = 0) or
+                                                                 ( pCF^.cfNext_ToDo_Rem_Date < CurrentDate))
             else
-              ShowTasks := False;
+              ShowTasks := false;
 
             if ShowTasks then
-              ToDoHandler.MaintainToDoItems( MyClient.clFields.clCode, true);
+            begin
+              aMsg := 'There are one or more overdue tasks';
+              rMsg := 'Do you want to review them now?';
+
+              aMsg := aMsg + ' for client ' + pCF^.cfFile_Code + ' : ' + pCF^.cfFile_Name + #13#13 + rMsg;
+
+              ShowTasks := AskYesNo( 'Closing Client ' + pCF^.cfFile_Code+ '...',
+                                     aMsg, DLG_YES, 0) = DLG_YES;
+            end;
           end
-          else if WasChanged then // books
-          begin
-            BackupRequired := (INI_BackupLevel <> 0) and not ( MyClient.clFields.clFile_Read_Only);
-            if BackupRequired then
-              OffsiteBackup.DoOffsiteBackup( MyClient.clFields.clCode);
-          end;
+          else
+            ShowTasks := False;
+
+          if ShowTasks then
+            ToDoHandler.MaintainToDoItems( MyClient.clFields.clCode, true);
+        end
+        else if WasChanged then // books
+        begin
+          BackupRequired := (INI_BackupLevel <> 0) and not ( MyClient.clFields.clFile_Read_Only);
+          if BackupRequired then
+            OffsiteBackup.DoOffsiteBackup( MyClient.clFields.clCode);
         end;
-        if ((not Assigned(AdminSystem)) or (Assigned(CurrUser) and (CurrUser.HasRestrictedAccess))) and
-           (not Globals.ApplicationIsTerminating) and (DoClientHomePage) then
-          CloseClientHomePage;
-        MyClient.Free;
-        MyClient := nil;
-        BatchReports.XMLString := '';
-      finally
-         MsgBar('',false);
-         UpdateName;
-         UpdateMenus;
       end;
-   end;
-   Result := True;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+      if ((not Assigned(AdminSystem)) or (Assigned(CurrUser) and (CurrUser.HasRestrictedAccess))) and
+         (not Globals.ApplicationIsTerminating) and (DoClientHomePage) then
+        CloseClientHomePage;
+      MyClient.Free;
+      MyClient := nil;
+      BatchReports.XMLString := '';
+    finally
+       MsgBar('',false);
+       UpdateName;
+       UpdateMenus;
+    end;
+  end;
+
+  Result := True;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AbandonChanges(ConfirmAction : boolean): Boolean;
 const
@@ -1327,19 +1338,20 @@ const
 var
   WasAbandoned   : Boolean;
 
-   function Abandon: Boolean;
-   begin
-      {destroy client object without saving}
-      AbandonClientHomePage;
-      RefreshClientManager;
-      Result := CloseMDIChildren(True);
-      if (Result) then
-      begin
-        AbandonAClient(MyClient);
-        BatchReports.XMLString := '';
-        WasAbandoned := True;
-      end;
-   end;
+  function Abandon: Boolean;
+  begin
+    {destroy client object without saving}
+    AbandonClientHomePage;
+    RefreshClientManager;
+    Result := CloseMDIChildren(True);
+    if (Result) then
+    begin
+      MyClient.clRecommended_Mems.StopMemScan;
+      AbandonAClient(MyClient);
+      BatchReports.XMLString := '';
+      WasAbandoned := True;
+    end;
+  end;
 
 var
   S              : string;

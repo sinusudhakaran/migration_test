@@ -66,7 +66,6 @@ type
     fData: array of TRecommended_Mem;
     fAdded: boolean;
 
-    function  DetermineStatus: string;
     procedure BuildData;
     procedure PopulateTree;
     function  GetButtonRect(const aCellRect: TRect): TRect;
@@ -106,9 +105,6 @@ uses
 const
   ICON_BUTTON = 0;
   COL_STATEMENTS_DETAILS = 1;
-  MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
-  MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time.';
-  MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled, please contact Support.';
   ccEntryType = 0;
   ccStatementDetails = 1;
   ccCode = 2;
@@ -156,6 +152,7 @@ end;
 procedure TRecommendedMemorisationsFrm.FormCreate(Sender: TObject);
 var
   pNode : PVirtualNode;
+  BankAccNum : string;
 begin
   bkXPThemes.ThemeForm(self);
   Self.HelpContext := BKH_Suggested_memorisations;
@@ -163,14 +160,15 @@ begin
   vstTree.Header.Font.Size := Font.Size;
 
   Caption := 'Suggested Memorisations for ' + MyClient.clFields.clCode;
+  BankAccNum := fBankAccount.baFields.baBank_Account_Number;
 
   lblBankAccount.Caption := 'Account ' +
-    fBankAccount.baFields.baBank_Account_Number + ' ' +
+    BankAccNum + ' ' +
     fBankAccount.baFields.baBank_Account_Name;
 
   lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
 
-  lblStatus.Caption := DetermineStatus;
+  lblStatus.Caption := MyClient.clRecommended_Mems.DetermineStatus(BankAccNum);
 
   PopulateTree;
   vstTree.Header.SortColumn := ccEntryType;
@@ -388,48 +386,6 @@ procedure TRecommendedMemorisationsFrm.vstTreeFreeNode(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 begin
   // Note: Free strings and objects here
-end;
-
-//------------------------------------------------------------------------------
-function TRecommendedMemorisationsFrm.DetermineStatus: string;
-var
-  AccountHasRecMems           : boolean;
-  i                           : integer;
-begin
-  result := '';
-
-  if MEMSINI_SupportOptions = meiDisableSuggestedMemsAll then
-  begin
-    Result := MSG_DISABLED_MEMORISATIONS;
-    Exit;
-  end;
-
-  with MyClient.clRecommended_Mems, Candidate.cpFields do
-  begin
-    if (cpCandidate_ID_To_Process >= cpNext_Candidate_ID) and
-       (cpNext_Candidate_ID <> 1) then
-    begin
-      AccountHasRecMems := False;
-      for i := 0 to Recommended.ItemCount - 1 do
-      begin
-        if (Recommended.Recommended_Mem_At(i).rmFields.rmBank_Account_Number = 
-        fBankAccount.baFields.baBank_Account_Number) then
-        begin
-          AccountHasRecMems := True;
-          break;
-        end;            
-      end;
-      if not AccountHasRecMems then
-        result := MSG_NO_MEMORISATIONS;
-    end
-    else
-    begin
-      if Assigned(AdminSystem) then
-        result := BRAND_PRACTICE_SHORT_NAME + MSG_STILL_PROCESSING
-      else
-        result := BRAND_BOOKS_SHORT_NAME + MSG_STILL_PROCESSING;
-    end;
-  end
 end;
 
 //------------------------------------------------------------------------------

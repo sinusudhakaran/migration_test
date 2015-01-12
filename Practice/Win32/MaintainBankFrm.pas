@@ -684,171 +684,158 @@ var
 
 
 begin
-  MaintainMemScanStatus := false;
-  try
-    if Assigned(frmMain) then
+  result := false;
+
+  {check that is not showing in coding screen}
+  if AccountVisible(BankAccount) then
+  begin
+    HelpfulWarningMsg('You cannot delete this Bank Account because you are currently Coding Entries for it.',0);
+    exit;
+  end;
+
+  if (BankAccount.baFields.baAccount_Type = btBank) then
+  begin
+     if BankAccount.IsManual then
+       aMsg := 'Deleting a ' + UserDefinedBankAccountDesc + ' will remove all transactions and coding information.'
+
+     else
+        aMsg := 'Deleting a Bank Account will remove all transactions and coding '+
+                'information for the Account.  A copy of these transactions is stored in the Admin system, '+
+                'however no Coding Information, or Unpresented Items are stored.  ';
+
+     aMsg := aMsg + #13#13+
+             'This is a CRITICAL operation.  Are you sure '+
+             'you want to delete the following Account from this Client File?';
+
+     aMsg := aMsg + #13+#13+ BankAccount.baFields.baBank_Account_Number+ ' - ' +
+                 BankAccount.AccountName;
+     Title := 'Delete Client Bank Account';
+  end
+  else
+  begin
+     //is a journal
+     aMsg := 'Deleting a Journal Account will remove all journals and coding '+
+            'information for this Journal type.'+#13+#13+
+
+            'This is a CRITICAL operation.  Are you sure '+
+            'you want to delete the following Journal Account from this Client File?';
+     aMsg := aMsg + #13+#13+ BankAccount.baFields.baBank_Account_Number+ ' - ' +
+                 BankAccount.AccountName;
+     Title := 'Delete Journal Account';
+  end;
+
+  if (AskYesNo(Title,aMsg,DLG_NO,0) = DLG_YES) then
+  begin
+    if not EnterPassword('Enter the word DELETE in the box below to confirm deletion','DELETE',0, false,false) then exit;
+  end
+  else
+    exit;
+
+  IsExportDataEnabledFoAccount := ProductConfigService.IsExportDataEnabledFoAccount(BankAccount);
+  fRemoveVendorsFromClient := false;
+  if IsExportDataEnabledFoAccount then
+  begin
+    AccVendorIndex := GetAccountIndexOnVendorList(BankAccount.baFields.baCore_Account_ID);
+    if (AccVendorIndex > -1) then
     begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
-
-    result := false;
-
-    {check that is not showing in coding screen}
-    if AccountVisible(BankAccount) then
-    begin
-      HelpfulWarningMsg('You cannot delete this Bank Account because you are currently Coding Entries for it.',0);
-      exit;
-    end;
-
-    if (BankAccount.baFields.baAccount_Type = btBank) then
-    begin
-       if BankAccount.IsManual then
-         aMsg := 'Deleting a ' + UserDefinedBankAccountDesc + ' will remove all transactions and coding information.'
-
-       else
-          aMsg := 'Deleting a Bank Account will remove all transactions and coding '+
-                  'information for the Account.  A copy of these transactions is stored in the Admin system, '+
-                  'however no Coding Information, or Unpresented Items are stored.  ';
-
-       aMsg := aMsg + #13#13+
-               'This is a CRITICAL operation.  Are you sure '+
-               'you want to delete the following Account from this Client File?';
-
-       aMsg := aMsg + #13+#13+ BankAccount.baFields.baBank_Account_Number+ ' - ' +
-                   BankAccount.AccountName;
-       Title := 'Delete Client Bank Account';
-    end
-    else
-    begin
-       //is a journal
-       aMsg := 'Deleting a Journal Account will remove all journals and coding '+
-              'information for this Journal type.'+#13+#13+
-
-              'This is a CRITICAL operation.  Are you sure '+
-              'you want to delete the following Journal Account from this Client File?';
-       aMsg := aMsg + #13+#13+ BankAccount.baFields.baBank_Account_Number+ ' - ' +
-                   BankAccount.AccountName;
-       Title := 'Delete Journal Account';
-    end;
-
-    if (AskYesNo(Title,aMsg,DLG_NO,0) = DLG_YES) then
-    begin
-      if not EnterPassword('Enter the word DELETE in the box below to confirm deletion','DELETE',0, false,false) then exit;
-    end
-    else
-      exit;
-
-    IsExportDataEnabledFoAccount := ProductConfigService.IsExportDataEnabledFoAccount(BankAccount);
-    fRemoveVendorsFromClient := false;
-    if IsExportDataEnabledFoAccount then
-    begin
-      AccVendorIndex := GetAccountIndexOnVendorList(BankAccount.baFields.baCore_Account_ID);
-      if (AccVendorIndex > -1) then
+      if AllAccountsHaveOneVendorSelected(AccVendorIndex, aMsg) then
       begin
-        if AllAccountsHaveOneVendorSelected(AccVendorIndex, aMsg) then
-        begin
-          DlgResult := AskYesNo('Export Options removed', aMsg, DLG_YES, 0, true);
+        DlgResult := AskYesNo('Export Options removed', aMsg, DLG_YES, 0, true);
 
-          case DlgResult of
-            DLG_YES : begin
-              fRemoveVendorsFromClient := true;
-            end;
-            DLG_CANCEL : begin
-              Exit;
-            end;
+        case DlgResult of
+          DLG_YES : begin
+            fRemoveVendorsFromClient := true;
+          end;
+          DLG_CANCEL : begin
+            Exit;
           end;
         end;
       end;
     end;
+  end;
 
-    {do the deletion}
-    if LoadAdminSystem(true, 'TfrmMaintainBank.tbDeleteClick' ) then
+  {do the deletion}
+  if LoadAdminSystem(true, 'TfrmMaintainBank.tbDeleteClick' ) then
+  begin
+    // Now safe to set to true. Required by delete code below
+    Result := true;
+
+    // Must do this before BankLink Online code below
+    AcctNo := BankAccount.baFields.baBank_Account_Number;
+    AcctName := BankAccount.baFields.baBank_Account_Name;
+    CoreAccountID := BankAccount.baFields.baCore_Account_ID;
+
+    // Delete on BankLink Online first
+    if (IsExportDataEnabledFoAccount) and (fClientAccVendors.ClientID <> '') and AccountHasVendors(BankAccount.baFields.baCore_Account_ID) then
     begin
-      // Now safe to set to true. Required by delete code below
-      Result := true;
-
-      // Must do this before BankLink Online code below
-      AcctNo := BankAccount.baFields.baBank_Account_Number;
-      AcctName := BankAccount.baFields.baBank_Account_Name;
-      CoreAccountID := BankAccount.baFields.baCore_Account_ID;
-
-      // Delete on BankLink Online first
-      if (IsExportDataEnabledFoAccount) and (fClientAccVendors.ClientID <> '') and AccountHasVendors(BankAccount.baFields.baCore_Account_ID) then
+      if fRemoveVendorsFromClient then
       begin
-        if fRemoveVendorsFromClient then
-        begin
-          try
-            Result := ProductConfigService.SaveClientVendorExports(fClientAccVendors.ClientID,
-                                                                   fRemoveVendorsFromClientList,
-                                                                   true,
-                                                                   true,
-                                                                   False);
-          finally
-            fRemoveVendorsFromClient := false;
-          end;
-
-          if Result then
-          begin
-            // Remove All Vendor Columns
-            for i := 0 to high(fClientAccVendors.ClientVendors) do
-              lvBank.Columns.Delete(lvBank.Columns.Count-1);
-
-            AddOnlineExportVendors;
-          end;
+        try
+          Result := ProductConfigService.SaveClientVendorExports(fClientAccVendors.ClientID,
+                                                                 fRemoveVendorsFromClientList,
+                                                                 true,
+                                                                 true,
+                                                                 False);
+        finally
+          fRemoveVendorsFromClient := false;
         end;
 
         if Result then
         begin
-          SetLength(CurrentVendors, 0);
-          Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
-                                                                  CoreAccountID,
-                                                                  AcctName,
-                                                                  AcctNo,
-                                                                  CurrentVendors,
-                                                                  True);
+          // Remove All Vendor Columns
+          for i := 0 to high(fClientAccVendors.ClientVendors) do
+            lvBank.Columns.Delete(lvBank.Columns.Count-1);
+
+          AddOnlineExportVendors;
         end;
       end;
 
-      // OK to delete locally?
-      // Note: do this last, so we don't end up with orphaned objects
       if Result then
       begin
-        MyClient.clBank_Account_List.DelFreeItem(BankAccount);
-        // Delete from client-account map
-        if not MyClient.clFields.clFile_Read_Only then
-        begin
-          pS := AdminSystem.fdSystem_Bank_Account_List.FindCode(AcctNo);
-          if Assigned(pS) then
-          begin
-            pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
-            if Assigned(pF) then
-            begin
-              i := AdminSystem.fdSystem_Client_Account_Map.FindIndexOf(pS^.sbLRN, pF^.cfLRN);
-              if i > -1 then
-                AdminSystem.fdSystem_Client_Account_Map.AtDelete(i);
-              //Update ISO Code list
-              AdminSystem.HasCurrencyBankAccount('');
-            end;
-            // Update unattached flag
-            if not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(pS^.sbLRN)) then
-              pS.sbAttach_Required := True;
-          end;
-        end;
+        SetLength(CurrentVendors, 0);
+        Result := ProductConfigService.SaveAccountVendorExports(fClientAccVendors.ClientID,
+                                                                CoreAccountID,
+                                                                AcctName,
+                                                                AcctNo,
+                                                                CurrentVendors,
+                                                                True);
+      end;
+    end;
 
-        //*** Flag Audit ***
-        SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+    // OK to delete locally?
+    // Note: do this last, so we don't end up with orphaned objects
+    if Result then
+    begin
+      MyClient.clBank_Account_List.DelFreeItem(BankAccount);
+      // Delete from client-account map
+      if not MyClient.clFields.clFile_Read_Only then
+      begin
+        pS := AdminSystem.fdSystem_Bank_Account_List.FindCode(AcctNo);
+        if Assigned(pS) then
+        begin
+          pF := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+          if Assigned(pF) then
+          begin
+            i := AdminSystem.fdSystem_Client_Account_Map.FindIndexOf(pS^.sbLRN, pF^.cfLRN);
+            if i > -1 then
+              AdminSystem.fdSystem_Client_Account_Map.AtDelete(i);
+            //Update ISO Code list
+            AdminSystem.HasCurrencyBankAccount('');
+          end;
+          // Update unattached flag
+          if not Assigned(AdminSystem.fdSystem_Client_Account_Map.FindFirstClient(pS^.sbLRN)) then
+            pS.sbAttach_Required := True;
+        end;
       end;
 
-      SaveAdminSystem;
-    end
-    else
-      HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
-  finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
-  end;
+      //*** Flag Audit ***
+      SystemAuditMgr.FlagAudit(arAttachBankAccounts);
+    end;
+
+    SaveAdminSystem;
+  end
+  else
+    HelpfulErrorMsg('Unable to Delete Bank Account.  Admin System cannot be loaded',0);
 
   LogUtil.LogMsg(lmInfo,'MAINTAINBANKFRM','User Delete Bank Account '+AcctNo+' - '+AcctName);
 end;
@@ -866,7 +853,7 @@ var
 begin
   {Sometimes this is not automatically initialized to nil}
   TempAccVendors.AccountVendors := nil;
-  
+
   if lvBank.Selected <> nil then
   begin
     B := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
@@ -953,54 +940,41 @@ var
   PrevSelectedIndex: Integer;
   PrevTopIndex: Integer;
   BA: string;
-  MaintainMemScanStatus: boolean;
 begin
-  MaintainMemScanStatus := false;
-  try
-    if Assigned(frmMain) then
+  if (CurrUser.CanAccessAdmin) then
+  begin
+    if lvBank.Selected <> nil then
     begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
-    if (CurrUser.CanAccessAdmin) then
-    begin
-      if lvBank.Selected <> nil then
+      BASelected := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
+      BA := BASelected.baFields.baBank_Account_Number;
+      if (baSelected.baFields.baAccount_Type = btBank)
+      and (CountManualBankAccounts > 0)
+      and (not baSelected.IsManual)
+      and (CountDeliveredBankAccounts = 1)
+      and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date, True) then // must have a live bank account
       begin
-        BASelected := TBank_Account(lvBank.Selected.SubItems.Objects[0]);
-        BA := BASelected.baFields.baBank_Account_Number;
-        if (baSelected.baFields.baAccount_Type = btBank)
-        and (CountManualBankAccounts > 0)
-        and (not baSelected.IsManual)
-        and (CountDeliveredBankAccounts = 1)
-        and MDEExpired(MyClient.clBank_Account_List, MyClient.clFields.clLast_Use_Date, True) then // must have a live bank account
-        begin
-           HelpfulWarningMsg('You cannot delete this bank account until you have removed all of your ' + UserDefinedBankAccountDesc + 's.', 0);
-           exit;
-        end;
-        PrevSelectedIndex := lvBank.Selected.Index;
-        PrevTopIndex := lvBank.TopItem.Index;
-        if DeleteBankAccount( BASelected) then
-        begin
-         UpdateRefNeeded := true;
-         AccountChanged := True;
-         RefreshBankAccountList;
+         HelpfulWarningMsg('You cannot delete this bank account until you have removed all of your ' + UserDefinedBankAccountDesc + 's.', 0);
+         exit;
+      end;
+      PrevSelectedIndex := lvBank.Selected.Index;
+      PrevTopIndex := lvBank.TopItem.Index;
+      if DeleteBankAccount( BASelected) then
+      begin
+       UpdateRefNeeded := true;
+       AccountChanged := True;
+       RefreshBankAccountList;
 
-         //*** Flag Audit ***
-         MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
+       //*** Flag Audit ***
+       MyClient.FClientAuditMgr.FlagAudit(arClientBankAccounts);
 
-         //Update ISO Codes in Client_File_Rec
-         UpdateISOCodes;
-         ReselectAndScroll(lvBank, PrevSelectedIndex, PrevTopIndex);
+       //Update ISO Codes in Client_File_Rec
+       UpdateISOCodes;
+       ReselectAndScroll(lvBank, PrevSelectedIndex, PrevTopIndex);
 
-         // Remove account from recommended memorisations
-         MyClient.clRecommended_Mems.RemoveAccountFromMems(BA);
-        end;
+       // Remove account from recommended memorisations
+       MyClient.clRecommended_Mems.RemoveAccountFromMems(BA);
       end;
     end;
-  finally
-    if Assigned(frmMain) then
-       if not MaintainMemScanStatus then
-         frmMain.MemScanIsBusy := False;
   end;
 end;
 

@@ -1110,10 +1110,7 @@ var
   OldStatusSilent: Boolean;
   MaintainMemScanStatus: boolean;
 begin
-  MaintainMemScanStatus := false;
-
   OldStatusSilent := StatusSilent;
-
   StatusSilent := False;
 
   try
@@ -1126,13 +1123,7 @@ begin
     if not RefreshAdmin then
       Exit;
 
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-      if Assigned(MyClient) then
-        MyClient.clRecommended_Mems.RemoveAccountsFromMems;
-    end;
+    MyClient.clRecommended_Mems.RemoveAccountsFromMems;
 
     //Check integrity of the admin system before doing anything
     Admin32.IntegrityCheck;
@@ -1195,9 +1186,6 @@ begin
     end;
   finally
     StatusSilent := OldStatusSilent;
-    if Assigned(frmMain) then    
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

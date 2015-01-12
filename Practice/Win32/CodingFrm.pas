@@ -1665,12 +1665,9 @@ var
 begin
   MaintainMemScanStatus := False;
 
+  MyClient.clRecommended_Mems.StopMemScan;
   try
-   if Assigned(frmMain) then
-   begin
-     MaintainMemScanStatus := frmMain.MemScanIsBusy;
-     frmMain.MemScanIsBusy := True;
-   end;
+
    if not ValidDataRow(tblCoding.ActiveRow) then exit;
    pT   := WorkTranList.Transaction_At( tblCoding.ActiveRow - 1);
    if pT^.txLocked then
@@ -1749,11 +1746,10 @@ begin
       end;
    end;
   finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    MyClient.clRecommended_Mems.StartMemScan;
   end;
 end; //DoPayeeLookup;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoDissection(JA: Integer = -1);
 //cannot dissect an entry that is dissected or transferred and not already dissected
@@ -2838,16 +2834,11 @@ var
    AuditId: integer;
    AuditType: TAuditType;
    DeletedTrans: pDeleted_Transaction_Rec;
-   MaintainMemScanStatus: boolean;
 begin
-  MaintainMemScanStatus := False;
 
+  MyClient.clRecommended_Mems.StopMemScan;
   try
-   if Assigned(frmMain) then
-   begin
-     MaintainMemScanStatus := frmMain.MemScanIsBusy;
-     frmMain.MemScanIsBusy := True;
-   end;
+
    with tblCoding do
    begin
      if not ValidDataRow(ActiveRow) then exit;
@@ -3383,9 +3374,7 @@ begin
       RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
    end;  //with pT^
   finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    MyClient.clRecommended_Mems.StartMemScan;
   end;
 end;
 
@@ -3439,17 +3428,10 @@ end;
 procedure TfrmCoding.DoDeleteDissection( pT : pTransaction_Rec);
 //allows the user to delete all lines from a dissection without using the
 //dissect dlg
-var
-  MaintainMemScanStatus: boolean;
 begin
-  MaintainMemScanStatus := False;
 
+  MyClient.clRecommended_Mems.StopMemScan;
   try
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
     if pT^.txLocked then
       Exit;
     if pT^.txDate_Transferred <> 0 then
@@ -3474,9 +3456,7 @@ begin
 
     RedrawRow;
   finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    MyClient.clRecommended_Mems.StartMemScan;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4437,7 +4417,6 @@ var
    RecodeRequired : Boolean;
    PayeeLine    : pPayee_Line_Rec;
    Amount       : Money;
-   MaintainMemScanStatus: boolean;
 
    function DoSuperFund: Boolean;
    begin
@@ -4452,276 +4431,262 @@ var
    end;
 
 begin
-  MaintainMemScanStatus := False;
+  result := true;  //assume success
 
-  try
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
+  if pT^.txPayee_Number = 0 then exit;  //don't need to do anything
 
-    result := true;  //assume success
+  if (not BankAccount.ValidPayeeCode(pT^.txPayee_Number)) then begin
+    Result := False;
+    Exit;
+  end;
 
-    if pT^.txPayee_Number = 0 then exit;  //don't need to do anything
-
-    if (not BankAccount.ValidPayeeCode(pT^.txPayee_Number)) then begin
-      Result := False;
-      Exit;
-    end;
-
-    APayee := MyClient.clPayee_List.Find_Payee_Number(pT^.txPayee_Number);
-    with pT^, APayee do begin
-       //Payee is dissected if more than one line with Account Code
-       isPayeeDissected := APayee.IsDissected;
-       //see if user want to override existing fields.  Don't ask if nothing would
-       //be changed.
-       if ( txFirst_Dissection <> nil )
-       or (txAccount <> '') then
-       begin
-          RecodeRequired := false;
-          //prompt user to override details with detail of payee, or just alter the narration
-          if txFirst_Dissection <> nil then begin
-             //current entry is dissected, see if is different to payee dissection
-             //compare account codes
-             if IsPayeeDissected then
-                 RecodeRequired := not DissectionMatchesPayee( aPayee, pT)
-             else
-                 RecodeRequired := true; //payee is not dissected so coding is different
-          end else begin
-             //account code must be there already
-             PayeeLine := APayee.FirstLine;
-             if ( PayeeLine <> nil) then begin
-                //compare with payee details
-                if IsPayeeDissected
-                or ( txAccount <> PayeeLine.plAccount)
-                or (( txGL_Narration <> PayeeLine.plGL_Narration) and ( PayeeLine.plGL_Narration <> ''))  then begin
-                   RecodeRequired := true;
-                end;
-             end;
-          end;
-
-          if RecodeRequired then begin
-             case PayeeRecodeDlg.AskRecodeOnPayeeChange of
-                prCancel : begin
-                   result := false;
-                   exit;
-                end;
-                prNarrationOnly : begin  //update narration
-                   //only update the narration if the transaction is not dissected
-                   //and the payee is not dissected, otherwise just see the payee
-                   //number - the name will appear in the payee name box
-                   if ( txFirst_Dissection = nil) and ( not IsPayeeDissected) then
-                   begin
-                     PayeeLine := APayee.FirstLine;
-                     if ( PayeeLine <> nil) and ( PayeeLine.plGL_Narration <> '') then
-                     begin
-                       txGL_Narration := PayeeLine.plGL_Narration;
-                     end;
-                   end;
-                   exit;
-                end;
-                prRecode : ;  //proceed as normal
-             end; //case
-          end
-          else
-            //nothing needs to change so just exit.
-            exit;
-       end;
-
-       //clear any existing dissection
-       Dump_Dissections( pT);
-
-       //code the entry with the details from the payee
-       if not (isPayeeDissected) then
-       begin
-          //payee is a single line so alter existing transaction
-          if (APayee.pdLines.ItemCount > 0) then
-          begin
-            PayeeLine := APayee.FirstLine;
-            txAccount := PayeeLine.plAccount;
-            if PayeeLine.plGL_Narration <> '' then
-              txGL_Narration := PayeeLine.plGL_Narration;
-
-            if (PayeeLine.plGST_Has_Been_Edited) then begin
-               txGST_Class    := PayeeLine.plGST_Class;
-  //             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
-               txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
-               txGST_Has_Been_Edited := true;
-            end
-            else begin
-  //             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
-               CalculateGST( MyClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
-               txGST_Has_Been_Edited := false;
-            end;
-            txCoded_by := cbManualPayee;
-
-            if DoSuperFund then begin
-               if PayeeLine.plSF_PCFranked <> 0 then begin
-                  txSF_Franked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCFranked) * Money2Double(txAmount)/100));
-                  txSF_Imputed_Credit := FrankingCredit(txSF_Franked, txDate_Effective);
-               end;
-               if PayeeLine.plSF_PCUnFranked <> 0 then begin
-                  if (PayeeLine.plSF_PCUnFranked + PayeeLine.plSF_PCFranked) = 1000000 then
-                     txSF_UnFranked := Abs(txAmount) - txSF_Franked  // No Rounding Isues
-                  else
-                     txSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(txAmount)/100));
-               end;
-               txSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-               txSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-               txSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
-               txSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
-               txSF_Member_ID            := PayeeLine.plSF_Member_ID;
-               txSF_Transaction_ID       := PayeeLine.plSF_Trans_ID;
-               txSF_Transaction_Code     := PayeeLine.plSF_Trans_Code;
-               txSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-               txSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-               txSF_Member_Component     := PayeeLine.plSF_Member_Component;
-
-               if PayeeLine.plQuantity <> 0 then
-                  txQuantity := PayeeLine.plQuantity;
-
-               if PayeeLine.plSF_GDT_Date <> 0 then
-                  txSF_CGT_Date := PayeeLine.plSF_GDT_Date;
-
-               txSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
-
-               SplitRevenue(txAmount,
-                            txSF_Tax_Free_Dist,
-                            txSF_Tax_Exempt_Dist,
-                            txSF_Tax_Deferred_Dist,
-                            txSF_Foreign_Income,
-                            txSF_Capital_Gains_Indexed,
-                            txSF_Capital_Gains_Disc,
-                            txSF_Capital_Gains_Other,
-                            txSF_Capital_Gains_Foreign_Disc,
-                            txSF_Other_Expenses,
-                            txSF_Interest,
-                            txSF_Rent,
-                            txSF_Special_Income,
-                            PayeeLine);
-
-               txSF_Super_Fields_Edited  := True;
-            end else begin
-               ClearSuperFundFields(Pt);
-            end;
-
-          end;
-       end
-       else
-       begin
-          Amount := txAmount;
-
-          //payee is dissected, so dissect the transaction
-          mxUtils.PayeePercentageSplit( Amount, aPayee, DissectAmt, DissectPct);
-
-          txCoded_by       := cbManualPayee;
-          txAccount        := DISSECT_DESC;
-
-          ClearGSTFields(pT);
-          ClearSuperFundFields(pT);
-
-          for i := aPayee.pdLines.First to aPayee.pdLines.Last do
-          begin
-              PayeeLine := aPayee.pdLines.PayeeLine_At(i);
-              Dissection := New_Dissection_Rec;
-              Dissection.dsBank_Account := pT^.txBank_Account;
-              ClearSuperFundFields(Dissection);
-              with Dissection^ do begin
-                 dsTransaction := pT;
-                 dsAccount := PayeeLine.plAccount;
-                 if PayeeLine.plGL_Narration <> '' then
-                    dsGL_Narration := PayeeLine.plGL_Narration
-                 else
-                    dsGL_Narration := pT^.txGL_Narration;
-
-                 dsAmount := DissectAmt[i];
-                 dsPercent_Amount := DissectPct[i];
-                 dsAmount_Type_Is_Percent := DissectPct[i] <> 0;
-
-                 dsGST_Has_Been_Edited := false;
-                 if (PayeeLine.plGST_Has_Been_Edited) then begin
-                    dsGST_Has_Been_Edited := true;
-                    dsGST_Class := PayeeLine.plGST_Class;
-                 end;
-
-                 dsHas_Been_Edited := FALSE;
-
-                 if DoSuperFund then begin
-                    if PayeeLine.plSF_PCFranked <> 0 then begin
-                       dsSF_Franked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCFranked) * Money2Double(dsAmount)/100));
-                       dsSF_Imputed_Credit := FrankingCredit(dsSF_Franked, txDate_Effective);
-                    end;
-
-                    if PayeeLine.plSF_PCUnFranked <> 0 then begin
-
-                       if (PayeeLine.plSF_PCUnFranked + PayeeLine.plSF_PCFranked) = 1000000 then
-                          dsSF_UnFranked := Abs(dsAmount) - dsSF_Franked  // No Rounding Isues
-                       else
-                          dsSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(dsAmount)/100));
-                    end;
-
-                    dsSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-                    dsSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-                    dsSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
-                    dsSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
-                    dsSF_Member_ID            := PayeeLine.plSF_Member_ID;
-                    dsSF_Transaction_ID       := PayeeLine.plSF_Trans_ID;
-                    dsSF_Transaction_Code     := PayeeLine.plSF_Trans_Code;
-                    dsSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-                    dsSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-                    dsSF_Member_Component     := PayeeLine.plSF_Member_Component;
-
-                    if PayeeLine.plQuantity <> 0 then
-                       dsQuantity := PayeeLine.plQuantity;
-                    if PayeeLine.plSF_GDT_Date <> 0 then
-                       dsSF_CGT_Date := PayeeLine.plSF_GDT_Date;
-
-                    dsSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
-
-                    SplitRevenue(dsAmount,
-                                 dsSF_Tax_Free_Dist,
-                                 dsSF_Tax_Exempt_Dist,
-                                 dsSF_Tax_Deferred_Dist,
-                                 dsSF_Foreign_Income,
-                                 dsSF_Capital_Gains_Indexed,
-                                 dsSF_Capital_Gains_Disc,
-                                 dsSF_Capital_Gains_Other,
-                                 dsSF_Capital_Gains_Foreign_Disc,
-                                 dsSF_Other_Expenses,
-                                 dsSF_Interest,
-                                 dsSF_Rent,
-                                 dsSF_Special_Income,
-                                 PayeeLine);
-                    dsSF_Super_Fields_Edited  := True;
-                 end;
-
-
-
-                 AppendDissection( pT, Dissection, MyClient.ClientAuditMgr );
+  APayee := MyClient.clPayee_List.Find_Payee_Number(pT^.txPayee_Number);
+  with pT^, APayee do begin
+     //Payee is dissected if more than one line with Account Code
+     isPayeeDissected := APayee.IsDissected;
+     //see if user want to override existing fields.  Don't ask if nothing would
+     //be changed.
+     if ( txFirst_Dissection <> nil )
+     or (txAccount <> '') then
+     begin
+        RecodeRequired := false;
+        //prompt user to override details with detail of payee, or just alter the narration
+        if txFirst_Dissection <> nil then begin
+           //current entry is dissected, see if is different to payee dissection
+           //compare account codes
+           if IsPayeeDissected then
+               RecodeRequired := not DissectionMatchesPayee( aPayee, pT)
+           else
+               RecodeRequired := true; //payee is not dissected so coding is different
+        end else begin
+           //account code must be there already
+           PayeeLine := APayee.FirstLine;
+           if ( PayeeLine <> nil) then begin
+              //compare with payee details
+              if IsPayeeDissected
+              or ( txAccount <> PayeeLine.plAccount)
+              or (( txGL_Narration <> PayeeLine.plGL_Narration) and ( PayeeLine.plGL_Narration <> ''))  then begin
+                 RecodeRequired := true;
               end;
+           end;
+        end;
+
+        if RecodeRequired then begin
+           case PayeeRecodeDlg.AskRecodeOnPayeeChange of
+              prCancel : begin
+                 result := false;
+                 exit;
+              end;
+              prNarrationOnly : begin  //update narration
+                 //only update the narration if the transaction is not dissected
+                 //and the payee is not dissected, otherwise just see the payee
+                 //number - the name will appear in the payee name box
+                 if ( txFirst_Dissection = nil) and ( not IsPayeeDissected) then
+                 begin
+                   PayeeLine := APayee.FirstLine;
+                   if ( PayeeLine <> nil) and ( PayeeLine.plGL_Narration <> '') then
+                   begin
+                     txGL_Narration := PayeeLine.plGL_Narration;
+                   end;
+                 end;
+                 exit;
+              end;
+              prRecode : ;  //proceed as normal
+           end; //case
+        end
+        else
+          //nothing needs to change so just exit.
+          exit;
+     end;
+
+     //clear any existing dissection
+     Dump_Dissections( pT);
+
+     //code the entry with the details from the payee
+     if not (isPayeeDissected) then
+     begin
+        //payee is a single line so alter existing transaction
+        if (APayee.pdLines.ItemCount > 0) then
+        begin
+          PayeeLine := APayee.FirstLine;
+          txAccount := PayeeLine.plAccount;
+          if PayeeLine.plGL_Narration <> '' then
+            txGL_Narration := PayeeLine.plGL_Narration;
+
+          if (PayeeLine.plGST_Has_Been_Edited) then begin
+             txGST_Class    := PayeeLine.plGST_Class;
+//             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, txAmount, txGST_Class);
+             txGST_Amount   := CalculateGSTForClass( MyClient, txDate_Effective, Local_Amount, txGST_Class);
+             txGST_Has_Been_Edited := true;
+          end
+          else begin
+//             CalculateGST( MyClient, txDate_Effective, txAccount, txAmount, txGST_Class, txGST_Amount);
+             CalculateGST( MyClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount);
+             txGST_Has_Been_Edited := false;
+          end;
+          txCoded_by := cbManualPayee;
+
+          if DoSuperFund then begin
+             if PayeeLine.plSF_PCFranked <> 0 then begin
+                txSF_Franked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCFranked) * Money2Double(txAmount)/100));
+                txSF_Imputed_Credit := FrankingCredit(txSF_Franked, txDate_Effective);
+             end;
+             if PayeeLine.plSF_PCUnFranked <> 0 then begin
+                if (PayeeLine.plSF_PCUnFranked + PayeeLine.plSF_PCFranked) = 1000000 then
+                   txSF_UnFranked := Abs(txAmount) - txSF_Franked  // No Rounding Isues
+                else
+                   txSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(txAmount)/100));
+             end;
+             txSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+             txSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+             txSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
+             txSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
+             txSF_Member_ID            := PayeeLine.plSF_Member_ID;
+             txSF_Transaction_ID       := PayeeLine.plSF_Trans_ID;
+             txSF_Transaction_Code     := PayeeLine.plSF_Trans_Code;
+             txSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+             txSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+             txSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
+             if PayeeLine.plQuantity <> 0 then
+                txQuantity := PayeeLine.plQuantity;
+
+             if PayeeLine.plSF_GDT_Date <> 0 then
+                txSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+             txSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
+             SplitRevenue(txAmount,
+                          txSF_Tax_Free_Dist,
+                          txSF_Tax_Exempt_Dist,
+                          txSF_Tax_Deferred_Dist,
+                          txSF_Foreign_Income,
+                          txSF_Capital_Gains_Indexed,
+                          txSF_Capital_Gains_Disc,
+                          txSF_Capital_Gains_Other,
+                          txSF_Capital_Gains_Foreign_Disc,
+                          txSF_Other_Expenses,
+                          txSF_Interest,
+                          txSF_Rent,
+                          txSF_Special_Income,
+                          PayeeLine);
+
+             txSF_Super_Fields_Edited  := True;
+          end else begin
+             ClearSuperFundFields(Pt);
           end;
 
-          //Calculate the GST for dissections
-          Dissection := pT.txFirst_Dissection;
-          while (Dissection <> nil) do begin
-            if Dissection.dsGST_Has_Been_Edited then
-              Dissection.dsGST_Amount := CalculateGSTForClass(MyClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
-            else
-              CalculateGST(MyClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
-            Dissection := Dissection.dsNext;
-          end;
+        end;
+     end
+     else
+     begin
+        Amount := txAmount;
 
-          if Assigned(AdminSystem)
-          and AdminSystem.fdFields.fdReplace_Narration_With_Payee then
-            txGL_Narration   := pdName;
-       end;
-    end;  {with payee^}
-  finally
-    if Assigned(frmMain) then
-    if not MaintainMemScanStatus then
-      frmMain.MemScanIsBusy := False;
-  end;                               
+        //payee is dissected, so dissect the transaction
+        mxUtils.PayeePercentageSplit( Amount, aPayee, DissectAmt, DissectPct);
+
+        txCoded_by       := cbManualPayee;
+        txAccount        := DISSECT_DESC;
+
+        ClearGSTFields(pT);
+        ClearSuperFundFields(pT);
+
+        for i := aPayee.pdLines.First to aPayee.pdLines.Last do
+        begin
+            PayeeLine := aPayee.pdLines.PayeeLine_At(i);
+            Dissection := New_Dissection_Rec;
+            Dissection.dsBank_Account := pT^.txBank_Account;
+            ClearSuperFundFields(Dissection);
+            with Dissection^ do begin
+               dsTransaction := pT;
+               dsAccount := PayeeLine.plAccount;
+               if PayeeLine.plGL_Narration <> '' then
+                  dsGL_Narration := PayeeLine.plGL_Narration
+               else
+                  dsGL_Narration := pT^.txGL_Narration;
+
+               dsAmount := DissectAmt[i];
+               dsPercent_Amount := DissectPct[i];
+               dsAmount_Type_Is_Percent := DissectPct[i] <> 0;
+
+               dsGST_Has_Been_Edited := false;
+               if (PayeeLine.plGST_Has_Been_Edited) then begin
+                  dsGST_Has_Been_Edited := true;
+                  dsGST_Class := PayeeLine.plGST_Class;
+               end;
+
+               dsHas_Been_Edited := FALSE;
+
+               if DoSuperFund then begin
+                  if PayeeLine.plSF_PCFranked <> 0 then begin
+                     dsSF_Franked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCFranked) * Money2Double(dsAmount)/100));
+                     dsSF_Imputed_Credit := FrankingCredit(dsSF_Franked, txDate_Effective);
+                  end;
+
+                  if PayeeLine.plSF_PCUnFranked <> 0 then begin
+
+                     if (PayeeLine.plSF_PCUnFranked + PayeeLine.plSF_PCFranked) = 1000000 then
+                        dsSF_UnFranked := Abs(dsAmount) - dsSF_Franked  // No Rounding Isues
+                     else
+                        dsSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(dsAmount)/100));
+                  end;
+
+                  dsSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+                  dsSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+                  dsSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
+                  dsSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
+                  dsSF_Member_ID            := PayeeLine.plSF_Member_ID;
+                  dsSF_Transaction_ID       := PayeeLine.plSF_Trans_ID;
+                  dsSF_Transaction_Code     := PayeeLine.plSF_Trans_Code;
+                  dsSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
+                  dsSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
+                  dsSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
+                  if PayeeLine.plQuantity <> 0 then
+                     dsQuantity := PayeeLine.plQuantity;
+                  if PayeeLine.plSF_GDT_Date <> 0 then
+                     dsSF_CGT_Date := PayeeLine.plSF_GDT_Date;
+
+                  dsSF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
+
+                  SplitRevenue(dsAmount,
+                               dsSF_Tax_Free_Dist,
+                               dsSF_Tax_Exempt_Dist,
+                               dsSF_Tax_Deferred_Dist,
+                               dsSF_Foreign_Income,
+                               dsSF_Capital_Gains_Indexed,
+                               dsSF_Capital_Gains_Disc,
+                               dsSF_Capital_Gains_Other,
+                               dsSF_Capital_Gains_Foreign_Disc,
+                               dsSF_Other_Expenses,
+                               dsSF_Interest,
+                               dsSF_Rent,
+                               dsSF_Special_Income,
+                               PayeeLine);
+                  dsSF_Super_Fields_Edited  := True;
+               end;
+
+
+
+               AppendDissection( pT, Dissection, MyClient.ClientAuditMgr );
+            end;
+        end;
+
+        //Calculate the GST for dissections
+        Dissection := pT.txFirst_Dissection;
+        while (Dissection <> nil) do begin
+          if Dissection.dsGST_Has_Been_Edited then
+            Dissection.dsGST_Amount := CalculateGSTForClass(MyClient, txDate_Effective, Dissection.Local_Amount, Dissection.dsGST_Class)
+          else
+            CalculateGST(MyClient, txDate_Effective, Dissection.dsAccount, Dissection.Local_Amount, Dissection.dsGST_Class, Dissection.dsGST_Amount);
+          Dissection := Dissection.dsNext;
+        end;
+
+        if Assigned(AdminSystem)
+        and AdminSystem.fdFields.fdReplace_Narration_With_Payee then
+          txGL_Narration   := pdName;
+     end;
+  end;  {with payee^}
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmCoding.ValidDataRow(RowNum : integer): boolean;
@@ -5233,131 +5198,119 @@ var
    GSTClass : byte;
    GSTAmt   : double;
    Payee, aDate : integer;
-   MaintainMemScanStatus: boolean;
    IsActive: boolean;
 begin
-  MaintainMemScanStatus := False;
+  //verify values
+  if not ValidDataRow(RowNum) then
+    exit;
 
-  try
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-    end;
-    //verify values
-    if not ValidDataRow(RowNum) then exit;
+  with WorkTranList do
+  begin
+    pT := Transaction_At(RowNum-1);
+    FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
 
-    with WorkTranList do begin
-      pT := Transaction_At(RowNum-1);
-      FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
+    case FieldID of
+       ceAccount: begin
+          MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+          Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
+          if (Account <> '') then begin
+             if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
+                ErrorSound;
+             end;
+          end;
+       end;
 
-      case FieldID of
-         ceAccount: begin
-            MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
-            Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
-            if (Account <> '') then begin
-               if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
-                  ErrorSound;
-               end;
-            end;
-         end;
+       ceGSTClass : begin
+          GSTClass := GetGSTClassNo( MyClient, Trim(TEdit( TOvcTCString(Cell).CellEditor ).Text));
+          if not ( GSTClass = 0) then begin
+             if not ( GSTClass in GST_CLASS_RANGE )
+             or  ( MyClient.clFields.clGST_Class_Names[ GSTClass ] = '' ) then begin
+                AllowIt := false;
+                ErrorSound;
+             end;
+          end;
+       end;
 
-         ceGSTClass : begin
-            GSTClass := GetGSTClassNo( MyClient, Trim(TEdit( TOvcTCString(Cell).CellEditor ).Text));
-            if not ( GSTClass = 0) then begin
-               if not ( GSTClass in GST_CLASS_RANGE )
-               or  ( MyClient.clFields.clGST_Class_Names[ GSTClass ] = '' ) then begin
-                  AllowIt := false;
-                  ErrorSound;
-               end;
-            end;
-         end;
-
-         ceGSTAmount : begin
-            GSTAmt := TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat;
-            if ( pT^.txGST_Class =0 )
-            and (GSTAmt <>0) then begin
-               ErrorSound;
-               TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat := 0;
-               AllowIt := false;
-            end
-            else begin
-    //               if (( pT^.txAmount < 0 ) and ( Double2Money(GSTAmt) < pT^.txAmount ))
-    //               or (( pT^.txAmount > 0 ) and ( Double2Money(GSTAmt) > pT^.txAmount )) then begin
-               if (( pT^.Local_Amount < 0 ) and ( Double2Money(GSTAmt) < pT^.Local_Amount ))
-               or (( pT^.Local_Amount > 0 ) and ( Double2Money(GSTAmt) > pT^.Local_Amount )) then begin
-                  ErrorSound;
-                  TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat := 0;
-                  AllowIt := false;
-               end;
-            end;
-         end;
-
-         cePayee : begin
-            Payee := TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsInteger;
-            if not( Payee = 0 ) then begin
-               if ( MyClient.clPayee_List.Find_Payee_Number(Payee)= nil ) then begin
-                  ErrorSound;
-                  Allowit := false;
-               end
-            end;
-         end;
-
-         ceJob :
-           if Undo then begin
-               Undo := False;
-               TEdit( TOvcTCString(Cell).CellEditor).Text := pT.txJob_Code;
-           end else begin
-               Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
-               if (Account <> '') then
-                  if MyClient.clJobs.FindCode(Account) = nil then begin
-                     ErrorSound;
-                     AllowIt := false;
-                  end;
-           end;
-
-         ceEffDate:
-         begin
-           aDate := TOvcTCPictureFieldEdit(celEditDate.CellEditor).AsStDate;
-           if ( aDate < MinValidDate)
-           or ( aDate > MaxValidDate) then begin
-              ErrorSound;
-              Allowit := False;
-           end;
-           if not IsJournal then begin
-              case pt.txSource of
-                 orBank : begin
-                    ErrorSound; //savety net..
-                    Allowit := False;
-                 end;
-              end;
-           end;
-         end;
-
-         ceReference:
-         begin
-          if Undo then
-          begin
-            Undo := False;
-            TEdit( TOvcTCString(Cell).CellEditor).Text := pT.txReference;
+       ceGSTAmount : begin
+          GSTAmt := TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat;
+          if ( pT^.txGST_Class =0 )
+          and (GSTAmt <>0) then begin
+             ErrorSound;
+             TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat := 0;
+             AllowIt := false;
           end
-          else
-          begin
-            Allowit := ValidCheque(Trim(TEdit( TOvcTCString(Cell).CellEditor).Text), pT, msg);
-            if not Allowit then
-            begin
-              ErrorSound;
-              HelpfulErrorMsg(msg, 0);
+          else begin
+  //               if (( pT^.txAmount < 0 ) and ( Double2Money(GSTAmt) < pT^.txAmount ))
+  //               or (( pT^.txAmount > 0 ) and ( Double2Money(GSTAmt) > pT^.txAmount )) then begin
+             if (( pT^.Local_Amount < 0 ) and ( Double2Money(GSTAmt) < pT^.Local_Amount ))
+             or (( pT^.Local_Amount > 0 ) and ( Double2Money(GSTAmt) > pT^.Local_Amount )) then begin
+                ErrorSound;
+                TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsFloat := 0;
+                AllowIt := false;
+             end;
+          end;
+       end;
+
+       cePayee : begin
+          Payee := TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsInteger;
+          if not( Payee = 0 ) then begin
+             if ( MyClient.clPayee_List.Find_Payee_Number(Payee)= nil ) then begin
+                ErrorSound;
+                Allowit := false;
+             end
+          end;
+       end;
+
+       ceJob :
+         if Undo then begin
+             Undo := False;
+             TEdit( TOvcTCString(Cell).CellEditor).Text := pT.txJob_Code;
+         end else begin
+             Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
+             if (Account <> '') then
+                if MyClient.clJobs.FindCode(Account) = nil then begin
+                   ErrorSound;
+                   AllowIt := false;
+                end;
+         end;
+
+       ceEffDate:
+       begin
+         aDate := TOvcTCPictureFieldEdit(celEditDate.CellEditor).AsStDate;
+         if ( aDate < MinValidDate)
+         or ( aDate > MaxValidDate) then begin
+            ErrorSound;
+            Allowit := False;
+         end;
+         if not IsJournal then begin
+            case pt.txSource of
+               orBank : begin
+                  ErrorSound; //savety net..
+                  Allowit := False;
+               end;
             end;
+         end;
+       end;
+
+       ceReference:
+       begin
+        if Undo then
+        begin
+          Undo := False;
+          TEdit( TOvcTCString(Cell).CellEditor).Text := pT.txReference;
+        end
+        else
+        begin
+          Allowit := ValidCheque(Trim(TEdit( TOvcTCString(Cell).CellEditor).Text), pT, msg);
+          if not Allowit then
+          begin
+            ErrorSound;
+            HelpfulErrorMsg(msg, 0);
           end;
         end;
-      end; //case
-    end; //with
-  finally
-    if Assigned(frmMain) then    
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
-  end;
+      end;
+    end; //case
+  end; //with
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7750,10 +7703,7 @@ var
    OER: Double;
    DefaultGSTClass:  byte;
    DefaultGSTAmt: money;
-   MaintainMemScanStatus: boolean;
 begin
-   MaintainMemScanStatus := False;
-
    if tmrPayee.Enabled then
       tmrPayee.Enabled := False// So I Don't  do it agian
    else
@@ -7762,120 +7712,110 @@ begin
    and isClosing then //Too late
       Exit;
 
-   try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-     end;
-     if ValidDataRow(TmrRow) then begin
-        pT := WorkTranList.Transaction_At(TmrRow-1);
-        MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+   if ValidDataRow(TmrRow) then
+   begin
+      pT := WorkTranList.Transaction_At(TmrRow-1);
+      MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
-        case tmrPayee.Tag of
-        cepayee : if ( pT^.txPayee_Number <> tmpPayee ) then begin
-             OldPayeeNo := pT^.txPayee_Number;
-             pT^.txPayee_Number := tmpPayee;
-             if PayeeEdited(pT) then
-             begin
-                pT^.txHas_Been_Edited := true;
-             end
-             else
-                pT^.txPayee_Number := OldPayeeNo;
-          end;
-        ceJob : if not Sametext( pT^.txJob_Code, tmpJob) then begin
-             OldJob  := pT^.txJob_Code;
+      case tmrPayee.Tag of
+      cepayee : if ( pT^.txPayee_Number <> tmpPayee ) then begin
+           OldPayeeNo := pT^.txPayee_Number;
+           pT^.txPayee_Number := tmpPayee;
+           if PayeeEdited(pT) then
+           begin
+              pT^.txHas_Been_Edited := true;
+           end
+           else
+              pT^.txPayee_Number := OldPayeeNo;
+        end;
+      ceJob : if not Sametext( pT^.txJob_Code, tmpJob) then begin
+           OldJob  := pT^.txJob_Code;
 
-             pT^.txJob_Code := tmpJob;
-             if JobEdited(pT) then
-             begin
-                pT^.txHas_Been_Edited := true;
-                if pt^.txCoded_By in [cbMemorisedC,cbMemorisedM] then
-                   pT^.txCoded_By := cbManual;
-             end
-             else
-                pT^.txJob_Code := OldJob;
-          end;
-        ceEffDate : if (PT.txDate_Effective <> TmpDate) then begin
-                if TmpDate = 0 then
-                   Exit; // Invalid date entered, but forced through (Case 11022)
+           pT^.txJob_Code := tmpJob;
+           if JobEdited(pT) then
+           begin
+              pT^.txHas_Been_Edited := true;
+              if pt^.txCoded_By in [cbMemorisedC,cbMemorisedM] then
+                 pT^.txCoded_By := cbManual;
+           end
+           else
+              pT^.txJob_Code := OldJob;
+        end;
+      ceEffDate : if (PT.txDate_Effective <> TmpDate) then begin
+              if TmpDate = 0 then
+                 Exit; // Invalid date entered, but forced through (Case 11022)
 
-                if IsJournal then begin
-                   if RejectJournalDate(TmpDate) then
-                      Exit;
-                end else begin
-                   if RejectHistoricalDate(TmpDate) then
-                      Exit;
-                   OD := pT^.txDate_Effective;
-                   pT^.txDate_Effective := tmpInteger;
-                   if BankAccount.IsAForexAccount then begin
+              if IsJournal then begin
+                 if RejectJournalDate(TmpDate) then
+                    Exit;
+              end else begin
+                 if RejectHistoricalDate(TmpDate) then
+                    Exit;
+                 OD := pT^.txDate_Effective;
+                 pT^.txDate_Effective := tmpInteger;
+                 if BankAccount.IsAForexAccount then begin
 
-                     OER := pT^.txForex_Conversion_Rate;
-                     pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(tmpInteger);
-                     if OER <> pT^.txForex_Conversion_Rate then begin
-  //                      OM := pT.txAmount;
-                        OM := pT.Local_Amount;
-  //                      if pT.txForex_Conversion_Rate <> 0.0 then
-  //                         pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
-  //                      else
-  //                         pT.txAmount := 0;
-  //                      if pT.txAmount <> OM then begin
-                           if pT^.txFirst_Dissection <> nil then begin
-                              if (not DissectEntry(pT, false, false, BankAccount)) then begin
-                                 pT.txDate_Effective := OD;
-                                 pT.txAmount := OM;
-                                 pT^.txForex_Conversion_Rate := OER;
-                                 HelpfulInfoMsg('The tranaction date has been changed back.',0);
-                                 Exit;
-                              end;
-                           end;
-                           //Force Recalc of GST if not dissected
-                           if pT^.txFirst_Dissection = nil then begin
-                              GSTClassEdited(pT);
-                              //see if gst matches default now
-                              with pT^ do begin
-  //                               CalculateGST( myClient, txDate_Effective, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmt);
-                                 CalculateGST( myClient, txDate_Effective, txAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmt);
-                                 txGST_Has_Been_Edited := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);
-                              end;
-                           end;
-  //                      end;
-                     end;
+                   OER := pT^.txForex_Conversion_Rate;
+                   pT^.txForex_Conversion_Rate := BankAccount.Default_Forex_Conversion_Rate(tmpInteger);
+                   if OER <> pT^.txForex_Conversion_Rate then begin
+//                      OM := pT.txAmount;
+                      OM := pT.Local_Amount;
+//                      if pT.txForex_Conversion_Rate <> 0.0 then
+//                         pT.txAmount := Round( pT.txForeign_Currency_Amount / pT.txForex_Conversion_Rate )
+//                      else
+//                         pT.txAmount := 0;
+//                      if pT.txAmount <> OM then begin
+                         if pT^.txFirst_Dissection <> nil then begin
+                            if (not DissectEntry(pT, false, false, BankAccount)) then begin
+                               pT.txDate_Effective := OD;
+                               pT.txAmount := OM;
+                               pT^.txForex_Conversion_Rate := OER;
+                               HelpfulInfoMsg('The tranaction date has been changed back.',0);
+                               Exit;
+                            end;
+                         end;
+                         //Force Recalc of GST if not dissected
+                         if pT^.txFirst_Dissection = nil then begin
+                            GSTClassEdited(pT);
+                            //see if gst matches default now
+                            with pT^ do begin
+//                               CalculateGST( myClient, txDate_Effective, txAccount, txAmount, DefaultGSTClass, DefaultGSTAmt);
+                               CalculateGST( myClient, txDate_Effective, txAccount, Local_Amount, DefaultGSTClass, DefaultGSTAmt);
+                               txGST_Has_Been_Edited := (txGST_Class <> DefaultGSTClass) or (txGST_Amount <> DefaultGSTAmt);
+                            end;
+                         end;
+//                      end;
                    end;
-                end;
-                // If date has changed we must remove and re-insert into the tx list
-                tblCoding.AllowRedraw := False;
-                try
-                   pNew := BankAccount.baTransaction_List.New_Transaction;
-                   Move( pT^, pNew^, SizeOf( TTransaction_Rec));
-                   WorkTranList.DelFreeItem(WorkTranList.Transaction_At(tblCoding.ActiveRow-1));
+                 end;
+              end;
+              // If date has changed we must remove and re-insert into the tx list
+              tblCoding.AllowRedraw := False;
+              try
+                 pNew := BankAccount.baTransaction_List.New_Transaction;
+                 Move( pT^, pNew^, SizeOf( TTransaction_Rec));
+                 WorkTranList.DelFreeItem(WorkTranList.Transaction_At(tblCoding.ActiveRow-1));
 
-                   BankAccount.baTransaction_List.Delete(pT);
+                 BankAccount.baTransaction_List.Delete(pT);
 
-                   pNew^.txDate_Effective := TmpDate;
-                   if not IsJournal then
-                      pNew^.txDate_Presented := TmpDate;
-                   BankAccount.baTransaction_List.Insert_Transaction_Rec(pNew, False);
+                 pNew^.txDate_Effective := TmpDate;
+                 if not IsJournal then
+                    pNew^.txDate_Presented := TmpDate;
+                 BankAccount.baTransaction_List.Insert_Transaction_Rec(pNew, False);
 
-                   AdjustDateRange(TmpDate);
-                   LoadWorkTranList;
-                   RepositionOn(pNew);
+                 AdjustDateRange(TmpDate);
+                 LoadWorkTranList;
+                 RepositionOn(pNew);
 
-                finally
-                  tblCoding.InvalidateTable;
-                  tblCoding.AllowRedraw := True;
-                end;
-          end;
-
+              finally
+                tblCoding.InvalidateTable;
+                tblCoding.AllowRedraw := True;
+              end;
         end;
 
-        RedrawRow(TmrRow);
+      end;
 
-     end;
-   finally
-     if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+      RedrawRow(TmrRow);
+
    end;
 end;
 

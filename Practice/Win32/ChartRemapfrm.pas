@@ -1632,7 +1632,6 @@ var
    GST2: TNewChart;
    lStat: string;
    gI,gJ : Integer;
-   MaintainMemScanStatus: boolean;
 
    procedure CheckFirstChartPass;
    var I: Integer;
@@ -1750,7 +1749,6 @@ var
    end; //RemapGSTID
 
 begin //TfrmRemapChart.RemapCharts;
-  MaintainMemScanStatus := False;
 
   if (AdminSystem.fdFields.fdCountry <> whUK) then
   begin
@@ -1770,12 +1768,8 @@ begin //TfrmRemapChart.RemapCharts;
        Exit;
   end;
 
+    MyClient.clRecommended_Mems.StopMemScan;
     try
-      if Assigned(frmMain) then
-      begin
-        MaintainMemScanStatus := frmMain.MemScanIsBusy;
-        frmMain.MemScanIsBusy := True;
-      end;
       MyClient.clRecommended_Mems.RemoveAccountsFromMems;
 
       fStatString := '';
@@ -1851,9 +1845,7 @@ begin //TfrmRemapChart.RemapCharts;
       // Recommended Mems may now include invalid chart codes, remake them
       // TODO: optimize this to just update the relevant recommended mems
 
-      if Assigned(frmMain) then
-        if not MaintainMemScanStatus then
-          frmMain.MemScanIsBusy := False;
+      MyClient.clRecommended_Mems.StartMemScan;
     end;
 end;//TfrmRemapChart.RemapCharts;
 

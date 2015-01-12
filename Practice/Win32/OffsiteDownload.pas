@@ -172,12 +172,8 @@ var
 
   AttachmentsList   : TStringList;
   AccountsList      : TStringList;
-
-  MaintainMemScanStatus: boolean;
 begin
   LogDebugMsg( ThisMethodName + ' starts');
-
-  MaintainMemScanStatus := False;
 
   //count how many disk images there are to process
   with MyClient.clFields do begin
@@ -186,56 +182,170 @@ begin
        Exit;
   end;
 
+  if Assigned(MyClient) then
+    MyClient.clRecommended_Mems.RemoveAccountsFromMems;
+
+  //---------------------------------------------------------------------------
+  //verify disk images
+  //
+  //---------------------------------------------------------------------------
+
+  FirstDiskImageNo := MyClient.clFields.clDisk_Sequence_No + 1;
+  LastDiskImageNo  := MyClient.clFields.clDisk_Sequence_No + NumDisksToProcess;
+  ImagesProcessed  := 0;
+
+  UpdateAppStatus( 'Verifying Files', '', 0, ProcessMessages_On);
+  LogUtil.LogMsg( lmInfo, UnitName, 'Verifying Files Started');
   try
-    if Assigned(frmMain) then
+    //verify each disk
+    for CurrentDiskNo := FirstDiskImageNo to LastDiskImageNo do
     begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-      if Assigned(MyClient) then
-        MyClient.clRecommended_Mems.RemoveAccountsFromMems;
+      //determine disk filename and format
+      if not GetFilenameAndFormat( MyClient.clFields.clBankLink_Code, DOWNLOADINBOXDIR, CurrentDiskNo, ImageFilename, ImageVersion) then
+        raise EDownloadVerify.Create( 'Disk image not found for ' + inttostr( CurrentDiskNo));
+
+      LogMsg( lmInfo, Unitname, 'Verifying Disk Image ' + DOWNLOADINBOXDIR + ImageFilename);
+      UpdateAppStatusLine2( inttostr( ImagesProcessed + 1) + ' of ' + inttostr( NumDisksToProcess), ProcessMessages_On);
+
+      //check that is not older version that last downloaded
+      if not Globals.PRACINI_IgnoreDiskImageVersion then
+      begin
+        if ImageVersion < MyClient.clFields.clLast_Disk_Image_Version then
+          raise EDownloadVerify.Create( 'The format of the file ' + ImageFilename +
+                                        ' is older than the format required. '+
+                                        '(Last = ' + inttostr( MyClient.clFields.clLast_Disk_Image_Version) +
+                                        ' This = ' + inttostr( ImageVersion)+ ')');
+      end;
+
+      //do country check
+      if not ( MyClient.clFields.clCountry in [whNewZealand, whAustralia, whUK]) then
+        raise Exception.Create( 'Unknown Country in ' + ThisMethodName);
+
+      //create disk image
+      case MyClient.clFields.clCountry of
+        whNewZealand : DiskImage := TNZDisk.Create;
+        whAustralia  : DiskImage := TOZDisk.Create;
+        whUK  : DiskImage := TUKDisk.Create;
+      else
+        DiskImage := nil;
+      end;
+
+      try
+        //load disk image, reraise any errors as EDownloadVerify so that
+        //can be caught, otherwise will cause Critical Application Error
+        try
+          //no need to free attachements for these calls as will be nil
+          if ImageVersion < 2 then
+            DiskImage.LoadFromFileOF( DOWNLOADINBOXDIR + ImageFilename, '', false)
+          else
+            DiskImage.LoadFromFile( DOWNLOADINBOXDIR + ImageFilename, '', false);
+
+          //validate disk image format
+          DiskImage.Validate;
+
+          if DiskImage.dhFields.dhTrue_File_Name <> ImageFilename then
+              raise EDownloadVerify.CreateFmt( S_VALIDATE_ERROR, [ ImageFilename, DiskImage.dhFields.dhTrue_File_Name]);
+        except
+          On E : Exception do
+          begin
+            raise EDownloadVerify.Create( E.ClassName + ':' + E.Message);
+          end;
+        end;                                                           
+                                                              
+        //check that we have the correct pin number for this disk
+        if MyClient.clFields.clCountry = whNewZealand then
+          NameForPin := TrimRight(Copy( DiskImage.dhFields.dhClient_Name, 1, 20))
+        else
+          NameForPin := TrimRight(Copy( DiskImage.dhFields.dhClient_Name, 1, 40));
+
+        if not EnterPIN( DiskImage.dhFields.dhTrue_File_Name,
+                         NameForPin, MyClient.clFields.clPIN_Number) then
+        begin
+          HelpfulErrorMsg( 'Incorrect PIN Number Entered.  Please contact ' +
+                           MyClient.clFields.clPractice_Name +
+                           ' to obtain your PIN number.',0);
+          Exit;
+        end;
+
+        //check that disk has not been downloaded already
+        SerialNo := GetSerialNoForImage( MyClient.clFields.clCountry, DiskImage);
+        with MyClient.clDisk_Log do
+        begin
+          for  i := First to Last do
+          begin
+            if ( Disk_Log_At(i)^.dlDisk_ID = SerialNo) then
+            begin
+              aMsg := 'The file ' + DiskImage.dhFields.dhFile_Name +
+                      ' has already been downloaded.  You cannot download it '+
+                      'more than once.';
+              raise EDownloadVerify.Create( aMsg);
+            end;
+          end;
+        end;
+      finally
+        DiskImage.Free;
+      end;
+      //move on to next disk
+      Inc( ImagesProcessed);
+      UpdateAppStatusPerc( (ImagesProcessed) / NumDisksToProcess * 100, ProcessMessages_On);
     end;
 
-    //---------------------------------------------------------------------------
-    //verify disk images
-    //
-    //---------------------------------------------------------------------------
+    //prepare work directory for use when importing
+    if not DirectoryExists( Globals.DownloadOffsiteWorkDir) then
+    begin
+      if not CreateDir( Globals.DownloadOffsiteWorkDir) then
+      begin
+        aMsg := Format('Unable To Create Directory %s', [ Globals.DownloadOffsiteWorkDir ]);
 
-    FirstDiskImageNo := MyClient.clFields.clDisk_Sequence_No + 1;
-    LastDiskImageNo  := MyClient.clFields.clDisk_Sequence_No + NumDisksToProcess;
-    ImagesProcessed  := 0;
+        LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' - ' + aMsg );
+        raise EDownloadVerify.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, aMsg ] );
+      end;
+    end;
+  finally
+    //clear progress window
+    ClearStatus;
+  end;
 
-    UpdateAppStatus( 'Verifying Files', '', 0, ProcessMessages_On);
-    LogUtil.LogMsg( lmInfo, UnitName, 'Verifying Files Started');
+  //----------------------------------------------------------------------------
+  //       IMPORT ready to begin - the files have been extracted into
+  //       the WORK directory.  Now Cycle thru each file and extract
+  //       data into the archive directory
+  //
+  //----------------------------------------------------------------------------
+  try
+    //initialise accumulators
+    NumEntries  := 0;
+
+    HighestDate := 0;
+    LowestDate  := MaxInt;
+    //NumAccounts := 0;
+
+    //crashes or error before this point will not affect the admin system or
+    //transaction files in the archive dir.
+    //Errors after this will require a restore
+    LogUtil.LogMsg( lmInfo, UnitName, 'DOWNLOAD STARTED');
+
+    //build final message for user
+    //count no of accounts on disk(s)
+    NumAccounts := 0;
+    AccountsList := TStringList.Create;
     try
-      //verify each disk
+      //loop thru each disk, verify each disk
+      ImagesProcessed := 0;
       for CurrentDiskNo := FirstDiskImageNo to LastDiskImageNo do
       begin
         //determine disk filename and format
         if not GetFilenameAndFormat( MyClient.clFields.clBankLink_Code, DOWNLOADINBOXDIR, CurrentDiskNo, ImageFilename, ImageVersion) then
-          raise EDownloadVerify.Create( 'Disk image not found for ' + inttostr( CurrentDiskNo));
+          raise EDownload.Create( 'Disk image not found for ' + inttostr( CurrentDiskNo));
 
-        LogMsg( lmInfo, Unitname, 'Verifying Disk Image ' + DOWNLOADINBOXDIR + ImageFilename);
-        UpdateAppStatusLine2( inttostr( ImagesProcessed + 1) + ' of ' + inttostr( NumDisksToProcess), ProcessMessages_On);
-
-        //check that is not older version that last downloaded
-        if not Globals.PRACINI_IgnoreDiskImageVersion then
-        begin
-          if ImageVersion < MyClient.clFields.clLast_Disk_Image_Version then
-            raise EDownloadVerify.Create( 'The format of the file ' + ImageFilename +
-                                          ' is older than the format required. '+
-                                          '(Last = ' + inttostr( MyClient.clFields.clLast_Disk_Image_Version) +
-                                          ' This = ' + inttostr( ImageVersion)+ ')');
-        end;
-
-        //do country check
-        if not ( MyClient.clFields.clCountry in [whNewZealand, whAustralia, whUK]) then
-          raise Exception.Create( 'Unknown Country in ' + ThisMethodName);
+        LogMsg( lmInfo, Unitname, 'Processing Disk Image ' + DOWNLOADINBOXDIR + ImageFilename);
+        UpdateAppStatus( 'Downloading File ' + ImageFilename, '', ImagesProcessed / NumDisksToProcess * 100, ProcessMessages_On);
 
         //create disk image
         case MyClient.clFields.clCountry of
           whNewZealand : DiskImage := TNZDisk.Create;
-          whAustralia  : DiskImage := TOZDisk.Create;
-          whUK  : DiskImage := TUKDisk.Create;
+          whAustralia : DiskImage := TOZDisk.Create;
+          whUK : DiskImage := TUKDisk.Create;
         else
           DiskImage := nil;
         end;
@@ -244,435 +354,310 @@ begin
           //load disk image, reraise any errors as EDownloadVerify so that
           //can be caught, otherwise will cause Critical Application Error
           try
-            //no need to free attachements for these calls as will be nil
-            if ImageVersion < 2 then
-              DiskImage.LoadFromFileOF( DOWNLOADINBOXDIR + ImageFilename, '', false)
-            else
-              DiskImage.LoadFromFile( DOWNLOADINBOXDIR + ImageFilename, '', false);
+            AttachmentsList := nil;
+            try
+              if ImageVersion < 2 then
+                AttachmentsList := DiskImage.LoadFromFileOF( DOWNLOADINBOXDIR + ImageFilename, Globals.DownloadOffsiteWorkDir, true)
+              else
+                AttachmentsList := DiskImage.LoadFromFile( DOWNLOADINBOXDIR + ImageFilename, Globals.DownloadOffsiteWorkDir, true);
+            finally
+              AttachmentsList.Free;
+            end;
 
             //validate disk image format
             DiskImage.Validate;
 
             if DiskImage.dhFields.dhTrue_File_Name <> ImageFilename then
-                raise EDownloadVerify.CreateFmt( S_VALIDATE_ERROR, [ ImageFilename, DiskImage.dhFields.dhTrue_File_Name]);
+              raise EDownloadVerify.CreateFmt( S_VALIDATE_ERROR, [ ImageFilename, DiskImage.dhFields.dhTrue_File_Name]);
+
+            //store version no
+            MyClient.clFields.clLast_Disk_Image_Version := ImageVersion;
           except
             On E : Exception do
             begin
-              raise EDownloadVerify.Create( E.ClassName + ':' + E.Message);
+              raise EDownload.Create( E.ClassName + ':' + E.Message);
             end;
-          end;                                                           
-                                                              
-          //check that we have the correct pin number for this disk
-          if MyClient.clFields.clCountry = whNewZealand then
-            NameForPin := TrimRight(Copy( DiskImage.dhFields.dhClient_Name, 1, 20))
-          else
-            NameForPin := TrimRight(Copy( DiskImage.dhFields.dhClient_Name, 1, 40));
-
-          if not EnterPIN( DiskImage.dhFields.dhTrue_File_Name,
-                           NameForPin, MyClient.clFields.clPIN_Number) then
-          begin
-            HelpfulErrorMsg( 'Incorrect PIN Number Entered.  Please contact ' +
-                             MyClient.clFields.clPractice_Name +
-                             ' to obtain your PIN number.',0);
-            Exit;
           end;
 
-          //check that disk has not been downloaded already
-          SerialNo := GetSerialNoForImage( MyClient.clFields.clCountry, DiskImage);
-          with MyClient.clDisk_Log do
+          //create a new log entry and store serial no
+          pDiskLogRec := bkDLio.New_Disk_Log_Rec;
+          with pDiskLogRec^ do
           begin
-            for  i := First to Last do
+            //get the serial no for this image
+            SerialNo  := GetSerialNoForImage( MyClient.clFields.clCountry, DiskImage);
+            dlDisk_ID              := SerialNo;
+            dlDate_Downloaded      := CurrentDate;
+            dlNo_of_Accounts       := 0;
+            dlNo_of_Entries        := 0;
+            MyClient.clDisk_Log.Insert( pDiskLogRec);
+          end;
+          MyClient.clFields.clSuppress_Check_For_New_Txns := true;
+
+          //have a good disk image, begin importing bank accounts and transactions
+          for daNo := DiskImage.dhAccount_List.First to DiskImage.dhAccount_List.Last do begin
+            DiskAccount := DiskImage.dhAccount_List.Disk_Bank_Account_At( daNo);
+
+            FirstDateThisAccount := 0;
+            LastDateThisAccount  := 0;
+            NoForAccount := 0;
+
+            Inc( pDiskLogRec^.dlNo_of_Accounts );
+
+            if (AccountsList.IndexOf(DiskAccount.dbFields.dbAccount_Number) = -1) then
+              AccountsList.Add(DiskAccount.dbFields.dbAccount_Number);
+
+            //Inc( NumAccounts);
+
+            UpdateAppStatusLine2( DiskAccount.dbFields.dbAccount_Number, ProcessMessages_On);
+
+            //find this bank account in the client, if not found create a new one
+            ClientAccount := MyClient.clBank_Account_List.FindCode( DiskAccount.dbFields.dbAccount_Number);
+            if not Assigned( ClientAccount) then
             begin
-              if ( Disk_Log_At(i)^.dlDisk_ID = SerialNo) then
+              ClientAccount := TBank_Account.Create(MyClient);
+              with ClientAccount.baFields do
               begin
-                aMsg := 'The file ' + DiskImage.dhFields.dhFile_Name +
-                        ' has already been downloaded.  You cannot download it '+
-                        'more than once.';
-                raise EDownloadVerify.Create( aMsg);
+                baAccount_Type        := btBank;
+                baBank_Account_Number := DiskAccount.dbFields.dbAccount_Number;
+                baBank_Account_Name   := DiskAccount.dbFields.dbAccount_Name;
+                if DiskAccount.dbFields.dbCurrency > '' then
+                   baCurrency_Code := DiskAccount.dbFields.dbCurrency
+                else
+                   baCurrency_Code := whCurrencyCodes[ MyClient.clFields.clCountry ];
+
+                baCurrent_Balance     := UNKNOWN;
+                baApply_Master_Memorised_Entries := false;
+                baDesktop_Super_Ledger_ID := -1;                
               end;
+              //insert new bank account in the list of accounts
+              MyClient.clBank_Account_List.Insert( ClientAccount);
             end;
-          end;
+            //set the opening balance if known
+            //NOTE:  The balances in the production system and disk image
+            //       have the opposite sign to the client software
+            //
+            //       Prod'n                Client
+            //       -ve = OD              -ve = IF
+            //       +ve = IF              +ve = OD
+            if (DiskAccount.dbFields.dbOpening_Balance <> Unknown) and (ClientAccount.baFields.baCurrent_Balance = Unknown) then
+            begin
+              ClientAccount.baFields.baCurrent_Balance := -DiskAccount.dbFields.dbOpening_Balance;
+            end;
+
+            //construct a list to handle unpresented entries
+            UEList    := MakeUEList( ClientAccount);
+            try
+              //begin importing transaction for disk account
+              for dtNo := DiskAccount.dbTransaction_List.First to DiskAccount.dbTransaction_List.Last do
+              begin
+                DiskTxn := DiskAccount.dbTransaction_List.Disk_Transaction_At( dtNo);
+
+                TrxAmount            := DiskTxn.dtAmount;
+                TrxType              := DiskTxn.dtEntry_Type;
+                TrxReference         := DiskTxn.dtReference;
+                TrxDate              := DiskTxn.dtEffective_Date;
+                TrxChequeNo          := 0;
+
+                //construct the cheque number from the reference field
+                case MyClient.clFields.clCountry of
+                  whAustralia, whUK : begin
+                    if (TrxType = 1) then begin
+                      S := Trim( TrxReference);
+                      //cheque no is assumed to be last 6 digits
+                      if Length( S) > MaxChequeLength then
+                        S := Copy( S, (Length(S) - MaxChequeLength) + 1, MaxChequeLength);
+
+                      TrxChequeNo := Str2Long( S);
+                    end;
+                  end;
+
+                  whNewZealand : begin
+                    if (TrxType in [0,4..9]) then begin
+                      S := Trim( TrxReference);
+                      //cheque no is assumed to be last 6 digits
+                      if Length( S) > MaxChequeLength then
+                        S := Copy( S, (Length(S) - MaxChequeLength) + 1, MaxChequeLength);
+
+                      TrxChequeNo := Str2Long( S);
+                    end;
+                  end;
+                end;
+
+                //try to match the new transaction with a unpresented item
+                UE := nil;
+                if Assigned( UEList) and ( TrxChequeNo <> 0) and ( TrxAmount <> 0) then
+                  UE := UEList.FindUEByNumberAndAmount( TrxChequeNo, TrxAmount);
+
+                if Assigned( UE) then
+                begin
+                  if ( UE^.Presented <> 0) or ( UE^.Issued > TrxDate) then
+                    UE := nil;
+                end;
+
+                if Assigned( UE) then
+                begin
+                  //an unpresented cheque has been found that matches
+                  //both the amount and the cheque number.
+                  //update UPC to show that has been matched
+                  UE^.ptr^.txUPI_State          := upMatchedUPC;
+                  UE^.ptr^.txDate_Presented     := TrxDate;
+                  UE^.Presented                 := TrxDate;
+                  UE^.ptr^.txOriginal_Reference := TrxReference;
+                  UE^.ptr^.txOriginal_Source    := orBank;
+                  UE^.ptr^.txOriginal_Type      := TrxType;
+                  UE^.ptr^.txOriginal_Amount    := TrxAmount;
+                  UE^.ptr^.txOriginal_Cheque_Number := TrxChequeNo;
+                end
+                else
+                begin
+                  //no unpresented item to match with, this is a NEW TRANSACTION
+                  pT := ClientAccount.baTransaction_List.New_Transaction;
+
+                  pT^.txType               := TrxType;
+                  pT^.txSource             := BKCONST.orBank;
+                  pT^.txDate_Presented     := TrxDate;
+                  pT^.txDate_Effective     := TrxDate;
+                  pT^.txDate_Transferred   := 0;
+                  pT^.txAmount             := TrxAmount;
+                  pT^.txCheque_Number      := TrxChequeNo;
+                  pT^.txReference          := TrxReference;
+                  pT^.txStatement_Details  := Copy( DiskTxn.dtNarration, 1, 200);
+                  pT^.txSF_Member_Account_ID:= -1;
+                  pT^.txSF_Fund_ID          := -1;
+
+                  if DiskTxn.dtQuantity <> Unknown then
+                    pT^.txQuantity := ForceSignToMatchAmount( DiskTxn.dtQuantity * 10, pT^.txAmount)
+                  else
+                    pT^.txQuantity := 0;
+
+                  //set country specific fields
+                  case MyClient.clFields.clCountry of
+                    whAustralia, whUK : begin
+                      pT^.txParticulars := DiskTxn.dtBank_Type_Code_OZ_Only;
+                    end;
+                    whNewZealand : begin
+                      pT^.txParticulars := DiskTxn.dtParticulars_NZ_Only;
+                      pT^.txOther_Party := DiskTxn.dtOther_Party_NZ_Only;
+                      //the analysis column is padded to 12 char to maintain
+                      //compatibility
+                      pT^.txAnalysis    := GenUtils.PadStr( DiskTxn.dtAnalysis_Code_NZ_Only, 12, ' ');
+                      pT^.txOrigBB      := DiskTxn.dtOrig_BB;
+                      //statement details may need to be constructed for NZ
+                      //clients because there is no corresponding field in the
+                      //old disk image
+                      if ( pT^.txStatement_Details = '') and
+                         (( pT^.txOther_Party <> '') or ( pT^.txParticulars <> '')) then
+                      begin
+                        pT^.txStatement_Details := MakeStatementDetails( ClientAccount.baFields.baBank_Account_Number,
+                                                                         pT^.txOther_Party, pT^.txParticulars);
+                      end;
+                    end;
+                  end;
+
+                  pT^.txGL_Narration := pT^.txStatement_Details;
+                  pT^.txBank_Seq     := ClientAccount.baFields.baNumber;
+
+                  //fields populated, add transaction to list
+                  ClientAccount.baTransaction_List.Insert_Transaction_Rec( pT);
+//                    MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+                end;
+
+                //add transaction amount to current balance
+                //for AU the current balance will have been set to the opening balance
+                //for NZ the current balance will be whatever the user has set up
+                if ClientAccount.baFields.baCurrent_Balance <> Unknown then
+                   ClientAccount.baFields.baCurrent_Balance := ClientAccount.baFields.baCurrent_Balance + TrxAmount;
+
+                //update transaction date range for this account only
+                If (FirstDateThisAccount = 0) or ((FirstDateThisAccount>0) and (TrxDate < FirstDateThisAccount)) then
+                   FirstDateThisAccount := TrxDate;
+                If (TrxDate > LastDateThisAccount) then
+                   LastDateThisAccount := TrxDate;
+
+                //update transaction date range for all accounts
+                If ( TrxDate < LowestDate) then
+                   LowestDate := TrxDate;
+                If ( TrxDate > HighestDate) then
+                   HighestDate := TrxDate;
+
+                Inc( pDiskLogRec^.dlNo_of_Entries );
+                Inc( NumEntries );
+                Inc( NoForAccount );
+              end;  // disk transaction loop
+            finally
+              UEList.Free;
+            end;
+
+            //log stats for this account
+            LogDebugMsg( 'Imported ' + inttostr( NoForAccount) + ' entries for ' +
+                         'account ' + ClientAccount.baFields.baBank_Account_Number);
+
+            //auto code entries
+            if NoForAccount > 0 then
+            begin
+              LogDebugMsg( 'Autocoding Entries');
+              AutoCodeEntries( MyClient,
+                               ClientAccount,
+                               AllEntries,
+                               FirstDateThisAccount,
+                               LastDateThisAccount);
+            end;
+          end;  //disk account loop
         finally
           DiskImage.Free;
         end;
-        //move on to next disk
+        //move on to next image
         Inc( ImagesProcessed);
-        UpdateAppStatusPerc( (ImagesProcessed) / NumDisksToProcess * 100, ProcessMessages_On);
-      end;
-
-      //prepare work directory for use when importing
-      if not DirectoryExists( Globals.DownloadOffsiteWorkDir) then
-      begin
-        if not CreateDir( Globals.DownloadOffsiteWorkDir) then
-        begin
-          aMsg := Format('Unable To Create Directory %s', [ Globals.DownloadOffsiteWorkDir ]);
-
-          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' - ' + aMsg );
-          raise EDownloadVerify.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, aMsg ] );
-        end;
+        UpdateAppStatusPerc( ImagesProcessed / NumDisksToProcess * 100, ProcessMessages_On);
       end;
     finally
-      //clear progress window
-      ClearStatus;
+      NumAccounts := AccountsList.Count;
+      AccountsList.Free;
     end;
 
-    //----------------------------------------------------------------------------
-    //       IMPORT ready to begin - the files have been extracted into
-    //       the WORK directory.  Now Cycle thru each file and extract
-    //       data into the archive directory
-    //
-    //----------------------------------------------------------------------------
-    try
-      //initialise accumulators
-      NumEntries  := 0;
+    //update last disk no in admin system
+    MyClient.clFields.clDisk_Sequence_No := LastDiskImageNo;
 
-      HighestDate := 0;
-      LowestDate  := MaxInt;
-      //NumAccounts := 0;
+    LogMsg( lmInfo, Unitname, 'DOWNLOAD COMPLETED');
+    UpdateAppStatus( 'Download Complete, Cleaning Up', '', 99, ProcessMessages_On);
 
-      //crashes or error before this point will not affect the admin system or
-      //transaction files in the archive dir.
-      //Errors after this will require a restore
-      LogUtil.LogMsg( lmInfo, UnitName, 'DOWNLOAD STARTED');
-
-      //build final message for user
-      //count no of accounts on disk(s)
-      NumAccounts := 0;
-      AccountsList := TStringList.Create;
-      try
-        //loop thru each disk, verify each disk
-        ImagesProcessed := 0;
-        for CurrentDiskNo := FirstDiskImageNo to LastDiskImageNo do
-        begin
-          //determine disk filename and format
-          if not GetFilenameAndFormat( MyClient.clFields.clBankLink_Code, DOWNLOADINBOXDIR, CurrentDiskNo, ImageFilename, ImageVersion) then
-            raise EDownload.Create( 'Disk image not found for ' + inttostr( CurrentDiskNo));
-
-          LogMsg( lmInfo, Unitname, 'Processing Disk Image ' + DOWNLOADINBOXDIR + ImageFilename);
-          UpdateAppStatus( 'Downloading File ' + ImageFilename, '', ImagesProcessed / NumDisksToProcess * 100, ProcessMessages_On);
-
-          //create disk image
-          case MyClient.clFields.clCountry of
-            whNewZealand : DiskImage := TNZDisk.Create;
-            whAustralia : DiskImage := TOZDisk.Create;
-            whUK : DiskImage := TUKDisk.Create;
-          else
-            DiskImage := nil;
-          end;
-
-          try
-            //load disk image, reraise any errors as EDownloadVerify so that
-            //can be caught, otherwise will cause Critical Application Error
-            try
-              AttachmentsList := nil;
-              try
-                if ImageVersion < 2 then
-                  AttachmentsList := DiskImage.LoadFromFileOF( DOWNLOADINBOXDIR + ImageFilename, Globals.DownloadOffsiteWorkDir, true)
-                else
-                  AttachmentsList := DiskImage.LoadFromFile( DOWNLOADINBOXDIR + ImageFilename, Globals.DownloadOffsiteWorkDir, true);
-              finally
-                AttachmentsList.Free;
-              end;
-
-              //validate disk image format
-              DiskImage.Validate;
-
-              if DiskImage.dhFields.dhTrue_File_Name <> ImageFilename then
-                raise EDownloadVerify.CreateFmt( S_VALIDATE_ERROR, [ ImageFilename, DiskImage.dhFields.dhTrue_File_Name]);
-
-              //store version no
-              MyClient.clFields.clLast_Disk_Image_Version := ImageVersion;
-            except
-              On E : Exception do
-              begin
-                raise EDownload.Create( E.ClassName + ':' + E.Message);
-              end;
-            end;
-
-            //create a new log entry and store serial no
-            pDiskLogRec := bkDLio.New_Disk_Log_Rec;
-            with pDiskLogRec^ do
-            begin
-              //get the serial no for this image
-              SerialNo  := GetSerialNoForImage( MyClient.clFields.clCountry, DiskImage);
-              dlDisk_ID              := SerialNo;
-              dlDate_Downloaded      := CurrentDate;
-              dlNo_of_Accounts       := 0;
-              dlNo_of_Entries        := 0;
-              MyClient.clDisk_Log.Insert( pDiskLogRec);
-            end;
-            MyClient.clFields.clSuppress_Check_For_New_Txns := true;
-
-            //have a good disk image, begin importing bank accounts and transactions
-            for daNo := DiskImage.dhAccount_List.First to DiskImage.dhAccount_List.Last do begin
-              DiskAccount := DiskImage.dhAccount_List.Disk_Bank_Account_At( daNo);
-
-              FirstDateThisAccount := 0;
-              LastDateThisAccount  := 0;
-              NoForAccount := 0;
-
-              Inc( pDiskLogRec^.dlNo_of_Accounts );
-
-              if (AccountsList.IndexOf(DiskAccount.dbFields.dbAccount_Number) = -1) then
-                AccountsList.Add(DiskAccount.dbFields.dbAccount_Number);
-
-              //Inc( NumAccounts);
-
-              UpdateAppStatusLine2( DiskAccount.dbFields.dbAccount_Number, ProcessMessages_On);
-
-              //find this bank account in the client, if not found create a new one
-              ClientAccount := MyClient.clBank_Account_List.FindCode( DiskAccount.dbFields.dbAccount_Number);
-              if not Assigned( ClientAccount) then
-              begin
-                ClientAccount := TBank_Account.Create(MyClient);
-                with ClientAccount.baFields do
-                begin
-                  baAccount_Type        := btBank;
-                  baBank_Account_Number := DiskAccount.dbFields.dbAccount_Number;
-                  baBank_Account_Name   := DiskAccount.dbFields.dbAccount_Name;
-                  if DiskAccount.dbFields.dbCurrency > '' then
-                     baCurrency_Code := DiskAccount.dbFields.dbCurrency
-                  else
-                     baCurrency_Code := whCurrencyCodes[ MyClient.clFields.clCountry ];
-
-                  baCurrent_Balance     := UNKNOWN;
-                  baApply_Master_Memorised_Entries := false;
-                  baDesktop_Super_Ledger_ID := -1;                
-                end;
-                //insert new bank account in the list of accounts           
-                MyClient.clBank_Account_List.Insert( ClientAccount);
-              end;
-              //set the opening balance if known
-              //NOTE:  The balances in the production system and disk image
-              //       have the opposite sign to the client software
-              //
-              //       Prod'n                Client
-              //       -ve = OD              -ve = IF
-              //       +ve = IF              +ve = OD
-              if (DiskAccount.dbFields.dbOpening_Balance <> Unknown) and (ClientAccount.baFields.baCurrent_Balance = Unknown) then
-              begin
-                ClientAccount.baFields.baCurrent_Balance := -DiskAccount.dbFields.dbOpening_Balance;
-              end;
-
-              //construct a list to handle unpresented entries
-              UEList    := MakeUEList( ClientAccount);
-              try
-                //begin importing transaction for disk account
-                for dtNo := DiskAccount.dbTransaction_List.First to DiskAccount.dbTransaction_List.Last do
-                begin
-                  DiskTxn := DiskAccount.dbTransaction_List.Disk_Transaction_At( dtNo);
-
-                  TrxAmount            := DiskTxn.dtAmount;
-                  TrxType              := DiskTxn.dtEntry_Type;
-                  TrxReference         := DiskTxn.dtReference;
-                  TrxDate              := DiskTxn.dtEffective_Date;
-                  TrxChequeNo          := 0;
-
-                  //construct the cheque number from the reference field
-                  case MyClient.clFields.clCountry of
-                    whAustralia, whUK : begin
-                      if (TrxType = 1) then begin
-                        S := Trim( TrxReference);
-                        //cheque no is assumed to be last 6 digits
-                        if Length( S) > MaxChequeLength then
-                          S := Copy( S, (Length(S) - MaxChequeLength) + 1, MaxChequeLength);
-
-                        TrxChequeNo := Str2Long( S);
-                      end;
-                    end;
-
-                    whNewZealand : begin
-                      if (TrxType in [0,4..9]) then begin
-                        S := Trim( TrxReference);
-                        //cheque no is assumed to be last 6 digits
-                        if Length( S) > MaxChequeLength then
-                          S := Copy( S, (Length(S) - MaxChequeLength) + 1, MaxChequeLength);
-
-                        TrxChequeNo := Str2Long( S);
-                      end;
-                    end;
-                  end;
-
-                  //try to match the new transaction with a unpresented item
-                  UE := nil;
-                  if Assigned( UEList) and ( TrxChequeNo <> 0) and ( TrxAmount <> 0) then
-                    UE := UEList.FindUEByNumberAndAmount( TrxChequeNo, TrxAmount);
-
-                  if Assigned( UE) then
-                  begin
-                    if ( UE^.Presented <> 0) or ( UE^.Issued > TrxDate) then
-                      UE := nil;
-                  end;
-
-                  if Assigned( UE) then
-                  begin
-                    //an unpresented cheque has been found that matches
-                    //both the amount and the cheque number.
-                    //update UPC to show that has been matched
-                    UE^.ptr^.txUPI_State          := upMatchedUPC;
-                    UE^.ptr^.txDate_Presented     := TrxDate;
-                    UE^.Presented                 := TrxDate;
-                    UE^.ptr^.txOriginal_Reference := TrxReference;
-                    UE^.ptr^.txOriginal_Source    := orBank;
-                    UE^.ptr^.txOriginal_Type      := TrxType;
-                    UE^.ptr^.txOriginal_Amount    := TrxAmount;
-                    UE^.ptr^.txOriginal_Cheque_Number := TrxChequeNo;
-                  end
-                  else
-                  begin
-                    //no unpresented item to match with, this is a NEW TRANSACTION
-                    pT := ClientAccount.baTransaction_List.New_Transaction;
-
-                    pT^.txType               := TrxType;
-                    pT^.txSource             := BKCONST.orBank;
-                    pT^.txDate_Presented     := TrxDate;
-                    pT^.txDate_Effective     := TrxDate;
-                    pT^.txDate_Transferred   := 0;
-                    pT^.txAmount             := TrxAmount;
-                    pT^.txCheque_Number      := TrxChequeNo;
-                    pT^.txReference          := TrxReference;
-                    pT^.txStatement_Details  := Copy( DiskTxn.dtNarration, 1, 200);
-                    pT^.txSF_Member_Account_ID:= -1;
-                    pT^.txSF_Fund_ID          := -1;
-
-                    if DiskTxn.dtQuantity <> Unknown then
-                      pT^.txQuantity := ForceSignToMatchAmount( DiskTxn.dtQuantity * 10, pT^.txAmount)
-                    else
-                      pT^.txQuantity := 0;
-
-                    //set country specific fields
-                    case MyClient.clFields.clCountry of
-                      whAustralia, whUK : begin
-                        pT^.txParticulars := DiskTxn.dtBank_Type_Code_OZ_Only;
-                      end;
-                      whNewZealand : begin
-                        pT^.txParticulars := DiskTxn.dtParticulars_NZ_Only;
-                        pT^.txOther_Party := DiskTxn.dtOther_Party_NZ_Only;
-                        //the analysis column is padded to 12 char to maintain
-                        //compatibility
-                        pT^.txAnalysis    := GenUtils.PadStr( DiskTxn.dtAnalysis_Code_NZ_Only, 12, ' ');
-                        pT^.txOrigBB      := DiskTxn.dtOrig_BB;
-                        //statement details may need to be constructed for NZ
-                        //clients because there is no corresponding field in the
-                        //old disk image
-                        if ( pT^.txStatement_Details = '') and
-                           (( pT^.txOther_Party <> '') or ( pT^.txParticulars <> '')) then
-                        begin
-                          pT^.txStatement_Details := MakeStatementDetails( ClientAccount.baFields.baBank_Account_Number,
-                                                                           pT^.txOther_Party, pT^.txParticulars);
-                        end;
-                      end;
-                    end;
-
-                    pT^.txGL_Narration := pT^.txStatement_Details;
-                    pT^.txBank_Seq     := ClientAccount.baFields.baNumber;
-
-                    //fields populated, add transaction to list
-                    ClientAccount.baTransaction_List.Insert_Transaction_Rec( pT);
-//                    MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
-                  end;
-
-                  //add transaction amount to current balance
-                  //for AU the current balance will have been set to the opening balance
-                  //for NZ the current balance will be whatever the user has set up
-                  if ClientAccount.baFields.baCurrent_Balance <> Unknown then
-                     ClientAccount.baFields.baCurrent_Balance := ClientAccount.baFields.baCurrent_Balance + TrxAmount;
-
-                  //update transaction date range for this account only
-                  If (FirstDateThisAccount = 0) or ((FirstDateThisAccount>0) and (TrxDate < FirstDateThisAccount)) then
-                     FirstDateThisAccount := TrxDate;
-                  If (TrxDate > LastDateThisAccount) then
-                     LastDateThisAccount := TrxDate;
-
-                  //update transaction date range for all accounts
-                  If ( TrxDate < LowestDate) then
-                     LowestDate := TrxDate;
-                  If ( TrxDate > HighestDate) then
-                     HighestDate := TrxDate;
-
-                  Inc( pDiskLogRec^.dlNo_of_Entries );
-                  Inc( NumEntries );
-                  Inc( NoForAccount );
-                end;  // disk transaction loop
-              finally
-                UEList.Free;
-              end;
-
-              //log stats for this account
-              LogDebugMsg( 'Imported ' + inttostr( NoForAccount) + ' entries for ' +
-                           'account ' + ClientAccount.baFields.baBank_Account_Number);
-
-              //auto code entries
-              if NoForAccount > 0 then
-              begin
-                LogDebugMsg( 'Autocoding Entries');
-                AutoCodeEntries( MyClient,
-                                 ClientAccount,
-                                 AllEntries,
-                                 FirstDateThisAccount,
-                                 LastDateThisAccount);
-              end;
-            end;  //disk account loop
-          finally
-            DiskImage.Free;
-          end;
-          //move on to next image
-          Inc( ImagesProcessed);
-          UpdateAppStatusPerc( ImagesProcessed / NumDisksToProcess * 100, ProcessMessages_On);
-        end;
-      finally
-        NumAccounts := AccountsList.Count;
-        AccountsList.Free;
-      end;
-
-      //update last disk no in admin system
-      MyClient.clFields.clDisk_Sequence_No := LastDiskImageNo;
-
-      LogMsg( lmInfo, Unitname, 'DOWNLOAD COMPLETED');
-      UpdateAppStatus( 'Download Complete, Cleaning Up', '', 99, ProcessMessages_On);
-
-      //clean up processed disk images
-      for CurrentDiskNo := FirstDiskImageNo to LastDiskImageNo do
+    //clean up processed disk images
+    for CurrentDiskNo := FirstDiskImageNo to LastDiskImageNo do
+    begin
+      //determine disk filename and format
+      if GetFilenameAndFormat( MyClient.clFields.clBankLink_Code, DOWNLOADINBOXDIR, CurrentDiskNo, ImageFilename, ImageVersion) then
       begin
-        //determine disk filename and format
-        if GetFilenameAndFormat( MyClient.clFields.clBankLink_Code, DOWNLOADINBOXDIR, CurrentDiskNo, ImageFilename, ImageVersion) then
-        begin
-          //delete disk image
-          SysUtils.DeleteFile( DOWNLOADINBOXDIR + ImageFilename);
-        end;
+        //delete disk image
+        SysUtils.DeleteFile( DOWNLOADINBOXDIR + ImageFilename);
       end;
-      ClearStatus;
-
-      //TFS 13323 - there is no highest date if there are no transactions.
-      if HighestDate = 0 then
-        HighestDate := LowestDate;
-
-      //build final message for user
-      aMsg := 'Download Complete.  ' +
-             inttoStr( ImagesProcessed) + ' disk image(s). ' +
-             inttoStr( NumAccounts) + ' accounts received. ' +
-             inttoStr( NumEntries)  + ' entries';
-      if NumEntries > 0 then
-             aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
-      aMsg := aMsg + '.';
-      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + aMsg);
-
-      aMsg := 'Download Complete.  '#13#13 +
-             inttoStr( ImagesProcessed) + ' file(s) downloaded. '#13 +
-             inttoStr( NumAccounts) + ' accounts received. '#13 +
-             inttoStr( NumEntries)  + ' entries';
-     if NumEntries > 0 then
-             aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
-      aMsg := aMsg + '.';
-      HelpfulInfoMsg(aMsg,0);
-    finally
-      //clear progress window
-      ClearStatus;
     end;
+    ClearStatus;
+
+    //TFS 13323 - there is no highest date if there are no transactions.
+    if HighestDate = 0 then
+      HighestDate := LowestDate;
+
+    //build final message for user
+    aMsg := 'Download Complete.  ' +
+           inttoStr( ImagesProcessed) + ' disk image(s). ' +
+           inttoStr( NumAccounts) + ' accounts received. ' +
+           inttoStr( NumEntries)  + ' entries';
+    if NumEntries > 0 then
+           aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
+    aMsg := aMsg + '.';
+    LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' - ' + aMsg);
+
+    aMsg := 'Download Complete.  '#13#13 +
+           inttoStr( ImagesProcessed) + ' file(s) downloaded. '#13 +
+           inttoStr( NumAccounts) + ' accounts received. '#13 +
+           inttoStr( NumEntries)  + ' entries';
+   if NumEntries > 0 then
+           aMsg := aMsg + ' from ' + bkDate2Str( LowestDate) + ' to ' + bkDate2Str( HighestDate);
+    aMsg := aMsg + '.';
+    HelpfulInfoMsg(aMsg,0);
   finally
-    if Assigned(frmMain) then
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
+    //clear progress window
+    ClearStatus;
   end;
 
   LogDebugMsg( ThisMethodName + ' ends');
@@ -681,59 +666,46 @@ end;
 procedure DoOffsiteDownloadEx;
 var
   NumImagesFound : integer;
-  MaintainMemScanStatus: boolean;
 begin
-  if ( MyClient.clFields.clDownload_From = dlAdminSystem ) then exit;
+  if ( MyClient.clFields.clDownload_From = dlAdminSystem ) then
+    exit;
 
-  MaintainMemScanStatus := False;
+  if Assigned(MyClient) then
+    MyClient.clRecommended_Mems.RemoveAccountsFromMems;
 
-  try
-    if Assigned(frmMain) then
-    begin
-      MaintainMemScanStatus := frmMain.MemScanIsBusy;
-      frmMain.MemScanIsBusy := True;
-      if Assigned(MyClient) then
-        MyClient.clRecommended_Mems.RemoveAccountsFromMems;
-    end;     
-
-    //images found may return the following
-    // -1 : user cancelled copy from floppy or bconnect
-    //  0 : no new disks downloaded, user may be processing disks that are
-    //      already in the directory
-    //  n : number of new disks
-    case MyClient.clFields.clDownload_From of
-      dlFloppyDisk : begin
-        with MyClient.clFields do
-        begin
-          NumImagesFound := DoCopyFloppy(clBankLink_Code,clDisk_Sequence_No);
-        end;
-      end;
-      dlBankLinkConnect :
+  //images found may return the following
+  // -1 : user cancelled copy from floppy or bconnect
+  //  0 : no new disks downloaded, user may be processing disks that are
+  //      already in the directory
+  //  n : number of new disks
+  case MyClient.clFields.clDownload_From of
+    dlFloppyDisk : begin
+      with MyClient.clFields do
       begin
-        NumImagesFound := DoBankLinkOffsiteConnect;
+        NumImagesFound := DoCopyFloppy(clBankLink_Code,clDisk_Sequence_No);
       end;
-    else
-      NumImagesFound := -1;
     end;
-
-    //process disk images unless user pressed cancel
-    if NumImagesFound <> -1 then
+    dlBankLinkConnect :
     begin
-      try
-        ProcessDiskImages;
-      except
-        on E : EDownloadVerify do
-        begin
-           HelpfulErrorMsg('An error occurred while verifying the downloaded data.'+#13+#13+
-                           E.Message+ #13+#13+
-                           'Please contact '+SHORTAPPNAME+' support.',0);
-        end;
+      NumImagesFound := DoBankLinkOffsiteConnect;
+    end;
+  else
+    NumImagesFound := -1;
+  end;
+
+  //process disk images unless user pressed cancel
+  if NumImagesFound <> -1 then
+  begin
+    try
+      ProcessDiskImages;
+    except
+      on E : EDownloadVerify do
+      begin
+         HelpfulErrorMsg('An error occurred while verifying the downloaded data.'+#13+#13+
+                         E.Message+ #13+#13+
+                         'Please contact '+SHORTAPPNAME+' support.',0);
       end;
     end;
-  finally
-    if Assigned(frmMain) then    
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

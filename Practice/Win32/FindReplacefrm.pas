@@ -114,129 +114,141 @@ begin
 end;
 
 function TFindReplaceDlg.FindReplace: Boolean;
-var A,T: Integer;
-    ba: TBank_Account;
-    tx: pTransaction_Rec;
-    ds: pDissection_Rec;
-    D1, D2: Integer;
-    cFound,
-    cGStSkipped: Integer;
-    sFind,sReplace: string;
-    MaintainMemScanStatus: boolean;
+var
+  A,T: Integer;
+  ba: TBank_Account;
+  tx: pTransaction_Rec;
+  ds: pDissection_Rec;
+  D1, D2: Integer;
+  cFound, cGStSkipped: Integer;
+  sFind,sReplace: string;
+  MaintainMemScanStatus: boolean;
 type
-    AccCode = string[20];
+  AccCode = string[20];
 
-    function ReplaceText(var Value:AccCode ): Boolean;
+  function ReplaceText(var Value:AccCode ): Boolean;
+  begin
+    if SameText(Value,sFind) then
     begin
-       if SameText(Value,sFind) then begin
-          Result := True;
-          Value := sReplace;
-          inc(cFound);
-          // While we are here..
-          if Assigned(ba) then
-            if not ba.IsAJournalAccount then
-              tx.txCoded_By := cbManual;
-       end else
-          Result := False;
-    end;
+      Result := True;
+      Value := sReplace;
+      inc(cFound);
+      // While we are here..
+      if Assigned(ba) then
+        if not ba.IsAJournalAccount then
+          tx.txCoded_By := cbManual;
+    end
+    else
+      Result := False;
+  end;
 
 begin
-   MaintainMemScanStatus := false;
-   try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-       MyClient.clRecommended_Mems.RemoveAccountsFromMems(false);
-     end;
-     Result := False;
-     // Get the dates...
-     if AllDates then begin
-        D1 := 0;
-        D2 := MaxInt;
-     end else begin
-        D1 := stNull2Bk(DateSelector.eDateFrom.AsStDate);
-        D2 := stNull2Bk(DateSelector.eDateTo.AsStDate);
-     end;
-     // Get the Text
-     sFind := Trim(EFind.Text);
-     sReplace := Trim(EReplace.Text);
+  MyClient.clRecommended_Mems.RemoveAccountsFromMems(false);
 
-     // Reset the counters;
-     cFound := 0;
-     cGStSkipped := 0;
+  Result := False;
 
-     for A := 0 to Pred(AccountSelector.AccountCheckBox.Items.Count) do
-        if AccountSelector.AccountCheckBox.Checked[A] then begin
-           ba := TBank_Account(AccountSelector.AccountCheckBox.Items.Objects[A]);
+  // Get the dates...
+  if AllDates then
+  begin
+    D1 := 0;
+    D2 := MaxInt;
+  end
+  else
+  begin
+    D1 := stNull2Bk(DateSelector.eDateFrom.AsStDate);
+    D2 := stNull2Bk(DateSelector.eDateTo.AsStDate);
+  end;
 
-           AutoCodeEntries(MyClient, ba, AllEntries, D1, D2, false);
+  // Get the Text
+  sFind := Trim(EFind.Text);
+  sReplace := Trim(EReplace.Text);
 
-           //Transactions
-           for T := 0 to ba.baTransaction_List.Last do begin
-              tx := ba.baTransaction_List.Transaction_At(T);
+  // Reset the counters;
+  cFound := 0;
+  cGStSkipped := 0;
 
-              if (tx.txLocked)
-              or (tx.txDate_Transferred <> 0) then
-                 Continue;
+  try
+    for A := 0 to Pred(AccountSelector.AccountCheckBox.Items.Count) do
+    begin
+      if AccountSelector.AccountCheckBox.Checked[A] then
+      begin
+        ba := TBank_Account(AccountSelector.AccountCheckBox.Items.Objects[A]);
 
-              if (tx.txDate_Effective < D1)
-              or (tx.txDate_Effective > D2) then
-                 Continue;
+        AutoCodeEntries(MyClient, ba, AllEntries, D1, D2, false);
 
-              ds := tx.txFirst_Dissection;
-              if ds = nil then begin
-                 // Do the Transaction...
-                 if ReplaceText(tx.txAccount) then begin
-                    tx.txHas_Been_Edited := True;
-                    if tx.txGST_Has_Been_Edited then
-                       Inc(cGStSkipped)
-                    else
-  //                     CalculateGST( MyClient, tx.txDate_Effective, tx.txAccount, tx.txAmount, tx.txGST_Class, tx.txGST_Amount);
-                       CalculateGST( MyClient, tx.txDate_Effective, tx.txAccount, tx.Local_Amount, tx.txGST_Class, tx.txGST_Amount);
-                 end;
-              end else begin
-                 // Do the Dissections
-                 while Assigned(ds) do begin
-                    if ReplaceText(ds.dsAccount) then begin
-                       ds.dsHas_Been_Edited := True;
-                       if ds.dsGST_Has_Been_Edited then
-                          Inc(cGStSkipped)
-                       else
-  //                        CalculateGST( MyClient, tx.txDate_Effective, ds.dsAccount, ds.dsAmount, ds.dsGST_Class, ds.dsGST_Amount);
-                          CalculateGST( MyClient, tx.txDate_Effective, ds.dsAccount, ds.Local_Amount, ds.dsGST_Class, ds.dsGST_Amount);
-                    end;
-                    ds := ds.dsNext;
-                 end;
+        //Transactions
+        for T := 0 to ba.baTransaction_List.Last do begin
+          tx := ba.baTransaction_List.Transaction_At(T);
+
+          if (tx.txLocked) or
+             (tx.txDate_Transferred <> 0) then
+            Continue;
+
+          if (tx.txDate_Effective < D1) or
+             (tx.txDate_Effective > D2) then
+            Continue;
+
+          ds := tx.txFirst_Dissection;
+
+          if ds = nil then
+          begin
+            // Do the Transaction...
+            if ReplaceText(tx.txAccount) then
+            begin
+              tx.txHas_Been_Edited := True;
+              if tx.txGST_Has_Been_Edited then
+                Inc(cGStSkipped)
+              else
+                CalculateGST( MyClient, tx.txDate_Effective, tx.txAccount, tx.Local_Amount, tx.txGST_Class, tx.txGST_Amount);
+            end;
+          end
+          else
+          begin
+            // Do the Dissections
+            while Assigned(ds) do
+            begin
+              if ReplaceText(ds.dsAccount) then
+              begin
+                ds.dsHas_Been_Edited := True;
+                if ds.dsGST_Has_Been_Edited then
+                  Inc(cGStSkipped)
+                else
+                  CalculateGST( MyClient, tx.txDate_Effective, ds.dsAccount, ds.Local_Amount, ds.dsGST_Class, ds.dsGST_Amount);
               end;
-           end;
+              ds := ds.dsNext;
+            end;
+          end;
         end;
+      end;
+    end;
 
-     if cFound > 0 then begin
-        sFind := Format('%d Chart code(s) updated',[cFound]);
-        if cGStSkipped > 0 then begin
-           sFind := sFind + Format(#13'The %1:s content of %0:d transactions with the %1:s edited,'#13 +
+    if cFound > 0 then
+    begin
+      sFind := Format('%d Chart code(s) updated',[cFound]);
+
+      if cGStSkipped > 0 then
+      begin
+        sFind := sFind + Format(#13'The %1:s content of %0:d transactions with the %1:s edited,'#13 +
                 'have not been updated.'#13 +
                 'These transactions can be viewed in the %1:s override report.',[cGStSkipped, MyClient.TaxSystemNameUC]);
-        end;
+      end;
 
-        HelpfulInfoMsg(sFind,0);
+      HelpfulInfoMsg(sFind,0);
+      Result := True;
+    end
+    else
+    begin
+      if AskYesNo('Find and Replace','No codes found'#13#13'Try again?', DLG_NO, 0 ) <> DLG_NO then
+      begin
+        pcMain.ActivePage := tsOptions;
+        EFind.SetFocus;
+      end
+      else
         Result := True;
-     end else begin
-        if AskYesNo('Find and Replace','No codes found'#13#13'Try again?', DLG_NO, 0 ) <> DLG_NO then begin
-           pcMain.ActivePage := tsOptions;
-           EFind.SetFocus;
-        end else
-           Result := True;
-     end;
-   finally
-     if Assigned(frmMain) then
-     begin
-      MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
-      if not MaintainMemScanStatus then
-        frmMain.MemScanIsBusy := False;
-     end;
-   end;
+    end;
+  finally
+    MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
+  end;
 end;
 
 procedure TFindReplaceDlg.FormCreate(Sender: TObject);

@@ -872,152 +872,139 @@ var
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   SystemMem: TMemorisation;
   MasterMemInfoRec: TMasterMemInfoRec;
-  MaintainMemScanStatus: boolean;
 begin
-   MaintainMemScanStatus := False;
-   try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-     end;
-     Result := false;
-     MasterMsg := '';
-     ExtraMsg := '';
+   Result := false;
+   MasterMsg := '';
+   ExtraMsg := '';
 
-     if (Multiple) then
+   if (Multiple) then
+   begin
+     if ShowPrompt then
+       if AskYesNo('Delete Memorisations?','OK to Delete Multiple Memorisations?',DLG_YES,0) <> DLG_YES then exit;
+     //delete the multiple entries
+     Item := lvMemorised.Selected;
+     while Item <> nil do
      begin
-       if ShowPrompt then
-         if AskYesNo('Delete Memorisations?','OK to Delete Multiple Memorisations?',DLG_YES,0) <> DLG_YES then exit;
-       //delete the multiple entries
-       Item := lvMemorised.Selected;
-       while Item <> nil do
-       begin
-         Mem := TMemorisation( Item.SubItems.Objects[0] );
-         MemorisedList.DelFreeItem(Mem);
-         Item := lvMemorised.GetNextItem(Item, sdAll, [isSelected]);
+       Mem := TMemorisation( Item.SubItems.Objects[0] );
+       MemorisedList.DelFreeItem(Mem);
+       Item := lvMemorised.GetNextItem(Item, sdAll, [isSelected]);
+     end;
+   end else begin
+     //Single delete
+     CodedTo := '';
+     for j := Mem.mdLines.First to Mem.mdLines.Last do begin
+       MemLine := Mem.mdLines.MemorisationLine_At(j);
+       if MemLine^.mlAccount <> '' then
+         CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
+     end;
+     if (not mem.mdFields.mdFrom_Master_List) or (not Assigned( AdminSystem)) then begin
+       CodeType := MyClient.clFields.clShort_Name[mem.mdFields.mdType];
+       if (not Assigned( AdminSystem)) and (mem.mdFields.mdFrom_Master_List) then begin
+         MasterMsg := 'MASTER';
+         ExtraMsg := #13+#13+'This will only delete the MASTER memorisation TEMPORARILY.  To delete it permanently it must be deleted at the PRACTICE.';
        end;
      end else begin
-       //Single delete
-       CodedTo := '';
-       for j := Mem.mdLines.First to Mem.mdLines.Last do begin
-         MemLine := Mem.mdLines.MemorisationLine_At(j);
-         if MemLine^.mlAccount <> '' then
-           CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
-       end;
-       if (not mem.mdFields.mdFrom_Master_List) or (not Assigned( AdminSystem)) then begin
-         CodeType := MyClient.clFields.clShort_Name[mem.mdFields.mdType];
-         if (not Assigned( AdminSystem)) and (mem.mdFields.mdFrom_Master_List) then begin
-           MasterMsg := 'MASTER';
-           ExtraMsg := #13+#13+'This will only delete the MASTER memorisation TEMPORARILY.  To delete it permanently it must be deleted at the PRACTICE.';
-         end;
-       end else begin
-         CodeType := AdminSystem.fdFields.fdShort_Name[mem.mdFields.mdType];
-         MasterMsg := 'MASTER';
-         ExtraMsg := #13+#13+'NOTE: This will apply to ALL clients in your practice that have accounts with this bank and use MASTER memorisations.';
-       end;
-
-       if Assigned( MyClient ) then
-          Country := MyClient.clFields.clCountry
-       else
-          Country := AdminSystem.fdFields.fdCountry;
-
-       MemDesc := #13 +'Coded To '+CodedTo + #13 + 'Entry Type is '+IntToStr(mem.mdFields.mdType) + ':' + CodeType;
-
-       { build list of things that match }
-
-       case Country of
-          whNewZealand :
-             Begin
-                if mem.mdFields.mdMatch_on_Refce then        MemDesc := MemDesc + #13 + 'Reference is ' + mem.mdFields.mdReference;
-                if mem.mdFields.mdMatch_on_Analysis then     MemDesc := MemDesc + #13 + 'Analysis is ' + mem.mdFields.mdAnalysis;
-                if mem.mdFields.mdMatch_On_Statement_Details then MemDesc := MemDesc + #13 + 'Stmt Details are ' + mem.mdFields.mdStatement_Details;
-                if mem.mdFields.mdMatch_on_Particulars then  MemDesc := MemDesc + #13 + 'Particulars are ' + mem.mdFields.mdParticulars;
-                if mem.mdFields.mdMatch_on_Other_Party then  MemDesc := MemDesc + #13 + 'Other Party is ' + mem.mdFields.mdOther_Party;
-                if mem.mdFields.mdMatch_on_notes then        MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
-                if Assigned(BA) then
-                  if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, BA.baFields.baCurrency_Code)
-                else
-                  if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, whCurrencyCodes[Country])
-             end;
-          whAustralia, whUK :
-             Begin
-                if mem.mdFields.mdMatch_on_Refce then       MemDesc := MemDesc + #13 + 'Reference is ' + mem.mdFields.mdReference;
-                if mem.mdFields.mdMatch_on_Particulars then MemDesc := MemDesc + #13 + 'Bank Type is ' + mem.mdFields.mdParticulars;
-                if mem.mdFields.mdMatch_On_Statement_Details then MemDesc := MemDesc + #13 + 'Stmt Details are ' + mem.mdFields.mdStatement_Details;
-                if mem.mdFields.mdMatch_on_notes then       MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
-                if Assigned(BA) then
-                  if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, BA.baFields.baCurrency_Code)
-                else
-                  if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, whCurrencyCodes[Country])
-             end;
-       end; { Case clCountry }
-
-       if (MasterMSG = '') then
-         MasterMsgSpace := ''
-       else
-         MasterMsgSpace := ' ';
-       if ShowPrompt then
-         if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+MasterMsgSpace+'Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
-       if Assigned(AdminSystem) and (Prefix <> '') then begin
-         //---DELETE MASTER MEM---
-         MasterMemInfoRec.AuditID := Mem.mdFields.mdAudit_Record_ID;
-         MasterMemInfoRec.SequenceNumber := Mem.mdFields.mdSequence_No;
-         if LoadAdminSystem(true, ThisMethodName) then begin
-           //Get mem list
-           SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
-           if not Assigned(SystemMemorisation) then
-             UnlockAdmin
-           else if not Assigned(SystemMemorisation.smMemorisations) then
-             UnlockAdmin
-           else begin
-             SystemMem := nil;
-             //Delete memorisation
-             for i := TMemorisations_List(SystemMemorisation.smMemorisations).First to TMemorisations_List(SystemMemorisation.smMemorisations).Last do begin
-               SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i);
-               if Assigned(SystemMem) then begin
-  //               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) and
-  //                  (SystemMem.mdFields.mdSequence_No = MasterMemInfoRec.SequenceNumber) then begin
-                 //Don't care about the sequence for deletes?
-                 if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) then begin
-                   DeletedSeqNo := SystemMem.mdFields.mdSequence_No;
-                   TMemorisations_List(SystemMemorisation.smMemorisations).DelFreeItem(SystemMem);
-                   Result := True;
-
-                   // Need to subtract one from the sequence number for any memorisations after the deleted one
-                   for j := TMemorisations_List(SystemMemorisation.smMemorisations).First to
-                            TMemorisations_List(SystemMemorisation.smMemorisations).Last do
-                   begin
-                     if (TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(j).mdFields.mdSequence_No > DeletedSeqNo) then
-                       Dec(TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(j).mdFields.mdSequence_No);
-                   end;
-                   Break;
-                 end;
-               end;
-             end;
-             if Assigned(SystemMem) and (not Result) then
-               HelpfulErrorMsg('Could not delete master memorisation because it has been changed by another user.', 0);
-             //Delete pSystem_Memorisation_List_Rec if there are no memorisations
-            if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
-               AdminSystem.SystemMemorisationList.Delete(SystemMemorisation);
-             //*** Flag Audit ***
-             SystemAuditMgr.FlagAudit(arMasterMemorisations);
-             SaveAdminSystem;
-           end;
-         end else
-           HelpfulErrorMsg('Could not delete master memorisation at this time. Admin System unavailable.', 0);
-         //---END DELETE MASTER MEM---
-       end else
-         MemorisedList.DelFreeItem(Mem);
+       CodeType := AdminSystem.fdFields.fdShort_Name[mem.mdFields.mdType];
+       MasterMsg := 'MASTER';
+       ExtraMsg := #13+#13+'NOTE: This will apply to ALL clients in your practice that have accounts with this bank and use MASTER memorisations.';
      end;
 
-     FMemorisationChanged := True;
-     Result := True;
-   finally
-     if Assigned(frmMain) then
-       if not MaintainMemScanStatus then
-         frmMain.MemScanIsBusy := False;
+     if Assigned( MyClient ) then
+        Country := MyClient.clFields.clCountry
+     else
+        Country := AdminSystem.fdFields.fdCountry;
+
+     MemDesc := #13 +'Coded To '+CodedTo + #13 + 'Entry Type is '+IntToStr(mem.mdFields.mdType) + ':' + CodeType;
+
+     { build list of things that match }
+
+     case Country of
+        whNewZealand :
+           Begin
+              if mem.mdFields.mdMatch_on_Refce then        MemDesc := MemDesc + #13 + 'Reference is ' + mem.mdFields.mdReference;
+              if mem.mdFields.mdMatch_on_Analysis then     MemDesc := MemDesc + #13 + 'Analysis is ' + mem.mdFields.mdAnalysis;
+              if mem.mdFields.mdMatch_On_Statement_Details then MemDesc := MemDesc + #13 + 'Stmt Details are ' + mem.mdFields.mdStatement_Details;
+              if mem.mdFields.mdMatch_on_Particulars then  MemDesc := MemDesc + #13 + 'Particulars are ' + mem.mdFields.mdParticulars;
+              if mem.mdFields.mdMatch_on_Other_Party then  MemDesc := MemDesc + #13 + 'Other Party is ' + mem.mdFields.mdOther_Party;
+              if mem.mdFields.mdMatch_on_notes then        MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
+              if Assigned(BA) then
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, BA.baFields.baCurrency_Code)
+              else
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, whCurrencyCodes[Country])
+           end;
+        whAustralia, whUK :
+           Begin
+              if mem.mdFields.mdMatch_on_Refce then       MemDesc := MemDesc + #13 + 'Reference is ' + mem.mdFields.mdReference;
+              if mem.mdFields.mdMatch_on_Particulars then MemDesc := MemDesc + #13 + 'Bank Type is ' + mem.mdFields.mdParticulars;
+              if mem.mdFields.mdMatch_On_Statement_Details then MemDesc := MemDesc + #13 + 'Stmt Details are ' + mem.mdFields.mdStatement_Details;
+              if mem.mdFields.mdMatch_on_notes then       MemDesc := MemDesc + #13 + 'Notes is ' + mem.mdFields.mdNotes;
+              if Assigned(BA) then
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, BA.baFields.baCurrency_Code)
+              else
+                if (mem.mdFields.mdMatch_on_Amount > 0) then MemDesc := MemDesc + #13 + 'Value is ' + mxNames[mem.mdFields.mdMatch_on_Amount] + ' ' + MoneyStr(mem.mdFields.mdAmount, whCurrencyCodes[Country])
+           end;
+     end; { Case clCountry }
+
+     if (MasterMSG = '') then
+       MasterMsgSpace := ''
+     else
+       MasterMsgSpace := ' ';
+     if ShowPrompt then
+       if AskYesNo('Delete Memorisation?','OK to Delete '+MasterMSG+MasterMsgSpace+'Memorisation?'+#13+MemDesc+ExtraMsg,DLG_YES,0) <> DLG_YES then exit;
+     if Assigned(AdminSystem) and (Prefix <> '') then begin
+       //---DELETE MASTER MEM---
+       MasterMemInfoRec.AuditID := Mem.mdFields.mdAudit_Record_ID;
+       MasterMemInfoRec.SequenceNumber := Mem.mdFields.mdSequence_No;
+       if LoadAdminSystem(true, ThisMethodName) then begin
+         //Get mem list
+         SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+         if not Assigned(SystemMemorisation) then
+           UnlockAdmin
+         else if not Assigned(SystemMemorisation.smMemorisations) then
+           UnlockAdmin
+         else begin
+           SystemMem := nil;
+           //Delete memorisation
+           for i := TMemorisations_List(SystemMemorisation.smMemorisations).First to TMemorisations_List(SystemMemorisation.smMemorisations).Last do begin
+             SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i);
+             if Assigned(SystemMem) then begin
+//               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) and
+//                  (SystemMem.mdFields.mdSequence_No = MasterMemInfoRec.SequenceNumber) then begin
+               //Don't care about the sequence for deletes?
+               if (SystemMem.mdFields.mdAudit_Record_ID = MasterMemInfoRec.AuditID) then begin
+                 DeletedSeqNo := SystemMem.mdFields.mdSequence_No;
+                 TMemorisations_List(SystemMemorisation.smMemorisations).DelFreeItem(SystemMem);
+                 Result := True;
+
+                 // Need to subtract one from the sequence number for any memorisations after the deleted one
+                 for j := TMemorisations_List(SystemMemorisation.smMemorisations).First to
+                          TMemorisations_List(SystemMemorisation.smMemorisations).Last do
+                 begin
+                   if (TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(j).mdFields.mdSequence_No > DeletedSeqNo) then
+                     Dec(TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(j).mdFields.mdSequence_No);
+                 end;
+                 Break;
+               end;
+             end;
+           end;
+           if Assigned(SystemMem) and (not Result) then
+             HelpfulErrorMsg('Could not delete master memorisation because it has been changed by another user.', 0);
+           //Delete pSystem_Memorisation_List_Rec if there are no memorisations
+          if TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount = 0 then
+             AdminSystem.SystemMemorisationList.Delete(SystemMemorisation);
+           //*** Flag Audit ***
+           SystemAuditMgr.FlagAudit(arMasterMemorisations);
+           SaveAdminSystem;
+         end;
+       end else
+         HelpfulErrorMsg('Could not delete master memorisation at this time. Admin System unavailable.', 0);
+       //---END DELETE MASTER MEM---
+     end else
+       MemorisedList.DelFreeItem(Mem);
    end;
+
+   FMemorisationChanged := True;
+   Result := True;
 
    LogUtil.LogMsg(lmInfo,'MAINTAINMEMFRM','User Deleted '+MasterMSG+' Memorisation '+ MemDesc);
 end;

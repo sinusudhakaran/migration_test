@@ -4302,6 +4302,7 @@ const
   begin
     // Need to clear the suggested mem data, because unscanned transactions from
     // journals have been erroneously included in the prior version
+    aClient.clRecommended_Mems.StopMemScan;
     try
       aClient.clRecommended_Mems.Candidates.FreeAll;
       aClient.clRecommended_Mems.Recommended.FreeAll;
@@ -4310,7 +4311,7 @@ const
       aClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
       aClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
     finally
-
+      aClient.clRecommended_Mems.StartMemScan;
     end;
   end;
 

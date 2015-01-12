@@ -145,12 +145,8 @@ begin
   end;
 
    IsActive := True;
+   aClient.clRecommended_Mems.StopMemScan;
    try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-     end;
 
      With aClient, BA do
      Begin
@@ -782,9 +778,7 @@ begin
 
      end; { Scope of Client and BankAccount }
    finally
-     if Assigned(frmMain) then
-       if not MaintainMemScanStatus then
-         frmMain.MemScanIsBusy := False;
+     aClient.clRecommended_Mems.StartMemScan;
 
      if DebugMe then
      begin

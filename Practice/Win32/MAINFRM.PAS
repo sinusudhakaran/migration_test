@@ -737,7 +737,6 @@ type
     Image1Top, Image1Left, Image1Width, Image1Height : Integer;
     BackGroundImageVisible : boolean;
     TutorialsFile : string;
-    fMemScanIsBusy : boolean;
 
     LastMFTop,
     LastMFLeft,
@@ -821,7 +820,6 @@ type
 
     procedure ExportTaggedAccounts(ProgressForm: IDualProgressForm; CallbackParams: Pointer);
     procedure DoRebranding();
-    procedure SetMemScanIsBusy(Value: boolean);
 
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
   protected
@@ -850,7 +848,6 @@ type
     procedure UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
     procedure UpdateAllWindowTabs(aActionedPage: string = '');
 
-    Property MemScanIsBusy : boolean read fMemScanIsBusy write SetMemScanIsBusy;
     procedure DoMainFormCommand( command : byte; Modal : boolean = true); overload;
     procedure DoMainFormCommand( command : byte; Sender : TObject; Modal : boolean = true); overload;
 
@@ -1194,7 +1191,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-  fMemScanIsBusy := False;
   Randomize;
   ApplicationIsStarting := true;
   Globals.DDE_Macro_To_Process := '';
@@ -2385,11 +2381,6 @@ end;
 procedure TfrmMain.SetLastActiveMDIChild(const Value: Forms.TForm);
 begin
   FLastActiveMDIChild := Value;
-end;
-
-procedure TfrmMain.SetMemScanIsBusy(Value: boolean);
-begin
-  fMemScanIsBusy := Value;
 end;
 
 procedure TfrmMain.SettheTransferFlagsforaPeriod1Click(Sender: TObject);
@@ -5846,17 +5837,9 @@ end;
 
 procedure TfrmMain.tmrMemScanTimer(Sender: TObject);
 begin
-  if not fMemScanIsBusy then
-  begin
-    try
-      fMemScanIsBusy := True;
-      if Assigned(MyClient) then
-        if Assigned(MyClient.clRecommended_Mems) then
-          MyClient.clRecommended_Mems.MemScan(False, nil);
-    finally
-      fMemScanIsBusy := False;
-    end;
-  end;
+  if Assigned(MyClient) then
+    if Assigned(MyClient.clRecommended_Mems) then
+      MyClient.clRecommended_Mems.MemScan(False, nil);
 end;
 
 procedure TfrmMain.mniImportFromCSVClick(Sender: TObject);

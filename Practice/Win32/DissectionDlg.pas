@@ -1574,40 +1574,33 @@ var
    OldPayeeNo: Integer;
    MaintainMemScanStatus: boolean;
 begin
-   MaintainMemScanStatus := False;
-   try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-     end;
-     tmrPayee.Enabled := False;
-     if PayeeRow = 0 then
-        Exit;
-     pD := WorkDissect.Items[PayeeRow-1 ];
-     if ( pD^.dtPayee_Number <> tmpPayee ) then begin
-        //tblDissect.ActiveCol := ColumnFmtList.GetColNumOfField(cePayee);
-        OldPayeeNo := pD^.dtPayee_Number;
-        pD^.dtPayee_Number  := tmpPayee;
+   tmrPayee.Enabled := False;
 
-        if PayeeEdited(pD,PayeeRow) then
-           pD^.dtHas_Been_Edited := true
-        else
-           pD^.dtPayee_Number := OldPayeeNo;
-        OldPayeeNo := PayeeRow;
-        PayeeRow := -1; // So we know not to exit...
-     end else
-        OldPayeeNo := PayeeRow;
+   if PayeeRow = 0 then
+      Exit;
 
-     with tblDissect do begin
-        AllowRedraw := false;
-        InvalidateRow(OldPayeeNo);
-        AllowRedraw := true;
-     end;
-   finally
-     if Assigned(frmMain) then
-       if not MaintainMemScanStatus then
-         frmMain.MemScanIsBusy := False;
+   pD := WorkDissect.Items[PayeeRow-1 ];
+   if ( pD^.dtPayee_Number <> tmpPayee ) then
+   begin
+      //tblDissect.ActiveCol := ColumnFmtList.GetColNumOfField(cePayee);
+      OldPayeeNo := pD^.dtPayee_Number;
+      pD^.dtPayee_Number  := tmpPayee;
+
+      if PayeeEdited(pD,PayeeRow) then
+         pD^.dtHas_Been_Edited := true
+      else
+         pD^.dtPayee_Number := OldPayeeNo;
+      OldPayeeNo := PayeeRow;
+      PayeeRow := -1; // So we know not to exit...
+   end
+   else
+      OldPayeeNo := PayeeRow;
+
+   with tblDissect do
+   begin
+      AllowRedraw := false;
+      InvalidateRow(OldPayeeNo);
+      AllowRedraw := true;
    end;
 end;
 
@@ -3369,521 +3362,513 @@ begin
       Exit;
    lDlg := TdlgDissection.Create(Application.MainForm);
    with lDlg do
-      try
-         if Assigned(frmMain) then
-         begin
-           MaintainMemScanStatus := frmMain.MemScanIsBusy;
-           frmMain.MemScanIsBusy := True;
-         end;
-         MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
-         BankAcct := BA;
-         fIsForex := BA.IsAForexAccount;
-         CCode := MyClient.clExtra.ceLocal_Currency_Code;
-         BCode := BA.baFields.baCurrency_Code;
+     try
+       MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+       BankAcct := BA;
+       fIsForex := BA.IsAForexAccount;
+       CCode := MyClient.clExtra.ceLocal_Currency_Code;
+       BCode := BA.baFields.baCurrency_Code;
 
 
-         pTran := pT;  //Store pointer to transaction record
+       pTran := pT;  //Store pointer to transaction record
 
-         //allocate memory for dissection list records
-         WorkDissect := TList.Create;
-         for i := 0 to Pred( GLCONST.Max_tx_Lines ) do begin
-            GetMem( pD, SizeOf(TWorkDissect_Rec) );
-            ClearWorkRecDetails(pd);
+       //allocate memory for dissection list records
+       WorkDissect := TList.Create;
+       for i := 0 to Pred( GLCONST.Max_tx_Lines ) do begin
+          GetMem( pD, SizeOf(TWorkDissect_Rec) );
+          ClearWorkRecDetails(pd);
 
-            WorkDissect.Add( pD );
-            if not Assigned( WorkDissect.Items[i] ) then begin
-               Msg := Format( '%s : Memory Allocation Failed', [ UnitName ] );
-               LogUtil.LogMsg( lmError, UnitName, Msg );
-               Raise ENoMemoryLeft.Create( Msg );
-            end;
-         end;
-         //determine if payee col can be edited.  Dont allow editing if
-         //the payee has been set at the transaction level
-         PayeeEditable := pTran^.txPayee_Number = 0;
-         with pTran^ do begin
-            //Fill Work Dissect records with real Dissection Record Values
-            i := 0;
-            pDissection := txFirst_Dissection;
-            while pDissection <> nil do begin
-               with pDissection^ do begin
-                  pD := WorkDissect.Items[i];
-                  with pD^ do begin
-                     dtAccount         := dsAccount;
-                     dtAmount          := dsAmount;
-                     dtLocal_Amount    := Local_Amount;
-                     dtDate            := pTran.txDate_Effective;
-                     dtGST_Class       := dsGST_Class;
-                     dtGST_Amount      := dsGST_Amount;
-                     dtTax_Invoice     := dsTax_Invoice;
-                     dtPayee_Number    := dsPayee_Number;
-                     dtQuantity        := dsQuantity;
-                     dtNarration       := dsGL_Narration;
-                     dtJob             := dsJob_Code;
-                     dtHas_Been_Edited := dsHas_Been_Edited;
-                     dtGST_Has_Been_Edited := dsGST_Has_Been_Edited;
-                     dtNotes           := dsNotes;
-                     dtImportNotes     := dsECoding_Import_Notes;
-                     dtSF_Imputed_Credit      := dsSF_Imputed_Credit;
-                     dtSF_Tax_Free_Dist       := dsSF_Tax_Free_Dist;
-                     dtSF_Tax_Exempt_Dist     := dsSF_Tax_Exempt_Dist;
-                     dtSF_Tax_Deferred_Dist   := dsSF_Tax_Deferred_Dist;
-                     dtSF_TFN_Credits         := dsSF_TFN_Credits;
-                     dtSF_Foreign_Income      := dsSF_Foreign_Income;
-                     dtSF_Foreign_Tax_Credits := dsSF_Foreign_Tax_Credits;
-                     dtSF_Capital_Gains_Indexed := dsSF_Capital_Gains_Indexed;
-                     dtSF_Capital_Gains_Disc := dsSF_Capital_Gains_Disc;
-                     dtSF_Capital_Gains_Other := dsSF_Capital_Gains_Other;
-                     dtSF_Other_Expenses      := dsSF_Other_Expenses;
-                     dtSF_CGT_Date            := dsSF_CGT_Date;
-                     dtSF_Franked             := dsSF_Franked;
-                     dtSF_Unfranked           := dsSF_Unfranked;
-                     dtSF_Interest            := dsSF_Interest;
-                     dtSF_Capital_Gains_Foreign_Disc := dsSF_Capital_Gains_Foreign_Disc;
-                     dtSF_Rent                := dsSF_Rent;
-                     dtSF_Special_Income      := dsSF_Special_Income;
-                     dtSF_Other_Tax_Credit    := dsSF_Other_Tax_Credit;
-                     dtSF_Non_Resident_Tax    := dsSF_Non_Resident_Tax;
-                     dtSF_Foreign_Capital_Gains_Credit := dsSF_Foreign_Capital_Gains_Credit;
-                     dtSF_Member_ID           := dsSF_Member_ID;
-                     dtSF_Member_Component    := dsSF_Member_Component;
-                     dtSF_Member_Account_ID   := dsSF_Member_Account_ID;
-                     dtSF_Fund_ID             := dsSF_Fund_ID;
-                     dtSF_Fund_Code           := dsSF_Fund_Code;
-                     dtSF_Member_Account_Code := dsSF_Member_Account_Code;
-                     dtSF_Transaction_Type_ID := dsSF_Transaction_ID;
-                     dtSF_Transaction_Type_Code := dsSF_Transaction_Code;
-                     dtSF_Capital_Gains_Fraction_Half := dsSF_Capital_Gains_Fraction_Half;
-                     dtSuper_Fields_Edited := dsSF_Super_Fields_Edited ;
-                     dtDocument_Title      := dsDocument_Title;
-                     dtDocument_Status_Update_Required := dsDocument_Status_Update_Required;
-                     dtExternal_GUID       := dsExternal_GUID;
-                     dtNotes_Read          := dsNotes_Read;
-                     dtImport_Notes_Read   := dsImport_Notes_Read;
-                     dtPercent_Amount      := dsPercent_Amount;
-                     dtAmount_Type_Is_Percent := dsAmount_Type_Is_Percent;
-                     dtForex_Conversion_Rate   := dsForex_Conversion_Rate   ;
-                  end;
-                  pDissection := dsNext;
-                  Inc( i );
-               end;
-            end;
-         end;
-         //set max gst id length
-         celGSTCode.MaxLength := GST_CLASS_CODE_LENGTH;
-         celAccount.MaxLength := MaxBK5CodeLen;
-         //set up payee col
-         if not PayeeEditable then begin
-            celPayee.Font.Color := clGrayText;
-            celPayee.Access     := otxReadOnly;
-            btnPayee.enabled    := false;
-         end;
-         // Set up Orpheus table
-         tblDissect.AllowRedraw := false;
-         ColumnFmtList := TColFmtList.Create;
-         SetupColumnFmtList;
-         LoadLayoutForThisAcct;
-         BuildTableColumns;
-         InitController;
-         with tblDissect do begin
-            RowLimit := Succ( GLCONST.Max_tx_Lines );
-            CommandOnEnter := ccRight;
-            // This method pointer will fire during BuildTableColumns so nil until now
-            OnColumnsChanged    := tblDissectColumnsChanged;
-            OnActiveCellChanged := tblDissectActiveCellChanged;
-            OnActiveCellMoving  := tblDissectActiveCellMoving;
-            OnBeginEdit         := tblDissectBeginEdit;
-            OnDoneEdit          := tblDissectDoneEdit;
-            OnEndEdit           := tblDissectEndEdit;
-            OnEnteringRow       := tblDissectEnteringRow;
-            OnGetCellData       := tblDissectGetCellData;
-            OnGetCellAttributes := tblDissectGetCellAttributes;
-            OnUserCommand       := tblDissectUserCommand;
-         end;
-         //Set form size - set default width to the total of col widths
-         vsbWidth := GetSystemMetrics( SM_CXVSCROLL ); //Get Width Vertical Scroll Bar
-         ClientWidth := Min(ColumnFmtList.SumAdjColumnWidth + vsbWidth, Application.Mainform.Monitor.Width -20);
+          WorkDissect.Add( pD );
+          if not Assigned( WorkDissect.Items[i] ) then begin
+             Msg := Format( '%s : Memory Allocation Failed', [ UnitName ] );
+             LogUtil.LogMsg( lmError, UnitName, Msg );
+             Raise ENoMemoryLeft.Create( Msg );
+          end;
+       end;
+       //determine if payee col can be edited.  Dont allow editing if
+       //the payee has been set at the transaction level
+       PayeeEditable := pTran^.txPayee_Number = 0;
+       with pTran^ do begin
+          //Fill Work Dissect records with real Dissection Record Values
+          i := 0;
+          pDissection := txFirst_Dissection;
+          while pDissection <> nil do begin
+             with pDissection^ do begin
+                pD := WorkDissect.Items[i];
+                with pD^ do begin
+                   dtAccount         := dsAccount;
+                   dtAmount          := dsAmount;
+                   dtLocal_Amount    := Local_Amount;
+                   dtDate            := pTran.txDate_Effective;
+                   dtGST_Class       := dsGST_Class;
+                   dtGST_Amount      := dsGST_Amount;
+                   dtTax_Invoice     := dsTax_Invoice;
+                   dtPayee_Number    := dsPayee_Number;
+                   dtQuantity        := dsQuantity;
+                   dtNarration       := dsGL_Narration;
+                   dtJob             := dsJob_Code;
+                   dtHas_Been_Edited := dsHas_Been_Edited;
+                   dtGST_Has_Been_Edited := dsGST_Has_Been_Edited;
+                   dtNotes           := dsNotes;
+                   dtImportNotes     := dsECoding_Import_Notes;
+                   dtSF_Imputed_Credit      := dsSF_Imputed_Credit;
+                   dtSF_Tax_Free_Dist       := dsSF_Tax_Free_Dist;
+                   dtSF_Tax_Exempt_Dist     := dsSF_Tax_Exempt_Dist;
+                   dtSF_Tax_Deferred_Dist   := dsSF_Tax_Deferred_Dist;
+                   dtSF_TFN_Credits         := dsSF_TFN_Credits;
+                   dtSF_Foreign_Income      := dsSF_Foreign_Income;
+                   dtSF_Foreign_Tax_Credits := dsSF_Foreign_Tax_Credits;
+                   dtSF_Capital_Gains_Indexed := dsSF_Capital_Gains_Indexed;
+                   dtSF_Capital_Gains_Disc := dsSF_Capital_Gains_Disc;
+                   dtSF_Capital_Gains_Other := dsSF_Capital_Gains_Other;
+                   dtSF_Other_Expenses      := dsSF_Other_Expenses;
+                   dtSF_CGT_Date            := dsSF_CGT_Date;
+                   dtSF_Franked             := dsSF_Franked;
+                   dtSF_Unfranked           := dsSF_Unfranked;
+                   dtSF_Interest            := dsSF_Interest;
+                   dtSF_Capital_Gains_Foreign_Disc := dsSF_Capital_Gains_Foreign_Disc;
+                   dtSF_Rent                := dsSF_Rent;
+                   dtSF_Special_Income      := dsSF_Special_Income;
+                   dtSF_Other_Tax_Credit    := dsSF_Other_Tax_Credit;
+                   dtSF_Non_Resident_Tax    := dsSF_Non_Resident_Tax;
+                   dtSF_Foreign_Capital_Gains_Credit := dsSF_Foreign_Capital_Gains_Credit;
+                   dtSF_Member_ID           := dsSF_Member_ID;
+                   dtSF_Member_Component    := dsSF_Member_Component;
+                   dtSF_Member_Account_ID   := dsSF_Member_Account_ID;
+                   dtSF_Fund_ID             := dsSF_Fund_ID;
+                   dtSF_Fund_Code           := dsSF_Fund_Code;
+                   dtSF_Member_Account_Code := dsSF_Member_Account_Code;
+                   dtSF_Transaction_Type_ID := dsSF_Transaction_ID;
+                   dtSF_Transaction_Type_Code := dsSF_Transaction_Code;
+                   dtSF_Capital_Gains_Fraction_Half := dsSF_Capital_Gains_Fraction_Half;
+                   dtSuper_Fields_Edited := dsSF_Super_Fields_Edited ;
+                   dtDocument_Title      := dsDocument_Title;
+                   dtDocument_Status_Update_Required := dsDocument_Status_Update_Required;
+                   dtExternal_GUID       := dsExternal_GUID;
+                   dtNotes_Read          := dsNotes_Read;
+                   dtImport_Notes_Read   := dsImport_Notes_Read;
+                   dtPercent_Amount      := dsPercent_Amount;
+                   dtAmount_Type_Is_Percent := dsAmount_Type_Is_Percent;
+                   dtForex_Conversion_Rate   := dsForex_Conversion_Rate   ;
+                end;
+                pDissection := dsNext;
+                Inc( i );
+             end;
+          end;
+       end;
+       //set max gst id length
+       celGSTCode.MaxLength := GST_CLASS_CODE_LENGTH;
+       celAccount.MaxLength := MaxBK5CodeLen;
+       //set up payee col
+       if not PayeeEditable then begin
+          celPayee.Font.Color := clGrayText;
+          celPayee.Access     := otxReadOnly;
+          btnPayee.enabled    := false;
+       end;
+       // Set up Orpheus table
+       tblDissect.AllowRedraw := false;
+       ColumnFmtList := TColFmtList.Create;
+       SetupColumnFmtList;
+       LoadLayoutForThisAcct;
+       BuildTableColumns;
+       InitController;
+       with tblDissect do begin
+          RowLimit := Succ( GLCONST.Max_tx_Lines );
+          CommandOnEnter := ccRight;
+          // This method pointer will fire during BuildTableColumns so nil until now
+          OnColumnsChanged    := tblDissectColumnsChanged;
+          OnActiveCellChanged := tblDissectActiveCellChanged;
+          OnActiveCellMoving  := tblDissectActiveCellMoving;
+          OnBeginEdit         := tblDissectBeginEdit;
+          OnDoneEdit          := tblDissectDoneEdit;
+          OnEndEdit           := tblDissectEndEdit;
+          OnEnteringRow       := tblDissectEnteringRow;
+          OnGetCellData       := tblDissectGetCellData;
+          OnGetCellAttributes := tblDissectGetCellAttributes;
+          OnUserCommand       := tblDissectUserCommand;
+       end;
+       //Set form size - set default width to the total of col widths
+       vsbWidth := GetSystemMetrics( SM_CXVSCROLL ); //Get Width Vertical Scroll Bar
+       ClientWidth := Min(ColumnFmtList.SumAdjColumnWidth + vsbWidth, Application.Mainform.Monitor.Width -20);
 
-         //the form will currently be in the default position, load the
-         //values from the ini setting to reposition to users last position and
-         //state
-         SetFormPositionFromINI(Width, Height);
+       //the form will currently be in the default position, load the
+       //values from the ini setting to reposition to users last position and
+       //state
+       SetFormPositionFromINI(Width, Height);
 
 {$IFDEF SmartBooks}
-         SetColEditMode( emGeneral );  //SmartBooks does not use Restricted Mode
+       SetColEditMode( emGeneral );  //SmartBooks does not use Restricted Mode
 {$ELSE}
-        if not MyClient.clFields.clAll_EditMode_DIS then
-          SetColEditMode( emRestrict )
-        else
-          SetColEditMode( emGeneral );
+      if not MyClient.clFields.clAll_EditMode_DIS then
+        SetColEditMode( emRestrict )
+      else
+        SetColEditMode( emGeneral );
 {$ENDIF}
-         //Set color for alternate lines in the table
-         clStdLineLight   := clWindow;
-         clStdLineDark    := bkbranding.AlternateCodingLineColor;
+       //Set color for alternate lines in the table
+       clStdLineLight   := clWindow;
+       clStdLineDark    := bkbranding.AlternateCodingLineColor;
 
-         // Control formatting
-         // Finalised label and Chart button are mutually exclusive
-         with btnChart do begin
-            Left    := imgStatus.left;
-            Visible := false;
-         end;
-         with btnPayee do begin
-            Left    := btnChart.Left + btnChart.Width + 5;
-            Visible := false;
-         end;
-         with btnJob do begin
-            Left    := btnPayee.Left + btnChart.Width + 5;
-            Visible := false;
-         end;
-         with sbtnSuper do
-           begin
-             Left    := btnJob.Left + sbtnSuper.Width + 5;
-             Visible := false;
-           end;
-         with btnView do
-             Left    := sbtnSuper.Left + btnView.Width + 5;
-         with lblStatus do begin
-            Left    := btnView.left + 50;
-            Visible := false;
-         end;
-         // Analysis not shown for OZ or UK
-         if MyClient.clFields.clCountry in [whAustralia, whUK] then begin
-            lblAnalysis.Visible      := false;
-            lblAnalysisField.Visible := false;
-         end;
-
-         //Display Transaction Details
-         with pTran^ do begin
-            lblDate.Caption                 := bkDate2Str( txDate_Effective );
-            lblRef.Caption                  := GetFormattedReference( pTran);
-            lblAnalysisField.Caption        := txAnalysis;
-
-            If fIsForex then
-            Begin
-              lblForBSAmount.Caption            := 'Amount (' + BCode + ')';
-              lblBSAmount.Caption               := BankAcct.MoneyStr( Statement_Amount );
-              lblForLocalCurrencyAmount.Caption := 'Amount (' + CCode + ')';
-              lblLocalCurrencyAmount.Caption    := MyClient.MoneyStr( Local_Amount );
-              lblRate.Caption                   := ForexRate2Str( Default_Forex_Rate );
-              lblForBSTotal.Caption             := 'Total (' + BCode + ') :';
-              lblForBSRemaining.Caption         := 'Remaining (' + BCode + ') :';
-              lblLCTotal.Caption                := 'Total (' + CCode + ') :';
-              lblLCRemaining.Caption            := 'Remaining (' + CCode + ') :';
-              lblLCTotalField.Visible := True;
-              lblLCRemainingField.Visible := True;
-              lblLCTotal.Visible := True;
-              lblLCRemaining.Visible := True;
-            end
-            else
-            Begin
-              lblForLocalCurrencyAmount.Visible := False;
-              lblLocalCurrencyAmount.Visible    := False;
-              lblForRate.Visible                := False;
-              lblRate.Visible                   := False;
-              W := ( lblRate.Left - lblNarration.Left );
-              lblNarration.Left := lblRate.Left; lblNarration.Width := lblNarration.Width + W;
-              lblBSAmount.Caption               := BankAcct.MoneyStr( Statement_Amount );
-              lblForBSAmount.Caption            := 'Amount';
-
-              lblLCTotalField.Visible := False;
-              lblLCRemainingField.Visible := False;
-              lblLCTotal.Visible := False;
-              lblLCRemaining.Visible := False;
-            End;
-
-            if txPayee_Number <> 0 then
-               lblPayee.Caption                := inttostr( txPayee_Number)
-            else
-               lblPayee.caption := '';
-
-            lblNarration.caption      := 'Narration';
-            lblNarrationField.caption := txGL_Narration;
-
-            lblNarrationField.Hint := lblNarrationField.caption;
-            lblRef.Hint            := lblRef.caption;
-            lblAnalysisField.Hint  := lblAnalysisField.caption;
-            //Set control visibility
-            lblStatus.Visible      := txLocked or (txDate_Transferred <> 0);
-            btnChart.Visible     := not ( txLocked or (txDate_Transferred <> 0));
-            btnPayee.Visible     := not ( txLocked or (txDate_Transferred <> 0));
-            btnJob.Visible       := not ( txLocked or (txDate_Transferred <> 0));
-            sBtnSuper.Visible    := FCanUseSuperFundFields and SuperVisible;
-            EditSuperFields1.Visible := sBtnSuper.Visible;
-            ClearSuperfundDetails1.Visible := sBtnSuper.Visible;
-            if not btnChart.Visible then
-            begin
-              sBtnSuper.Left := btnChart.Left;
-              if sBtnSuper.Visible then
-                btnView.Left := btnPayee.Left
-              else
-                btnView.Left := btnChart.Left;
-              lblStatus.Left := btnView.Left + btnView.Width + 50;
-            end
-            else if not sBtnSuper.Visible then
-              btnView.Left := sBtnSuper.Left;
-
-            if txLocked then begin
-               //see if transferred as well
-               if ( txDate_Transferred <> 0) then begin
-                  imgStatus.Picture.Bitmap := imagesfrm.AppImages.imgTickLock.Picture.Bitmap;
-                  lblStatus.caption := ' This Transaction has been Transferred and Finalised ';
-               end
-               else begin
-                  //is only locked
-                  imgStatus.Picture.Bitmap := imagesfrm.AppImages.imgLock.Picture.Bitmap;
-                  lblStatus.caption := ' This Transaction has been Finalised ';
-               end;
-            end
-            else
-            if ( txDate_Transferred <> 0) then begin
-               imgStatus.Picture.Bitmap := imagesfrm.AppImages.imgTick.Picture.Bitmap;
-               lblStatus.caption := ' This Transaction has been Transferred ';
-            end;
-         end;
-
-         UpdateBaseAmounts(pD);
-         UpdateDisplayTotals(AmountChanged);
-
-         //setup notes panel
-         dsNotesAlwaysVisible    := NotesVisible;
-
-         pmiNotesVisible.Checked := dsNotesAlwaysVisible;
-         rzXBtn.Visible          := dsNotesAlwaysVisible;
-         rzPinBtn.Visible        := not dsNotesAlwaysVisible;
-
-         if dsNotesAlwaysVisible then
-            PNotes.RestoreHotSpot
-         else
-            PNotes.CloseHotSpot;
-
-         lbltxECodingNotes.Caption := GenUtils.StripReturnCharsFromString( Trim(pT^.txECoding_Import_Notes), '|');
-         lbltxECodingNotes.Hint    := pT^.txECoding_Import_Notes;
-
-         lbltxNotes.Caption        := GenUtils.StripReturnCharsFromString( Trim(pT^.txNotes), '|');
-         lbltxNotes.Hint           := pT^.txNotes;
-
-         if lbltxECodingNotes.Caption = '' then
+       // Control formatting
+       // Finalised label and Chart button are mutually exclusive
+       with btnChart do begin
+          Left    := imgStatus.left;
+          Visible := false;
+       end;
+       with btnPayee do begin
+          Left    := btnChart.Left + btnChart.Width + 5;
+          Visible := false;
+       end;
+       with btnJob do begin
+          Left    := btnPayee.Left + btnChart.Width + 5;
+          Visible := false;
+       end;
+       with sbtnSuper do
          begin
-           pnlTranDetails.Height := pnlTranDetails.Height - lbltxECodingNotes.Height;
-           lbltxNotes.Top        := lbltxECodingNotes.Top;
+           Left    := btnJob.Left + sbtnSuper.Width + 5;
+           Visible := false;
          end;
+       with btnView do
+           Left    := sbtnSuper.Left + btnView.Width + 5;
+       with lblStatus do begin
+          Left    := btnView.left + 50;
+          Visible := false;
+       end;
+       // Analysis not shown for OZ or UK
+       if MyClient.clFields.clCountry in [whAustralia, whUK] then begin
+          lblAnalysis.Visible      := false;
+          lblAnalysisField.Visible := false;
+       end;
 
-         if lbltxNotes.Caption = '' then
-         begin
-           pnlTranDetails.Height := pnlTranDetails.Height - lbltxNotes.Height;
-         end;
+       //Display Transaction Details
+       with pTran^ do begin
+          lblDate.Caption                 := bkDate2Str( txDate_Effective );
+          lblRef.Caption                  := GetFormattedReference( pTran);
+          lblAnalysisField.Caption        := txAnalysis;
 
-         // *******************
-         ShowModal;
-         // *******************
+          If fIsForex then
+          Begin
+            lblForBSAmount.Caption            := 'Amount (' + BCode + ')';
+            lblBSAmount.Caption               := BankAcct.MoneyStr( Statement_Amount );
+            lblForLocalCurrencyAmount.Caption := 'Amount (' + CCode + ')';
+            lblLocalCurrencyAmount.Caption    := MyClient.MoneyStr( Local_Amount );
+            lblRate.Caption                   := ForexRate2Str( Default_Forex_Rate );
+            lblForBSTotal.Caption             := 'Total (' + BCode + ') :';
+            lblForBSRemaining.Caption         := 'Remaining (' + BCode + ') :';
+            lblLCTotal.Caption                := 'Total (' + CCode + ') :';
+            lblLCRemaining.Caption            := 'Remaining (' + CCode + ') :';
+            lblLCTotalField.Visible := True;
+            lblLCRemainingField.Visible := True;
+            lblLCTotal.Visible := True;
+            lblLCRemaining.Visible := True;
+          end
+          else
+          Begin
+            lblForLocalCurrencyAmount.Visible := False;
+            lblLocalCurrencyAmount.Visible    := False;
+            lblForRate.Visible                := False;
+            lblRate.Visible                   := False;
+            W := ( lblRate.Left - lblNarration.Left );
+            lblNarration.Left := lblRate.Left; lblNarration.Width := lblNarration.Width + W;
+            lblBSAmount.Caption               := BankAcct.MoneyStr( Statement_Amount );
+            lblForBSAmount.Caption            := 'Amount';
 
-         if ModalResult <> mrOk then
-            Exit;
+            lblLCTotalField.Visible := False;
+            lblLCRemainingField.Visible := False;
+            lblLCTotal.Visible := False;
+            lblLCRemaining.Visible := False;
+          End;
 
-         //Check if there is blank record within records.  This is to prevent
-         //the changing of order of entries, but this only works when there is
-         //no blank entry within entries.
-         HasBlank := False;
-         for i := 0 to ( GLCONST.Max_tx_Lines - 2 ) do begin
-            pA := WorkDissect.Items[ i ];
-            pB := WorkDissect.Items[ i+1 ];
-            if (( pA^.dtAccount = '') and ( pB^.dtAccount <> '' )) or
-               (( pA^.dtAmount  = 0 ) and ( pB^.dtAmount  <> 0   )) then begin
-               HasBlank := True;
-               Break;
-            end;
-         end;
-         If HasBlank then //Remove blank record in between records
-            RemoveBlanks;
-         CalcControlTotals( Count, Total, Remain, GST, Percent );
+          if txPayee_Number <> 0 then
+             lblPayee.Caption                := inttostr( txPayee_Number)
+          else
+             lblPayee.caption := '';
 
-         AuditIDList := TList.Create;
-         try
-           //Save audit ID's for reuse
-           Dump_Dissections( pTran, AuditIDList); //Clear current dissection lines
+          lblNarration.caption      := 'Narration';
+          lblNarrationField.caption := txGL_Narration;
 
-           //if there is only 1 line in the dissection then
-           //remove dissection and treat like normal transaction
-           if (Count = 1) then
-           begin
-             pD := WorkDissect.Items[0];
-             with pTran^, pD^ do
-             begin
-                txAccount    := dtAccount;
-                txGST_Class  := dtGST_Class;       //GetGSTClassNo( MyClient, Chr( dtGST_Class ));
-                txGST_Amount := dtGST_Amount;      //GenUtils.Double2Money(dtGST_Amount);
-                txGL_Narration := dtNarration;
-                txTax_Invoice_Available := dtTax_Invoice;
-                txHas_Been_Edited := dtHas_Been_Edited;
-                txGST_Has_Been_Edited := dtGST_Has_Been_Edited;
-                txQuantity     := dtQuantity;
-                txPayee_Number := dtPayee_Number;
-                txJob_Code     := dtJob;
-                //move dissection line amounts into transaction
-                txSF_Imputed_Credit      := dtSF_Imputed_Credit;
-                txSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
-                txSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
-                txSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
-                txSF_TFN_Credits         := dtSF_TFN_Credits;
-                txSF_Foreign_Income      := dtSF_Foreign_Income;
-                txSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
-                txSF_Capital_Gains_Indexed := dtSF_Capital_Gains_Indexed;
-                txSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
-                txSF_Other_Expenses      := dtSF_Other_Expenses;
-                txSF_CGT_Date            := dtSF_CGT_Date;
-                txSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
-                txSF_Franked             := dtSF_Franked;
-                txSF_Unfranked           := dtSF_Unfranked;
-                txSF_Interest            := dtSF_Interest;
-                txSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
-                txSF_Rent                := dtSF_Rent;
-                txSF_Special_Income      := dtSF_Special_Income;
-                txSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
-                txSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
-                txSF_Member_ID           := dtSF_Member_ID;
-                txSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
-                txSF_Member_Component    := dtSF_Member_Component;
-                txSF_Member_Account_ID   := dtSF_Member_Account_ID;
-                txSF_Fund_ID             := dtSF_Fund_ID;
-                txSF_Fund_Code           := dtSF_Fund_Code;
-                txSF_Member_Account_Code := dtSF_Member_Account_Code;
-                txSF_Transaction_ID      := dtSF_Transaction_Type_ID;
-                txSF_Transaction_Code    := dtSF_Transaction_Type_Code;
-                txSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
-                txSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
+          lblNarrationField.Hint := lblNarrationField.caption;
+          lblRef.Hint            := lblRef.caption;
+          lblAnalysisField.Hint  := lblAnalysisField.caption;
+          //Set control visibility
+          lblStatus.Visible      := txLocked or (txDate_Transferred <> 0);
+          btnChart.Visible     := not ( txLocked or (txDate_Transferred <> 0));
+          btnPayee.Visible     := not ( txLocked or (txDate_Transferred <> 0));
+          btnJob.Visible       := not ( txLocked or (txDate_Transferred <> 0));
+          sBtnSuper.Visible    := FCanUseSuperFundFields and SuperVisible;
+          EditSuperFields1.Visible := sBtnSuper.Visible;
+          ClearSuperfundDetails1.Visible := sBtnSuper.Visible;
+          if not btnChart.Visible then
+          begin
+            sBtnSuper.Left := btnChart.Left;
+            if sBtnSuper.Visible then
+              btnView.Left := btnPayee.Left
+            else
+              btnView.Left := btnChart.Left;
+            lblStatus.Left := btnView.Left + btnView.Width + 50;
+          end
+          else if not sBtnSuper.Visible then
+            btnView.Left := sBtnSuper.Left;
 
-                txNotes_Read := dtNotes_Read;
-                txImport_Notes_Read := dtImport_Notes_Read;
-
-                txCoded_By     := cbManual;
-
-                if pD.dtHas_Been_Edited or pD.dtGST_Has_Been_Edited then
-                begin
-                  pT^.txTransfered_To_Online := False;
-                end;
+          if txLocked then begin
+             //see if transferred as well
+             if ( txDate_Transferred <> 0) then begin
+                imgStatus.Picture.Bitmap := imagesfrm.AppImages.imgTickLock.Picture.Bitmap;
+                lblStatus.caption := ' This Transaction has been Transferred and Finalised ';
+             end
+             else begin
+                //is only locked
+                imgStatus.Picture.Bitmap := imagesfrm.AppImages.imgLock.Picture.Bitmap;
+                lblStatus.caption := ' This Transaction has been Finalised ';
              end;
-           end
-           else
+          end
+          else
+          if ( txDate_Transferred <> 0) then begin
+             imgStatus.Picture.Bitmap := imagesfrm.AppImages.imgTick.Picture.Bitmap;
+             lblStatus.caption := ' This Transaction has been Transferred ';
+          end;
+       end;
+
+       UpdateBaseAmounts(pD);
+       UpdateDisplayTotals(AmountChanged);
+
+       //setup notes panel
+       dsNotesAlwaysVisible    := NotesVisible;
+
+       pmiNotesVisible.Checked := dsNotesAlwaysVisible;
+       rzXBtn.Visible          := dsNotesAlwaysVisible;
+       rzPinBtn.Visible        := not dsNotesAlwaysVisible;
+
+       if dsNotesAlwaysVisible then
+          PNotes.RestoreHotSpot
+       else
+          PNotes.CloseHotSpot;
+
+       lbltxECodingNotes.Caption := GenUtils.StripReturnCharsFromString( Trim(pT^.txECoding_Import_Notes), '|');
+       lbltxECodingNotes.Hint    := pT^.txECoding_Import_Notes;
+
+       lbltxNotes.Caption        := GenUtils.StripReturnCharsFromString( Trim(pT^.txNotes), '|');
+       lbltxNotes.Hint           := pT^.txNotes;
+
+       if lbltxECodingNotes.Caption = '' then
+       begin
+         pnlTranDetails.Height := pnlTranDetails.Height - lbltxECodingNotes.Height;
+         lbltxNotes.Top        := lbltxECodingNotes.Top;
+       end;
+
+       if lbltxNotes.Caption = '' then
+       begin
+         pnlTranDetails.Height := pnlTranDetails.Height - lbltxNotes.Height;
+       end;
+
+       // *******************
+       ShowModal;
+       // *******************
+
+       if ModalResult <> mrOk then
+          Exit;
+
+       //Check if there is blank record within records.  This is to prevent
+       //the changing of order of entries, but this only works when there is
+       //no blank entry within entries.
+       HasBlank := False;
+       for i := 0 to ( GLCONST.Max_tx_Lines - 2 ) do begin
+          pA := WorkDissect.Items[ i ];
+          pB := WorkDissect.Items[ i+1 ];
+          if (( pA^.dtAccount = '') and ( pB^.dtAccount <> '' )) or
+             (( pA^.dtAmount  = 0 ) and ( pB^.dtAmount  <> 0   )) then begin
+             HasBlank := True;
+             Break;
+          end;
+       end;
+       If HasBlank then //Remove blank record in between records
+          RemoveBlanks;
+       CalcControlTotals( Count, Total, Remain, GST, Percent );
+
+       AuditIDList := TList.Create;
+       try
+         //Save audit ID's for reuse
+         Dump_Dissections( pTran, AuditIDList); //Clear current dissection lines
+
+         //if there is only 1 line in the dissection then
+         //remove dissection and treat like normal transaction
+         if (Count = 1) then
+         begin
+           pD := WorkDissect.Items[0];
+           with pTran^, pD^ do
            begin
-              // Store dissection lines
-              // re-sort - store $ lines first followed by % lines
-              Has100 := HasSingle100PercentLine;
-              for j := 0 to 1 do
-              begin
-                for i := 0 to Pred( Count ) do
-                begin
-                  pD := WorkDissect.Items[i];
-                  if ((j = 0) and (pD.dtPercent_Amount <> 0))
-                    or ((j = 1) and (pD.dtPercent_Amount = 0)) then
-                     Continue;
-                  pDissection := New_Dissection_Rec;
-                  with pDissection^, pD^ do
-                  begin
-                     dsTransaction     := pTran;
-                     dsAccount         := dtAccount;
-                     dsAmount          := dtAmount;
-                     dsGST_Class       := dtGST_Class;
-                     dsGST_Amount      := dtGST_Amount;
-                     dsQuantity        := dtQuantity;
-                     dsPayee_Number    := dtPayee_Number;
-                     dsJob_Code         := dtJob;
-                     if dsJob_Code <> pT.txJob_Code then
-                     begin
-                        //  pT.txJob_LRN can only be the same as ALL disections
-                        pT.txJob_Code := '';
-                     end;
+              txAccount    := dtAccount;
+              txGST_Class  := dtGST_Class;       //GetGSTClassNo( MyClient, Chr( dtGST_Class ));
+              txGST_Amount := dtGST_Amount;      //GenUtils.Double2Money(dtGST_Amount);
+              txGL_Narration := dtNarration;
+              txTax_Invoice_Available := dtTax_Invoice;
+              txHas_Been_Edited := dtHas_Been_Edited;
+              txGST_Has_Been_Edited := dtGST_Has_Been_Edited;
+              txQuantity     := dtQuantity;
+              txPayee_Number := dtPayee_Number;
+              txJob_Code     := dtJob;
+              //move dissection line amounts into transaction
+              txSF_Imputed_Credit      := dtSF_Imputed_Credit;
+              txSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
+              txSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
+              txSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
+              txSF_TFN_Credits         := dtSF_TFN_Credits;
+              txSF_Foreign_Income      := dtSF_Foreign_Income;
+              txSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
+              txSF_Capital_Gains_Indexed := dtSF_Capital_Gains_Indexed;
+              txSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
+              txSF_Other_Expenses      := dtSF_Other_Expenses;
+              txSF_CGT_Date            := dtSF_CGT_Date;
+              txSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
+              txSF_Franked             := dtSF_Franked;
+              txSF_Unfranked           := dtSF_Unfranked;
+              txSF_Interest            := dtSF_Interest;
+              txSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
+              txSF_Rent                := dtSF_Rent;
+              txSF_Special_Income      := dtSF_Special_Income;
+              txSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
+              txSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
+              txSF_Member_ID           := dtSF_Member_ID;
+              txSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
+              txSF_Member_Component    := dtSF_Member_Component;
+              txSF_Member_Account_ID   := dtSF_Member_Account_ID;
+              txSF_Fund_ID             := dtSF_Fund_ID;
+              txSF_Fund_Code           := dtSF_Fund_Code;
+              txSF_Member_Account_Code := dtSF_Member_Account_Code;
+              txSF_Transaction_ID      := dtSF_Transaction_Type_ID;
+              txSF_Transaction_Code    := dtSF_Transaction_Type_Code;
+              txSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
+              txSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
 
-                     dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
+              txNotes_Read := dtNotes_Read;
+              txImport_Notes_Read := dtImport_Notes_Read;
 
-                     dsGL_Narration             := dtNarration;
-                     dsTax_Invoice := dtTax_Invoice;
-                     dsHas_Been_Edited := dtHas_Been_Edited;
-                     dsGST_Has_Been_Edited  := dtGST_Has_Been_Edited;
-                     dsNotes                := dtNotes;
-                     dsECoding_Import_Notes := dtImportNotes;
-
-                     //smartlink
-                     dsDocument_Title       := dtDocument_Title;
-                     dsDocument_Status_Update_Required := dtDocument_Status_Update_Required;
-                     dsExternal_GUID := dtExternal_GUID;
-
-                     //super fields
-                     dsSF_Imputed_Credit      := dtSF_Imputed_Credit;
-                     dsSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
-                     dsSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
-                     dsSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
-                     dsSF_TFN_Credits         := dtSF_TFN_Credits;
-                     dsSF_Foreign_Income      := dtSF_Foreign_Income;
-                     dsSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
-                     dsSF_Capital_Gains_Indexed  := dtSF_Capital_Gains_Indexed;
-                     dsSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
-                     dsSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
-                     dsSF_Other_Expenses      := dtSF_Other_Expenses;
-                     dsSF_CGT_Date            := dtSF_CGT_Date;
-                     dsSF_Franked             := dtSF_Franked;
-                     dsSF_Unfranked           := dtSF_Unfranked;
-                     dsSF_Interest            := dtSF_Interest;
-                     dsSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
-                     dsSF_Rent                := dtSF_Rent;
-                     dsSF_Special_Income      := dtSF_Special_Income;
-                     dsSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
-                     dsSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
-                     dsSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
-                     dsSF_Member_ID           := dtSF_Member_ID;
-                     dsSF_Member_Component    := dtSF_Member_Component;
-                     dsSF_Member_Account_ID   := dtSF_Member_Account_ID;
-                     dsSF_Fund_ID             := dtSF_Fund_ID;
-                     dsSF_Fund_Code           := dtSF_Fund_Code;
-                     dsSF_Member_Account_Code := dtSF_Member_Account_Code;
-                     dsSF_Transaction_ID      := dtSF_Transaction_Type_ID;
-                     dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
-                     dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
-                     dsSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
-
-                     dsNotes_Read := dtNotes_Read;
-                     dsImport_Notes_Read := dtImport_Notes_Read;
-
-                     if not Has100 then
-                     begin
-                       dsPercent_Amount         := dtPercent_Amount;
-                       dsAmount_Type_Is_Percent := dtPercent_Amount <> 0;
-                     end
-                     else
-                     begin
-                       dsAmount_Type_Is_Percent := False;
-                       dsPercent_Amount := 0;
-                     end;
-
-                     if AuditIDList.Count > 0 then
-                     begin
-                       pDissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
-                       TrxList32.AppendDissection( pTran, pDissection, nil );
-                       AuditIDList.Delete(0);
-                     end else
-                       TrxList32.AppendDissection( pTran, pDissection, MyClient.ClientAuditMgr );
-                  end; {with}
-                end; {for i}
-              end; {for j}
-
-              pTran^.txCoded_By    := cbManual;
-              pTran^.txAccount     := DISSECT_DESC;
-              //clean up any gst amounts that are left on the transaction
-              ClearGSTFields( pTran);
-              ClearSuperFundFields( pTran);
+              txCoded_By     := cbManual;
 
               if pD.dtHas_Been_Edited or pD.dtGST_Has_Been_Edited then
               begin
                 pT^.txTransfered_To_Online := False;
               end;
-
-              Result := True;
            end;
-         finally
-           AuditIDList.Free;
+         end
+         else
+         begin
+            // Store dissection lines
+            // re-sort - store $ lines first followed by % lines
+            Has100 := HasSingle100PercentLine;
+            for j := 0 to 1 do
+            begin
+              for i := 0 to Pred( Count ) do
+              begin
+                pD := WorkDissect.Items[i];
+                if ((j = 0) and (pD.dtPercent_Amount <> 0))
+                  or ((j = 1) and (pD.dtPercent_Amount = 0)) then
+                   Continue;
+                pDissection := New_Dissection_Rec;
+                with pDissection^, pD^ do
+                begin
+                   dsTransaction     := pTran;
+                   dsAccount         := dtAccount;
+                   dsAmount          := dtAmount;
+                   dsGST_Class       := dtGST_Class;
+                   dsGST_Amount      := dtGST_Amount;
+                   dsQuantity        := dtQuantity;
+                   dsPayee_Number    := dtPayee_Number;
+                   dsJob_Code         := dtJob;
+                   if dsJob_Code <> pT.txJob_Code then
+                   begin
+                      //  pT.txJob_LRN can only be the same as ALL disections
+                      pT.txJob_Code := '';
+                   end;
+
+                   dsForex_Conversion_Rate    := dtForex_Conversion_Rate    ;
+
+                   dsGL_Narration             := dtNarration;
+                   dsTax_Invoice := dtTax_Invoice;
+                   dsHas_Been_Edited := dtHas_Been_Edited;
+                   dsGST_Has_Been_Edited  := dtGST_Has_Been_Edited;
+                   dsNotes                := dtNotes;
+                   dsECoding_Import_Notes := dtImportNotes;
+
+                   //smartlink
+                   dsDocument_Title       := dtDocument_Title;
+                   dsDocument_Status_Update_Required := dtDocument_Status_Update_Required;
+                   dsExternal_GUID := dtExternal_GUID;
+
+                   //super fields
+                   dsSF_Imputed_Credit      := dtSF_Imputed_Credit;
+                   dsSF_Tax_Free_Dist       := dtSF_Tax_Free_Dist;
+                   dsSF_Tax_Exempt_Dist     := dtSF_Tax_Exempt_Dist;
+                   dsSF_Tax_Deferred_Dist   := dtSF_Tax_Deferred_Dist;
+                   dsSF_TFN_Credits         := dtSF_TFN_Credits;
+                   dsSF_Foreign_Income      := dtSF_Foreign_Income;
+                   dsSF_Foreign_Tax_Credits := dtSF_Foreign_Tax_Credits;
+                   dsSF_Capital_Gains_Indexed  := dtSF_Capital_Gains_Indexed;
+                   dsSF_Capital_Gains_Disc  := dtSF_Capital_Gains_Disc;
+                   dsSF_Capital_Gains_Other := dtSF_Capital_Gains_Other;
+                   dsSF_Other_Expenses      := dtSF_Other_Expenses;
+                   dsSF_CGT_Date            := dtSF_CGT_Date;
+                   dsSF_Franked             := dtSF_Franked;
+                   dsSF_Unfranked           := dtSF_Unfranked;
+                   dsSF_Interest            := dtSF_Interest;
+                   dsSF_Capital_Gains_Foreign_Disc := dtSF_Capital_Gains_Foreign_Disc;
+                   dsSF_Rent                := dtSF_Rent;
+                   dsSF_Special_Income      := dtSF_Special_Income;
+                   dsSF_Other_Tax_Credit    := dtSF_Other_Tax_Credit;
+                   dsSF_Non_Resident_Tax    := dtSF_Non_Resident_Tax;
+                   dsSF_Foreign_Capital_Gains_Credit := dtSF_Foreign_Capital_Gains_Credit;
+                   dsSF_Member_ID           := dtSF_Member_ID;
+                   dsSF_Member_Component    := dtSF_Member_Component;
+                   dsSF_Member_Account_ID   := dtSF_Member_Account_ID;
+                   dsSF_Fund_ID             := dtSF_Fund_ID;
+                   dsSF_Fund_Code           := dtSF_Fund_Code;
+                   dsSF_Member_Account_Code := dtSF_Member_Account_Code;
+                   dsSF_Transaction_ID      := dtSF_Transaction_Type_ID;
+                   dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
+                   dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
+                   dsSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
+
+                   dsNotes_Read := dtNotes_Read;
+                   dsImport_Notes_Read := dtImport_Notes_Read;
+
+                   if not Has100 then
+                   begin
+                     dsPercent_Amount         := dtPercent_Amount;
+                     dsAmount_Type_Is_Percent := dtPercent_Amount <> 0;
+                   end
+                   else
+                   begin
+                     dsAmount_Type_Is_Percent := False;
+                     dsPercent_Amount := 0;
+                   end;
+
+                   if AuditIDList.Count > 0 then
+                   begin
+                     pDissection.dsAudit_Record_ID := integer(AuditIDList.Items[0]);
+                     TrxList32.AppendDissection( pTran, pDissection, nil );
+                     AuditIDList.Delete(0);
+                   end else
+                     TrxList32.AppendDissection( pTran, pDissection, MyClient.ClientAuditMgr );
+                end; {with}
+              end; {for i}
+            end; {for j}
+
+            pTran^.txCoded_By    := cbManual;
+            pTran^.txAccount     := DISSECT_DESC;
+            //clean up any gst amounts that are left on the transaction
+            ClearGSTFields( pTran);
+            ClearSuperFundFields( pTran);
+
+            if pD.dtHas_Been_Edited or pD.dtGST_Has_Been_Edited then
+            begin
+              pT^.txTransfered_To_Online := False;
+            end;
+
+            Result := True;
          end;
+       finally
+         AuditIDList.Free;
+       end;
       finally
-        if Assigned(frmMain) then
-          if not MaintainMemScanStatus then
-            frmMain.MemScanIsBusy := False;
         Free;
       end;
 end;

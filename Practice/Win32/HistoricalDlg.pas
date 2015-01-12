@@ -3859,51 +3859,38 @@ var
   pT : pTransaction_Rec;
   OldPayeeNo: Integer;
   msg: string;
-  MaintainMemScanStatus: boolean;
 begin
-   MaintainMemScanStatus := False;
-   try
-     if Assigned(frmMain) then
-     begin
-       MaintainMemScanStatus := frmMain.MemScanIsBusy;
-       frmMain.MemScanIsBusy := True;
-     end;
-     tmrPayee.Enabled := False;
-     if TimerRow = 0 then
-        exit;
-     pT := HistTranList.Transaction_At(TimerRow-1);
-     if not assigned(pt) then
-        Exit;  // Not Much I Can do...
-     MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+   tmrPayee.Enabled := False;
+   if TimerRow = 0 then
+      exit;
+   pT := HistTranList.Transaction_At(TimerRow-1);
+   if not assigned(pt) then
+      Exit;  // Not Much I Can do...
+   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
-     case tmrPayee.Tag of
-     cePayee : if ( pT^.txPayee_Number <> tmpInteger ) then begin
-          //tblHist.ActiveCol := tblHist.ColumnFmtList.GetColNumOfField(cePayee);
-          OldPayeeNo := pT^.txPayee_Number;
-          pT^.txPayee_Number  := tmpPayee;
-          if PayeeEdited(pT) then
-            pT^.txHas_Been_Edited := true
-          else
-            //restore original value
-            pT^.txPayee_Number := OldPayeeNo;
-        end;
-     ceEffDate : begin // Date has already failed;
-            if not ValidDate(tmpDate,@msg) then
-               HelpfulWarningMsg(msg,0);
-        end;
-     end;
+   case tmrPayee.Tag of
+   cePayee : if ( pT^.txPayee_Number <> tmpInteger ) then begin
+        //tblHist.ActiveCol := tblHist.ColumnFmtList.GetColNumOfField(cePayee);
+        OldPayeeNo := pT^.txPayee_Number;
+        pT^.txPayee_Number  := tmpPayee;
+        if PayeeEdited(pT) then
+          pT^.txHas_Been_Edited := true
+        else
+          //restore original value
+          pT^.txPayee_Number := OldPayeeNo;
+      end;
+   ceEffDate : begin // Date has already failed;
+          if not ValidDate(tmpDate,@msg) then
+             HelpfulWarningMsg(msg,0);
+      end;
+   end;
 
 
-     with tblHist do begin
-        AllowRedraw := false;
-        InvalidateRow(TimerRow);
-        AllowRedraw := true;
-     end;
-   finally
-     if Assigned(frmMain) then
-       if not MaintainMemScanStatus then
-         frmMain.MemScanIsBusy := False;
-   end;   
+   with tblHist do begin
+      AllowRedraw := false;
+      InvalidateRow(TimerRow);
+      AllowRedraw := true;
+   end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

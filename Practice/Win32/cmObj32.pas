@@ -44,6 +44,7 @@ const
 constructor TCandidate_Mem.Create;
 begin
   inherited;
+  fStatementDetailsUpperCase := '';
 
   FillChar(cmFields, SizeOf(cmFields), 0);
   with cmFields do
@@ -105,6 +106,13 @@ end;
 {------------------------------------------------------------------------------}
 function TCandidate_Mem.GetStatementDetailsUpperCase: string;
 begin
+  if length(fStatementDetailsUpperCase) > 100 then
+    result := fStatementDetailsUpperCase;
+
+  if length(cmFields.cmStatement_Details) > 100 then
+    result := fStatementDetailsUpperCase;
+
+
   { Note: on first use this value will be cached to uppercase for use with
     mems2. }
   if (fStatementDetailsUpperCase = '') and (cmFields.cmStatement_Details <> '') then

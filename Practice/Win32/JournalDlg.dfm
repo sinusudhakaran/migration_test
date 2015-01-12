@@ -378,7 +378,7 @@ object dlgJournal: TdlgJournal
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akBottom]
-      ItemHeight = 13
+      ItemHeight = 0
       TabOrder = 2
     end
     object eDateUntil: TOvcPictureField
@@ -504,6 +504,7 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnKeyPress = celAmountKeyPress
@@ -522,6 +523,7 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnChange = celGstAmtChange
@@ -541,6 +543,7 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblJournal
     OnChange = celQuantityChange
@@ -589,6 +592,7 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -610,6 +614,7 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -631,6 +636,7 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Left = 448
