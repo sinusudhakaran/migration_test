@@ -302,6 +302,7 @@ var
   Account : pAccount_Rec;
   i : integer;
 begin
+  fFirstSelectedItem := nil;
   MsgBar('Loading Chart Codes',true);
   lvChart.Items.BeginUpdate;
   try
