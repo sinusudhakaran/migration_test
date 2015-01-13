@@ -2308,20 +2308,26 @@ end;
 
 function TCHYearItem.GetNodeHeight(const Value: Integer): Integer;
 begin
-    Result := max (Value, (MonthHeight * 2) + 2 );
+  Result := max (Value, (MonthHeight * 2) + 2 );
 end;
 
 
 { TCHPeBaseList }
-
 function TCHPBaseList.CheckCodingItem(Item: TTreeBaseItem): Boolean;
 begin
-  if (Item is TCHAccountItem)
-  and (TCHAccountItem(Item).AccountType = btBank)then begin
-     CloseAllCodingForms;
-     Result := True;
-  end else
-     Result := False;
+  if (Item is TCHAccountItem) and
+     (TCHAccountItem(Item).AccountType = btBank) then
+  begin
+    CloseAllCodingForms;
+    Result := True;
+  end
+  else if (Item is TCHJournalItem) then
+  begin
+    CloseCodingScreen(TCHJournalItem(Item).GetBankAccount);
+    Result := True;
+  end
+  else
+    Result := False;
 end;
 
 procedure TCHPBaseList.CodeRange(Value: TRangeCount);
