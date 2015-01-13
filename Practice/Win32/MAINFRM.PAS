@@ -4646,6 +4646,7 @@ begin
 
     // Sort Internal Tab List and then remove duplicates using Caption Names
     PreviousStr := '';
+    TabList.CaseSensitive := true;
     TabList.Sort;
     for TabIndex := 0 to Pred(TabList.Count) do
     begin
@@ -4661,6 +4662,7 @@ begin
     aTabWindow.TabIndex := -1;
 
     // Sort Global Internal MDI List and then remove duplicates using Caption Names
+    MDIChildSortedList.CaseSensitive := true;
     MDIChildSortedList.Sort;
     PreviousStr := '';
     for CurMDIIndex := MDIChildSortedList.Count-1 downto 0 do
