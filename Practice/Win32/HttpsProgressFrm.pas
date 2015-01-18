@@ -14,6 +14,7 @@ type
     ContentType: string;
     Accept: string;
     Authorization: string;
+    MyobApiAccessToken: string;
   end;
 
   TfrmHttpsProgress = class(TForm)
@@ -105,10 +106,18 @@ begin
 end;
 
 procedure TfrmHttpsProgress.UMStart(var aMsg: TMessage);
+const
+  CRLF = #13#10;
 begin
-  ipsHTTPS.ContentType := fHeaders.ContentType;
-  ipsHTTPS.Accept := fHeaders.Accept;
-  ipsHTTPS.Authorization := fHeaders.Authorization;
+  { WORKAROUND:
+    Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
+    so we must use OtherHeaders instead.
+  }
+  ipsHTTPS.OtherHeaders :=
+    'Content-Type: ' + fHeaders.ContentType + CRLF +
+    'Accept: ' + fHeaders.Accept + CRLF +
+    'Authorization: ' + fHeaders.Authorization + CRLF +
+    'x-myobapi-accesstoken: ' + fHeaders.MyobApiAccessToken;
 
   if (fVerb = 'GET') then
   begin
@@ -165,7 +174,10 @@ procedure TfrmHttpsProgress.ipsHTTPSError(Sender: TObject; ErrorCode: Integer;
   const Description: string);
 begin
   HeartBeat;
-  fError := Description;
+
+  if (fError = '') then
+    fError := Description;
+
   ModalResult := mrAbort;
 end;
 
@@ -210,6 +222,14 @@ procedure TfrmHttpsProgress.ipsHTTPSStatus(Sender: TObject;
   const HTTPVersion: string; StatusCode: Integer; const Description: string);
 begin
   HeartBeat;
+
+  if (StatusCode <> 200) then
+  begin
+    if (fError = '') then
+      fError := IntToStr(StatusCode) + ': ' + Description;
+
+    ModalResult := mrAbort;
+  end;
 end;
 
 procedure TfrmHttpsProgress.ipsHTTPSTransfer(Sender: TObject; Direction,

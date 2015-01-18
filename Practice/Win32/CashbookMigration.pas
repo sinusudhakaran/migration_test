@@ -8,9 +8,44 @@ uses
   SysUtils,
   Classes,
   uLkJSON,
-  HttpsProgressFrm;
+  HttpsProgressFrm,
+  CryptUtils,
+  ZlibExGZ,
+  IdCoder,
+  IdCoderMIME;
 
 type
+  //----------------------------------------------------------------------------
+  TListDestroy = class(TList)
+  protected
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+
+  end;
+
+  //----------------------------------------------------------------------------
+  TFirm = class
+  private
+    fID: string;
+    fName: string;
+
+  public
+    procedure Read(const aJson: TlkJSONobject);
+
+    property  ID: string read fID write fID;
+    property  Name: string read fName write fName;
+
+  end;
+
+  //----------------------------------------------------------------------------
+  TFirms = class(TListDestroy)
+  public
+    function  GetItem(const aIndex: integer): TFirm;
+    property  Items[const aIndex: integer]: TFirm read GetItem; default;
+
+    procedure Read(const aJson: TlkJSONlist);
+
+  end;
+
   //----------------------------------------------------------------------------
   TBusinessData = class
   private
@@ -22,10 +57,6 @@ type
     fFinancialYearStartMonth: integer;
 
   public
-    constructor Create;
-    destructor  Destroy; override;
-
-    procedure Read(const aJson: TlkJSONobject);
     procedure Write(const aJson: TlkJSONobject);
 
     property  ABN: string read fABN write fABN;
@@ -35,65 +66,147 @@ type
     property  FirmId: string read fFirmId write fFirmId;
     property  FinancialYearStartMonth: integer read fFinancialYearStartMonth
                 write fFinancialYearStartMonth;
+
   end;
 
   //----------------------------------------------------------------------------
-  TCashbookClientData = class
+  TClientData = class
   private
     fBusinessData: TBusinessData;
 
   public
     constructor Create;
-    destructor Destroy; override;
+    destructor  Destroy; override;
 
-    procedure Read(const aJson: TlkJSONobject);
     procedure Write(const aJson: TlkJSONobject);
 
-    property  BusinessData: TBusinessData read fBusinessData write fBusinessData;
+    function  GetData: string;
+
+    property  BusinessData: TBusinessData read fBusinessData;
+
   end;
 
   //----------------------------------------------------------------------------
-  TFirm = class(TCollectionItem)
+  TFile = class
   private
+    fID: string;
+    fFileName: string;
+    fDataLength: integer;
+    fData: string;
+
+    function  GetFileHash: string;
+    function  GetDataAsZipBase64: string;
+
   public
+    constructor Create;
+
+    procedure Write(const aJson: TlkJSONobject);
+
+    property  ID: string read fID write fID;
+    property  FileName: string read fFileName write fFileName;
+    property  DataLength: integer read fDataLength write fDataLength;
+    property  Data: string read fData write fData;
+
   end;
 
   //----------------------------------------------------------------------------
-  TFirms = class(TCollection)
+  TParameters = class(TListDestroy)
   private
+    fDataStore: string;
+    fQueue: string;
+
   public
+    procedure Write(const aJson: TlkJSONlist);
+
+    property  DataStore: string read fDataStore write fDataStore;
+    property  Queue: string read fQueue write fQueue;
+
   end;
 
   //----------------------------------------------------------------------------
-  TCashbookMigration = class
+  TFileUpload = class
   private
-    fCashbookClientData: TCashbookClientData;
-    fToken: string;
-
-    function  DoHttpSecureJson(const aVerb: string; const aURL: string;
-                const aRequest: TlkJSONbase; var aResponse: TlkJSONbase;
-                var aError: string): boolean;
+    fID: string;
+    fUploadType: integer;
+    fFile: TFile;
+    fParameters: TParameters;
 
   public
     constructor Create;
     destructor  Destroy; override;
 
-    function  Login(const aUserName: string; const aPassword: string): boolean;
+    procedure Write(const aJson: TlkJSONobject);
 
-    function  GetFirms(const aFirms: TFirms): boolean;
+    property  ID: string read fID;
+    property  UploadType: integer read fUploadType write fUploadType;
+    property  Files: TFile read fFile;
+    property  Parameters: TParameters read fParameters;
 
-    property  CashbookClientData: TCashbookClientData read fCashbookClientData
-                write fCashbookClientData;
   end;
 
   //----------------------------------------------------------------------------
-  function MigrateCashbook : TCashbookMigration;
+  TUrlsMap = class
+  private
+    fName: string;
+    fValue: string;
+
+  public
+    procedure Read(const aJson: TlkJSONobject);
+
+    property  Name: string read fName write fName;
+    property  Value: string read fValue write fValue;
+
+  end;
+
+  //----------------------------------------------------------------------------
+  TFileUploadResult = class
+  private
+    fUploadID: string;
+    fResponseCode: integer;
+    fUrlsMap: TUrlsMap;
+
+  public
+    constructor Create;
+    destructor  Destroy; override;
+
+    procedure Read(const aJson: TlkJSONobject);
+
+    property  UploadID: string read fUploadID write fUploadID;
+    property  RespondeCode: integer read fResponseCode write fResponseCode;
+    property  UrlsMap: TUrlsMap read fUrlsMap;
+
+  end;
+
+  //----------------------------------------------------------------------------
+  TCashbookMigration = class
+  private
+    fToken: string;
+
+    function  DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
+                var aResponse: TlkJSONbase; var aError: string): boolean;
+
+  public
+    function  Login(const aUserName: string; const aPassword: string): boolean;
+
+    function  GetFirms(var aFirms: TFirms; var aError: string): boolean;
+
+    function  FileUpload(const aUpload: TFileUpload; aResult: TFileUploadResult;
+                var aError: string): boolean;
+
+  end;
+
+  //----------------------------------------------------------------------------
+  function  MigrateCashbook: TCashbookMigration;
 
 //------------------------------------------------------------------------------
 implementation
 
 uses
   Globals;
+
+const
+  //URL_BASE = 'https://burwood.cashbook.us/';
+  URL_BASE = 'http://10.72.20.37/';
 
 var
   fCashbookMigration: TCashbookMigration;
@@ -110,48 +223,82 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-{ TBusinessData }
-constructor TBusinessData.Create;
+{ TListDestroy }
+procedure TListDestroy.Notify(Ptr: Pointer; Action: TListNotification);
+var
+  Item: TObject;
 begin
-end;
-
-//------------------------------------------------------------------------------
-destructor TBusinessData.Destroy;
-begin
-
   inherited;
+
+  if (Action = lnDeleted) then
+  begin
+    Item := TObject(Ptr);
+    FreeAndNil(Item);
+  end;
 end;
 
 //------------------------------------------------------------------------------
-procedure TBusinessData.Read(const aJson: TlkJSONobject);
+{ TFirm }
+procedure TFirm.Read(const aJson: TlkJSONobject);
 begin
   ASSERT(assigned(aJson));
 
-  // TODO
+  ID := aJson.getString('id');
+  Name := aJson.getString('name');
 end;
 
 //------------------------------------------------------------------------------
+{ TFirms }
+function TFirms.GetItem(const aIndex: integer): TFirm;
+begin
+  result := TFirm(Get(aIndex));
+end;
+
+//------------------------------------------------------------------------------
+procedure TFirms.Read(const aJson: TlkJSONlist);
+var
+  i: integer;
+  Child: TlkJSONobject;
+  Firm: TFirm;
+begin
+  ASSERT(assigned(aJson));
+
+  for i := 0 to aJson.Count-1 do
+  begin
+    Child := aJson.Child[i] as TlkJSONobject;
+
+    // New firm
+    Firm := TFirm.Create;
+    Add(Firm);
+
+    // Read firm
+    Firm.Read(Child);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+{ TBusinessData }
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
 begin
   ASSERT(assigned(aJson));
 
-  aJson.Add('abn', fABN);
-  aJson.Add('name', fBusinessName);
-  aJson.Add('business_type', fBusinessType);
-  aJson.Add('client_code', fClientCode);
-  aJson.Add('firm_id', fFirmId);
-  aJson.Add('financial_year_start_month', fFinancialYearStartMonth);
+  aJson.Add('abn', ABN);
+  aJson.Add('name', BusinessName);
+  aJson.Add('business_type', BusinessType);
+  aJson.Add('client_code', ClientCode);
+  aJson.Add('firm_id', FirmId);
+  aJson.Add('financial_year_start_month', FinancialYearStartMonth);
 end;
 
 //------------------------------------------------------------------------------
-{ TCashbookClientData }
-constructor TCashbookClientData.Create;
+{ TClientData }
+constructor TClientData.Create;
 begin
   fBusinessData := TBusinessData.Create;
 end;
 
 //------------------------------------------------------------------------------
-destructor TCashbookClientData.Destroy;
+destructor TClientData.Destroy;
 begin
   FreeAndNil(fBusinessData);
 
@@ -159,69 +306,183 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCashbookClientData.Read(const aJson: TlkJSONobject);
-begin
-  // TODO
-end;
-
-//------------------------------------------------------------------------------
-procedure TCashbookClientData.Write(const aJson: TlkJSONobject);
+procedure TClientData.Write(const aJson: TlkJSONobject);
 var
   JsonBusiness: TlkJSONobject;
 begin
-  // Business
+  // Business data
   JsonBusiness := TlkJSONobject.Create;
   aJson.Add('Business', JsonBusiness);
-  fBusinessData.Write(JsonBusiness);
+  BusinessData.Write(JsonBusiness);
 end;
 
 //------------------------------------------------------------------------------
-{ TCashbookMigration }
-constructor TCashbookMigration.Create;
+function TClientData.GetData: string;
+var
+  Json: TlkJSONobject;
 begin
+  result := '';
+
+  Json := nil;
+  try
+    // Write Json
+    Json := TlkJSONobject.Create;
+    Write(Json);
+
+    // Jason to text
+    result := TlkJSON.GenerateText(Json);
+  finally
+    FreeAndNil(Json);
+  end;
 end;
 
 //------------------------------------------------------------------------------
-destructor TCashbookMigration.Destroy;
+{ TFile }
+constructor TFile.Create;
+var
+  NewID: TGUID;
 begin
+  CreateGUID(NewID);
+  fID := GUIDToString(NewID);
+end;
+
+//------------------------------------------------------------------------------
+function TFile.GetFileHash: string;
+begin
+  result := HashStr(fData);
+end;
+
+//------------------------------------------------------------------------------
+function TFile.GetDataAsZipBase64: string;
+begin
+  result := ZCompressStrG(fData);
+
+  result := EncodeString(TidEncoderMIME, result);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFile.Write(const aJson: TlkJSONobject);
+var
+  iDataLength: integer;
+  sData: string;
+begin
+  aJson.Add('Id', fId);
+
+  aJson.Add('FileName', fFileName);
+
+  aJson.Add('FileHash', GetFileHash);
+
+  sData := GetDataAsZipBase64;
+
+  iDataLength := Length(sData);
+  aJson.Add('DataLength', iDataLength);
+
+  aJson.Add('Data', sData);
+end;
+
+//------------------------------------------------------------------------------
+{ TParameters }
+procedure TParameters.Write(const aJson: TlkJSONlist);
+var
+  Parameter: TlkJSONobject;
+begin
+  // DataStore
+  Parameter := TlkJSONobject.Create;
+  aJson.Add(Parameter);
+  Parameter.Add('Key', 'DataStore');
+  Parameter.Add('Value', fDataStore);
+
+  // Queue
+  Parameter := TlkJSONobject.Create;
+  aJson.Add(Parameter);
+  Parameter.Add('Key', 'Queue');
+  Parameter.Add('Value', fQueue);
+end;
+
+//------------------------------------------------------------------------------
+{ TFileUpload }
+constructor TFileUpload.Create;
+var
+  NewID: TGUID;
+begin
+  CreateGUID(NewID);
+  fID := GUIDtoString(NewID);
+
+  fUploadType := 3;
+
+  fFile := TFile.Create;
+
+  fParameters := TParameters.Create;
+end;
+
+//------------------------------------------------------------------------------
+destructor TFileUpload.Destroy;
+begin
+  FreeAndNil(fFile);
+  FreeAndNil(fParameters);
+
   inherited;
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.DoHttpSecureJson(const aVerb: string;
-  const aURL: string; const aRequest: TlkJSONbase;
-  var aResponse: TlkJSONbase; var aError: string): boolean;
+procedure TFileUpload.Write(const aJson: TlkJSONobject);
 var
-  Headers: THttpHeaders;
-  sRequest: string;
-  sResponse: string;
+  Files: TlkJSONlist;
+  NewFile: TlkJSONobject;
+  Parameters: TlkJSONlist;
 begin
-  result := false;
+  aJson.Add('Id', fID);
 
-  aResponse := nil;
+  aJson.Add('UploadType', fUploadType);
 
-  try
-    Headers.ContentType := 'application/json';
-    Headers.Accept := 'application/vnd.cashbook-v1+json';
-    Headers.Authorization := 'Bearer ' + fToken;
+  // File
+  Files := TlkJSONlist.Create;
+  aJson.Add('Files', Files);
+  NewFile := TlkJSONobject.Create;
+  Files.Add(NewFile);
+  fFile.Write(NewFile);
 
-    sRequest := TlkJSON.GenerateText(aRequest);
+  // Parameters
+  Parameters := TlkJSONlist.Create;
+  aJson.Add('Parameters', Parameters);
+  fParameters.Write(Parameters);
+end;
 
-    if not DoHttpSecure(aVerb, aURL, Headers, sRequest, sResponse, aError) then
-      exit;
+//------------------------------------------------------------------------------
+{ TUrlsMap }
+procedure TUrlsMap.Read(const aJson: TlkJSONobject);
+begin
+  fName := aJson.NameOf[0];
 
-    aResponse := TlkJSON.ParseText(sResponse);
-    if not assigned(aResponse) then
-      exit;
-  except
-    on E: Exception do
-    begin
-      aError := E.Message;
-      exit;
-    end;
-  end;
+  fValue := aJson.getString(0);
+end;
 
-  result := true;
+//------------------------------------------------------------------------------
+{ TFileUploadResult }
+constructor TFileUploadResult.Create;
+begin
+  fUrlsMap := TUrlsMap.Create;
+end;
+
+//------------------------------------------------------------------------------
+destructor TFileUploadResult.Destroy;
+begin
+  FreeAndNil(fUrlsMap);
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFileUploadResult.Read(const aJson: TlkJSONobject);
+var
+  UrlsMap: TlkJSONobject;
+begin
+  fUploadId := aJson.getString('UploadId');
+
+  fResponseCode := aJson.getInt('ResponseCode');
+
+  UrlsMap := (aJson.Field['UrlsMap'] as TlkJSONobject);
+  fUrlsMap.Read(UrlsMap);
 end;
 
 //------------------------------------------------------------------------------
@@ -257,7 +518,7 @@ begin
       // Cancelled?
       if not DoHttpSecure(
         'POST',
-        'https://secure.myob.com/oauth2/v1/authorize',
+        'https://test.secure.myob.com/oauth2/v1/Authorize',
         Headers,
         PostData.DelimitedText,
         sResponse,
@@ -290,9 +551,151 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.GetFirms(const aFirms: TFirms): boolean;
+{ TCashbookMigration }
+function TCashbookMigration.DoHttpSecureJson(const aURL: string;
+  const aRequest: TlkJSONbase; var aResponse: TlkJSONbase; var aError: string
+  ): boolean;
+var
+  sVerb: string;
+  Headers: THttpHeaders;
+  sRequest: string;
+  sResponse: string;
 begin
-  // TODO
+  result := false;
+
+  aResponse := nil;
+
+  try
+    // Verb
+    if not assigned(aRequest) then
+      sVerb := 'GET'
+    else
+      sVerb := 'POST';
+
+    // Headers
+    Headers.ContentType := 'application/json; charset=utf-8';
+    Headers.Accept := 'application/vnd.cashbook-v1+json';
+    Headers.Authorization := 'Bearer ' + fToken;
+    Headers.MyobApiAccessToken := fToken;
+
+    // Body
+    if assigned(aRequest) then
+      sRequest := TlkJSON.GenerateText(aRequest);
+
+    // Http
+    if not DoHttpSecure(sVerb, aURL, Headers, sRequest, sResponse, aError) then
+      exit;
+
+    // Response
+    aResponse := TlkJSON.ParseText(sResponse);
+    if not assigned(aResponse) then
+      exit;
+  except
+    on E: Exception do
+    begin
+      FreeAndNil(aResponse);
+
+      aError := E.Message;
+      exit;
+    end;
+  end;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.GetFirms(var aFirms: TFirms; var aError: string
+  ): boolean;
+var
+  sURL: string;
+  Response: TlkJSONbase;
+  List: TlkJSONlist;
+begin
+  result := false;
+
+  aFirms := nil;
+
+  Response := nil;
+  try
+    try
+      sURL := URL_BASE + 'api/firms';
+
+      if not DoHttpSecureJson(sURL, nil, Response, aError) then
+        exit;
+
+      List := (Response as TlkJSONlist);
+
+      aFirms := TFirms.Create;
+
+      aFirms.Read(List);
+    except
+      on E: Exception do
+      begin
+        FreeAndNil(aFirms);
+
+        exit;
+      end;
+    end;
+  finally
+    FreeAndNil(Response);
+  end;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.FileUpload(const aUpload: TFileUpload;
+  aResult: TFileUploadResult; var aError: string): boolean;
+var
+  Request: TlkJSONobject;
+  sURL: string;
+  ResponseBase: TlkJSONbase;
+  Response: TlkJSONobject;
+begin
+  ASSERT(assigned(aUpload));
+
+  result := false;
+
+  aResult := nil;
+
+  Request := nil;
+  ResponseBase := nil;
+  Response := nil;
+
+  try
+    try
+      // Request
+      Request := TlkJSONobject.Create;
+      aUpload.Write(Request);
+
+      // HTTP
+      sURL := URL_BASE + 'ADCommon/Upload';
+      if not DoHttpSecureJson(sURL, Request, ResponseBase, aError) then
+        exit;
+      ASSERT(assigned(ResponseBase));
+
+      // Response
+      Response := (ResponseBase as TlkJSONobject);
+
+      // Result
+      aResult := TFileUploadResult.Create;
+      aResult.Read(Response);
+    except
+      on E: Exception do
+      begin
+        FreeAndNil(aResult);
+
+        aError := E.Message;
+        exit;
+      end;
+    end;
+  finally
+    FreeAndNil(Response);
+    FreeAndNil(ResponseBase);
+    FreeAndNil(Response);
+  end;
+
+  result := true;
 end;
 
 //------------------------------------------------------------------------------

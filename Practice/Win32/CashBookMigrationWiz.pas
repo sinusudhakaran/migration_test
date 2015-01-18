@@ -34,7 +34,8 @@ uses
   OleCtrls,
   SHDocVw,
   BKWebBrowser,
-  RzPrgres;
+  RzPrgres,
+  CashbookMigration;
 
 type
   TFrmCashBookMigrationWiz = class(TForm)
@@ -95,10 +96,11 @@ type
     procedure chkAcceptAgreementClick(Sender: TObject);
 
   private
-    fClient: TClientObj;
     fCurrentStepID: integer;
-    fMonths: TMonthEndings;
-    MonthEndStr: string;
+
+    fFiles: TStringList;
+
+    fFirms: TFirms;
     fLoggedIn : Boolean;
     fFirmSelected : Boolean;
     fTermsAndConditionsAccepted : Boolean;
@@ -119,7 +121,8 @@ type
     function  CanMoveToNextStep(StepID : integer) : boolean;
     procedure FinishWizard;
     procedure UpdateControls;
-    function IsLastStep : boolean;
+    function  IsLastStep : boolean;
+    procedure PostDataToCashbook;
 
   public
     destructor Destroy; override;
@@ -158,8 +161,7 @@ uses
   CountryUtils,
   ForexHelpers,
   InfoMoreFrm,
-  WarningMoreFrm,
-  CashbookMigration;
+  WarningMoreFrm;
 
 const
   mtOverview           = 1; mtMin = 1;
@@ -213,6 +215,10 @@ end;
 //------------------------------------------------------------------------------
 destructor TFrmCashBookMigrationWiz.Destroy;
 begin
+  FreeAndNil(fFiles);
+
+  FreeAndNil(fFirms);
+
   inherited; // LAST
 end;
 
@@ -221,6 +227,8 @@ procedure TFrmCashBookMigrationWiz.FormCreate(Sender: TObject);
 var
   i: integer;
 begin
+  fFiles := TStringList.Create;
+
   // Setup
   lblTitle.Font.Name := Font.Name;
   bkXPThemes.ThemeForm(Self);
@@ -253,6 +261,9 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.btnLoginClick(Sender: TObject);
+var
+  sError: string;
+  i: integer;
 begin
 {$IFDEF DEBUG}
   edtUser.Text := 'cashbook@gmail.com';
@@ -275,9 +286,29 @@ begin
     exit;
   end;
 
+  // Get firms
+  if not MigrateCashbook.GetFirms(fFirms, sError) then
+  begin
+    HelpfulWarningMsg('No firms available.',0);
+    edtUser.SetFocus;
+    exit;
+  end;
+
+  // No firms?
+  if (fFirms.Count = 0) then
+  begin
+    HelpfulWarningMsg('No firms available.',0);
+    edtUser.SetFocus;
+    exit;
+  end;
+
   fLoggedIn := true;
 
-  // TODO: MigrateCashbook.GetCashbookFirmIDs();
+  // Display firms
+  for i := 0 to fFirms.Count-1 do
+  begin
+    cmbSelectFirm.Items.Add(fFirms[i].Name);
+  end;
 
   UpdateControls();
 end;
@@ -470,11 +501,9 @@ begin
 
   UpdateControls;
 
-  { TODO
   case fCurrentStepID of
-    mtProgress : MigrateCashbook.PostDataToCashBook();
+    mtProgress: PostDataToCashBook();
   end;
-  }
 end;
 
 //------------------------------------------------------------------------------
@@ -552,6 +581,50 @@ end;
 function TFrmCashBookMigrationWiz.IsLastStep: boolean;
 begin
   Result := (fCurrentStepID =  TabOrderArray[High(TabOrderArray)]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.PostDataToCashbook;
+var
+  i: integer;
+  Data: TClientData;
+  FileUpload: TFileUpload;
+  FileUploadResult: TFileUploadResult;
+  sError: string;
+begin
+{$IFDEF DEBUG}
+  fFiles.Add('C:\Test\Debug.txt');
+{$ENDIF}
+
+  for i := 0 to fFiles.Count-1 do
+  begin
+    Data := nil;
+    FileUpload := nil;
+    FileUploadResult := nil;
+
+    try
+      // Data
+      Data := TClientData.Create;
+      Data.BusinessData.FirmId := fFirms[cmbSelectFirm.ItemIndex].ID;
+
+      // FileUpload
+      FileUpload := TFileUpload.Create;
+      FileUpload.Files.Data := Data.GetData;
+
+      // Can't upload?
+      if not MigrateCashbook.FileUpload(FileUpload, FileUploadResult, sError) then
+      begin
+        HelpfulWarningMsg(sError, 0);
+
+        exit;
+      end;
+
+    finally
+      FreeAndNil(Data);
+      FreeAndNil(FileUpload);
+      FreeAndNil(FileUploadResult);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------

@@ -347,10 +347,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       TabWidth = 5
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -374,10 +370,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -520,10 +512,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             ParentFont = False
             TabOrder = 0
             OnChange = cmbSelectFirmChange
-            Items.Strings = (
-              'Firm 1'
-              'Firm 2'
-              'Firm 3')
           end
         end
       end
@@ -537,10 +525,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Font.Style = []
         ImageIndex = 2
         ParentFont = False
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -639,10 +623,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 3
         Caption = 'tabTermsAndConditions'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -716,10 +696,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           736
           362)

@@ -42,6 +42,7 @@ object frmHttpsProgress: TfrmHttpsProgress
   end
   object ipsHTTPS: TipsHTTPS
     FirewallPort = 80
+    ProxyPort = 8888
     SSLCertStore = 'MY'
     OnConnected = ipsHTTPSConnected
     OnConnectionStatus = ipsHTTPSConnectionStatus
