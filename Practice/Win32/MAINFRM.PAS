@@ -4603,6 +4603,7 @@ var
   CurMDIIndex : integer;
   ActiveCaption : string;
   PreviousStr : string;
+  ClientManagerIndex : integer;
 begin
   fMDIChildSortedIndex := 0;
   MDIChildSortedList.Clear;
@@ -4614,6 +4615,7 @@ begin
 
     // Build Internal Tab List from Valid MDIChildren windows and save active window
     // Re Build Global MDI List from current MDIChildren
+    ClientManagerIndex := -1;
     for MDIIndex := 0 to Pred(MDIChildCount) do
     begin
       if (MDIChildren[MDIIndex].Caption = aActionedPage) then
@@ -4637,6 +4639,12 @@ begin
       end
       else
         TempStr := MDIChildren[MDIIndex].Caption;
+
+      if (MDIChildren[MDIIndex] is TfrmClientManager) then
+      begin
+        ClientManagerIndex := MDIIndex;
+        Continue;
+      end;
 
       if MDIChildren[MDIIndex].Active then
         ActiveCaption := MDIChildren[MDIIndex].Caption;
@@ -4664,6 +4672,10 @@ begin
     // Sort Global Internal MDI List and then remove duplicates using Caption Names
     MDIChildSortedList.CaseSensitive := true;
     MDIChildSortedList.Sort;
+
+    if ClientManagerIndex > 0 then
+      MDIChildSortedList.AddObject(MDIChildren[ClientManagerIndex].Caption, MDIChildren[ClientManagerIndex]);
+
     PreviousStr := '';
     for CurMDIIndex := MDIChildSortedList.Count-1 downto 0 do
     begin
