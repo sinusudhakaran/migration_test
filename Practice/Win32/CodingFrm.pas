@@ -498,7 +498,7 @@ type
     procedure SetSearchVisible(const Value: Boolean);
     function GetSearchVisible: Boolean;
   protected
-    { Protected declarations }
+    procedure SetMDIChildSortedIndex(aIndex : integer);
   public
     procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
     procedure ActivateCurrentTab(aTabIndex : integer);
@@ -527,7 +527,7 @@ type
     property EndDate: TStDate read TranDateTo;
     property SearchText: string read FSearchText write SetSearchText;
     property SearchVisible: Boolean read GetSearchVisible write SetSearchVisible;
-    property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
+    property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write SetMDIChildSortedIndex;
   end;
 
   procedure DoCoding(CodingOptions: TCodingOptions = []);
@@ -9447,6 +9447,11 @@ begin
   if Assigned(MyClient) then
     if Assigned(MyClient.clRecommended_Mems) then    
       MyClient.clRecommended_Mems.SetLastCodingFrmKeyPress;
+end;
+
+procedure TfrmCoding.SetMDIChildSortedIndex(aIndex: integer);
+begin
+  fMDIChildSortedIndex := aIndex;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

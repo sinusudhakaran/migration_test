@@ -202,10 +202,7 @@ Var
    Rate : Extended;
 Begin
   if DebugMe then
-     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-
-  if Assigned(aClient) then
-    aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List, true);
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   NoOfEntries := 0;
   FirstDate   := 0;
@@ -214,9 +211,9 @@ Begin
   AccountPasswordOK := false;
 
   if not Silent then
-     Msg := 'Importing new transactions...'
+    Msg := 'Importing new transactions...'
   else
-     Msg := 'Merging new transactions for ' + aClient.clFields.clCode + '...';
+    Msg := 'Merging new transactions for ' + aClient.clFields.clCode + '...';
 
   UpdateAppStatus( Msg,'',10);
   try
@@ -427,13 +424,15 @@ Begin
                        CloseFile( eFile );
                      end;
 
-                     if ( not Silent) or DebugMe or IsScheduledReports then begin
+                     if ( not Silent) or DebugMe or IsScheduledReports then
+                     begin
                         Msg := Format('%s : Merged %d entries',[ThisMethodName, NoForAccount]);
                         LogUtil.LogMsg(lmInfo, UnitName, Msg);
                      end;
 
                      //Autocode the entries
-                     if NoForAccount > 0 then begin
+                     if NoForAccount > 0 then
+                     begin
                         AutoCodeEntries(aClient, Bank_Account,AllEntries, FirstDateThisAccount, LastDateThisAccount, DoUpdateRecMemCandidates);
                      end;
 
@@ -456,17 +455,23 @@ Begin
   end;
 
   {report on what happened}
-  if NoOfEntries > 0 then begin
-     if (not Silent) or (IsScheduledReports) then begin
-        Msg := Format('Imported %d transactions dated from %s to %s',
-                      [ NoOfEntries, bkDate2Str( FirstDate ), bkDate2Str( LastDate ) ] );
-        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
-        if not IsScheduledReports then
-          HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
-     end;
+  if NoOfEntries > 0 then
+  begin
+    if Assigned(aClient) then
+      aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List, true);
+
+    if (not Silent) or (IsScheduledReports) then
+    begin
+      Msg := Format('Imported %d transactions dated from %s to %s',
+                    [ NoOfEntries, bkDate2Str( FirstDate ), bkDate2Str( LastDate ) ] );
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+      if not IsScheduledReports then
+        HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
+    end;
   end;
 
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 {-----------------------------------------------------------------}
 procedure MergeBankBalances(aClient : TClientObj; Silent : boolean);

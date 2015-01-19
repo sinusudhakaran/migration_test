@@ -67,6 +67,7 @@ CONST
    tkBeginUnscanned_Transaction_List   = 75;
    tkBeginCandidate_Mem_List           = 76;
    tkBeginRecommended_Mem_List         = 77;
+   tkBeginMem_Scan_Command_List        = 78;
 
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;

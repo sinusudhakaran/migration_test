@@ -259,6 +259,14 @@ public
 end;
 
 
+TMem_Scan_Command_RecHelper = record helper for TMem_Scan_Command_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 // ----------------------------------------------------------------------------
 implementation
 uses
@@ -3693,6 +3701,54 @@ begin
 	rmUncoded_Count := GetIntAttr(Result, 'UncodedCount');
 	except
 		on E: Exception do ReRaise (E, 'Reading TRecommended_Mem_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TMem_Scan_Command_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKMemScanCommand';
+end;
+
+
+function TMem_Scan_Command_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Command', msCommand);
+	SetIntAttr(Result, 'Section', msSection);
+	SetIntAttr(Result, 'Index', msIndex);
+	SetIntAttr(Result, 'SubIndex', msSubIndex);
+	SetTextAttr(Result, 'BankAccountNumber', msBank_Account_Number);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TMem_Scan_Command_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	msCommand := GetIntAttr(Result, 'Command');
+	msSection := GetIntAttr(Result, 'Section');
+	msIndex := GetIntAttr(Result, 'Index');
+	msSubIndex := GetIntAttr(Result, 'SubIndex');
+	msBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
+	except
+		on E: Exception do ReRaise (E, 'Reading TMem_Scan_Command_Rec');
 	end;
 
 	CNode := nil;

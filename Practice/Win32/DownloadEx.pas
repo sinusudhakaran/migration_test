@@ -1123,8 +1123,6 @@ begin
     if not RefreshAdmin then
       Exit;
 
-    MyClient.clRecommended_Mems.RemoveAccountsFromMems;
-
     //Check integrity of the admin system before doing anything
     Admin32.IntegrityCheck;
     //check that test has not been disabled in the prac ini
@@ -1174,6 +1172,8 @@ begin
           begin
             RefreshAllProcessingStatistics(True);
           end;
+
+          MyClient.clRecommended_Mems.RemoveAccountsFromMems;
         end;
       except
         on E : EDownloadVerify do

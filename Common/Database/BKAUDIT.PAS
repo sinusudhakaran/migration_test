@@ -961,6 +961,13 @@ begin
     FAuditNamesArray[168,174] := 'Manual_Count';
     FAuditNamesArray[168,175] := 'Uncoded_Count';
 
+   FAuditTableArray[169] := 'Mem_Scan_Command';
+    FAuditNamesArray[169,171] := 'Command';
+    FAuditNamesArray[169,172] := 'Section';
+    FAuditNamesArray[169,173] := 'Index';
+    FAuditNamesArray[169,174] := 'SubIndex';
+    FAuditNamesArray[169,175] := 'Bank_Account_Number';
+
 end;
 
 initialization

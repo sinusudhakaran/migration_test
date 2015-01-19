@@ -145,7 +145,6 @@ begin
   end;
 
    IsActive := True;
-   aClient.clRecommended_Mems.StopMemScan;
    try
 
      With aClient, BA do
@@ -778,8 +777,6 @@ begin
 
      end; { Scope of Client and BankAccount }
    finally
-     aClient.clRecommended_Mems.StartMemScan;
-
      if DebugMe then
      begin
        TimeTaken := (GetTickCount - StartTickCount)/1000;

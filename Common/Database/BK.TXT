@@ -1260,3 +1260,11 @@ F|Statement Details|S|200
 F|Manual Count|L
 F|Uncoded Count|L
 E
+
+N|Mem Scan Command|ms|169
+F|Command|I
+F|Section|I
+F|Index|I
+F|SubIndex|I
+F|Bank Account Number|S|20
+E

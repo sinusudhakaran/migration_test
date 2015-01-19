@@ -359,6 +359,7 @@ var
 
    TrxIndex     : integer;
    Dissection: pDissection_Rec;
+   AccList : TStringList;
 begin
    if not Assigned( MyClient) then exit;
 
@@ -432,8 +433,16 @@ begin
                ToDate   := DateSelector.eDateTo.AsStDate;
                TempBa   := TBank_Account( cmbTempAccount.Items.Objects[ cmbTempAccount.ItemIndex]);
                BankBa   := TBank_Account( cmbBankAccount.Items.Objects[ cmbBankAccount.ItemIndex]);
-               MyClient.clRecommended_Mems.RemoveAccountFromMems(TempBa);
-               MyClient.clRecommended_Mems.RemoveAccountFromMems(BankBa);
+
+               AccList := TStringList.Create;
+               try
+                 AccList.Add(TempBa.baFields.baBank_Account_Number);
+                 AccList.Add(BankBa.baFields.baBank_Account_Number);
+                 MyClient.clRecommended_Mems.RemoveAccountsFromMems(AccList, False);
+               finally
+                 FreeAndNil(AccList);
+               end;
+
                //get date range for temp account transactions - no need to delete any more transactions
                //than necessary
                GetStatsForAccount( TempBa, FromDate, ToDate, TempEntries, TempFromDate, TempToDate);
@@ -511,7 +520,7 @@ begin
                      end;
                   until ( TrxIndex >= ItemCount) or ( pT^.txDate_Effective > TempToDate);
                end;
-               MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(BankBa, False);
+               MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(BankBa);
             finally
                //clear progress
                ClearStatus;

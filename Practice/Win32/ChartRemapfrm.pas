@@ -1757,7 +1757,7 @@ begin //TfrmRemapChart.RemapCharts;
         'These changes cannot be undone,'#13 +
         'except by clicking File, Abandon Changes.'#13#13 +
         'Are you sure you want to continue?',DLG_Yes,0) <> DLG_YES then
-       Exit;
+      Exit;
   end
   else
   begin
@@ -1765,88 +1765,88 @@ begin //TfrmRemapChart.RemapCharts;
         'and change coding for this client file.'#13 +
         'These changes cannot be undone.' + #13#13 +
         'Are you sure you want to continue?',DLG_Yes,0) <> DLG_YES then
-       Exit;
+      Exit;
   end;
 
-    MyClient.clRecommended_Mems.StopMemScan;
+  fStatString := '';
+  Chart2 := nil;
+  GST2 := nil;
+  MyClient.CommonSave(BackupFile,True);
+  try
     try
+      // Check if we need a double pass.
+      CheckFirstChartPass;
+      CheckFirstGSTPass;
+
+      // Do the first pass..
+      fStatString := '';
+
+      RemapChart(fNewChart);
+      RemapGST(fNewGST);
+
+      // Cleanup the message
+      if fStatString > '' then
+      begin
+        if fStatString[Length(fStatString)] = ',' then
+           fStatString[Length(fStatString)] := '.';
+          fStatString := 'Chart has been converted successfully.'#13 + fStatString;
+      end
+      else
+      begin
+        // What else ???
+        fStatString := 'Nothing found to convert!';
+      end;
+      lStat := fStatString;
+
+      // Do the second pass
+      if Assigned(Chart2) then
+        RemapChart(Chart2);
+
+      if Assigned(GST2) then
+        RemapGST(GST2);
+
+      // Check Double GST Codes..
+      for gI := low(MyClient.clFields.clGST_Class_Codes) to high(MyClient.clFields.clGST_Class_Codes) do
+      begin
+        if MyClient.clFields.clGST_Class_Codes[gI] > '' then
+        begin
+          for gJ := gI + 1 to high(MyClient.clFields.clGST_Class_Codes) do
+          begin
+            if MyClient.clFields.clGST_Class_Codes[gI] = MyClient.clFields.clGST_Class_Codes[gJ] then
+            begin
+              //Remap to first Instance..
+              RemapGSTID(gJ,gI);
+              //Remove the second Instance..
+              MyClient.clFields.clGST_Class_Codes[gJ] := '';
+              MyClient.clFields.clGST_Class_Names[gJ] := '';
+              MyClient.clFields.clGST_Class_Types[gJ] := gtUndefined;
+              MyClient.clFields.clGST_Account_Codes[gJ] := '';
+              FillChar(MyClient.clFields.clGST_Rates[gJ],Sizeof(MyClient.clFields.clGST_Rates[gJ]),0);
+            end;
+          end;
+        end;
+      end;
+
       MyClient.clRecommended_Mems.RemoveAccountsFromMems;
 
-      fStatString := '';
-      Chart2 := nil;
-      GST2 := nil;
-      MyClient.CommonSave(BackupFile,True);
-      try try
-         // Check if we need a double pass.
-         CheckFirstChartPass;
-         CheckFirstGSTPass;
+      HelpfulInfoMsg(lStat,0);
 
-         // Do the first pass..
-         fStatString := '';
-
-         RemapChart(fNewChart);
-         RemapGST(fNewGST);
-
-         // Cleanup the message
-         if fStatString > '' then begin
-            if fStatString[Length(fStatString)] = ',' then
-               fStatString[Length(fStatString)] := '.';
-            fStatString := 'Chart has been converted successfully.'#13 + fStatString;
-         end else begin
-            // What else ???
-            fStatString := 'Nothing found to convert!';
-         end;
-         lStat := fStatString;
-
-         // Do the second pass
-         if Assigned(Chart2) then
-            RemapChart(Chart2);
-
-         if Assigned(GST2) then
-            RemapGST(GST2);
-
-
-         // Check Double GST Codes..
-         for gI := low(MyClient.clFields.clGST_Class_Codes) to high(MyClient.clFields.clGST_Class_Codes) do
-         if  MyClient.clFields.clGST_Class_Codes[gI] > '' then
-            for gJ := gI + 1 to high(MyClient.clFields.clGST_Class_Codes) do if
-               MyClient.clFields.clGST_Class_Codes[gI] =
-               MyClient.clFields.clGST_Class_Codes[gJ] then begin
-                  //Remap to first Instance..
-                  RemapGSTID(gJ,gI);
-                  //Remove the second Instance..
-                  MyClient.clFields.clGST_Class_Codes[gJ] := '';
-                  MyClient.clFields.clGST_Class_Names[gJ] := '';
-                  MyClient.clFields.clGST_Class_Types[gJ] := gtUndefined;
-                  MyClient.clFields.clGST_Account_Codes[gJ] := '';
-                  FillChar(MyClient.clFields.clGST_Rates[gJ],Sizeof(MyClient.clFields.clGST_Rates[gJ]),0);
-               end;
-
-
-
-         HelpfulInfoMsg(lStat,0);
-
-         Modalresult := mrOK;
-      except
-         on E : Exception do begin
-             HelpfulErrorMsg(Format( 'Cannot remap charts: '#13'%s',[e.Message]),0);
-             AbandonChanges(false);
-             // any first pass would have changed the remap
-             ModalResult := mrCancel;
-         end;
+      Modalresult := mrOK;
+    except
+      on E : Exception do
+      begin
+         HelpfulErrorMsg(Format( 'Cannot remap charts: '#13'%s',[e.Message]),0);
+         AbandonChanges(false);
+         // any first pass would have changed the remap
+         ModalResult := mrCancel;
       end;
-      finally
-         if Assigned(Chart2) then
-            FreeAndNil(Chart2);
-         if Assigned(GST2) then
-            FreeAndNil(GST2);
-      end;
-    finally
-      // Recommended Mems may now include invalid chart codes, remake them
-      // TODO: optimize this to just update the relevant recommended mems
-
-      MyClient.clRecommended_Mems.StartMemScan;
     end;
+  finally
+    if Assigned(Chart2) then
+      FreeAndNil(Chart2);
+    if Assigned(GST2) then
+      FreeAndNil(GST2);
+  end;
 end;//TfrmRemapChart.RemapCharts;
 
 procedure TfrmRemapChart.RemapGST(Value: TNewChart);

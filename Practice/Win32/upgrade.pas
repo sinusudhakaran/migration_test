@@ -4309,7 +4309,7 @@ const
       aClient.clRecommended_Mems.Unscanned.FreeAll;
       aClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
       aClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
-      aClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
+      aClient.clRecommended_Mems.PopulateUnscannedListAllAccounts();
     finally
       aClient.clRecommended_Mems.StartMemScan;
     end;

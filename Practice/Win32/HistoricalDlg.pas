@@ -4675,51 +4675,53 @@ var
   SelectedBA : TBank_Account;
   Historical : TdlgHistorical;
 begin
-   result := false;
-   AssignGlobalRedrawForeign(True);
+  result := false;
+  AssignGlobalRedrawForeign(True);
 
-   //See if client file has any bank accounts attached to it
-   if BKUTIL32.CountDeliveredBankAccounts = 0 then begin
-      HelpfulInfoMsg( 'You cannot add historical entries to this client file ' +
-                      'until you have attached a delivered bank account.',0);
-      exit;
-   end;
+  //See if client file has any bank accounts attached to it
+  if BKUTIL32.CountDeliveredBankAccounts = 0 then
+  begin
+    HelpfulInfoMsg( 'You cannot add historical entries to this client file ' +
+                    'until you have attached a delivered bank account.',0);
+    exit;
+  end;
 
-   //Select a bank account to add historical data to
-   if SelectBankAccount( 'Select Account to add Historical Transactions to',
-                         SelectDeliveredTrx, 0,0, false,
-                         BKH_Adding_historical_data,
-                         SelectedBA) = mrCancel then begin
-     Exit;
-   end;
+  //Select a bank account to add historical data to
+  if SelectBankAccount( 'Select Account to add Historical Transactions to',
+                       SelectDeliveredTrx, 0,0, false,
+                       BKH_Adding_historical_data,
+                       SelectedBA) = mrCancel then
+  begin
+    exit;
+  end;
 
-   if not Assigned(SelectedBA) then begin
-      HelpfulInfoMsg( 'You cannot add historical entries to this client file ' +
-                      'until you have attached a bank account with delivered transactions.',0);
-     exit;
-   end;
+  if not Assigned(SelectedBA) then
+  begin
+    HelpfulInfoMsg( 'You cannot add historical entries to this client file ' +
+                    'until you have attached a bank account with delivered transactions.',0);
+    exit;
+  end;
 
-   //Create form and show modally
-   Historical := TdlgHistorical.CreateAndSetup( SelectedBA );
-   with Historical do begin
-      try
-        IsManual := False;
-        HelpContext := BKH_Adding_historical_data;
-        tbImportTrans.Visible := Assigned(AdminSystem)
-                              or PRACINI_AllowHistoricalImport;
+  //Create form and show modally
+  Historical := TdlgHistorical.CreateAndSetup( SelectedBA );
+  with Historical do
+  begin
+    try
+      IsManual := False;
+      HelpContext := BKH_Adding_historical_data;
+      tbImportTrans.Visible := Assigned(AdminSystem)
+                            or PRACINI_AllowHistoricalImport;
 
+      // Run the dialog
+      Result := ShowModal = mrOK;
 
+      if Result then
+        MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
 
-        // Run the dialog
-        Result := ShowModal = mrOK;
-
-      finally
-         Free;
-      end;
-   end;
-
-   MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
-   MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(SelectedBA, false);
+    finally
+      Free;
+    end;
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AddManualData : boolean;
@@ -4794,9 +4796,10 @@ begin
 
       Result := ShowModal = mroK;
 
+      if Result then
+        MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
+
    finally
-      MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
-      MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(SelectedBA, false);
       Free;
    end;
 end;
@@ -4998,7 +5001,8 @@ begin
 
       MyClient := TempClient;
       //Create form and show modally
-      with TdlgHistorical.CreateAndSetup(TempAccount, True) do try
+      with TdlgHistorical.CreateAndSetup(TempAccount, True) do
+      try
          Provisional := True;
          IsManual := True;
          MaxHistTranDate := MaxValidDate;
@@ -5008,12 +5012,14 @@ begin
             SaveToArchives;
             Result := True;
          end;
+
+         if Result  then
+           MyClient.clRecommended_Mems.RemoveAccountFromMems(TempAccount);
       finally
          Free;
       end;
 
-      MyClient.clRecommended_Mems.RemoveAccountFromMems(TempAccount);
-      MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(TempAccount, false);
+
    finally
       FreeAndNil(TempClient);
 

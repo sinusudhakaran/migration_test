@@ -972,7 +972,7 @@ begin
        ReselectAndScroll(lvBank, PrevSelectedIndex, PrevTopIndex);
 
        // Remove account from recommended memorisations
-       MyClient.clRecommended_Mems.RemoveAccountFromMems(BA);
+       MyClient.clRecommended_Mems.RemoveAccountFromMems(BA, false);
       end;
     end;
   end;

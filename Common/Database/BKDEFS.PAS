@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 726;
-   BK_IOLIB_Date    = '22/09/14';
+   BK_IOLIB_Version : Integer = 728;
+   BK_IOLIB_Date    = '14/01/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -272,6 +272,7 @@ Type
    pCandidate_Mem_Processing_Rec         = ^tCandidate_Mem_Processing_Rec ;
    pCandidate_Mem_Rec                    = ^tCandidate_Mem_Rec ;
    pRecommended_Mem_Rec                  = ^tRecommended_Mem_Rec ;
+   pMem_Scan_Command_Rec                 = ^tMem_Scan_Command_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1431,6 +1432,18 @@ Type
       rmEOR                              : Byte;
    end;
 
+{  -------------------------------------------------------------------  }
+
+   tMem_Scan_Command_Rec = Packed Record
+      msRecord_Type                      : Byte;
+      msCommand                          : Integer;       { Stored }
+      msSection                          : Integer;       { Stored }
+      msIndex                            : Integer;       { Stored }
+      msSubIndex                         : Integer;       { Stored }
+      msBank_Account_Number              : String[ 20 ];       { Stored }
+      msEOR                              : Byte;
+   end;
+
 Const
    Client_Rec_Size                           = Sizeof( TClient_Rec ); 
    Account_Rec_Size                          = Sizeof( TAccount_Rec ); 
@@ -1463,6 +1476,7 @@ Const
    Candidate_Mem_Processing_Rec_Size         = Sizeof( TCandidate_Mem_Processing_Rec ); 
    Candidate_Mem_Rec_Size                    = Sizeof( TCandidate_Mem_Rec ); 
    Recommended_Mem_Rec_Size                  = Sizeof( TRecommended_Mem_Rec ); 
+   Mem_Scan_Command_Rec_Size                 = Sizeof( TMem_Scan_Command_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

@@ -5841,7 +5841,7 @@ procedure TfrmMain.tmrMemScanTimer(Sender: TObject);
 begin
   if Assigned(MyClient) then
     if Assigned(MyClient.clRecommended_Mems) then
-      MyClient.clRecommended_Mems.MemScan(False, nil);
+      MyClient.clRecommended_Mems.MemScan();
 end;
 
 procedure TfrmMain.mniImportFromCSVClick(Sender: TObject);

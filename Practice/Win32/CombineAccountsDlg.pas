@@ -153,6 +153,7 @@ var
   MemFrom, MemTo : TMemorisation;
   MemLineFrom, MemLineTo : pMemorisation_Line_Rec;
   Dissection: pDissection_Rec;
+  AccList : TStringList;
 begin
   if not Assigned( MyClient) then exit;
   //Check if they have outstanding BNotes or Acclipse files, and warn them against continuing. Case 8625
@@ -168,8 +169,17 @@ begin
         try
           FromBa   := TBank_Account( cmbBankAccounts.Items.Objects[ cmbBankAccounts.ItemIndex]);
           ToBa   := TBank_Account( cmbCombine.Items.Objects[ cmbCombine.ItemIndex]);
-          MyClient.clRecommended_Mems.RemoveAccountFromMems(FromBa);
-          MyClient.clRecommended_Mems.RemoveAccountFromMems(ToBa);
+
+          AccList := TStringList.Create;
+          try
+            AccList.Add(FromBa.baFields.baBank_Account_Number);
+            AccList.Add(ToBa.baFields.baBank_Account_Number);
+
+            MyClient.clRecommended_Mems.RemoveAccountsFromMems(AccList, False);
+          finally
+            FreeAndNil(AccList);
+          end;
+
           TransferCount := 0;
           LogUtil.LogMsg( lmInfo, UnitName, 'Combining entries from ' + FromBa.baFields.baBank_Account_Number + ' to ' + ToBa.BaFields.baBank_Account_Number);
           // Loop around transfering the trx and then deleting trx until end of list
@@ -197,11 +207,13 @@ begin
                   Dissection.dsClient := pT^.txClient;
                   Dissection := Dissection.dsNext;
                 end;
-                
+
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;
-          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa, False);
+
+          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa);
+
           // Also copy contra, use master mems, and sched rep selection
           ToBa.baFields.baContra_Account_Code := FromBa.baFields.baContra_Account_Code;
           ToBa.baFields.baExchange_Gain_Loss_Code := FromBa.baFields.baExchange_Gain_Loss_Code;

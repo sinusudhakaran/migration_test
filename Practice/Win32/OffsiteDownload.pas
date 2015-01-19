@@ -182,9 +182,6 @@ begin
        Exit;
   end;
 
-  if Assigned(MyClient) then
-    MyClient.clRecommended_Mems.RemoveAccountsFromMems;
-
   //---------------------------------------------------------------------------
   //verify disk images
   //
