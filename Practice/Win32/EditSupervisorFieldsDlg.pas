@@ -170,6 +170,7 @@ type
     MembersList: TObjectList;
     FRevenuePercentage: Boolean;
     FMemOnly: Boolean;
+    fTranAccount : string;
     procedure SetReadOnly(const Value: boolean);
     procedure SetMoveDirection(const Value: TFundNavigation);
     procedure CalcControlTotals( var Count : Integer; var Total, Remainder : Currency );
@@ -181,7 +182,7 @@ type
     procedure GetMembers;
     procedure SetRevenuePercentage(const Value: Boolean);
     procedure SetMemOnly(const Value: Boolean);
-    procedure RefreshChartCodeCombo(aAccount : string = '');
+    procedure RefreshChartCodeCombo();
   public
     { Public declarations }
     procedure SetFields( mImputedCredit,
@@ -198,12 +199,6 @@ type
                          mFranked, mUnfranked, mInterest, mCapitalGainsForeignDisc,
                          mRent, mSpecialIncome, mOtherTaxCredit, mNonResidentTax, mForeignCGCredit: Money;
                          mMemberID: string; mUnits: Money; mAccount: string);
-
-    {procedure SetMemFields(
-                         mFranked, mUnFranked: Money;
-                         mAccount: string;
-                         mMemberID: string
-                         ); }
 
     procedure SetInfo( iDate : integer; sNarration: string; mAmount : Money);
 
@@ -230,11 +225,6 @@ type
                          var mMemberID: ShortString;
                          var mAccount: Shortstring;
                          var mUnits: Money) : boolean;
-
-   { function GetMemFields(var mFranked, mUnFranked: Money;
-                         var mAccount: Shortstring;
-                         var mMemberID: Shortstring
-                         ): boolean;}
 
     property ReadOnly : boolean read FReadOnly write SetReadOnly;
     property MoveDirection : TFundNavigation read FMoveDirection write SetMoveDirection;
@@ -277,6 +267,8 @@ function TdlgEditSupervisorFields.GetFields(var mImputedCredit, mTaxFreeDist,
 //
 // Result:      Returns true if any of the fields are no zero
 //- - - - - - - - - - - - - - - - - - - -
+var
+  ChartIndex : integer;
 begin
 
   mFranked := GetNumericValue(nfFranked, FrankPercentage);
@@ -307,9 +299,12 @@ begin
   mMemberID := Trim(cmbMembers.Text);
 
   if cmbxAccount.ItemIndex > 0 then
-     mAccount := (MyClient.clChart.Account_At(cmbxAccount.ItemIndex-1)).chAccount_Code
+  begin
+    ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
+    mAccount := MyClient.clChart.Account_At(ChartIndex).chAccount_Code;
+  end
   else
-     mAccount := '';
+    mAccount := '';
 
   mUnits := nfUnits.AsFloat * 10000;
   if ((FActualAmount < 0) and (mUnits > 0))
@@ -381,24 +376,6 @@ begin
    end;
 
 end;
-
-(*
-function TdlgEditSupervisorFields.GetMemFields(var mFranked, mUnFranked: Money;
-  var mAccount, mMemberID: shortstring): boolean;
-begin
-    mFranked := Double2Percent( nfFranked.AsFloat);
-    mUnFranked := Double2Percent( nfUnFranked.AsFloat);
-    if cmbxAccount.ItemIndex > 0 then
-       mAccount := (MyClient.clChart.Account_At(cmbxAccount.ItemIndex-1)).chAccount_Code
-    else
-       mAccount := '';
-    mMemberID := Trim(cmbMembers.Text);
-
-    Result := ( mFranked <> 0)
-           or ( mUnFranked <> 0)
-           or ( mMemberID <> '')
-end;
- *)
 
 procedure TdlgEditSupervisorFields.nfExit(Sender: TObject);
 begin
@@ -477,7 +454,7 @@ begin
   FAutoPresSMinus := False;
 end;
 
-procedure TdlgEditSupervisorFields.RefreshChartCodeCombo(aAccount: string);
+procedure TdlgEditSupervisorFields.RefreshChartCodeCombo();
 var
   ChartIndex: Integer;
   pChartAcc : pAccount_Rec;
@@ -486,8 +463,13 @@ begin
   for ChartIndex := MyClient.clChart.First to MyClient.clChart.Last do
   begin
     pChartAcc := MyClient.clChart.Account_At(ChartIndex);
-    cmbxAccount.Properties.Items.Add(pChartAcc.chAccount_Code);
-    if (aAccount <> '') and (aAccount = pChartAcc.chAccount_Code) then
+
+    if (pChartAcc.chInactive) and
+       (fTranAccount <> pChartAcc.chAccount_Code) then
+      Continue;
+
+    cmbxAccount.Properties.Items.AddObject(pChartAcc.chAccount_Code, TObject(ChartIndex));
+    if (fTranAccount <> '') and (fTranAccount = pChartAcc.chAccount_Code) then
       cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
   end;
 end;
@@ -543,7 +525,8 @@ begin
 
   nfUnits.AsFloat := mUnits / 10000;
 
-  RefreshChartCodeCombo(mAccount);
+  fTranAccount := mAccount;
+  RefreshChartCodeCombo();
   FCurrentAccountIndex := cmbxAccount.ItemIndex;
 
   UpdateDisplayTotals;
@@ -930,9 +913,12 @@ end;
 procedure TdlgEditSupervisorFields.cmbxAccountPropertiesChange(Sender: TObject);
 var
   p: pAccount_Rec;
+  ChartIndex : integer;
 begin
   if cmbxAccount.ItemIndex < 1 then exit;
-  p := MyClient.clChart.Account_At(cmbxAccount.ItemIndex-1);
+
+  ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
+  p := MyClient.clChart.Account_At(ChartIndex);
   if not p.chPosting_Allowed then
   begin
     if FSkip = 1 then
@@ -959,10 +945,13 @@ var
   p: pAccount_Rec;
   l: Integer;
   R: TRect;
+  ChartIndex : integer;
 begin
   if AIndex = 0 then exit;
   R := ARect;
-  p := MyClient.clChart.Account_At(AIndex-1);
+
+  ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[AIndex]);
+  p := MyClient.clChart.Account_At(ChartIndex);
   ACanvas.fillrect(ARect);
   l := 2;
   if not p.chPosting_Allowed then begin
@@ -989,66 +978,6 @@ begin
      lblRemain.Caption := Format( '%0.2m', [Remain] );
   end;
 end;
-
-
-(*
-procedure TdlgEditSupervisorFields.SetMemFields(
-                      mFranked, mUnFranked: Money; mAccount,
-                      mMemberID: string);
-var
-  i: Integer;
-  p: pAccount_Rec;
-begin
- 
-
-
-
-
-  FrankPercentage := True;
-
-  nfImputedCredit.Enabled := false;
-  nfTaxFreeDist.Enabled := false;
-  nfTaxExemptDist.Enabled := false;
-  nfTaxDeferredDist.Enabled := false;
-  nfTFNCredits.Enabled := false;
-  nfForeignIncome.Enabled := false;
-  nfForeignTaxCredits.Enabled := false;
-  nfCapitalGains.Enabled := false;
-  nfDiscountedCapitalGains.Enabled := false;
-  nfCapitalGainsOther.Enabled := false;
-  nfOtherExpenses.Enabled := false;
-
-  nfFranked.AsFloat := Percent2Double( mFranked);
-  nfUnFranked.AsFloat := Percent2Double( mUnFranked);
-
-  nfImputedCreditChange(nil);
-
-  nfInterest.Enabled := false;
-  nfCapitalGainsForeignDisc.Enabled := false;
-  nfRent.Enabled := false;
-  nfSpecialIncome.Enabled := false;
-  nfOtherTaxCredit.Enabled := false;
-  nfNonResidentTax.Enabled := false;
-  nfForeignCGCredit.Enabled := false;
-  cmbMembers.ItemIndex := cmbMembers.Properties.Items.IndexOf (mMemberID);
-  if (cmbMembers.ItemIndex < 0)
-  and (mMemberID > '') then
-     cmbMembers.Text := mMemberID;
-
-  nfUnits.Enabled := false;
-  cmbxAccount.Properties.Items.Add('');
-  for i := MyClient.clChart.First to MyClient.clChart.Last do
-  begin
-    p := MyClient.clChart.Account_At(i);
-    cmbxAccount.Properties.Items.Add(p.chAccount_Code);
-    if mAccount = p.chAccount_Code then
-      cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
-  end;
-  FCurrentAccountIndex := cmbxAccount.ItemIndex;
-  UpdateDisplayTotals;
-  //FAutoPressMinus := (FActualAmount < 0) and (mUnits = 0);
-end;
-*)
 
 procedure TdlgEditSupervisorFields.SetMemOnly(const Value: Boolean);
 begin

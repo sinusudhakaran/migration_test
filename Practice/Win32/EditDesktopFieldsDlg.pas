@@ -183,6 +183,7 @@ type
     FSDMode: TSuperDialogMode;
     SuperSystem: Byte;
     FClassSuperFundList: TStringList;
+    fTranAccount : string;
     function IsAllCleared(DoClear: boolean = False): boolean;
     function GetClassSuperFundCode(ClassSuperFundID: integer; AClassSuperFundName: string): string;
     Function ValidFundCode(AFundCode: string): boolean;
@@ -196,7 +197,7 @@ type
     procedure SetupHelp;
     procedure SetRevenuePercentage(const Value: boolean);
     procedure SetSDMode(const Value: TSuperDialogMode);
-    procedure RefreshChartCodeCombo(aAccount : string = '');
+    procedure RefreshChartCodeCombo();
   public
     { Public declarations }
     procedure SetFields( mContrib,
@@ -221,16 +222,6 @@ type
                          mUnits: Money;
                          mTransID: Integer;
                          mFraction: Boolean);
-
-   {procedure SetMemFields(mTransID: Integer;
-                          mFranked: Money;
-                          mUnFranked: Money;
-                          mMemberID: Integer;
-                          mMemberCode: shortstring;
-
-                          mFundID: Integer;
-                          mFundCode: shortstring;
-                          mAccount: shortstring);}
 
     procedure SetInfo( iDate : integer; sNarration: string; mAmount, mQty : Money; LedgerID: ShortString; aSuperSystem: byte; aSDMode: TSuperDialogMode );
 
@@ -261,14 +252,6 @@ type
                          var mFraction: Boolean
                          ) : boolean;
 
-    {function GetMemFields(var mTransID: Integer;
-                          var mTransCode: Ansistring;
-                          var mFranked, mUnFranked: Money;
-                          var mmemberID: integer;
-                          var mmemberCode: Shortstring;
-                          var mAccount: Shortstring;
-                          var mFundID: Integer;
-                          var mFundCode: Shortstring): boolean;}
     procedure AddFund(AFundID: string; aSuperSystem: byte);
 
     property ReadOnly : boolean read FReadOnly write SetReadOnly;
@@ -341,6 +324,8 @@ function TdlgEditDesktopFields.GetFields( var mContrib: Money;
 //
 // Result:      Returns true if any of the fields are no zero
 //- - - - - - - - - - - - - - - - - - - -
+var
+  ChartIndex : integer;
 begin
   // Franked
   mFranked := GetNumericValue(nfFranked, FrankPercentage);
@@ -413,7 +398,10 @@ begin
   end;
 
   if cmbxAccount.ItemIndex > 0 then
-    mAccount := (MyClient.clChart.Account_At(cmbxAccount.ItemIndex-1)).chAccount_Code
+  begin
+    ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
+    mAccount := MyClient.clChart.Account_At(ChartIndex).chAccount_Code;
+  end
   else
     mAccount := '';
 
@@ -518,71 +506,6 @@ begin
   end;
 end;
 
-(*
-function TdlgEditDesktopFields.GetMemFields(
-                          var mTransID: Integer;
-                          var mTransCode: Ansistring;
-                          var mFranked, mUnFranked: Money;
-                          var mmemberID: integer;
-                          var mmemberCode: Shortstring;
-                          var mAccount: Shortstring;
-                          var mFundID: Integer;
-                          var mFundCode: Shortstring): boolean;
-begin
-
-   mFranked := Double2Percent(nfFranked.AsFloat);
-   mUnFranked := Double2Percent(nfUnFranked.AsFloat);
-
-   if cmbFund.Enabled
-   and (cmbFund.ItemIndex > 0) then begin
-      mFundID := FundArray[cmbFund.itemindex-1].cl_ID;
-      mFundCode := FundArray[cmbFund.itemindex-1].cl_Code;
-   end else begin
-      mFundID := -1;
-      mFundCode := '';
-   end;
-
-   if (cmbTrans.ItemIndex > 0)
-   and (cmbTrans.ItemIndex <> FDepositStartIndex) then begin
-      if cmbTrans.ItemIndex > FDepositStartIndex then begin
-         mTransID := TransArray[cmbTrans.itemindex-2].cl_ID;
-         mTransCode := TransArray[cmbTrans.itemindex-2].cl_Description;
-      end else begin
-         mTransID := TransArray[cmbTrans.itemindex-1].cl_ID;
-         mTransCode := TransArray[cmbTrans.itemindex-1].cl_Description;
-      end;
-   end else begin
-      mTransID := -1;
-      mTransCode := '';
-   end;
-
-   if cmbxAccount.ItemIndex > 0 then
-      mAccount := (MyClient.clChart.Account_At(cmbxAccount.ItemIndex-1)).chAccount_Code
-   else
-      mAccount := '';
-
-
-   if cmbMember.Enabled
-   and (cmbMember.ItemIndex > 0) then begin
-      mMemberID := MemberArray[cmbMember.itemindex-1].cl_ID;
-      mMemberCode := MemberArray[cmbMember.itemindex-1].cl_Code;
-   end else begin
-      mMemberID := -1;
-      mMemberCode := '';
-   end;
-
-   Result :=
-            ( mFranked <> 0) or
-            ( mUnFranked <> 0) or
-            ( mFundID <> -1) or
-            ( mFundCode <> '') or
-            ( mMemberCode <> '') or
-            ( mTransID <> -1) or
-            ( mMemberID <> -1) or
-            ( mTransCode <> '');
-end;
- *)
-
 procedure TdlgEditDesktopFields.nfExit(Sender: TObject);
 begin
   UpdateDisplayTotals;
@@ -675,7 +598,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TdlgEditDesktopFields.RefreshChartCodeCombo(aAccount : string = '');
+procedure TdlgEditDesktopFields.RefreshChartCodeCombo();
 var
   ChartIndex: Integer;
   pChartAcc : pAccount_Rec;
@@ -684,8 +607,13 @@ begin
   for ChartIndex := MyClient.clChart.First to MyClient.clChart.Last do
   begin
     pChartAcc := MyClient.clChart.Account_At(ChartIndex);
-    cmbxAccount.Properties.Items.Add(pChartAcc.chAccount_Code);
-    if (aAccount <> '') and (aAccount = pChartAcc.chAccount_Code) then
+
+    if (pChartAcc.chInactive) and
+       (fTranAccount <> pChartAcc.chAccount_Code) then
+      Continue;
+
+    cmbxAccount.Properties.Items.AddObject(pChartAcc.chAccount_Code, TObject(ChartIndex));
+    if (fTranAccount <> '') and (fTranAccount = pChartAcc.chAccount_Code) then
       cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
   end;
 end;
@@ -748,7 +676,8 @@ begin
   else
     btnThird.Caption := '2/3';
 
-  RefreshChartCodeCombo(mAccount);
+  fTranAccount := mAccount;
+  RefreshChartCodeCombo();
   FCurrentAccountIndex := cmbxAccount.ItemIndex;
 
   case SDMode of
@@ -1148,121 +1077,6 @@ begin
     btnThird.Caption := '2/3';
 end;
 
-(*
-procedure TdlgEditDesktopFields.SetMemFields(
-                          mTransID: Integer;
-                          mFranked,mUnFranked: Money;
-                          mMemberID: Integer;
-                          mMemberCode: shortstring;
-
-                          mFundID: Integer;
-                          mFundCode: shortstring;
-                          mAccount: shortstring);
-
-var
-  i: Integer;
-  p: pAccount_Rec;
-  D: Boolean;
-begin
-   lblFranked.Caption := 'Percentage Franked';
-   lblUnFranked.Caption := 'Percentage Unfranked';
-
-   lblAmount.Caption := '';
-   lp1.Visible := true;
-   lp2.Visible := true;
-   lp3.Visible := true;
-   btnCalc.Visible := False;
-
-   FrankPercentage := True;
-
-   //lblTotal.Caption := '100.0000%';
-
-   nfContrib.Enabled := False;
-   nfTaxFreeDist.Enabled := False;
-   nfTaxExemptDist.Enabled := False;
-   nfTaxDeferredDist.Enabled := False;
-   nfTFNCredits.Enabled := False;
-   nfForeignIncome.Enabled := False;
-   nfCapitalGains.Enabled := False;
-   nfDiscountedCapitalGains.Enabled := False;
-   nfCapitalGainsOther.Enabled := False;
-   nfOtherExpenses.Enabled := False;
-
-   nfFranked.AsFloat := Percent2Double(mFranked);
-   nfUnfranked.AsFloat := Percent2Double(mUnFranked);
-   nfImputedCredit.Enabled := False;
-   nfImputedCreditChange(nil);
-
-   nfOtherTaxCredit.Enabled := False;
-   nfForeignCGCredit.Enabled := False;
-   eCGTDate.Enabled := False;
-
-
-   if FLedgerID >= 0 then begin // Not a Mastermem
-      // FundID
-      cmbFund.ItemIndex := -1;
-      cmbFund.Items.Add('');
-      for i := Low(FundArray) to High(FundArray) do begin
-         if FundArray[i].cl_ID <> -1 then
-           cmbFund.Items.Add(FundArray[i].cl_Description);
-         if FundArray[i].cl_ID = mFundID then
-            cmbFund.ItemIndex := i+1;
-      end;
-
-      // MemberSD
-      cmbMember.ItemIndex := -1;
-      cmbMember.Items.Add('');
-      for i := Low(MemberArray) to High(MemberArray) do begin
-         if MemberArray[i].cl_ID <> -1 then
-            cmbMember.Items.Add(MemberArray[i].cl_Description);
-         if MemberArray[i].cl_ID = mMemberID then
-            cmbMember.ItemIndex := i+1;
-      end;
-
-   end else begin
-      cmbFund.Enabled := False;
-      cmbMember.Enabled := False;
-   end;
-
-
-   // TransID
-   cmbTrans.ItemIndex := -1;
-   cmbTrans.Items.Add('');
-   D := False;
-   for i := Low(TransArray) to High(TransArray) do begin
-     if (TransArray[i].cl_ID > 100) and (not D) then begin
-        FDepositStartIndex := i+1;
-        D := True;
-        cmbTrans.Items.Add('');
-     end;
-     if TransArray[i].cl_ID <> -1 then
-        cmbTrans.Items.Add(TransArray[i].cl_Description);
-     if TransArray[i].cl_ID = mTransID then begin
-        if (i >= FDepositStartIndex-1) and D then
-           cmbTrans.ItemIndex := i+2
-        else
-           cmbTrans.ItemIndex := i+1;
-     end;
-   end;
-
-   nfUnits.Enabled := False;
-
-   // Acount
-   cmbxAccount.Properties.Items.Add('');
-   for i := MyClient.clChart.First to MyClient.clChart.Last do begin
-      p := MyClient.clChart.Account_At(i);
-      cmbxAccount.Properties.Items.Add(p.chAccount_Code);
-      if mAccount = p.chAccount_Code then
-        cmbxAccount.ItemIndex := Pred(cmbxAccount.Properties.Items.Count);
-   end;
-   FCurrentAccountIndex := cmbxAccount.ItemIndex;
-
-   btnThird.Caption := '1/2';
-   UpdateDisplayTotals;
-
-end;
-*)
-
 procedure TdlgEditDesktopFields.SetSDMode(const Value: TSuperDialogMode);
 begin
    FSDMode := Value;
@@ -1616,9 +1430,13 @@ end;
 procedure TdlgEditDesktopFields.cmbxAccountPropertiesChange(Sender: TObject);
 var
   p: pAccount_Rec;
+  ChartIndex : integer;
 begin
   if cmbxAccount.ItemIndex < 1 then exit;
-  p := MyClient.clChart.Account_At(cmbxAccount.ItemIndex-1);
+
+  ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
+  p := MyClient.clChart.Account_At(ChartIndex);
+
   if not p.chPosting_Allowed then
   begin
     if FSkip = 1 then
@@ -1645,10 +1463,13 @@ var
   p: pAccount_Rec;
   l: Integer;
   R: TRect;
+  ChartIndex : integer;
 begin
   if AIndex = 0 then exit;
   R := ARect;
-  p := MyClient.clChart.Account_At(AIndex-1);
+
+  ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[AIndex]);
+  p := MyClient.clChart.Account_At(ChartIndex);
   ACanvas.fillrect(ARect);
   l := 2;
   if not p.chPosting_Allowed then
