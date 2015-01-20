@@ -956,13 +956,9 @@ begin
                end;
             chsSortByInactive :
               Begin
-                for i := 0 to Pred( LookupDlg.CHSListByInactive.ItemCount ) do if LookUpDlg.Grid.RowSelected[ i+1 ] then
-                begin
-                  if LookUpDlg.CHSListByInactive.CHSRec_At( i )^.chsAccount_Ptr^.chInactive then
-                    Result := 'Y'
-                  else
-                    Result := 'N'
-                end;
+                for i := 0 to Pred( LookupDlg.CHSListByInactive.ItemCount ) do
+                  if LookUpDlg.Grid.RowSelected[ i+1 ] then
+                    Result := LookUpDlg.CHSListByInactive.CHSRec_At( i )^.chsAccount_Ptr^.chAccount_Code;
               End;
          end;
       end;
