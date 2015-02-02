@@ -2,5 +2,5 @@
 ; Appname and Version Name can changed on the release naming
 
 AppID=BankLinkPractice
-AppName=MYOB BankLink Practice 2014 Update  
-AppVerName=MYOB BankLink Practice 2014 Update
+AppName=MYOB BankLink Practice 2015 Update  
+AppVerName=MYOB BankLink Practice 2015 Update

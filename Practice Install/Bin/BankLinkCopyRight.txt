@@ -1,1 +1,1 @@
-AppCopyright=© 2014 MYOB Technology Pty Ltd 
+AppCopyright=© 2015 MYOB Technology Pty Ltd 
