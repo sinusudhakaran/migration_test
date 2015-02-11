@@ -12,7 +12,6 @@ uses
   ZlibExGZ,
   IdCoder,
   IdCoderMIME,
-  HttpsProgressFrm,
   clObj32,
   ipshttps;
 
