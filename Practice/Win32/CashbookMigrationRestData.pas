@@ -151,7 +151,7 @@ type
     procedure Write(const aJson: TlkJSONobject);
   end;
 
-    //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   TBusinessData = class
   private
     fABN : string;
@@ -360,7 +360,7 @@ procedure TAllocationsData.Write(const aJson: TlkJSONobject);
 var
   Allocations: TlkJSONlist;
   AllocationIndex : integer;
-  Allocation : TTransactionData;
+  Allocation : TAllocationData;
   AllocationData : TlkJSONobject;
 begin
   Allocations := TlkJSONlist.Create;
@@ -413,7 +413,7 @@ procedure TJournalsData.Write(const aJson: TlkJSONobject);
 var
   Journals: TlkJSONlist;
   JournalIndex : integer;
-  Journal : TTransactionData;
+  Journal : TJournalData;
   JournalData : TlkJSONobject;
 begin
   Journals := TlkJSONlist.Create;

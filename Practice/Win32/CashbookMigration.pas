@@ -106,13 +106,14 @@ type
 
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
-    function CreateJsonClientData(aClient : TClientObj; aError : string) : boolean;
-
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aTransactionsData : TTransactionsData; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
 
+    function UploadClient(aClientData : TClientData; var aError: string): boolean;
+
+    function MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -123,10 +124,6 @@ type
 
     function MigrateClients(aSelectClients : TStringList; aSelectedData : TSelectedData;
                             var aClientErrors : TStringList) : TMigrationStatus;
-
-    function MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
-
-    function UploadClient(aClientData : TClientData; var aError: string): boolean;
 
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
   end;
@@ -421,6 +418,51 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCashbookMigration.FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
+var
+  ClientCode : string;
+  TestCode : string;
+begin
+  Result := false;
+
+  ClientCode := trim(aInClientCode);
+  if pos(' ', ClientCode ) > -1 then
+  begin
+    try
+      // Replace spaces with nothing and try find duplicate code in practice
+      TestCode := StringReplace(ClientCode, ' ', '', [rfReplaceAll]);
+      if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
+      begin
+        // Replace spaces with underscore and try find duplicate code in practice
+        TestCode := StringReplace(ClientCode, ' ', '_', [rfReplaceAll]);
+        if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
+        begin
+          // Replace spaces with dash and try find duplicate code in practice
+          TestCode := StringReplace(ClientCode, ' ', '-', [rfReplaceAll]);
+          if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
+          begin
+            //if still found the then error
+            aError := 'Error converting Practice Client Code into valid Cashbook Client code';
+            Exit;
+          end;
+        end;
+      end;
+    except
+      on E : Exception do
+      begin
+        aError := 'Exception converting Practice Client Code into valid Cashbook Client code, Error : ' + E.Message;
+        exit;
+      end;
+    end;
+
+    ClientCode := TestCode;
+  end;
+
+  aOutClientCode := ClientCode;
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
 function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; var aError: string): boolean;
 var
   ClientCode : string;
@@ -465,114 +507,136 @@ begin
   begin
     AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
-    NewChartItem := aChartOfAccountsData.Add;
+    NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
     NewChartItem.Number      := AccRec.chAccount_Code;
     NewChartItem.Name        := AccRec.chAccount_Description;
-    NewChartItem.AccountType := AccRec.chAccount_Type;
-    NewChartItem.TaxRate     := AccRec.chGST_Class;
+    //NewChartItem.AccountType := AccRec.chAccount_Type;
+    //NewChartItem.TaxRate     := AccRec.chGST_Class;
     NewChartItem.OpeningBalance := 0;
     NewChartItem.AccountTypeGroup := '';
     NewChartItem.BankOrCreditFlag := '';
   end;
-end;
 
-//------------------------------------------------------------------------------
-function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; var aError: string): boolean;
-begin
-
+  Result := true;
 end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.FillTransactionData(aClient: TClientObj; aTransactionsData: TTransactionsData; var aError: string): boolean;
 begin
-
-end;
-
-//------------------------------------------------------------------------------
-function TCashbookMigration.FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
-var
-  ClientCode : string;
-  TestCode : string;
-  SysClient : pClient_File_Rec;
-begin
-  Result := false;
-
-  ClientCode := trim(aInClientCode);
-  if pos(' ', ClientCode ) > -1 then
-  begin
-    try
-      // Replace spaces with nothing and try find duplicate code in practice
-      TestCode := StringReplace(ClientCode, ' ', '', [rfReplaceAll]);
-      if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
-      begin
-        // Replace spaces with underscore and try find duplicate code in practice
-        TestCode := StringReplace(ClientCode, ' ', '_', [rfReplaceAll]);
-        if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
-        begin
-          // Replace spaces with dash and try find duplicate code in practice
-          TestCode := StringReplace(ClientCode, ' ', '-', [rfReplaceAll]);
-          if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
-          begin
-            //if still found the then error
-            aError := 'Error converting Practice Client Code into valid Cashbook Client code';
-            Exit;
-          end;
-        end;
-      end;
-    except
-      on E : Exception do
-      begin
-        aError := 'Exception converting Practice Client Code into valid Cashbook Client code, Error : ' + E.Message;
-        exit;
-      end;
-    end;
-
-    ClientCode := TestCode;
-  end;
-
-  aOutClientCode := ClientCode;
   Result := true;
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.CreateJsonClientData(aClient: TClientObj; aError: string): boolean;
+function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; var aError: string): boolean;
+begin
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.UploadClient(aClientData: TClientData; var aError: string): boolean;
 var
-  ClientCode : string;
-  BusinessName : string;
-  FYSday, FYSmonth, FYSyear : integer;
-  ABN : string;
-  GSTNumber : string;
-  ProductType : string;
+  Request: TlkJSONobject;
+  sURL: string;
+  ResponseBase: TlkJSONbase;
+  Response: TlkJSONobject;
+  RespStr : string;
+  UploadDone : boolean;
+
+  MigUpload : TMigrationUpload;
+  MigUploadResponce : TMigrationUploadResponce;
 begin
   Result := false;
+  // FileUpload
+  MigUpload := TMigrationUpload.Create;
+  MigUpload.Files.Data := aClientData.GetData;
+
   try
-    if not FixClientCodeForCashbook(aClient.clFields.clCode, ClientCode, aError) then
+    try
+      // Request
+      Request := TlkJSONobject.Create;
+      MigUpload.Write(Request);
+
+      // HTTP
+      sURL := CASBOOK_ADCOMMON_BASE + 'Upload';
+
+      if DebugMe then
+        LogHttpDebugSend(sURL);
+
+      UploadDone := DoHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError);
+
+      if DebugMe then
+        LogHttpDebugReponce(sURL, RespStr);
+
+      if not UploadDone then
+      begin
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        exit;
+      end;
+
+      if not (Assigned(Response)) or
+         not (Response is TlkJSONobject) then
+      begin
+        aError := 'Error running CashbookMigration.GetFirms, Error Message : No Responce from Server.';
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        exit;
+      end;
+
+      try
+        // Response
+        Response := (ResponseBase as TlkJSONobject);
+
+        // Result
+        if Assigned(MigUploadResponce) then
+        begin
+          MigUploadResponce.Read(Response);
+          Result := true;
+        end;
+      finally
+        FreeAndNil(Response);
+      end;
+
+    except
+      on E: Exception do
+      begin
+        aError := 'Exception running CashbookMigration.GetFirms, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        exit;
+      end;
+    end;
+  finally
+    FreeAndNil(MigUpload);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
+var
+  ClientData : TClientData;
+begin
+  result := false;
+
+  ClientData := TClientData.Create;
+  try
+    if not FillBusinessData(aClient, ClientData.BusinessData, aSelectedData.FirmId, aError) then
       Exit;
 
-    ClientCode := aClient.clFields.clCode;
-    BusinessName := aClient.clFields.clName;
-    StDateToDMY( aClient.clFields.clFinancial_Year_Starts, FYSday, FYSmonth, FYSyear);
+    if not FillChartOfAccountData(aClient, ClientData.ChartOfAccountsData, aError) then
+      Exit;
 
-    if AdminSystem.fdFields.fdCountry = whAustralia then
-      ABN := LeftStr(aClient.clFields.clGST_Number, 11)
-    else
-      ABN := '';
+    if not FillTransactionData(aClient, ClientData.TransactionsData, aError) then
+      Exit;
 
-    if AdminSystem.fdFields.fdCountry = whNewZealand then
-      GSTNumber := aClient.clFields.clGST_Number
-    else
-      GSTNumber := '';
+    if not FillJournalData(aClient, ClientData.JournalsData, aError) then
+      Exit;
 
-    ProductType := 'CB';
+    if not UploadClient(ClientData, aError) then
+      Exit;
 
-    Result := true;
-  except
-    on E : Exception do
-    begin
-      aError := 'Exception running CreateJsonClientData, Error Message : ' + E.Message;
-      exit;
-    end;
+  finally
+    FreeAndNil(ClientData);
   end;
+
+  result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -791,7 +855,7 @@ begin
         Continue;
       end;
 
-      if not CreateJsonClientData(CltClient, ErrorStr) then
+      if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
       begin
         ErrorStr := 'Error Migrating Client, ' + ErrorStr;
         aClientErrors.Add(ErrorStr);
@@ -819,108 +883,6 @@ begin
     Result := mgsFailure
   else
     Result := mgsPartial;
-end;
-
-//------------------------------------------------------------------------------
-function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
-var
-  ClientData : TClientData;
-begin
-  result := false;
-
-  ClientData := TClientData.Create;
-  try
-    if not FillBusinessData(aClient, ClientData.BusinessData, aSelectedData.FirmId, aError) then
-      Exit;
-
-    if not FillChartOfAccountData(aClient, ClientData.ChartOfAccountsData, aSelectedData.FirmId, aError) then
-      Exit;
-
-    if not FillTransactionData(aClient, ClientData.TransactionsData, aSelectedData.FirmId, aError) then
-      Exit;
-
-    if not FillJournalData(aClient, ClientData.JournalsData, aSelectedData.FirmId, aError) then
-      Exit;
-
-    if not UploadClient(ClientData, aError) then
-      Exit;
-  finally
-    FreeAndNil(ClientData);
-  end;
-
-  result := true;
-end;
-
-//------------------------------------------------------------------------------
-function TCashbookMigration.UploadClient(aClientData: TClientData; var aError: string): boolean;
-var
-  Request: TlkJSONobject;
-  sURL: string;
-  ResponseBase: TlkJSONbase;
-  Response: TlkJSONobject;
-  RespStr : string;
-  UploadDone : boolean;
-
-  MigUpload : TMigrationUpload;
-  MigUploadResponce : TMigrationUploadResponce;
-begin
-  // FileUpload
-  MigUpload := TMigrationUpload.Create;
-  MigUpload.Files.Data := aClientData.GetData;
-
-  try
-    try
-      // Request
-      Request := TlkJSONobject.Create;
-      MigUpload.Write(Request);
-
-      // HTTP
-      sURL := CASBOOK_ADCOMMON_BASE + 'Upload';
-
-      if DebugMe then
-        LogHttpDebugSend(sURL);
-
-      UploadDone := DoHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError);
-
-      if DebugMe then
-        LogHttpDebugReponce(sURL, RespStr);
-
-      if not UploadDone then
-      begin
-        LogUtil.LogMsg(lmError, UnitName, aError);
-        exit;
-      end;
-
-      if not (Assigned(Response)) or
-         not (Response is TlkJSONobject) then
-      begin
-        aError := 'Error running CashbookMigration.GetFirms, Error Message : No Responce from Server.';
-        LogUtil.LogMsg(lmError, UnitName, aError);
-        exit;
-      end;
-
-      try
-        // Response
-        Response := (ResponseBase as TlkJSONobject);
-
-        // Result
-        if Assigned(MigUploadResponce) then
-          MigUploadResponce.Read(Response);
-      finally
-        FreeAndNil(Response);
-      end;
-
-    except
-      on E: Exception do
-      begin
-        aError := 'Exception running CashbookMigration.GetFirms, Error Message : ' + E.Message;
-        LogUtil.LogMsg(lmError, UnitName, aError);
-        exit;
-      end;
-    end;
-  finally
-    FreeAndNil(MigUpload);
-  end;
 end;
 
 //------------------------------------------------------------------------------
