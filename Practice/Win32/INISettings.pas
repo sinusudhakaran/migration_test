@@ -678,6 +678,14 @@ begin
         PRACINI_IBizzFormLinkAU := ReadString(GrpPracLinks,'IBizzFormLinkAU', TUrls.DefIBizzFormLinkAU);
         PRACINI_AdditionalFormLinkAU := ReadString(GrpPracLinks,'AdditionalFormLinkAU', TUrls.DefAdditionalFormLinkAU);
 
+        PRACINI_NZCashMigrationURLOverview1 := ReadString(GrpPracLinks,'NZCashMigrationURLOverview1', TUrls.DefaultNZCashMigrationURLOverview1);
+        PRACINI_AUCashMigrationURLOverview1 := ReadString(GrpPracLinks,'AUCashMigrationURLOverview1', TUrls.DefaultAUCashMigrationURLOverview1);
+        PRACINI_NZCashMigrationURLOverview2 := ReadString(GrpPracLinks,'NZCashMigrationURLOverview2', TUrls.DefaultNZCashMigrationURLOverview2);
+        PRACINI_AUCashMigrationURLOverview2 := ReadString(GrpPracLinks,'AUCashMigrationURLOverview2', TUrls.DefaultAUCashMigrationURLOverview2);
+
+        PRACINI_DefaultCashbookSignupURL := ReadString(GrpPracLinks,'DefaultCashbookSignupURL', TUrls.DefaultCashbookSignupURL);
+        PRACINI_DefaultCashbookForgotPasswordURL := ReadString(GrpPracLinks,'DefaultCashbookForgotPasswordURL', TUrls.DefaultCashbookForgotPasswordURL);
+
         // Sets Defaults if no data exists
         if IsPractice then
           PRACINI_GST101Link := ReadString(GrpPracLinks ,'Gst101',DefLinkTaxAgentGSTReturn)
@@ -862,6 +870,14 @@ begin
            WriteString(GrpPracLinks, 'SecureFormLinkAU',PRACINI_SecureFormLinkAU);
            WriteString(GrpPracLinks, 'IBizzFormLinkAU',PRACINI_IBizzFormLinkAU);
            WriteString(GrpPracLinks, 'AdditionalFormLinkAU',PRACINI_AdditionalFormLinkAU);
+
+           WriteString(GrpPracLinks, 'NZCashMigrationURLOverview1', PRACINI_NZCashMigrationURLOverview1);
+           WriteString(GrpPracLinks, 'AUCashMigrationURLOverview1', PRACINI_AUCashMigrationURLOverview1);
+           WriteString(GrpPracLinks, 'NZCashMigrationURLOverview2', PRACINI_NZCashMigrationURLOverview2);
+           WriteString(GrpPracLinks, 'AUCashMigrationURLOverview2', PRACINI_AUCashMigrationURLOverview2);
+
+           WriteString(GrpPracLinks, 'DefaultCashbookSignupURL', PRACINI_DefaultCashbookSignupURL);
+           WriteString(GrpPracLinks, 'DefaultCashbookForgotPasswordURL', PRACINI_DefaultCashbookForgotPasswordURL);
 
 {$IFDEF SmartLink}
            WriteString( GrpPracFingerTips,'URL', PRACINI_FingertipsURL);

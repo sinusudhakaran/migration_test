@@ -436,7 +436,8 @@ uses
   LockUtils,  
   InstitutionCol,
   CashBookMigrationWiz,
-  bkProduct;
+  bkProduct,
+  WarningMoreFrm;
 
 {$R *.dfm}
 
@@ -477,6 +478,7 @@ const
   md_GlobalSetup     = 1;
 
   UnitName = 'CLIENTMANAGER';
+  UnitNameVerbose = 'CLIENTMANAGER_VERBOSE';
 
   // Mail merge word document
   OfficeFialed = '"MS Office" options not installed, not available or encountered a problem';
@@ -484,6 +486,7 @@ const
 var
   GLClientManager: TfrmClientManager;
   DebugMe : boolean = false;
+  DebugMeVerbose : boolean = false;
   GlfrmClientManagerUp : Boolean;
 
 //------------------------------------------------------------------------------
@@ -952,7 +955,7 @@ begin
   try
   if Assigned (GLClientManager) then begin
      // Alread open...
-     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter Re Activate');
+     if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Enter Re Activate');
      if (GLClientManager.WindowState = wsMinimized) then
             ShowWindow(GLClientManager.Handle, SW_RESTORE);
      if GLClientManager.UserSet then begin
@@ -962,7 +965,7 @@ begin
         GLClientManager.StartFocus := True;
      end;
   end else begin
-     if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter Make New');
+     if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Enter Make New');
      Application.CreateForm(TfrmClientManager,GLClientManager);
 
      with GLClientManager do begin
@@ -1021,7 +1024,7 @@ begin
      GLClientManager.SetUser;
      GLClientManager.lblCount.Visible := True;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit Make New / Re Activate');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit Make New / Re Activate');
   finally
       GlfrmClientManagerUp := False;
   end;
@@ -1043,7 +1046,7 @@ const
    Offset = 30;
 begin
   Result := false;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit Make New / Re Activate');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit Make New / Re Activate');
   ClientManager := TfrmClientMaint.Create(Application.MainForm);
   with ClientManager do
   begin
@@ -1342,7 +1345,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.UpdateClientDetails( Count : integer);
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter UpdateClientDetails');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Enter UpdateClientDetails');
   BeginUpdate;
   try
     tmrUpdateClientDetails.Enabled := false;
@@ -1359,7 +1362,7 @@ begin
   finally
     EndUpdate;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit UpdateClientDetails');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit UpdateClientDetails');
 end;
 
 //------------------------------------------------------------------------------
@@ -1416,7 +1419,7 @@ var
   Item         : TRzGroupItem;
   LastTop: Integer;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter FillClientDetails');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Enter FillClientDetails');
 
   Code := ClientLookup.FirstSelectedCode;
   sysClientRec := ClientLookup.AdminSnapshot.fdSystem_Client_File_List.FindCode(Code);
@@ -1520,7 +1523,7 @@ begin
   end;
   if LastTop <> rzgFileTasks.Top then
      gbClientManager.ScrollPosition := gbClientManager.ScrollPosition + ( rzgFileTasks.Top - LastTop);
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit FillClientDetails');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit FillClientDetails');
 end;
 
 //------------------------------------------------------------------------------
@@ -1554,10 +1557,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.BeginUpdate;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Begin Update');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Begin Update');
   if FScreenLockCount = 0 then
   begin
-    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Lock Update');
+    if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Lock Update');
     Screen.Cursor   := crHourglass;
     LockWindowUpdate( Handle);
   end;
@@ -1567,13 +1570,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.EndUpdate;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'End Update');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'End Update');
   Dec( FScreenLockCount);
   if FScreenLockCount = 0 then
   begin
     LockWindowUpdate( 0);
     Screen.Cursor := crDefault;
-    if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Unlock Update');
+    if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Unlock Update');
   end;
 end;
 
@@ -1846,7 +1849,7 @@ begin
   end;
 
   RefreshHomepage([HRP_Init]);
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');
 end;
 
 //------------------------------------------------------------------------------
@@ -1860,13 +1863,13 @@ procedure TfrmClientManager.DoUnlock;
 var
   Codes : string;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoUnlock');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoUnlock');
   Codes := ClientLookup.SelectedCodes;
 
   UnlockClientFile(Codes);
   RefreshLookup( '');
   ClientLookup.SelectedCodes := Codes;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoUnlock');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoUnlock');
 end;
 
 //------------------------------------------------------------------------------
@@ -1880,7 +1883,7 @@ begin
   Files.Checkin(ftmFile, Codes);
   RefreshLookup( '');
   ClientLookup.SelectedCodes := Codes;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoCheckIn');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoCheckIn');
 end;
 
 //------------------------------------------------------------------------------
@@ -1903,7 +1906,7 @@ begin
     ClientLookup.SelectedCodes := Codes;
   end;
 
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendClientFiles');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendClientFiles');
 end;
 
 //------------------------------------------------------------------------------
@@ -1923,7 +1926,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignTo');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignTo');
 end;
 
 //------------------------------------------------------------------------------
@@ -1943,7 +1946,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignGroup');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignGroup');
 end;
 
 //------------------------------------------------------------------------------
@@ -1963,7 +1966,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignBulkExport');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignBulkExport');
 end;
 
 //------------------------------------------------------------------------------
@@ -1983,7 +1986,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignClientType');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignClientType');
 end;
 
 //------------------------------------------------------------------------------
@@ -2002,7 +2005,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSetupSchedule');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSetupSchedule');
 end;
 
 //------------------------------------------------------------------------------
@@ -2021,7 +2024,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignContact');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoAssignContact');
 end;
 
 //------------------------------------------------------------------------------
@@ -2040,7 +2043,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoChangeFinYear');
+   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoChangeFinYear');
 end;
 
 //------------------------------------------------------------------------------
@@ -2059,7 +2062,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoLayout');
+   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoLayout');
 end;
 
 //------------------------------------------------------------------------------
@@ -2078,7 +2081,7 @@ begin
       ClientLookup.SelectedCodes := Codes;
     end;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoArchive');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoArchive');
 end;
 
 //------------------------------------------------------------------------------
@@ -2086,7 +2089,7 @@ procedure TfrmClientManager.DoPrintAllTasks;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoPrintAllTasks');
   rptAdmin.PrintTasksForMultipleClients(ClientLookup.SelectedCodes, rdAsk);
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoPrintAllTasks');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoPrintAllTasks');
 end;
 
 //------------------------------------------------------------------------------
@@ -2124,7 +2127,7 @@ begin
   finally
     ClientsSelected.Free;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoMultipleAddTasks');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoMultipleAddTasks');
 end;
 
 //------------------------------------------------------------------------------
@@ -2136,7 +2139,7 @@ begin
   Code := ClientLookup.FirstSelectedCode;
   if MaintainToDoItems( Code, false) then
     RefreshLookup( Code);
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoTasks');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoTasks');
 end;
 
 //------------------------------------------------------------------------------
@@ -2150,7 +2153,7 @@ begin
   begin
     RefreshLookup( Code);
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoEditClientDetails');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoEditClientDetails');
 end;
 
 //------------------------------------------------------------------------------
@@ -2272,7 +2275,7 @@ begin
 
   HelpfulInfoMsg(DeleteMsgStr, 0 );
 
-  if DebugMe then
+  if DebugMeVerbose then
     LogUtil.LogMsg(lmDebug,UnitName,'Exit DoDeleteFile');
 end;
 
@@ -2328,12 +2331,12 @@ begin
   finally
      InModal := False;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit Modal Command');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit Modal Command');
 end;
 
 procedure TfrmClientManager.DisableForm;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Disable Form');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Disable Form');
   gbClientManager.Enabled := false;
   pnlFrameHolder.Enabled := false;
   pnlFilter.Enabled := False;
@@ -2362,7 +2365,7 @@ begin
   if LooseFocus then
   else
      ClientLookup.SetFocusToGrid;
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enable Form');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Enable Form');
 end;
 
 //------------------------------------------------------------------------------
@@ -2525,47 +2528,135 @@ begin
 end;
 
 procedure TfrmClientManager.actMigrateExecute(Sender: TObject);
-{var
+var
   AClientIsCheckedOut, AClientIsUnsynced: boolean;
   Client: pClient_File_Rec;
-  i: integer;
+  SelectedIndex: integer;
   SelectedList: TStringList;
-  Prospect, Active, Unsync: boolean;}
+  Archived, Unsynchronised, ReadOnly, Open: boolean;
+  ShowError : boolean;
+  CurrentStatus : string;
+  InvalidClientList : TStringList;
+  InvalidClientStr : string;
+  InvalidClientIndex : integer;
+
+  //----------------------------------------------------------------------------
+  function DisplayAffectedStatuses() : string;
+  var
+    StatusCount : integer;
+
+    //--------------------------------------------------------------------------
+    function Getdelimmiter() : string;
+    begin
+      if StatusCount = 0 then
+        Result := ''
+      else if StatusCount = 1 then
+        Result := ' or '
+      else
+        Result := ', ';
+    end;
+
+  begin
+    Result := '';
+    if Open then
+    begin
+      Result := Result + 'Open';
+      inc(StatusCount);
+    end;
+
+    if Unsynchronised then
+    begin
+      Result := 'Unsynchronised' + Getdelimmiter() + Result;
+      inc(StatusCount);
+    end;
+
+    if Archived then
+    begin
+      Result := 'Archived' + Getdelimmiter() + Result;
+      inc(StatusCount);
+    end;
+
+    if ReadOnly then
+    begin
+      Result := 'Read-Only' + Getdelimmiter() + Result;
+      inc(StatusCount);
+    end;
+  end;
+
 begin
-  RunCashBookMigrationWizard;
-  {AClientIsCheckedOut := False;
-  AClientIsUnsynced := False;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Migration to Cashbook Clicked');
+
+  Archived := false;
+  Unsynchronised := false;
+  ReadOnly := false;
+  Open := false;
+
   SelectedList := TStringList.Create;
   try
     SelectedList.Delimiter := GLOBALS.ClientCodeDelimiter;
     SelectedList.StrictDelimiter := True;
     SelectedList.DelimitedText := ClientLookup.SelectedCodes;
 
-    for i := 0 to SelectedList.Count - 1 do
-    begin
-      Client := AdminSystem.fdSystem_Client_File_List.FindCode(SelectedList.Strings[i]);
-      AClientIsCheckedOut := (Client.cfFile_Status = fsCheckedOut);
-      if AClientIsCheckedOut then
-        break;
-    end;
-    ClientLookup.GetSelectionTypes(Prospect, Active, AClientIsUnsynced);
+    InvalidClientList := TStringList.Create;
+    try
+      for SelectedIndex := 0 to SelectedList.Count - 1 do
+      begin
+        Client := AdminSystem.fdSystem_Client_File_List.FindCode(SelectedList.Strings[SelectedIndex]);
 
-    // TODO: also need to check for archived and read-only (opened by another user) clients
-    if (AClientIsCheckedOut and AClientIsUnsynced) then
-      ShowMessage('You cannot migrate checked out or unsynchronised clients')
-    else if AClientIsCheckedOut then
-      ShowMessage('You cannot migrate checked out clients')
-    else if AClientIsUnsynced then
-      ShowMessage('You cannot migrate unsynchronised clients')
-    else
-    begin
-      // TODO: check if already logged into My.MYOB, if so move to confirmation window instead
+        if (Client.cfArchived) then
+        begin
+          CurrentStatus := 'Archived';
+          Archived := true;
+        end
+        else if (Client.cfForeign_File) then
+        begin
+          CurrentStatus := 'Unsynchronised';
+          Unsynchronised := true;
+        end
+        else if (Client.cfFile_Status = fsCheckedOut) then
+        begin
+          CurrentStatus := 'Read Only';
+          ReadOnly := true;
+        end
+        else if (Client.cfFile_Status = fsOpen) then
+        begin
+          CurrentStatus := 'Open';
+          Open := true;
+        end
+        else
+          CurrentStatus := '';
 
+        if length(CurrentStatus) > 0 then
+          InvalidClientList.Add(Client.cfFile_Code + ' (' + CurrentStatus + ')')
+      end;
+
+      if (InvalidClientList.Count = 0) then
+      begin
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, 'Selected Clients - ' + SelectedList.CommaText);
+
+        RunCashBookMigrationWizard(SelectedList);
+      end
+      else
+      begin
+        InvalidClientStr := '';
+        for InvalidClientIndex := 0 to (InvalidClientList.Count - 1) do
+          InvalidClientStr := InvalidClientStr + #13 + InvalidClientList.Strings[InvalidClientIndex];
+
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, 'Invalid Clients - ' + InvalidClientList.CommaText);
+
+        HelpfulWarningMsg('You cannot migrate ' + DisplayAffectedStatuses() + ' Client files.' + #13 +
+                          InvalidClientStr, 0);
+      end;
+
+    finally
+      FreeAndNil(InvalidClientList);
     end;
   finally
-    SelectedList.Free;
-  end; }
-
+    FreeAndNil(SelectedList);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3301,7 +3392,7 @@ begin
 
    userSet := True;
    StartFocus := True;
-   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit SetUser');
+   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit SetUser');
 end;
 
 //------------------------------------------------------------------------------
@@ -3454,7 +3545,7 @@ begin
   if Codes <> '' then
     Files.SendClientFiles(Codes, ftmOnline, FirstUpload, FlagReadOnly, EditEmail, SendEmail);
 
-  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendOnline');
+  if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoSendOnline');
 end;
 
 //------------------------------------------------------------------------------
@@ -3767,6 +3858,7 @@ end;
 //------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UnitName);
+  DebugMeVerbose := DebugUnit(UnitNameVerbose);
   GlfrmClientManagerUp := False;
   GLClientManager := nil;
 end.

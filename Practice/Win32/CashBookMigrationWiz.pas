@@ -35,7 +35,8 @@ uses
   SHDocVw,
   BKWebBrowser,
   RzPrgres,
-  CashbookMigration;
+  CashbookMigration,
+  CashbookMigrationRestData;
 
 type
   TFrmCashBookMigrationWiz = class(TForm)
@@ -48,52 +49,61 @@ type
     pnlTabTitle: TPanel;
     lblTitle: TLabel;
     lblDescription: TLabel;
-    Image1: TImage;
     Bevel2: TBevel;
     PageControl1: TPageControl;
     tabOverview: TTabSheet;
     BKOverviewWebBrowser: TBKWebBrowser;
     tabMYOBCredentials: TTabSheet;
     pnlLogin: TPanel;
-    Label4: TLabel;
-    edtUser: TEdit;
+    lblEmail: TLabel;
+    edtEmail: TEdit;
     edtPassword: TEdit;
-    Label5: TLabel;
-    btnResetPassword: TButton;
-    btnSignup: TButton;
-    btnLogin: TButton;
+    lblPassword: TLabel;
+    btnForgotPassword: TButton;
+    btnSignUp: TButton;
+    btnSignIn: TButton;
     pnlFirm: TPanel;
     Label6: TLabel;
     cmbSelectFirm: TComboBox;
     tabSelectData: TTabSheet;
     pnlSelectData: TPanel;
-    chkCreateCashBook: TCheckBox;
     chkBankFeed: TCheckBox;
     chkChartofAccount: TCheckBox;
     chkBalances: TCheckBox;
     chkTransactions: TCheckBox;
-    tabTermsAndConditions: TTabSheet;
     tabProgress: TTabSheet;
     pnlProgress: TPanel;
     tabComplete: TTabSheet;
     pnlTabButtonHider: TPanel;
     lblProgressTitle: TLabel;
-    lblFirstProgress: TLabel;
-    prgFirstProgress: TRzProgressBar;
-    Label1: TLabel;
-    Label2: TLabel;
-    lRead: TLabel;
-    chkAcceptAgreement: TCheckBox;
-    pnlWebBrowser: TPanel;
-    BKTermsWebBrowser: TBKWebBrowser;
+    lblClientFiles: TLabel;
+    prgClientFiles: TRzProgressBar;
+    tabCheckList: TTabSheet;
+    BKChecklistWebBrowser: TBKWebBrowser;
+    lblSingleFirm: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    pnlCashbookComplete: TPanel;
+    pnlCashbookErrors: TPanel;
+    lblClientCompleteAmount: TLabel;
+    lblCashbookMigrated: TLabel;
+    lblCashbookLoginLink: TLabel;
+    lblClientError: TLabel;
+    lstClientErrors: TListBox;
+    lblClientErrorSupport: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure btnLoginClick(Sender: TObject);
+    procedure btnSignInClick(Sender: TObject);
     procedure cmbSelectFirmChange(Sender: TObject);
     procedure chkChartofAccountClick(Sender: TObject);
     procedure chkAcceptAgreementClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnForgotPasswordClick(Sender: TObject);
+    procedure btnSignUpClick(Sender: TObject);
+    procedure edtEmailChange(Sender: TObject);
 
   private
     fCurrentStepID: integer;
@@ -101,9 +111,22 @@ type
     fFiles: TStringList;
 
     fFirms: TFirms;
-    fLoggedIn : Boolean;
+    fSignedIn : Boolean;
     fFirmSelected : Boolean;
-    fTermsAndConditionsAccepted : Boolean;
+
+    fSelectClients : TStringList;
+    fSelectedData : TSelectedData;
+
+    fMigrationStatus : TMigrationStatus;
+    fClientErrors    : TStringList;
+
+  protected
+    procedure DoMigrationProgress(aCurrentFile : integer;
+                                  aTotalFiles : integer);
+
+    procedure SignIn();
+    procedure SignOut();
+    procedure ShowConnectionError(aError : string);
 
     // Wizard steps
     function  GetOrderArrayPos(ForStepID : integer) : integer;
@@ -120,15 +143,27 @@ type
     function  CompleteStep(StepID : integer) : boolean;
     function  CanMoveToNextStep(StepID : integer) : boolean;
     procedure FinishWizard;
-    procedure UpdateControls;
+
+    procedure MoveToNextStep();
+
     function  IsLastStep : boolean;
-    procedure PostDataToCashbook;
+    procedure DoMigrateCashbook();
+
+    procedure UpdateControls;
+    function UpdateFirmControls() : boolean;
+    procedure UpdateSignInControls(aBusySigningIn : Boolean);
+    procedure UpdateProgressControls();
+    procedure UpdateCompleteControls();
 
   public
+    constructor Create(AOwner: tComponent); override;
     destructor Destroy; override;
+
+    property SelectClients : TStringList read fSelectClients write fSelectClients;
   end;
 
-  function RunCashBookMigrationWizard() : boolean;
+  //----------------------------------------------------------------------------
+  function RunCashBookMigrationWizard(aSelectClients : TStringList) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -161,51 +196,62 @@ uses
   CountryUtils,
   ForexHelpers,
   InfoMoreFrm,
+  LogUtil,
+  ShellAPI,
+  bkContactInformation,
   WarningMoreFrm;
 
 const
+  UnitName = 'CashBookMigrationWiz';
+
+  CASHBOOK_DASHBOARD_NAME = 'Cashbook Dashboard';
+
   mtOverview           = 1; mtMin = 1;
-  mtMYOBCredentials    = 2;
-  mtSelectData         = 3;
-  mtTermsAndConditions = 4;
+  mtCheckList          = 2;
+  mtMYOBCredentials    = 3;
+  mtSelectData         = 4;
   mtProgress           = 5;
   mtCompleteMigration  = 6; mtMax = 6;
 
   StepTitles: array[mtMin..mtMax] of string = (
     'Overview',
+    'Overview',
     'MYOB Credentials',
-    'Select Data',
-    'Terms and conditions',
+    'Data Selection',
     'Migration Progress',
     'Complete'
   );
 
   StepDescriptions: array[mtMin..mtMax] of string = (
-    'Desc 1',
-    'Desc 2',
-    'Desc 3',
-    'Desc 4',
-    'Desc 5',
-    'Desc 6'
+    'Congratulations for opting to migrate your selected accounts from Practice to MYOB Essentials Cashbook. ' +
+    'Please ensure your clients are ready to migrate by checking the following:',
+    'Before we begin please note:',
+    'Sign into your my.MYOB account',
+    'What would you like to migrate to MYOB Essentials Cashbook?',
+    '',
+    ''
   );
 
   TabOrderArray: array [mtMin..mtMax] of byte = (
     mtOverview,
+    mtCheckList,
     mtMYOBCredentials,
     mtSelectData,
-    mtTermsAndConditions,
     mtProgress,
     mtCompleteMigration
   );
 
+var
+  DebugMe : boolean = false;
 
 //------------------------------------------------------------------------------
-function RunCashBookMigrationWizard(): boolean;
+function RunCashBookMigrationWizard(aSelectClients : TStringList): boolean;
 var
   Wizard : TFrmCashBookMigrationWiz;
 begin
   Wizard := TFrmCashBookMigrationWiz.Create(Application.MainForm); // FormCreate
   try
+    Wizard.SelectClients := aSelectClients;
     result := (Wizard.ShowModal = mrOK);
   finally
     FreeAndNil(Wizard);
@@ -213,11 +259,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+constructor TFrmCashBookMigrationWiz.Create(AOwner: tComponent);
+begin
+  inherited Create(AOwner);
+
+  fFiles := TStringList.Create;
+
+  fClientErrors := TStringList.Create;
+  fFirms := TFirms.create();
+end;
+
+//------------------------------------------------------------------------------
 destructor TFrmCashBookMigrationWiz.Destroy;
 begin
-  FreeAndNil(fFiles);
+  BKOverviewWebBrowser.Stop;
+  BKChecklistWebBrowser.Stop;
 
+  FreeAndNil(fFiles);
   FreeAndNil(fFirms);
+  FreeAndNil(fClientErrors);
 
   inherited; // LAST
 end;
@@ -227,8 +287,7 @@ procedure TFrmCashBookMigrationWiz.FormCreate(Sender: TObject);
 var
   i: integer;
 begin
-  fFiles := TStringList.Create;
-
+  
   // Setup
   lblTitle.Font.Name := Font.Name;
   bkXPThemes.ThemeForm(Self);
@@ -242,9 +301,9 @@ begin
 
   // Setup Page Tags
   tabOverview.Tag := mtOverview;
+  tabCheckList.Tag := mtCheckList;
   tabMYOBCredentials.Tag := mtMYOBCredentials;
   tabSelectData.Tag := mtSelectData;
-  tabTermsAndConditions.Tag := mtTermsAndConditions;
   tabProgress.Tag := mtProgress;
   tabComplete.Tag := mtCompleteMigration;
   for i := 0 to Pred(PageControl1.PageCount) do
@@ -252,71 +311,64 @@ begin
 
   PageControl1.ActivePageIndex := 0;
 
-  fLoggedIn := false;
+  fSignedIn := false;
   fFirmSelected := false;
-  fTermsAndConditionsAccepted := false;
+  edtEmail.Text := '';
 
   DoAfterMoveToStep;
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.btnLoginClick(Sender: TObject);
-var
-  sError: string;
-  i: integer;
+procedure TFrmCashBookMigrationWiz.FormShow(Sender: TObject);
 begin
-{$IFDEF DEBUG}
-  edtUser.Text := 'cashbook@gmail.com';
-  edtPassword.Text := 'password1';
-{$ENDIF}
+  InitialiseStep(mtOverview);
+end;
 
-  // Basic check
-  if (edtUser.text = '') or (edtPassword.text = '')  then
-  begin
-    HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
-    edtUser.SetFocus;
-    Exit;
-  end;
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.btnSignInClick(Sender: TObject);
+begin
+  if not fSignedIn then
+    SignIn()
+  else
+    SignOut();
+end;
 
-  // Actual login
-  if not MigrateCashbook.Login(edtUser.Text, edtPassword.Text) then
-  begin
-    HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
-    edtUser.SetFocus;
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.btnSignUpClick(Sender: TObject);
+var
+  link : string;
+begin
+  link := PRACINI_DefaultCashbookSignupURL;
+
+  if length(link) = 0 then
     exit;
-  end;
 
-  // Get firms
-  if not MigrateCashbook.GetFirms(fFirms, sError) then
-  begin
-    HelpfulWarningMsg('No firms available.',0);
-    edtUser.SetFocus;
+  ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.btnForgotPasswordClick(Sender: TObject);
+var
+  link : string;
+begin
+  link := PRACINI_DefaultCashbookForgotPasswordURL;
+
+  if length(link) = 0 then
     exit;
-  end;
 
-  // No firms?
-  if (fFirms.Count = 0) then
-  begin
-    HelpfulWarningMsg('No firms available.',0);
-    edtUser.SetFocus;
-    exit;
-  end;
-
-  fLoggedIn := true;
-
-  // Display firms
-  for i := 0 to fFirms.Count-1 do
-  begin
-    cmbSelectFirm.Items.Add(fFirms[i].Name);
-  end;
-
-  UpdateControls();
+  ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.chkChartofAccountClick(Sender: TObject);
 begin
-  chkBalances.Visible := (chkChartofAccount.Checked);
+  chkBalances.enabled := (chkChartofAccount.Checked);
+  chkTransactions.enabled := (chkChartofAccount.Checked);
+  if not chkChartofAccount.Checked then
+  begin
+    chkBalances.checked := false;
+    chkTransactions.checked := false;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -330,14 +382,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.btnNextClick(Sender: TObject);
 begin
-  if CanMoveToNextStep(fCurrentStepID) then
-  begin
-    CompleteStep(fCurrentStepID);
-    if HasNextStep(fCurrentStepID) then
-      MoveToStep(NextStep(fCurrentStepID))
-    else
-      FinishWizard;
-  end;
+  MoveToNextStep;
 end;
 
 //------------------------------------------------------------------------------
@@ -361,6 +406,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.MoveToNextStep;
+begin
+  if CanMoveToNextStep(fCurrentStepID) then
+  begin
+    CompleteStep(fCurrentStepID);
+    if HasNextStep(fCurrentStepID) then
+      MoveToStep(NextStep(fCurrentStepID))
+    else
+      FinishWizard;
+  end;
+end;
+
 procedure TFrmCashBookMigrationWiz.MoveToStep(StepID: integer);
 //called from the Back and Next Buttons
 var
@@ -452,29 +509,14 @@ begin
 
   if MovingForward then
   begin
-    {case OldStepID of
-      {stMonth:
-      begin
-        {// Validation error?
-        if not fMonths.ValidateMonthEnding(SelectedMonthIndex, sErrors) then
-        begin
-          HelpfulWarningMsg(sErrors, 0);
-          Cancel := true;
-          Exit;
-        end;
-
-        // Already run?
-        if fMonths[SelectedMonthIndex].AlreadyRun then
-        begin
-          iContinue := AskYesNo(MonthEndingAlreadyRunTitle, MonthEndingAlreadyRunWarning, dlg_Yes, 0);
-          if (iContinue <> dlg_Yes) then
-          begin
-            Cancel := true;
-            Exit;
-          end;
-        end;
+    case OldStepID of
+      mtSelectData : begin
+        fSelectedData.Bankfeeds := true;
+        fSelectedData.ChartOfAccount := chkChartofAccount.checked;
+        fSelectedData.ChartOfAccountBalances := chkBalances.checked;
+        fSelectedData.NonTransferedTransactions := chkTransactions.checked;
       end;
-    end;  }
+    end;
   end;
 
   //save existing
@@ -487,9 +529,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.DoAfterMoveToStep;
+procedure TFrmCashBookMigrationWiz.DoMigrationProgress(aCurrentFile, aTotalFiles: integer);
 var
-  HTMLString : string;
+  FileBusywith : integer;
+begin
+  FileBusywith := aCurrentFile + 1;
+  if FileBusywith > aTotalFiles then
+    FileBusywith := aTotalFiles;
+
+  prgClientFiles.TotalParts := aTotalFiles;
+  prgClientFiles.PartsComplete := aCurrentFile;
+  lblClientFiles.Caption := inttostr(FileBusywith) + ' of ' + inttostr(aTotalFiles);
+  Application.ProcessMessages;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.edtEmailChange(Sender: TObject);
+begin
+  btnSignIn.Enabled := (length(edtEmail.Text) > 0);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.DoAfterMoveToStep;
 begin
   Assert(fCurrentStepID in [mtMin..mtMax], 'DoAfterMoveToStep.CurrentStepID out of range');
 
@@ -499,10 +560,33 @@ begin
   lblTitle.Caption := StepTitles[fCurrentStepID];
   lblDescription.Caption := StepDescriptions[fCurrentStepID];
 
-  UpdateControls;
-
   case fCurrentStepID of
-    mtProgress: PostDataToCashBook();
+    mtMYOBCredentials : begin
+      {$IFDEF DEBUG}
+        edtEmail.Text := 'cashbook@gmail.com';
+        edtPassword.Text := 'password1';
+      {$ENDIF}
+
+      UpdateSignInControls(false);
+      UpdateControls();
+    end;
+
+    mtSelectData : begin
+      chkChartofAccount.SetFocus;
+      UpdateControls();
+    end;
+
+    mtProgress: begin
+      UpdateProgressControls();
+      DoMigrateCashbook();
+      MoveToNextStep();
+    end;
+
+    mtCompleteMigration : begin
+      UpdateCompleteControls();
+    end;
+  else
+    UpdateControls();
   end;
 end;
 
@@ -547,11 +631,81 @@ begin
   // Not sure?
   iResult := AskYesNo(
     'Exit ' + Self.Caption,
-    'Are you sure that you want to exit the Cashbook Migration wizard? '#13 +
+    'Are you sure that you want to exit the Cashbook Migration wizard? '+ #13#13 +
     'Any information you have entered will be lost.',
     Dlg_No, 0);
   if (iResult = DLG_No) then
     CanClose := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.ShowConnectionError(aError: string);
+var
+  SupportNumber : string;
+begin
+  SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
+  HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
+                  'If problem persists please contact ' + SHORTAPPNAME + ' support. ' + SupportNumber,
+                  0, false, aError, true);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.SignIn;
+var
+  sError: string;
+  OldCursor: TCursor;
+  Firms: TFirms;
+  SupportNumber : string;
+begin
+  // Basic check
+  if (edtEmail.text = '') or (edtPassword.text = '')  then
+  begin
+    HelpfulWarningMsg('Your Username and/or Password is invalid.  Please try again.',0);
+    edtEmail.SetFocus;
+    Exit;
+  end;
+
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourglass;
+  UpdateSignInControls(true);
+  try
+    // Actual login
+    if not MigrateCashbook.Login(edtEmail.Text, edtPassword.Text, sError) then
+    begin
+      Screen.Cursor := OldCursor;
+      ShowConnectionError(sError);
+      UpdateSignInControls(false);
+      edtEmail.SetFocus;
+      exit;
+    end;
+
+    // Get firms
+    if not MigrateCashbook.GetFirms(fFirms, sError) then
+    begin
+      Screen.Cursor := OldCursor;
+      ShowConnectionError(sError);
+      UpdateSignInControls(false);
+      edtEmail.SetFocus;
+      exit;
+    end;
+  finally
+    Screen.Cursor := OldCursor;
+  end;
+
+  if not UpdateFirmControls() then
+    Exit;
+
+  fSignedIn := true;
+
+  UpdateSignInControls(false);
+  UpdateControls();
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.SignOut;
+begin
+  fSignedIn := false;
+  UpdateSignInControls(false);
 end;
 
 //------------------------------------------------------------------------------
@@ -565,16 +719,35 @@ end;
 procedure TFrmCashBookMigrationWiz.InitialiseStep(StepID: integer);
 var
   dtMonthEnding: TDateTime;
+  Overview1URL : string;
+  Overview2URL : string;
 begin
-  {case StepID of
-    stPost:
+  case StepID of
+    mtOverview:
     begin
-      dtMonthEnding := fMonths[SelectedMonthIndex].MonthEndingDate;
-      MonthEndStr := FormatDateTime('dd/mm/yy', dtMonthEnding);
-      lblMonthEnding.Caption := FormatDateTime('dd/mm/yyyy', dtMonthEnding) + '.';
-      PopulateGrid;
+      case AdminSystem.fdFields.fdCountry of
+        whNewZealand: Overview1URL := Globals.PRACINI_NZCashMigrationURLOverview1;
+        whAustralia : Overview1URL := Globals.PRACINI_AUCashMigrationURLOverview1;
+      end;
+
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'OverView Tab 1, Navigate to : ' + Overview1URL);
+
+      BKOverviewWebBrowser.Navigate(Overview1URL);
     end;
-  end; }
+    mtChecklist:
+    begin
+      case AdminSystem.fdFields.fdCountry of
+        whNewZealand: Overview2URL := Globals.PRACINI_NZCashMigrationURLOverview2;
+        whAustralia : Overview2URL := Globals.PRACINI_AUCashMigrationURLOverview2;
+      end;
+
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'OverView Tab 2, Navigate to : ' + Overview2URL);
+
+      BKChecklistWebBrowser.Navigate(Overview2URL);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -584,46 +757,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.PostDataToCashbook;
+procedure TFrmCashBookMigrationWiz.DoMigrateCashbook;
 var
-  i: integer;
-  Data: TClientData;
-  FileUpload: TFileUpload;
-  FileUploadResult: TFileUploadResult;
-  sError: string;
+  OldCursor: TCursor;
 begin
-{$IFDEF DEBUG}
-  fFiles.Add('C:\Test\Debug.txt');
-{$ENDIF}
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourglass;
 
-  for i := 0 to fFiles.Count-1 do
-  begin
-    Data := nil;
-    FileUpload := nil;
-    FileUploadResult := nil;
-
-    try
-      // Data
-      Data := TClientData.Create;
-      Data.BusinessData.FirmId := fFirms[cmbSelectFirm.ItemIndex].ID;
-
-      // FileUpload
-      FileUpload := TFileUpload.Create;
-      FileUpload.Files.Data := Data.GetData;
-
-      // Can't upload?
-      if not MigrateCashbook.FileUpload(FileUpload, FileUploadResult, sError) then
-      begin
-        HelpfulWarningMsg(sError, 0);
-
-        exit;
-      end;
-
-    finally
-      FreeAndNil(Data);
-      FreeAndNil(FileUpload);
-      FreeAndNil(FileUploadResult);
-    end;
+  MigrateCashbook.OnProgressEvent := DoMigrationProgress;
+  try
+    fMigrationStatus := MigrateCashbook.MigrateClients(fSelectClients, fSelectedData, fClientErrors);
+  finally
+    MigrateCashbook.OnProgressEvent := nil;
+    Screen.Cursor := OldCursor;
   end;
 end;
 
@@ -640,16 +786,13 @@ begin
   result := true;
 
   case fCurrentStepID of
-    mtMYOBCredentials : Result := (fLoggedIn and fFirmSelected);
-    mtTermsAndConditions : Result := (fTermsAndConditionsAccepted);
+    mtMYOBCredentials : Result := (fSignedIn and fFirmSelected);
   end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.chkAcceptAgreementClick(Sender: TObject);
 begin
-  fTermsAndConditionsAccepted := (chkAcceptAgreement.Checked);
-
   UpdateControls();
 end;
 
@@ -662,30 +805,159 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.UpdateControls;
 begin
-  case fCurrentStepID of
-    mtMYOBCredentials : begin
-      pnlFirm.Visible := fLoggedIn;
-    end;
-  end;
+  btnNext.Enabled := CanMoveToNextStep(fCurrentStepID) and HasNextStep(fCurrentStepID);
+  btnBack.Enabled := HasPreviousStep(fCurrentStepID);
 
-  if IsLastStep then
+  if (fCurrentStepID <> mtMYOBCredentials) then
   begin
-    btnNext.Caption := '&Yes';
-    btnNext.ModalResult := mrYes;
-    btnNext.Enabled := true;
+    btnNext.Default := false;
+    btnSignIn.Default := true;
+  end;
+end;
 
-    btnCancel.Caption := '&No';
-    btnCancel.ModalResult := mrNo;
-    btnCancel.Enabled := true;
+//------------------------------------------------------------------------------
+function TFrmCashBookMigrationWiz.UpdateFirmControls: boolean;
+var
+  FirmIndex : integer;
+begin
+  Result := false;
+  // No firms?
+  if (fFirms.Count = 0) then
+  begin
+    HelpfulWarningMsg('No firms available.',0);
+    edtEmail.SetFocus;
+    exit;
+  end
+  else
+  if (fFirms.Count = 1) then
+  begin
+    lblSingleFirm.Visible := true;
+    cmbSelectFirm.Visible := false;
 
-    btnBack.Visible := false;
+    fFirmSelected := true;
+    lblSingleFirm.Caption := fFirms[0].Name;
   end
   else
   begin
-    btnNext.Enabled := CanMoveToNextStep(fCurrentStepID) and HasNextStep(fCurrentStepID);
-    btnBack.Enabled := HasPreviousStep(fCurrentStepID);
+    lblSingleFirm.Visible := false;
+    cmbSelectFirm.Visible := true;
+    fFirmSelected := false;
+
+    cmbSelectFirm.Clear();
+    for FirmIndex := 0 to fFirms.Count-1 do
+    begin
+      cmbSelectFirm.Items.Add(fFirms[FirmIndex].Name);
+    end;
+  end;
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.UpdateSignInControls(aBusySigningIn : Boolean);
+begin
+  btnForgotPassword.enabled := not (fSignedIn or aBusySigningIn);
+  btnSignUp.enabled         := not (fSignedIn or aBusySigningIn);
+  edtEmail.Enabled          := not (fSignedIn or aBusySigningIn);
+  edtPassword.Enabled       := not (fSignedIn or aBusySigningIn);
+  lblEmail.Enabled          := not (fSignedIn or aBusySigningIn);
+  lblPassword.Enabled       := not (fSignedIn or aBusySigningIn);
+
+  if edtEmail.Enabled then
+    edtEmail.setfocus();
+
+  btnSignIn.enabled := not aBusySigningIn;
+  pnlFirm.Visible := fSignedIn;
+
+  if fSignedIn then
+  begin
+    btnSignIn.Caption := 'Sign Out';
+    btnNext.Default := true;
+    btnSignIn.Default := false;
+
+    if cmbSelectFirm.Items.Count > 1 then
+      cmbSelectFirm.SetFocus();
+  end
+  else
+  begin
+    btnSignIn.Caption := 'Sign In';
+    btnNext.Default := false;
+    btnSignIn.Default := true;
   end;
 end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.UpdateProgressControls;
+begin
+  btnBack.visible := false;
+  btnNext.visible := false;
+  btnCancel.visible := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.UpdateCompleteControls();
+var
+  ErrorIndex : integer;
+  TotalClients : integer;
+  SupportNumber : string;
+  WindowTitle : string;
+begin
+  TotalClients := fSelectClients.Count;
+
+  btnCancel.Caption := 'Done';
+  btnCancel.ModalResult := mrYes;
+  btnCancel.Enabled := true;
+  btnCancel.Visible := true;
+
+  lstClientErrors.Clear;
+  for ErrorIndex := 0 to fClientErrors.Count-1 do
+  begin
+    lstClientErrors.AddItem(fClientErrors.Strings[ErrorIndex], nil);
+  end;
+
+  lblClientCompleteAmount.Caption :=
+    Format('%d client(s) and their data are now being created in MYOB Essentials Cashbook.', [TotalClients]);
+
+  lblCashbookLoginLink.Caption :=
+    Format('You can log into %s here', [CASHBOOK_DASHBOARD_NAME]);
+
+  if lstClientErrors.Count > 0 then
+  begin
+    SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
+    lblClientError.Caption := Format('The following %d client(s) could not be migrated.', [lstClientErrors.Count]);
+    lblClientErrorSupport.Caption := Format('Please contact ' + SHORTAPPNAME + ' support if the problems persist : %s', [SupportNumber]);
+  end;
+
+  WindowTitle := 'Congratulations and welcome to MYOB Essentials Cashbook';
+  case fMigrationStatus of
+    mgsSuccess : begin
+      lblDescription.Caption := WindowTitle;
+      pnlCashbookComplete.Visible := true;
+      pnlCashbookErrors.Visible   := false;
+      pnlCashbookComplete.Align   := alClient;
+
+      lblClientCompleteAmount.Top := 20;
+      lblCashbookLoginLink.Top := 20 + trunc(pnlCashbookComplete.Height/4);
+      lblCashbookMigrated.Top := 20 + trunc((pnlCashbookComplete.Height/4)*2);
+    end;
+    mgsPartial : begin
+      lblDescription.Caption := WindowTitle;
+      pnlCashbookComplete.Visible := true;
+      pnlCashbookErrors.Visible   := true;
+      pnlCashbookComplete.Align   := alTop;
+      pnlCashbookErrors.Align     := alClient;
+    end;
+    mgsFailure : begin
+      lblDescription.Caption := 'We could not migrate your client(s)';
+      pnlCashbookComplete.Visible := false;
+      pnlCashbookErrors.Visible   := true;
+      pnlCashbookErrors.Align     := alClient;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+initialization
+  DebugMe := DebugUnit(UnitName);
 
 end.
 

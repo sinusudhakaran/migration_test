@@ -11,6 +11,13 @@ type
     class function GetWebSites(Index: Integer): String; static;
     class function GetWebSiteURLs(Index: Integer): String; static;
   public
+    class function DefaultNZCashMigrationURLOverview1 : String; static;
+    class function DefaultAUCashMigrationURLOverview1 : String; static;
+    class function DefaultNZCashMigrationURLOverview2 : String; static;
+    class function DefaultAUCashMigrationURLOverview2 : String; static;
+    class function DefaultCashbookForgotPasswordURL : String; static;
+    class function DefaultCashbookSignupURL : String; static;
+
     class function DefaultNZCatalogServer: String; static;
     class function DefaultAUCatalogServer: String; static;
     class function DefaultUKCatalogServer: String; static;
@@ -122,6 +129,36 @@ begin
   begin
     Result := 'https://secure1.banklink.co.nz/DownloaderService/DownloaderService.svc';
   end;
+end;
+
+class function TUrls.DefaultNZCashMigrationURLOverview1 : String;
+begin
+  Result := 'https://www.google.co.nz';
+end;
+
+class function TUrls.DefaultAUCashMigrationURLOverview1 : String;
+begin
+  Result := 'https://www.google.com.au';
+end;
+
+class function TUrls.DefaultNZCashMigrationURLOverview2 : String;
+begin
+  Result := 'https://www.google.co.za';
+end;
+
+class function TUrls.DefaultAUCashMigrationURLOverview2 : String;
+begin
+  Result := 'https://www.google.com.hk';
+end;
+
+class function TUrls.DefaultCashbookForgotPasswordURL: String;
+begin
+  Result := 'https://test.secure.myob.com/oauth2/ManageIdentity/ForgotPassword?returnUrl=%2f';
+end;
+
+class function TUrls.DefaultCashbookSignupURL: String;
+begin
+  Result := 'https://test.secure.myob.com/oauth2/Account/Login?ReturnUrl=%2f';
 end;
 
 class function TUrls.DefaultNZCatalogServer: String;

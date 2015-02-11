@@ -625,7 +625,15 @@ var
     PRACINI_OnlineLink                  : String = '';
 
     PRACINI_MAPI_MaskError              : string = '';
-    
+
+    PRACINI_NZCashMigrationURLOverview1 : String = '';
+    PRACINI_AUCashMigrationURLOverview1 : String = '';
+    PRACINI_NZCashMigrationURLOverview2 : String = '';
+    PRACINI_AUCashMigrationURLOverview2 : String = '';
+
+    PRACINI_DefaultCashbookSignupURL    : String = '';
+    PRACINI_DefaultCashbookForgotPasswordURL : String = '';
+
 {$IFDEF SmartLink}
     PRACINI_FingertipsURL : string = '';
     PRACINI_FingertipsSQL_IP : string = '';

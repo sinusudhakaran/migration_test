@@ -80,11 +80,16 @@ Type
     constructor Create;
     destructor Destroy; override;
 
+    function GetRandomKey : string;
+    function RijndaelEncrypt(aInString: string; aKeyString : string): string;
+
     procedure AnsiStringToUTF32(const Source: AnsiString; Dest: Pointer; Size: Integer);
 
     function StringtoHex(Data: string): string;
 
     function GenerateRSAKeys( aPrivateKeyFilename, aPublicKeyFileName : String) : Boolean;
+
+    function SimpleRSAEncrypt(aInString : string; aKeyFile : string): string;
 
     function RSAEncrypt(PublicKey: TRSAKey; Cleartext : AnsiString; var Encryptedtext: AnsiString; padding: integer) : integer; overload;
     function RSAEncrypt(PublicKey: TRSAKey; ClearData, EncryptedData: TStream; padding: Integer) : integer; overload;
@@ -113,7 +118,7 @@ Type
     procedure ReEncodeSHA256(aEncodedBuffer: PAnsiChar);
 
     function SHA256DerivePassword(InString: string; SaltText : String; Iterations : integer): AnsiString;
-    
+
     function GetError : String;
   end;
 
@@ -338,6 +343,28 @@ begin
   for Index := Length(Source) downto 1 do
   begin
     Result := Result + Source[Index];
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TEncryptOpenSSL.RijndaelEncrypt(aInString: string; aKeyString : string): string;
+const
+  INIT_VECTOR = '@AT^NK(@YUVK)$#Y';
+{          // Constants used in our AES256 (Rijndael) Encryption / Decryption
+        const string initVector = "@1B2c3D4e5F6g7H8";     // Must be 16 bytes
+        const string passPhrase = "Pas5pr@se";            // Any string
+        const string saltValue = "s@1tValue";             // Any string
+        const string hashAlgorithm = "SHA1";              // Can also be "MD5", "SHA1" is stronger
+        const int passwordIterations = 2;                 // Can be any number, usually 1 or 2
+        const int keySize = 256;                          // Allowed values: 192, 128 or 256}
+var
+  KeyString : string;
+  OutString : string;
+begin
+  Result := '';
+  if AESEncrypt(aKeyString, aInString, OutString, INIT_VECTOR) then
+  begin
+    Result := OutString;
   end;
 end;
 
@@ -800,6 +827,86 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TEncryptOpenSSL.SimpleRSAEncrypt(aInString : string; aKeyFile : string): string;
+var
+  RSAKey : TRSAKey;
+  OutString : string;
+
+    //----------------------------------------------------------------------------
+  function EncryptStreamUsingKey(PublicKey: TRSAKey; ClearData, EncryptedData: TStream; padding: Integer): Integer;
+  var
+    ClearDataBlock: Pointer;
+    DataBlockSize: Integer;
+    EncryptedDataBlock: Pointer;
+    EncryptedBlockSize: Integer;
+    EncodedData: Pointer;
+  begin
+    Result := 0;
+
+    DataBlockSize := ClearData.Size;
+    GetMem(ClearDataBlock, DataBlockSize);
+
+    try
+      ClearData.ReadBuffer(ClearDataBlock^, DataBlockSize);
+      GetMem(EncryptedDataBlock, PublicKey.Size);
+
+      try
+        EncryptedBlockSize := RSA_public_encrypt(DataBlockSize, ClearDataBlock, EncryptedDataBlock, PublicKey.Key, padding);
+
+        if EncryptedBlockSize > -1 then
+        begin
+          Base64EncodeBytes(EncryptedDataBlock, EncodedData, EncryptedBlockSize);
+
+          try
+            EncryptedData.WriteBuffer(EncodedData^, EncryptedBlockSize);
+          finally
+            FreeMem(EncodedData);
+          end;
+        end;
+
+      finally
+        FreeMem(EncryptedDataBlock);
+      end;
+
+    finally
+      FreeMem(ClearDataBlock);
+    end;
+  end;
+
+  //----------------------------------------------------------------------------
+  function EncryptUsingKey(PublicKey: TRSAKey; Cleartext : AnsiString; var Encryptedtext: AnsiString; padding: integer) : integer;
+  var
+    UnencryptedData: TStream;
+    EncryptedData : TStringStream;
+  begin
+    UnencryptedData := TStringStream.Create(Cleartext);
+    try
+      EncryptedData := TStringStream.Create('');
+      try
+        Result := EncryptStreamUsingKey(PublicKey, UnencryptedData, EncryptedData, padding);
+
+        EncryptedText := EncryptedData.DataString;
+      finally
+        EncryptedData.Free;
+      end;
+    finally
+      UnencryptedData.free;
+    end;
+  end;
+
+begin
+  RSAKey := TXMLKey.Create(aKeyFile);
+  try
+    if EncryptUsingKey(RSAKey, aInString, OutString, RSA_PKCS1_PADDING) > -1 then
+    begin
+      Result := OutString;
+    end;
+  finally
+    RSAKey.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TEncryptOpenSSL.GetAESPaddedStr(inString: String): string;
 var
   InStrLen : integer;
@@ -827,6 +934,24 @@ begin
   ErrorId := ERR_get_error;
   Error := ERR_error_string(ErrorId, Error);
   Result := Error;
+end;
+
+//------------------------------------------------------------------------------
+function TEncryptOpenSSL.GetRandomKey: string;
+var
+  KeyIndex : integer;
+  TableSize : integer;
+  hours, mins, secs, milliSecs : Word;
+begin
+  Result := '';
+
+  DecodeTime(now, hours, mins, secs, milliSecs);
+  RandSeed := (milliSecs * secs * (mins * 60));
+
+  TableSize := Length(GBase64CodeTable);
+
+  for KeyIndex := 0 to 31 do
+    Result := Result + GBase64CodeTable[random(TableSize-1)+1];
 end;
 
 //------------------------------------------------------------------------------
