@@ -68,7 +68,8 @@ uses
   BlopiClient in 'Win32\BlopiClient.pas',
   AcclipseX in 'Extract\AcclipseX.pas',
   INISettings in 'Win32\INISettings.pas',
-  HttpsProgressFrm in 'Win32\HttpsProgressFrm.pas' {frmHttpsProgress};
+  mcList32 in 'Win32\mcList32.pas',
+  msObj32 in 'Win32\msObj32.pas';
 
 //  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 
