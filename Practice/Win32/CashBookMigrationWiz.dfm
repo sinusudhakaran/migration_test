@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabComplete
+      ActivePage = tabOverview
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -552,9 +552,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitLeft = -4
-          ExplicitTop = 3
-          ExplicitWidth = 737
           object lblClientCompleteAmount: TLabel
             Left = 24
             Top = 15

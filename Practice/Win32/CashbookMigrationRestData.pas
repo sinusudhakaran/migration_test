@@ -8,7 +8,23 @@ uses
   Classes,
   uLkJSON;
 
+const
+  UPLOAD_RESP_ERROR = -1;
+  UPLOAD_RESP_UKNOWN = 0;
+  UPLOAD_RESP_SUCESS = 1;
+  UPLOAD_RESP_DUPLICATE = 2;
+  UPLOAD_RESP_CORUPT = 3;
+
 type
+  //----------------------------------------------------------------------------
+  TSelectedData = record
+    FirmId : string;
+    Bankfeeds : boolean;
+    ChartOfAccount : boolean;
+    ChartOfAccountBalances : boolean;
+    NonTransferedTransactions : boolean;
+  end;
+
   //----------------------------------------------------------------------------
   TListDestroy = class(TList)
   protected
@@ -184,14 +200,31 @@ type
     constructor Create;
     destructor  Destroy; override;
 
-    procedure Write(const aJson: TlkJSONobject);
-
-    function GetData: string;
+    procedure Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
 
     property BusinessData: TBusinessData read fBusinessData write fBusinessData;
     property ChartOfAccountsData: TChartOfAccountsData read fChartOfAccountsData write fChartOfAccountsData;
     property TransactionsData: TTransactionsData read fTransactionsData write fTransactionsData;
     property JournalsData: TJournalsData read fJournalsData write fJournalsData;
+  end;
+
+  //----------------------------------------------------------------------------
+  TClientBase = class
+  private
+    fClientData : TClientData;
+
+    fToken : string;
+  public
+    constructor Create;
+    destructor  Destroy; override;
+
+    procedure Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
+
+    function GetData(aSelectedData: TSelectedData) : string;
+
+    property ClientData: TClientData read fClientData write fClientData;
+
+    property Token : string read fToken write fToken;
   end;
 
   //----------------------------------------------------------------------------
@@ -220,11 +253,13 @@ type
   private
     fDataStore: string;
     fQueue: string;
+    fRegion: string;
   public
     procedure Write(const aJson: TlkJSONlist);
 
     property  DataStore: string read fDataStore write fDataStore;
     property  Queue: string read fQueue write fQueue;
+    property  Region: string read fRegion write fRegion;
   end;
 
     //----------------------------------------------------------------------------
@@ -259,7 +294,7 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TMigrationUploadResponce = class
+  TMigrationUploadResponse = class
   private
     fUploadID: string;
     fResponseCode: integer;
@@ -282,7 +317,17 @@ uses
   IdCoder,
   IdCoderMIME,
   CryptUtils,
-  ZlibExGZ;
+  GenUtils,
+  LogUtil,
+  ZlibExGZ,
+  Globals,
+  ZipUtils;
+
+const
+  UnitName = 'CashbookMigrationRestData';
+
+var
+  DebugMe : boolean = false;
 
 //------------------------------------------------------------------------------
 { TListDestroy }
@@ -530,13 +575,17 @@ procedure TBusinessData.Write(const aJson: TlkJSONobject);
 begin
   ASSERT(assigned(aJson));
 
-  aJson.Add('abn', ABN);
-  aJson.Add('ird', IRD);
-  aJson.Add('name', Name);
-  aJson.Add('client_code', ClientCode);
-  aJson.Add('financial_year_start_month', FinancialYearStartMonth);
-  aJson.Add('opening_balance_date', OpeningBalanceDate);
-  aJson.Add('firm_id', FirmId);
+  if (ABN <> '') then
+    aJson.Add('Abn', ABN);
+
+  if (IRD <> '') then
+    aJson.Add('Ird', IRD);
+
+  aJson.Add('LedgerName', Name);
+  aJson.Add('ClientCode', ClientCode);
+  aJson.Add('FinancialYearStartMonth', FinancialYearStartMonth);
+  aJson.Add('OpeningBalanceDate', OpeningBalanceDate);
+  aJson.Add('FirmId', FirmId);
 end;
 
 //------------------------------------------------------------------------------
@@ -561,37 +610,68 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TClientData.Write(const aJson: TlkJSONobject);
+procedure TClientData.Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
 var
   JsonBusiness : TlkJSONobject;
   JsonChartOfAccounts : TlkJSONobject;
 begin
-  // Business data
+  // Business data, create the ledger on cashbook
   JsonBusiness := TlkJSONobject.Create;
-  aJson.Add('Business', JsonBusiness);
+  aJson.Add('ledger', JsonBusiness);
   BusinessData.Write(JsonBusiness);
 
-  // Business data
-  JsonChartOfAccounts := TlkJSONobject.Create;
-  aJson.Add('Accounts', JsonChartOfAccounts);
-  ChartOfAccountsData.Write(JsonChartOfAccounts);
+  if aSelectedData.ChartOfAccount then
+  begin
+    // Business data
+    JsonChartOfAccounts := TlkJSONobject.Create;
+    aJson.Add('accounts', JsonChartOfAccounts);
+    ChartOfAccountsData.Write(JsonChartOfAccounts);
+  end;
 end;
 
 //------------------------------------------------------------------------------
-function TClientData.GetData: string;
+{ TClientBase }
+//------------------------------------------------------------------------------
+constructor TClientBase.Create;
+begin
+  fClientData := TClientData.Create;
+end;
+
+//------------------------------------------------------------------------------
+destructor TClientBase.Destroy;
+begin
+  FreeAndNil(fClientData);
+
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TClientBase.Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
+var
+  JsonClientData : TlkJSONobject;
+begin
+  aJson.Add('Token', Token);
+
+  // Client data
+  JsonClientData := TlkJSONobject.Create;
+  aJson.Add('Data', JsonClientData);
+  ClientData.Write(JsonClientData, aSelectedData);
+end;
+
+//------------------------------------------------------------------------------
+function TClientBase.GetData(aSelectedData: TSelectedData): string;
 var
   Json: TlkJSONobject;
 begin
-  result := '';
-
   Json := nil;
   try
     // Write Json
     Json := TlkJSONobject.Create;
-    Write(Json);
+    Write(Json, aSelectedData);
 
     // Jason to text
-    result := TlkJSON.GenerateText(Json);
+    result := FixJsonString(TlkJSON.GenerateText(Json));
+
   finally
     FreeAndNil(Json);
   end;
@@ -604,19 +684,19 @@ var
   NewID: TGUID;
 begin
   CreateGUID(NewID);
-  fID := GUIDToString(NewID);
+  fID := TrimedGuid(NewID);
 end;
 
 //------------------------------------------------------------------------------
 function TFile.GetFileHash: string;
 begin
-  result := HashStr(fData);
+  result := Lowercase(HashStr(fData, false));
 end;
 
 //------------------------------------------------------------------------------
 function TFile.GetDataAsZipBase64: string;
 begin
-  result := ZCompressStrG(fData);
+  result := GZCompressStr(fData);
 
   result := EncodeString(TidEncoderMIME, result);
 end;
@@ -635,7 +715,14 @@ begin
 
   sData := GetDataAsZipBase64;
 
-  iDataLength := Length(sData);
+  iDataLength := Length(fData);
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Business Data Original Size : ' + inttostr(Length(fData)) +
+                                      ', Zipped and Base64 Size : ' + inttostr(Length(sData)) +
+                                      ', Size Change : ' + inttostr(trunc((Length(sData)/Length(fData))*100)) + '%' +
+                                      ' of the Original Size.');
+
   aJson.Add('DataLength', iDataLength);
 
   aJson.Add('Data', sData);
@@ -658,6 +745,12 @@ begin
   aJson.Add(Parameter);
   Parameter.Add('Key', 'Queue');
   Parameter.Add('Value', fQueue);
+
+  // Queue
+  Parameter := TlkJSONobject.Create;
+  aJson.Add(Parameter);
+  Parameter.Add('Key', 'Region');
+  Parameter.Add('Value', fRegion);
 end;
 
 //------------------------------------------------------------------------------
@@ -667,9 +760,9 @@ var
   NewID: TGUID;
 begin
   CreateGUID(NewID);
-  fID := GUIDtoString(NewID);
+  fID := TrimedGuid(NewID);
 
-  fUploadType := 3;
+  fUploadType := 7;
 
   fFile := TFile.Create;
 
@@ -720,13 +813,13 @@ end;
 
 //------------------------------------------------------------------------------
 { TFileUploadResult }
-constructor TMigrationUploadResponce.Create;
+constructor TMigrationUploadResponse.Create;
 begin
   fUrlsMap := TUrlsMap.Create;
 end;
 
 //------------------------------------------------------------------------------
-destructor TMigrationUploadResponce.Destroy;
+destructor TMigrationUploadResponse.Destroy;
 begin
   FreeAndNil(fUrlsMap);
 
@@ -734,7 +827,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TMigrationUploadResponce.Read(const aJson: TlkJSONobject);
+procedure TMigrationUploadResponse.Read(const aJson: TlkJSONobject);
 var
   UrlsMap: TlkJSONobject;
 begin
@@ -742,8 +835,17 @@ begin
 
   fResponseCode := aJson.getInt('ResponseCode');
 
-  UrlsMap := (aJson.Field['UrlsMap'] as TlkJSONobject);
-  fUrlsMap.Read(UrlsMap);
+  if fResponseCode = UPLOAD_RESP_SUCESS then
+  begin
+    UrlsMap := (aJson.Field['UrlsMap'] as TlkJSONobject);
+    fUrlsMap.Read(UrlsMap);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+initialization
+begin
+  DebugMe := DebugUnit(UnitName);
 end;
 
 end.

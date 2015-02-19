@@ -316,31 +316,115 @@ begin
   MD5_Finish;
 end;{TMD5.MD5_Hash}
 
-Procedure TMD5.MD5_Hash_Bytes;
+{Procedure TMD5.MD5_Hash_Bytes;
 var
+  //Buffer: array[0..4159] of Byte;
   Buffer: array[0..4159] of Byte;
   Count64: Comp;
   index: longInt;
 begin
+  // moved string to buffer
   Move(FInputArray^, Buffer, FSourceLength);
-  Count64 := FSourceLength * 8;     {Save the Length(in bits) before padding}
-  Buffer[FSourceLength] := $80;     {Must always pad with at least a '1'}
+  // work out length in bits rather than bytes
+  Count64 := FSourceLength * 8;
+  // Must always pad with at least a '1' i.e. add a '1' to the end
+  Buffer[FSourceLength] := $80;
   inc(FSourceLength);
 
-  while (FSourceLength mod 64)<>56 do begin
-   Buffer[FSourceLength] := 0;
-   Inc(FSourceLength);
+  // Add zero value char to string until the length /64 is 56
+  while (FSourceLength mod 64)<>56 do
+  begin
+    Buffer[FSourceLength] := 0;
+    Inc(FSourceLength);
   end;
-  Move(Count64,Buffer[FSourceLength],SizeOf(Count64){This better be 64bits});
+
+  // Add length value as 64 bit number to last 8 bytes of string
+  Move(Count64,Buffer[FSourceLength],SizeOf(Count64);
   index := 0;
   Inc(FSourceLength, 8);
+
+  // Now string should be divisable by 64, so we can loop through in blocks of 64
+  // doing a MD5 transform
   repeat
     Move(Buffer[Index], FActiveBlock, 64);
-    {Flip bytes here on Mac??}
+    //Flip bytes here on Mac??
     MD5_Transform;
     Inc(Index,64);
   until Index = FSourceLength;
-end;{TMD5.Hash_Bytes}
+end;//TMD5.Hash_Bytes}
+
+Procedure TMD5.MD5_Hash_Bytes;
+var
+  Buffer: array[0..127] of Byte;
+  BufferLength : integer;
+  Count64: Comp;
+  index: longInt;
+  FullSegmentsLength : longInt;
+  Segments : longInt;
+  LastSegment : PByte;
+  CurrentSegment : PByte;
+begin
+  // get number of full 64 byte segements
+  Segments := trunc(FSourceLength / 64);
+  // Index to end of last full segment
+  FullSegmentsLength := Segments * 64;
+
+  // Store length in bits
+  Count64 := FSourceLength * 8;
+  // work out length of last incomplete segement if there is one
+  BufferLength := FSourceLength - FullSegmentsLength;
+
+  //if there is a incomplete egement then move it to the buffer
+  if (BufferLength > 0) then
+  begin
+    LastSegment := FInputArray;
+
+    if FullSegmentsLength > 0 then
+      inc(LastSegment, FullSegmentsLength);
+
+    Move(LastSegment^ , Buffer, BufferLength);
+  end;
+
+  // Must always pad with at least a '1' i.e. add a '1' to the end
+  Buffer[BufferLength] := $80;
+  inc(BufferLength);
+
+  // Add zero value char to string until the length /64 is 56 i.e. leave 8 bytes
+  // at the end
+  while (BufferLength mod 64) <> 56 do
+  begin
+    Buffer[BufferLength] := 0;
+    Inc(BufferLength);
+  end;
+
+  // Add length value as 64 bit number to last 8 bytes of string
+  Move(Count64, Buffer[BufferLength], SizeOf(Count64));
+  Inc(BufferLength, 8);
+  FSourceLength := (Segments * 64) + BufferLength;
+
+  // Now string should be divisable by 64, so we can loop through in blocks of 64
+  // doing a MD5 transform
+  if FullSegmentsLength > 0 then
+  begin
+    index := 0;
+    CurrentSegment := FInputArray;
+    repeat
+      Move(CurrentSegment^ , FActiveBlock, 64);
+      MD5_Transform;
+
+      inc(CurrentSegment, 64);
+      Inc(Index, 64);
+    until Index = FullSegmentsLength;
+  end;
+
+  index := 0;
+  repeat
+    Move(Buffer[Index], FActiveBlock, 64);
+    //Flip bytes here on Mac??
+    MD5_Transform;
+    Inc(Index,64);
+  until Index = BufferLength;
+end;//TMD5.Hash_Bytes
 
 Procedure TMD5.MD5_Hash_File;
 var

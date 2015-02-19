@@ -28,6 +28,7 @@ CONST
   BRAND_NOTES = 'BankLink Notes';
   BRAND_NOTES_ONLINE = 'BankLink Notes Online';
   BRAND_SUPPORT = 'MYOB BankLink Support';
+  BRAND_CASHBOOK_NAME = 'MYOB Essentials Cashbook';
 
   // Variations
   BRAND_BOOKS_K = 'BankLink Boo&ks';

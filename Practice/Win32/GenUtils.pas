@@ -165,6 +165,7 @@ function AddFillerData(aInString: string; aFiller: char; aLength : integer; aLef
 function AddFillerSpaces(aInString: string; aLength : integer): string;
 function InsFillerZeros(aInString: string; aLength : integer): string;
 function RemoveNonNumericData(aInString : string; KeepSpaces: boolean = true) : string;
+function FixJsonString(inString : string) : string;
 
 //******************************************************************************
 Implementation
@@ -1390,6 +1391,26 @@ begin
     begin
       Result := Result + aInString[Index];
     end;
+  end;
+end;
+
+//----------------------------------------------------------------------------
+function FixJsonString(inString : string) : string;
+var
+  Index : integer;
+  ClearNext : boolean;
+  LenStr : integer;
+begin
+  LenStr := Length(inString);
+  Result := '';
+  for Index := 1 to LenStr do
+  begin
+    if (Index < LenStr) and
+       (inString[Index] = '\') and
+       (inString[Index+1] = '/') then
+      Continue;
+
+    Result := Result + inString[Index];
   end;
 end;
 

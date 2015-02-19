@@ -21,7 +21,8 @@ const
 type
   //----------------------------------------------------------------------------
   TProgressEvent = procedure (aCurrentFile : integer;
-                              aTotalFiles : integer) of object;
+                              aTotalFiles : integer;
+                              aPercentOfCurrentFile : integer) of object;
 
   TMigrationStatus = (mgsSuccess,
                       mgsPartial,
@@ -36,15 +37,6 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TSelectedData = record
-    FirmId : string;
-    Bankfeeds : boolean;
-    ChartOfAccount : boolean;
-    ChartOfAccountBalances : boolean;
-    NonTransferedTransactions : boolean;
-  end;
-
-  //----------------------------------------------------------------------------
   TCashbookMigration = class
   private
     fToken: string;
@@ -54,6 +46,10 @@ type
     FHttpRequester : TipsHTTPS;
     fProgressEvent : TProgressEvent;
 
+    fClientCount : integer;
+    fCurrentClient : integer;
+    fClientDataSize : integer;
+
   protected
     procedure LogHttpDebugSend(aCall : string;
                                aHeaders: THttpHeaders;
@@ -62,7 +58,7 @@ type
     procedure LogHttpDebugUploadSend(aCall : string); overload;
 
     procedure LogHttpDebugReponce(aCall : string;
-                                  aResponce : string);
+                                  aResponse : string);
 
     procedure DoHttpConnected(Sender     : TObject;
                               StatusCode : Integer;
@@ -101,16 +97,24 @@ type
 
     function DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
                               var aResponse: TlkJSONbase; var aRespStr : string;
-                              var aError: string): boolean;
+                              var aError: string; aEncryptToken : boolean = false): boolean;
+
+    function DoUploadHttpSecure(const aVerb: string; const aURL: string;
+                                const aHeaders: THttpHeaders; const aRequest: string;
+                                var aResponse: string; var aError: string): boolean;
+
+    function DoUploadHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
+                                    var aResponse: TlkJSONbase; var aRespStr : string;
+                                    var aError: string; aEncryptToken : boolean = false): boolean;
 
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; var aError : string) : boolean;
-    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; var aError : string) : boolean;
+    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aTransactionsData : TTransactionsData; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
 
-    function UploadClient(aClientData : TClientData; var aError: string): boolean;
+    function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
 
     function MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
   public
@@ -138,10 +142,12 @@ uses
   Globals,
   bkConst,
   Files,
+  GenUtils,
   LogUtil,
   StDate,
   strUtils,
   BKDEFS,
+  stDatest,
   SYDEFS;
 
 const
@@ -151,14 +157,15 @@ const
   CASBOOK_API_BASE = CASBOOK_BASE + 'api/';
   CASBOOK_ADCOMMON_BASE = CASBOOK_BASE + 'ADCommon/';
   OAUTH2_BASE = 'https://test.secure.myob.com/oauth2/v1/';
-  //URL_BASE = 'http://10.72.20.37/';
+
+  CASBOOK_UPLOAD_BASE = 'http://10.72.20.125/ADCommon/';
 
   MY_DOT_CONTENT_TYPE = 'application/x-www-form-urlencoded';
   MY_DOT_CLIENT_ID = 'bankLink-practice5';
   MY_DOT_CLEINT_SECRET = 'z1sb6ggkfhlOXip';
   MY_DOT_GRANT_PASSWORD = 'password';
   MY_DOT_GRANT_REFRESH_TOKEN = 'refresh_token';
-  MY_DOT_SCOPE = 'AccountantsFramework mydot.contacts.read mydot.assets.read Assets la.global';
+  MY_DOT_SCOPE = 'AccountantsFramework CompanyFile Assets la.global mydot.assets.read mydot.contacts.read practice.online client.portal mydot.assets.write mydot.orders.write mydot.bankfeeds.read mydot.bankfeeds.write';
 
   CASHBOOK_CONTENT_TYPE = 'application/json; charset=utf-8';
   CASHBOOK_ACCEPT = 'application/vnd.cashbook-v1+json';
@@ -217,10 +224,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCashbookMigration.LogHttpDebugReponce(aCall : string; aResponce: string);
+procedure TCashbookMigration.LogHttpDebugReponce(aCall : string; aresponse: string);
 begin
   LogUtil.LogMsg(lmDebug, UnitName, 'Server Respond : ' + aCall);
-  LogUtil.LogMsg(lmDebug, UnitName, 'Responce - ' + aResponce);
+  LogUtil.LogMsg(lmDebug, UnitName, 'response - ' + aresponse);
 end;
 
 //------------------------------------------------------------------------------
@@ -271,8 +278,18 @@ procedure TCashbookMigration.DoHttpTransfer(ASender           : TObject;
                                             ADirection        : Integer;
                                             ABytesTransferred : LongInt;
                                             AText             : String);
+var
+  Percent : integer;
 begin
+  if ABytesTransferred > fClientDataSize then
+    Percent := 100
+  else
+    Percent := trunc(ABytesTransferred / fClientDataSize);
 
+  if Assigned(fProgressEvent) then
+  begin
+    fProgressEvent(fCurrentClient, fClientCount, Percent);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -316,7 +333,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCashbookMigration.EncryptToken(aToken: string);
 const
-  KEY_DELIMMITER = 'KEY';
+  KEY_DELIMMITER = '|KEY|';
 var
   KeyString : string;
   EncryptedToken : string;
@@ -351,6 +368,16 @@ begin
     'Authorization: ' + aHeaders.Authorization + CRLF +
     'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
 
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, aVerb + ' : ' + aURL);
+    LogUtil.LogMsg(lmDebug, UnitName, 'Headers : ' + FHttpRequester.OtherHeaders);
+
+    if (aVerb <> 'GET')  and
+       (aRequest <> '') then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + aRequest);
+  end;
+
   if (aVerb = 'GET') then
   begin
     FHttpRequester.Get(aURL);
@@ -362,13 +389,61 @@ begin
   end;
 
   aResponse := FHttpRequester.TransferredData;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
+
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.DoUploadHttpSecure(const aVerb, aURL: string; const aHeaders: THttpHeaders;
+                                               const aRequest: string; var aResponse, aError: string): boolean;
+const
+  CRLF = #13#10;
+begin
+  Result := false;
+
+  { WORKAROUND:
+    Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
+    so we must use OtherHeaders instead.
+  }
+  FHttpRequester.OtherHeaders :=
+    'Content-Type: ' + aHeaders.ContentType + CRLF +
+    'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
+
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, aVerb + ' : ' + aURL);
+    LogUtil.LogMsg(lmDebug, UnitName, 'Headers : ' + FHttpRequester.OtherHeaders);
+
+    if (aVerb <> 'GET')  and
+       (aRequest <> '') then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + aRequest);
+  end;
+
+  if (aVerb = 'GET') then
+  begin
+    FHttpRequester.Get(aURL);
+  end
+  else
+  begin
+    FHttpRequester.PostData := aRequest;
+    FHttpRequester.Post(aURL);
+  end;
+
+  aResponse := FHttpRequester.TransferredData;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
+
   Result := true;
 end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
                                              var aResponse: TlkJSONbase; var aRespStr : string;
-                                             var aError: string): boolean;
+                                             var aError: string; aEncryptToken : boolean): boolean;
 var
   sVerb: string;
   Headers: THttpHeaders;
@@ -388,15 +463,90 @@ begin
     // Headers
     Headers.ContentType := CASHBOOK_CONTENT_TYPE;
     Headers.Accept := CASHBOOK_ACCEPT;
-    Headers.Authorization := CASHBOOK_AUTH_PREFIX + fUnEncryptedToken;
-    Headers.MyobApiAccessToken := fUnEncryptedToken;
+
+    if aEncryptToken then
+    begin
+      Headers.Authorization := CASHBOOK_AUTH_PREFIX + fToken;
+      Headers.MyobApiAccessToken := fToken;
+    end
+    else
+    begin
+      Headers.Authorization := CASHBOOK_AUTH_PREFIX + fUnEncryptedToken;
+      Headers.MyobApiAccessToken := fUnEncryptedToken;
+    end;
 
     // Body
     if assigned(aRequest) then
+    begin
       sRequest := TlkJSON.GenerateText(aRequest);
+      fClientDataSize := length(sRequest);
+    end;
 
     // Http
     if not DoHttpSecure(sVerb, aURL, Headers, sRequest, aRespStr, aError) then
+      exit;
+
+    // Response
+    aResponse := TlkJSON.ParseText(aRespStr);
+    if not assigned(aResponse) then
+      exit;
+  except
+    on E: Exception do
+    begin
+      FreeAndNil(aResponse);
+
+      aError := E.Message;
+      exit;
+    end;
+  end;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.DoUploadHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
+                                                   var aResponse: TlkJSONbase; var aRespStr : string;
+                                                   var aError: string; aEncryptToken : boolean): boolean;
+var
+  sVerb: string;
+  Headers: THttpHeaders;
+  sRequest: string;
+begin
+  result := false;
+
+  aResponse := nil;
+
+  try
+    // Verb
+    if not assigned(aRequest) then
+      sVerb := 'GET'
+    else
+      sVerb := 'POST';
+
+    // Headers
+    Headers.ContentType := CASHBOOK_CONTENT_TYPE;
+    Headers.Accept := CASHBOOK_ACCEPT;
+
+    if aEncryptToken then
+    begin
+      Headers.Authorization := CASHBOOK_AUTH_PREFIX + fToken;
+      Headers.MyobApiAccessToken := fToken;
+    end
+    else
+    begin
+      Headers.Authorization := CASHBOOK_AUTH_PREFIX + fUnEncryptedToken;
+      Headers.MyobApiAccessToken := fUnEncryptedToken;
+    end;
+
+    // Body
+    if assigned(aRequest) then
+    begin
+      sRequest := TlkJSON.GenerateText(aRequest);
+      sRequest := FixJsonString(sRequest);
+    end;
+
+    // Http
+    if not DoUploadHttpSecure(sVerb, aURL, Headers, sRequest, aRespStr, aError) then
       exit;
 
     // Response
@@ -425,7 +575,7 @@ begin
   Result := false;
 
   ClientCode := trim(aInClientCode);
-  if pos(' ', ClientCode ) > -1 then
+  if pos(' ', ClientCode ) > 0 then
   begin
     try
       // Replace spaces with nothing and try find duplicate code in practice
@@ -441,7 +591,7 @@ begin
           if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
           begin
             //if still found the then error
-            aError := 'Error converting Practice Client Code into valid Cashbook Client code';
+            aError := 'Error converting Practice Client Code into valid ' + BRAND_CASHBOOK_NAME + ' Client code';
             Exit;
           end;
         end;
@@ -449,7 +599,7 @@ begin
     except
       on E : Exception do
       begin
-        aError := 'Exception converting Practice Client Code into valid Cashbook Client code, Error : ' + E.Message;
+        aError := 'Exception converting Practice Client Code into valid ' + BRAND_CASHBOOK_NAME + ' Client code, Error : ' + E.Message;
         exit;
       end;
     end;
@@ -474,49 +624,67 @@ begin
   if not FixClientCodeForCashbook(aClient.clFields.clCode, ClientCode, aError) then
     Exit;
 
-  StDateToDMY( aClient.clFields.clFinancial_Year_Starts, FYSday, FYSmonth, FYSyear);
+  try
+    StDateToDMY( aClient.clFields.clFinancial_Year_Starts, FYSday, FYSmonth, FYSyear);
 
-  if AdminSystem.fdFields.fdCountry = whAustralia then
-    ABN := LeftStr(aClient.clFields.clGST_Number, 11)
-  else
-    ABN := '';
+    if AdminSystem.fdFields.fdCountry = whAustralia then
+      ABN := trim(LeftStr(aClient.clFields.clGST_Number, 11))
+    else
+      ABN := '';
 
-  if AdminSystem.fdFields.fdCountry = whNewZealand then
-    IRD := aClient.clFields.clGST_Number
-  else
-    IRD := '';
+    if AdminSystem.fdFields.fdCountry = whNewZealand then
+      IRD := trim(aClient.clFields.clGST_Number)
+    else
+      IRD := '';
 
-  aBusinessData.FirmId := aFirmId;
-  aBusinessData.ClientCode := ClientCode;
-  aBusinessData.Name := aClient.clFields.clName;
-  aBusinessData.FinancialYearStartMonth := FYSmonth;
-  aBusinessData.ABN := ABN;
-  aBusinessData.IRD := IRD;
-  aBusinessData.OpeningBalanceDate := '';
+    aBusinessData.FirmId := aFirmId;
+    aBusinessData.ClientCode := ClientCode;
+    aBusinessData.Name := aClient.clFields.clName;
+    aBusinessData.FinancialYearStartMonth := FYSmonth;
+    aBusinessData.ABN := ABN;
+    aBusinessData.IRD := IRD;
+    aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', aClient.clFields.clFinancial_Year_Starts, True);
+
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Client data : ' + E.Message;
+      exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillChartOfAccountData(aClient: TClientObj; aChartOfAccountsData : TChartOfAccountsData; var aError: string): boolean;
+function TCashbookMigration.FillChartOfAccountData(aClient: TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; var aError: string): boolean;
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
   NewChartItem : TChartOfAccountData;
 begin
-  for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
-  begin
-    AccRec := aClient.clChart.Account_At(ChartIndex)^;
+  Result := false;
+  try
+    for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
+    begin
+      AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
-    NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
-    NewChartItem.Number      := AccRec.chAccount_Code;
-    NewChartItem.Name        := AccRec.chAccount_Description;
-    //NewChartItem.AccountType := AccRec.chAccount_Type;
-    //NewChartItem.TaxRate     := AccRec.chGST_Class;
-    NewChartItem.OpeningBalance := 0;
-    NewChartItem.AccountTypeGroup := '';
-    NewChartItem.BankOrCreditFlag := '';
+      NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
+      NewChartItem.Number      := AccRec.chAccount_Code;
+      NewChartItem.Name        := AccRec.chAccount_Description;
+      //NewChartItem.AccountType := AccRec.chAccount_Type;
+      //NewChartItem.TaxRate     := AccRec.chGST_Class;
+      NewChartItem.OpeningBalance := 0;
+      NewChartItem.AccountTypeGroup := '';
+      NewChartItem.BankOrCreditFlag := '';
+    end;
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Chart : ' + E.Message;
+      exit;
+    end;
   end;
-
-  Result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -532,7 +700,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.UploadClient(aClientData: TClientData; var aError: string): boolean;
+function TCashbookMigration.UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
 var
   Request: TlkJSONobject;
   sURL: string;
@@ -540,14 +708,25 @@ var
   Response: TlkJSONobject;
   RespStr : string;
   UploadDone : boolean;
+  Data : string;
 
   MigUpload : TMigrationUpload;
-  MigUploadResponce : TMigrationUploadResponce;
+  MigUploadResponse : TMigrationUploadResponse;
 begin
   Result := false;
   // FileUpload
   MigUpload := TMigrationUpload.Create;
-  MigUpload.Files.Data := aClientData.GetData;
+
+  Data := aClientBase.GetData(aSelectedData);
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Business Json : ' + Data);
+
+  MigUpload.Files.Data := Data;
+  MigUpload.Files.FileName := 'Test.json';
+  MigUpload.Parameters.DataStore := 'banklinktest-assets';
+  MigUpload.Parameters.Queue := 'assetsmigrationX';
+  MigUpload.Parameters.Region := inttostr(ord(AdminSystem.fdFields.fdCountry));
 
   try
     try
@@ -556,15 +735,9 @@ begin
       MigUpload.Write(Request);
 
       // HTTP
-      sURL := CASBOOK_ADCOMMON_BASE + 'Upload';
+      sURL := CASBOOK_UPLOAD_BASE + 'Upload';
 
-      if DebugMe then
-        LogHttpDebugSend(sURL);
-
-      UploadDone := DoHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError);
-
-      if DebugMe then
-        LogHttpDebugReponce(sURL, RespStr);
+      UploadDone := DoUploadHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError, false);
 
       if not UploadDone then
       begin
@@ -575,8 +748,7 @@ begin
       if not (Assigned(Response)) or
          not (Response is TlkJSONobject) then
       begin
-        aError := 'Error running CashbookMigration.GetFirms, Error Message : No Responce from Server.';
-        LogUtil.LogMsg(lmError, UnitName, aError);
+        aError := 'Error uploading client data : No response from server.';
         exit;
       end;
 
@@ -584,12 +756,26 @@ begin
         // Response
         Response := (ResponseBase as TlkJSONobject);
 
-        // Result
-        if Assigned(MigUploadResponce) then
-        begin
-          MigUploadResponce.Read(Response);
+        MigUploadResponse := TMigrationUploadResponse.Create;
+        try
+          MigUploadResponse.Read(Response);
+
+          if MigUploadResponse.RespondeCode <> UPLOAD_RESP_SUCESS then
+          begin
+            case MigUploadResponse.RespondeCode of
+              UPLOAD_RESP_ERROR     : aError := 'Error uploading client data : Error response from server.';
+              UPLOAD_RESP_UKNOWN    : aError := 'Error uploading client data : Unknown response from server.';
+              UPLOAD_RESP_DUPLICATE : aError := 'Error uploading client data : Duplicate Upload.';
+              UPLOAD_RESP_CORUPT    : aError := 'Error uploading client data : Corrupt Upload.';
+            end;
+            Exit;
+          end;
           Result := true;
+
+        finally
+          FreeAndNil(MigUploadResponse)
         end;
+
       finally
         FreeAndNil(Response);
       end;
@@ -597,8 +783,7 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running CashbookMigration.GetFirms, Error Message : ' + E.Message;
-        LogUtil.LogMsg(lmError, UnitName, aError);
+        aError := 'Exception uploading client data : ' + E.Message;
         exit;
       end;
     end;
@@ -610,32 +795,43 @@ end;
 //------------------------------------------------------------------------------
 function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
 var
-  ClientData : TClientData;
+  ClientBase : TClientBase;
 begin
   result := false;
 
-  ClientData := TClientData.Create;
+  // Phase 1 force all options to no, just send client create data
+  aSelectedData.Bankfeeds := false;
+  aSelectedData.ChartOfAccount := false;
+  aSelectedData.ChartOfAccountBalances := false;
+  aSelectedData.NonTransferedTransactions := false;
+
+  ClientBase := TClientBase.Create;
   try
-    if not FillBusinessData(aClient, ClientData.BusinessData, aSelectedData.FirmId, aError) then
+    ClientBase.Token := fToken;
+
+    if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, aError) then
       Exit;
 
-    if not FillChartOfAccountData(aClient, ClientData.ChartOfAccountsData, aError) then
+    if aSelectedData.ChartOfAccount then
+      if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, aError) then
+        Exit;
+
+    if aSelectedData.NonTransferedTransactions then
+    begin
+      if not FillTransactionData(aClient, ClientBase.ClientData.TransactionsData, aError) then
+        Exit;
+
+      if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
+        Exit;
+    end;
+
+    if not UploadClient(ClientBase, aSelectedData, aError) then
       Exit;
 
-    if not FillTransactionData(aClient, ClientData.TransactionsData, aError) then
-      Exit;
-
-    if not FillJournalData(aClient, ClientData.JournalsData, aError) then
-      Exit;
-
-    if not UploadClient(ClientData, aError) then
-      Exit;
-
+    result := true;
   finally
-    FreeAndNil(ClientData);
+    FreeAndNil(ClientBase);
   end;
-
-  result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -685,9 +881,6 @@ begin
       PostData.Values['grant_type']    := MY_DOT_GRANT_PASSWORD;
       PostData.Values['scope']         := MY_DOT_SCOPE;
 
-      if DebugMe then
-        LogHttpDebugSend('POST (' + OAUTH2_BASE + 'Authorize)',
-                         Headers, PostData);
       // Cancelled?
       if not DoHttpSecure(
         'POST',
@@ -702,16 +895,12 @@ begin
         exit;
       end;
 
-      if DebugMe then
-        LogHttpDebugReponce('POST (' + OAUTH2_BASE + 'Authorize)',
-                            sResponse);
-
       // Parse JSON result
       js := TlkJSON.ParseText(sResponse) as TlkJSONobject;
 
       if not assigned(js) then
       begin
-        aError := 'Error running CashbookMigration.Login, Error Message : No Responce from Server.';
+        aError := 'Error running CashbookMigration.Login, Error Message : No response from Server.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
@@ -722,18 +911,11 @@ begin
         EncryptToken(Token)
       else
       begin
-        aError := 'Error running CashbookMigration.Login, Error Message : Can not find Access Token in Responce.';
+        aError := 'Error running CashbookMigration.Login, Error Message : Can not find Access Token in response.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
 
-      fCashBookUserid := js.GetString('user');
-      if (fCashBookUserid = '') then
-      begin
-        aError := 'Error running CashbookMigration.Login, Error Message : Can not find UserId in Responce.';
-        LogUtil.LogMsg(lmError, UnitName, aError);
-        exit;
-      end;
       result := true;
 
     except
@@ -766,19 +948,13 @@ begin
     try
       sURL := CASBOOK_API_BASE + 'firms';
 
-      if DebugMe then
-        LogHttpDebugSend(sURL);
-
       if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
         exit;
-
-      if DebugMe then
-        LogHttpDebugReponce(sURL, RespStr);
 
       if not (Assigned(Response)) or
          not (Response is TlkJSONlist) then
       begin
-        aError := 'Error running CashbookMigration.GetFirms, Error Message : No Responce from Server.';
+        aError := 'Error running CashbookMigration.GetFirms, Error Message : No response from Server.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
@@ -813,22 +989,26 @@ var
   CltClient : TClientObj;
   ErrorStr : string;
 begin
+  // Initialize ErrorList and progress event
   aClientErrors.clear;
-
-  aClientErrors.Add('error');
-
   if Assigned(fProgressEvent) then
-    fProgressEvent(0, aSelectClients.Count);
+    fProgressEvent(0, aSelectClients.Count, 0);
 
+  fClientCount := aSelectClients.Count;
+  fCurrentClient := 1;
+  fClientDataSize := 0;
+
+  // Loop through selected Client Codes
   for ClientIndex := 0 to aSelectClients.Count-1 do
   begin
+    fCurrentClient := ClientIndex + 1;
     CurrentClientCode := aSelectClients.Strings[ClientIndex];
     try
       SysClient := AdminSystem.fdSystem_Client_File_List.FindCode(CurrentClientCode);
 
       if not Assigned(SysClient) then
       begin
-        ErrorStr := CurrentClientCode + ' ' + 'Error Migrating Client, Error finding Client in System File.';
+        ErrorStr := CurrentClientCode + ' Error finding Client in System File.';
         aClientErrors.Add(ErrorStr);
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
@@ -836,7 +1016,7 @@ begin
 
       if not AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status = bkConst.fsNormal then
       begin
-        ErrorStr := CurrentClientCode + ' Error Migrating Client, Error with Client, it is not in the correct status. ' +
+        ErrorStr := CurrentClientCode + ' Error with Client, it is not in the correct status. ' +
                     'Current Status : ' + fsNames[AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status] +
                     ' needs to be in normal status.';
         aClientErrors.Add(ErrorStr);
@@ -848,7 +1028,7 @@ begin
 
       if not Assigned(CltClient) then
       begin
-        ErrorStr := CurrentClientCode + ' ' + 'Error Migrating Client, Error opening Client file.';
+        ErrorStr := CurrentClientCode + ' Error opening Client file.';
         aClientErrors.Add(ErrorStr);
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
@@ -856,16 +1036,19 @@ begin
 
       if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
       begin
-        ErrorStr := 'Error Migrating Client, ' + ErrorStr;
+        ErrorStr := CurrentClientCode + ' ' + ErrorStr;
         aClientErrors.Add(ErrorStr);
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
-      end;
+      end
+      else
+        LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '.');
+
 
     except
       on E: Exception do
       begin
-        ErrorStr := CurrentClientCode + ' ' + 'Error Migrating Client, Exception opening Client : ' + E.Message;
+        ErrorStr := CurrentClientCode + ' Exception opening Client, Error : ' + E.Message;
         aClientErrors.Add(ErrorStr);
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
@@ -873,9 +1056,10 @@ begin
     end;
 
     if Assigned(fProgressEvent) then
-      fProgressEvent(ClientIndex+1, aSelectClients.Count);
+      fProgressEvent(ClientIndex+1, aSelectClients.Count, 100);
   end;
 
+  // Set Result according to amount of errors, used in UI
   if aClientErrors.Count = 0 then
     Result := mgsSuccess
   else if aClientErrors.count = aSelectClients.count then
