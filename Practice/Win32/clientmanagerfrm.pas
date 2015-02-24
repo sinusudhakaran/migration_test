@@ -2539,6 +2539,7 @@ var
   InvalidClientList : TStringList;
   InvalidClientStr : string;
   InvalidClientIndex : integer;
+  OldMemsSupportOption : TMemsSupportOptions;
 
   //----------------------------------------------------------------------------
   function DisplayAffectedStatuses() : string;

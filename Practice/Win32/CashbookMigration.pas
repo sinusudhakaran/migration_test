@@ -361,6 +361,22 @@ function TCashbookMigration.DoHttpSecure(const aVerb, aURL: string; const aHeade
                                           const aRequest: string; var aResponse, aError: string): boolean;
 const
   CRLF = #13#10;
+var
+  LoggedRequest : string;
+
+  function RemovePassword(aValue : string) : string;
+  var
+    StartPos : integer;
+    EndPos : integer;
+    LenStr : integer;
+  begin
+    StartPos := Pos('password=',aValue) + 8;
+    Result := LeftStr(aValue, StartPos);
+    LenStr := length(aValue);
+    EndPos := Pos('&',RightStr(aValue, (LenStr-StartPos)));
+    Result := Result + RightStr(aValue, ((LenStr-StartPos)-EndPos)+1);
+  end;
+
 begin
   Result := false;
 
@@ -381,7 +397,10 @@ begin
 
     if (aVerb <> 'GET')  and
        (aRequest <> '') then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + aRequest);
+    begin
+      LoggedRequest := RemovePassword(aRequest);
+      LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + LoggedRequest);
+    end;
   end;
 
   if (aVerb = 'GET') then
@@ -811,7 +830,7 @@ begin
       MigUpload.Write(Request);
 
       // HTTP
-      sURL := CASBOOK_UPLOAD_BASE + 'Upload';
+      sURL := PRACINI_CashbookAPIUploadURL;
 
       UploadDone := DoUploadHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError, false);
 
@@ -984,7 +1003,7 @@ begin
       // Cancelled?
       if not DoHttpSecure(
         'POST',
-        OAUTH2_BASE + 'Authorize',
+        PRACINI_CashbookAPILoginURL,
         Headers,
         PostData.DelimitedText,
         sResponse,
@@ -1046,7 +1065,7 @@ begin
   Response := nil;
   try
     try
-      sURL := CASBOOK_API_BASE + 'firms';
+      sURL := PRACINI_CashbookAPIFirmsURL;
 
       if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
         exit;
@@ -1092,8 +1111,6 @@ var
 begin
   // Initialize ErrorList and progress event
   aClientErrors.clear;
-  if Assigned(fProgressEvent) then
-    fProgressEvent(0, aSelectClients.Count, 0);
 
   fClientCount := aSelectClients.Count;
   fCurrentClient := 1;
@@ -1102,6 +1119,9 @@ begin
   // Loop through selected Client Codes
   for ClientIndex := 0 to aSelectClients.Count-1 do
   begin
+    if Assigned(fProgressEvent) then
+      fProgressEvent(ClientIndex, aSelectClients.Count, 0);
+
     fCurrentClient := ClientIndex + 1;
     CurrentClientCode := aSelectClients.Strings[ClientIndex];
     try

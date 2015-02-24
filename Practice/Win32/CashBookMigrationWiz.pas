@@ -565,7 +565,7 @@ begin
     FileBusywith := aTotalFiles;
 
   prgClientFiles.TotalParts := aTotalFiles * 100;
-  prgClientFiles.PartsComplete := ((aCurrentFile-1) * 100) + aPercentOfCurrentFile;
+  prgClientFiles.PartsComplete := (aCurrentFile * 100) + aPercentOfCurrentFile;
   lblClientFiles.Caption := inttostr(FileBusywith) + ' of ' + inttostr(aTotalFiles);
   Application.ProcessMessages;
 end;

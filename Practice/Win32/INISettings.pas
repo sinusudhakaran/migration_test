@@ -685,6 +685,9 @@ begin
 
         PRACINI_DefaultCashbookSignupURL := ReadString(GrpPracLinks,'DefaultCashbookSignupURL', TUrls.DefaultCashbookSignupURL);
         PRACINI_DefaultCashbookForgotPasswordURL := ReadString(GrpPracLinks,'DefaultCashbookForgotPasswordURL', TUrls.DefaultCashbookForgotPasswordURL);
+        PRACINI_CashbookAPILoginURL := ReadString(GrpPracLinks,'CashbookAPILoginURL', TUrls.CashbookAPILoginURL);
+        PRACINI_CashbookAPIFirmsURL := ReadString(GrpPracLinks,'CashbookAPIFirmsURL', TUrls.CashbookAPIFirmsURL);
+        PRACINI_CashbookAPIUploadURL := ReadString(GrpPracLinks,'CashbookAPIUploadURL', TUrls.CashbookAPIUploadURL);
 
         // Sets Defaults if no data exists
         if IsPractice then
