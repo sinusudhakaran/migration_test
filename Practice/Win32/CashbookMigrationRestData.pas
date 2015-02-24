@@ -143,13 +143,14 @@ type
     fName : string;
     fAccountType : string;
     fGstType : string;
-    fOriginalAccountType : string;
-    fOriginalGstType : string;
+    fOrigAccountType : string;
+    fOrigGstType : string;
     fOpeningBalance : integer;
     fAccountTypeGroup : string;
     fBankOrCreditFlag : boolean;
     fInActive : boolean;
     fPostingAllowed : boolean;
+    fDivision : integer;
   public
     procedure Write(const aJson: TlkJSONobject);
 
@@ -157,13 +158,14 @@ type
     property Name : string read fName write fName;
     property AccountType : string read fAccountType write fAccountType;
     property GstType : string read fGstType write fGstType;
-    property OriginalAccountType : string read fOriginalAccountType write fOriginalAccountType;
-    property OriginalGstType : string read fOriginalGstType write fOriginalGstType;
+    property OrigAccountType : string read fOrigAccountType write fOrigAccountType;
+    property OrigGstType : string read fOrigGstType write fOrigGstType;
     property OpeningBalance : integer read fOpeningBalance write fOpeningBalance;
     property AccountTypeGroup : string read fAccountTypeGroup write fAccountTypeGroup;
     property BankOrCreditFlag : boolean read fBankOrCreditFlag write fBankOrCreditFlag;
     property InActive : boolean read fInActive write fInActive;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
+    property Division : integer read fDivision write fDivision;
   end;
 
   //----------------------------------------------------------------------------
@@ -182,7 +184,7 @@ type
     fIRD : string;
     fName : string;
     fClientCode : string;
-    fOriginalClientCode : string;
+    fOrigClientCode : string;
     fFinancialYearStartMonth : integer;
     fOpeningBalanceDate : string;
     fFirmId : string;
@@ -193,7 +195,7 @@ type
     property  IRD : string read fIRD write fIRD;
     property  Name : string read fName write fName;
     property  ClientCode : string read fClientCode write fClientCode;
-    property  OriginalClientCode : string read fOriginalClientCode write fOriginalClientCode;
+    property  OrigClientCode : string read fOrigClientCode write fOrigClientCode;
     property  FinancialYearStartMonth : integer read fFinancialYearStartMonth write fFinancialYearStartMonth;
     property  OpeningBalanceDate : string read fOpeningBalanceDate write fOpeningBalanceDate;
     property  FirmId : string read fFirmId write fFirmId;
@@ -546,8 +548,8 @@ begin
   aJson.Add('Name', Name);
   aJson.Add('AccountType', AccountType);
   aJson.Add('GstType', GstType);
-  aJson.Add('OriginalAccountType', OriginalAccountType);
-  aJson.Add('OriginalGstType', OriginalGstType);
+  aJson.Add('OrigAccountType', OrigAccountType);
+  aJson.Add('OrigGstType', OrigGstType);
   aJson.Add('Openingbalance', OpeningBalance);
   aJson.Add('AccountTypeGroup', AccountTypeGroup);
   aJson.Add('BankOrCreditFlag', BankOrCreditFlag);
@@ -597,8 +599,8 @@ begin
 
   aJson.Add('LedgerName', Name);
   aJson.Add('ClientCode', ClientCode);
-  if ClientCode <> OriginalClientCode then
-    aJson.Add('OriginalClientCode', OriginalClientCode);
+  if ClientCode <> OrigClientCode then
+    aJson.Add('OrigClientCode', OrigClientCode);
 
   aJson.Add('FinancialYearStartMonth', FinancialYearStartMonth);
   aJson.Add('OpeningBalanceDate', OpeningBalanceDate);

@@ -663,7 +663,7 @@ begin
 
     aBusinessData.FirmId := aFirmId;
     aBusinessData.ClientCode := ClientCode;
-    aBusinessData.OrgClientCode := aClient.clFields.clCode;
+    aBusinessData.OrigClientCode := aClient.clFields.clCode;
     aBusinessData.Name := aClient.clFields.clName;
     aBusinessData.FinancialYearStartMonth := FYSmonth;
     aBusinessData.ABN := ABN;
@@ -711,9 +711,9 @@ begin
       begin
         MappedGroupId := aChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId);
 
-        NewChartItem.OrgAccountType := atNames[AccRec.chAccount_Type];
-        NewChartItem.OrgGstType := aClient.clFields.clGST_Class_Codes[ AccRec.chGST_Class ] + ' ' +
-                                   aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class];
+        NewChartItem.OrigAccountType := atNames[AccRec.chAccount_Type];
+        NewChartItem.OrigGstType := aClient.clFields.clGST_Class_Codes[ AccRec.chGST_Class ] + ' ' +
+                                    aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class];
         NewChartItem.AccountType := GetMigrationMappedReportGroupCode(MappedGroupId);
 
         if (AdminSystem.fdFields.fdCountry = whAustralia) then
@@ -737,8 +737,8 @@ begin
       begin
         NewChartItem.AccountType := 'uncategorised';
         NewChartItem.GstType := 'NA';
-        NewChartItem.OrgAccountType := '';
-        NewChartItem.OrgGstType := '';
+        NewChartItem.OrigAccountType := '';
+        NewChartItem.OrigGstType := '';
         NewChartItem.OpeningBalance := 0;
         NewChartItem.BankOrCreditFlag := false;
       end;
@@ -788,7 +788,10 @@ begin
   Data := aClientBase.GetData(aSelectedData);
 
   if DebugMe then
+  begin
     LogUtil.LogMsg(lmDebug, UnitName, 'Business Json : ' + Data);
+    LogUtil.LogMsg(lmDebug, UnitName, '');
+  end;
 
   MigUpload.Files.Data := Data;
   MigUpload.Files.FileName := 'Test.json';
