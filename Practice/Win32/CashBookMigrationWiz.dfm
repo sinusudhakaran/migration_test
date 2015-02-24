@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabOverview
+      ActivePage = tabCheckList
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -370,11 +370,11 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           object Label3: TLabel
             Left = 37
             Top = 156
-            Width = 470
+            Width = 484
             Height = 16
             Caption = 
-              'Bankfeeds - your Bankfeeds will no longer be delivered to Practi' +
-              'ce after migration.'
+              'Bank Feeds - your Bank Feeds will no longer be delivered to Prac' +
+              'tice after migration.'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
@@ -385,11 +385,11 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           object Label4: TLabel
             Left = 37
             Top = 193
-            Width = 494
+            Width = 487
             Height = 16
             Caption = 
-              'Memoraisations - you can add these manually as '#39'Rules'#39' in MYOB E' +
-              'ssentials Cashbook.'
+              'Memorisations - you can add these manually as '#39'Rules'#39' in MYOB Es' +
+              'sentials Cashbook.'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
@@ -400,9 +400,9 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           object Label5: TLabel
             Left = 55
             Top = 27
-            Width = 58
+            Width = 65
             Height = 16
-            Caption = 'Bankfeeds'
+            Caption = 'Bank Feeds'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -13

@@ -197,6 +197,7 @@ uses
   LogUtil,
   ShellAPI,
   bkContactInformation,
+  Files,
   WarningMoreFrm;
 
 const
@@ -531,7 +532,7 @@ begin
 
         if DebugMe then
         begin
-          LogUtil.LogMsg(lmDebug, UnitName, 'Bankfeeds : ' + BooltoYesNo(fSelectedData.Bankfeeds));
+          LogUtil.LogMsg(lmDebug, UnitName, 'Bank Feeds : ' + BooltoYesNo(fSelectedData.Bankfeeds));
           LogUtil.LogMsg(lmDebug, UnitName, 'Chart Of Account : ' + BooltoYesNo(fSelectedData.ChartOfAccount));
           LogUtil.LogMsg(lmDebug, UnitName, 'Chart Of Account Balances : ' + BooltoYesNo(fSelectedData.ChartOfAccountBalances));
           LogUtil.LogMsg(lmDebug, UnitName, 'Non Transfered Transactions : ' + BooltoYesNo(fSelectedData.NonTransferedTransactions));
@@ -750,10 +751,10 @@ var
 begin
   // Phase 1 don't navigate to URL's
 
-  {case StepID of
+  case StepID of
     mtOverview:
     begin
-      case AdminSystem.fdFields.fdCountry of
+      {case AdminSystem.fdFields.fdCountry of
         whNewZealand: Overview1URL := Globals.PRACINI_NZCashMigrationURLOverview1;
         whAustralia : Overview1URL := Globals.PRACINI_AUCashMigrationURLOverview1;
       end;
@@ -761,9 +762,14 @@ begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug, UnitName, 'OverView Tab 1, Navigate to : ' + Overview1URL);
 
-      BKOverviewWebBrowser.Navigate(Overview1URL);
+      BKOverviewWebBrowser.Navigate(Overview1URL);}
+
+      if not CloseClient() then
+      begin
+
+      end;
     end;
-    mtChecklist:
+    {mtChecklist:
     begin
       case AdminSystem.fdFields.fdCountry of
         whNewZealand: Overview2URL := Globals.PRACINI_NZCashMigrationURLOverview2;
@@ -774,8 +780,8 @@ begin
         LogUtil.LogMsg(lmDebug, UnitName, 'OverView Tab 2, Navigate to : ' + Overview2URL);
 
       BKChecklistWebBrowser.Navigate(Overview2URL);
-    end;
-  end; }
+    end;}
+  end;
 end;
 
 //------------------------------------------------------------------------------

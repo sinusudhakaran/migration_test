@@ -66,6 +66,7 @@ Source: "Practice CD Files\Templates\CLASS.TPM"; DestDir : "{app}\TEMPLATE"
 Source: "AuthorityForms\CAF_Generator.xlt"; DestDir: "{app}"
 
 Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
+Source: "Publickeys\PublicKeyMyobMigration.pke"; DestDir : "{app}\Publickeys"
 
 Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
 Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"

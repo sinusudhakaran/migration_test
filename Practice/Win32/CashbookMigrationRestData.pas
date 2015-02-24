@@ -139,23 +139,31 @@ type
   //----------------------------------------------------------------------------
   TChartOfAccountData = class(TCollectionItem)
   private
-    fNumber : string;
+    fCode : string;
     fName : string;
     fAccountType : string;
-    fTaxRate : string;
+    fGstType : string;
+    fOriginalAccountType : string;
+    fOriginalGstType : string;
     fOpeningBalance : integer;
     fAccountTypeGroup : string;
-    fBankOrCreditFlag : string;
+    fBankOrCreditFlag : boolean;
+    fInActive : boolean;
+    fPostingAllowed : boolean;
   public
     procedure Write(const aJson: TlkJSONobject);
 
-    property Number : string read fNumber write fNumber;
+    property Code : string read fCode write fCode;
     property Name : string read fName write fName;
     property AccountType : string read fAccountType write fAccountType;
-    property TaxRate : string read fTaxRate write fTaxRate;
+    property GstType : string read fGstType write fGstType;
+    property OriginalAccountType : string read fOriginalAccountType write fOriginalAccountType;
+    property OriginalGstType : string read fOriginalGstType write fOriginalGstType;
     property OpeningBalance : integer read fOpeningBalance write fOpeningBalance;
     property AccountTypeGroup : string read fAccountTypeGroup write fAccountTypeGroup;
-    property BankOrCreditFlag : string read fBankOrCreditFlag write fBankOrCreditFlag;
+    property BankOrCreditFlag : boolean read fBankOrCreditFlag write fBankOrCreditFlag;
+    property InActive : boolean read fInActive write fInActive;
+    property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
   end;
 
   //----------------------------------------------------------------------------
@@ -174,6 +182,7 @@ type
     fIRD : string;
     fName : string;
     fClientCode : string;
+    fOriginalClientCode : string;
     fFinancialYearStartMonth : integer;
     fOpeningBalanceDate : string;
     fFirmId : string;
@@ -184,6 +193,7 @@ type
     property  IRD : string read fIRD write fIRD;
     property  Name : string read fName write fName;
     property  ClientCode : string read fClientCode write fClientCode;
+    property  OriginalClientCode : string read fOriginalClientCode write fOriginalClientCode;
     property  FinancialYearStartMonth : integer read fFinancialYearStartMonth write fFinancialYearStartMonth;
     property  OpeningBalanceDate : string read fOpeningBalanceDate write fOpeningBalanceDate;
     property  FirmId : string read fFirmId write fFirmId;
@@ -532,13 +542,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TChartOfAccountData.Write(const aJson: TlkJSONobject);
 begin
-  aJson.Add('number', Number);
-  aJson.Add('name', Name);
-  aJson.Add('account_type', AccountType);
-  aJson.Add('tax_rate', TaxRate);
-  aJson.Add('opening_balance', OpeningBalance);
-  aJson.Add('account_type_group', AccountTypeGroup);
-  aJson.Add('bank_or_credit_flag', BankOrCreditFlag);
+  aJson.Add('Code', Code);
+  aJson.Add('Name', Name);
+  aJson.Add('AccountType', AccountType);
+  aJson.Add('GstType', GstType);
+  aJson.Add('OriginalAccountType', OriginalAccountType);
+  aJson.Add('OriginalGstType', OriginalGstType);
+  aJson.Add('Openingbalance', OpeningBalance);
+  aJson.Add('AccountTypeGroup', AccountTypeGroup);
+  aJson.Add('BankOrCreditFlag', BankOrCreditFlag);
+  aJson.Add('InActive', InActive);
+  aJson.Add('PostingAllowed', PostingAllowed);
 end;
 
 { TChartOfAccountsData }
@@ -583,6 +597,9 @@ begin
 
   aJson.Add('LedgerName', Name);
   aJson.Add('ClientCode', ClientCode);
+  if ClientCode <> OriginalClientCode then
+    aJson.Add('OriginalClientCode', OriginalClientCode);
+
   aJson.Add('FinancialYearStartMonth', FinancialYearStartMonth);
   aJson.Add('OpeningBalanceDate', OpeningBalanceDate);
   aJson.Add('FirmId', FirmId);
@@ -623,9 +640,9 @@ begin
   if aSelectedData.ChartOfAccount then
   begin
     // Business data
-    JsonChartOfAccounts := TlkJSONobject.Create;
-    aJson.Add('accounts', JsonChartOfAccounts);
-    ChartOfAccountsData.Write(JsonChartOfAccounts);
+    //JsonChartOfAccounts := TlkJSONobject.Create;
+    //aJson.Add('accounts', JsonChartOfAccounts);
+    ChartOfAccountsData.Write(aJson);
   end;
 end;
 

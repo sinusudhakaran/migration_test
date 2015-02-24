@@ -897,6 +897,7 @@ var
 begin
   RSAKey := TXMLKey.Create(aKeyFile);
   try
+    // better padding is RSA_PKCS1_OAEP_PADDING
     if EncryptUsingKey(RSAKey, aInString, OutString, RSA_PKCS1_PADDING) > -1 then
     begin
       Result := OutString;

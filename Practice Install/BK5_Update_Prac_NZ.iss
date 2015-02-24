@@ -61,6 +61,7 @@ Source: "3rd Party\vcredist_x86.exe"; DestDir: "{app}\Support"
 Source: "AuthorityForms\TPA_Generator.xlt"; DestDir: "{app}"
 
 Source: "Publickeys\PublicKeyCafQrCode.pke"; DestDir : "{app}\Publickeys"
+Source: "Publickeys\PublicKeyMyobMigration.pke"; DestDir : "{app}\Publickeys"
 
 Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
 Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"

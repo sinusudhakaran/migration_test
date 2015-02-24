@@ -12,11 +12,13 @@ uses
   ZlibExGZ,
   IdCoder,
   IdCoderMIME,
+  StDate,
   clObj32,
+  ChartExportToMYOBCashbook,
   ipshttps;
 
 const
-  PUBLIC_KEY_FILE_CASHBOOK_TOKEN = 'PublicKeyBLO.pke';
+  PUBLIC_KEY_FILE_CASHBOOK_TOKEN = 'PublicKeyMyobMigration.pke';
 
 type
   //----------------------------------------------------------------------------
@@ -107,10 +109,11 @@ type
                                     var aResponse: TlkJSONbase; var aRespStr : string;
                                     var aError: string; aEncryptToken : boolean = false): boolean;
 
+    function ValidateIRDGST(aValue : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
-    function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; var aError : string) : boolean;
-    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
+    function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
+    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aTransactionsData : TTransactionsData; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
 
@@ -144,10 +147,13 @@ uses
   Files,
   GenUtils,
   LogUtil,
-  StDate,
   strUtils,
   BKDEFS,
+  baUtils,
+  glConst,
+  ChartUtils,
   stDatest,
+  bkDateUtils,
   SYDEFS;
 
 const
@@ -567,6 +573,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCashbookMigration.ValidateIRDGST(aValue: string): boolean;
+var
+  LenStr : integer;
+begin
+  Result := false;
+  if isNumeric(aValue) then
+  begin
+    LenStr := Length(aValue);
+    if LenStr in [8,9,10] then
+    begin
+      Result := true;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TCashbookMigration.FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 var
   ClientCode : string;
@@ -612,12 +634,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; var aError: string): boolean;
+function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError: string): boolean;
 var
   ClientCode : string;
   FYSday, FYSmonth, FYSyear : integer;
   ABN : string;
+  Branch : string;
   IRD : string;
+  BalDate : TStDate;
 begin
   Result := false;
 
@@ -628,22 +652,23 @@ begin
     StDateToDMY( aClient.clFields.clFinancial_Year_Starts, FYSday, FYSmonth, FYSyear);
 
     if AdminSystem.fdFields.fdCountry = whAustralia then
-      ABN := trim(LeftStr(aClient.clFields.clGST_Number, 11))
+      SplitABNandBranchFromGSTNumber(aClient.clFields.clGST_Number, ABN, Branch)
     else
       ABN := '';
 
-    if AdminSystem.fdFields.fdCountry = whNewZealand then
+    if (AdminSystem.fdFields.fdCountry = whNewZealand) and (ValidateIRDGST(trim(aClient.clFields.clGST_Number))) then
       IRD := trim(aClient.clFields.clGST_Number)
     else
       IRD := '';
 
     aBusinessData.FirmId := aFirmId;
     aBusinessData.ClientCode := ClientCode;
+    aBusinessData.OrgClientCode := aClient.clFields.clCode;
     aBusinessData.Name := aClient.clFields.clName;
     aBusinessData.FinancialYearStartMonth := FYSmonth;
     aBusinessData.ABN := ABN;
     aBusinessData.IRD := IRD;
-    aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', aClient.clFields.clFinancial_Year_Starts, True);
+    aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', IncDate(aClosingBalanceDate, 1, 0, 0), true);
 
     Result := true;
   except
@@ -656,26 +681,69 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillChartOfAccountData(aClient: TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; var aError: string): boolean;
+function TCashbookMigration.FillChartOfAccountData(aClient: TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
   NewChartItem : TChartOfAccountData;
+  GSTClassTypeIndicator : byte;
+  ChartExportItem : TChartExportItem;
+  MappedGroupId : TCashBookChartClasses;
+  CashBookGstClassCode : string;
+  CashBookGstClassDesc : string;
+  GSTMapItem : TGSTMapItem;
+  GSTClass : TCashBookGSTClasses;
 begin
   Result := false;
+
   try
     for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
     begin
       AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
-      NewChartItem.Number      := AccRec.chAccount_Code;
-      NewChartItem.Name        := AccRec.chAccount_Description;
-      //NewChartItem.AccountType := AccRec.chAccount_Type;
-      //NewChartItem.TaxRate     := AccRec.chGST_Class;
-      NewChartItem.OpeningBalance := 0;
-      NewChartItem.AccountTypeGroup := '';
-      NewChartItem.BankOrCreditFlag := '';
+      NewChartItem.Code := AccRec.chAccount_Code;
+      NewChartItem.Name := StripInvalidCharacters(AccRec.chAccount_Description);
+      NewChartItem.InActive := AccRec.chInactive;
+      NewChartItem.PostingAllowed := AccRec.chPosting_Allowed;
+
+      if aChartExportCol.ItemAtCode(AccRec.chAccount_Code, ChartExportItem) then
+      begin
+        MappedGroupId := aChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId);
+
+        NewChartItem.OrgAccountType := atNames[AccRec.chAccount_Type];
+        NewChartItem.OrgGstType := aClient.clFields.clGST_Class_Codes[ AccRec.chGST_Class ] + ' ' +
+                                   aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class];
+        NewChartItem.AccountType := GetMigrationMappedReportGroupCode(MappedGroupId);
+
+        if (AdminSystem.fdFields.fdCountry = whAustralia) then
+        begin
+          if aGSTMapCol.ItemAtGstIndex(ChartExportItem.GSTClassId, GSTMapItem) then
+            CashBookGstClassCode := aGSTMapCol.GetGSTClassCode(GSTMapItem.CashbookGstClass)
+          else
+            CashBookGstClassCode := aGSTMapCol.GetGSTClassCode(cgNone);
+        end
+        else if (AdminSystem.fdFields.fdCountry = whNewZealand) then
+        begin
+          GSTClassTypeIndicator := GetGSTClassTypeIndicatorFromGSTClass(ChartExportItem.GSTClassId);
+          GSTClass := GetMappedNZGSTTypeCode(GSTClassTypeIndicator);
+          GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
+        end;
+        NewChartItem.GstType := CashBookGstClassCode;
+        NewChartItem.OpeningBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance);
+        NewChartItem.BankOrCreditFlag := ChartExportItem.IsContra;
+      end
+      else
+      begin
+        NewChartItem.AccountType := 'uncategorised';
+        NewChartItem.GstType := 'NA';
+        NewChartItem.OrgAccountType := '';
+        NewChartItem.OrgGstType := '';
+        NewChartItem.OpeningBalance := 0;
+        NewChartItem.BankOrCreditFlag := false;
+      end;
+
+      NewChartItem.AccountTypeGroup := 'ungroup';
     end;
     Result := true;
   except
@@ -724,8 +792,13 @@ begin
 
   MigUpload.Files.Data := Data;
   MigUpload.Files.FileName := 'Test.json';
+
+  //MigUpload.Parameters.DataStore := 'banklinkmigration'; -- live
   MigUpload.Parameters.DataStore := 'banklinktest-assets';
-  MigUpload.Parameters.Queue := 'assetsmigrationX';
+  //MigUpload.Parameters.Queue := 'assetsmigrationX';  -- old
+  //MigUpload.Parameters.Queue := 'BankLink-SQS';      -- live
+  MigUpload.Parameters.Queue := 'BankLink-Test-SQS';
+
   MigUpload.Parameters.Region := inttostr(ord(AdminSystem.fdFields.fdCountry));
 
   try
@@ -796,12 +869,15 @@ end;
 function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
 var
   ClientBase : TClientBase;
+  ChartExportCol : TChartExportCol;
+  GSTMapCol : TGSTMapCol;
+  BalDate : TStDate;
+  ClosingBalanceDate : TStDate;
 begin
   result := false;
 
   // Phase 1 force all options to no, just send client create data
   aSelectedData.Bankfeeds := false;
-  aSelectedData.ChartOfAccount := false;
   aSelectedData.ChartOfAccountBalances := false;
   aSelectedData.NonTransferedTransactions := false;
 
@@ -809,20 +885,41 @@ begin
   try
     ClientBase.Token := fToken;
 
-    if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, aError) then
+    if GetLastFullyCodedMonth(BalDate) then
+      ClosingBalanceDate := BalDate
+    else
+      ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+
+    if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aError) then
       Exit;
 
     if aSelectedData.ChartOfAccount then
-      if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, aError) then
-        Exit;
-
-    if aSelectedData.NonTransferedTransactions then
     begin
-      if not FillTransactionData(aClient, ClientBase.ClientData.TransactionsData, aError) then
-        Exit;
+      ChartExportCol := TChartExportCol.Create(TChartExportItem);
+      try
+        ChartExportCol.FillChartExportCol;
+        ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
+        GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
+        try
+          GSTMapCol.FillGstClassMapArr;
 
-      if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
-        Exit;
+          if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, ChartExportCol, GSTMapCol, aError) then
+            Exit;
+
+          if aSelectedData.NonTransferedTransactions then
+          begin
+            if not FillTransactionData(aClient, ClientBase.ClientData.TransactionsData, aError) then
+              Exit;
+
+            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
+              Exit;
+          end;
+        finally
+          FreeAndNil(GSTMapCol);
+        end;
+      finally
+        FreeAndNil(ChartExportCol);
+      end;
     end;
 
     if not UploadClient(ClientBase, aSelectedData, aError) then
@@ -985,6 +1082,7 @@ function TCashbookMigration.MigrateClients(aSelectClients: TStringList;
 var
   ClientIndex : integer;
   CurrentClientCode : string;
+  ClientFileCode : string;
   SysClient : pClient_File_Rec;
   CltClient : TClientObj;
   ErrorStr : string;
@@ -1024,7 +1122,9 @@ begin
         Continue;
       end;
 
-      OpenAClientForRead(AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Code, CltClient);
+      ClientFileCode := AdminSystem.fdSystem_Client_File_List.FindCode(CurrentClientCode).cfFile_Code;
+
+      OpenAClientForRead(ClientFileCode, CltClient);
 
       if not Assigned(CltClient) then
       begin
@@ -1034,16 +1134,21 @@ begin
         Continue;
       end;
 
-      if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
-      begin
-        ErrorStr := CurrentClientCode + ' ' + ErrorStr;
-        aClientErrors.Add(ErrorStr);
-        LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-        Continue;
-      end
-      else
-        LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '.');
-
+      MyClient := CltClient;
+      try
+        if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
+        begin
+          ErrorStr := CurrentClientCode + ' ' + ErrorStr;
+          aClientErrors.Add(ErrorStr);
+          LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+          Continue;
+        end
+        else
+          LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '.');
+      finally
+        MyClient := nil;
+        AbandonAClient(CltClient);
+      end;
 
     except
       on E: Exception do

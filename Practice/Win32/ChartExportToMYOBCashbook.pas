@@ -14,32 +14,10 @@ uses
   stDate,
   TravList,
   BKDEFS,
+  chartutils,
   chList32;
 
 type
-  TCashBookChartClasses = (ccNone,
-                           ccIncome,
-                           ccExpense,
-                           ccOtherIncome,
-                           ccOtherExpense,
-                           ccAsset,
-                           ccLiabilities,
-                           ccEquity,
-                           ccCostOfSales);
-
-  TCashBookGSTClasses = (cgNone,
-                         cgGoodsandServices,
-                         cgCapitalAcquisitions,
-                         cgExportSales,
-                         cgGSTFree,
-                         cgInputTaxedSales,
-                         cgPurchaseForInput,
-                         cgNotReportable,
-                         cgGSTNotRegistered,
-                         cgExempt,
-                         cgZeroRated,
-                         cgCustoms);
-
   PNodeData = ^TNodeData;
   TNodeData = record
     Source: Integer;
@@ -87,6 +65,7 @@ type
     fClosingBalanceDate : string;
     fPostingAllowed : boolean;
     fHasOpeningBalance : boolean;
+    fIsContra : boolean;
   public
     property IsBasicChartItem : boolean read fIsBasicChartItem write fIsBasicChartItem;
     property AccountCode : string read fAccountCode write fAccountCode;
@@ -97,6 +76,7 @@ type
     property ClosingBalanceDate : string read fClosingBalanceDate write fClosingBalanceDate;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
     property HasOpeningBalance : boolean read fHasOpeningBalance write fHasOpeningBalance;
+    property IsContra : boolean read fIsContra write fIsContra;
   end;
 
   //----------------------------------------------------------------------------
@@ -125,7 +105,6 @@ type
     function GetOpeningBalanceAmount(Client : tClientObj; Code: string): Money;
     function GetOpeningBalanceForInvalidCode(Client : TClientObj; Code: string; D1: Integer): Money;
 
-    function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
     function GetCrDrSignFromReportGroup(aReportGroup : byte) : integer;
 
     function DoesTxUseGSTClass(aClient : TClientObj; aClassId: string; aTrans : pTransaction_Rec): Boolean;
@@ -135,8 +114,9 @@ type
   public
     destructor Destroy; override;
 
+    function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
     procedure FillChartExportCol();
-    procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money);
+    procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money; aIsContra : Boolean);
     procedure UpdateClosingBalances(aClosingBalanceDate : TstDate);
     procedure CheckIfNonBasicCodesHaveBalances(aClosingBalanceDate : TstDate;
                                                var aNonBasicCodesHaveBalances : boolean;
@@ -242,24 +222,15 @@ type
     fGSTMapCol : TGSTMapCol;
     fExportChartFrmProperties : TExportChartFrmProperties;
   protected
-    function StripInvalidCharacters(aValue : String) : String;
-    function GetMappedReportGroupCode(aReportGroup : byte) : string;
-
-    function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
-    function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte) : TCashBookGSTClasses;
     function CheckNZGStTypes() : boolean;
     function CheckReportGroups() : boolean;
     function CheckGSTControlAccAndRates() : boolean;
-    procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
-                                        var aCashBookGstClassCode : string;
-                                        var aCashBookGstClassDesc : string);
     function RunExportChartToFile(aFilename : string;
                                   var aErrorStr : string;
                                   aShowUI : boolean) : boolean;
     procedure FillGstMapCol();
     function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
     function DoNonBasicCodesHaveBalances(var aNonBasicCodes : TStringList) : boolean;
-    function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -569,7 +540,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportCol.UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money);
+procedure TChartExportCol.UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money; aIsContra : Boolean);
 var
   ChartExportItem : TChartExportItem;
   ClosingBalance : Money;
@@ -587,6 +558,7 @@ begin
 
     ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
     ChartExportItem.ClosingBalance     := DisplayClosingBalance;
+    ChartExportItem.IsContra           := aIsContra;
 
     if DisplayClosingBalance > '' then
       ChartExportItem.HasOpeningBalance := true;
@@ -1072,7 +1044,7 @@ begin
           IsTransactionsUncodedorInvalidlyCoded := true;
         end;
 
-        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
       end;
     end;
 
@@ -1112,7 +1084,7 @@ begin
           DoContras(TravMgr, ChartItem^.chAccount_Code);
           ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
           ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
-          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance);
+          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, IsContras);
           TravMgr.LastValidCode := ChartItem^.chAccount_Code;
         end;
         TravMgr.AccountTotalNet := 0;
@@ -1193,7 +1165,7 @@ begin
           IsTransactionsUncodedorInvalidlyCoded := true;
         end;
 
-        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
       end;
     end;
 
@@ -1232,7 +1204,7 @@ begin
           DoContras(TravMgr, ChartItem^.chAccount_Code);
           ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
           ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
-          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance);
+          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, IsContras);
           TravMgr.LastValidCode := ChartItem^.chAccount_Code;
         end;
         TravMgr.AccountTotalNet := 0;
@@ -1314,7 +1286,7 @@ begin
        if (TravMgr.LastCodePrinted = TravMgr.ContraCodePrinted) then
        begin
          ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet;
-         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
        end
        else if (TravMgr.ContraCodePrinted = NullCode) then
        begin
@@ -1322,7 +1294,7 @@ begin
            ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
          else
            ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
-         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance);
+         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
        end;
 
      end;
@@ -1346,7 +1318,7 @@ begin
            DoContras(TravMgr, ChartItem^.chAccount_Code);
            ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
            ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
-           UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance);
+           UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, IsContras);
          end;
          TravMgr.AccountTotalNet := 0;
          TravMgr.DoneSubTotal := False;
@@ -2082,96 +2054,6 @@ end;
 
 { TChartExportToMYOBCashbook }
 //------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.GetMappedReportGroupCode(aReportGroup : byte): string;
-var
-  MappedGroupId : TCashBookChartClasses;
-begin
-  MappedGroupId := ChartExportCol.GetMappedReportGroupId(aReportGroup);
-
-  case MappedGroupId of
-    ccNone         : Result := 'Error';
-    ccIncome       : Result := 'Income';
-    ccExpense      : Result := 'Expense';
-    ccOtherIncome  : Result := 'Other Income';
-    ccOtherExpense : Result := 'Other Expense';
-    ccAsset        : Result := 'Assets';
-    ccLiabilities  : Result := 'Liabilities';
-    ccEquity       : Result := 'Equity';
-    ccCostOfSales  : Result := 'Cost of sales';
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
-begin
-  If ( aGST_Class in GST_CLASS_RANGE ) then
-    Result := MyClient.clFields.clGST_Class_Types[aGST_Class]
-  else
-    Result := 0;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
-Const
-  MAX_YEARS_TO_GOBACK = 10;
-var
-  StartDay, StartMonth, StartYear, PeriodIndex : integer;
-  CurrentYear : integer;
-  MaxCoded : integer;
-  PeriodType : integer;
-
-  MaxPeriods : integer;
-
-  tmpYearStarts, tmpYearEnds : integer;
-begin
-  Result := false;
-  StartYear  := YearOf(Now());
-  StartDay   := 1;
-  StartMonth := 1;
-
-  for CurrentYear := StartYear downto StartYear - MAX_YEARS_TO_GOBACK do
-  begin
-    tmpYearStarts := DmyToStDate(StartDay, StartMonth, CurrentYear, bkDateEpoch);
-    tmpYearEnds   := bkDateUtils.GetYearEndDate( tmpYearStarts);
-
-    PeriodType := frpMonthly;
-
-    MaxPeriods := PeriodUtils.LoadPeriodDetailsIntoArray( MyClient,
-                                                          tmpYearStarts,
-                                                          tmpYearEnds,
-                                                          false,
-                                                          PeriodType,
-                                                          MyClient.clFields.clTemp_Period_Details_This_Year);
-
-    for PeriodIndex := MaxPeriods downto 1 do
-    begin
-      If (MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].HasData) and
-         (not( MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].HasUncodedEntries)) then
-      begin
-        aFullyCodedMonth := MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].Period_End_Date;
-        Result := true;
-        Exit;
-      end;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte): TCashBookGSTClasses;
-begin
-  case aGSTClassTypeIndicator of
-    gtUndefined      : Result := cgNotReportable;
-    gtIncomeGST      : Result := cgGoodsandServices;
-    gtExpenditureGST : Result := cgGoodsandServices;
-    gtExempt         : Result := cgExempt;
-    gtZeroRated      : Result := cgZeroRated;
-    gtCustoms        : Result := cgCustoms
-  else
-    Result := cgNone;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TChartExportToMYOBCashbook.CheckNZGStTypes() : boolean;
 var
   GstIndex : integer;
@@ -2239,59 +2121,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportToMYOBCashbook.GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
-                                                               var aCashBookGstClassCode : string;
-                                                               var aCashBookGstClassDesc : string);
-begin
-  case aCashBookGstClass of
-    cgGoodsandServices : begin
-      aCashBookGstClassCode := 'GST';
-      aCashBookGstClassDesc := 'Goods & Services Tax';
-    end;
-    cgCapitalAcquisitions : begin
-      aCashBookGstClassCode := 'CAP';
-      aCashBookGstClassDesc := 'Capital Acquisitions';
-    end;
-    cgExportSales : begin
-      aCashBookGstClassCode := 'EXP';
-      aCashBookGstClassDesc := 'Export Sales';
-    end;
-    cgGSTFree : begin
-      aCashBookGstClassCode := 'FRE';
-      aCashBookGstClassDesc := 'GST Free';
-    end;
-    cgInputTaxedSales : begin
-      aCashBookGstClassCode := 'ITS';
-      aCashBookGstClassDesc := 'Input Taxed Sales';
-    end;
-    cgPurchaseForInput : begin
-      aCashBookGstClassCode := 'INP';
-      aCashBookGstClassDesc := 'Purchases for Input Tax Sales';
-    end;
-    cgNotReportable : begin
-      aCashBookGstClassCode := 'NTR';
-      aCashBookGstClassDesc := 'Not Reportable';
-    end;
-    cgGSTNotRegistered : begin
-      aCashBookGstClassCode := 'GNR';
-      aCashBookGstClassDesc := 'GST Not Registered';
-    end;
-    cgExempt : begin
-      aCashBookGstClassCode := 'E';
-      aCashBookGstClassDesc := 'Exempt';
-    end;
-    cgZeroRated : begin
-      aCashBookGstClassCode := 'Z';
-      aCashBookGstClassDesc := 'Zero-Rated';
-    end;
-    cgCustoms : begin
-      aCashBookGstClassCode := 'I';
-      aCashBookGstClassDesc := 'GST on Customs Invoice';
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TChartExportToMYOBCashbook.RunExportChartToFile(aFilename : string;
                                                          var aErrorStr : string;
                                                          aShowUI : boolean): boolean;
@@ -2305,6 +2134,7 @@ var
   CashBookGstClassDesc : string;
   ChartExportItem: TChartExportItem;
   GSTClassTypeIndicator : byte;
+  MappedGroupId : TCashBookChartClasses;
 begin
   Result := False;
 
@@ -2335,7 +2165,9 @@ begin
 
           LineColumns.Add(ChartExportItem.AccountCode);
           LineColumns.Add(StripInvalidCharacters(ChartExportItem.AccountDescription));
-          LineColumns.Add(GetMappedReportGroupCode(ChartExportItem.fReportGroupId));
+
+          MappedGroupId := ChartExportCol.GetMappedReportGroupId(ChartExportItem.fReportGroupId);
+          LineColumns.Add(GetMappedReportGroupCode(MappedGroupId));
 
           if (Country = whAustralia) then
           begin
@@ -2381,19 +2213,6 @@ begin
     end;
   finally
     FreeAndNil(FileLines);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.StripInvalidCharacters(aValue: String): String;
-var
-  StrIndex : integer;
-begin
-  Result := '';
-  for StrIndex := 1 to Length(aValue) do
-  begin
-    if not (aValue[StrIndex] = ',') then
-      Result := Result + aValue[StrIndex];
   end;
 end;
 

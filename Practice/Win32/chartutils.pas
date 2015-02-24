@@ -15,8 +15,37 @@ Unit chartutils;
 //------------------------------------------------------------------------------
 
 Interface
+
+
 uses
-  chList32, clObj32, BKchIO;
+  chList32,
+  clObj32,
+  stdate,
+  BKchIO;
+
+type
+  TCashBookChartClasses = (ccNone,
+                           ccIncome,
+                           ccExpense,
+                           ccOtherIncome,
+                           ccOtherExpense,
+                           ccAsset,
+                           ccLiabilities,
+                           ccEquity,
+                           ccCostOfSales);
+
+  TCashBookGSTClasses = (cgNone,
+                         cgGoodsandServices,
+                         cgCapitalAcquisitions,
+                         cgExportSales,
+                         cgGSTFree,
+                         cgInputTaxedSales,
+                         cgPurchaseForInput,
+                         cgNotReportable,
+                         cgGSTNotRegistered,
+                         cgExempt,
+                         cgZeroRated,
+                         cgCustoms);
 
 Function LoadChartFrom(ClientCode: string; Var aFileName: string; aInitDir: string;
    aFilter: string; DefExtn: string; HelpCtx: Integer) : boolean;
@@ -28,36 +57,50 @@ function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
   const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
   KeepPostingAllowed: boolean = false) : boolean;
 
-//------------------------------------------------------------------------------
-
 Function GetChartFileName( ClientCode  : string; 
                            aInitDir    : string;
                            aFilter     : string; 
                            DefExtn     : string;
                            HelpCtx     : Integer ) : String;
-   
+
+function StripInvalidCharacters(aValue: String): String;
+function GetMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses) : string;
+function GetMigrationMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses): string;
+function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
+function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte) : TCashBookGSTClasses;
+procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
+                                    var aCashBookGstClassCode : string;
+                                    var aCashBookGstClassDesc : string);
+
+function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
+function GetMigrationClosingBalance(aValue : string) : integer;
+
 //------------------------------------------------------------------------------
 Implementation
 //------------------------------------------------------------------------------
 
 Uses
-   SysUtils,
-   Dialogs,
-   glConst,
-   GlobalDirectories,
-   gstCalc32,
-   bkconst,
-   bkDefs,
-   classes,
-   controls,
-   logUtil,
-   YesNoWithListDlg, Globals,
-   AuditMgr;
+  SysUtils,
+  Dialogs,
+  glConst,
+  GlobalDirectories,
+  gstCalc32,
+  bkconst,
+  bkDefs,
+  classes,
+  controls,
+  logUtil,
+  YesNoWithListDlg,
+  Globals,
+  DateUtils,
+  bkDateUtils,
+  PeriodUtils,
+  AuditMgr;
 
 const
-   UnitName = 'CHARTUTILS';
+  UnitName = 'CHARTUTILS';
 var
-   DebugMe : boolean = false;
+  DebugMe : boolean = false;
 
 //------------------------------------------------------------------------------
 
@@ -330,6 +373,192 @@ begin
    result := true;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
+
+//------------------------------------------------------------------------------
+function StripInvalidCharacters(aValue: String): String;
+var
+  StrIndex : integer;
+begin
+  Result := '';
+  for StrIndex := 1 to Length(aValue) do
+  begin
+    if not (aValue[StrIndex] = ',') then
+      Result := Result + aValue[StrIndex];
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function GetMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses): string;
+begin
+  case aMappedGroupId of
+    ccNone         : Result := 'Error';
+    ccIncome       : Result := 'Income';
+    ccExpense      : Result := 'Expense';
+    ccOtherIncome  : Result := 'Other Income';
+    ccOtherExpense : Result := 'Other Expense';
+    ccAsset        : Result := 'Assets';
+    ccLiabilities  : Result := 'Liabilities';
+    ccEquity       : Result := 'Equity';
+    ccCostOfSales  : Result := 'Cost of sales';
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function GetMigrationMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses): string;
+begin
+  case aMappedGroupId of
+    ccNone         : Result := 'uncategorised';
+    ccIncome       : Result := 'income';
+    ccExpense      : Result := 'expense';
+    ccOtherIncome  : Result := 'other_income';
+    ccOtherExpense : Result := 'other_expense';
+    ccAsset        : Result := 'asset';
+    ccLiabilities  : Result := 'liability';
+    ccEquity       : Result := 'equity';
+    ccCostOfSales  : Result := 'cost_of_sales';
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
+begin
+  If ( aGST_Class in GST_CLASS_RANGE ) then
+    Result := MyClient.clFields.clGST_Class_Types[aGST_Class]
+  else
+    Result := 0;
+end;
+
+//------------------------------------------------------------------------------
+function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte): TCashBookGSTClasses;
+begin
+  case aGSTClassTypeIndicator of
+    gtUndefined      : Result := cgNotReportable;
+    gtIncomeGST      : Result := cgGoodsandServices;
+    gtExpenditureGST : Result := cgGoodsandServices;
+    gtExempt         : Result := cgExempt;
+    gtZeroRated      : Result := cgZeroRated;
+    gtCustoms        : Result := cgCustoms
+  else
+    Result := cgNone;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
+                                    var aCashBookGstClassCode : string;
+                                    var aCashBookGstClassDesc : string);
+begin
+  case aCashBookGstClass of
+    cgGoodsandServices : begin
+      aCashBookGstClassCode := 'GST';
+      aCashBookGstClassDesc := 'Goods & Services Tax';
+    end;
+    cgCapitalAcquisitions : begin
+      aCashBookGstClassCode := 'CAP';
+      aCashBookGstClassDesc := 'Capital Acquisitions';
+    end;
+    cgExportSales : begin
+      aCashBookGstClassCode := 'EXP';
+      aCashBookGstClassDesc := 'Export Sales';
+    end;
+    cgGSTFree : begin
+      aCashBookGstClassCode := 'FRE';
+      aCashBookGstClassDesc := 'GST Free';
+    end;
+    cgInputTaxedSales : begin
+      aCashBookGstClassCode := 'ITS';
+      aCashBookGstClassDesc := 'Input Taxed Sales';
+    end;
+    cgPurchaseForInput : begin
+      aCashBookGstClassCode := 'INP';
+      aCashBookGstClassDesc := 'Purchases for Input Tax Sales';
+    end;
+    cgNotReportable : begin
+      aCashBookGstClassCode := 'NTR';
+      aCashBookGstClassDesc := 'Not Reportable';
+    end;
+    cgGSTNotRegistered : begin
+      aCashBookGstClassCode := 'GNR';
+      aCashBookGstClassDesc := 'GST Not Registered';
+    end;
+    cgExempt : begin
+      aCashBookGstClassCode := 'E';
+      aCashBookGstClassDesc := 'Exempt';
+    end;
+    cgZeroRated : begin
+      aCashBookGstClassCode := 'Z';
+      aCashBookGstClassDesc := 'Zero-Rated';
+    end;
+    cgCustoms : begin
+      aCashBookGstClassCode := 'I';
+      aCashBookGstClassDesc := 'GST on Customs Invoice';
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
+Const
+  MAX_YEARS_TO_GOBACK = 10;
+var
+  StartDay, StartMonth, StartYear, PeriodIndex : integer;
+  CurrentYear : integer;
+  MaxCoded : integer;
+  PeriodType : integer;
+
+  MaxPeriods : integer;
+
+  tmpYearStarts, tmpYearEnds : integer;
+begin
+  Result := false;
+  StartYear  := YearOf(Now());
+  StartDay   := 1;
+  StartMonth := 1;
+
+  for CurrentYear := StartYear downto StartYear - MAX_YEARS_TO_GOBACK do
+  begin
+    tmpYearStarts := DmyToStDate(StartDay, StartMonth, CurrentYear, bkDateEpoch);
+    tmpYearEnds   := bkDateUtils.GetYearEndDate( tmpYearStarts);
+
+    PeriodType := frpMonthly;
+
+    MaxPeriods := PeriodUtils.LoadPeriodDetailsIntoArray( MyClient,
+                                                          tmpYearStarts,
+                                                          tmpYearEnds,
+                                                          false,
+                                                          PeriodType,
+                                                          MyClient.clFields.clTemp_Period_Details_This_Year);
+
+    for PeriodIndex := MaxPeriods downto 1 do
+    begin
+      If (MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].HasData) and
+         (not( MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].HasUncodedEntries)) then
+      begin
+        aFullyCodedMonth := MyClient.clFields.clTemp_Period_Details_This_Year[PeriodIndex].Period_End_Date;
+        Result := true;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function GetMigrationClosingBalance(aValue : string) : integer;
+var
+  ValStr : string;
+  Index : integer;
+begin
+  Result := 0;
+
+  ValStr := '';
+  for Index := 1 to length(aValue) do
+    if aValue[Index] <> '.' then
+      ValStr := ValStr + aValue[Index];
+
+  TryStrtoint(ValStr, Result);
+end;
+
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialization
    DebugMe := DebugUnit(UnitName);
