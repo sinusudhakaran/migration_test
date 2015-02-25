@@ -869,10 +869,11 @@ begin
   MigUpload.Files.FileName := 'Test.json';
 
   //MigUpload.Parameters.DataStore := 'banklinkmigration'; -- live
-  MigUpload.Parameters.DataStore := 'banklinktest-assets';
+  MigUpload.Parameters.DataStore := PRACINI_CashbookAPIUploadDataStore;
   //MigUpload.Parameters.Queue := 'assetsmigrationX';  -- old
   //MigUpload.Parameters.Queue := 'BankLink-SQS';      -- live
-  MigUpload.Parameters.Queue := 'BankLink-Test-SQS';
+  //MigUpload.Parameters.Queue := 'BankLink-Test-SQS';
+  MigUpload.Parameters.Queue := PRACINI_CashbookAPIUploadQueue;
 
   MigUpload.Parameters.Region := inttostr(ord(AdminSystem.fdFields.fdCountry));
 

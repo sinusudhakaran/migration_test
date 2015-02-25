@@ -636,6 +636,8 @@ var
     PRACINI_CashbookAPILoginURL : String = '';
     PRACINI_CashbookAPIFirmsURL : String = '';
     PRACINI_CashbookAPIUploadURL : String = '';
+    PRACINI_CashbookAPIUploadDataStore : String = '';
+    PRACINI_CashbookAPIUploadQueue : String = '';
 
 {$IFDEF SmartLink}
     PRACINI_FingertipsURL : string = '';
