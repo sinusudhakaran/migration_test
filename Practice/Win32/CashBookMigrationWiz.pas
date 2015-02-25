@@ -213,7 +213,7 @@ const
   mtCompleteMigration  = 6; mtMax = 6;
 
   StepTitles: array[mtMin..mtMax] of string = (
-    'Overview',
+    'Welcome',
     'Overview',
     'MYOB Credentials',
     'Data Selection',
@@ -535,7 +535,7 @@ begin
           LogUtil.LogMsg(lmDebug, UnitName, 'Bank Feeds : ' + BooltoYesNo(fSelectedData.Bankfeeds));
           LogUtil.LogMsg(lmDebug, UnitName, 'Chart Of Account : ' + BooltoYesNo(fSelectedData.ChartOfAccount));
           LogUtil.LogMsg(lmDebug, UnitName, 'Chart Of Account Balances : ' + BooltoYesNo(fSelectedData.ChartOfAccountBalances));
-          LogUtil.LogMsg(lmDebug, UnitName, 'Non Transfered Transactions : ' + BooltoYesNo(fSelectedData.NonTransferedTransactions));
+          LogUtil.LogMsg(lmDebug, UnitName, 'Non Transferred Transactions : ' + BooltoYesNo(fSelectedData.NonTransferedTransactions));
         end;
       end;
       mtMYOBCredentials :
@@ -590,8 +590,8 @@ begin
   case fCurrentStepID of
     mtMYOBCredentials : begin
       {$IFDEF DEBUG}
-        edtEmail.Text := 'cashbook@gmail.com';
-        edtPassword.Text := 'password1';
+        {edtEmail.Text := 'cashbook@gmail.com';
+        edtPassword.Text := 'password1';}
       {$ENDIF}
 
       UpdateSignInControls(false);
@@ -672,7 +672,7 @@ var
 begin
   SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
   HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
-                  'If problem persists please contact ' + SHORTAPPNAME + ' support. ' + SupportNumber,
+                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
                   0, false, aError, true);
 end;
 
@@ -847,6 +847,11 @@ begin
   begin
     btnNext.Default := false;
     btnSignIn.Default := true;
+  end
+  else
+  begin
+    btnNext.Default := true;
+    btnSignIn.Default := false;
   end;
 end;
 
@@ -901,7 +906,8 @@ begin
   if edtEmail.Enabled then
     edtEmail.setfocus();
 
-  btnSignIn.enabled := not aBusySigningIn;
+  btnSignIn.enabled := (not aBusySigningIn) and
+                       (length(edtEmail.Text) > 0);
   pnlFirm.Visible := fSignedIn;
 
   if fSignedIn then

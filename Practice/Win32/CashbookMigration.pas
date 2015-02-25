@@ -113,7 +113,8 @@ type
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
-    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
+    function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
+    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aTransactionsData : TTransactionsData; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
 
@@ -700,7 +701,40 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillChartOfAccountData(aClient: TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
+function TCashbookMigration.FillDivisionData(aClient: TClientObj; aDivisionsData: TDivisionsData; var aUsedDivisions : TStringList; var aError: string): boolean;
+var
+  DivisionIndex : integer;
+  DivName    : string;
+  DivisionItem : TDivisionData;
+begin
+  Result := false;
+  try
+    for DivisionIndex := 1 to Max_Divisions do
+    begin
+      DivName := aClient.clCustom_Headings_List.Get_Division_Heading(DivisionIndex);
+
+      if length(trim(DivName)) > 0 then
+      begin
+        DivisionItem := TDivisionData.Create(aDivisionsData);
+        DivisionItem.Id := DivisionIndex;
+        DivisionItem.Name := DivName;
+
+        aUsedDivisions.Add(inttostr(DivisionIndex));
+      end;
+    end;
+    Result := true;
+
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Divisions : ' + E.Message;
+      exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
@@ -712,6 +746,26 @@ var
   CashBookGstClassDesc : string;
   GSTMapItem : TGSTMapItem;
   GSTClass : TCashBookGSTClasses;
+
+  Function GetValidDivisions() : string;
+  var
+    DivIndex : integer;
+    Divisions : TStringList;
+    PrintIndex : integer;
+  begin
+    Divisions := TStringList.Create();
+    Divisions.Delimiter := ',';
+    Divisions.StrictDelimiter := true;
+
+    for DivIndex := 0 to aUsedDivisions.Count-1 do
+    begin
+      PrintIndex := Strtoint(aUsedDivisions.Strings[DivIndex]);
+      if AccRec.chPrint_in_Division[PrintIndex] then
+        Divisions.Add(inttostr(PrintIndex));
+    end;
+
+    Result := Divisions.DelimitedText;
+  end;
 begin
   Result := false;
 
@@ -725,6 +779,7 @@ begin
       NewChartItem.Name := StripInvalidCharacters(AccRec.chAccount_Description);
       NewChartItem.InActive := AccRec.chInactive;
       NewChartItem.PostingAllowed := AccRec.chPosting_Allowed;
+      NewChartItem.Divisions := GetValidDivisions();
 
       if aChartExportCol.ItemAtCode(AccRec.chAccount_Code, ChartExportItem) then
       begin
@@ -761,8 +816,6 @@ begin
         NewChartItem.OpeningBalance := 0;
         NewChartItem.BankOrCreditFlag := false;
       end;
-
-      NewChartItem.AccountTypeGroup := 'ungroup';
     end;
     Result := true;
   except
@@ -895,6 +948,7 @@ var
   GSTMapCol : TGSTMapCol;
   BalDate : TStDate;
   ClosingBalanceDate : TStDate;
+  UsedDivisions : TStringList;
 begin
   result := false;
 
@@ -925,8 +979,18 @@ begin
         try
           GSTMapCol.FillGstClassMapArr;
 
-          if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, ChartExportCol, GSTMapCol, aError) then
-            Exit;
+          UsedDivisions := TStringList.Create();
+          UsedDivisions.Delimiter := ',';
+          UsedDivisions.StrictDelimiter := true;
+          try
+            if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
+              Exit;
+
+            if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, ChartExportCol, GSTMapCol, UsedDivisions, aError) then
+              Exit;
+          finally
+            FreeAndNil(UsedDivisions);
+          end;
 
           if aSelectedData.NonTransferedTransactions then
           begin

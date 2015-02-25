@@ -146,11 +146,10 @@ type
     fOrigAccountType : string;
     fOrigGstType : string;
     fOpeningBalance : integer;
-    fAccountTypeGroup : string;
     fBankOrCreditFlag : boolean;
-    fInActive : boolean;
+    fInactive : boolean;
     fPostingAllowed : boolean;
-    fDivision : integer;
+    fDivisions : string;
   public
     procedure Write(const aJson: TlkJSONobject);
 
@@ -161,11 +160,10 @@ type
     property OrigAccountType : string read fOrigAccountType write fOrigAccountType;
     property OrigGstType : string read fOrigGstType write fOrigGstType;
     property OpeningBalance : integer read fOpeningBalance write fOpeningBalance;
-    property AccountTypeGroup : string read fAccountTypeGroup write fAccountTypeGroup;
     property BankOrCreditFlag : boolean read fBankOrCreditFlag write fBankOrCreditFlag;
-    property InActive : boolean read fInActive write fInActive;
+    property Inactive : boolean read fInactive write fInactive;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
-    property Division : integer read fDivision write fDivision;
+    property Divisions : string read fDivisions write fDivisions;
   end;
 
   //----------------------------------------------------------------------------
@@ -173,6 +171,27 @@ type
   private
   public
     function ItemAs(aIndex : integer) : TChartOfAccountData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+    //----------------------------------------------------------------------------
+  TDivisionData = class(TCollectionItem)
+  private
+    fId : integer;
+    fName : string;
+  public
+    procedure Write(const aJson: TlkJSONobject);
+
+    property Id : integer read fId write fId;
+    property Name : string read fName write fName;
+  end;
+
+  //----------------------------------------------------------------------------
+  TDivisionsData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex : integer) : TDivisionData;
 
     procedure Write(const aJson: TlkJSONobject);
   end;
@@ -206,6 +225,7 @@ type
   private
     fBusinessData: TBusinessData;
     fChartOfAccountsData : TChartOfAccountsData;
+    fDivisionsData : TDivisionsData;
     fTransactionsData : TTransactionsData;
     fJournalsData : TJournalsData;
   public
@@ -216,6 +236,7 @@ type
 
     property BusinessData: TBusinessData read fBusinessData write fBusinessData;
     property ChartOfAccountsData: TChartOfAccountsData read fChartOfAccountsData write fChartOfAccountsData;
+    property DivisionsData: TDivisionsData read fDivisionsData write fDivisionsData;
     property TransactionsData: TTransactionsData read fTransactionsData write fTransactionsData;
     property JournalsData: TJournalsData read fJournalsData write fJournalsData;
   end;
@@ -550,11 +571,11 @@ begin
   aJson.Add('GstType', GstType);
   aJson.Add('OrigAccountType', OrigAccountType);
   aJson.Add('OrigGstType', OrigGstType);
-  aJson.Add('Openingbalance', OpeningBalance);
-  aJson.Add('AccountTypeGroup', AccountTypeGroup);
+  aJson.Add('OpeningBalance', OpeningBalance);
   aJson.Add('BankOrCreditFlag', BankOrCreditFlag);
-  aJson.Add('InActive', InActive);
+  aJson.Add('Inactive', InActive);
   aJson.Add('PostingAllowed', PostingAllowed);
+  aJson.Add('Divisions', Divisions);
 end;
 
 { TChartOfAccountsData }
@@ -586,6 +607,42 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+{ TDivisionData }
+procedure TDivisionData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('Id', Id);
+  aJson.Add('Name', Name);
+end;
+
+//------------------------------------------------------------------------------
+{ TDivisionsData }
+function TDivisionsData.ItemAs(aIndex: integer): TDivisionData;
+begin
+  Result := TDivisionData(Self.Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TDivisionsData.Write(const aJson: TlkJSONobject);
+var
+  Divisions: TlkJSONlist;
+  DivisionIndex : integer;
+  Division : TDivisionData;
+  DivisionData : TlkJSONobject;
+begin
+  Divisions := TlkJSONlist.Create;
+  aJson.Add('divisions', Divisions);
+
+  for DivisionIndex := 0 to self.Count-1 do
+  begin
+    DivisionData := TlkJSONobject.Create;
+    Divisions.Add(DivisionData);
+
+    Division := ItemAs(DivisionIndex);
+    Division.Write(DivisionData);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 { TBusinessData }
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
 begin
@@ -613,6 +670,7 @@ constructor TClientData.Create;
 begin
   fBusinessData := TBusinessData.Create;
   fChartOfAccountsData := TChartOfAccountsData.Create(TChartOfAccountData);
+  fDivisionsData := TDivisionsData.Create(TDivisionData);
   fTransactionsData := TTransactionsData.Create(TTransactionData);
   fJournalsData := TJournalsData.Create(TJournalData);
 end;
@@ -622,6 +680,7 @@ destructor TClientData.Destroy;
 begin
   FreeAndNil(fBusinessData);
   FreeAndNil(fChartOfAccountsData);
+  FreeAndNil(fDivisionsData);
   FreeAndNil(fTransactionsData);
   FreeAndNil(fJournalsData);
 
@@ -645,6 +704,8 @@ begin
     //JsonChartOfAccounts := TlkJSONobject.Create;
     //aJson.Add('accounts', JsonChartOfAccounts);
     ChartOfAccountsData.Write(aJson);
+
+    DivisionsData.Write(aJson);
   end;
 end;
 
