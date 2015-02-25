@@ -608,3 +608,5 @@
 #define Suggested_memorisations	2150
 #define Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice	2114
 #define Export_chart_to_COMPANY_NAME1_Essentials_Cashbook	2151
+#define List_Manual_Bank_Accounts	2152
+#define Migrating_a_client_from_COMPANY_NAME1_PRODUCT_PRACTICE_to_COMPANY_NAME1_Essentials_Cashbook	2153

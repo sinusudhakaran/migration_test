@@ -1145,6 +1145,7 @@ begin
 
       List := (Response as TlkJSONlist);
 
+      aFirms.clear;
       if Assigned(aFirms) then
         aFirms.Read(List);
     except

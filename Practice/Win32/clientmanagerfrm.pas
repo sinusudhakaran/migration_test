@@ -1297,7 +1297,7 @@ begin
     actMergeDoc.Enabled := not NoClientSelected;
     actMergeEmail.Enabled := not NoClientSelected;
     actSend.Enabled := (not ProspectSelected) and (SingleClientSelected);
-    actMigrate.Enabled := not NoClientSelected;
+    actMigrate.Enabled := (not NoClientSelected) and IsWinXP_or_later();
 
     if FIsGlobal then // Never use in global setup
     begin
@@ -2637,7 +2637,7 @@ begin
         if DebugMe then
           LogUtil.LogMsg(lmDebug, UnitName, 'Selected Clients - ' + SelectedList.CommaText);
 
-        RunCashBookMigrationWizard(SelectedList);
+        RunCashBookMigrationWizard(self, SelectedList);
       end
       else
       begin

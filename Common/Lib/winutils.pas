@@ -83,6 +83,7 @@ type
   function GetWinSysDir: string;
   function GetWinVer: string;
   function IsWin2000_or_later: boolean;
+  function IsWinXP_or_later: boolean;
   function IsWindowsVista: Boolean;
   function ReadComputerName(AllowBlankClient: bool = true): string;
   function ReadUserName : string;
@@ -300,6 +301,7 @@ function GetShortAppVersionStr : string;
 begin
   Result := VersionInfo.FileVersion;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetWinVer: string;
 type
@@ -395,6 +397,34 @@ begin
     Result := true;
   end; { end case }
 end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsWinXP_or_later: boolean;
+var
+  OSVersionInfo32: OSVERSIONINFO;
+begin
+  OSVersionInfo32.dwOSVersionInfoSize := SizeOf(OSVersionInfo32);
+  GetVersionEx(OSVersionInfo32);
+
+  case OSVersionInfo32.dwPlatformId of
+    VER_PLATFORM_WIN32s,   { Windows 3.x}
+    VER_PLATFORM_WIN32_WINDOWS: begin { Windows 95/98 }
+      Result := false;
+      Exit;
+    end;
+  end;
+
+  if (OSVersionInfo32.dwMajorVersion < 5) or
+     ((OSVersionInfo32.dwMajorVersion = 5) and
+      (OSVersionInfo32.dwMinorVersion < 1)) then
+  begin
+    Result := false;
+    Exit;
+  end;
+
+  Result := true;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function ReadUserName : string;
 const

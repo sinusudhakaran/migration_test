@@ -161,7 +161,7 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  function RunCashBookMigrationWizard(aSelectClients : TStringList) : boolean;
+  function RunCashBookMigrationWizard(w_PopupParent: Forms.TForm; aSelectClients : TStringList) : boolean;
 
 //------------------------------------------------------------------------------
 implementation
@@ -244,14 +244,19 @@ var
   DebugMe : boolean = false;
 
 //------------------------------------------------------------------------------
-function RunCashBookMigrationWizard(aSelectClients : TStringList): boolean;
+function RunCashBookMigrationWizard(w_PopupParent: Forms.TForm;  aSelectClients : TStringList): boolean;
 var
   Wizard : TFrmCashBookMigrationWiz;
 begin
   Wizard := TFrmCashBookMigrationWiz.Create(Application.MainForm); // FormCreate
   try
+    Wizard.PopupParent   := w_PopupParent;
+    Wizard.PopupMode     := pmExplicit;
     Wizard.SelectClients := aSelectClients;
+    BKHelpSetUp(Wizard, BKH_Migrating_a_client_from_COMPANY_NAME1_PRODUCT_PRACTICE_to_COMPANY_NAME1_Essentials_Cashbook);
+
     result := (Wizard.ShowModal = mrOK);
+
   finally
     FreeAndNil(Wizard);
   end;
@@ -754,6 +759,9 @@ begin
   case StepID of
     mtOverview:
     begin
+      UpdateControls;
+      btnNext.SetFocus;
+
       {case AdminSystem.fdFields.fdCountry of
         whNewZealand: Overview1URL := Globals.PRACINI_NZCashMigrationURLOverview1;
         whAustralia : Overview1URL := Globals.PRACINI_AUCashMigrationURLOverview1;
@@ -843,7 +851,8 @@ begin
   btnNext.Enabled := CanMoveToNextStep(fCurrentStepID) and HasNextStep(fCurrentStepID);
   btnBack.Enabled := HasPreviousStep(fCurrentStepID);
 
-  if (fCurrentStepID <> mtMYOBCredentials) then
+  if (fCurrentStepID = mtMYOBCredentials) and
+     (not btnNext.Enabled) then
   begin
     btnNext.Default := false;
     btnSignIn.Default := true;
@@ -945,6 +954,8 @@ var
 begin
   TotalClients := fSelectClients.Count;
 
+  btnNext.Default := false;
+  btnCancel.Default := true;
   btnCancel.Caption := 'Done';
   btnCancel.ModalResult := mrYes;
   btnCancel.Enabled := true;

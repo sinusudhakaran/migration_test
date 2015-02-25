@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 //
-// bkhelp.inc
+// BKHelp.inc
 //
 //------------------------------------------------------------------------------
 
@@ -616,6 +616,7 @@ const
   BKH_Importing_COMPANY_NAME2_Notes_Online_transactions_into_COMPANY_NAME2_Practice = 2114;
   BKH_Export_chart_to_COMPANY_NAME1_Essentials_Cashbook = 2151;
   BKH_List_Manual_Bank_Accounts = 2152;
+  BKH_Migrating_a_client_from_COMPANY_NAME1_PRODUCT_PRACTICE_to_COMPANY_NAME1_Essentials_Cashbook = 2153;
 
 var
   //filename of HTML help file
