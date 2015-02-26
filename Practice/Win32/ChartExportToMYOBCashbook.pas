@@ -115,7 +115,7 @@ type
     destructor Destroy; override;
 
     function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
-    procedure FillChartExportCol();
+    procedure FillChartExportCol(aAllowIactive : Boolean);
     procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money; aIsContra : Boolean);
     procedure UpdateClosingBalances(aClosingBalanceDate : TstDate);
     procedure CheckIfNonBasicCodesHaveBalances(aClosingBalanceDate : TstDate;
@@ -508,7 +508,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportCol.FillChartExportCol();
+procedure TChartExportCol.FillChartExportCol(aAllowIactive : Boolean);
 var
   ChartIndex : integer;
   AccountRec : pAccount_Rec;
@@ -518,7 +518,7 @@ begin
   begin
     AccountRec := MyClient.clChart.Account_At(ChartIndex);
 
-    if AccountRec.chInactive then
+    if (not aAllowIactive) and (AccountRec.chInactive) then
       continue;
 
     AddChartExportItem(not AccountRec.chHide_In_Basic_Chart,
@@ -2318,7 +2318,7 @@ begin
   End;
 
   ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
-  ChartExportCol.FillChartExportCol();
+  ChartExportCol.FillChartExportCol(false);
 
   if not CheckReportGroups() then
   begin

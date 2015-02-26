@@ -974,7 +974,7 @@ begin
     begin
       ChartExportCol := TChartExportCol.Create(TChartExportItem);
       try
-        ChartExportCol.FillChartExportCol;
+        ChartExportCol.FillChartExportCol(true);
         ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
         GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
         try
