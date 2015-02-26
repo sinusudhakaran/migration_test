@@ -109,6 +109,8 @@ type
     fCurrentStepID: integer;
     fSignedIn : Boolean;
     fFirmSelected : Boolean;
+    fEmail : string;
+    fPassword : string;
 
     fSelectClients : TStringList;
     fClientErrors  : TStringList;
@@ -519,6 +521,7 @@ procedure TFrmCashBookMigrationWiz.DoBeforeMoveToStep(OldStepID : integer; var N
 
 var
   MovingForward : boolean;
+  sError : string;
 
 begin
   Assert(OldStepID in [mtMin..mtMax], 'DoBeforeMoveToStep.OldStepID out of range');
@@ -530,6 +533,13 @@ begin
   begin
     case OldStepID of
       mtSelectData : begin
+        // Actual login
+        if not MigrateCashbook.Login(fEmail, fPassword, sError) then
+        begin
+          ShowConnectionError(sError);
+          exit;
+        end;
+
         fSelectedData.Bankfeeds := true;
         fSelectedData.ChartOfAccount := chkChartofAccount.checked;
         fSelectedData.ChartOfAccountBalances := chkBalances.checked;
@@ -595,8 +605,8 @@ begin
   case fCurrentStepID of
     mtMYOBCredentials : begin
       {$IFDEF DEBUG}
-        {edtEmail.Text := 'cashbook@gmail.com';
-        edtPassword.Text := 'password1';}
+        edtEmail.Text := 'cashbook@gmail.com';
+        edtPassword.Text := 'password1';
       {$ENDIF}
 
       UpdateSignInControls(false);
@@ -679,6 +689,7 @@ begin
   HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
                   'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
                   0, false, aError, true);
+  LogUtil.LogMsg(lmError, UnitName, aError);
 end;
 
 //------------------------------------------------------------------------------
@@ -728,6 +739,8 @@ begin
     Exit;
 
   fSignedIn := true;
+  fEmail := edtEmail.text;
+  fPassword := edtPassword.text;
 
   UpdateSignInControls(false);
   UpdateControls();

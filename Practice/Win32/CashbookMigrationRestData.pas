@@ -707,9 +707,6 @@ begin
 
   if aSelectedData.ChartOfAccount then
   begin
-    // Business data
-    //JsonChartOfAccounts := TlkJSONobject.Create;
-    //aJson.Add('accounts', JsonChartOfAccounts);
     ChartOfAccountsData.Write(aJson);
 
     DivisionsData.Write(aJson);

@@ -324,11 +324,6 @@ begin
   FHttpRequester.OnHeader                  := DoHttpHeader;
 
   FHttpRequester.AuthScheme   := authBasic;
-  {FHttpRequester.Firewallport := 80;
-  FHttpRequester.localhost    := 'NZAKL009099V';
-  FHttpRequester.proxyport    := 8888;
-  FHttpRequester.SSLCertStore := 'MY';
-  FHttpRequester.SSLCertStore := 'sstUser';}
 
   FHttpRequester.Config ('SSLSecurityFlags=0x80000000');
   FHttpRequester.Config ('SSLEnabledProtocols=140');

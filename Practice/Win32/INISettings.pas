@@ -688,9 +688,9 @@ begin
 
         // hidden readonly cashbook settings
         PRACINI_CashbookAPILoginURL    := ReadString(GrpPracLinks,'CashbookAPILoginURL', TUrls.CashbookAPILoginURL);
-        PRACINI_CashbookAPILoginID     := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'bankLink-practice5');
-        PRACINI_CashbookAPILoginSecret := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'z1sb6ggkfhlOXip');
-        PRACINI_CashbookAPILoginScope  := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'AccountantsFramework CompanyFile Assets la.global mydot.assets.read mydot.contacts.read practice.online client.portal mydot.assets.write mydot.orders.write mydot.bankfeeds.read mydot.bankfeeds.write');
+        PRACINI_CashbookAPILoginID     := ReadString(GrpPracLinks,'CashbookAPILoginID', 'bankLink-practice5');
+        PRACINI_CashbookAPILoginSecret := ReadString(GrpPracLinks,'CashbookAPILoginSecret', 'z1sb6ggkfhlOXip');
+        PRACINI_CashbookAPILoginScope  := ReadString(GrpPracLinks,'CashbookAPILoginScope', 'AccountantsFramework CompanyFile Assets la.global mydot.assets.read mydot.contacts.read practice.online client.portal mydot.assets.write mydot.orders.write mydot.bankfeeds.read mydot.bankfeeds.write');
 
         PRACINI_CashbookAPIFirmsURL        := ReadString(GrpPracLinks,'CashbookAPIFirmsURL', TUrls.CashbookAPIFirmsURL);
         PRACINI_CashbookAPIUploadURL       := ReadString(GrpPracLinks,'CashbookAPIUploadURL', TUrls.CashbookAPIUploadURL);
