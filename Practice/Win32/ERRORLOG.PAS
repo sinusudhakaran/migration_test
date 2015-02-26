@@ -147,6 +147,7 @@ implementation
 uses
   WinUtils,
   LockUtils,
+  strutils,
   IniFiles;
 //DONT USE ANY OTHER BANKLINK UNITS AS THEY WILL CAUSE OTHER UNITS TO INITIALIZE BEFORE THIS ONE
 
@@ -439,6 +440,33 @@ var
   f : TextFile;
   ExtMsg : string;
   aMsg   : string;
+
+  //------------------------------------------------------------------------------
+  procedure LogWriteLn(aMsg: string);
+  const
+    MAX_LINE_LEN = 200;
+  var
+    LenStr : integer;
+    Chunks : integer;
+    Index : integer;
+    LeftOver : integer;
+    writeStr : string;
+  begin
+    LenStr := Length(aMsg);
+    Chunks := trunc(LenStr/MAX_LINE_LEN);
+    for Index := 0 to Chunks-1 do
+    begin
+      writeStr := midstr(aMsg, 1 + (Index*MAX_LINE_LEN), MAX_LINE_LEN);
+      Writeln(f, writeStr);
+    end;
+
+    LeftOver := (LenStr - (Chunks*MAX_LINE_LEN))-1;
+    if LeftOver > 0 then
+    begin
+      writeStr := midstr(aMsg, LenStr-LeftOver, LeftOver);
+      Writeln(f, writeStr);
+    end;
+  end;
 begin
   if not Active then exit;
 
@@ -462,7 +490,7 @@ begin
         Append(F);
 
       try
-        Writeln(F,ExtMsg);
+        LogWriteLn(ExtMsg);
       finally
         CloseFile( F );     { Close file, save changes }
       end;
@@ -495,6 +523,34 @@ var
   f : TextFile;
   ExtMsg : string;
   aMsg   : string;
+
+  //------------------------------------------------------------------------------
+  procedure LogWriteLn(aMsg: string);
+  const
+    MAX_LINE_LEN = 200;
+  var
+    LenStr : integer;
+    Chunks : integer;
+    Index : integer;
+    LeftOver : integer;
+    writeStr : string;
+  begin
+    LenStr := Length(aMsg);
+    Chunks := trunc(LenStr/MAX_LINE_LEN);
+    for Index := 0 to Chunks-1 do
+    begin
+      writeStr := midstr(aMsg, 1 + (Index*MAX_LINE_LEN), MAX_LINE_LEN);
+      Writeln(f, writeStr);
+    end;
+
+    LeftOver := (LenStr - (Chunks*MAX_LINE_LEN))-1;
+    if LeftOver > 0 then
+    begin
+      writeStr := midstr(aMsg, LenStr-LeftOver, LeftOver);
+      Writeln(f, writeStr);
+    end;
+  end;
+
 begin
   if not Active then
     exit;
@@ -520,7 +576,7 @@ begin
         Append(F);
 
       try
-        Writeln(F,ExtMsg);
+        LogWriteLn(ExtMsg);
       finally
         CloseFile( F );     { Close file, save changes }
       end;

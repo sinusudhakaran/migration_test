@@ -168,11 +168,8 @@ const
   CASBOOK_UPLOAD_BASE = 'http://10.72.20.125/ADCommon/';
 
   MY_DOT_CONTENT_TYPE = 'application/x-www-form-urlencoded';
-  MY_DOT_CLIENT_ID = 'bankLink-practice5';
-  MY_DOT_CLEINT_SECRET = 'z1sb6ggkfhlOXip';
   MY_DOT_GRANT_PASSWORD = 'password';
   MY_DOT_GRANT_REFRESH_TOKEN = 'refresh_token';
-  MY_DOT_SCOPE = 'AccountantsFramework CompanyFile Assets la.global mydot.assets.read mydot.contacts.read practice.online client.portal mydot.assets.write mydot.orders.write mydot.bankfeeds.read mydot.bankfeeds.write';
 
   CASHBOOK_CONTENT_TYPE = 'application/json; charset=utf-8';
   CASHBOOK_ACCEPT = 'application/vnd.cashbook-v1+json';
@@ -596,15 +593,22 @@ end;
 function TCashbookMigration.ValidateIRDGST(aValue: string): boolean;
 var
   LenStr : integer;
+  Index : integer;
+  OnlyNumbers : string;
 begin
   Result := false;
-  if isNumeric(aValue) then
+
+  OnlyNumbers := '';
+  for Index := 1 to Length(aValue) do
   begin
-    LenStr := Length(aValue);
-    if LenStr in [8,9,10] then
-    begin
-      Result := true;
-    end;
+    if aValue[Index] in ['0','1','2','3','4','5','6','7','8','9'] then
+      OnlyNumbers := OnlyNumbers + aValue[Index];
+  end;
+
+  LenStr := Length(OnlyNumbers);
+  if LenStr in [8,9,13] then
+  begin
+    Result := true;
   end;
 end;
 
@@ -622,21 +626,16 @@ begin
     try
       // Replace spaces with nothing and try find duplicate code in practice
       TestCode := StringReplace(ClientCode, ' ', '', [rfReplaceAll]);
+      while (length(TestCode) < 7) do
+        TestCode := TestCode + '_';
+
+      TestCode := TestCode + '_cb';
+
       if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
       begin
-        // Replace spaces with underscore and try find duplicate code in practice
-        TestCode := StringReplace(ClientCode, ' ', '_', [rfReplaceAll]);
-        if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
-        begin
-          // Replace spaces with dash and try find duplicate code in practice
-          TestCode := StringReplace(ClientCode, ' ', '-', [rfReplaceAll]);
-          if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
-          begin
-            //if still found the then error
-            aError := 'Error converting Practice Client Code into valid ' + BRAND_CASHBOOK_NAME + ' Client code';
-            Exit;
-          end;
-        end;
+        //if still found the then error
+        aError := 'Error converting Practice Client Code into valid ' + BRAND_CASHBOOK_NAME + ' Client code';
+        Exit;
       end;
     except
       on E : Exception do
@@ -754,17 +753,21 @@ var
     PrintIndex : integer;
   begin
     Divisions := TStringList.Create();
-    Divisions.Delimiter := ',';
-    Divisions.StrictDelimiter := true;
+    try
+      Divisions.Delimiter := ',';
+      Divisions.StrictDelimiter := true;
 
-    for DivIndex := 0 to aUsedDivisions.Count-1 do
-    begin
-      PrintIndex := Strtoint(aUsedDivisions.Strings[DivIndex]);
-      if AccRec.chPrint_in_Division[PrintIndex] then
-        Divisions.Add(inttostr(PrintIndex));
+      for DivIndex := 0 to aUsedDivisions.Count-1 do
+      begin
+        PrintIndex := Strtoint(aUsedDivisions.Strings[DivIndex]);
+        if AccRec.chPrint_in_Division[PrintIndex] then
+          Divisions.Add(inttostr(PrintIndex));
+      end;
+
+      Result := Divisions.DelimitedText;
+    finally
+      FreeAndNil(Divisions);
     end;
-
-    Result := Divisions.DelimitedText;
   end;
 begin
   Result := false;
@@ -856,77 +859,72 @@ begin
   Result := false;
   // FileUpload
   MigUpload := TMigrationUpload.Create;
-
-  Data := aClientBase.GetData(aSelectedData);
-
-  if DebugMe then
-  begin
-    LogUtil.LogMsg(lmDebug, UnitName, 'Business Json : ' + Data);
-    LogUtil.LogMsg(lmDebug, UnitName, '');
-  end;
-
-  MigUpload.Files.Data := Data;
-  MigUpload.Files.FileName := 'Test.json';
-
-  //MigUpload.Parameters.DataStore := 'banklinkmigration'; -- live
-  MigUpload.Parameters.DataStore := PRACINI_CashbookAPIUploadDataStore;
-  //MigUpload.Parameters.Queue := 'assetsmigrationX';  -- old
-  //MigUpload.Parameters.Queue := 'BankLink-SQS';      -- live
-  //MigUpload.Parameters.Queue := 'BankLink-Test-SQS';
-  MigUpload.Parameters.Queue := PRACINI_CashbookAPIUploadQueue;
-
-  MigUpload.Parameters.Region := inttostr(ord(AdminSystem.fdFields.fdCountry));
-
   try
+    Data := aClientBase.GetData(aSelectedData);
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Business Json : ' + Data);
+
+    MigUpload.Files.Data := Data;
+    MigUpload.Files.FileName := 'Test.json';
+    MigUpload.Parameters.DataStore := PRACINI_CashbookAPIUploadDataStore;
+    MigUpload.Parameters.Queue := PRACINI_CashbookAPIUploadQueue;
+
+    MigUpload.Parameters.Region := inttostr(ord(AdminSystem.fdFields.fdCountry));
     try
       // Request
       Request := TlkJSONobject.Create;
-      MigUpload.Write(Request);
-
-      // HTTP
-      sURL := PRACINI_CashbookAPIUploadURL;
-
-      UploadDone := DoUploadHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError, false);
-
-      if not UploadDone then
-      begin
-        LogUtil.LogMsg(lmError, UnitName, aError);
-        exit;
-      end;
-
-      if not (Assigned(Response)) or
-         not (Response is TlkJSONobject) then
-      begin
-        aError := 'Error uploading client data : No response from server.';
-        exit;
-      end;
-
       try
-        // Response
-        Response := (ResponseBase as TlkJSONobject);
+        MigUpload.Write(Request);
 
-        MigUploadResponse := TMigrationUploadResponse.Create;
+        // HTTP
+        sURL := PRACINI_CashbookAPIUploadURL;
+
+        UploadDone := DoUploadHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError, false);
+
+        if not UploadDone then
+        begin
+          LogUtil.LogMsg(lmError, UnitName, aError);
+          exit;
+        end;
+
+        if not (Assigned(Response)) or
+           not (Response is TlkJSONobject) then
+        begin
+          aError := 'Error uploading client data : No response from server.';
+          exit;
+        end;
+
         try
-          MigUploadResponse.Read(Response);
+          // Response
+          Response := (ResponseBase as TlkJSONobject);
 
-          if MigUploadResponse.RespondeCode <> UPLOAD_RESP_SUCESS then
-          begin
-            case MigUploadResponse.RespondeCode of
-              UPLOAD_RESP_ERROR     : aError := 'Error uploading client data : Error response from server.';
-              UPLOAD_RESP_UKNOWN    : aError := 'Error uploading client data : Unknown response from server.';
-              UPLOAD_RESP_DUPLICATE : aError := 'Error uploading client data : Duplicate Upload.';
-              UPLOAD_RESP_CORUPT    : aError := 'Error uploading client data : Corrupt Upload.';
+          MigUploadResponse := TMigrationUploadResponse.Create;
+          try
+            MigUploadResponse.Read(Response);
+
+            if MigUploadResponse.RespondeCode <> UPLOAD_RESP_SUCESS then
+            begin
+              case MigUploadResponse.RespondeCode of
+                UPLOAD_RESP_ERROR     : aError := 'Error uploading client data : Error response from server.';
+                UPLOAD_RESP_UKNOWN    : aError := 'Error uploading client data : Unknown response from server.';
+                UPLOAD_RESP_DUPLICATE : aError := 'Error uploading client data : Duplicate Upload.';
+                UPLOAD_RESP_CORUPT    : aError := 'Error uploading client data : Corrupt Upload.';
+              end;
+              Exit;
             end;
-            Exit;
+            Result := true;
+
+          finally
+            FreeAndNil(MigUploadResponse)
           end;
-          Result := true;
 
         finally
-          FreeAndNil(MigUploadResponse)
+          FreeAndNil(Response);
         end;
 
       finally
-        FreeAndNil(Response);
+        FreeAndNil(Request);
       end;
 
     except
@@ -1058,12 +1056,12 @@ begin
       PostData.Delimiter := '&';
       PostData.StrictDelimiter := true;
 
-      PostData.Values['client_id']     := MY_DOT_CLIENT_ID;
-      PostData.Values['client_secret'] := MY_DOT_CLEINT_SECRET;
+      PostData.Values['client_id']     := PRACINI_CashbookAPILoginID;
+      PostData.Values['client_secret'] := PRACINI_CashbookAPILoginSecret;
       PostData.Values['username']      := aEmail;
       PostData.Values['password']      := aPassword;
       PostData.Values['grant_type']    := MY_DOT_GRANT_PASSWORD;
-      PostData.Values['scope']         := MY_DOT_SCOPE;
+      PostData.Values['scope']         := PRACINI_CashbookAPILoginScope;
 
       // Cancelled?
       if not DoHttpSecure(

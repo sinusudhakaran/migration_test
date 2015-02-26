@@ -191,6 +191,8 @@ type
   TDivisionsData = class(TCollection)
   private
   public
+    destructor Destroy; override;
+
     function ItemAs(aIndex : integer) : TDivisionData;
 
     procedure Write(const aJson: TlkJSONobject);
@@ -230,7 +232,7 @@ type
     fJournalsData : TJournalsData;
   public
     constructor Create;
-    destructor  Destroy; override;
+    destructor Destroy; override;
 
     procedure Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
 
@@ -616,6 +618,11 @@ end;
 
 //------------------------------------------------------------------------------
 { TDivisionsData }
+destructor TDivisionsData.Destroy;
+begin
+  inherited;
+end;
+
 function TDivisionsData.ItemAs(aIndex: integer): TDivisionData;
 begin
   Result := TDivisionData(Self.Items[aIndex]);

@@ -631,13 +631,16 @@ var
     PRACINI_NZCashMigrationURLOverview2 : String = '';
     PRACINI_AUCashMigrationURLOverview2 : String = '';
 
-    PRACINI_DefaultCashbookSignupURL    : String = '';
+    PRACINI_DefaultCashbookSignupURL         : String = '';
     PRACINI_DefaultCashbookForgotPasswordURL : String = '';
-    PRACINI_CashbookAPILoginURL : String = '';
-    PRACINI_CashbookAPIFirmsURL : String = '';
-    PRACINI_CashbookAPIUploadURL : String = '';
-    PRACINI_CashbookAPIUploadDataStore : String = '';
-    PRACINI_CashbookAPIUploadQueue : String = '';
+    PRACINI_CashbookAPILoginURL              : String = '';
+    PRACINI_CashbookAPILoginID               : String = '';
+    PRACINI_CashbookAPILoginSecret           : String = '';
+    PRACINI_CashbookAPILoginScope            : String = '';
+    PRACINI_CashbookAPIFirmsURL              : String = '';
+    PRACINI_CashbookAPIUploadURL             : String = '';
+    PRACINI_CashbookAPIUploadDataStore       : String = '';
+    PRACINI_CashbookAPIUploadQueue           : String = '';
 
 {$IFDEF SmartLink}
     PRACINI_FingertipsURL : string = '';

@@ -166,17 +166,17 @@ end;
 
 class function TUrls.CashbookAPILoginURL: String;
 begin
-  Result := 'https://test.secure.myob.com/oauth2/v1/Authorize';
+  Result := 'https://secure.myob.com/oauth2/v1/Authorize';
 end;
 
 class function TUrls.CashbookAPIFirmsURL: String;
 begin
-  Result := 'https://burwood.cashbook.us/api/firms';
+  Result := 'https://cashbook.myob.com.au/api/firms';
 end;
 
 class function TUrls.CashbookAPIUploadURL: String;
 begin
-  Result := 'http://10.72.20.125/ADCommon/Upload';
+  Result := 'https://adppcloudservices.com.au/adcommon/v1/Upload';
 end;
 
 class function TUrls.DefaultNZCatalogServer: String;
