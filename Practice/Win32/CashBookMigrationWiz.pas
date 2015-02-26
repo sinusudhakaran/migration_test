@@ -886,6 +886,8 @@ begin
   // No firms?
   if (fFirms.Count = 0) then
   begin
+    fSignedIn := false;
+    UpdateSignInControls(false);
     HelpfulWarningMsg('No firms available.',0);
     edtEmail.SetFocus;
     exit;
@@ -932,13 +934,13 @@ begin
                        (length(edtEmail.Text) > 0);
   pnlFirm.Visible := fSignedIn;
 
-  if fSignedIn then
+  if (fSignedIn) and (not aBusySigningIn) then
   begin
     btnSignIn.Caption := 'Sign Out';
     btnNext.Default := true;
     btnSignIn.Default := false;
 
-    if cmbSelectFirm.Items.Count > 1 then
+    if cmbSelectFirm.Visible then
       cmbSelectFirm.SetFocus();
   end
   else

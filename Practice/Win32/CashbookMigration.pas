@@ -1206,7 +1206,8 @@ begin
 
       ClientFileCode := AdminSystem.fdSystem_Client_File_List.FindCode(CurrentClientCode).cfFile_Code;
 
-      OpenAClientForRead(ClientFileCode, CltClient);
+      CltClient := nil;
+      OpenAClient(ClientFileCode, CltClient, true);
 
       if not Assigned(CltClient) then
       begin
@@ -1226,7 +1227,12 @@ begin
           Continue;
         end
         else
+        begin
+          CltClient.clMoreFields.mcArchived := true;
+          CltClient.clFields.clFile_Save_Required := true;
+          SaveAClient(CltClient);
           LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '.');
+        end;
       finally
         MyClient := nil;
         AbandonAClient(CltClient);

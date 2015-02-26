@@ -2638,6 +2638,13 @@ begin
           LogUtil.LogMsg(lmDebug, UnitName, 'Selected Clients - ' + SelectedList.CommaText);
 
         RunCashBookMigrationWizard(self, SelectedList);
+
+        RefreshLookup(ClientLookup.FirstSelectedCode);
+        if pnlFrameHolder.Enabled then
+          try
+          ClientLookup.SetFocusToGrid;
+          except
+          end;
       end
       else
       begin
