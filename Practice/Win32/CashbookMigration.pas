@@ -109,7 +109,8 @@ type
                                     var aResponse: TlkJSONbase; var aRespStr : string;
                                     var aError: string; aEncryptToken : boolean = false): boolean;
 
-    function ValidateIRDGST(aValue : string) : boolean;
+    procedure AddCommentToClient(aClientLRN : integer; aNote : string);
+    function ValidateIRDGST(aValue : string; aModifiedIRD : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
@@ -155,6 +156,9 @@ uses
   ChartUtils,
   stDatest,
   bkDateUtils,
+  AdminNotesForClient,
+  Admin32,
+  ClientHomePagefrm,
   SYDEFS;
 
 const
@@ -585,7 +589,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.ValidateIRDGST(aValue: string): boolean;
+function TCashbookMigration.ValidateIRDGST(aValue: string; aModifiedIRD : string): boolean;
 var
   LenStr : integer;
   Index : integer;
@@ -599,6 +603,8 @@ begin
     if aValue[Index] in ['0','1','2','3','4','5','6','7','8','9'] then
       OnlyNumbers := OnlyNumbers + aValue[Index];
   end;
+
+  aModifiedIRD := OnlyNumbers;
 
   LenStr := Length(OnlyNumbers);
   if LenStr in [8,9,13] then
@@ -656,6 +662,8 @@ var
   Branch : string;
   IRD : string;
   BalDate : TStDate;
+  OpenBalDate : TStDate;
+  ModifiedIRD : string;
 begin
   Result := false;
 
@@ -670,8 +678,9 @@ begin
     else
       ABN := '';
 
-    if (AdminSystem.fdFields.fdCountry = whNewZealand) and (ValidateIRDGST(trim(aClient.clFields.clGST_Number))) then
-      IRD := trim(aClient.clFields.clGST_Number)
+    if (AdminSystem.fdFields.fdCountry = whNewZealand) and
+       (ValidateIRDGST(trim(aClient.clFields.clGST_Number), ModifiedIRD)) then
+      IRD := ModifiedIRD
     else
       IRD := '';
 
@@ -682,7 +691,12 @@ begin
     aBusinessData.FinancialYearStartMonth := FYSmonth;
     aBusinessData.ABN := ABN;
     aBusinessData.IRD := IRD;
-    aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', IncDate(aClosingBalanceDate, 1, 0, 0), true);
+
+    OpenBalDate := IncDate(aClosingBalanceDate, 1, 0, 0);
+    if OpenBalDate = BadDate then
+      aBusinessData.OpeningBalanceDate := ''
+    else
+      aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', OpenBalDate, true);
 
     Result := true;
   except
@@ -1012,6 +1026,27 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.AddcOMMENTToClient(aClientLRN : integer; aNote: string);
+var
+  NoteIndex : integer;
+  CurrComment : string;
+  aError : string;
+begin
+  try
+    CurrComment := GetNotesForClient( aClientLRN);
+
+    CurrComment := aNote + #13#10 + #13#10 + CurrComment;
+
+    UpdateNotesForClient( aClientLRN, CurrComment);
+  except
+    on E : Exception do
+      begin
+        aError := 'Error adding comment to Client : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+      end;
+  end;
+end;
+
 constructor TCashbookMigration.Create;
 begin
   // Http
@@ -1166,7 +1201,8 @@ var
   ClientFileCode : string;
   SysClient : pClient_File_Rec;
   CltClient : TClientObj;
-  ErrorStr : string;
+  ClientLRN : integer;
+  ErrorStr  : string;
 begin
   // Initialize ErrorList and progress event
   aClientErrors.clear;
@@ -1185,6 +1221,7 @@ begin
     CurrentClientCode := aSelectClients.Strings[ClientIndex];
     try
       SysClient := AdminSystem.fdSystem_Client_File_List.FindCode(CurrentClientCode);
+      ClientLRN := SysClient.cfLRN;
 
       if not Assigned(SysClient) then
       begin
@@ -1228,9 +1265,26 @@ begin
         end
         else
         begin
+          AddCommentToClient(ClientLRN, StDateToDateString('dd/mm/yyyy', CurrentDate(), true) +
+                                        ' Migrated to ' + BRAND_CASHBOOK_NAME);
           CltClient.clMoreFields.mcArchived := true;
           CltClient.clFields.clFile_Save_Required := true;
           SaveAClient(CltClient);
+
+          if LoadAdminSystem(True, 'CashbookMigration') then
+          begin
+            try
+              SysClient := AdminSystem.fdSystem_Client_File_List.FindCode(CurrentClientCode);
+              SysClient.cfHas_Client_Notes := true;
+              SaveAdminSystem;
+            except
+              if AdminIsLocked then
+                UnLockAdmin;
+
+              raise;
+            end;
+          end;
+
           LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '.');
         end;
       finally
@@ -1251,6 +1305,8 @@ begin
     if Assigned(fProgressEvent) then
       fProgressEvent(ClientIndex+1, aSelectClients.Count, 100);
   end;
+
+  RefreshHomepage([HPR_Tasks]);
 
   // Set Result according to amount of errors, used in UI
   if aClientErrors.Count = 0 then

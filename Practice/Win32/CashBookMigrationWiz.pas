@@ -116,6 +116,7 @@ type
     fClientErrors  : TStringList;
     fSelectedData  : TSelectedData;
     fFirms : TFirms;
+    fSignInTime : TDateTime;
 
     fMigrationStatus : TMigrationStatus;
 
@@ -200,6 +201,7 @@ uses
   ShellAPI,
   bkContactInformation,
   Files,
+  DateUtils,
   WarningMoreFrm;
 
 const
@@ -534,10 +536,14 @@ begin
     case OldStepID of
       mtSelectData : begin
         // Actual login
-        if not MigrateCashbook.Login(fEmail, fPassword, sError) then
+        if MinutesBetween(fSignInTime, now()) > 1 then
         begin
-          ShowConnectionError(sError);
-          exit;
+          if not MigrateCashbook.Login(fEmail, fPassword, sError) then
+          begin
+            ShowConnectionError(sError);
+            Cancel := true;
+            exit;
+          end;
         end;
 
         fSelectedData.Bankfeeds := true;
@@ -689,7 +695,6 @@ begin
   HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
                   'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
                   0, false, aError, true);
-  LogUtil.LogMsg(lmError, UnitName, aError);
 end;
 
 //------------------------------------------------------------------------------
@@ -739,6 +744,7 @@ begin
     Exit;
 
   fSignedIn := true;
+  fSignInTime := now();
   fEmail := edtEmail.text;
   fPassword := edtPassword.text;
 
