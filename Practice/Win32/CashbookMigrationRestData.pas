@@ -198,6 +198,31 @@ type
     procedure Write(const aJson: TlkJSONobject);
   end;
 
+    //----------------------------------------------------------------------------
+  TBankFeedApplicationData = class(TCollectionItem)
+  private
+    fCountryCode : string;
+    fCoreClientCode : string;
+    fCoreAccountId : string;
+    fBankAccountNumber : string;
+  public
+    procedure Write(const aJson: TlkJSONobject);
+
+    property CountryCode : string read fCountryCode write fCountryCode;
+    property CoreClientCode : string read fCoreClientCode write fCoreClientCode;
+    property CoreAccountId : string read fCoreAccountId write fCoreAccountId;
+    property BankAccountNumber : string read fBankAccountNumber write fBankAccountNumber;
+  end;
+
+  //----------------------------------------------------------------------------
+  TBankFeedApplicationsData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex : integer) : TBankFeedApplicationData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
   //----------------------------------------------------------------------------
   TBusinessData = class
   private
@@ -226,6 +251,7 @@ type
   TClientData = class
   private
     fBusinessData: TBusinessData;
+    fBankFeedApplicationsData : TBankFeedApplicationsData;
     fChartOfAccountsData : TChartOfAccountsData;
     fDivisionsData : TDivisionsData;
     fTransactionsData : TTransactionsData;
@@ -237,6 +263,7 @@ type
     procedure Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
 
     property BusinessData: TBusinessData read fBusinessData write fBusinessData;
+    property BankFeedApplicationsData : TBankFeedApplicationsData read fBankFeedApplicationsData write fBankFeedApplicationsData;
     property ChartOfAccountsData: TChartOfAccountsData read fChartOfAccountsData write fChartOfAccountsData;
     property DivisionsData: TDivisionsData read fDivisionsData write fDivisionsData;
     property TransactionsData: TTransactionsData read fTransactionsData write fTransactionsData;
@@ -649,6 +676,44 @@ begin
   end;
 end;
 
+{ TBankFeedApplicationData }
+//------------------------------------------------------------------------------
+procedure TBankFeedApplicationData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('CountryCode',       CountryCode);
+  aJson.Add('CoreClientCode',    CoreClientCode);
+  aJson.Add('CoreAccountId',     CoreAccountId);
+  aJson.Add('BankAccountNumber', BankAccountNumber);
+end;
+
+{ TBankFeedApplicationsData }
+//------------------------------------------------------------------------------
+function TBankFeedApplicationsData.ItemAs(aIndex: integer): TBankFeedApplicationData;
+begin
+  Result := TBankFeedApplicationData(Self.Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TBankFeedApplicationsData.Write(const aJson: TlkJSONobject);
+var
+  BankFeedApps: TlkJSONlist;
+  BankFeedAppIndex : integer;
+  BankFeedApp : TBankFeedApplicationData;
+  BankFeedAppData : TlkJSONobject;
+begin
+  BankFeedApps := TlkJSONlist.Create;
+  aJson.Add('bankfeedapplications', BankFeedApps);
+
+  for BankFeedAppIndex := 0 to self.Count-1 do
+  begin
+    BankFeedAppData := TlkJSONobject.Create;
+    BankFeedApps.Add(BankFeedAppData);
+
+    BankFeedApp := ItemAs(BankFeedAppIndex);
+    BankFeedApp.Write(BankFeedAppData);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 { TBusinessData }
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
@@ -704,6 +769,8 @@ begin
   JsonBusiness := TlkJSONobject.Create;
   aJson.Add('ledger', JsonBusiness);
   BusinessData.Write(JsonBusiness);
+
+  //BankFeedApplicationsData.Write(aJson);
 
   if aSelectedData.ChartOfAccount then
   begin

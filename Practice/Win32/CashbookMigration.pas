@@ -115,6 +115,7 @@ type
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
+    function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; var aError : string) : boolean;
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aTransactionsData : TTransactionsData; var aError : string) : boolean;
@@ -661,7 +662,9 @@ begin
     end;
 
     ClientCode := TestCode;
-  end;
+  end
+  else
+    ClientCode := aInClientCode;
 
   aOutClientCode := ClientCode;
   Result := true;
@@ -717,6 +720,32 @@ begin
     on E: Exception do
     begin
       aError := 'Exception retrieving Client data : ' + E.Message;
+      exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.FillBankFeedData(aClient: TClientObj; aBankFeedApplicationsData: TBankFeedApplicationsData; var aError: string): boolean;
+var
+  ChartIndex : integer;
+  AccRec : tAccount_Rec;
+begin
+  Result := false;
+  try
+    for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
+    begin
+      AccRec := aClient.clChart.Account_At(ChartIndex)^;
+      if AccRec.chAccount_Type = atBankAccount then
+      begin
+
+      end;
+    end;
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Bank Feeds : ' + E.Message;
       exit;
     end;
   end;
@@ -830,7 +859,12 @@ begin
           GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
         end;
         NewChartItem.GstType := CashBookGstClassCode;
-        NewChartItem.OpeningBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance);
+
+        if aDoChartOfAccountBalances then
+          NewChartItem.OpeningBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance)
+        else
+          NewChartItem.OpeningBalance := 0;
+
         NewChartItem.BankOrCreditFlag := ChartExportItem.IsContra;
       end
       else
@@ -976,7 +1010,6 @@ begin
 
   // Phase 1 force all options to no, just send client create data
   aSelectedData.Bankfeeds := false;
-  aSelectedData.ChartOfAccountBalances := false;
   aSelectedData.NonTransferedTransactions := false;
 
   ClientBase := TClientBase.Create;
