@@ -51,6 +51,7 @@ type
     fClientCount : integer;
     fCurrentClient : integer;
     fClientDataSize : integer;
+    fNumCodeReplaced : integer;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -600,7 +601,7 @@ begin
   OnlyNumbers := '';
   for Index := 1 to Length(aValue) do
   begin
-    if aValue[Index] in ['0','1','2','3','4','5','6','7','8','9'] then
+    if aValue[Index] in ['0'..'9'] then
       OnlyNumbers := OnlyNumbers + aValue[Index];
   end;
 
@@ -618,26 +619,39 @@ function TCashbookMigration.FixClientCodeForCashbook(aInClientCode : string; var
 var
   ClientCode : string;
   TestCode : string;
+  Index : integer;
+  NumReplStr : string;
 begin
   Result := false;
+  aOutClientCode := '';
+  TestCode := '';
+  for Index := 0 to length(aInClientCode) do
+  begin
+    if (aInClientCode[Index] in ['0'..'9']) or
+       (aInClientCode[Index] in ['a'..'z']) or
+       (aInClientCode[Index] in ['A'..'Z']) then
+      TestCode := TestCode + aInClientCode[Index];
+  end;
 
-  ClientCode := trim(aInClientCode);
-  if pos(' ', ClientCode ) > 0 then
+  if TestCode <> aInClientCode then
   begin
     try
-      // Replace spaces with nothing and try find duplicate code in practice
-      TestCode := StringReplace(ClientCode, ' ', '', [rfReplaceAll]);
-      while (length(TestCode) < 7) do
-        TestCode := TestCode + '_';
-
-      TestCode := TestCode + '_cb';
-
-      if Assigned(AdminSystem.fdSystem_Client_File_List.FindCode(TestCode)) then
+      inc(fNumCodeReplaced);
+      if fNumCodeReplaced > 999 then
       begin
-        //if still found the then error
-        aError := 'Error converting Practice Client Code into valid ' + BRAND_CASHBOOK_NAME + ' Client code';
-        Exit;
+        aError := 'Error converting Client Code into ' + BRAND_CASHBOOK_NAME + ' format.';
+        exit;
       end;
+
+      NumReplStr := inttoStr(fNumCodeReplaced);
+
+      while (length(NumReplStr) < 3) do
+        NumReplStr := '0' + NumReplStr;
+
+      while (length(TestCode) < 7) do
+        TestCode := TestCode + '0';
+
+      TestCode := TestCode + NumReplStr;
     except
       on E : Exception do
       begin
@@ -1210,6 +1224,7 @@ begin
   fClientCount := aSelectClients.Count;
   fCurrentClient := 1;
   fClientDataSize := 0;
+  fNumCodeReplaced := 0;
 
   // Loop through selected Client Codes
   for ClientIndex := 0 to aSelectClients.Count-1 do
