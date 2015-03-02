@@ -391,7 +391,7 @@ end;
 function GetMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses): string;
 begin
   case aMappedGroupId of
-    ccNone         : Result := 'Error';
+    ccNone         : Result := 'uncategorised';
     ccIncome       : Result := 'Income';
     ccExpense      : Result := 'Expense';
     ccOtherIncome  : Result := 'Other Income';
@@ -432,7 +432,7 @@ end;
 function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte): TCashBookGSTClasses;
 begin
   case aGSTClassTypeIndicator of
-    gtUndefined      : Result := cgNotReportable;
+    gtUndefined      : Result := cgNone;
     gtIncomeGST      : Result := cgGoodsandServices;
     gtExpenditureGST : Result := cgGoodsandServices;
     gtExempt         : Result := cgExempt;
@@ -449,6 +449,10 @@ procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                     var aCashBookGstClassDesc : string);
 begin
   case aCashBookGstClass of
+    cgNone : begin
+      aCashBookGstClassCode := 'NA';
+      aCashBookGstClassDesc := 'Undefined';
+    end;
     cgGoodsandServices : begin
       aCashBookGstClassCode := 'GST';
       aCashBookGstClassDesc := 'Goods & Services Tax';

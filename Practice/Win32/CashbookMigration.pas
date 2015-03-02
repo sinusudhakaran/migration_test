@@ -111,7 +111,7 @@ type
                                     var aError: string; aEncryptToken : boolean = false): boolean;
 
     procedure AddCommentToClient(aClientLRN : integer; aNote : string);
-    function ValidateIRDGST(aValue : string; aModifiedIRD : string) : boolean;
+    function ValidateIRDGST(aValue : string; var aModifiedIRD : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
@@ -591,7 +591,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.ValidateIRDGST(aValue: string; aModifiedIRD : string): boolean;
+function TCashbookMigration.ValidateIRDGST(aValue: string; var aModifiedIRD : string): boolean;
 var
   LenStr : integer;
   Index : integer;
@@ -730,6 +730,7 @@ function TCashbookMigration.FillBankFeedData(aClient: TClientObj; aBankFeedAppli
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
+  BankFeedApplicationData : TBankFeedApplicationData;
 begin
   Result := false;
   try
@@ -738,7 +739,16 @@ begin
       AccRec := aClient.clChart.Account_At(ChartIndex)^;
       if AccRec.chAccount_Type = atBankAccount then
       begin
+        BankFeedApplicationData := TBankFeedApplicationData.Create(aBankFeedApplicationsData);
 
+        if AdminSystem.fdFields.fdCountry = whAustralia then
+          BankFeedApplicationData.CountryCode := 'OZ'
+        else
+          BankFeedApplicationData.CountryCode := 'NZ';
+        BankFeedApplicationData.CoreClientCode := aClient.clFields.clCode;
+        BankFeedApplicationData.BankAccountNumber := AccRec.chAccount_Code;
+
+        aClient.clBank_Account_List.Bank_Account_At(1)
       end;
     end;
     Result := true;

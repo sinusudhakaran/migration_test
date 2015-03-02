@@ -157,14 +157,8 @@ type
   private
     fCashbookGstClass : TCashBookGSTClasses;
     fCashbookGstClassDesc : string;
-    procedure GetCashbookGstSeparateClassDesc(var aCashBookGstClassCode,
-      aCashBookGstClassDesc: string);
-
+    procedure GetCashbookGstSeparateClassDesc(var aCashBookGstClassCode, aCashBookGstClassDesc: string);
   protected
-    procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
-                                        var aCashBookGstClassCode : string;
-                                        var aCashBookGstClassDesc : string);
-
     function GetCashbookGstClassDesc() : string;
   public
     function GetCashBookCode() : string;
@@ -1389,62 +1383,6 @@ end;
 
 { TGSTMapClassInfo }
 //------------------------------------------------------------------------------
-procedure TGSTMapClassInfo.GetMYOBCashbookGSTDetails(aCashBookGstClass: TCashBookGSTClasses;
-                                                     var aCashBookGstClassCode,
-                                                         aCashBookGstClassDesc: string);
-begin
-  aCashBookGstClassCode := '';
-  aCashBookGstClassDesc := '';
-
-  case aCashBookGstClass of
-    cgGoodsandServices : begin
-      aCashBookGstClassCode := 'GST';
-      aCashBookGstClassDesc := 'Goods & Services Tax';
-    end;
-    cgCapitalAcquisitions : begin
-      aCashBookGstClassCode := 'CAP';
-      aCashBookGstClassDesc := 'Capital Acquisitions';
-    end;
-    cgExportSales : begin
-      aCashBookGstClassCode := 'EXP';
-      aCashBookGstClassDesc := 'Export Sales';
-    end;
-    cgGSTFree : begin
-      aCashBookGstClassCode := 'FRE';
-      aCashBookGstClassDesc := 'GST Free';
-    end;
-    cgInputTaxedSales : begin
-      aCashBookGstClassCode := 'ITS';
-      aCashBookGstClassDesc := 'Input Taxed Sales';
-    end;
-    cgPurchaseForInput : begin
-      aCashBookGstClassCode := 'INP';
-      aCashBookGstClassDesc := 'Purchases for Input Tax Sales';
-    end;
-    cgNotReportable : begin
-      aCashBookGstClassCode := 'NTR';
-      aCashBookGstClassDesc := 'Not Reportable';
-    end;
-    cgGSTNotRegistered : begin
-      aCashBookGstClassCode := 'GNR';
-      aCashBookGstClassDesc := 'GST Not Registered';
-    end;
-    cgExempt : begin
-      aCashBookGstClassCode := 'E';
-      aCashBookGstClassDesc := 'Exempt';
-    end;
-    cgZeroRated : begin
-      aCashBookGstClassCode := 'Z';
-      aCashBookGstClassDesc := 'Zero-Rated';
-    end;
-    cgCustoms : begin
-      aCashBookGstClassCode := 'I';
-      aCashBookGstClassDesc := 'GST on Customs Invoice';
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TGSTMapClassInfo.GetCashbookGstClassDesc: string;
 var
   CashBookGstClassCode : string;
@@ -2084,8 +2022,7 @@ begin
   begin
     ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem);
 
-    if (ChartExportItem.PostingAllowed) and
-       (ChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone) then
+    if (ChartExportItem.PostingAllowed) then
     begin
       Result := false;
       Exit;
@@ -2316,19 +2253,6 @@ begin
   Finally
     FreeAndNil(ErrorStrings);
   End;
-
-  ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
-  ChartExportCol.FillChartExportCol(false);
-
-  if not CheckReportGroups() then
-  begin
-    ErrorStr := 'Please assign a report group to all chart of account codes, Other Functions | Chart of Accounts | Maintain Chart.';
-
-    if ShowUI then
-      HelpfulWarningMsg(ErrorStr,0);
-
-    Exit;
-  end;
 
   if (Country = whAustralia) then
   begin

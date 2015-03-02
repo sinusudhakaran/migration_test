@@ -81,7 +81,6 @@ type
   //----------------------------------------------------------------------------
   TJournalData = class(TCollectionItem)
   private
-    fReferenceId : string;
     fDate        : string;
     fDescription : string;
 
@@ -92,7 +91,6 @@ type
 
     procedure Write(const aJson: TlkJSONobject);
 
-    property ReferenceId : string read fReferenceId write fReferenceId;
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
   end;
@@ -111,6 +109,7 @@ type
   private
     fDate : string;
     fDescription : string;
+    fAmount : integer;
     fBankAccNumber : string;
     fCoreTransactionId : string;
 
@@ -123,6 +122,7 @@ type
 
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
+    property Amount : integer read fAmount write fAmount;
     property BankAccNumber : string read fBankAccNumber write fBankAccNumber;
     property CoreTransactionId : string read fCoreTransactionId write fCoreTransactionId;
   end;
@@ -503,9 +503,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TJournalData.Write(const aJson: TlkJSONobject);
 begin
-  aJson.Add('reference_id', ReferenceId);
-  aJson.Add('date', Date);
-  aJson.Add('description', Description);
+  aJson.Add('Date', Date);
+  aJson.Add('Description', Description);
 end;
 
 { TJournalsData }
@@ -524,7 +523,7 @@ var
   JournalData : TlkJSONobject;
 begin
   Journals := TlkJSONlist.Create;
-  aJson.Add('bank_transactions', Journals);
+  aJson.Add('banktransactions', Journals);
 
   for JournalIndex := 0 to self.Count-1 do
   begin
@@ -556,10 +555,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TTransactionData.Write(const aJson: TlkJSONobject);
 begin
-  aJson.Add('date', Date);
-  aJson.Add('description', Description);
-  aJson.Add('bank_account_number', BankAccNumber);
-  aJson.Add('core_transaction_id', CoreTransactionId);
+  aJson.Add('Date', Date);
+  aJson.Add('Description', Description);
+  aJson.Add('Amount', Amount);
+  aJson.Add('BankAccountNumber', BankAccNumber);
+  aJson.Add('CoreTransactionId', CoreTransactionId);
 end;
 
 { TTransactionsData }
@@ -578,7 +578,7 @@ var
   TransactionData : TlkJSONobject;
 begin
   Transactions := TlkJSONlist.Create;
-  aJson.Add('bank_transactions', Transactions);
+  aJson.Add('banktransactions', Transactions);
 
   for TransactionIndex := 0 to self.Count-1 do
   begin
