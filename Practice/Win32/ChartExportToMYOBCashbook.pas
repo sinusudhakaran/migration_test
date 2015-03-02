@@ -2022,7 +2022,8 @@ begin
   begin
     ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem);
 
-    if (ChartExportItem.PostingAllowed) then
+    if (ChartExportItem.PostingAllowed) and
+       (ChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId) = ccNone) then
     begin
       Result := false;
       Exit;
@@ -2253,6 +2254,9 @@ begin
   Finally
     FreeAndNil(ErrorStrings);
   End;
+
+  ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
+  ChartExportCol.FillChartExportCol(false);
 
   if (Country = whAustralia) then
   begin

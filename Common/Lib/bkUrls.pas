@@ -156,7 +156,7 @@ end;
 
 class function TUrls.DefaultCashbookForgotPasswordURL: String;
 begin
-  Result := 'https://test.secure.myob.com/oauth2/ManageIdentity/ForgotPassword?returnUrl=%2f';
+  Result := 'https://secure.myob.com/oauth2/ManageIdentity/ForgotPassword';
 end;
 
 class function TUrls.DefaultCashbookSignupURL: String;

@@ -59,8 +59,6 @@ type
     edtEmail: TEdit;
     edtPassword: TEdit;
     lblPassword: TLabel;
-    btnForgotPassword: TButton;
-    btnSignUp: TButton;
     btnSignIn: TButton;
     pnlFirm: TPanel;
     Label6: TLabel;
@@ -92,6 +90,7 @@ type
     lblClientError: TLabel;
     lstClientErrors: TListBox;
     lblClientErrorSupport: TLabel;
+    lblForgotPassword: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
@@ -101,9 +100,8 @@ type
     procedure chkChartofAccountClick(Sender: TObject);
     procedure chkAcceptAgreementClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btnForgotPasswordClick(Sender: TObject);
-    procedure btnSignUpClick(Sender: TObject);
     procedure edtEmailChange(Sender: TObject);
+    procedure lblForgotPasswordClick(Sender: TObject);
 
   private
     fCurrentStepID: integer;
@@ -339,32 +337,6 @@ begin
     SignIn()
   else
     SignOut();
-end;
-
-//------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.btnSignUpClick(Sender: TObject);
-var
-  link : string;
-begin
-  link := PRACINI_DefaultCashbookSignupURL;
-
-  if length(link) = 0 then
-    exit;
-
-  ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
-end;
-
-//------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.btnForgotPasswordClick(Sender: TObject);
-var
-  link : string;
-begin
-  link := PRACINI_DefaultCashbookForgotPasswordURL;
-
-  if length(link) = 0 then
-    exit;
-
-  ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
 end;
 
 //------------------------------------------------------------------------------
@@ -818,6 +790,27 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.lblForgotPasswordClick(Sender: TObject);
+var
+  link : string;
+  OldCursor: TCursor;
+begin
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourglass;
+
+  try
+    link := PRACINI_DefaultCashbookForgotPasswordURL;
+
+    if length(link) = 0 then
+      exit;
+
+    ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
+  finally
+    Screen.Cursor := OldCursor;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.DoMigrateCashbook;
 var
   OldCursor: TCursor;
@@ -926,8 +919,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.UpdateSignInControls(aBusySigningIn : Boolean);
 begin
-  btnForgotPassword.enabled := not (fSignedIn or aBusySigningIn);
-  btnSignUp.enabled         := not (fSignedIn or aBusySigningIn);
+  lblForgotPassword.visible := not (fSignedIn or aBusySigningIn);
   edtEmail.Enabled          := not (fSignedIn or aBusySigningIn);
   edtPassword.Enabled       := not (fSignedIn or aBusySigningIn);
   lblEmail.Enabled          := not (fSignedIn or aBusySigningIn);
