@@ -161,6 +161,8 @@ uses
   AdminNotesForClient,
   Admin32,
   ClientHomePagefrm,
+  forms,
+  controls,
   SYDEFS;
 
 const
@@ -1314,6 +1316,8 @@ begin
 
       MyClient := CltClient;
       try
+        Screen.Cursor := crHourglass;
+
         if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
         begin
           ErrorStr := CurrentClientCode + ' ' + ErrorStr;

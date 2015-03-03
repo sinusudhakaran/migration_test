@@ -186,10 +186,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -332,7 +328,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Height = -13
             Font.Name = 'Tahoma'
             Font.Style = []
-            ItemHeight = 0
+            ItemHeight = 16
             ParentFont = False
             TabOrder = 0
             OnChange = cmbSelectFirmChange

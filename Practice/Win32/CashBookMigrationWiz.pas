@@ -880,6 +880,9 @@ end;
 function TFrmCashBookMigrationWiz.UpdateFirmControls: boolean;
 var
   FirmIndex : integer;
+  MaxTextWidth : integer;
+  AddToSides : integer;
+  CmbWidth : integer;
 begin
   Result := false;
   // No firms?
@@ -898,7 +901,7 @@ begin
     cmbSelectFirm.Visible := false;
 
     fFirmSelected := true;
-    lblSingleFirm.Caption := fFirms[0].Name;
+    lblSingleFirm.Caption := StringReplace(fFirms[0].Name, '&', '&&', [rfReplaceAll]);;
     fSelectedData.FirmId := fFirms[0].ID;
   end
   else
@@ -906,11 +909,30 @@ begin
     lblSingleFirm.Visible := false;
     cmbSelectFirm.Visible := true;
     fFirmSelected := false;
+    cmbSelectFirm.clear;
 
-    cmbSelectFirm.Clear();
+    MaxTextWidth := 0;
     for FirmIndex := 0 to fFirms.Count-1 do
     begin
       cmbSelectFirm.Items.Add(fFirms[FirmIndex].Name);
+
+      if cmbSelectFirm.Canvas.TextWidth(fFirms[FirmIndex].Name) > MaxTextWidth then
+        MaxTextWidth := cmbSelectFirm.Canvas.TextWidth(fFirms[FirmIndex].Name);
+    end;
+
+    MaxTextWidth := trunc(MaxTextWidth * 1.275);
+
+    cmbSelectFirm.Left := 230;
+    cmbSelectFirm.Width := 254;
+    if MaxTextWidth > cmbSelectFirm.Width then
+    begin
+      if MaxTextWidth > 700 then
+        MaxTextWidth := 700;
+
+      AddToSides := trunc((MaxTextWidth - cmbSelectFirm.Width)/2);
+
+      cmbSelectFirm.Left := cmbSelectFirm.Left - AddToSides;
+      cmbSelectFirm.Width := cmbSelectFirm.Width + (AddToSides*2);
     end;
   end;
   Result := true;

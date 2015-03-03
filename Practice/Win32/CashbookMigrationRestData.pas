@@ -600,8 +600,13 @@ begin
   aJson.Add('GstType', GstType);
   aJson.Add('OrigAccountType', OrigAccountType);
   aJson.Add('OrigGstType', OrigGstType);
-  aJson.Add('OpeningBalance', OpeningBalance);
-  aJson.Add('BankOrCreditFlag', BankOrCreditFlag);
+
+  if OpeningBalance <> 0 then
+    aJson.Add('OpeningBalance', OpeningBalance);
+
+  if BankOrCreditFlag then
+    aJson.Add('BankOrCreditFlag', BankOrCreditFlag);
+
   aJson.Add('Inactive', InActive);
   aJson.Add('PostingAllowed', PostingAllowed);
   aJson.Add('Divisions', Divisions);
