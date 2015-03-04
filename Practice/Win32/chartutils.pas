@@ -75,6 +75,7 @@ procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
 function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
 function GetMigrationClosingBalance(aValue : string) : integer;
 function IsGSTClassUsedInChart(aChartExportCol : TObject; aGST_Class: byte): boolean;
+function IsChartCodeABankContra(aCode: string): boolean;
 procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject);
 
 //------------------------------------------------------------------------------
@@ -98,6 +99,7 @@ Uses
   bkDateUtils,
   PeriodUtils,
   ChartExportToMYOBCashbook,
+  baObj32,
   AuditMgr;
 
 const
@@ -588,6 +590,31 @@ begin
         Result := true;
         Exit;
       end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function IsChartCodeABankContra(aCode: string): boolean;
+var
+  BankAcc      : TBank_Account;
+  TransRec     : pTransaction_Rec;
+  BankAccIndex : Integer;
+  TransIndex   : Integer;
+begin
+  Result := false;
+
+  if trim(aCode) = '' then
+    Exit;
+
+  for BankAccIndex := 0 to Pred(MyClient.clBank_Account_List.ItemCount) do
+  begin
+    BankAcc := MyClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+    if (BankAcc.baFields.baContra_Account_Code = aCode) and
+       (not (BankAcc.baFields.baAccount_Type in LedgerNoContrasJournalSet)) then
+    begin
+      Result := true;
+      Exit;
     end;
   end;
 end;
