@@ -904,7 +904,7 @@ begin
   Parameter.Add('Key', 'Queue');
   Parameter.Add('Value', fQueue);
 
-  // Queue
+  // Region
   Parameter := TlkJSONobject.Create;
   aJson.Add(Parameter);
   Parameter.Add('Key', 'Region');
@@ -913,7 +913,7 @@ begin
   // BLIdentity
   Parameter := TlkJSONobject.Create;
   aJson.Add(Parameter);
-  Parameter.Add('Key', 'Region');
+  Parameter.Add('Key', 'BLIdentity');
   Parameter.Add('Value', fBLIdentity);
 end;
 
