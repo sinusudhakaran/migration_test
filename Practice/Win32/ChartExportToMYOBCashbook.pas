@@ -110,10 +110,10 @@ type
     function DoesTxUseGSTClass(aClient : TClientObj; aClassId: string; aTrans : pTransaction_Rec): Boolean;
     function IsABankContra(aCode: string; aStart: Integer): Integer;
     function IsAGSTContra(aCode: string; aStart: Integer): Integer;
-    function IsThisAContraCode(aCode: string): Boolean;
   public
     destructor Destroy; override;
 
+    function IsThisAContraCode(aCode: string): Boolean;
     function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
     procedure FillChartExportCol(aAllowIactive : Boolean);
     procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money; aIsContra : Boolean);
@@ -222,8 +222,6 @@ type
     function RunExportChartToFile(aFilename : string;
                                   var aErrorStr : string;
                                   aShowUI : boolean) : boolean;
-    procedure FillGstMapCol();
-    function IsGSTClassUsedInChart(aGST_Class : byte) : boolean;
     function DoNonBasicCodesHaveBalances(var aNonBasicCodes : TStringList) : boolean;
   public
     constructor Create;
@@ -1733,7 +1731,7 @@ function TGSTMapCol.GetGSTClassCode(aCashbookGstClass: TCashBookGSTClasses): str
 var
   GstClassIndex : integer;
 begin
-  Result := 'NTR';
+  Result := 'NA';
   for GstClassIndex := 0 to length(GetGSTClassMapArr)-1  do
   begin
     if aCashbookGstClass = GetGSTClassMapArr[GstClassIndex].CashbookGstClass then
@@ -2155,48 +2153,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportToMYOBCashbook.FillGstMapCol;
-var
-  GstIndex : integer;
-begin
-  GSTMapCol.Clear;
-  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
-  begin
-    if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
-    begin
-      if IsGSTClassUsedInChart(GstIndex) then
-      begin
-        GSTMapCol.AddGSTMapItem(GstIndex,
-                                MyClient.clfields.clGST_Class_Codes[GstIndex],
-                                MyClient.clfields.clGST_Class_Names[GstIndex],
-                                GSTMapCol.GetMappedAUGSTTypeCode(MyClient.clfields.clGST_Class_Names[GstIndex]));
-      end;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportToMYOBCashbook.IsGSTClassUsedInChart(aGST_Class: byte): boolean;
-var
-  ChartIndex : integer;
-  ChartExportItem: TChartExportItem;
-begin
-  Result := false;
-
-  for ChartIndex := 0 to ChartExportCol.count-1 do
-  begin
-    if ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem) then
-    begin
-      if ChartExportItem.GSTClassId = aGST_Class then
-      begin
-        Result := true;
-        Exit;
-      end;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 constructor TChartExportToMYOBCashbook.Create;
 begin
   fCountry := GetCountry();
@@ -2261,7 +2217,7 @@ begin
   if (Country = whAustralia) then
   begin
     GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
-    FillGstMapCol();
+    FillGstMapCol(ChartExportCol, GSTMapCol);
 
     if GSTMapCol.PrevGSTFileLocation <> '' then
     begin

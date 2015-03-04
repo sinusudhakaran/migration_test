@@ -70,6 +70,7 @@ Uses
   Globals,
   LogUtil,
   SyDefs,
+  sysutils,
   GenUtils;
 
 //------------------------------------------------------------------------------
@@ -536,6 +537,80 @@ begin
     exit;
 
   result := true;
+end;
+
+function ValidateIRD(aIRD : String; var aCleanIRD : string): Boolean;
+const
+  Weighting01 : Array [ 1..8] of integer = ( 3, 2, 7, 6, 5, 4, 3, 2);
+  Weighting02 : Array [ 1..8] of integer = ( 7, 4, 3, 2, 5, 2, 7, 6);
+var
+  IRD_Digits : Array[ 1..9] of integer;
+  Index : integer;
+  CalcValue : integer;
+
+  function CheckSum(aUseWeight01 : boolean) : boolean;
+  var
+    Sum : integer;
+    SumIndex : integer;
+  begin
+    Result := false;
+
+    Sum := 0;
+    for SumIndex := 1 to 8 do
+    begin
+      if aUseWeight01 then
+        Sum := Sum + (IRD_Digits[Index]*Weighting01[SumIndex])
+      else
+        Sum := Sum + (IRD_Digits[Index]*Weighting02[SumIndex])
+    end;
+
+    CalcValue := Sum mod 11;
+    if (CalcValue = 0) and (IRD_Digits[9] = 0) then
+    begin
+      Result := true;
+      Exit;
+    end;
+
+    CalcValue := 11 - CalcValue;
+    if (CalcValue < 10) and (IRD_Digits[9] = CalcValue) then
+    begin
+      Result := true;
+      Exit;
+    end;
+  end;
+
+begin
+  result := false;
+
+  // clean IRD number
+  aCleanIRD := '';
+  for Index := 1 to Length(aIRD) do
+  begin
+    if aIRD[Index] in ['0'..'9'] then
+      aCleanIRD := aCleanIRD + aIRD[Index];
+  end;
+
+  // Add zero to front if length is 8
+  if Length(aCleanIRD) = 8 then
+    aCleanIRD := '0' + aCleanIRD;
+
+  //check length
+  if Length( aCleanIRD) <> 9 then
+    exit;
+
+  for Index := 1 to Length(aCleanIRD) do
+    IRD_Digits[Index] := strtoint(aCleanIRD[Index]);
+
+  Result := CheckSum(true);
+  if Result then
+    Exit;
+
+  if (CalcValue = 10) then
+  begin
+    Result := CheckSum(false);
+    if Result then
+      Exit;
+  end;
 end;
 
 End.

@@ -316,12 +316,14 @@ type
     fDataStore: string;
     fQueue: string;
     fRegion: string;
+    fBLIdentity : string;
   public
     procedure Write(const aJson: TlkJSONlist);
 
-    property  DataStore: string read fDataStore write fDataStore;
-    property  Queue: string read fQueue write fQueue;
-    property  Region: string read fRegion write fRegion;
+    property DataStore : string read fDataStore write fDataStore;
+    property Queue : string read fQueue write fQueue;
+    property Region : string read fRegion write fRegion;
+    property BLIdentity : string read fBLIdentity write fBLIdentity;
   end;
 
     //----------------------------------------------------------------------------
@@ -907,6 +909,12 @@ begin
   aJson.Add(Parameter);
   Parameter.Add('Key', 'Region');
   Parameter.Add('Value', fRegion);
+
+  // BLIdentity
+  Parameter := TlkJSONobject.Create;
+  aJson.Add(Parameter);
+  Parameter.Add('Key', 'Region');
+  Parameter.Add('Value', fBLIdentity);
 end;
 
 //------------------------------------------------------------------------------

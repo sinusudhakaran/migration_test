@@ -74,6 +74,8 @@ procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
 
 function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
 function GetMigrationClosingBalance(aValue : string) : integer;
+function IsGSTClassUsedInChart(aChartExportCol : TObject; aGST_Class: byte): boolean;
+procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject);
 
 //------------------------------------------------------------------------------
 Implementation
@@ -95,6 +97,7 @@ Uses
   DateUtils,
   bkDateUtils,
   PeriodUtils,
+  ChartExportToMYOBCashbook,
   AuditMgr;
 
 const
@@ -562,6 +565,62 @@ begin
   TryStrtoint(ValStr, Result);
 end;
 
+//------------------------------------------------------------------------------
+function IsGSTClassUsedInChart(aChartExportCol : TObject; aGST_Class: byte): boolean;
+var
+  ChartIndex : integer;
+  ChartExportItem: TChartExportItem;
+  ChartExportCol : TChartExportCol;
+begin
+  Result := false;
+
+  if not(aChartExportCol is TChartExportCol) then
+    Exit;
+
+  ChartExportCol := TChartExportCol(aChartExportCol);
+
+  for ChartIndex := 0 to ChartExportCol.count-1 do
+  begin
+    if ChartExportCol.ItemAtColIndex(ChartIndex, ChartExportItem) then
+    begin
+      if ChartExportItem.GSTClassId = aGST_Class then
+      begin
+        Result := true;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject);
+var
+  GstIndex : integer;
+  ChartExportCol : TChartExportCol;
+  GSTMapCol : TGSTMapCol;
+begin
+   if not (aChartExportCol is TChartExportCol) or
+      not (aGSTMapCol is TGSTMapCol) then
+     Exit;
+
+  ChartExportCol := TChartExportCol(aChartExportCol);
+  GSTMapCol := TGSTMapCol(aGSTMapCol);
+
+  GSTMapCol.Clear;
+  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  begin
+    if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
+    begin
+      if IsGSTClassUsedInChart(ChartExportCol, GstIndex) then
+      begin
+        GSTMapCol.AddGSTMapItem(GstIndex,
+                                MyClient.clfields.clGST_Class_Codes[GstIndex],
+                                MyClient.clfields.clGST_Class_Names[GstIndex],
+                                GSTMapCol.GetMappedAUGSTTypeCode(MyClient.clfields.clGST_Class_Names[GstIndex]));
+      end;
+    end;
+  end;
+end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialization

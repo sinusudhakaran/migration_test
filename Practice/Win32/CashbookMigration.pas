@@ -52,6 +52,7 @@ type
     fCurrentClient : integer;
     fClientDataSize : integer;
     fNumCodeReplaced : integer;
+    fCurrentMyDotUser : string;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -132,8 +133,10 @@ type
 
     function GetFirms(var aFirms: TFirms; var aError: string): boolean;
 
-    function MigrateClients(aSelectClients : TStringList; aSelectedData : TSelectedData;
-                            var aClientErrors : TStringList) : TMigrationStatus;
+    function MigrateClients(aSelectClients : TStringList;
+                            aSelectedData : TSelectedData;
+                            var aClientErrors : TStringList;
+                            var aNumErrorClients : integer) : TMigrationStatus;
 
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
   end;
@@ -163,6 +166,7 @@ uses
   ClientHomePagefrm,
   forms,
   controls,
+  baObj32,
   SYDEFS;
 
 const
@@ -853,8 +857,8 @@ begin
         MappedGroupId := aChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId);
 
         NewChartItem.OrigAccountType := atNames[AccRec.chAccount_Type];
-        NewChartItem.OrigGstType := aClient.clFields.clGST_Class_Codes[ AccRec.chGST_Class ] + ' ' +
-                                    aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class];
+        NewChartItem.OrigGstType := trim(aClient.clFields.clGST_Class_Codes[ AccRec.chGST_Class ] + ' ' +
+                                         aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class]);
         NewChartItem.AccountType := GetMigrationMappedReportGroupCode(MappedGroupId);
 
         if (AdminSystem.fdFields.fdCountry = whAustralia) then
@@ -878,6 +882,7 @@ begin
           NewChartItem.OpeningBalance := 0;
 
         NewChartItem.BankOrCreditFlag := ChartExportItem.IsContra;
+        NewChartItem.BankOrCreditFlag := aChartExportCol.IsThisAContraCode(AccRec.chAccount_Code);
       end
       else
       begin
@@ -901,14 +906,76 @@ end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.FillTransactionData(aClient: TClientObj; aTransactionsData: TTransactionsData; var aError: string): boolean;
+var
+  AccountIndex : integer;
+  TransactionIndex : integer;
+  TransactionItem : TTransactionData;
+  BankAccount : TBank_Account;
+  TransactionRec : tTransaction_Rec;
 begin
-  Result := true;
+  Result := false;
+  try
+    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    begin
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+      if not BankAccount.baFields.baIs_A_Manual_Account then
+      begin
+        for TransactionIndex := BankAccount.baTransaction_List.ItemCount-1 downto 0 do
+        begin
+          TransactionRec := BankAccount.baTransaction_List.Transaction_At(TransactionIndex)^;
+
+          // Check if Transaction is not finalized and not presented
+          if not (TransactionRec.txLocked) and
+             (TransactionRec.txDate_Transferred = 0) then
+            break;
+
+          TransactionItem := TTransactionData.Create(aTransactionsData);
+          TransactionItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
+          TransactionItem.Description := TransactionRec.txStatement_Details;
+          TransactionItem.Amount := trunc(TransactionRec.txAmount);
+          TransactionItem.BankAccNumber := TransactionRec.txAccount;
+          TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex));
+        end;
+      end;
+    end;
+    Result := true;
+
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Transactions : ' + E.Message;
+      exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; var aError: string): boolean;
+var
+  AccountIndex : integer;
+  TransactionIndex : integer;
+  TransactionItem : TTransactionData;
+  BankAccount : TBank_Account;
 begin
-  Result := true;
+  Result := false;
+  try
+    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    begin
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+      if BankAccount.baFields.baIs_A_Manual_Account then
+      begin
+
+      end;
+    end;
+    Result := true;
+
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Transactions : ' + E.Message;
+      exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -938,6 +1005,7 @@ begin
     MigUpload.Files.FileName := 'Test.json';
     MigUpload.Parameters.DataStore := PRACINI_CashbookAPIUploadDataStore;
     MigUpload.Parameters.Queue := PRACINI_CashbookAPIUploadQueue;
+    MigUpload.Parameters.BLIdentity := CurrUser.Code + '/' + fCurrentMyDotUser;
 
     MigUpload.Parameters.Region := inttostr(ord(AdminSystem.fdFields.fdCountry));
     try
@@ -1020,10 +1088,6 @@ var
 begin
   result := false;
 
-  // Phase 1 force all options to no, just send client create data
-  aSelectedData.Bankfeeds := false;
-  aSelectedData.NonTransferedTransactions := false;
-
   ClientBase := TClientBase.Create;
   try
     ClientBase.Token := fToken;
@@ -1045,6 +1109,7 @@ begin
         GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
         try
           GSTMapCol.FillGstClassMapArr;
+          FillGstMapCol(ChartExportCol, GSTMapCol);
 
           UsedDivisions := TStringList.Create();
           UsedDivisions.Delimiter := ',';
@@ -1111,6 +1176,8 @@ begin
   // Http
   FHttpRequester  := TIpsHTTPS.Create(nil);
   HttpSetup;
+
+  fCurrentMyDotUser := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -1187,6 +1254,7 @@ begin
         exit;
       end;
 
+      fCurrentMyDotUser := aEmail;
       result := true;
 
     except
@@ -1253,7 +1321,8 @@ end;
 //------------------------------------------------------------------------------
 function TCashbookMigration.MigrateClients(aSelectClients: TStringList;
                                            aSelectedData: TSelectedData;
-                                           var aClientErrors : TStringList) : TMigrationStatus;
+                                           var aClientErrors : TStringList;
+                                           var aNumErrorClients : integer) : TMigrationStatus;
 var
   ClientIndex : integer;
   CurrentClientCode : string;
@@ -1262,6 +1331,9 @@ var
   CltClient : TClientObj;
   ClientLRN : integer;
   ErrorStr  : string;
+  ErrorIndex : integer;
+  NumErrorClients : integer;
+  LastClientIndex : integer;
 begin
   // Initialize ErrorList and progress event
   aClientErrors.clear;
@@ -1286,7 +1358,7 @@ begin
       if not Assigned(SysClient) then
       begin
         ErrorStr := CurrentClientCode + ' Error finding Client in System File.';
-        aClientErrors.Add(ErrorStr);
+        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
       end;
@@ -1296,7 +1368,7 @@ begin
         ErrorStr := CurrentClientCode + ' Error with Client, it is not in the correct status. ' +
                     'Current Status : ' + fsNames[AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status] +
                     ' needs to be in normal status.';
-        aClientErrors.Add(ErrorStr);
+        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
       end;
@@ -1309,7 +1381,7 @@ begin
       if not Assigned(CltClient) then
       begin
         ErrorStr := CurrentClientCode + ' Error opening Client file.';
-        aClientErrors.Add(ErrorStr);
+        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
       end;
@@ -1321,7 +1393,7 @@ begin
         if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
         begin
           ErrorStr := CurrentClientCode + ' ' + ErrorStr;
-          aClientErrors.Add(ErrorStr);
+          aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
           LogUtil.LogMsg(lmError, UnitName, ErrorStr);
           Continue;
         end
@@ -1358,7 +1430,7 @@ begin
       on E: Exception do
       begin
         ErrorStr := CurrentClientCode + ' Exception opening Client, Error : ' + E.Message;
-        aClientErrors.Add(ErrorStr);
+        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
         Continue;
       end;
@@ -1369,6 +1441,17 @@ begin
   end;
 
   RefreshHomepage([HPR_Tasks]);
+
+  LastClientIndex := -1;
+  aNumErrorClients := 0;
+  for ErrorIndex := 0 to aClientErrors.Count-1 do
+  begin
+    if LastClientIndex <> Integer(aClientErrors.Objects[ErrorIndex]) then
+    begin
+      LastClientIndex := Integer(aClientErrors.Objects[ErrorIndex]);
+      inc(aNumErrorClients);
+    end;
+  end;
 
   // Set Result according to amount of errors, used in UI
   if aClientErrors.Count = 0 then

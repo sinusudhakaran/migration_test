@@ -115,6 +115,7 @@ type
     fSelectedData  : TSelectedData;
     fFirms : TFirms;
     fSignInTime : TDateTime;
+    fNumErrorClients : integer;
 
     fMigrationStatus : TMigrationStatus;
 
@@ -270,6 +271,8 @@ begin
   inherited Create(AOwner);
 
   fClientErrors := TStringList.Create;
+  fNumErrorClients := 0;
+
   fFirms := TFirms.create();
 end;
 
@@ -821,7 +824,7 @@ begin
   MigrateCashbook.OnProgressEvent := DoMigrationProgress;
   try
     fClientErrors.Clear;
-    fMigrationStatus := MigrateCashbook.MigrateClients(fSelectClients, fSelectedData, fClientErrors);
+    fMigrationStatus := MigrateCashbook.MigrateClients(fSelectClients, fSelectedData, fClientErrors, fNumErrorClients);
   finally
     MigrateCashbook.OnProgressEvent := nil;
     Screen.Cursor := OldCursor;
@@ -998,9 +1001,7 @@ begin
 
   lstClientErrors.Clear;
   for ErrorIndex := 0 to fClientErrors.Count-1 do
-  begin
     lstClientErrors.AddItem(fClientErrors.Strings[ErrorIndex], nil);
-  end;
 
   lblClientCompleteAmount.Caption :=
     Format('%d client(s) and their data are now being created in ' + BRAND_CASHBOOK_NAME + '.', [TotalClients]);
@@ -1008,10 +1009,10 @@ begin
   lblCashbookLoginLink.Caption :=
     Format('You can log into %s here', [CASHBOOK_DASHBOARD_NAME]);
 
-  if lstClientErrors.Count > 0 then
+  if fNumErrorClients > 0 then
   begin
     SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-    lblClientError.Caption := Format('The following %d client(s) could not be migrated.', [lstClientErrors.Count]);
+    lblClientError.Caption := Format('The following %d client(s) could not be migrated.', [fNumErrorClients]);
     lblClientErrorSupport.Caption := Format('Please contact ' + SHORTAPPNAME + ' support if the problems persist : %s', [SupportNumber]);
   end;
 
