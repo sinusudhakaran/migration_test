@@ -881,7 +881,7 @@ begin
         else
           NewChartItem.OpeningBalance := 0;
 
-        NewChartItem.BankOrCreditFlag := ChartExportItem.IsContra or IsChartCodeABankContra(AccRec.chAccount_Code);
+        NewChartItem.BankOrCreditFlag := IsChartCodeABankContra(AccRec.chAccount_Code);
       end
       else
       begin

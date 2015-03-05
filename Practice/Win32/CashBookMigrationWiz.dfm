@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabComplete
+      ActivePage = tabSelectData
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -415,7 +415,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Top = 62
             Width = 180
             Height = 17
-            Caption = 'Chart of Account'
+            Caption = 'Chart of Accounts'
             Checked = True
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
