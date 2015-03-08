@@ -102,6 +102,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure edtEmailChange(Sender: TObject);
     procedure lblForgotPasswordClick(Sender: TObject);
+    procedure lblCashbookLoginLinkClick(Sender: TObject);
 
   private
     fCurrentStepID: integer;
@@ -790,6 +791,30 @@ end;
 function TFrmCashBookMigrationWiz.IsLastStep: boolean;
 begin
   Result := (fCurrentStepID =  TabOrderArray[High(TabOrderArray)]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.lblCashbookLoginLinkClick(Sender: TObject);
+var
+  link : string;
+  OldCursor: TCursor;
+begin
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourglass;
+
+  try
+    if AdminSystem.fdFields.fdCountry = whAustralia then
+      link := PRACINI_DefaultCashbookLoginAUURL
+    else
+      link := PRACINI_DefaultCashbookLoginNZURL;
+
+    if length(link) = 0 then
+      exit;
+
+    ShellExecute(0, 'open', PChar(link), nil, nil, SW_NORMAL);
+  finally
+    Screen.Cursor := OldCursor;
+  end;
 end;
 
 //------------------------------------------------------------------------------

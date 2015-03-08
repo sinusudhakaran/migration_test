@@ -38,6 +38,28 @@ type
     MyobApiAccessToken: string;
   end;
 
+  {TMappingValueTypes = (mvtAccountContraCode,
+                        mvtChartAccountCode);
+
+  //----------------------------------------------------------------------------
+  TMappingData = class(TCollectionItem)
+  private
+    fOriginalValue : string;
+    fChangedValue : string;
+    fValueType : TMappingValueTypes;
+  public
+    property OriginalValue : string read fOriginalValue write fOriginalValue;
+    property ChangedValue : string read fChangedValue write fChangedValue;
+    property ValueType : TMappingValueTypes read fValueType write fValueType;
+  end;
+
+  //----------------------------------------------------------------------------
+  TMappingsData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex : integer) : TMappingData;
+  end; }
+
   //----------------------------------------------------------------------------
   TCashbookMigration = class
   private
@@ -848,6 +870,10 @@ begin
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
       NewChartItem.Code := AccRec.chAccount_Code;
       NewChartItem.Name := StripInvalidCharacters(AccRec.chAccount_Description);
+
+      if length(trim(NewChartItem.Name)) = 0 then
+        NewChartItem.Name := NewChartItem.Code;
+
       NewChartItem.InActive := AccRec.chInactive;
       NewChartItem.PostingAllowed := AccRec.chPosting_Allowed;
       NewChartItem.Divisions := GetValidDivisions();
@@ -914,7 +940,7 @@ var
 begin
   Result := false;
   try
-    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    {for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
       if not BankAccount.baFields.baIs_A_Manual_Account then
@@ -932,11 +958,15 @@ begin
           TransactionItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           TransactionItem.Description := TransactionRec.txStatement_Details;
           TransactionItem.Amount := trunc(TransactionRec.txAmount);
-          TransactionItem.BankAccNumber := TransactionRec.txAccount;
-          TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex));
+
+          if BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex) > 0 then
+            TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex))
+          else
+            TransactionItem.CoreTransactionId := '';
+
         end;
       end;
-    end;
+    end;}
     Result := true;
 
   except

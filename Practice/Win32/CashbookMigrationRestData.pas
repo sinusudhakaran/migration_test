@@ -54,9 +54,61 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  TLineData = class(TCollectionItem)
+  private
+    fAccountNumber : string;
+    fAmount : string;
+    fIsCredit : boolean;
+  public
+    procedure Write(const aJson: TlkJSONobject);
+
+    property AccountNumber : string read fAccountNumber write fAccountNumber;
+    property Amount : string read fAmount write fAmount;
+    property IsCredit : boolean read fIsCredit write fIsCredit;
+  end;
+
+  //----------------------------------------------------------------------------
+  TLinesData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex : integer) : TLineData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+  //----------------------------------------------------------------------------
+  TJournalData = class(TCollectionItem)
+  private
+    fDate        : string;
+    fDescription : string;
+
+    fLines : TLinesData;
+  public
+    constructor Create(Collection: TCollection); override;
+    destructor  Destroy; override;
+
+    procedure Write(const aJson: TlkJSONobject);
+
+    property Date : string read fDate write fDate;
+    property Description : string read fDescription write fDescription;
+
+    property Lines : TLinesData read fLines write fLines;
+  end;
+
+  //----------------------------------------------------------------------------
+  TJournalsData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex : integer) : TJournalData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+  //----------------------------------------------------------------------------
   TAllocationData = class(TCollectionItem)
   private
     fAccountNumber : string;
+    fDescription : string;
     fAmount : string;
     fTaxRate : string;
     fTaxAmount : string;
@@ -64,6 +116,7 @@ type
     procedure Write(const aJson: TlkJSONobject);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
+    property Description : string read fDescription write fDescription;
     property Amount : string read fAmount write fAmount;
     property TaxRate : string read fTaxRate write fTaxRate;
     property TaxAmount : string read fTaxAmount write fTaxAmount;
@@ -79,38 +132,11 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TJournalData = class(TCollectionItem)
-  private
-    fDate        : string;
-    fDescription : string;
-
-    fAllocations : TAllocationsData;
-  public
-    constructor Create(Collection: TCollection); override;
-    destructor  Destroy; override;
-
-    procedure Write(const aJson: TlkJSONobject);
-
-    property Date : string read fDate write fDate;
-    property Description : string read fDescription write fDescription;
-  end;
-
-  //----------------------------------------------------------------------------
-  TJournalsData = class(TCollection)
-  private
-  public
-    function ItemAs(aIndex : integer) : TJournalData;
-
-    procedure Write(const aJson: TlkJSONobject);
-  end;
-
-  //----------------------------------------------------------------------------
   TTransactionData = class(TCollectionItem)
   private
     fDate : string;
     fDescription : string;
     fAmount : integer;
-    fBankAccNumber : string;
     fCoreTransactionId : string;
 
     fAllocations : TAllocationsData;
@@ -123,8 +149,9 @@ type
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
     property Amount : integer read fAmount write fAmount;
-    property BankAccNumber : string read fBankAccNumber write fBankAccNumber;
     property CoreTransactionId : string read fCoreTransactionId write fCoreTransactionId;
+
+    property Allocations : TAllocationsData read fAllocations write fAllocations;
   end;
 
   //----------------------------------------------------------------------------
@@ -132,6 +159,31 @@ type
   private
   public
     function ItemAs(aIndex : integer) : TTransactionData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+  //----------------------------------------------------------------------------
+  TBankAccountData = class(TCollectionItem)
+  private
+    fBankAccountNumber : string;
+
+    fTransactions : TTransactionsData;
+  public
+    constructor Create(Collection: TCollection); override;
+    destructor  Destroy; override;
+
+    procedure Write(const aJson: TlkJSONobject);
+
+    property BankAccountNumber : string read fBankAccountNumber write fBankAccountNumber;
+    property Transactions : TTransactionsData read fTransactions write fTransactions;
+  end;
+
+  //----------------------------------------------------------------------------
+  TBankAccountsData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex : integer) : TBankAccountData;
 
     procedure Write(const aJson: TlkJSONobject);
   end;
@@ -175,7 +227,7 @@ type
     procedure Write(const aJson: TlkJSONobject);
   end;
 
-    //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   TDivisionData = class(TCollectionItem)
   private
     fId : integer;
@@ -198,7 +250,7 @@ type
     procedure Write(const aJson: TlkJSONobject);
   end;
 
-    //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   TBankFeedApplicationData = class(TCollectionItem)
   private
     fCountryCode : string;
@@ -447,41 +499,43 @@ begin
   end;
 end;
 
-{ TAllocationData }
+{ TLineData }
 //------------------------------------------------------------------------------
-procedure TAllocationData.Write(const aJson: TlkJSONobject);
+procedure TLineData.Write(const aJson: TlkJSONobject);
 begin
-  aJson.Add('account_number', AccountNumber);
-  aJson.Add('amount', Amount);
-  aJson.Add('tax_rate', TaxRate);
-  aJson.Add('tax_amount', TaxAmount);
+  aJson.Add('AccountNumber', AccountNumber);
+  aJson.Add('Amount', Amount);
+  aJson.Add('IsCredit', IsCredit);
 end;
 
-{ TAllocationsData }
+{ TLinesData }
 //------------------------------------------------------------------------------
-function TAllocationsData.ItemAs(aIndex: integer): TAllocationData;
+function TLinesData.ItemAs(aIndex: integer): TLineData;
 begin
-  Result := TAllocationData(Self.Items[aIndex]);
+  Result := TLineData(Self.Items[aIndex]);
 end;
 
 //------------------------------------------------------------------------------
-procedure TAllocationsData.Write(const aJson: TlkJSONobject);
+procedure TLinesData.Write(const aJson: TlkJSONobject);
 var
-  Allocations: TlkJSONlist;
-  AllocationIndex : integer;
-  Allocation : TAllocationData;
-  AllocationData : TlkJSONobject;
+  Lines: TlkJSONlist;
+  LineIndex : integer;
+  Line : TLineData;
+  LineData : TlkJSONobject;
 begin
-  Allocations := TlkJSONlist.Create;
-  aJson.Add('bank_transactions', Allocations);
+  if self.Count = 0 then
+    Exit;
 
-  for AllocationIndex := 0 to self.Count-1 do
+  Lines := TlkJSONlist.Create;
+  aJson.Add('Lines', Lines);
+
+  for LineIndex := 0 to self.Count-1 do
   begin
-    AllocationData := TlkJSONobject.Create;
-    Allocations.Add(AllocationData);
+    LineData := TlkJSONobject.Create;
+    Lines.Add(LineData);
 
-    Allocation := ItemAs(AllocationIndex);
-    Allocation.Write(AllocationData);
+    Line := ItemAs(LineIndex);
+    Line.Write(LineData);
   end;
 end;
 
@@ -491,13 +545,13 @@ constructor TJournalData.Create(Collection: TCollection);
 begin
   inherited;
 
-  fAllocations := TAllocationsData.Create(TAllocationData);
+  fLines := TLinesData.Create(TLineData);
 end;
 
 //------------------------------------------------------------------------------
 destructor TJournalData.Destroy;
 begin
-  FreeAndNil(fAllocations);
+  FreeAndNil(fLines);
 
   inherited;
 end;
@@ -507,6 +561,8 @@ procedure TJournalData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('Date', Date);
   aJson.Add('Description', Description);
+
+  Lines.Write(aJson);
 end;
 
 { TJournalsData }
@@ -524,8 +580,11 @@ var
   Journal : TJournalData;
   JournalData : TlkJSONobject;
 begin
+  if self.Count = 0 then
+    Exit;
+
   Journals := TlkJSONlist.Create;
-  aJson.Add('banktransactions', Journals);
+  aJson.Add('generaljournals', Journals);
 
   for JournalIndex := 0 to self.Count-1 do
   begin
@@ -534,6 +593,48 @@ begin
 
     Journal := ItemAs(JournalIndex);
     Journal.Write(JournalData);
+  end;
+end;
+
+{ TAllocationData }
+//------------------------------------------------------------------------------
+procedure TAllocationData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('AccountNumber', AccountNumber);
+  aJson.Add('Description', Description);
+  aJson.Add('Amount', Amount);
+  aJson.Add('TaxRate', TaxRate);
+  aJson.Add('TaxAmount', TaxAmount);
+end;
+
+{ TAllocationsData }
+//------------------------------------------------------------------------------
+function TAllocationsData.ItemAs(aIndex: integer): TAllocationData;
+begin
+  Result := TAllocationData(Self.Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TAllocationsData.Write(const aJson: TlkJSONobject);
+var
+  Allocations: TlkJSONlist;
+  AllocationIndex : integer;
+  Allocation : TAllocationData;
+  AllocationData : TlkJSONobject;
+begin
+  if self.Count = 0 then
+    Exit;
+
+  Allocations := TlkJSONlist.Create;
+  aJson.Add('Allocations', Allocations);
+
+  for AllocationIndex := 0 to self.Count-1 do
+  begin
+    AllocationData := TlkJSONobject.Create;
+    Allocations.Add(AllocationData);
+
+    Allocation := ItemAs(AllocationIndex);
+    Allocation.Write(AllocationData);
   end;
 end;
 
@@ -560,8 +661,11 @@ begin
   aJson.Add('Date', Date);
   aJson.Add('Description', Description);
   aJson.Add('Amount', Amount);
-  aJson.Add('BankAccountNumber', BankAccNumber);
-  aJson.Add('CoreTransactionId', CoreTransactionId);
+
+  if CoreTransactionId <> '' then
+    aJson.Add('CoreTransactionId', CoreTransactionId);
+
+  Allocations.Write(aJson);
 end;
 
 { TTransactionsData }
@@ -579,8 +683,11 @@ var
   Transaction : TTransactionData;
   TransactionData : TlkJSONobject;
 begin
+  if self.Count = 0 then
+    Exit;
+
   Transactions := TlkJSONlist.Create;
-  aJson.Add('banktransactions', Transactions);
+  aJson.Add('BankTransactions', Transactions);
 
   for TransactionIndex := 0 to self.Count-1 do
   begin
@@ -589,6 +696,60 @@ begin
 
     Transaction := ItemAs(TransactionIndex);
     Transaction.Write(TransactionData);
+  end;
+end;
+
+{ TBankAccountData }
+//------------------------------------------------------------------------------
+constructor TBankAccountData.Create(Collection: TCollection);
+begin
+  inherited;
+  fTransactions := TTransactionsData.Create(TTransactionData);
+end;
+
+//------------------------------------------------------------------------------
+destructor TBankAccountData.Destroy;
+begin
+  FreeAndNil(fTransactions);
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
+procedure TBankAccountData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('BankAccountNumber', BankAccountNumber);
+
+  Transactions.Write(aJson);
+end;
+
+{ TBankAccountsData }
+//------------------------------------------------------------------------------
+function TBankAccountsData.ItemAs(aIndex: integer): TBankAccountData;
+begin
+  Result := TBankAccountData(Self.Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TBankAccountsData.Write(const aJson: TlkJSONobject);
+var
+  BankAccounts: TlkJSONlist;
+  BankAccountIndex : integer;
+  BankAccount : TBankAccountData;
+  BankAccountData : TlkJSONobject;
+begin
+  if self.Count = 0 then
+    Exit;
+
+  BankAccounts := TlkJSONlist.Create;
+  aJson.Add('bankaccounts', BankAccounts);
+
+  for BankAccountIndex := 0 to self.Count-1 do
+  begin
+    BankAccountData := TlkJSONobject.Create;
+    BankAccounts.Add(BankAccountData);
+
+    BankAccount := ItemAs(BankAccountIndex);
+    BankAccount.Write(BankAccountData);
   end;
 end;
 
@@ -629,6 +790,9 @@ var
   ChartOfAccount : TChartOfAccountData;
   ChartOfAccountData : TlkJSONobject;
 begin
+  if self.Count = 0 then
+    Exit;
+
   Accounts := TlkJSONlist.Create;
   aJson.Add('accounts', Accounts);
 
@@ -670,6 +834,9 @@ var
   Division : TDivisionData;
   DivisionData : TlkJSONobject;
 begin
+  if self.Count = 0 then
+    Exit;
+
   Divisions := TlkJSONlist.Create;
   aJson.Add('divisions', Divisions);
 
@@ -708,6 +875,9 @@ var
   BankFeedApp : TBankFeedApplicationData;
   BankFeedAppData : TlkJSONobject;
 begin
+  if self.Count = 0 then
+    Exit;
+
   BankFeedApps := TlkJSONlist.Create;
   aJson.Add('bankfeedapplications', BankFeedApps);
 

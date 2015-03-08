@@ -685,6 +685,8 @@ begin
 
         PRACINI_DefaultCashbookSignupURL := ReadString(GrpPracLinks,'DefaultCashbookSignupURL', TUrls.DefaultCashbookSignupURL);
         PRACINI_DefaultCashbookForgotPasswordURL := ReadString(GrpPracLinks,'DefaultCashbookForgotPasswordURL', TUrls.DefaultCashbookForgotPasswordURL);
+        PRACINI_DefaultCashbookLoginNZURL := ReadString(GrpPracLinks,'DefaultCashbookLoginNZURL', TUrls.DefaultCashbookLoginNZURL);
+        PRACINI_DefaultCashbookLoginAUURL := ReadString(GrpPracLinks,'DefaultCashbookLoginAUURL', TUrls.DefaultCashbookLoginAUURL);
 
         // hidden readonly cashbook settings
         PRACINI_CashbookAPILoginURL    := ReadString(GrpPracLinks,'CashbookAPILoginURL', TUrls.CashbookAPILoginURL);

@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabSelectData
+      ActivePage = tabComplete
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -578,6 +578,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Name = 'Tahoma'
             Font.Style = [fsUnderline]
             ParentFont = False
+            OnClick = lblCashbookLoginLinkClick
           end
         end
         object pnlCashbookErrors: TPanel

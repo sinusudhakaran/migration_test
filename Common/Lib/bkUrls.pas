@@ -17,6 +17,8 @@ type
     class function DefaultAUCashMigrationURLOverview2 : String; static;
     class function DefaultCashbookForgotPasswordURL : String; static;
     class function DefaultCashbookSignupURL : String; static;
+    class function DefaultCashbookLoginNZURL : String; static;
+    class function DefaultCashbookLoginAUURL : String; static;
     class function CashbookAPILoginURL : String; static;
     class function CashbookAPIFirmsURL : String; static;
     class function CashbookAPIUploadURL : String; static;
@@ -157,6 +159,16 @@ end;
 class function TUrls.DefaultCashbookForgotPasswordURL: String;
 begin
   Result := 'https://secure.myob.com/oauth2/ManageIdentity/ForgotPassword';
+end;
+
+class function TUrls.DefaultCashbookLoginAUURL: String;
+begin
+  Result := 'https://Cashbook.myob.com.au';
+end;
+
+class function TUrls.DefaultCashbookLoginNZURL: String;
+begin
+  Result := 'https://Cashbook.myob.co.nz';
 end;
 
 class function TUrls.DefaultCashbookSignupURL: String;
