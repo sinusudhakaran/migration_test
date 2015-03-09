@@ -189,6 +189,7 @@ uses
   forms,
   controls,
   baObj32,
+  CalculateAccountTotals,
   SYDEFS;
 
 const
@@ -1117,64 +1118,70 @@ var
 begin
   result := false;
 
-  ClientBase := TClientBase.Create;
+  CalculateAccountTotals.AddAutoContraCodes( aClient);
   try
-    ClientBase.Token := fToken;
 
-    if GetLastFullyCodedMonth(BalDate) then
-      ClosingBalanceDate := BalDate
-    else
-      ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+    ClientBase := TClientBase.Create;
+    try
+      ClientBase.Token := fToken;
 
-    if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aError) then
-      Exit;
+      if GetLastFullyCodedMonth(BalDate) then
+        ClosingBalanceDate := BalDate
+      else
+        ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
 
-    if aSelectedData.ChartOfAccount then
-    begin
-      ChartExportCol := TChartExportCol.Create(TChartExportItem);
-      try
-        ChartExportCol.FillChartExportCol(true);
-        ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
-        GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
+      if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aError) then
+        Exit;
+
+      if aSelectedData.ChartOfAccount then
+      begin
+        ChartExportCol := TChartExportCol.Create(TChartExportItem);
         try
-          GSTMapCol.FillGstClassMapArr;
-          FillGstMapCol(ChartExportCol, GSTMapCol);
-
-          UsedDivisions := TStringList.Create();
-          UsedDivisions.Delimiter := ',';
-          UsedDivisions.StrictDelimiter := true;
+          ChartExportCol.FillChartExportCol(true);
+          ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
+          GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
           try
-            if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
-              Exit;
+            GSTMapCol.FillGstClassMapArr;
+            FillGstMapCol(ChartExportCol, GSTMapCol);
 
-            if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, ChartExportCol, GSTMapCol, UsedDivisions, aError) then
-              Exit;
+            UsedDivisions := TStringList.Create();
+            UsedDivisions.Delimiter := ',';
+            UsedDivisions.StrictDelimiter := true;
+            try
+              if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
+                Exit;
+
+              if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, ChartExportCol, GSTMapCol, UsedDivisions, aError) then
+                Exit;
+            finally
+              FreeAndNil(UsedDivisions);
+            end;
+
+            if aSelectedData.NonTransferedTransactions then
+            begin
+              if not FillTransactionData(aClient, ClientBase.ClientData.TransactionsData, aError) then
+                Exit;
+
+              if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
+                Exit;
+            end;
           finally
-            FreeAndNil(UsedDivisions);
-          end;
-
-          if aSelectedData.NonTransferedTransactions then
-          begin
-            if not FillTransactionData(aClient, ClientBase.ClientData.TransactionsData, aError) then
-              Exit;
-
-            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
-              Exit;
+            FreeAndNil(GSTMapCol);
           end;
         finally
-          FreeAndNil(GSTMapCol);
+          FreeAndNil(ChartExportCol);
         end;
-      finally
-        FreeAndNil(ChartExportCol);
       end;
+
+      if not UploadClient(ClientBase, aSelectedData, aError) then
+        Exit;
+
+      result := true;
+    finally
+      FreeAndNil(ClientBase);
     end;
-
-    if not UploadClient(ClientBase, aSelectedData, aError) then
-      Exit;
-
-    result := true;
   finally
-    FreeAndNil(ClientBase);
+    CalculateAccountTotals.RemoveAutoContraCodes( aClient);
   end;
 end;
 
