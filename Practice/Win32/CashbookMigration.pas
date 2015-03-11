@@ -1044,6 +1044,13 @@ begin
         NewChartItem.OpeningBalance := 0;
         NewChartItem.BankOrCreditFlag := false;
       end;
+
+      NewChartItem.AccountType := 'UNCODED';
+      NewChartItem.GstType := 'NA';
+      NewChartItem.OrigAccountType := '';
+      NewChartItem.OrigGstType := '';
+      NewChartItem.OpeningBalance := 0;
+      NewChartItem.BankOrCreditFlag := false;
     end;
     Result := true;
   except
@@ -1172,6 +1179,10 @@ begin
           end
           else
           begin
+            if (trim(TransactionRec.txAccount) = '') and
+               (TransactionRec.txHas_Been_Edited = false) then
+              Continue;
+
             AllocationItem := TAllocationData.Create(TransactionItem.Allocations);
 
             if (trim(TransactionRec.txAccount) = '') then

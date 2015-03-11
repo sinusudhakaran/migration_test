@@ -1082,6 +1082,7 @@ begin
 
    if aAddExtraAccounts then
    begin
+
      //add uncoded dr account
      NewCode := CodeToAdd('UNC_DR');
      NewAcct := bkchio.New_Account_Rec;
