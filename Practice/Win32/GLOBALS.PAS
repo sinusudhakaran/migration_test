@@ -631,7 +631,6 @@ var
     PRACINI_NZCashMigrationURLOverview2 : String = '';
     PRACINI_AUCashMigrationURLOverview2 : String = '';
 
-    PRACINI_DefaultCashbookSignupURL         : String = '';
     PRACINI_DefaultCashbookForgotPasswordURL : String = '';
     PRACINI_CashbookAPILoginURL              : String = '';
     PRACINI_CashbookAPILoginID               : String = '';
@@ -643,6 +642,7 @@ var
     PRACINI_CashbookAPIUploadQueue           : String = '';
     PRACINI_DefaultCashbookLoginNZURL        : String = '';
     PRACINI_DefaultCashbookLoginAUURL        : String = '';
+    PRACINI_CashbookModifiedCodeCount        : integer = 0;
 
 {$IFDEF SmartLink}
     PRACINI_FingertipsURL : string = '';

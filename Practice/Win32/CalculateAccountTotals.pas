@@ -76,10 +76,12 @@ const
   Tag_Retained_PL         = 7;
   Tag_Budget_Movement     = 8;
 
+  TEMP_TAG_MANUAL_ADDED_GST = 255;
+
 
 procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False; ExcludeGainLossFromBudget: Boolean = False);
 
-procedure AddAutoContraCodes( aClient : TClientObj);
+procedure AddAutoContraCodes( aClient : TClientObj; aAddExtraAccounts : boolean = true; aAddTempTags : boolean = false);
 procedure RemoveAutoContraCodes( aClient : TClientObj);
 
 procedure FlagAllAccountsForUse( aClient : TClientObj);
@@ -380,7 +382,7 @@ var
 
        with P^ do begin
          if DivisionInReport(AClient, P^) then begin
-         
+
            Inc( chHits );
 
            PostToGSTContra := ( not clGST_Inclusive_Cashflow) and
@@ -1048,7 +1050,7 @@ begin
   end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure AddAutoContraCodes( aClient : TClientObj);
+procedure AddAutoContraCodes( aClient : TClientObj; aAddExtraAccounts : boolean; aAddTempTags : boolean);
 
    function CodeToAdd( DefaultCode : bk5CodeStr) : bk5CodeStr;
    var
@@ -1074,64 +1076,71 @@ var
 begin
    RemoveAutoContraCodes( aClient);
 
-   //add uncoded dr account
-   NewCode := CodeToAdd('UNC_DR');
-   NewAcct := bkchio.New_Account_Rec;
-   with NewAcct^ do begin
-      chAccount_Type     := BKCONST.atUncodedDr;
-      chAccount_Description := 'Uncoded Debits';
-      chAccount_Code     := NewCode;
-      chPosting_Allowed  := true;
-      chTemp_Calc_Totals_Tag := Tag_Uncoded_Contra;
-   end;
-   aClient.clChart.Insert( NewAcct);
+   if aAddTempTags then
+     for b := 0 to aClient.clChart.ItemCount-1 do
+       aClient.clChart.Account_At(b).chTemp_Tag := 0;
 
-   //add uncoded cr account
-   NewCode := CodeToAdd('UNC_CR');
-   NewAcct := bkchio.New_Account_Rec;
-   with NewAcct^ do begin
-      chAccount_Type     := BKCONST.atUncodedCr;
-      chAccount_Description := 'Uncoded Credits';
-      chAccount_Code     := NewCode;
-      chPosting_Allowed  := true;
-      chTemp_Calc_Totals_Tag := Tag_Uncoded_Contra;
-   end;
-   aClient.clChart.Insert( NewAcct);
+   if aAddExtraAccounts then
+   begin
+     //add uncoded dr account
+     NewCode := CodeToAdd('UNC_DR');
+     NewAcct := bkchio.New_Account_Rec;
+     with NewAcct^ do begin
+        chAccount_Type     := BKCONST.atUncodedDr;
+        chAccount_Description := 'Uncoded Debits';
+        chAccount_Code     := NewCode;
+        chPosting_Allowed  := true;
+        chTemp_Calc_Totals_Tag := Tag_Uncoded_Contra;
+     end;
+     aClient.clChart.Insert( NewAcct);
 
-   //add bank account to record budget movement
-   NewCode := CodeToAdd('BUD_MV');
-   NewAcct := bkchio.New_Account_Rec;
-   with NewAcct^ do begin
-      chAccount_Type     := BKCONST.atBankAccount;
-      chAccount_Description := 'Movement from Budget';
-      chAccount_Code     := NewCode;
-      chPosting_Allowed  := true;
-      chTemp_Calc_Totals_Tag := Tag_Budget_Movement;
-   end;
-   aClient.clChart.Insert( NewAcct);
+     //add uncoded cr account
+     NewCode := CodeToAdd('UNC_CR');
+     NewAcct := bkchio.New_Account_Rec;
+     with NewAcct^ do begin
+        chAccount_Type     := BKCONST.atUncodedCr;
+        chAccount_Description := 'Uncoded Credits';
+        chAccount_Code     := NewCode;
+        chPosting_Allowed  := true;
+        chTemp_Calc_Totals_Tag := Tag_Uncoded_Contra;
+     end;
+     aClient.clChart.Insert( NewAcct);
 
-   //add retained P & L accounts
-   NewCode := CodeToAdd('RPL');
-   NewAcct := bkchio.New_Account_Rec;
-   with NewAcct^ do begin
-      chAccount_Type     := BKCONST.atRetainedPorL;
-      chAccount_Description := 'Retained Profit/Loss for Period';
-      chAccount_Code     := NewCode;
-      chPosting_Allowed  := true;
-      chTemp_Calc_Totals_Tag := Tag_Retained_PL;
-   end;
-   aClient.clChart.Insert( NewAcct);//add missing gst contra codes
+     //add bank account to record budget movement
+     NewCode := CodeToAdd('BUD_MV');
+     NewAcct := bkchio.New_Account_Rec;
+     with NewAcct^ do begin
+        chAccount_Type     := BKCONST.atBankAccount;
+        chAccount_Description := 'Movement from Budget';
+        chAccount_Code     := NewCode;
+        chPosting_Allowed  := true;
+        chTemp_Calc_Totals_Tag := Tag_Budget_Movement;
+     end;
+     aClient.clChart.Insert( NewAcct);
 
-   NewCode := CodeToAdd('CYE');
-   NewAcct := bkchio.New_Account_Rec;
-   with NewAcct^ do begin
-      chAccount_Type     := BKCONST.atCurrentYearsEarnings;
-      chAccount_Description := 'Current Years Earnings';
-      chAccount_Code     := NewCode;
-      chPosting_Allowed  := true;
-      chTemp_Calc_Totals_Tag := Tag_Retained_PL;
+     //add retained P & L accounts
+     NewCode := CodeToAdd('RPL');
+     NewAcct := bkchio.New_Account_Rec;
+     with NewAcct^ do begin
+        chAccount_Type     := BKCONST.atRetainedPorL;
+        chAccount_Description := 'Retained Profit/Loss for Period';
+        chAccount_Code     := NewCode;
+        chPosting_Allowed  := true;
+        chTemp_Calc_Totals_Tag := Tag_Retained_PL;
+     end;
+     aClient.clChart.Insert( NewAcct);//add missing gst contra codes
+
+     NewCode := CodeToAdd('CYE');
+     NewAcct := bkchio.New_Account_Rec;
+     with NewAcct^ do begin
+        chAccount_Type     := BKCONST.atCurrentYearsEarnings;
+        chAccount_Description := 'Current Years Earnings';
+        chAccount_Code     := NewCode;
+        chPosting_Allowed  := true;
+        chTemp_Calc_Totals_Tag := Tag_Retained_PL;
+     end;
+     aClient.clChart.Insert( NewAcct);//add missing gst contra codes
    end;
-   aClient.clChart.Insert( NewAcct);//add missing gst contra codes
 
    //add an account for each valid gst type
    for ClassNo := 1 to Max_GST_Class do begin
@@ -1146,6 +1155,8 @@ begin
             chAccount_Code         := NewCode;
             chPosting_Allowed      := true;
             chTemp_Calc_Totals_Tag := Tag_Temp_GST_Contra;
+            if aAddTempTags then
+              chTemp_Tag := TEMP_TAG_MANUAL_ADDED_GST;
          end;
          aClient.clChart.Insert( NewAcct);
          aClient.clFields.clGST_Account_Codes[ ClassNo] := NewCode;
@@ -1162,6 +1173,8 @@ begin
               chAccount_Code         := NewCode;
               chPosting_Allowed      := true;
               chTemp_Calc_Totals_Tag := Tag_Invalid_GST_Contra;
+              if aAddTempTags then
+                chTemp_Tag := TEMP_TAG_MANUAL_ADDED_GST;
            end;
            aClient.clChart.Insert( NewAcct);
          end;
@@ -1177,7 +1190,8 @@ begin
          //automatically add a contra code
          NewCode := CodeToAdd('BNK');
          NewAcct := bkchio.New_Account_Rec;
-         with NewAcct^ do begin
+         with NewAcct^ do
+         begin
             chAccount_Type         := BKCONST.atBankAccount;
             chAccount_Description  := 'Contra for ' + BankAccount.Title;
             chAccount_Code         := NewCode;

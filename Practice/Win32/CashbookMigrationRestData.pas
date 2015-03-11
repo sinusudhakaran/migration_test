@@ -57,13 +57,13 @@ type
   TLineData = class(TCollectionItem)
   private
     fAccountNumber : string;
-    fAmount : string;
+    fAmount : integer;
     fIsCredit : boolean;
   public
     procedure Write(const aJson: TlkJSONobject);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
-    property Amount : string read fAmount write fAmount;
+    property Amount : integer read fAmount write fAmount;
     property IsCredit : boolean read fIsCredit write fIsCredit;
   end;
 
@@ -109,17 +109,19 @@ type
   private
     fAccountNumber : string;
     fDescription : string;
-    fAmount : string;
+    fAmount : integer;
     fTaxRate : string;
-    fTaxAmount : string;
+    fTaxAmount : integer;
+    fReference : string;
   public
     procedure Write(const aJson: TlkJSONobject);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
     property Description : string read fDescription write fDescription;
-    property Amount : string read fAmount write fAmount;
+    property Amount : integer read fAmount write fAmount;
     property TaxRate : string read fTaxRate write fTaxRate;
-    property TaxAmount : string read fTaxAmount write fTaxAmount;
+    property TaxAmount : integer read fTaxAmount write fTaxAmount;
+    property Reference : string read fReference write fReference;
   end;
 
   //----------------------------------------------------------------------------
@@ -224,6 +226,8 @@ type
   public
     function ItemAs(aIndex : integer) : TChartOfAccountData;
 
+    function FindCode(aChartCode : string; var aChartOfAccountItem : TChartOfAccountData) : boolean;
+
     procedure Write(const aJson: TlkJSONobject);
   end;
 
@@ -306,7 +310,7 @@ type
     fBankFeedApplicationsData : TBankFeedApplicationsData;
     fChartOfAccountsData : TChartOfAccountsData;
     fDivisionsData : TDivisionsData;
-    fTransactionsData : TTransactionsData;
+    fBankAccountsData : TBankAccountsData;
     fJournalsData : TJournalsData;
   public
     constructor Create;
@@ -318,7 +322,7 @@ type
     property BankFeedApplicationsData : TBankFeedApplicationsData read fBankFeedApplicationsData write fBankFeedApplicationsData;
     property ChartOfAccountsData: TChartOfAccountsData read fChartOfAccountsData write fChartOfAccountsData;
     property DivisionsData: TDivisionsData read fDivisionsData write fDivisionsData;
-    property TransactionsData: TTransactionsData read fTransactionsData write fTransactionsData;
+    property BankAccountsData : TBankAccountsData read fBankAccountsData write fBankAccountsData;
     property JournalsData: TJournalsData read fJournalsData write fJournalsData;
   end;
 
@@ -602,6 +606,7 @@ procedure TAllocationData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('AccountNumber', AccountNumber);
   aJson.Add('Description', Description);
+  aJson.Add('Reference', Reference);
   aJson.Add('Amount', Amount);
   aJson.Add('TaxRate', TaxRate);
   aJson.Add('TaxAmount', TaxAmount);
@@ -736,8 +741,17 @@ var
   BankAccountIndex : integer;
   BankAccount : TBankAccountData;
   BankAccountData : TlkJSONobject;
+  AllBankAccountsEmpty : boolean;
 begin
-  if self.Count = 0 then
+  if (self.Count = 0) then
+    Exit;
+
+  AllBankAccountsEmpty := true;
+  for BankAccountIndex := 0 to self.Count-1 do
+    if ItemAs(BankAccountIndex).Transactions.Count > 0 then
+      AllBankAccountsEmpty := false;
+
+  if AllBankAccountsEmpty then
     Exit;
 
   BankAccounts := TlkJSONlist.Create;
@@ -745,6 +759,9 @@ begin
 
   for BankAccountIndex := 0 to self.Count-1 do
   begin
+    if ItemAs(BankAccountIndex).Transactions.Count = 0 then
+      continue;
+
     BankAccountData := TlkJSONobject.Create;
     BankAccounts.Add(BankAccountData);
 
@@ -780,6 +797,26 @@ end;
 function TChartOfAccountsData.ItemAs(aIndex: integer): TChartOfAccountData;
 begin
   Result := TChartOfAccountData(Self.Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+function TChartOfAccountsData.FindCode(aChartCode : string; var aChartOfAccountItem : TChartOfAccountData) : boolean;
+var
+  ChartIndex : integer;
+  ChartOfAccountItem : TChartOfAccountData;
+begin
+  Result := false;
+  aChartOfAccountItem := nil;
+  for ChartIndex := 0 to Count - 1 do
+  begin
+    ChartOfAccountItem := ItemAs(ChartIndex);
+    if ChartOfAccountItem.Code = aChartCode then
+    begin
+      Result := true;
+      aChartOfAccountItem := ChartOfAccountItem;
+      Exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -920,17 +957,19 @@ begin
   fBusinessData := TBusinessData.Create;
   fChartOfAccountsData := TChartOfAccountsData.Create(TChartOfAccountData);
   fDivisionsData := TDivisionsData.Create(TDivisionData);
-  fTransactionsData := TTransactionsData.Create(TTransactionData);
+  fBankAccountsData := TBankAccountsData.Create(TBankAccountData);
   fJournalsData := TJournalsData.Create(TJournalData);
+  fBankFeedApplicationsData := TBankFeedApplicationsData.Create(TBankFeedApplicationData);
 end;
 
 //------------------------------------------------------------------------------
 destructor TClientData.Destroy;
 begin
+  FreeAndNil(fBankFeedApplicationsData);
   FreeAndNil(fBusinessData);
   FreeAndNil(fChartOfAccountsData);
   FreeAndNil(fDivisionsData);
-  FreeAndNil(fTransactionsData);
+  FreeAndNil(fBankAccountsData);
   FreeAndNil(fJournalsData);
 
   inherited;
@@ -947,13 +986,18 @@ begin
   aJson.Add('ledger', JsonBusiness);
   BusinessData.Write(JsonBusiness);
 
-  //BankFeedApplicationsData.Write(aJson);
+  BankFeedApplicationsData.Write(aJson);
 
   if aSelectedData.ChartOfAccount then
   begin
     ChartOfAccountsData.Write(aJson);
 
     DivisionsData.Write(aJson);
+
+    if aSelectedData.NonTransferedTransactions then
+    begin
+      BankAccountsData.Write(aJson);
+    end;
   end;
 end;
 

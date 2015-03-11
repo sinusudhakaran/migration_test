@@ -38,19 +38,14 @@ type
     MyobApiAccessToken: string;
   end;
 
-  {TMappingValueTypes = (mvtAccountContraCode,
-                        mvtChartAccountCode);
-
   //----------------------------------------------------------------------------
   TMappingData = class(TCollectionItem)
   private
-    fOriginalValue : string;
-    fChangedValue : string;
-    fValueType : TMappingValueTypes;
+    fOrigCode : string;
+    fNewCode : string;
   public
-    property OriginalValue : string read fOriginalValue write fOriginalValue;
-    property ChangedValue : string read fChangedValue write fChangedValue;
-    property ValueType : TMappingValueTypes read fValueType write fValueType;
+    property OrigCode : string read fOrigCode write fOrigCode;
+    property NewCode : string read fNewCode write fNewCode;
   end;
 
   //----------------------------------------------------------------------------
@@ -58,7 +53,10 @@ type
   private
   public
     function ItemAs(aIndex : integer) : TMappingData;
-  end; }
+
+    procedure GetMappingFromClient(aClient : TClientObj);
+    function UpdateCode(aOrigCode : string) : string;
+  end;
 
   //----------------------------------------------------------------------------
   TCashbookMigration = class
@@ -75,6 +73,9 @@ type
     fClientDataSize : integer;
     fNumCodeReplaced : integer;
     fCurrentMyDotUser : string;
+
+    fClientTimeFrameStart : TStDate;
+    fMappingsData : TMappingsData;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -133,6 +134,9 @@ type
                                     var aResponse: TlkJSONbase; var aRespStr : string;
                                     var aError: string; aEncryptToken : boolean = false): boolean;
 
+    function GetCashBookGSTType(aGSTMapCol : TGSTMapCol; aGSTClassId : byte) : string;
+
+    function GetTimeFrameStart(aFinancialYearStart : TStDate) : TStDate;
     procedure AddCommentToClient(aClientLRN : integer; aNote : string);
     function ValidateIRDGST(aValue : string; var aModifiedIRD : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
@@ -141,7 +145,7 @@ type
     function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; var aError : string) : boolean;
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
-    function FillTransactionData(aClient : TClientObj; aTransactionsData : TTransactionsData; var aError : string) : boolean;
+    function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
 
     function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
@@ -161,6 +165,7 @@ type
                             var aNumErrorClients : integer) : TMigrationStatus;
 
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
+    property MappingsData : TMappingsData read fMappingsData write fMappingsData;
   end;
 
   //----------------------------------------------------------------------------
@@ -190,6 +195,7 @@ uses
   controls,
   baObj32,
   CalculateAccountTotals,
+  iniSettings,
   SYDEFS;
 
 const
@@ -210,9 +216,76 @@ const
   CASHBOOK_ACCEPT = 'application/vnd.cashbook-v1+json';
   CASHBOOK_AUTH_PREFIX = 'Bearer ';
 
+  CASHBOOK_SYSTEM_ACCOUNTS : Array[0..6] of string =
+    ('2-2200','2-2400','3-1600','3-1800','3-8000','3-8001','3-9999');
+
 var
   fCashbookMigration: TCashbookMigration;
   DebugMe : boolean = false;
+
+{ TMappingsData }
+//------------------------------------------------------------------------------
+function TMappingsData.ItemAs(aIndex: integer): TMappingData;
+begin
+  Result := TMappingData(Self.Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TMappingsData.GetMappingFromClient(aClient: TClientObj);
+var
+  SysIndex : integer;
+  ChartIndex : integer;
+  AccRec : tAccount_Rec;
+  MappingItem : TMappingData;
+
+  //----------------------------------------------------------------------------
+  function GetNewCode(aOldCode : string) : string;
+  var
+    FoundAccRec : tAccount_Rec;
+    Suffix : integer;
+  begin
+    Suffix := 1;
+
+    while (aClient.clChart.FindCode(aOldCode + '-' + inttostr(Suffix)) <> nil) do
+      inc(Suffix);
+
+    Result := aOldCode + '-' + inttostr(Suffix);
+  end;
+begin
+  Clear;
+
+  for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
+  begin
+    AccRec := aClient.clChart.Account_At(ChartIndex)^;
+    for SysIndex := Low(CASHBOOK_SYSTEM_ACCOUNTS) to High(CASHBOOK_SYSTEM_ACCOUNTS) do
+    begin
+      if trim(AccRec.chAccount_Code) = CASHBOOK_SYSTEM_ACCOUNTS[SysIndex] then
+      begin
+        MappingItem := TMappingData.Create(self);
+        MappingItem.OrigCode := AccRec.chAccount_Code;
+        MappingItem.NewCode  := GetNewCode(AccRec.chAccount_Code);
+        break;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TMappingsData.UpdateCode(aOrigCode: string): string;
+var
+  MapIndex : integer;
+begin
+  Result := aOrigCode;
+
+  for MapIndex := 0 to Count-1 do
+  begin
+    if ItemAs(MapIndex).OrigCode = aOrigCode then
+    begin
+      Result := ItemAs(MapIndex).NewCode;
+      Exit;
+    end;
+  end;
+end;
 
 //------------------------------------------------------------------------------
 function MigrateCashbook: TCashbookMigration;
@@ -362,6 +435,52 @@ begin
 
   FHttpRequester.Config ('SSLSecurityFlags=0x80000000');
   FHttpRequester.Config ('SSLEnabledProtocols=140');
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.GetCashBookGSTType(aGSTMapCol : TGSTMapCol; aGSTClassId : byte): string;
+var
+  GSTClassTypeIndicator : byte;
+  CashBookGstClassCode : string;
+  CashBookGstClassDesc : string;
+  GSTMapItem : TGSTMapItem;
+  GSTClass : TCashBookGSTClasses;
+begin
+  CashBookGstClassCode := '';
+  if (AdminSystem.fdFields.fdCountry = whAustralia) then
+  begin
+    if aGSTMapCol.ItemAtGstIndex(aGSTClassId, GSTMapItem) then
+      CashBookGstClassCode := aGSTMapCol.GetGSTClassCode(GSTMapItem.CashbookGstClass)
+    else
+      CashBookGstClassCode := aGSTMapCol.GetGSTClassCode(cgNone);
+  end
+  else if (AdminSystem.fdFields.fdCountry = whNewZealand) then
+  begin
+    GSTClassTypeIndicator := GetGSTClassTypeIndicatorFromGSTClass(aGSTClassId);
+    GSTClass := GetMappedNZGSTTypeCode(GSTClassTypeIndicator);
+    GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
+  end;
+  Result := CashBookGstClassCode;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.GetTimeFrameStart(aFinancialYearStart: TStDate): TStDate;
+var
+  FinDay, FinMonth, FinYear : Integer;
+  CurrDay, CurrMonth, CurrYear : Integer;
+  CurrYearFinDate : TStDate;
+  StartYear : integer;
+begin
+  StDateToDMY(aFinancialYearStart, FinDay, FinMonth, FinYear);
+  StDateToDMY(CurrentDate, CurrDay, CurrMonth, CurrYear);
+
+  CurrYearFinDate := DMYToSTDate( FinDay, FinMonth, CurrYear, BKDATEEPOCH);
+  if CurrentDate > CurrYearFinDate then
+    StartYear := CurrYear - 1
+  else
+    StartYear := CurrYear - 2;
+
+  Result := DMYToSTDate( FinDay, FinMonth, StartYear, BKDATEEPOCH);
 end;
 
 //------------------------------------------------------------------------------
@@ -668,10 +787,7 @@ begin
     try
       inc(fNumCodeReplaced);
       if fNumCodeReplaced > 999 then
-      begin
-        aError := 'Error converting Client Code into ' + BRAND_CASHBOOK_NAME + ' format.';
-        exit;
-      end;
+        fNumCodeReplaced := 0;
 
       NumReplStr := inttoStr(fNumCodeReplaced);
 
@@ -760,27 +876,36 @@ var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
   BankFeedApplicationData : TBankFeedApplicationData;
+  AccountIndex : integer;
+  BankAccount : TBank_Account;
 begin
   Result := false;
   try
-    for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
+    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
-      AccRec := aClient.clChart.Account_At(ChartIndex)^;
-      if AccRec.chAccount_Type = atBankAccount then
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+      if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) then
       begin
-        BankFeedApplicationData := TBankFeedApplicationData.Create(aBankFeedApplicationsData);
+        for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
+        begin
+          AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
-        if AdminSystem.fdFields.fdCountry = whAustralia then
-          BankFeedApplicationData.CountryCode := 'OZ'
-        else
-          BankFeedApplicationData.CountryCode := 'NZ';
-        BankFeedApplicationData.CoreClientCode := aClient.clFields.clCode;
-        BankFeedApplicationData.BankAccountNumber := AccRec.chAccount_Code;
-
-        aClient.clBank_Account_List.Bank_Account_At(1)
+          if BankAccount.baFields.baContra_Account_Code = AccRec.chAccount_Code then
+          begin
+            BankFeedApplicationData := TBankFeedApplicationData.Create(aBankFeedApplicationsData);
+            if AdminSystem.fdFields.fdCountry = whAustralia then
+              BankFeedApplicationData.CountryCode := 'OZ'
+            else
+              BankFeedApplicationData.CountryCode := 'NZ';
+            BankFeedApplicationData.CoreClientCode := aClient.clFields.clCode;
+            BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateCode(AccRec.chAccount_Code);
+            BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
+          end;
+        end;
       end;
     end;
     Result := true;
+
   except
     on E: Exception do
     begin
@@ -836,7 +961,10 @@ var
   CashBookGstClassDesc : string;
   GSTMapItem : TGSTMapItem;
   GSTClass : TCashBookGSTClasses;
+  ChartExportFound : boolean;
+  MigrationClosingBalance : integer;
 
+  //----------------------------------------------------------------------------
   Function GetValidDivisions() : string;
   var
     DivIndex : integer;
@@ -868,8 +996,23 @@ begin
     begin
       AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
+      ChartExportFound := aChartExportCol.ItemAtCode(AccRec.chAccount_Code, ChartExportItem);
+      if ChartExportFound then
+      begin
+        if aDoChartOfAccountBalances then
+          MigrationClosingBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance)
+        else
+          MigrationClosingBalance := 0;
+      end
+      else
+        MigrationClosingBalance := 0;
+
+      if (AccRec.chTemp_Tag = TEMP_TAG_MANUAL_ADDED_GST) and
+        (MigrationClosingBalance = 0) then
+        Continue;
+
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
-      NewChartItem.Code := AccRec.chAccount_Code;
+      NewChartItem.Code := MappingsData.UpdateCode(AccRec.chAccount_Code);
       NewChartItem.Name := StripInvalidCharacters(AccRec.chAccount_Description);
 
       if length(trim(NewChartItem.Name)) = 0 then
@@ -879,7 +1022,7 @@ begin
       NewChartItem.PostingAllowed := AccRec.chPosting_Allowed;
       NewChartItem.Divisions := GetValidDivisions();
 
-      if aChartExportCol.ItemAtCode(AccRec.chAccount_Code, ChartExportItem) then
+      if ChartExportFound then
       begin
         MappedGroupId := aChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId);
 
@@ -888,26 +1031,8 @@ begin
                                          aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class]);
         NewChartItem.AccountType := GetMigrationMappedReportGroupCode(MappedGroupId);
 
-        if (AdminSystem.fdFields.fdCountry = whAustralia) then
-        begin
-          if aGSTMapCol.ItemAtGstIndex(ChartExportItem.GSTClassId, GSTMapItem) then
-            CashBookGstClassCode := aGSTMapCol.GetGSTClassCode(GSTMapItem.CashbookGstClass)
-          else
-            CashBookGstClassCode := aGSTMapCol.GetGSTClassCode(cgNone);
-        end
-        else if (AdminSystem.fdFields.fdCountry = whNewZealand) then
-        begin
-          GSTClassTypeIndicator := GetGSTClassTypeIndicatorFromGSTClass(ChartExportItem.GSTClassId);
-          GSTClass := GetMappedNZGSTTypeCode(GSTClassTypeIndicator);
-          GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
-        end;
-        NewChartItem.GstType := CashBookGstClassCode;
-
-        if aDoChartOfAccountBalances then
-          NewChartItem.OpeningBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance)
-        else
-          NewChartItem.OpeningBalance := 0;
-
+        NewChartItem.GstType := GetCashBookGSTType(aGSTMapCol, ChartExportItem.GSTClassId);
+        NewChartItem.OpeningBalance := MigrationClosingBalance;
         NewChartItem.BankOrCreditFlag := IsChartCodeABankContra(AccRec.chAccount_Code);
       end
       else
@@ -931,43 +1056,144 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillTransactionData(aClient: TClientObj; aTransactionsData: TTransactionsData; var aError: string): boolean;
+function TCashbookMigration.FillTransactionData(aClient: TClientObj; aBankAccountsData: TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
   TransactionItem : TTransactionData;
+  BankAccountItem : TBankAccountData;
+  AllocationItem : TAllocationData;
+  ChartOfAccountItem : TChartOfAccountData;
   BankAccount : TBank_Account;
   TransactionRec : tTransaction_Rec;
+  AccRec : pAccount_Rec;
+  DissRec: pDissection_Rec;
+  AccountCode : string;
 begin
   Result := false;
   try
-    {for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
-      if not BankAccount.baFields.baIs_A_Manual_Account then
+
+      // Don't send Journals as Transactions
+      if (not BankAccount.IsAJournalAccount ) then
       begin
+        BankAccountItem := TBankAccountData.Create(aBankAccountsData);
+
+        AccRec := aClient.clChart.FindCode(BankAccount.baFields.baContra_Account_Code);
+        if Assigned(AccRec) then
+          BankAccountItem.BankAccountNumber := MappingsData.UpdateCode(BankAccount.baFields.baContra_Account_Code)
+        else
+          BankAccountItem.BankAccountNumber := '';
+
         for TransactionIndex := BankAccount.baTransaction_List.ItemCount-1 downto 0 do
         begin
           TransactionRec := BankAccount.baTransaction_List.Transaction_At(TransactionIndex)^;
 
-          // Check if Transaction is not finalized and not presented
-          if not (TransactionRec.txLocked) and
-             (TransactionRec.txDate_Transferred = 0) then
+          // if Transaction is older than Time Frame ignore the rest since we are going back in time.
+          if TransactionRec.txDate_Effective < fClientTimeFrameStart then
             break;
 
-          TransactionItem := TTransactionData.Create(aTransactionsData);
-          TransactionItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
+          // Check if Transaction is not finalized and not presented
+          if (TransactionRec.txDate_Transferred > 0) then
+            Continue;
+
+          TransactionItem := TTransactionData.Create(BankAccountItem.Transactions);
+          TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           TransactionItem.Description := TransactionRec.txStatement_Details;
-          TransactionItem.Amount := trunc(TransactionRec.txAmount);
+          TransactionItem.Amount      := trunc(TransactionRec.txAmount);
 
           if BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex) > 0 then
             TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex))
           else
             TransactionItem.CoreTransactionId := '';
 
+          // Dissection
+          DissRec := TransactionRec.txFirst_Dissection;
+          if DissRec <> nil then
+          begin
+            While (DissRec <> nil ) do
+            begin
+              AllocationItem := TAllocationData.Create(TransactionItem.Allocations);
+
+              {if (trim(DissRec^.dsAccount) = '') then
+              begin
+                if (trim(TransactionRec.txAccount) = '') then
+                  AllocationItem.AccountNumber := ''
+                else
+                begin
+                  AccRec := MyClient.clChart.FindCode( TransactionRec.txAccount );
+                  if not Assigned(AccRec) then
+                    AllocationItem.AccountNumber := ''
+                  else
+                    AllocationItem.AccountNumber := MappingsData.UpdateCode(TransactionRec.txAccount);
+                end;
+              end
+              else
+              begin
+                AccRec := MyClient.clChart.FindCode( DissRec^.dsAccount );
+                if not Assigned(AccRec) then
+                  AllocationItem.AccountNumber := ''
+                else
+                  AllocationItem.AccountNumber := MappingsData.UpdateCode(DissRec^.dsAccount);
+              end; }
+
+              if (trim(TransactionRec.txAccount) = '') then
+                AllocationItem.AccountNumber := ''
+              else
+              begin
+                AccRec := MyClient.clChart.FindCode( DissRec^.dsAccount );
+                if not Assigned(AccRec) then
+                  AllocationItem.AccountNumber := ''
+                else
+                  AllocationItem.AccountNumber := MappingsData.UpdateCode(DissRec^.dsAccount);
+              end;
+
+              {if trim(DissRec^.dsGL_Narration) = '' then
+                AllocationItem.Description := TransactionRec.txGL_Narration
+              else
+                AllocationItem.Description := DissRec^.dsGL_Narration;
+
+              if trim(DissRec^.dsReference) = '' then
+                AllocationItem.Reference := TransactionRec.txReference
+              else
+                AllocationItem.Reference := DissRec^.dsReference;}
+
+              AllocationItem.Description := DissRec^.dsGL_Narration;
+              AllocationItem.Reference := DissRec^.dsReference;
+              AllocationItem.Amount := trunc(DissRec^.dsAmount);
+              AllocationItem.TaxAmount := trunc(DissRec^.dsGST_Amount);
+
+              AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+
+              DissRec := DissRec^.dsNext;
+            end;
+          end
+          else
+          begin
+            AllocationItem := TAllocationData.Create(TransactionItem.Allocations);
+
+            if (trim(TransactionRec.txAccount) = '') then
+              AllocationItem.AccountNumber := ''
+            else
+            begin
+              AccRec := MyClient.clChart.FindCode( TransactionRec.txAccount );
+              if not Assigned(AccRec) then
+                AllocationItem.AccountNumber := ''
+              else
+                AllocationItem.AccountNumber := MappingsData.UpdateCode(TransactionRec.txAccount);
+            end;
+
+            AllocationItem.Description := TransactionRec.txGL_Narration;
+            AllocationItem.Reference := TransactionRec.txReference;
+            AllocationItem.Amount := trunc(TransactionRec.txAmount);
+            AllocationItem.TaxAmount := trunc(TransactionRec.txGST_Amount);
+            AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, TransactionRec.txGST_Class);
+          end;
         end;
       end;
-    end;}
+    end;
     Result := true;
 
   except
@@ -984,17 +1210,75 @@ function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: 
 var
   AccountIndex : integer;
   TransactionIndex : integer;
-  TransactionItem : TTransactionData;
+  JournalItem : TJournalData;
+  LineItem : TLineData;
+  ChartOfAccountItem : TChartOfAccountData;
   BankAccount : TBank_Account;
+  TransactionRec : tTransaction_Rec;
+  AccRec : pAccount_Rec;
+  DissRec: pDissection_Rec;
 begin
   Result := false;
   try
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
-      if BankAccount.baFields.baIs_A_Manual_Account then
-      begin
 
+      // Don't send Journals as Transactions
+      if (BankAccount.baFields.baAccount_Type in [btCashJournals, btAccrualJournals]) then
+      begin
+        for TransactionIndex := BankAccount.baTransaction_List.ItemCount-1 downto 0 do
+        begin
+          TransactionRec := BankAccount.baTransaction_List.Transaction_At(TransactionIndex)^;
+
+          // if Transaction is older than Time Frame ignore the rest since we are going back in time.
+          if TransactionRec.txDate_Effective < fClientTimeFrameStart then
+            break;
+
+          // Check if Transaction is not finalized and not presented
+          if (TransactionRec.txDate_Transferred > 0) then
+            Continue;
+
+          JournalItem := TJournalData.Create(aJournalsData);
+          JournalItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
+          JournalItem.Description := TransactionRec.txStatement_Details;
+
+          LineItem := TLineData.Create(JournalItem.Lines);
+
+          AccRec := MyClient.clChart.FindCode( TransactionRec.txAccount );
+          if Assigned(AccRec) then
+            LineItem.AccountNumber := MappingsData.UpdateCode(TransactionRec.txAccount)
+          else
+            LineItem.AccountNumber := '';
+
+          LineItem.Amount := trunc(TransactionRec.txAmount);
+          if trunc(TransactionRec.txAmount) < 0 then
+            LineItem.IsCredit := false
+          else
+            LineItem.IsCredit := true;
+
+          DissRec := TransactionRec.txFirst_Dissection;
+          While (DissRec <> nil ) do
+          begin
+            LineItem := TLineData.Create(JournalItem.Lines);
+
+            if trim(DissRec^.dsAccount) = '' then
+              LineItem.AccountNumber := TransactionRec.txAccount
+            else
+              LineItem.AccountNumber := DissRec^.dsAccount;
+            AccRec := MyClient.clChart.FindCode( LineItem.AccountNumber );
+            if not Assigned(AccRec) then
+              LineItem.AccountNumber := '';
+
+            LineItem.Amount := abs(trunc(DissRec^.dsAmount));
+            if trunc(DissRec^.dsAmount) < 0 then
+              LineItem.IsCredit := false
+            else
+              LineItem.IsCredit := true;
+
+            DissRec := DissRec^.dsNext;
+          end;
+        end;
       end;
     end;
     Result := true;
@@ -1002,7 +1286,7 @@ begin
   except
     on E: Exception do
     begin
-      aError := 'Exception retrieving Transactions : ' + E.Message;
+      aError := 'Exception retrieving Journals : ' + E.Message;
       exit;
     end;
   end;
@@ -1118,7 +1402,10 @@ var
 begin
   result := false;
 
-  CalculateAccountTotals.AddAutoContraCodes( aClient);
+  // pre calculate Time frame start used later in Transactions and Journals
+  fClientTimeFrameStart := GetTimeFrameStart(aClient.clFields.clFinancial_Year_Starts);
+  MappingsData.GetMappingFromClient(aClient);
+  CalculateAccountTotals.AddAutoContraCodes( aClient, false, true);
   try
 
     ClientBase := TClientBase.Create;
@@ -1131,6 +1418,9 @@ begin
         ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
 
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aError) then
+        Exit;
+
+      if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aError) then
         Exit;
 
       if aSelectedData.ChartOfAccount then
@@ -1159,11 +1449,11 @@ begin
 
             if aSelectedData.NonTransferedTransactions then
             begin
-              if not FillTransactionData(aClient, ClientBase.ClientData.TransactionsData, aError) then
+              if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, aError) then
                 Exit;
 
-              if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
-                Exit;
+              //if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
+              //  Exit;
             end;
           finally
             FreeAndNil(GSTMapCol);
@@ -1210,7 +1500,8 @@ end;
 constructor TCashbookMigration.Create;
 begin
   // Http
-  FHttpRequester  := TIpsHTTPS.Create(nil);
+  FHttpRequester := TIpsHTTPS.Create(nil);
+  fMappingsData := TMappingsData.Create(TMappingData);
   HttpSetup;
 
   fCurrentMyDotUser := '';
@@ -1220,6 +1511,7 @@ end;
 destructor TCashbookMigration.Destroy;
 begin
   // Http
+  freeAndNil(fMappingsData);
   FreeAndNil(FHttpRequester);
 
   inherited;
@@ -1377,7 +1669,7 @@ begin
   fClientCount := aSelectClients.Count;
   fCurrentClient := 1;
   fClientDataSize := 0;
-  fNumCodeReplaced := 0;
+  fNumCodeReplaced := PRACINI_CashbookModifiedCodeCount;
 
   // Loop through selected Client Codes
   for ClientIndex := 0 to aSelectClients.Count-1 do
@@ -1487,6 +1779,12 @@ begin
       LastClientIndex := Integer(aClientErrors.Objects[ErrorIndex]);
       inc(aNumErrorClients);
     end;
+  end;
+
+  if PRACINI_CashbookModifiedCodeCount <> fNumCodeReplaced then
+  begin
+    PRACINI_CashbookModifiedCodeCount := fNumCodeReplaced;
+    WritePracticeINI_WithLock;
   end;
 
   // Set Result according to amount of errors, used in UI

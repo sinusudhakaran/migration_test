@@ -683,7 +683,6 @@ begin
         PRACINI_NZCashMigrationURLOverview2 := ReadString(GrpPracLinks,'NZCashMigrationURLOverview2', TUrls.DefaultNZCashMigrationURLOverview2);
         PRACINI_AUCashMigrationURLOverview2 := ReadString(GrpPracLinks,'AUCashMigrationURLOverview2', TUrls.DefaultAUCashMigrationURLOverview2);
 
-        PRACINI_DefaultCashbookSignupURL := ReadString(GrpPracLinks,'DefaultCashbookSignupURL', TUrls.DefaultCashbookSignupURL);
         PRACINI_DefaultCashbookForgotPasswordURL := ReadString(GrpPracLinks,'DefaultCashbookForgotPasswordURL', TUrls.DefaultCashbookForgotPasswordURL);
         PRACINI_DefaultCashbookLoginNZURL := ReadString(GrpPracLinks,'DefaultCashbookLoginNZURL', TUrls.DefaultCashbookLoginNZURL);
         PRACINI_DefaultCashbookLoginAUURL := ReadString(GrpPracLinks,'DefaultCashbookLoginAUURL', TUrls.DefaultCashbookLoginAUURL);
@@ -698,6 +697,8 @@ begin
         PRACINI_CashbookAPIUploadURL       := ReadString(GrpPracLinks,'CashbookAPIUploadURL', TUrls.CashbookAPIUploadURL);
         PRACINI_CashbookAPIUploadDataStore := ReadString(GrpPracLinks,'CashbookAPIUploadDataStore', 'banklinkmigration');
         PRACINI_CashbookAPIUploadQueue     := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'BankLink-SQS');
+
+        PRACINI_CashbookModifiedCodeCount  := ReadInteger( GrpPracInfo, 'CashbookModifiedCodeCount', 0);
 
         // Sets Defaults if no data exists
         if IsPractice then
@@ -889,8 +890,13 @@ begin
            WriteString(GrpPracLinks, 'NZCashMigrationURLOverview2', PRACINI_NZCashMigrationURLOverview2);
            WriteString(GrpPracLinks, 'AUCashMigrationURLOverview2', PRACINI_AUCashMigrationURLOverview2);
 
-           WriteString(GrpPracLinks, 'DefaultCashbookSignupURL', PRACINI_DefaultCashbookSignupURL);
            WriteString(GrpPracLinks, 'DefaultCashbookForgotPasswordURL', PRACINI_DefaultCashbookForgotPasswordURL);
+
+           WriteString(GrpPracLinks, 'DefaultCashbookLoginNZURL', PRACINI_DefaultCashbookLoginNZURL);
+           WriteString(GrpPracLinks, 'DefaultCashbookLoginAUURL', PRACINI_DefaultCashbookLoginAUURL);
+
+           WriteInteger(GrpPracInfo, 'CashbookModifiedCodeCount', PRACINI_CashbookModifiedCodeCount);
+
 
 {$IFDEF SmartLink}
            WriteString( GrpPracFingerTips,'URL', PRACINI_FingertipsURL);
