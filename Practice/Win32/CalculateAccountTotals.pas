@@ -1082,7 +1082,6 @@ begin
 
    if aAddExtraAccounts then
    begin
-
      //add uncoded dr account
      NewCode := CodeToAdd('UNC_DR');
      NewAcct := bkchio.New_Account_Rec;
@@ -1189,7 +1188,12 @@ begin
      if ( BankAccount.baFields.baAccount_Type = btBank ) then begin
        if ( BankAccount.baFields.baContra_Account_Code = '') then begin
          //automatically add a contra code
-         NewCode := CodeToAdd('BNK');
+
+         if aAddExtraAccounts then
+           NewCode := CodeToAdd('BNK')
+         else
+           NewCode := CodeToAdd('BANK');
+
          NewAcct := bkchio.New_Account_Rec;
          with NewAcct^ do
          begin

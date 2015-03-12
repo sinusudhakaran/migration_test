@@ -1044,14 +1044,21 @@ begin
         NewChartItem.OpeningBalance := 0;
         NewChartItem.BankOrCreditFlag := false;
       end;
-
-      NewChartItem.AccountType := 'UNCODED';
-      NewChartItem.GstType := 'NA';
-      NewChartItem.OrigAccountType := '';
-      NewChartItem.OrigGstType := '';
-      NewChartItem.OpeningBalance := 0;
-      NewChartItem.BankOrCreditFlag := false;
     end;
+
+    // Add Uncoded Chart
+    NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
+    NewChartItem.Code := 'UNCODED';
+    NewChartItem.Name := '';
+    NewChartItem.InActive := true;
+    NewChartItem.PostingAllowed := true;
+    NewChartItem.Divisions := '';
+    NewChartItem.AccountType := 'uncategorised';
+    NewChartItem.GstType := 'NA';
+    NewChartItem.OrigAccountType := '';
+    NewChartItem.OrigGstType := '';
+    NewChartItem.OpeningBalance := 0;
+    NewChartItem.BankOrCreditFlag := false;
     Result := true;
   except
     on E: Exception do
