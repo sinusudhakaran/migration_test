@@ -4225,7 +4225,9 @@ begin
 
          InsColDefnRec( Localise( FCountry, 'GST Amount'), ceGSTAmount, celGstAmt, CE_GSTAMOUNT_DEF_WIDTH, CE_GSTAMOUNT_DEF_VISIBLE, False, False, csByGSTAmount );
          InsColDefnRec( 'Action', ceAction, celAction, 190, true, false, false, 0 );
-      end else begin
+      end
+      else
+      begin
          InsColDefnRec( 'Payee', cePayee,    celPayee,   CE_PAYEE_DEF_WIDTH, CE_PAYEE_DEF_VISIBLE, false, CE_PAYEE_DEF_EDITABLE, csByPayee  );
          InsColDefnRec( 'Payee Name', cePayeeName, celPayeeName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, CE_PAYEENAME_DEF_EDITABLE, csByPayeeName);
          InsColDefnRec( 'Job', ceJob, celJob, CE_JOB_DEF_WIDTH, CE_JOB_DEF_VISIBLE, false, CE_JOB_DEF_EDITABLE, csByJob );
@@ -4256,6 +4258,8 @@ begin
         InsColDefnRec( 'Entry Type', ceEntryType, celEntryType, CE_ENTRYTYPE_DEF_WIDTH, CE_ENTRYTYPE_DEF_VISIBLE, false, CE_ENTRYTYPE_DEF_EDITABLE, csByEntryType );
         InsColDefnRec( 'Date Presented', cePresDate, celBSDate, CE_PRESDATE_DEF_WIDTH, CE_PRESDATE_DEF_VISIBLE, false, CE_PRESDATE_DEF_EDITABLE, csDatePresented , 'Presentation Date');
         InsColDefnRec( 'Coded By', ceCodedBy, celCoded, CE_CODEDBY_DEF_WIDTH, CE_CODEDBY_DEF_VISIBLE, false, CE_CODEDBY_DEF_EDITABLE, csByCodedBy );
+        InsColDefnRec('Transaction ID', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, csByTransId);
+
 
         if HasAlternativeChartCode(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then begin
            csNames[csByAltChartCode] := AlternativeChartCodeName(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
@@ -4274,10 +4278,7 @@ begin
       end;
 
       if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
-      begin
-        InsColDefnRec('Transaction ID', ceCoreTransactionId, celCoreTransactionId, 90, false, true, false, csByTransId);
         InsColDefnRec('Sent to ' + bkBranding.ProductOnlineName, ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, csBySentToAndAcc);
-      end;
 
       EditMode := emGeneral; //Never changed here
    end;
