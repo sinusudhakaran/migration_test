@@ -901,6 +901,12 @@ begin
             BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
             BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateCode(AccRec.chAccount_Code);
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
+            BankFeedApplicationData.Operation := 'COPY';
+
+            //if True then
+            //  BankFeedApplicationData.Operation := 'DELETE'
+            //else
+            //  BankFeedApplicationData.Operation := 'COPY';
           end;
         end;
       end;

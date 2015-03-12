@@ -261,6 +261,7 @@ type
     fCoreClientCode : string;
     fCoreAccountId : string;
     fBankAccountNumber : string;
+    fOperation : string;
   public
     procedure Write(const aJson: TlkJSONobject);
 
@@ -268,6 +269,7 @@ type
     property CoreClientCode : string read fCoreClientCode write fCoreClientCode;
     property CoreAccountId : string read fCoreAccountId write fCoreAccountId;
     property BankAccountNumber : string read fBankAccountNumber write fBankAccountNumber;
+    property Operation : string read fOperation write fOperation;
   end;
 
   //----------------------------------------------------------------------------
@@ -895,6 +897,7 @@ begin
   aJson.Add('CoreClientCode',    CoreClientCode);
   aJson.Add('CoreAccountId',     CoreAccountId);
   aJson.Add('BankAccountNumber', BankAccountNumber);
+  aJson.Add('Operation',         Operation);
 end;
 
 { TBankFeedApplicationsData }
