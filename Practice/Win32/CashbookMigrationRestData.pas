@@ -112,7 +112,6 @@ type
     fAmount : integer;
     fTaxRate : string;
     fTaxAmount : integer;
-    fReference : string;
   public
     procedure Write(const aJson: TlkJSONobject);
 
@@ -121,7 +120,6 @@ type
     property Amount : integer read fAmount write fAmount;
     property TaxRate : string read fTaxRate write fTaxRate;
     property TaxAmount : integer read fTaxAmount write fTaxAmount;
-    property Reference : string read fReference write fReference;
   end;
 
   //----------------------------------------------------------------------------
@@ -138,6 +136,7 @@ type
   private
     fDate : string;
     fDescription : string;
+    fReference : string;
     fAmount : integer;
     fCoreTransactionId : string;
 
@@ -150,6 +149,7 @@ type
 
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
+    property Reference : string read fReference write fReference;
     property Amount : integer read fAmount write fAmount;
     property CoreTransactionId : string read fCoreTransactionId write fCoreTransactionId;
 
@@ -606,7 +606,6 @@ procedure TAllocationData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('AccountNumber', AccountNumber);
   aJson.Add('Description', Description);
-  aJson.Add('Reference', Reference);
   aJson.Add('Amount', Amount);
   aJson.Add('TaxRate', TaxRate);
   aJson.Add('TaxAmount', TaxAmount);
@@ -665,6 +664,7 @@ procedure TTransactionData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('Date', Date);
   aJson.Add('Description', Description);
+  aJson.Add('Reference', Reference);
   aJson.Add('Amount', Amount);
 
   if CoreTransactionId <> '' then

@@ -884,7 +884,8 @@ begin
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
-      if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) then
+      if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
+         not (BankAccount.baFields.baIs_A_Manual_Account) then
       begin
         for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
         begin
@@ -897,7 +898,7 @@ begin
               BankFeedApplicationData.CountryCode := 'OZ'
             else
               BankFeedApplicationData.CountryCode := 'NZ';
-            BankFeedApplicationData.CoreClientCode := aClient.clFields.clCode;
+            BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
             BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateCode(AccRec.chAccount_Code);
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
           end;
@@ -1049,7 +1050,7 @@ begin
     // Add Uncoded Chart
     NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
     NewChartItem.Code := 'UNCODED';
-    NewChartItem.Name := '';
+    NewChartItem.Name := 'UNCODED';
     NewChartItem.InActive := true;
     NewChartItem.PostingAllowed := true;
     NewChartItem.Divisions := '';
@@ -1117,6 +1118,7 @@ begin
           TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           TransactionItem.Description := TransactionRec.txStatement_Details;
           TransactionItem.Amount      := trunc(TransactionRec.txAmount);
+          TransactionItem.Reference   := TransactionRec.txReference;
 
           if BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex) > 0 then
             TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex))
@@ -1175,7 +1177,6 @@ begin
                 AllocationItem.Reference := DissRec^.dsReference;}
 
               AllocationItem.Description := DissRec^.dsGL_Narration;
-              AllocationItem.Reference := DissRec^.dsReference;
               AllocationItem.Amount := trunc(DissRec^.dsAmount);
               AllocationItem.TaxAmount := trunc(DissRec^.dsGST_Amount);
 
@@ -1204,7 +1205,6 @@ begin
             end;
 
             AllocationItem.Description := TransactionRec.txGL_Narration;
-            AllocationItem.Reference := TransactionRec.txReference;
             AllocationItem.Amount := trunc(TransactionRec.txAmount);
             AllocationItem.TaxAmount := trunc(TransactionRec.txGST_Amount);
             AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, TransactionRec.txGST_Class);
