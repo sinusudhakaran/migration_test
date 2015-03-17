@@ -164,18 +164,33 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           736
           362)
         object BKOverviewWebBrowser: TBKWebBrowser
-          Left = 3
-          Top = 3
-          Width = 717
-          Height = 351
+          Left = 12
+          Top = 124
+          Width = 713
+          Height = 227
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
           ControlData = {
-            4C0000001B4A0000472400000000000000000000000000000000000000000000
+            4C000000B1490000761700000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E12620A000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
             00000000000000000100000000000000000000000000000000000000}
+        end
+        object stgSelectedClients: TStringGrid
+          Left = 12
+          Top = 3
+          Width = 713
+          Height = 110
+          ColCount = 2
+          DefaultRowHeight = 20
+          FixedCols = 0
+          Options = [goRangeSelect, goRowSelect]
+          TabOrder = 1
+          OnClick = stgSelectedClientsClick
+          ColWidths = (
+            122
+            583)
         end
       end
       object tabMYOBCredentials: TTabSheet
@@ -186,9 +201,9 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           736
           362)
         object pnlLogin: TPanel
-          Left = 10
+          Left = 12
           Top = 3
-          Width = 716
+          Width = 713
           Height = 169
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
@@ -277,9 +292,9 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           end
         end
         object pnlFirm: TPanel
-          Left = 10
-          Top = 180
-          Width = 716
+          Left = 12
+          Top = 184
+          Width = 713
           Height = 164
           Anchors = [akLeft, akRight, akBottom]
           TabOrder = 1
@@ -345,20 +360,19 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           736
           362)
         object pnlSelectData: TPanel
-          Left = 10
+          Left = 12
           Top = 3
-          Width = 716
-          Height = 351
+          Width = 713
+          Height = 347
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          object Label3: TLabel
-            Left = 37
-            Top = 156
-            Width = 484
+          object lblBankfeeds3: TLabel
+            Left = 79
+            Top = 125
+            Width = 650
             Height = 16
-            Caption = 
-              'Bank Feeds - your Bank Feeds will no longer be delivered to Prac' +
-              'tice after migration.'
+            AutoSize = False
+            Caption = 'Bank Feeds'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
@@ -366,11 +380,12 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
           end
-          object Label4: TLabel
-            Left = 37
-            Top = 193
-            Width = 487
+          object lblMems1: TLabel
+            Left = 31
+            Top = 275
+            Width = 650
             Height = 16
+            AutoSize = False
             Caption = 
               'Memorisations - you can add these manually as '#39'Rules'#39' in MYOB Es' +
               'sentials Cashbook.'
@@ -381,12 +396,13 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
           end
-          object Label5: TLabel
-            Left = 55
-            Top = 27
-            Width = 65
+          object lblBankfeeds1: TLabel
+            Left = 48
+            Top = 25
+            Width = 650
             Height = 16
-            Caption = 'Bank Feeds'
+            AutoSize = False
+            Caption = 'Bank feeds'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
@@ -394,26 +410,38 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
           end
-          object chkBankFeed: TCheckBox
-            Left = 37
-            Top = 26
-            Width = 12
-            Height = 21
-            Checked = True
-            Enabled = False
+          object lblBankfeeds2: TLabel
+            Left = 80
+            Top = 75
+            Width = 650
+            Height = 16
+            AutoSize = False
+            Caption = 'They will be deleted from'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
             Font.Name = 'Tahoma'
             Font.Style = []
             ParentFont = False
-            State = cbChecked
-            TabOrder = 0
+          end
+          object lblBankfeeds4: TLabel
+            Left = 80
+            Top = 150
+            Width = 650
+            Height = 16
+            AutoSize = False
+            Caption = 'you can request to have your Bank feed from'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
           end
           object chkChartofAccount: TCheckBox
-            Left = 37
-            Top = 62
-            Width = 180
+            Left = 32
+            Top = 175
+            Width = 650
             Height = 17
             Caption = 'Chart of Accounts'
             Checked = True
@@ -424,13 +452,13 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
             State = cbChecked
-            TabOrder = 1
+            TabOrder = 2
             OnClick = chkChartofAccountClick
           end
           object chkBalances: TCheckBox
-            Left = 55
-            Top = 85
-            Width = 180
+            Left = 49
+            Top = 200
+            Width = 650
             Height = 17
             Caption = 'Chart of Account balances'
             Checked = True
@@ -441,12 +469,12 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
             State = cbChecked
-            TabOrder = 2
+            TabOrder = 3
           end
           object chkTransactions: TCheckBox
-            Left = 37
-            Top = 121
-            Width = 356
+            Left = 32
+            Top = 225
+            Width = 650
             Height = 17
             Caption = 'Non-transferred transaction data'
             Checked = True
@@ -457,7 +485,42 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
             State = cbChecked
-            TabOrder = 3
+            TabOrder = 4
+          end
+          object radMove: TRadioButton
+            Left = 50
+            Top = 50
+            Width = 650
+            Height = 17
+            Caption = 'Move'
+            TabOrder = 0
+            OnClick = radCopyClick
+          end
+          object radCopy: TRadioButton
+            Left = 50
+            Top = 100
+            Width = 650
+            Height = 17
+            Caption = 'Copy'
+            TabOrder = 1
+            OnClick = radCopyClick
+          end
+          object CheckBox1: TCheckBox
+            Left = 32
+            Top = 25
+            Width = 17
+            Height = 17
+            Checked = True
+            Enabled = False
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clInfoText
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            State = cbChecked
+            TabOrder = 5
+            OnClick = chkChartofAccountClick
           end
         end
       end
@@ -469,10 +532,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           736
           362)
         object pnlProgress: TPanel
-          Left = 10
-          Top = 0
-          Width = 716
-          Height = 351
+          Left = 12
+          Top = 3
+          Width = 713
+          Height = 347
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
           object lblProgressTitle: TLabel
@@ -532,12 +595,12 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Left = 0
           Top = 0
           Width = 736
-          Height = 134
+          Height = 161
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
           object lblClientCompleteAmount: TLabel
-            Left = 24
+            Left = 25
             Top = 15
             Width = 453
             Height = 16
@@ -552,8 +615,37 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             ParentFont = False
           end
           object lblCashbookMigrated: TLabel
-            Left = 24
-            Top = 85
+            Left = 25
+            Top = 129
+            Width = 611
+            Height = 16
+            Caption = 
+              'It may take up to 48 hours for all client data to be available. ' +
+              'You can check the status of your bank feeds in'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+          end
+          object lblCashbookLoginLink: TLabel
+            Left = 25
+            Top = 107
+            Width = 147
+            Height = 16
+            Caption = 'You can log into (%) here'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clBlue
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = [fsUnderline]
+            ParentFont = False
+            OnClick = lblCashbookLoginLinkClick
+          end
+          object lblYuoCanCheckYourStatus: TLabel
+            Left = 25
+            Top = 151
             Width = 408
             Height = 16
             Caption = 
@@ -566,34 +658,37 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
           end
-          object lblCashbookLoginLink: TLabel
-            Left = 24
-            Top = 45
-            Width = 147
-            Height = 16
-            Caption = 'You can log into (%) here'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlue
-            Font.Height = -13
-            Font.Name = 'Tahoma'
-            Font.Style = [fsUnderline]
-            ParentFont = False
-            OnClick = lblCashbookLoginLinkClick
+          object stgClientsMigrated: TStringGrid
+            Left = 25
+            Top = 37
+            Width = 681
+            Height = 64
+            ColCount = 2
+            DefaultRowHeight = 20
+            FixedCols = 0
+            Options = [goRangeSelect, goRowSelect]
+            TabOrder = 0
+            OnClick = stgSelectedClientsClick
+            ColWidths = (
+              122
+              583)
           end
         end
         object pnlCashbookErrors: TPanel
           Left = 0
-          Top = 134
+          Top = 161
           Width = 736
-          Height = 228
+          Height = 201
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
+          ExplicitTop = 183
+          ExplicitHeight = 177
           DesignSize = (
             736
-            228)
+            201)
           object lblClientError: TLabel
-            Left = 24
+            Left = 25
             Top = 0
             Width = 276
             Height = 16
@@ -606,8 +701,8 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             ParentFont = False
           end
           object lblClientErrorSupport: TLabel
-            Left = 24
-            Top = 203
+            Left = 25
+            Top = 176
             Width = 306
             Height = 16
             Anchors = [akLeft, akBottom]
@@ -618,33 +713,36 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Name = 'Tahoma'
             Font.Style = []
             ParentFont = False
+            ExplicitTop = 152
           end
           object lstClientErrors: TListBox
-            Left = 24
+            Left = 25
             Top = 22
             Width = 681
-            Height = 175
+            Height = 148
             Anchors = [akLeft, akTop, akBottom]
             ItemHeight = 13
             TabOrder = 0
+            ExplicitHeight = 124
           end
         end
       end
       object tabCheckList: TTabSheet
         Caption = 'tabCheckList'
         ImageIndex = 6
+        ExplicitTop = 3
         DesignSize = (
           736
           362)
         object BKChecklistWebBrowser: TBKWebBrowser
-          Left = 3
+          Left = 12
           Top = 3
-          Width = 717
-          Height = 351
+          Width = 713
+          Height = 347
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
           ControlData = {
-            4C0000001B4A0000472400000000000000000000000000000000000000000000
+            4C000000B1490000DD2300000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E12620A000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000

@@ -36,7 +36,7 @@ uses
   BKWebBrowser,
   RzPrgres,
   CashbookMigration,
-  CashbookMigrationRestData;
+  CashbookMigrationRestData, VirtualTrees, Grids;
 
 type
   TFrmCashBookMigrationWiz = class(TForm)
@@ -65,7 +65,6 @@ type
     cmbSelectFirm: TComboBox;
     tabSelectData: TTabSheet;
     pnlSelectData: TPanel;
-    chkBankFeed: TCheckBox;
     chkChartofAccount: TCheckBox;
     chkBalances: TCheckBox;
     chkTransactions: TCheckBox;
@@ -79,9 +78,8 @@ type
     tabCheckList: TTabSheet;
     BKChecklistWebBrowser: TBKWebBrowser;
     lblSingleFirm: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
+    lblBankfeeds3: TLabel;
+    lblMems1: TLabel;
     pnlCashbookComplete: TPanel;
     pnlCashbookErrors: TPanel;
     lblClientCompleteAmount: TLabel;
@@ -91,6 +89,15 @@ type
     lstClientErrors: TListBox;
     lblClientErrorSupport: TLabel;
     lblForgotPassword: TLabel;
+    lblBankfeeds1: TLabel;
+    radMove: TRadioButton;
+    radCopy: TRadioButton;
+    lblBankfeeds2: TLabel;
+    lblBankfeeds4: TLabel;
+    stgSelectedClients: TStringGrid;
+    CheckBox1: TCheckBox;
+    stgClientsMigrated: TStringGrid;
+    lblYuoCanCheckYourStatus: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
@@ -103,6 +110,8 @@ type
     procedure edtEmailChange(Sender: TObject);
     procedure lblForgotPasswordClick(Sender: TObject);
     procedure lblCashbookLoginLinkClick(Sender: TObject);
+    procedure stgSelectedClientsClick(Sender: TObject);
+    procedure radCopyClick(Sender: TObject);
 
   private
     fCurrentStepID: integer;
@@ -121,6 +130,7 @@ type
     fMigrationStatus : TMigrationStatus;
 
   protected
+    procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth : integer);
     procedure DoMigrationProgress(aCurrentFile : integer;
                                   aTotalFiles : integer;
                                   aPercentOfCurrentFile : integer);
@@ -151,6 +161,7 @@ type
     procedure DoMigrateCashbook();
 
     procedure UpdateControls;
+    procedure UpdateDataSelection();
     function UpdateFirmControls() : boolean;
     procedure UpdateSignInControls(aBusySigningIn : Boolean);
     procedure UpdateProgressControls();
@@ -202,6 +213,7 @@ uses
   bkContactInformation,
   Files,
   DateUtils,
+  SYDefs,
   WarningMoreFrm;
 
 const
@@ -217,18 +229,17 @@ const
   mtCompleteMigration  = 6; mtMax = 6;
 
   StepTitles: array[mtMin..mtMax] of string = (
-    'Welcome',
-    'Overview',
-    'MYOB Credentials',
-    'Data Selection',
+    'Step 1 of 4 : Before you start',
+    'Step 2 of 4 : Migration details',
+    'Step 3 of 4 : MYOB Credentials',
+    'Step 4 of 4 : Data Selection',
     'Migration Progress',
     'Complete'
   );
 
   StepDescriptions: array[mtMin..mtMax] of string = (
-    'Congratulations for opting to migrate your selected accounts from Practice to ' + BRAND_CASHBOOK_NAME + '. ' +
-    'Please ensure your clients are ready to migrate by checking the following:',
-    'Before we begin please note:',
+    'You have chosen to migrate the following client files from MYOB BankLink Practice to ' + BRAND_CASHBOOK_NAME + '.',
+    '',
     'Sign into your my.MYOB account',
     'What would you like to migrate to ' + BRAND_CASHBOOK_NAME + '?',
     '',
@@ -485,6 +496,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.radCopyClick(Sender: TObject);
+begin
+  fSelectedData.DoMoveRatherThanCopy := radMove.Checked;
+end;
+
+//------------------------------------------------------------------------------
 //gives us an opportunity to save information on the current tab
 procedure TFrmCashBookMigrationWiz.DoBeforeMoveToStep(OldStepID : integer; var NewStepID : integer; var Cancel : boolean);
 
@@ -526,6 +543,7 @@ begin
         fSelectedData.ChartOfAccount := chkChartofAccount.checked;
         fSelectedData.ChartOfAccountBalances := chkBalances.checked;
         fSelectedData.NonTransferedTransactions := chkTransactions.checked;
+        fSelectedData.DoMoveRatherThanCopy := true;
 
         if DebugMe then
         begin
@@ -742,6 +760,11 @@ begin
   result := True;
 end;
 
+procedure TFrmCashBookMigrationWiz.stgSelectedClientsClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.InitialiseStep(StepID: integer);
 var
@@ -756,6 +779,8 @@ begin
     begin
       UpdateControls;
       btnNext.SetFocus;
+
+      UpdateClientStringGrid(stgSelectedClients, 582);
 
       {case AdminSystem.fdFields.fdCountry of
         whNewZealand: Overview1URL := Globals.PRACINI_NZCashMigrationURLOverview1;
@@ -784,6 +809,10 @@ begin
 
       BKChecklistWebBrowser.Navigate(Overview2URL);
     end;}
+    mtSelectData :
+    begin
+      UpdateDataSelection();
+    end;
   end;
 end;
 
@@ -905,6 +934,28 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.UpdateDataSelection;
+begin
+  radMove.Checked := true;
+
+  lblBankfeeds1.Caption := 'Bank Feeds';
+  radMove.Caption       := 'Move Bank feeds to ' + BRAND_CASHBOOK_NAME;
+  lblBankfeeds2.Caption := 'They will be deleted from ' + BRAND_FULL_PRACTICE + '.';
+  radCopy.Caption       := 'Copy Bank feeds to ' + BRAND_CASHBOOK_NAME;
+  lblBankfeeds3.Caption := 'Bank feeds will continue to work in ' + BRAND_FULL_PRACTICE +
+                           ', and you will be charged for both bank feeds.' ;
+  lblBankfeeds4.Caption     := 'You can request to have your bank feed deleted from ' +
+                               BRAND_FULL_PRACTICE + ' at any time.';
+
+  chkChartofAccount.Caption := 'Chart of Accounts';
+  chkBalances.Caption       := 'Chart of Account balances';
+  chkTransactions.Caption   := 'Non-transferred transaction data';
+
+  lblMems1.Caption          := 'Memorisations - you can add these manually as ''Rules'' in ' +
+                               BRAND_CASHBOOK_NAME + '.';;
+end;
+
+//------------------------------------------------------------------------------
 function TFrmCashBookMigrationWiz.UpdateFirmControls: boolean;
 var
   FirmIndex : integer;
@@ -918,7 +969,8 @@ begin
   begin
     fSignedIn := false;
     UpdateSignInControls(false);
-    HelpfulWarningMsg('No firms available.',0);
+    HelpfulWarningMsg('You do not have permission to setup ' + BRAND_CASHBOOK_NAME + ' clients. ' +
+                      'Please contact your Partner Manager.' ,0);
     edtEmail.SetFocus;
     exit;
   end
@@ -1008,6 +1060,30 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth : integer);
+var
+  Client: pClient_File_Rec;
+  SelIndex : integer;
+begin
+  aClients.ColWidths[0] := 110;
+
+  if SelectClients.Count > 4 then
+    aClients.ColWidths[1] := aClientNameWidth
+  else
+    aClients.ColWidths[1] := aClientNameWidth + 17;
+
+  aClients.RowCount := SelectClients.Count+1;
+  aClients.Cells[0, 0] := 'Code';
+  aClients.Cells[1, 0] := 'Name';
+  for SelIndex := 1 to SelectClients.Count do
+  begin
+    Client := AdminSystem.fdSystem_Client_File_List.FindCode(SelectClients.Strings[SelIndex-1]);
+    aClients.Cells[0, SelIndex] := Client^.cfFile_Code;
+    aClients.Cells[1, SelIndex] := Client^.cfFile_Name;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.UpdateCompleteControls();
 var
   ErrorIndex : integer;
@@ -1028,9 +1104,6 @@ begin
   for ErrorIndex := 0 to fClientErrors.Count-1 do
     lstClientErrors.AddItem(fClientErrors.Strings[ErrorIndex], nil);
 
-  lblClientCompleteAmount.Caption :=
-    Format('%d client(s) and their data are now being created in ' + BRAND_CASHBOOK_NAME + '.', [TotalClients]);
-
   lblCashbookLoginLink.Caption :=
     Format('You can log into %s here', [CASHBOOK_DASHBOARD_NAME]);
 
@@ -1041,24 +1114,43 @@ begin
     lblClientErrorSupport.Caption := Format('Please contact ' + SHORTAPPNAME + ' support if the problems persist : %s', [SupportNumber]);
   end;
 
+  lblYuoCanCheckYourStatus.Caption := BRAND_CASHBOOK_NAME + '.';
   WindowTitle := 'Congratulations and welcome to ' + BRAND_CASHBOOK_NAME;
+
   case fMigrationStatus of
     mgsSuccess : begin
+      lblClientCompleteAmount.Caption := 'The following clients are now being created in ' + BRAND_CASHBOOK_NAME + '.';
+
+      stgClientsMigrated.Visible := true;
+      UpdateClientStringGrid(stgClientsMigrated, 550);
+
       lblDescription.Caption := WindowTitle;
       pnlCashbookComplete.Visible := true;
       pnlCashbookErrors.Visible   := false;
       pnlCashbookComplete.Align   := alClient;
 
-      lblClientCompleteAmount.Top := 20;
-      lblCashbookLoginLink.Top := 20 + trunc(pnlCashbookComplete.Height/4);
-      lblCashbookMigrated.Top := 20 + trunc((pnlCashbookComplete.Height/4)*2);
+      lblClientCompleteAmount.Top := 16;
+      stgClientsMigrated.Top := 36;
+      stgClientsMigrated.Height := 205;
+      lblCashbookLoginLink.Top := 275;
+      lblCashbookMigrated.Top := 300;
+      lblYuoCanCheckYourStatus.Top := 325;
     end;
     mgsPartial : begin
+      lblClientCompleteAmount.Caption :=
+        Format('%d client(s) are now being created in ' + BRAND_CASHBOOK_NAME + '.', [TotalClients]);
+
+      stgClientsMigrated.Visible := false;
       lblDescription.Caption := WindowTitle;
       pnlCashbookComplete.Visible := true;
       pnlCashbookErrors.Visible   := true;
       pnlCashbookComplete.Align   := alTop;
       pnlCashbookErrors.Align     := alClient;
+
+      lblClientCompleteAmount.Top := 16;
+      lblCashbookLoginLink.Top := 65;
+      lblCashbookMigrated.Top := 90;
+      lblYuoCanCheckYourStatus.Top := 115;
     end;
     mgsFailure : begin
       lblDescription.Caption := 'We could not migrate your client(s)';

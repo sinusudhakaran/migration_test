@@ -142,7 +142,7 @@ type
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
-    function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; var aError : string) : boolean;
+    function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; aDoMoveRatherThanCopy : boolean; var aError : string) : boolean;
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
@@ -871,7 +871,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillBankFeedData(aClient: TClientObj; aBankFeedApplicationsData: TBankFeedApplicationsData; var aError: string): boolean;
+function TCashbookMigration.FillBankFeedData(aClient: TClientObj; aBankFeedApplicationsData: TBankFeedApplicationsData; aDoMoveRatherThanCopy : boolean; var aError: string): boolean;
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
@@ -901,12 +901,11 @@ begin
             BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
             BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateCode(AccRec.chAccount_Code);
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
-            BankFeedApplicationData.Operation := 'COPY';
 
-            //if True then
-            //  BankFeedApplicationData.Operation := 'DELETE'
-            //else
-            //  BankFeedApplicationData.Operation := 'COPY';
+            if aDoMoveRatherThanCopy then
+              BankFeedApplicationData.Operation := 'MOVE'
+            else
+              BankFeedApplicationData.Operation := 'COPY';
           end;
         end;
       end;
@@ -1444,7 +1443,7 @@ begin
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aError) then
         Exit;
 
-      if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aError) then
+      if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aSelectedData.DoMoveRatherThanCopy, aError) then
         Exit;
 
       if aSelectedData.ChartOfAccount then

@@ -23,6 +23,7 @@ type
     ChartOfAccount : boolean;
     ChartOfAccountBalances : boolean;
     NonTransferedTransactions : boolean;
+    DoMoveRatherThanCopy : Boolean;
   end;
 
   //----------------------------------------------------------------------------
@@ -608,6 +609,10 @@ procedure TAllocationData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('AccountNumber', AccountNumber);
   aJson.Add('Description', Description);
+
+  // Reverse Sign of amount for allocations only
+  Amount := -Amount;
+
   aJson.Add('Amount', Amount);
   aJson.Add('TaxRate', TaxRate);
   aJson.Add('TaxAmount', TaxAmount);
@@ -667,6 +672,7 @@ begin
   aJson.Add('Date', Date);
   aJson.Add('Description', Description);
   aJson.Add('Reference', Reference);
+
   aJson.Add('Amount', Amount);
 
   if CoreTransactionId <> '' then
