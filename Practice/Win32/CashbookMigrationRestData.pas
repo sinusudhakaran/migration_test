@@ -114,7 +114,7 @@ type
     fTaxRate : string;
     fTaxAmount : integer;
   public
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject; aTransAmount : integer);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
     property Description : string read fDescription write fDescription;
@@ -129,7 +129,7 @@ type
   public
     function ItemAs(aIndex : integer) : TAllocationData;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject; aTransAmount : integer);
   end;
 
   //----------------------------------------------------------------------------
@@ -605,17 +605,14 @@ end;
 
 { TAllocationData }
 //------------------------------------------------------------------------------
-procedure TAllocationData.Write(const aJson: TlkJSONobject);
+procedure TAllocationData.Write(const aJson: TlkJSONobject; aTransAmount : integer);
 begin
   aJson.Add('AccountNumber', AccountNumber);
   aJson.Add('Description', Description);
 
-  // Reverse Sign of amount for allocations only
-  Amount := -Amount;
-
-  aJson.Add('Amount', Amount);
+  aJson.Add('Amount', -(Amount-TaxAmount));
   aJson.Add('TaxRate', TaxRate);
-  aJson.Add('TaxAmount', TaxAmount);
+  aJson.Add('TaxAmount', -(TaxAmount));
 end;
 
 { TAllocationsData }
@@ -626,7 +623,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAllocationsData.Write(const aJson: TlkJSONobject);
+procedure TAllocationsData.Write(const aJson: TlkJSONobject; aTransAmount : integer);
 var
   Allocations: TlkJSONlist;
   AllocationIndex : integer;
@@ -645,7 +642,7 @@ begin
     Allocations.Add(AllocationData);
 
     Allocation := ItemAs(AllocationIndex);
-    Allocation.Write(AllocationData);
+    Allocation.Write(AllocationData, aTransAmount);
   end;
 end;
 
@@ -678,7 +675,7 @@ begin
   if CoreTransactionId <> '' then
     aJson.Add('CoreTransactionId', CoreTransactionId);
 
-  Allocations.Write(aJson);
+  Allocations.Write(aJson, Amount);
 end;
 
 { TTransactionsData }
