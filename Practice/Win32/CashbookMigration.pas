@@ -15,6 +15,7 @@ uses
   StDate,
   clObj32,
   ChartExportToMYOBCashbook,
+  BKWebBrowser,
   ipshttps;
 
 const
@@ -29,6 +30,9 @@ type
   TMigrationStatus = (mgsSuccess,
                       mgsPartial,
                       mgsFailure);
+
+  THtmlPageToNavigate = (hpnCashBookStartCache,
+                         hpnCashBookDetailCache);
 
   //----------------------------------------------------------------------------
   THttpHeaders = record
@@ -61,6 +65,7 @@ type
   //----------------------------------------------------------------------------
   TCashbookMigration = class
   private
+    fNavigateError : boolean;
     fToken: string;
     fCashBookUserid : string;
     fUnEncryptedToken : string;
@@ -78,6 +83,12 @@ type
     fMappingsData : TMappingsData;
 
   protected
+    procedure DoNavigationError(ASender: TObject; const pDisp: IDispatch;
+                                var URL: OleVariant;
+                                var Frame: OleVariant;
+                                var StatusCode: OleVariant;
+                                var Cancel: WordBool);
+
     procedure LogHttpDebugSend(aCall : string;
                                aHeaders: THttpHeaders;
                                aPostData: TStringList); overload;
@@ -115,6 +126,7 @@ type
                            const AField : String;
                            const AValue : String); Virtual;
 
+    function LoadBrowserCashFile(aFileName : string) : boolean;
     procedure HttpSetup;
     procedure EncryptToken(aToken : string);
 
@@ -141,11 +153,11 @@ type
     function ValidateIRDGST(aValue : string; var aModifiedIRD : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
-    function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError : string) : boolean;
+    function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
     function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; aDoMoveRatherThanCopy : boolean; var aError : string) : boolean;
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
-    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
-    function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
+    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
+    function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
 
     function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
@@ -155,7 +167,9 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    function Login(const aEmail: string; const aPassword: string; var aError : string): boolean;
+    procedure TryNavToPageUpdateCache(aBKWebBrowser : TBKWebBrowser; aHtmlPageToNavigate: THtmlPageToNavigate);
+
+    function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
 
     function GetFirms(var aFirms: TFirms; var aError: string): boolean;
 
@@ -181,6 +195,7 @@ uses
   Files,
   GenUtils,
   LogUtil,
+  LockUtils,
   strUtils,
   BKDEFS,
   baUtils,
@@ -299,6 +314,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.DoNavigationError(ASender: TObject;
+  const pDisp: IDispatch; var URL, Frame, StatusCode: OleVariant;
+  var Cancel: WordBool);
+begin
+  fNavigateError := true;
+  Cancel := true;
+end;
+
+//------------------------------------------------------------------------------
 { TCashbookMigration }
 procedure TCashbookMigration.LogHttpDebugSend(aCall : string; aHeaders: THttpHeaders; aPostData: TStringList);
 var
@@ -336,6 +360,20 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCashbookMigration.LoadBrowserCashFile(aFileName: string): boolean;
+begin
+  {FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
+  try
+    WritePracticeINI;
+  finally
+    FileLocking.ReleaseLock( ltPracIni );
+  end;
+
+  AdminIsLocked := FileLocking.ObtainLock( ltAdminSystem, PRACINI_TicksToWaitForAdmin div 1000 );
+
+  Globals.HtmlCashe + aFileName}
+end;
+
 procedure TCashbookMigration.LogHttpDebugReponce(aCall : string; aresponse: string);
 begin
   LogUtil.LogMsg(lmDebug, UnitName, 'Server Respond : ' + aCall);
@@ -527,45 +565,53 @@ var
 begin
   Result := false;
 
-  { WORKAROUND:
-    Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
-    so we must use OtherHeaders instead.
-  }
-  FHttpRequester.OtherHeaders :=
-    'Content-Type: ' + aHeaders.ContentType + CRLF +
-    'Accept: ' + aHeaders.Accept + CRLF +
-    'Authorization: ' + aHeaders.Authorization + CRLF +
-    'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
+  try
+    { WORKAROUND:
+      Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
+      so we must use OtherHeaders instead.
+    }
+    FHttpRequester.OtherHeaders :=
+      'Content-Type: ' + aHeaders.ContentType + CRLF +
+      'Accept: ' + aHeaders.Accept + CRLF +
+      'Authorization: ' + aHeaders.Authorization + CRLF +
+      'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
 
-  if DebugMe then
-  begin
-    LogUtil.LogMsg(lmDebug, UnitName, aVerb + ' : ' + aURL);
-    LogUtil.LogMsg(lmDebug, UnitName, 'Headers : ' + FHttpRequester.OtherHeaders);
-
-    if (aVerb <> 'GET')  and
-       (aRequest <> '') then
+    if DebugMe then
     begin
-      LoggedRequest := RemovePassword(aRequest);
-      LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + LoggedRequest);
+      LogUtil.LogMsg(lmDebug, UnitName, aVerb + ' : ' + aURL);
+      LogUtil.LogMsg(lmDebug, UnitName, 'Headers : ' + FHttpRequester.OtherHeaders);
+
+      if (aVerb <> 'GET')  and
+         (aRequest <> '') then
+      begin
+        LoggedRequest := RemovePassword(aRequest);
+        LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + LoggedRequest);
+      end;
+    end;
+
+    if (aVerb = 'GET') then
+    begin
+      FHttpRequester.Get(aURL);
+    end
+    else
+    begin
+      FHttpRequester.PostData := aRequest;
+      FHttpRequester.Post(aURL);
+    end;
+
+    aResponse := FHttpRequester.TransferredData;
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
+
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      aError := E.Message;
+      exit;
     end;
   end;
-
-  if (aVerb = 'GET') then
-  begin
-    FHttpRequester.Get(aURL);
-  end
-  else
-  begin
-    FHttpRequester.PostData := aRequest;
-    FHttpRequester.Post(aURL);
-  end;
-
-  aResponse := FHttpRequester.TransferredData;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
-
-  Result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -576,40 +622,48 @@ const
 begin
   Result := false;
 
-  { WORKAROUND:
-    Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
-    so we must use OtherHeaders instead.
-  }
-  FHttpRequester.OtherHeaders :=
-    'Content-Type: ' + aHeaders.ContentType + CRLF +
-    'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
+  try
+    { WORKAROUND:
+      Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
+      so we must use OtherHeaders instead.
+    }
+    FHttpRequester.OtherHeaders :=
+      'Content-Type: ' + aHeaders.ContentType + CRLF +
+      'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
 
-  if DebugMe then
-  begin
-    LogUtil.LogMsg(lmDebug, UnitName, aVerb + ' : ' + aURL);
-    LogUtil.LogMsg(lmDebug, UnitName, 'Headers : ' + FHttpRequester.OtherHeaders);
+    if DebugMe then
+    begin
+      LogUtil.LogMsg(lmDebug, UnitName, aVerb + ' : ' + aURL);
+      LogUtil.LogMsg(lmDebug, UnitName, 'Headers : ' + FHttpRequester.OtherHeaders);
 
-    if (aVerb <> 'GET')  and
-       (aRequest <> '') then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + aRequest);
+      if (aVerb <> 'GET')  and
+         (aRequest <> '') then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + aRequest);
+    end;
+
+    if (aVerb = 'GET') then
+    begin
+      FHttpRequester.Get(aURL);
+    end
+    else
+    begin
+      FHttpRequester.PostData := aRequest;
+      FHttpRequester.Post(aURL);
+    end;
+
+    aResponse := FHttpRequester.TransferredData;
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
+
+    Result := true;
+  except
+    on E: Exception do
+    begin
+      aError := E.Message;
+      exit;
+    end;
   end;
-
-  if (aVerb = 'GET') then
-  begin
-    FHttpRequester.Get(aURL);
-  end
-  else
-  begin
-    FHttpRequester.PostData := aRequest;
-    FHttpRequester.Post(aURL);
-  end;
-
-  aResponse := FHttpRequester.TransferredData;
-
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
-
-  Result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -816,7 +870,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; var aError: string): boolean;
+function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError: string): boolean;
 var
   ClientCode : string;
   FYSday, FYSmonth, FYSyear : integer;
@@ -855,7 +909,8 @@ begin
     aBusinessData.IRD := IRD;
 
     OpenBalDate := IncDate(aClosingBalanceDate, 1, 0, 0);
-    if OpenBalDate = BadDate then
+    if (OpenBalDate = BadDate) or
+       (not aDoChartOfAccountBalances) then
       aBusinessData.OpeningBalanceDate := ''
     else
       aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', OpenBalDate, true);
@@ -898,6 +953,7 @@ begin
               BankFeedApplicationData.CountryCode := 'OZ'
             else
               BankFeedApplicationData.CountryCode := 'NZ';
+
             BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
             BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateCode(AccRec.chAccount_Code);
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
@@ -955,7 +1011,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aDoChartOfAccountBalances : boolean; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; var aError : string) : boolean;
+function TCashbookMigration.FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
@@ -969,6 +1025,9 @@ var
   GSTClass : TCashBookGSTClasses;
   ChartExportFound : boolean;
   MigrationClosingBalance : integer;
+  AccountIndex : integer;
+  BankAccount : TBank_Account;
+  SendChart : boolean;
 
   //----------------------------------------------------------------------------
   Function GetValidDivisions() : string;
@@ -1002,10 +1061,32 @@ begin
     begin
       AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
+      SendChart := true;
+      if not aSelectedData.ChartOfAccount then
+      begin
+        SendChart := false;
+        for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+        begin
+          BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+          if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
+             not (BankAccount.baFields.baIs_A_Manual_Account) then
+          begin
+            if BankAccount.baFields.baContra_Account_Code =  AccRec.chAccount_Code then
+            begin
+              SendChart := true;
+              Break;
+            end;
+          end;
+        end;
+      end;
+
+      if not SendChart then
+        Continue;
+
       ChartExportFound := aChartExportCol.ItemAtCode(AccRec.chAccount_Code, ChartExportItem);
       if ChartExportFound then
       begin
-        if aDoChartOfAccountBalances then
+        if aSelectedData.ChartOfAccountBalances then
           MigrationClosingBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance)
         else
           MigrationClosingBalance := 0;
@@ -1050,21 +1131,40 @@ begin
         NewChartItem.OpeningBalance := 0;
         NewChartItem.BankOrCreditFlag := false;
       end;
+
+      for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+      begin
+        BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+        if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
+           not (BankAccount.baFields.baIs_A_Manual_Account) then
+        begin
+          if BankAccount.baFields.baContra_Account_Code =  AccRec.chAccount_Code then
+          begin
+            if not (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccAsset)) or
+                   (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccLiabilities)) then
+              NewChartItem.AccountType := GetMigrationMappedReportGroupCode(ccAsset);
+          end;
+        end;
+      end;
     end;
 
     // Add Uncoded Chart
-    NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
-    NewChartItem.Code := 'UNCODED';
-    NewChartItem.Name := 'UNCODED';
-    NewChartItem.InActive := true;
-    NewChartItem.PostingAllowed := true;
-    NewChartItem.Divisions := '';
-    NewChartItem.AccountType := 'uncategorised';
-    NewChartItem.GstType := 'NA';
-    NewChartItem.OrigAccountType := '';
-    NewChartItem.OrigGstType := '';
-    NewChartItem.OpeningBalance := 0;
-    NewChartItem.BankOrCreditFlag := false;
+    if not aNoTransactions then
+    begin
+      NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
+      NewChartItem.Code := 'UNCODED';
+      NewChartItem.Name := 'Invalid code from migration';
+      NewChartItem.InActive := true;
+      NewChartItem.PostingAllowed := true;
+      NewChartItem.Divisions := '';
+      NewChartItem.AccountType := 'uncategorised';
+      NewChartItem.GstType := 'NA';
+      NewChartItem.OrigAccountType := '';
+      NewChartItem.OrigGstType := '';
+      NewChartItem.OpeningBalance := 0;
+      NewChartItem.BankOrCreditFlag := false;
+    end;
+
     Result := true;
   except
     on E: Exception do
@@ -1076,7 +1176,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillTransactionData(aClient: TClientObj; aBankAccountsData: TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
+function TCashbookMigration.FillTransactionData(aClient: TClientObj; aBankAccountsData: TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError: string): boolean;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
@@ -1091,6 +1191,7 @@ var
   AccountCode : string;
 begin
   Result := false;
+  aNoTransactions := true;
   try
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
@@ -1117,7 +1218,9 @@ begin
 
           // Check if Transaction is not finalized and not presented
           if (TransactionRec.txDate_Transferred > 0) then
-            Continue;
+            break;
+
+          aNoTransactions := false;
 
           TransactionItem := TTransactionData.Create(BankAccountItem.Transactions);
           TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
@@ -1260,13 +1363,13 @@ begin
 
           // Check if Transaction is not finalized and not presented
           if (TransactionRec.txDate_Transferred > 0) then
-            Continue;
+            break;
 
           JournalItem := TJournalData.Create(aJournalsData);
           JournalItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           JournalItem.Description := TransactionRec.txStatement_Details;
 
-          LineItem := TLineData.Create(JournalItem.Lines);
+          {LineItem := TLineData.Create(JournalItem.Lines);
 
           AccRec := MyClient.clChart.FindCode( TransactionRec.txAccount );
           if Assigned(AccRec) then
@@ -1278,7 +1381,7 @@ begin
           if trunc(TransactionRec.txAmount) < 0 then
             LineItem.IsCredit := false
           else
-            LineItem.IsCredit := true;
+            LineItem.IsCredit := true;}
 
           DissRec := TransactionRec.txFirst_Dissection;
           While (DissRec <> nil ) do
@@ -1422,8 +1525,10 @@ var
   BalDate : TStDate;
   ClosingBalanceDate : TStDate;
   UsedDivisions : TStringList;
+  NoTransactions : boolean;
 begin
   result := false;
+  NoTransactions := true;
 
   // pre calculate Time frame start used later in Transactions and Journals
   fClientTimeFrameStart := GetTimeFrameStart(aClient.clFields.clFinancial_Year_Starts);
@@ -1440,50 +1545,48 @@ begin
       else
         ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
 
-      if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aError) then
+      if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
         Exit;
 
       if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aSelectedData.DoMoveRatherThanCopy, aError) then
         Exit;
 
-      if aSelectedData.ChartOfAccount then
-      begin
-        ChartExportCol := TChartExportCol.Create(TChartExportItem);
+      ChartExportCol := TChartExportCol.Create(TChartExportItem);
+      try
+        ChartExportCol.FillChartExportCol(true);
+        ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
+        GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
         try
-          ChartExportCol.FillChartExportCol(true);
-          ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
-          GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
-          try
-            GSTMapCol.FillGstClassMapArr;
-            FillGstMapCol(ChartExportCol, GSTMapCol);
+          GSTMapCol.FillGstClassMapArr;
+          FillGstMapCol(ChartExportCol, GSTMapCol);
 
-            UsedDivisions := TStringList.Create();
-            UsedDivisions.Delimiter := ',';
-            UsedDivisions.StrictDelimiter := true;
-            try
-              if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
-                Exit;
+          if aSelectedData.NonTransferedTransactions then
+          begin
+            if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, NoTransactions, aError) then
+              Exit;
 
-              if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData.ChartOfAccountBalances, ChartExportCol, GSTMapCol, UsedDivisions, aError) then
-                Exit;
-            finally
-              FreeAndNil(UsedDivisions);
-            end;
-
-            if aSelectedData.NonTransferedTransactions then
-            begin
-              if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, aError) then
-                Exit;
-
-              //if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
-              //  Exit;
-            end;
-          finally
-            FreeAndNil(GSTMapCol);
+            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
+              Exit;
           end;
+
+          UsedDivisions := TStringList.Create();
+          UsedDivisions.Delimiter := ',';
+          UsedDivisions.StrictDelimiter := true;
+          try
+            if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
+              Exit;
+
+            if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData, ChartExportCol, GSTMapCol, UsedDivisions, NoTransactions, aError) then
+              Exit;
+          finally
+            FreeAndNil(UsedDivisions);
+          end;
+
         finally
-          FreeAndNil(ChartExportCol);
+          FreeAndNil(GSTMapCol);
         end;
+      finally
+        FreeAndNil(ChartExportCol);
       end;
 
       if not UploadClient(ClientBase, aSelectedData, aError) then
@@ -1527,6 +1630,7 @@ begin
   fMappingsData := TMappingsData.Create(TMappingData);
   HttpSetup;
 
+  fNavigateError := false;
   fCurrentMyDotUser := '';
 end;
 
@@ -1541,7 +1645,69 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.Login(const aEmail: string; const aPassword: string; var aError : string): boolean;
+procedure TCashbookMigration.TryNavToPageUpdateCache(aBKWebBrowser : TBKWebBrowser; aHtmlPageToNavigate: THtmlPageToNavigate);
+var
+  URL : string;
+begin
+  {aBKWebBrowser.OnNavigateError := DoNavigationError;
+  try
+    try
+      case aHtmlPageToNavigate of
+        hpnCashBookStartCache : begin
+          case AdminSystem.fdFields.fdCountry of
+            whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
+            whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
+          end;
+        end;
+        hpnCashBookDetailCache : begin
+          case AdminSystem.fdFields.fdCountry of
+            whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview2;
+            whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
+          end;
+        end;
+      end;
+      fNavigateError := false;
+      aBKWebBrowser.NavigateToURL(URL);
+    except
+      fNavigateError := true;
+    end;
+
+    if fNavigateError then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Error Navigating to : ' + URL + ' ,using local cache instead.');
+
+      case aHtmlPageToNavigate of
+        hpnCashBookStartCache : begin
+          aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+        end;
+        hpnCashBookDetailCache : begin
+          aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+        end;
+      end;
+    end
+    else
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Navigated to : ' + URL);
+    end;
+
+  finally
+    aBKWebBrowser.OnNavigateError := nil;
+  end; }
+
+  case aHtmlPageToNavigate of
+    hpnCashBookStartCache : begin
+      aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+    end;
+    hpnCashBookDetailCache : begin
+      aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
 var
   Headers: THttpHeaders;
   PostData: TStringList;
@@ -1551,6 +1717,7 @@ var
   Token : string;
 begin
   result := false;
+  aInvalidPass := false;
 
   // Setup REST request
   PostData := nil;
@@ -1579,7 +1746,15 @@ begin
         sResponse,
         sError) then
       begin
-        LogUtil.LogMsg(lmError, UnitName, 'Error running CashbookMigration.Login, Error Message : ' + sError);
+        if sError = '151: Bad Request' then
+        begin
+          aInvalidPass := true;
+          sError := 'Email address and/or password is invalid.' + #13#10 + 'Please try again.';
+          LogUtil.LogMsg(lmInfo, UnitName, sError);
+        end
+        else
+          LogUtil.LogMsg(lmError, UnitName, 'Error running CashbookMigration.Login, Error Message : ' + sError);
+
         aError := sError;
         exit;
       end;

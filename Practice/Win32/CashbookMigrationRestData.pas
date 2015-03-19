@@ -955,7 +955,10 @@ begin
     aJson.Add('OrigClientCode', OrigClientCode);
 
   aJson.Add('FinancialYearStartMonth', FinancialYearStartMonth);
-  aJson.Add('OpeningBalanceDate', OpeningBalanceDate);
+
+  if trim(OpeningBalanceDate) <> '' then
+    aJson.Add('OpeningBalanceDate', OpeningBalanceDate);
+
   aJson.Add('FirmId', FirmId);
 end;
 
@@ -997,16 +1000,15 @@ begin
 
   BankFeedApplicationsData.Write(aJson);
 
-  if aSelectedData.ChartOfAccount then
+  ChartOfAccountsData.Write(aJson);
+
+  DivisionsData.Write(aJson);
+
+  if aSelectedData.NonTransferedTransactions then
   begin
-    ChartOfAccountsData.Write(aJson);
+    BankAccountsData.Write(aJson);
 
-    DivisionsData.Write(aJson);
-
-    if aSelectedData.NonTransferedTransactions then
-    begin
-      BankAccountsData.Write(aJson);
-    end;
+    JournalsData.Write(aJson);
   end;
 end;
 

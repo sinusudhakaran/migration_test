@@ -36,7 +36,9 @@ uses
   BKWebBrowser,
   RzPrgres,
   CashbookMigration,
-  CashbookMigrationRestData, VirtualTrees, Grids;
+  CashbookMigrationRestData,
+  VirtualTrees,
+  Grids;
 
 type
   TFrmCashBookMigrationWiz = class(TForm)
@@ -98,6 +100,7 @@ type
     CheckBox1: TCheckBox;
     stgClientsMigrated: TStringGrid;
     lblYuoCanCheckYourStatus: TLabel;
+    lblMoreInfoOnErros: TLabel;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
@@ -517,6 +520,7 @@ procedure TFrmCashBookMigrationWiz.DoBeforeMoveToStep(OldStepID : integer; var N
 var
   MovingForward : boolean;
   sError : string;
+  InvalidPass : boolean;
 
 begin
   Assert(OldStepID in [mtMin..mtMax], 'DoBeforeMoveToStep.OldStepID out of range');
@@ -531,7 +535,7 @@ begin
         // Actual login
         if MinutesBetween(fSignInTime, now()) > 1 then
         begin
-          if not MigrateCashbook.Login(fEmail, fPassword, sError) then
+          if not MigrateCashbook.Login(fEmail, fPassword, sError, InvalidPass) then
           begin
             ShowConnectionError(sError);
             Cancel := true;
@@ -588,14 +592,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.edtEmailChange(Sender: TObject);
 begin
-  btnSignIn.Enabled := (length(edtEmail.Text) > 0);
+  btnSignIn.Enabled := ((length(edtEmail.Text) > 0) and (length(edtPassword.Text) > 0));
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.DoAfterMoveToStep;
+var
+  OldStep : integer;
 begin
   Assert(fCurrentStepID in [mtMin..mtMax], 'DoAfterMoveToStep.CurrentStepID out of range');
 
+  OldStep := fCurrentStepID;
   fCurrentStepID := PageControl1.ActivePage.Tag;
 
   //update titles
@@ -603,6 +610,18 @@ begin
   lblDescription.Caption := StepDescriptions[fCurrentStepID];
 
   case fCurrentStepID of
+    mtOverview : begin
+      UpdateControls();
+
+      if OldStep = mtCheckList then
+        MigrateCashbook.TryNavToPageUpdateCache(BKOverviewWebBrowser, hpnCashBookStartCache);
+    end;
+    mtCheckList : begin
+      UpdateControls();
+
+      MigrateCashbook.TryNavToPageUpdateCache(BKChecklistWebBrowser, hpnCashBookDetailCache);
+    end;
+
     mtMYOBCredentials : begin
       {$IFDEF DEBUG}
         edtEmail.Text := 'cashbook@gmail.com';
@@ -627,8 +646,6 @@ begin
     mtCompleteMigration : begin
       UpdateCompleteControls();
     end;
-  else
-    UpdateControls();
   end;
 end;
 
@@ -698,24 +715,22 @@ var
   OldCursor: TCursor;
   Firms: TFirms;
   SupportNumber : string;
+  InvalidPass : boolean;
 begin
-  // Basic check
-  if (edtEmail.text = '') or (edtPassword.text = '')  then
-  begin
-    HelpfulWarningMsg('Your Username and/or Password is invalid. Please try again.',0);
-    edtEmail.SetFocus;
-    Exit;
-  end;
-
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
   UpdateSignInControls(true);
   try
     // Actual login
-    if not MigrateCashbook.Login(edtEmail.Text, edtPassword.Text, sError) then
+    if not MigrateCashbook.Login(edtEmail.Text, edtPassword.Text, sError, InvalidPass) then
     begin
       Screen.Cursor := OldCursor;
-      ShowConnectionError(sError);
+
+      if InvalidPass then
+        HelpfulWarningMsg(sError, 0)
+      else
+        ShowConnectionError(sError);
+
       UpdateSignInControls(false);
       edtEmail.SetFocus;
       exit;
@@ -772,7 +787,7 @@ var
   Overview1URL : string;
   Overview2URL : string;
 begin
-  // Phase 1 don't navigate to URL's
+  inherited;
 
   case StepID of
     mtOverview:
@@ -782,33 +797,13 @@ begin
 
       UpdateClientStringGrid(stgSelectedClients, 582);
 
-      {case AdminSystem.fdFields.fdCountry of
-        whNewZealand: Overview1URL := Globals.PRACINI_NZCashMigrationURLOverview1;
-        whAustralia : Overview1URL := Globals.PRACINI_AUCashMigrationURLOverview1;
-      end;
-
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug, UnitName, 'OverView Tab 1, Navigate to : ' + Overview1URL);
-
-      BKOverviewWebBrowser.Navigate(Overview1URL);}
+      MigrateCashbook.TryNavToPageUpdateCache(BKOverviewWebBrowser, hpnCashBookStartCache);
 
       if not CloseClient() then
       begin
 
       end;
     end;
-    {mtChecklist:
-    begin
-      case AdminSystem.fdFields.fdCountry of
-        whNewZealand: Overview2URL := Globals.PRACINI_NZCashMigrationURLOverview2;
-        whAustralia : Overview2URL := Globals.PRACINI_AUCashMigrationURLOverview2;
-      end;
-
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug, UnitName, 'OverView Tab 2, Navigate to : ' + Overview2URL);
-
-      BKChecklistWebBrowser.Navigate(Overview2URL);
-    end;}
     mtSelectData :
     begin
       UpdateDataSelection();
@@ -1031,7 +1026,9 @@ begin
     edtEmail.setfocus();
 
   btnSignIn.enabled := (not aBusySigningIn) and
-                       (length(edtEmail.Text) > 0);
+                       (length(edtEmail.Text) > 0) and
+                       (length(edtPassword.Text) > 0);
+
   pnlFirm.Visible := fSignedIn;
 
   if (fSignedIn) and (not aBusySigningIn) then

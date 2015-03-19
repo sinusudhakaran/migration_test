@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabComplete
+      ActivePage = tabMYOBCredentials
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -160,6 +160,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       TabWidth = 5
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -197,6 +201,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -274,6 +282,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             ParentFont = False
             PasswordChar = '#'
             TabOrder = 1
+            OnChange = edtEmailChange
           end
           object btnSignIn: TButton
             Left = 572
@@ -339,7 +348,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Height = -13
             Font.Name = 'Tahoma'
             Font.Style = []
-            ItemHeight = 16
+            ItemHeight = 0
             ParentFont = False
             TabOrder = 0
             OnChange = cmbSelectFirmChange
@@ -356,6 +365,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Font.Style = []
         ImageIndex = 2
         ParentFont = False
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -528,6 +541,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
@@ -591,6 +608,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 5
         Caption = 'tabComplete'
         ImageIndex = 5
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object pnlCashbookComplete: TPanel
           Left = 0
           Top = 0
@@ -682,8 +703,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
-          ExplicitTop = 183
-          ExplicitHeight = 177
           DesignSize = (
             736
             201)
@@ -715,22 +734,38 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             ParentFont = False
             ExplicitTop = 152
           end
+          object lblMoreInfoOnErros: TLabel
+            Left = 25
+            Top = 154
+            Width = 339
+            Height = 16
+            Anchors = [akLeft, akBottom]
+            Caption = 'For more information on errors, please see the system log.'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+          end
           object lstClientErrors: TListBox
             Left = 25
             Top = 22
             Width = 681
-            Height = 148
+            Height = 123
             Anchors = [akLeft, akTop, akBottom]
             ItemHeight = 13
             TabOrder = 0
-            ExplicitHeight = 124
           end
         end
       end
       object tabCheckList: TTabSheet
         Caption = 'tabCheckList'
         ImageIndex = 6
-        ExplicitTop = 3
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           736
           362)
