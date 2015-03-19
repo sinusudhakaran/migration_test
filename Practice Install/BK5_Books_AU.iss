@@ -28,6 +28,8 @@ Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
 Source: "Bin\app_au.ini"; DestDir: "{app}"; DestName: "app.ini"
+Source: "Bin\CMst.dat"; DestDir: "{app}\CACHE\HTML"
+Source: "Bin\CMdt.dat"; DestDir: "{app}\CACHE\HTML"
 
 Source: "Books Files\guide_au.chm"; DestDir: "{app}"; DestName: "guide.chm"
 
