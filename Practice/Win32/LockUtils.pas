@@ -42,12 +42,15 @@ const
   ltExchangeRates         = 18;
   ltBlopiServiceAgreement = 19;
   ltMemsIni               = 20;
+  ltCashBookStartCashe    = 21;
+  ltCashBookDetailCashe   = 22;
 
-  ltMax = 20;
+  ltMax = 22;
 
   TimeToWaitForPracINI  = 60;
   TimeToWaitForPracLogo = 30;
   LOG_LOCK_DELAY        = 1000;
+
   UnitName = 'LockUtils';
 
 Type
@@ -214,7 +217,10 @@ const
       'WebNotes Data',
       'Exchange Rates',
       'BankLink Online Service Agreement',
-      'Memorisation INI File');
+      'Memorisation INI File',
+      'CashBook Before you start Cashe',
+      'CashBook Migration details Cashe'
+      );
 
 var
   DebugMe : boolean = false;

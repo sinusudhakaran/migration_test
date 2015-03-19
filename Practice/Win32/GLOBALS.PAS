@@ -264,6 +264,9 @@ CONST
     ExtendedMapiDllName = 'bkExtMapi.dll';
     MapiAuthKey = 'bkExtendedMAPI';
 
+    CashBookStartCacheFileName  = 'CMst.html';
+    CashBookDetailCacheFileName = 'CMdt.html';
+
     //ui style
     UIS_Standard = 0;
     UIS_Simple   = 1;
@@ -320,6 +323,7 @@ var
     StyleDir                 : string;
     PublicKeysDir            : string;
     UserDir                  : string;
+    HtmlCache                : string;
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Misc settings
@@ -749,6 +753,7 @@ initialization
    UsageDir                  := DataDir + 'USAGE\';
    StyleDir                  := DataDir + 'STYLES\';
    PublicKeysDir             := DataDir + 'PUBLICKEYS\';
+   HtmlCache                 := DataDir + 'CACHE\HTML\';
    AppVersionStr             := GetAppVersionStr;
    UserDir                   := DataDir;
 
