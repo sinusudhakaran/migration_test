@@ -610,9 +610,9 @@ begin
   aJson.Add('AccountNumber', AccountNumber);
   aJson.Add('Description', Description);
 
-  aJson.Add('Amount', -(Amount-TaxAmount));
+  aJson.Add('Amount', (Amount-TaxAmount));
   aJson.Add('TaxRate', TaxRate);
-  aJson.Add('TaxAmount', -(TaxAmount));
+  aJson.Add('TaxAmount', TaxAmount);
 end;
 
 { TAllocationsData }
@@ -948,6 +948,7 @@ begin
 
   aJson.Add('LedgerName', Name);
   aJson.Add('ClientCode', ClientCode);
+
   if ClientCode <> OrigClientCode then
     aJson.Add('OrigClientCode', OrigClientCode);
 

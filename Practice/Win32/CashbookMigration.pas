@@ -53,9 +53,11 @@ type
   private
     fOrigCode : string;
     fNewCode : string;
+    fAccountIndex : integer;
   public
     property OrigCode : string read fOrigCode write fOrigCode;
     property NewCode : string read fNewCode write fNewCode;
+    property AccountIndex : integer read fAccountIndex write fAccountIndex;
   end;
 
   //----------------------------------------------------------------------------
@@ -65,7 +67,9 @@ type
     function ItemAs(aIndex : integer) : TMappingData;
 
     procedure GetMappingFromClient(aClient : TClientObj);
-    function UpdateCode(aOrigCode : string) : string;
+    function UpdateSysCode(aOrigCode : string) : string;
+    function UpdateContraCode(aOrigCode : string; aAccountIndex : integer) : string;
+    procedure AddDuplicateReplacementChartCodes(aChartOfAccountsData : TChartOfAccountsData);
   end;
 
   //----------------------------------------------------------------------------
@@ -87,6 +91,7 @@ type
     fClientTimeFrameStart : TStDate;
     fMappingsData : TMappingsData;
     fClientMigrationState : TClientMigrationState;
+    fCurrentCBClientCode : string;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -159,6 +164,9 @@ type
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
+
+    // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
+    procedure FixAllocationValues(aAllocationsData : TAllocationsData);
 
     function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
 
@@ -244,12 +252,43 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TMappingsData.AddDuplicateReplacementChartCodes(aChartOfAccountsData : TChartOfAccountsData);
+var
+  NewChartItem : TChartOfAccountData;
+  MapIndex : integer;
+begin
+  for MapIndex := 0 to Count - 1 do
+  begin
+    if ItemAs(MapIndex).AccountIndex > -1 then
+    begin
+      NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
+      NewChartItem.Code := ItemAs(MapIndex).NewCode;
+      NewChartItem.Name := 'Duplicate contra code from migration';
+      NewChartItem.InActive := true;
+      NewChartItem.PostingAllowed := true;
+      NewChartItem.Divisions := '';
+      NewChartItem.AccountType := GetMigrationMappedReportGroupCode(ccAsset);
+      NewChartItem.GstType := 'NA';
+      NewChartItem.OrigAccountType := '';
+      NewChartItem.OrigGstType := '';
+      NewChartItem.OpeningBalance := 0;
+      NewChartItem.BankOrCreditFlag := true;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TMappingsData.GetMappingFromClient(aClient: TClientObj);
 var
   SysIndex : integer;
   ChartIndex : integer;
   AccRec : tAccount_Rec;
   MappingItem : TMappingData;
+  Duplicates : TStringList;
+  AccountIndex : integer;
+  BankAccount : TBank_Account;
+  FoundIndex : integer;
+  Value : integer;
 
   //----------------------------------------------------------------------------
   function GetNewCode(aOldCode : string) : string;
@@ -267,6 +306,33 @@ var
 begin
   Clear;
 
+  Duplicates := TStringList.Create();
+  try
+    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    begin
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+      if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
+         not (BankAccount.baFields.baIs_A_Manual_Account) then
+      begin
+        if Duplicates.find(BankAccount.baFields.baContra_Account_Code, FoundIndex) then
+        begin
+          Value := Integer(Duplicates.Objects[FoundIndex]);
+          inc(Value);
+          Duplicates.Objects[FoundIndex] := TObject(Value);
+
+          MappingItem := TMappingData.Create(self);
+          MappingItem.OrigCode := BankAccount.baFields.baContra_Account_Code;
+          MappingItem.NewCode  := BankAccount.baFields.baContra_Account_Code + '.' + inttostr(Value);
+          MappingItem.AccountIndex := AccountIndex;
+        end
+        else
+          Duplicates.AddObject(BankAccount.baFields.baContra_Account_Code , TObject(1));
+      end;
+    end;
+  finally
+    FreeAndNil(Duplicates);
+  end;
+
   for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
   begin
     AccRec := aClient.clChart.Account_At(ChartIndex)^;
@@ -277,6 +343,7 @@ begin
         MappingItem := TMappingData.Create(self);
         MappingItem.OrigCode := AccRec.chAccount_Code;
         MappingItem.NewCode  := GetNewCode(AccRec.chAccount_Code);
+        MappingItem.AccountIndex := -1;
         break;
       end;
     end;
@@ -284,7 +351,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TMappingsData.UpdateCode(aOrigCode: string): string;
+function TMappingsData.UpdateSysCode(aOrigCode: string): string;
 var
   MapIndex : integer;
 begin
@@ -292,7 +359,26 @@ begin
 
   for MapIndex := 0 to Count-1 do
   begin
-    if ItemAs(MapIndex).OrigCode = aOrigCode then
+    if (ItemAs(MapIndex).OrigCode = aOrigCode) and
+       (ItemAs(MapIndex).AccountIndex = -1) then
+    begin
+      Result := ItemAs(MapIndex).NewCode;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TMappingsData.UpdateContraCode(aOrigCode: string; aAccountIndex: integer): string;
+var
+  MapIndex : integer;
+begin
+  Result := aOrigCode;
+
+  for MapIndex := 0 to Count-1 do
+  begin
+    if (ItemAs(MapIndex).OrigCode = aOrigCode) and
+       (ItemAs(MapIndex).AccountIndex = aAccountIndex) then
     begin
       Result := ItemAs(MapIndex).NewCode;
       Exit;
@@ -807,6 +893,30 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.FixAllocationValues(aAllocationsData : TAllocationsData);
+var
+  AllocationIndex : integer;
+  SumValue : integer;
+begin
+  SumValue := 0;
+  for AllocationIndex := 0 to aAllocationsData.Count - 1 do
+  begin
+    SumValue := SumValue + (aAllocationsData.ItemAs(AllocationIndex).Amount -
+                            aAllocationsData.ItemAs(AllocationIndex).TaxAmount);
+    SumValue := SumValue + aAllocationsData.ItemAs(AllocationIndex).TaxAmount;
+  end;
+
+  if SumValue < 0 then
+  begin
+    for AllocationIndex := 0 to aAllocationsData.Count - 1 do
+    begin
+      aAllocationsData.ItemAs(AllocationIndex).Amount := -aAllocationsData.ItemAs(AllocationIndex).Amount;
+      aAllocationsData.ItemAs(AllocationIndex).TaxAmount := -aAllocationsData.ItemAs(AllocationIndex).TaxAmount;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TCashbookMigration.FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 var
   ClientCode : string;
@@ -891,6 +1001,7 @@ begin
 
     aBusinessData.FirmId := aFirmId;
     aBusinessData.ClientCode := ClientCode;
+    fCurrentCBClientCode := ClientCode;
     aBusinessData.OrigClientCode := aClient.clFields.clCode;
     aBusinessData.Name := aClient.clFields.clName;
     aBusinessData.FinancialYearStartMonth := FYSmonth;
@@ -944,7 +1055,7 @@ begin
               BankFeedApplicationData.CountryCode := 'NZ';
 
             BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
-            BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateCode(AccRec.chAccount_Code);
+            BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateSysCode(AccRec.chAccount_Code);
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
 
             if aDoMoveRatherThanCopy then
@@ -1088,7 +1199,7 @@ begin
         Continue;
 
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
-      NewChartItem.Code := MappingsData.UpdateCode(AccRec.chAccount_Code);
+      NewChartItem.Code := MappingsData.UpdateSysCode(AccRec.chAccount_Code);
       NewChartItem.Name := StripInvalidCharacters(AccRec.chAccount_Description);
 
       if length(trim(NewChartItem.Name)) = 0 then
@@ -1127,7 +1238,7 @@ begin
         if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
            not (BankAccount.baFields.baIs_A_Manual_Account) then
         begin
-          if BankAccount.baFields.baContra_Account_Code =  AccRec.chAccount_Code then
+          if BankAccount.baFields.baContra_Account_Code = AccRec.chAccount_Code then
           begin
             if not (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccAsset)) or
                    (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccLiabilities)) then
@@ -1153,6 +1264,8 @@ begin
       NewChartItem.OpeningBalance := 0;
       NewChartItem.BankOrCreditFlag := false;
     end;
+
+    MappingsData.AddDuplicateReplacementChartCodes(aChartOfAccountsData);
 
     Result := true;
   except
@@ -1193,7 +1306,12 @@ begin
 
         AccRec := aClient.clChart.FindCode(BankAccount.baFields.baContra_Account_Code);
         if Assigned(AccRec) then
-          BankAccountItem.BankAccountNumber := MappingsData.UpdateCode(BankAccount.baFields.baContra_Account_Code)
+        begin
+          BankAccountItem.BankAccountNumber :=
+            MappingsData.UpdateContraCode(BankAccount.baFields.baContra_Account_Code, AccountIndex);
+          BankAccountItem.BankAccountNumber :=
+            MappingsData.UpdateSysCode(BankAccountItem.BankAccountNumber);
+        end
         else
           BankAccountItem.BankAccountNumber := '';
 
@@ -1260,7 +1378,7 @@ begin
                 if not Assigned(AccRec) then
                   AllocationItem.AccountNumber := ''
                 else
-                  AllocationItem.AccountNumber := MappingsData.UpdateCode(DissRec^.dsAccount);
+                  AllocationItem.AccountNumber := MappingsData.UpdateSysCode(DissRec^.dsAccount);
               end;
 
               {if trim(DissRec^.dsGL_Narration) = '' then
@@ -1298,7 +1416,7 @@ begin
               if not Assigned(AccRec) then
                 AllocationItem.AccountNumber := ''
               else
-                AllocationItem.AccountNumber := MappingsData.UpdateCode(TransactionRec.txAccount);
+                AllocationItem.AccountNumber := MappingsData.UpdateSysCode(TransactionRec.txAccount);
             end;
 
             AllocationItem.Description := TransactionRec.txGL_Narration;
@@ -1306,6 +1424,9 @@ begin
             AllocationItem.TaxAmount := trunc(TransactionRec.txGST_Amount);
             AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, TransactionRec.txGST_Class);
           end;
+
+          if TransactionItem.Allocations.Count > 0 then
+            FixAllocationValues(TransactionItem.Allocations);
         end;
       end;
     end;
@@ -1796,6 +1917,7 @@ var
   ErrorIndex : integer;
   NumErrorClients : integer;
   LastClientIndex : integer;
+  DiffDispString : string;
 begin
   // Initialize ErrorList and progress event
   fClientMigrationState := cmsAccessSysDB;
@@ -1866,8 +1988,13 @@ begin
         else
         begin
           fClientMigrationState := cmsAccessCltDB;
+          DiffDispString := '';
+          if fCurrentCBClientCode <> CltClient.clFields.clCode then
+            DiffDispString := ' as ' +  fCurrentCBClientCode;
+
           AddCommentToClient(ClientLRN, StDateToDateString('dd/mm/yyyy', CurrentDate(), true) +
-                                        ' Migrated to ' + BRAND_CASHBOOK_NAME);
+                                        ' Migrated to ' + BRAND_CASHBOOK_NAME + DiffDispString);
+
           CltClient.clMoreFields.mcArchived := true;
           CltClient.clFields.clFile_Save_Required := true;
           SaveAClient(CltClient);

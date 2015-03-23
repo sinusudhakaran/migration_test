@@ -580,7 +580,7 @@ begin
         fSelectedData.ChartOfAccount := chkChartofAccount.checked;
         fSelectedData.ChartOfAccountBalances := chkBalances.checked;
         fSelectedData.NonTransferedTransactions := chkTransactions.checked;
-        fSelectedData.DoMoveRatherThanCopy := true;
+        fSelectedData.DoMoveRatherThanCopy := radmove.Checked;
 
         if DebugMe then
         begin
