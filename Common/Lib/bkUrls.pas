@@ -138,22 +138,22 @@ end;
 
 class function TUrls.DefaultNZCashMigrationURLOverview1 : String;
 begin
-  Result := 'https://www.banklinkonline.com/practice/nz';
+  Result := 'https://www.banklinkonline.com/practice/nz/beforeyoustart.html';
 end;
 
 class function TUrls.DefaultAUCashMigrationURLOverview1 : String;
 begin
-  Result := 'https://www.banklinkonline.com/practice/au';
+  Result := 'https://www.banklinkonline.com/practice/au/beforeyoustart.html';
 end;
 
 class function TUrls.DefaultNZCashMigrationURLOverview2 : String;
 begin
-  Result := 'https://www.banklinkonline.com/practice/nz';
+  Result := 'https://www.banklinkonline.com/practice/nz/migrationdetails.html';
 end;
 
 class function TUrls.DefaultAUCashMigrationURLOverview2 : String;
 begin
-  Result := 'https://www.banklinkonline.com/practice/au';
+  Result := 'https://www.banklinkonline.com/practice/au/migrationdetails.html';
 end;
 
 class function TUrls.DefaultCashbookForgotPasswordURL: String;

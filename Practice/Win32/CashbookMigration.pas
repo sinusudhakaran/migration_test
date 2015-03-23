@@ -27,6 +27,12 @@ type
                               aTotalFiles : integer;
                               aPercentOfCurrentFile : integer) of object;
 
+  TClientMigrationState = (cmsAccessSysDB,
+                           cmsAccessCltDB,
+                           cmsTransformData,
+                           cmsConnectToAPI,
+                           cmsUploadError);
+
   TMigrationStatus = (mgsSuccess,
                       mgsPartial,
                       mgsFailure);
@@ -65,7 +71,6 @@ type
   //----------------------------------------------------------------------------
   TCashbookMigration = class
   private
-    fNavigateError : boolean;
     fToken: string;
     fCashBookUserid : string;
     fUnEncryptedToken : string;
@@ -81,14 +86,9 @@ type
 
     fClientTimeFrameStart : TStDate;
     fMappingsData : TMappingsData;
+    fClientMigrationState : TClientMigrationState;
 
   protected
-    procedure DoNavigationError(ASender: TObject; const pDisp: IDispatch;
-                                var URL: OleVariant;
-                                var Frame: OleVariant;
-                                var StatusCode: OleVariant;
-                                var Cancel: WordBool);
-
     procedure LogHttpDebugSend(aCall : string;
                                aHeaders: THttpHeaders;
                                aPostData: TStringList); overload;
@@ -166,8 +166,6 @@ type
   public
     constructor Create; virtual;
     destructor Destroy; override;
-
-    procedure TryNavToPageUpdateCache(aBKWebBrowser : TBKWebBrowser; aHtmlPageToNavigate: THtmlPageToNavigate);
 
     function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
 
@@ -311,15 +309,6 @@ begin
   end;
 
   result := fCashbookMigration;
-end;
-
-//------------------------------------------------------------------------------
-procedure TCashbookMigration.DoNavigationError(ASender: TObject;
-  const pDisp: IDispatch; var URL, Frame, StatusCode: OleVariant;
-  var Cancel: WordBool);
-begin
-  fNavigateError := true;
-  Cancel := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -1434,6 +1423,8 @@ var
 begin
   Result := false;
   // FileUpload
+
+  fClientMigrationState := cmsTransformData;
   MigUpload := TMigrationUpload.Create;
   try
     Data := aClientBase.GetData(aSelectedData);
@@ -1457,6 +1448,7 @@ begin
         // HTTP
         sURL := PRACINI_CashbookAPIUploadURL;
 
+        fClientMigrationState := cmsConnectToAPI;
         UploadDone := DoUploadHttpSecureJson(sURL, Request, ResponseBase, RespStr, aError, false);
 
         if not UploadDone then
@@ -1474,6 +1466,7 @@ begin
 
         try
           // Response
+          fClientMigrationState := cmsUploadError;
           Response := (ResponseBase as TlkJSONobject);
 
           MigUploadResponse := TMigrationUploadResponse.Create;
@@ -1503,6 +1496,7 @@ begin
       finally
         FreeAndNil(Request);
       end;
+      fClientMigrationState := cmsAccessCltDB;
 
     except
       on E: Exception do
@@ -1535,7 +1529,6 @@ begin
   MappingsData.GetMappingFromClient(aClient);
   CalculateAccountTotals.AddAutoContraCodes( aClient, false, true);
   try
-
     ClientBase := TClientBase.Create;
     try
       ClientBase.Token := fToken;
@@ -1545,11 +1538,13 @@ begin
       else
         ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
 
+      fClientMigrationState := cmsTransformData;
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
         Exit;
 
       if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aSelectedData.DoMoveRatherThanCopy, aError) then
         Exit;
+      fClientMigrationState := cmsAccessCltDB;
 
       ChartExportCol := TChartExportCol.Create(TChartExportItem);
       try
@@ -1562,13 +1557,16 @@ begin
 
           if aSelectedData.NonTransferedTransactions then
           begin
+            fClientMigrationState := cmsTransformData;
             if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, NoTransactions, aError) then
               Exit;
 
             if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
               Exit;
+            fClientMigrationState := cmsAccessCltDB;
           end;
 
+          fClientMigrationState := cmsTransformData;
           UsedDivisions := TStringList.Create();
           UsedDivisions.Delimiter := ',';
           UsedDivisions.StrictDelimiter := true;
@@ -1581,6 +1579,7 @@ begin
           finally
             FreeAndNil(UsedDivisions);
           end;
+          fClientMigrationState := cmsAccessCltDB;
 
         finally
           FreeAndNil(GSTMapCol);
@@ -1630,7 +1629,6 @@ begin
   fMappingsData := TMappingsData.Create(TMappingData);
   HttpSetup;
 
-  fNavigateError := false;
   fCurrentMyDotUser := '';
 end;
 
@@ -1642,68 +1640,6 @@ begin
   FreeAndNil(FHttpRequester);
 
   inherited;
-end;
-
-//------------------------------------------------------------------------------
-procedure TCashbookMigration.TryNavToPageUpdateCache(aBKWebBrowser : TBKWebBrowser; aHtmlPageToNavigate: THtmlPageToNavigate);
-var
-  URL : string;
-begin
-  {aBKWebBrowser.OnNavigateError := DoNavigationError;
-  try
-    try
-      case aHtmlPageToNavigate of
-        hpnCashBookStartCache : begin
-          case AdminSystem.fdFields.fdCountry of
-            whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
-            whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
-          end;
-        end;
-        hpnCashBookDetailCache : begin
-          case AdminSystem.fdFields.fdCountry of
-            whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview2;
-            whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
-          end;
-        end;
-      end;
-      fNavigateError := false;
-      aBKWebBrowser.NavigateToURL(URL);
-    except
-      fNavigateError := true;
-    end;
-
-    if fNavigateError then
-    begin
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug, UnitName, 'Error Navigating to : ' + URL + ' ,using local cache instead.');
-
-      case aHtmlPageToNavigate of
-        hpnCashBookStartCache : begin
-          aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
-        end;
-        hpnCashBookDetailCache : begin
-          aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
-        end;
-      end;
-    end
-    else
-    begin
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug, UnitName, 'Navigated to : ' + URL);
-    end;
-
-  finally
-    aBKWebBrowser.OnNavigateError := nil;
-  end; }
-
-  case aHtmlPageToNavigate of
-    hpnCashBookStartCache : begin
-      aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
-    end;
-    hpnCashBookDetailCache : begin
-      aBKWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
-    end;
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1862,6 +1798,7 @@ var
   LastClientIndex : integer;
 begin
   // Initialize ErrorList and progress event
+  fClientMigrationState := cmsAccessSysDB;
   aClientErrors.clear;
 
   fClientCount := aSelectClients.Count;
@@ -1872,6 +1809,8 @@ begin
   // Loop through selected Client Codes
   for ClientIndex := 0 to aSelectClients.Count-1 do
   begin
+    fClientMigrationState := cmsAccessSysDB;
+
     if Assigned(fProgressEvent) then
       fProgressEvent(ClientIndex, aSelectClients.Count, 0);
 
@@ -1901,6 +1840,7 @@ begin
 
       ClientFileCode := AdminSystem.fdSystem_Client_File_List.FindCode(CurrentClientCode).cfFile_Code;
 
+      fClientMigrationState := cmsAccessCltDB;
       CltClient := nil;
       OpenAClient(ClientFileCode, CltClient, true);
 
@@ -1925,12 +1865,14 @@ begin
         end
         else
         begin
+          fClientMigrationState := cmsAccessCltDB;
           AddCommentToClient(ClientLRN, StDateToDateString('dd/mm/yyyy', CurrentDate(), true) +
                                         ' Migrated to ' + BRAND_CASHBOOK_NAME);
           CltClient.clMoreFields.mcArchived := true;
           CltClient.clFields.clFile_Save_Required := true;
           SaveAClient(CltClient);
 
+          fClientMigrationState := cmsAccessSysDB;
           if LoadAdminSystem(True, 'CashbookMigration') then
           begin
             try
@@ -1956,8 +1898,17 @@ begin
       on E: Exception do
       begin
         ErrorStr := CurrentClientCode + ' Exception opening Client, Error : ' + E.Message;
-        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+
+        case fClientMigrationState of
+          cmsAccessSysDB   : ErrorStr := Format('Error Accessing System Database %s could not be accessed.', [CurrentClientCode]);
+          cmsAccessCltDB   : ErrorStr := Format('Error Accessing Current Client %s could not be opened.', [CurrentClientCode]);
+          cmsTransformData : ErrorStr := Format('%s data could not be migrated, please contact Support.', [CurrentClientCode]);
+          cmsConnectToAPI  : ErrorStr := Format('Process was interrupted %s was interrupted during upload, please try again.', [CurrentClientCode]);
+          cmsUploadError   : ErrorStr := Format('Error Uploading Data %s could not be uploaded to Cashbook.', [CurrentClientCode]);
+        end;
+        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
+
         Continue;
       end;
     end;

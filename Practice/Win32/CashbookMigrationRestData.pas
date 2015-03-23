@@ -670,7 +670,7 @@ begin
   aJson.Add('Description', Description);
   aJson.Add('Reference', Reference);
 
-  aJson.Add('Amount', Amount);
+  aJson.Add('Amount', -(Amount));
 
   if CoreTransactionId <> '' then
     aJson.Add('CoreTransactionId', CoreTransactionId);

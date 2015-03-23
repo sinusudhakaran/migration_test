@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabMYOBCredentials
+      ActivePage = tabComplete
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -748,14 +748,21 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Style = []
             ParentFont = False
           end
-          object lstClientErrors: TListBox
+          object stgClientErrors: TStringGrid
             Left = 25
             Top = 22
             Width = 681
             Height = 123
-            Anchors = [akLeft, akTop, akBottom]
-            ItemHeight = 13
+            Anchors = [akLeft, akTop, akRight, akBottom]
+            ColCount = 2
+            DefaultRowHeight = 20
+            FixedCols = 0
+            Options = [goRangeSelect, goRowSelect]
             TabOrder = 0
+            OnClick = stgSelectedClientsClick
+            ColWidths = (
+              122
+              583)
           end
         end
       end
@@ -793,5 +800,12 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       BevelOuter = bvLowered
       TabOrder = 2
     end
+  end
+  object tmrBrowserLoading: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = tmrBrowserLoadingTimer
+    Left = 704
+    Top = 8
   end
 end

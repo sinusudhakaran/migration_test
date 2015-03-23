@@ -41,6 +41,11 @@ uses
   Grids;
 
 type
+  TBrowserState = (bstNone,
+                   bstNavigating,
+                   bstLoading,
+                   bstDone);
+
   TFrmCashBookMigrationWiz = class(TForm)
     pnlButtons: TPanel;
     btnBack: TButton;
@@ -88,7 +93,6 @@ type
     lblCashbookMigrated: TLabel;
     lblCashbookLoginLink: TLabel;
     lblClientError: TLabel;
-    lstClientErrors: TListBox;
     lblClientErrorSupport: TLabel;
     lblForgotPassword: TLabel;
     lblBankfeeds1: TLabel;
@@ -101,6 +105,8 @@ type
     stgClientsMigrated: TStringGrid;
     lblYuoCanCheckYourStatus: TLabel;
     lblMoreInfoOnErros: TLabel;
+    stgClientErrors: TStringGrid;
+    tmrBrowserLoading: TTimer;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
@@ -115,6 +121,7 @@ type
     procedure lblCashbookLoginLinkClick(Sender: TObject);
     procedure stgSelectedClientsClick(Sender: TObject);
     procedure radCopyClick(Sender: TObject);
+    procedure tmrBrowserLoadingTimer(Sender: TObject);
 
   private
     fCurrentStepID: integer;
@@ -131,9 +138,19 @@ type
     fNumErrorClients : integer;
 
     fMigrationStatus : TMigrationStatus;
+    fBrowserState : TBrowserState;
+    fBrowserStartTick : int64;
 
   protected
-    procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth : integer);
+    procedure DoNavigationError(ASender: TObject;
+                                const pDisp: IDispatch;
+                                var URL: OleVariant;
+                                var Frame: OleVariant;
+                                var StatusCode: OleVariant;
+                                var Cancel: WordBool);
+
+    procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount : integer);
+    procedure UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount : integer);
     procedure DoMigrationProgress(aCurrentFile : integer;
                                   aTotalFiles : integer;
                                   aPercentOfCurrentFile : integer);
@@ -169,6 +186,7 @@ type
     procedure UpdateSignInControls(aBusySigningIn : Boolean);
     procedure UpdateProgressControls();
     procedure UpdateCompleteControls();
+    procedure TryNavToPageUpdateCache();
 
   public
     constructor Create(AOwner: tComponent); override;
@@ -222,6 +240,7 @@ uses
 const
   UnitName = 'CashBookMigrationWiz';
 
+  BROWSER_TIME_OUT = 5000;
   CASHBOOK_DASHBOARD_NAME = 'Cashbook Dashboard';
 
   mtOverview           = 1; mtMin = 1;
@@ -289,6 +308,7 @@ begin
   fNumErrorClients := 0;
 
   fFirms := TFirms.create();
+  fBrowserState := bstNone;
 end;
 
 //------------------------------------------------------------------------------
@@ -528,6 +548,19 @@ begin
 
   MovingForward := GetOrderArrayPos(NewStepID) > GetOrderArrayPos(OldStepId);
 
+  case OldStepID of
+    mtOverview : begin
+      fBrowserState := bstNone;
+      BKOverviewWebBrowser.OnNavigateError := nil;
+      BKOverviewWebBrowser.Stop;
+    end;
+    mtCheckList : begin
+      fBrowserState := bstNone;
+      BKChecklistWebBrowser.OnNavigateError := nil;
+      BKChecklistWebBrowser.Stop;
+    end;
+  end;
+
   if MovingForward then
   begin
     case OldStepID of
@@ -590,6 +623,39 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.DoNavigationError(ASender: TObject;
+  const pDisp: IDispatch; var URL, Frame, StatusCode: OleVariant;
+  var Cancel: WordBool);
+begin
+  if fBrowserState = bstNavigating then
+  begin
+    fBrowserState := bstLoading;
+    fBrowserStartTick := GetTickCount();
+
+    case fCurrentStepID of
+      mtOverview : begin
+        BKOverviewWebBrowser.Stop;
+        BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+      end;
+      mtCheckList : begin
+        BKChecklistWebBrowser.Stop;
+        BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+      end;
+    end;
+  end
+  else
+  begin
+    tmrBrowserLoading.Enabled := false;
+    fBrowserState := bstNone;
+    case fCurrentStepID of
+      mtOverview : BKOverviewWebBrowser.Stop;
+      mtCheckList : BKChecklistWebBrowser.Stop;
+    end;
+    Exit;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.edtEmailChange(Sender: TObject);
 begin
   btnSignIn.Enabled := ((length(edtEmail.Text) > 0) and (length(edtPassword.Text) > 0));
@@ -614,12 +680,20 @@ begin
       UpdateControls();
 
       if OldStep = mtCheckList then
-        MigrateCashbook.TryNavToPageUpdateCache(BKOverviewWebBrowser, hpnCashBookStartCache);
+      begin
+        fBrowserState := bstNavigating;
+        fBrowserStartTick := GetTickCount();
+        tmrBrowserLoading.enabled := true;
+        TryNavToPageUpdateCache();
+      end;
     end;
     mtCheckList : begin
       UpdateControls();
 
-      MigrateCashbook.TryNavToPageUpdateCache(BKChecklistWebBrowser, hpnCashBookDetailCache);
+      fBrowserState := bstNavigating;
+      fBrowserStartTick := GetTickCount();
+      tmrBrowserLoading.enabled := true;
+      TryNavToPageUpdateCache();
     end;
 
     mtMYOBCredentials : begin
@@ -781,6 +855,93 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.tmrBrowserLoadingTimer(Sender: TObject);
+var
+  BrowserReadyState : TOleEnum;
+begin
+  if fBrowserState in [bstNone, bstDone] then
+  begin
+    tmrBrowserLoading.Enabled := false;
+    Exit;
+  end;
+
+  if (GetTickCount() < (fBrowserStartTick + BROWSER_TIME_OUT)) then
+    Exit;
+
+  case fCurrentStepID of
+    mtOverview  : BrowserReadyState := BKOverviewWebBrowser.BrowserReadyState;
+    mtCheckList : BrowserReadyState := BKChecklistWebBrowser.BrowserReadyState;
+  end;
+
+  case BrowserReadyState of
+    READYSTATE_UNINITIALIZED : begin
+      tmrBrowserLoading.Enabled := false;
+      fBrowserState := bstNone;
+      Exit;
+    end;
+    READYSTATE_LOADING : begin
+      if fBrowserState = bstNavigating then
+      begin
+        fBrowserState := bstLoading;
+        fBrowserStartTick := GetTickCount();
+
+        case fCurrentStepID of
+          mtOverview : begin
+            BKOverviewWebBrowser.Stop;
+            BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+          end;
+          mtCheckList : begin
+            BKChecklistWebBrowser.Stop;
+            BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+          end;
+        end;
+      end
+      else
+      begin
+        tmrBrowserLoading.Enabled := false;
+        fBrowserState := bstNone;
+        case fCurrentStepID of
+          mtOverview : BKOverviewWebBrowser.Stop;
+          mtCheckList : BKChecklistWebBrowser.Stop;
+        end;
+        Exit;
+      end;
+      
+    end;
+    READYSTATE_LOADED, READYSTATE_INTERACTIVE, READYSTATE_COMPLETE : begin
+      tmrBrowserLoading.Enabled := false;
+      fBrowserState := bstDone;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.TryNavToPageUpdateCache();
+var
+  URL : string;
+begin
+  case fCurrentStepID of
+    mtOverview : begin
+      case AdminSystem.fdFields.fdCountry of
+        whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
+        whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
+      end;
+      BKOverviewWebBrowser.OnNavigateError := DoNavigationError;
+      BKOverviewWebBrowser.NavigateToURL(URL);
+    end;
+    mtCheckList : begin
+      case AdminSystem.fdFields.fdCountry of
+        whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview2;
+        whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
+      end;
+      BKChecklistWebBrowser.OnNavigateError := DoNavigationError;
+      BKChecklistWebBrowser.NavigateToURL(URL);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.InitialiseStep(StepID: integer);
 var
   dtMonthEnding: TDateTime;
@@ -795,9 +956,12 @@ begin
       UpdateControls;
       btnNext.SetFocus;
 
-      UpdateClientStringGrid(stgSelectedClients, 582);
+      UpdateClientStringGrid(stgSelectedClients, 582, SelectClients.Count);
 
-      MigrateCashbook.TryNavToPageUpdateCache(BKOverviewWebBrowser, hpnCashBookStartCache);
+      fBrowserState := bstNavigating;
+      fBrowserStartTick := GetTickCount();
+      tmrBrowserLoading.enabled := true;
+      TryNavToPageUpdateCache();
 
       if not CloseClient() then
       begin
@@ -1057,27 +1221,47 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth : integer);
+procedure TFrmCashBookMigrationWiz.UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount : integer);
 var
   Client: pClient_File_Rec;
   SelIndex : integer;
 begin
+  aClients.ColCount := 2;
   aClients.ColWidths[0] := 110;
 
-  if SelectClients.Count > 4 then
+  if aSelectClientsCount > aClients.VisibleRowCount then
     aClients.ColWidths[1] := aClientNameWidth
   else
     aClients.ColWidths[1] := aClientNameWidth + 17;
 
-  aClients.RowCount := SelectClients.Count+1;
+  aClients.RowCount := aSelectClientsCount+1;
   aClients.Cells[0, 0] := 'Code';
   aClients.Cells[1, 0] := 'Name';
-  for SelIndex := 1 to SelectClients.Count do
+  for SelIndex := 1 to aSelectClientsCount do
   begin
     Client := AdminSystem.fdSystem_Client_File_List.FindCode(SelectClients.Strings[SelIndex-1]);
     aClients.Cells[0, SelIndex] := Client^.cfFile_Code;
     aClients.Cells[1, SelIndex] := Client^.cfFile_Name;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount : integer);
+var
+  Client: pClient_File_Rec;
+  SelIndex : integer;
+begin
+  aClientErrors.ColCount := 1;
+  if aClientErrorsCount > aClientErrors.VisibleRowCount then
+    aClientErrors.ColWidths[0] := aClientErrorWidth
+  else
+    aClientErrors.ColWidths[0] := aClientErrorWidth + 17;
+
+  aClientErrors.RowCount := SelectClients.Count+1;
+  aClientErrors.Cells[0, 0] := 'Error';
+
+  for SelIndex := 1 to aClientErrorsCount do
+    aClientErrors.Cells[0, SelIndex] := fClientErrors.Strings[SelIndex-1];
 end;
 
 //------------------------------------------------------------------------------
@@ -1097,15 +1281,13 @@ begin
   btnCancel.Enabled := true;
   btnCancel.Visible := true;
 
-  lstClientErrors.Clear;
-  for ErrorIndex := 0 to fClientErrors.Count-1 do
-    lstClientErrors.AddItem(fClientErrors.Strings[ErrorIndex], nil);
-
   lblCashbookLoginLink.Caption :=
     Format('You can log into %s here', [CASHBOOK_DASHBOARD_NAME]);
 
   if fNumErrorClients > 0 then
   begin
+    UpdateClientErrorsStringGrid(stgClientErrors, 660, fClientErrors.Count);
+
     SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
     lblClientError.Caption := Format('The following %d client(s) could not be migrated.', [fNumErrorClients]);
     lblClientErrorSupport.Caption := Format('Please contact ' + SHORTAPPNAME + ' support if the problems persist : %s', [SupportNumber]);
@@ -1119,7 +1301,7 @@ begin
       lblClientCompleteAmount.Caption := 'The following clients are now being created in ' + BRAND_CASHBOOK_NAME + '.';
 
       stgClientsMigrated.Visible := true;
-      UpdateClientStringGrid(stgClientsMigrated, 550);
+      UpdateClientStringGrid(stgClientsMigrated, 550, SelectClients.Count);
 
       lblDescription.Caption := WindowTitle;
       pnlCashbookComplete.Visible := true;

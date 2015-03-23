@@ -7,7 +7,8 @@ uses
   Windows,
   SysUtils,
   Classes,
-  SHDocVw;
+  SHDocVw,
+  OleCtrls;
 
 
 type
@@ -15,6 +16,8 @@ type
   TBKWebBrowser = class(TWebBrowser)
   private
   protected
+    function GetBrowserReadyState : TOleEnum;
+
     procedure InternalLoadDocumentFromStream(const aStream: TStream);
     procedure InternalSaveDocumentToStream(const aStream: TStream);
   public
@@ -26,6 +29,8 @@ type
     procedure SaveToStream(const aStream: TStream);
     procedure SaveToFile(const aFileName: string);
     function SaveToString: string;
+
+    property BrowserReadyState : TOleEnum read GetBrowserReadyState;
   published
   end;
 
@@ -44,6 +49,12 @@ uses
 procedure Register;
 begin
   RegisterComponents('BankLink', [TBKWebBrowser]);
+end;
+
+//------------------------------------------------------------------------------
+function TBKWebBrowser.GetBrowserReadyState: TOleEnum;
+begin
+  Result := ReadyState;
 end;
 
 //------------------------------------------------------------------------------
@@ -97,7 +108,10 @@ procedure TBKWebBrowser.NavigateToURL(const aURL: string);
       Forms.Application.ProcessMessages;
     until Int64(Windows.GetTickCount) - Int64(StartTC) >= ADelay;
   end;
+const
+  MAX_FILELOAD_WAIT = 1000;
 var
+  StartTickCount : int64;
   Flags: OleVariant;  // flags that determine action
   LocalLoad : boolean;
 begin
@@ -115,10 +129,19 @@ begin
   end;
 
   // Do the navigation and wait for it to complete
+  StartTickCount := gettickcount();
   Navigate(aURL, Flags);
+  if LocalLoad then
+  begin
+    while not (ReadyState in [READYSTATE_COMPLETE, READYSTATE_LOADED, READYSTATE_INTERACTIVE]) do
+    begin
+      if (gettickcount() > (StartTickCount + MAX_FILELOAD_WAIT)) then
+        exit;
 
-  //while not (ReadyState in [READYSTATE_COMPLETE, READYSTATE_LOADED, READYSTATE_INTERACTIVE]) do
-  //  Pause(5);
+      Pause(5);
+    end;
+
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TBKWebBrowser.LoadFromStream(const aStream: TStream);
