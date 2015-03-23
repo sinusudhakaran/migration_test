@@ -148,6 +148,9 @@ type
                                 var Frame: OleVariant;
                                 var StatusCode: OleVariant;
                                 var Cancel: WordBool);
+    procedure DoWebBrowserDocumentComplete(ASender: TObject;
+                                           const pDisp: IDispatch;
+                                           var URL: OleVariant);
 
     procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount : integer);
     procedure UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount : integer);
@@ -651,7 +654,58 @@ begin
       mtOverview : BKOverviewWebBrowser.Stop;
       mtCheckList : BKChecklistWebBrowser.Stop;
     end;
-    Exit;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.DoWebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
+var
+  ExpectedURL : string;
+begin
+  if fBrowserState = bstNavigating then
+  begin
+    case fCurrentStepID of
+      mtOverview : begin
+        case AdminSystem.fdFields.fdCountry of
+          whNewZealand: ExpectedURL := Globals.PRACINI_NZCashMigrationURLOverview1;
+          whAustralia : ExpectedURL := Globals.PRACINI_AUCashMigrationURLOverview1;
+        end;
+      end;
+      mtCheckList : begin
+        case AdminSystem.fdFields.fdCountry of
+          whNewZealand: ExpectedURL := Globals.PRACINI_NZCashMigrationURLOverview2;
+          whAustralia : ExpectedURL := Globals.PRACINI_AUCashMigrationURLOverview2;
+        end;
+      end;
+    end;
+
+    if ExpectedURL <> URL then
+    begin
+      fBrowserState := bstLoading;
+      fBrowserStartTick := GetTickCount();
+
+      case fCurrentStepID of
+        mtOverview : begin
+          BKOverviewWebBrowser.Stop;
+          BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+        end;
+        mtCheckList : begin
+          BKChecklistWebBrowser.Stop;
+          BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+        end;
+      end;
+    end
+    else
+      fBrowserState := bstDone;
+  end
+  else
+  begin
+    tmrBrowserLoading.Enabled := false;
+    fBrowserState := bstNone;
+    case fCurrentStepID of
+      mtOverview : BKOverviewWebBrowser.Stop;
+      mtCheckList : BKChecklistWebBrowser.Stop;
+    end;
   end;
 end;
 
@@ -928,6 +982,7 @@ begin
         whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
       end;
       BKOverviewWebBrowser.OnNavigateError := DoNavigationError;
+      BKOverviewWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete;
       BKOverviewWebBrowser.NavigateToURL(URL);
     end;
     mtCheckList : begin
@@ -936,6 +991,7 @@ begin
         whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
       end;
       BKChecklistWebBrowser.OnNavigateError := DoNavigationError;
+      BKChecklistWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete;
       BKChecklistWebBrowser.NavigateToURL(URL);
     end;
   end;

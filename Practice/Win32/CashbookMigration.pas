@@ -1048,6 +1048,14 @@ begin
 
           if BankAccount.baFields.baContra_Account_Code = AccRec.chAccount_Code then
           begin
+            if BankAccount.baFields.baCore_Account_ID = 0 then
+            begin
+              LogUtil.LogMsg(lmInfo, UnitName, 'No CoreAccountId for Client Code : ' + aClient.clFields.clCode +
+                                               ', Bank Account : ' + BankAccount.baFields.baBank_Account_Number +
+                                               '. Not sending bank feed.');
+              Continue;
+            end;
+
             BankFeedApplicationData := TBankFeedApplicationData.Create(aBankFeedApplicationsData);
             if AdminSystem.fdFields.fdCountry = whAustralia then
               BankFeedApplicationData.CountryCode := 'OZ'
@@ -1654,10 +1662,12 @@ begin
     try
       ClientBase.Token := fToken;
 
-      if GetLastFullyCodedMonth(BalDate) then
+      {if GetLastFullyCodedMonth(BalDate) then
         ClosingBalanceDate := BalDate
       else
-        ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+        ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);}
+
+      ClosingBalanceDate := IncDate(fClientTimeFrameStart, -1, 0, 0); ;
 
       fClientMigrationState := cmsTransformData;
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
@@ -1692,8 +1702,9 @@ begin
           UsedDivisions.Delimiter := ',';
           UsedDivisions.StrictDelimiter := true;
           try
-            if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
-              Exit;
+            if aSelectedData.ChartOfAccount then
+              if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
+                Exit;
 
             if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData, ChartExportCol, GSTMapCol, UsedDivisions, NoTransactions, aError) then
               Exit;
@@ -1743,6 +1754,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 constructor TCashbookMigration.Create;
 begin
   // Http
