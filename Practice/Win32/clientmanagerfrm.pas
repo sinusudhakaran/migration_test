@@ -2593,6 +2593,8 @@ begin
   ReadOnly := false;
   Open := false;
 
+  RefreshAdmin;
+
   SelectedList := TStringList.Create;
   try
     SelectedList.Delimiter := GLOBALS.ClientCodeDelimiter;

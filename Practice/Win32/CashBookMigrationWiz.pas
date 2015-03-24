@@ -285,20 +285,28 @@ var
 
 //------------------------------------------------------------------------------
 function RunCashBookMigrationWizard(w_PopupParent: Forms.TForm;  aSelectClients : TStringList): boolean;
+const
+  ThisMethodName = 'RunCashBookMigrationWizard';
 var
   Wizard : TFrmCashBookMigrationWiz;
+
 begin
-  Wizard := TFrmCashBookMigrationWiz.Create(Application.MainForm); // FormCreate
+  MigrateCashbook.MarkSelectedClients(ord(fsOpen), aSelectClients);
   try
-    Wizard.PopupParent   := w_PopupParent;
-    Wizard.PopupMode     := pmExplicit;
-    Wizard.SelectClients := aSelectClients;
-    BKHelpSetUp(Wizard, BKH_Migrating_a_client_from_COMPANY_NAME1_PRODUCT_PRACTICE_to_COMPANY_NAME1_Essentials_Cashbook);
+    Wizard := TFrmCashBookMigrationWiz.Create(Application.MainForm); // FormCreate
+    try
+      Wizard.PopupParent   := w_PopupParent;
+      Wizard.PopupMode     := pmExplicit;
+      Wizard.SelectClients := aSelectClients;
+      BKHelpSetUp(Wizard, BKH_Migrating_a_client_from_COMPANY_NAME1_PRODUCT_PRACTICE_to_COMPANY_NAME1_Essentials_Cashbook);
 
-    result := (Wizard.ShowModal = mrOK);
+      result := (Wizard.ShowModal = mrOK);
 
+    finally
+      FreeAndNil(Wizard);
+    end;
   finally
-    FreeAndNil(Wizard);
+    MigrateCashbook.MarkSelectedClients(ord(fsNormal), aSelectClients);
   end;
 end;
 

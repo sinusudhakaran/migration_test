@@ -176,6 +176,9 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
+    procedure MarkSelectedClients(aFileStatus: Byte; aSelectClients : TStringList);
+    procedure MarkSelectClient(aFileStatus: Byte; aClientCode : string);
+
     function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
 
     function GetFirms(var aFirms: TFirms; var aError: string): boolean;
@@ -218,6 +221,7 @@ uses
   baObj32,
   CalculateAccountTotals,
   iniSettings,
+  Bk5Except,
   SYDEFS;
 
 const
@@ -1653,6 +1657,59 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.MarkSelectedClients(aFileStatus: Byte; aSelectClients : TStringList);
+const
+  ThisMethodName = 'TCashbookMigration.MarkSelectedClients';
+var
+  SelIndex : integer;
+  Code : string;
+  CFRec : pClient_File_Rec;
+begin
+  LoadAdminSystem( true, ThisMethodName);
+  for SelIndex := 0 to aSelectClients.Count - 1 do
+  begin
+    Code := aSelectClients.Strings[SelIndex];
+    CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code);
+
+    if not Assigned( CFRec) then
+      Raise EAdminSystem.Create( 'Could not find CFRec for ' + Code + ' [' + ThisMethodName + ']');
+
+    if aFileStatus = ord(fsNormal) then
+      CFRec.cfCurrent_User := 0
+    else
+      CFRec.cfCurrent_User := CurrUser.LRN;
+
+    CFRec.cfFile_Status := aFileStatus;
+  end;
+  SaveAdminSystem;
+end;
+
+//------------------------------------------------------------------------------
+procedure TCashbookMigration.MarkSelectClient(aFileStatus: Byte; aClientCode : string);
+const
+  ThisMethodName = 'TCashbookMigration.MarkSelectClient';
+var
+  SelIndex : integer;
+  CFRec : pClient_File_Rec;
+begin
+  LoadAdminSystem( true, ThisMethodName);
+
+  CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( aClientCode);
+
+  if not Assigned( CFRec) then
+    Raise EAdminSystem.Create( 'Could not find CFRec for ' + aClientCode + ' [' + ThisMethodName + ']');
+
+  if aFileStatus = ord(fsNormal) then
+    CFRec.cfCurrent_User := 0
+  else
+    CFRec.cfCurrent_User := CurrUser.LRN;
+
+  CFRec.cfFile_Status := aFileStatus;
+
+  SaveAdminSystem;
+end;
+
+//------------------------------------------------------------------------------
 function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
 var
   ClientBase : TClientBase;
@@ -1746,7 +1803,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCashbookMigration.AddcOMMENTToClient(aClientLRN : integer; aNote: string);
+procedure TCashbookMigration.AddCommentToClient(aClientLRN : integer; aNote: string);
 var
   NoteIndex : integer;
   CurrComment : string;
@@ -1776,8 +1833,8 @@ var
   TransactionRec : tTransaction_Rec;
   MostRecentDate : TStDate;
 begin
-  Result := fClientTimeFrameStart;
-  MostRecentDate := fClientTimeFrameStart;
+  Result := IncDate(fClientTimeFrameStart, -1, 0, 0);
+  MostRecentDate := Result;
 
   for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
   begin
@@ -2032,7 +2089,10 @@ begin
 
       fClientMigrationState := cmsAccessCltDB;
       CltClient := nil;
-      OpenAClient(ClientFileCode, CltClient, true);
+
+      MarkSelectClient(ord(fsNormal), ClientFileCode);
+
+      OpenAClient(ClientFileCode, CltClient, true, true);
 
       if not Assigned(CltClient) then
       begin
