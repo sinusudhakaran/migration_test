@@ -69,7 +69,7 @@ type
     procedure GetMappingFromClient(aClient : TClientObj);
     function UpdateSysCode(aOrigCode : string) : string;
     function UpdateContraCode(aOrigCode : string; aAccountIndex : integer) : string;
-    procedure AddDuplicateReplacementChartCodes(aChartOfAccountsData : TChartOfAccountsData);
+    procedure AddDuplicateReplacementChartCodes(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData);
   end;
 
   //----------------------------------------------------------------------------
@@ -167,6 +167,7 @@ type
 
     // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
+    function CalculateClosingBalanceDate(aClient : TClientObj) : TStDate;
 
     function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
 
@@ -252,18 +253,23 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TMappingsData.AddDuplicateReplacementChartCodes(aChartOfAccountsData : TChartOfAccountsData);
+procedure TMappingsData.AddDuplicateReplacementChartCodes(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData);
 var
   NewChartItem : TChartOfAccountData;
   MapIndex : integer;
+  BankAccount : TBank_Account;
 begin
   for MapIndex := 0 to Count - 1 do
   begin
     if ItemAs(MapIndex).AccountIndex > -1 then
     begin
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(ItemAs(MapIndex).AccountIndex);
+
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
       NewChartItem.Code := ItemAs(MapIndex).NewCode;
-      NewChartItem.Name := 'Duplicate contra code from migration';
+      NewChartItem.Name := 'Duplicate contra code from migration ' +
+                            BankAccount.baFields.baBank_Account_Number + ' ' +
+                            BankAccount.baFields.baBank_Account_Name;
       NewChartItem.InActive := true;
       NewChartItem.PostingAllowed := true;
       NewChartItem.Divisions := '';
@@ -311,6 +317,10 @@ begin
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+
+      if trim(BankAccount.baFields.baContra_Account_Code ) = '' then
+        Continue;
+
       if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
          not (BankAccount.baFields.baIs_A_Manual_Account) then
       begin
@@ -1063,7 +1073,10 @@ begin
               BankFeedApplicationData.CountryCode := 'NZ';
 
             BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
-            BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateSysCode(AccRec.chAccount_Code);
+
+            BankFeedApplicationData.BankAccountNumber :=  MappingsData.UpdateContraCode(AccRec.chAccount_Code, AccountIndex);
+            BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateSysCode(BankFeedApplicationData.BankAccountNumber);
+
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
 
             if aDoMoveRatherThanCopy then
@@ -1273,7 +1286,7 @@ begin
       NewChartItem.BankOrCreditFlag := false;
     end;
 
-    MappingsData.AddDuplicateReplacementChartCodes(aChartOfAccountsData);
+    MappingsData.AddDuplicateReplacementChartCodes(aClient, aChartOfAccountsData);
 
     Result := true;
   except
@@ -1667,7 +1680,7 @@ begin
       else
         ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);}
 
-      ClosingBalanceDate := IncDate(fClientTimeFrameStart, -1, 0, 0);
+      ClosingBalanceDate := CalculateClosingBalanceDate(aClient);
 
       fClientMigrationState := cmsTransformData;
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
@@ -1751,6 +1764,49 @@ begin
         aError := 'Error adding comment to Client : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, aError);
       end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.CalculateClosingBalanceDate(aClient : TClientObj) : TStDate;
+var
+  AccountIndex : integer;
+  TransactionIndex : integer;
+  BankAccount : TBank_Account;
+  TransactionRec : tTransaction_Rec;
+  MostRecentDate : TStDate;
+begin
+  Result := fClientTimeFrameStart;
+  MostRecentDate := fClientTimeFrameStart;
+
+  for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+  begin
+    BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+
+    // Don't send Journals as Transactions
+    if (not BankAccount.IsAJournalAccount ) then
+    begin
+      for TransactionIndex := BankAccount.baTransaction_List.ItemCount-1 downto 0 do
+      begin
+        TransactionRec := BankAccount.baTransaction_List.Transaction_At(TransactionIndex)^;
+
+        // if Transaction is older than Time Frame ignore the rest since we are going back in time.
+        if TransactionRec.txDate_Effective < fClientTimeFrameStart then
+          break;
+
+        if (TransactionRec.txDate_Transferred > 0) then
+        begin
+          if TransactionRec.txDate_Effective > MostRecentDate then
+          begin
+            MostRecentDate := TransactionRec.txDate_Effective;
+            break;
+          end;
+        end;
+      end;
+    end;
+
+    if MostRecentDate > Result then
+      Result := MostRecentDate;
   end;
 end;
 
