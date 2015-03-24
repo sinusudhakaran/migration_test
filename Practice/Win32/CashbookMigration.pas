@@ -1502,7 +1502,7 @@ begin
 
           JournalItem := TJournalData.Create(aJournalsData);
           JournalItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
-          JournalItem.Description := TransactionRec.txStatement_Details;
+          JournalItem.Description := TransactionRec.txGL_Narration;
 
           {LineItem := TLineData.Create(JournalItem.Lines);
 
