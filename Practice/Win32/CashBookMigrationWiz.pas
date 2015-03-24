@@ -152,8 +152,8 @@ type
                                            const pDisp: IDispatch;
                                            var URL: OleVariant);
 
-    procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount : integer);
-    procedure UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount : integer);
+    procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount, aVisibleRowCount : integer);
+    procedure UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount, aVisibleRowCount : integer);
     procedure DoMigrationProgress(aCurrentFile : integer;
                                   aTotalFiles : integer;
                                   aPercentOfCurrentFile : integer);
@@ -1012,7 +1012,7 @@ begin
       UpdateControls;
       btnNext.SetFocus;
 
-      UpdateClientStringGrid(stgSelectedClients, 582, SelectClients.Count);
+      UpdateClientStringGrid(stgSelectedClients, 582, SelectClients.Count, 4);
 
       fBrowserState := bstNavigating;
       fBrowserStartTick := GetTickCount();
@@ -1277,18 +1277,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount : integer);
+procedure TFrmCashBookMigrationWiz.UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount, aVisibleRowCount : integer);
 var
   Client: pClient_File_Rec;
   SelIndex : integer;
 begin
   aClients.ColCount := 2;
   aClients.ColWidths[0] := 110;
-
-  if aSelectClientsCount > aClients.VisibleRowCount then
-    aClients.ColWidths[1] := aClientNameWidth
-  else
-    aClients.ColWidths[1] := aClientNameWidth + 17;
 
   aClients.RowCount := aSelectClientsCount+1;
   aClients.Cells[0, 0] := 'Code';
@@ -1299,25 +1294,31 @@ begin
     aClients.Cells[0, SelIndex] := Client^.cfFile_Code;
     aClients.Cells[1, SelIndex] := Client^.cfFile_Name;
   end;
+
+  if aSelectClientsCount > aVisibleRowCount then
+    aClients.ColWidths[1] := aClientNameWidth
+  else
+    aClients.ColWidths[1] := aClientNameWidth + 17;
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount : integer);
+procedure TFrmCashBookMigrationWiz.UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount, aVisibleRowCount : integer);
 var
   Client: pClient_File_Rec;
   SelIndex : integer;
 begin
   aClientErrors.ColCount := 1;
-  if aClientErrorsCount > aClientErrors.VisibleRowCount then
-    aClientErrors.ColWidths[0] := aClientErrorWidth
-  else
-    aClientErrors.ColWidths[0] := aClientErrorWidth + 17;
 
-  aClientErrors.RowCount := SelectClients.Count+1;
+  aClientErrors.RowCount := aClientErrorsCount+1;
   aClientErrors.Cells[0, 0] := 'Error';
 
   for SelIndex := 1 to aClientErrorsCount do
     aClientErrors.Cells[0, SelIndex] := fClientErrors.Strings[SelIndex-1];
+
+  if aClientErrorsCount > aVisibleRowCount then
+    aClientErrors.ColWidths[0] := aClientErrorWidth
+  else
+    aClientErrors.ColWidths[0] := aClientErrorWidth + 17;
 end;
 
 //------------------------------------------------------------------------------
@@ -1342,7 +1343,10 @@ begin
 
   if fNumErrorClients > 0 then
   begin
-    UpdateClientErrorsStringGrid(stgClientErrors, 660, fClientErrors.Count);
+    if fMigrationStatus = mgsPartial then
+      UpdateClientErrorsStringGrid(stgClientErrors, 660, fClientErrors.Count, 5)
+    else
+      UpdateClientErrorsStringGrid(stgClientErrors, 660, fClientErrors.Count, 13);
 
     SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
     lblClientError.Caption := Format('The following %d client(s) could not be migrated.', [fNumErrorClients]);
@@ -1357,7 +1361,7 @@ begin
       lblClientCompleteAmount.Caption := 'The following clients are now being created in ' + BRAND_CASHBOOK_NAME + '.';
 
       stgClientsMigrated.Visible := true;
-      UpdateClientStringGrid(stgClientsMigrated, 550, SelectClients.Count);
+      UpdateClientStringGrid(stgClientsMigrated, 550, SelectClients.Count, 9);
 
       lblDescription.Caption := WindowTitle;
       pnlCashbookComplete.Visible := true;

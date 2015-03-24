@@ -151,7 +151,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 744
       Height = 377
-      ActivePage = tabSelectData
+      ActivePage = tabComplete
       Align = alClient
       Style = tsButtons
       TabHeight = 5
@@ -340,7 +340,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Height = -13
             Font.Name = 'Tahoma'
             Font.Style = []
-            ItemHeight = 16
+            ItemHeight = 0
             ParentFont = False
             TabOrder = 0
             OnChange = cmbSelectFirmChange
@@ -732,7 +732,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Left = 25
             Top = 22
             Width = 681
-            Height = 123
+            Height = 125
             Anchors = [akLeft, akTop, akRight, akBottom]
             ColCount = 2
             DefaultRowHeight = 20

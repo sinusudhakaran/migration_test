@@ -506,15 +506,15 @@ procedure TCashbookMigration.DoHttpTransfer(ASender           : TObject;
 var
   Percent : integer;
 begin
-  if ABytesTransferred > fClientDataSize then
+  {if ABytesTransferred > fClientDataSize then
     Percent := 100
   else
     Percent := trunc(ABytesTransferred / fClientDataSize);
 
   if Assigned(fProgressEvent) then
   begin
-    fProgressEvent(fCurrentClient, fClientCount, Percent);
-  end;
+    fProgressEvent(fCurrentClient-1, fClientCount, Percent);
+  end;   }
 end;
 
 //------------------------------------------------------------------------------
@@ -1208,7 +1208,7 @@ begin
 
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
       NewChartItem.Code := MappingsData.UpdateSysCode(AccRec.chAccount_Code);
-      NewChartItem.Name := StripInvalidCharacters(AccRec.chAccount_Description);
+      NewChartItem.Name := AccRec.chAccount_Description;
 
       if length(trim(NewChartItem.Name)) = 0 then
         NewChartItem.Name := NewChartItem.Code;
@@ -1667,7 +1667,7 @@ begin
       else
         ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);}
 
-      ClosingBalanceDate := IncDate(fClientTimeFrameStart, -1, 0, 0); ;
+      ClosingBalanceDate := IncDate(fClientTimeFrameStart, -1, 0, 0);
 
       fClientMigrationState := cmsTransformData;
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
