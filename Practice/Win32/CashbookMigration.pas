@@ -1770,6 +1770,7 @@ var
   BankAccount : TBank_Account;
   TransactionRec : tTransaction_Rec;
   MostRecentDate : TStDate;
+  Day, Month, Year : Integer;
 begin
   Result := IncDate(fClientTimeFrameStart, -1, 0, 0);
   MostRecentDate := Result;
@@ -1803,6 +1804,24 @@ begin
     if MostRecentDate > Result then
       Result := MostRecentDate;
   end;
+
+  Result := IncDate(Result, 1, 0, 0);
+
+  StDateToDMY(Result, Day, Month, Year);
+  if Day > 1 then
+  begin
+    Day := 1;
+    inc(Month);
+    if Month = 13 then
+    begin
+      Month := 1;
+      inc(Year);
+    end;
+
+    Result := DMYtoStDate(Day, Month, Year, BKDATEEPOCH);
+  end;
+
+  Result := IncDate(Result, -1, 0, 0);
 end;
 
 //------------------------------------------------------------------------------
