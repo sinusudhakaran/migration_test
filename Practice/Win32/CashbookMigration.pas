@@ -25,6 +25,7 @@ type
   //----------------------------------------------------------------------------
   TClientMigrationState = (cmsAccessSysDB,
                            cmsAccessCltDB,
+                           cmsClientPassword,
                            cmsTransformData,
                            cmsConnectToAPI,
                            cmsUploadError);
@@ -79,7 +80,6 @@ type
   TCashbookMigration = class
   private
     fToken: string;
-    fCashBookUserid : string;
     fUnEncryptedToken : string;
     fTokenStartDate : TDateTime;
     FHttpRequester : TipsHTTPS;
@@ -177,8 +177,8 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure MarkSelectedClients(aFileStatus: Byte; aSelectClients : TStringList);
-    procedure MarkSelectClient(aFileStatus: Byte; aClientCode : string);
+    procedure MarkSelectedClients(aFileStatus: Integer; aSelectClients : TStringList);
+    procedure MarkSelectClient(aFileStatus: Integer; aClientCode : string);
 
     function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
 
@@ -304,7 +304,6 @@ var
   //----------------------------------------------------------------------------
   function GetNewCode(aOldCode : string) : string;
   var
-    FoundAccRec : tAccount_Rec;
     Suffix : integer;
   begin
     Suffix := 1;
@@ -504,8 +503,8 @@ procedure TCashbookMigration.DoHttpTransfer(ASender           : TObject;
                                             ADirection        : Integer;
                                             ABytesTransferred : LongInt;
                                             AText             : String);
-var
-  Percent : integer;
+//var
+//  Percent : integer;
 begin
   {if ABytesTransferred > fClientDataSize then
     Percent := 100
@@ -977,7 +976,6 @@ var
   ABN : string;
   Branch : string;
   IRD : string;
-  BalDate : TStDate;
   OpenBalDate : TStDate;
   ModifiedIRD : string;
 begin
@@ -1128,13 +1126,8 @@ var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
   NewChartItem : TChartOfAccountData;
-  GSTClassTypeIndicator : byte;
   ChartExportItem : TChartExportItem;
   MappedGroupId : TCashBookChartClasses;
-  CashBookGstClassCode : string;
-  CashBookGstClassDesc : string;
-  GSTMapItem : TGSTMapItem;
-  GSTClass : TCashBookGSTClasses;
   ChartExportFound : boolean;
   MigrationClosingBalance : integer;
   AccountIndex : integer;
@@ -1297,12 +1290,10 @@ var
   TransactionItem : TTransactionData;
   BankAccountItem : TBankAccountData;
   AllocationItem : TAllocationData;
-  ChartOfAccountItem : TChartOfAccountData;
   BankAccount : TBank_Account;
   TransactionRec : tTransaction_Rec;
   AccRec : pAccount_Rec;
   DissRec: pDissection_Rec;
-  AccountCode : string;
 begin
   Result := false;
   aNoTransactions := true;
@@ -1428,7 +1419,6 @@ var
   TransactionIndex : integer;
   JournalItem : TJournalData;
   LineItem : TLineData;
-  ChartOfAccountItem : TChartOfAccountData;
   BankAccount : TBank_Account;
   TransactionRec : tTransaction_Rec;
   AccRec : pAccount_Rec;
@@ -1599,7 +1589,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TCashbookMigration.MarkSelectedClients(aFileStatus: Byte; aSelectClients : TStringList);
+procedure TCashbookMigration.MarkSelectedClients(aFileStatus: Integer; aSelectClients : TStringList);
 const
   ThisMethodName = 'TCashbookMigration.MarkSelectedClients';
 var
@@ -1621,17 +1611,16 @@ begin
     else
       CFRec.cfCurrent_User := CurrUser.LRN;
 
-    CFRec.cfFile_Status := aFileStatus;
+    CFRec.cfFile_Status := byte(aFileStatus);
   end;
   SaveAdminSystem;
 end;
 
 //------------------------------------------------------------------------------
-procedure TCashbookMigration.MarkSelectClient(aFileStatus: Byte; aClientCode : string);
+procedure TCashbookMigration.MarkSelectClient(aFileStatus: Integer; aClientCode : string);
 const
   ThisMethodName = 'TCashbookMigration.MarkSelectClient';
 var
-  SelIndex : integer;
   CFRec : pClient_File_Rec;
 begin
   LoadAdminSystem( true, ThisMethodName);
@@ -1646,7 +1635,7 @@ begin
   else
     CFRec.cfCurrent_User := CurrUser.LRN;
 
-  CFRec.cfFile_Status := aFileStatus;
+  CFRec.cfFile_Status := byte(aFileStatus);
 
   SaveAdminSystem;
 end;
@@ -1674,7 +1663,15 @@ begin
     try
       ClientBase.Token := fToken;
 
-      ClosingBalanceDate := CalculateClosingBalanceDate(aClient);
+      if aSelectedData.NonTransferedTransactions then
+        ClosingBalanceDate := CalculateClosingBalanceDate(aClient)
+      else
+      begin
+        if GetLastFullyCodedMonth(BalDate) then
+          ClosingBalanceDate := BalDate
+        else
+          ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+      end;
 
       fClientMigrationState := cmsTransformData;
       if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
@@ -1682,6 +1679,7 @@ begin
 
       if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aSelectedData.DoMoveRatherThanCopy, aError) then
         Exit;
+
       fClientMigrationState := cmsAccessCltDB;
 
       ChartExportCol := TChartExportCol.Create(TChartExportItem);
@@ -1743,7 +1741,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TCashbookMigration.AddCommentToClient(aClientLRN : integer; aNote: string);
 var
-  NoteIndex : integer;
   CurrComment : string;
   aError : string;
 begin
@@ -1997,9 +1994,22 @@ var
   ClientLRN : integer;
   ErrorStr  : string;
   ErrorIndex : integer;
-  NumErrorClients : integer;
   LastClientIndex : integer;
   DiffDispString : string;
+  ClientErrorCode : TOpenClientError;
+
+  procedure AddVisualError();
+  begin
+    case fClientMigrationState of
+      cmsAccessSysDB    : ErrorStr := Format('Error Accessing System Database %s could not be accessed.', [CurrentClientCode]);
+      cmsAccessCltDB    : ErrorStr := Format('Error Accessing Current Client %s could not be opened.', [CurrentClientCode]);
+      cmsClientPassword : ErrorStr := Format('%s is password protected and could not be migrated', [CurrentClientCode]);
+      cmsTransformData  : ErrorStr := Format('%s data could not be migrated, please contact Support.', [CurrentClientCode]);
+      cmsConnectToAPI   : ErrorStr := Format('Process was interrupted %s was interrupted during upload, please try again.', [CurrentClientCode]);
+      cmsUploadError    : ErrorStr := Format('Error Uploading Data %s could not be uploaded to Cashbook.', [CurrentClientCode]);
+    end;
+    aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
+  end;
 begin
   // Initialize ErrorList and progress event
   fClientMigrationState := cmsAccessSysDB;
@@ -2027,8 +2037,8 @@ begin
       if not Assigned(SysClient) then
       begin
         ErrorStr := CurrentClientCode + ' Error finding Client in System File.';
-        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+        AddVisualError();
         Continue;
       end;
 
@@ -2037,8 +2047,8 @@ begin
         ErrorStr := CurrentClientCode + ' Error with Client, it is not in the correct status. ' +
                     'Current Status : ' + fsNames[AdminSystem.fdSystem_Client_File_List.Client_File_At(ClientIndex).cfFile_Status] +
                     ' needs to be in normal status.';
-        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+        AddVisualError();
         Continue;
       end;
 
@@ -2049,15 +2059,19 @@ begin
 
       MarkSelectClient(ord(fsNormal), ClientFileCode);
 
-      OpenAClient(ClientFileCode, CltClient, true, true);
+      OpenAClientReturnErrors(ClientFileCode, CltClient, true, ClientErrorCode);
+
+      if ClientErrorCode = oceClientInvalidPassword then
+        fClientMigrationState := cmsClientPassword;
 
       if not Assigned(CltClient) then
       begin
         ErrorStr := CurrentClientCode + ' Error opening Client file.';
-        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+        AddVisualError();
         Continue;
       end;
+      fClientMigrationState := cmsAccessCltDB;
 
       MyClient := CltClient;
       try
@@ -2066,8 +2080,8 @@ begin
         if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
         begin
           ErrorStr := CurrentClientCode + ' ' + ErrorStr;
-          aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
           LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+          AddVisualError();
           Continue;
         end
         else
@@ -2111,16 +2125,7 @@ begin
       begin
         ErrorStr := CurrentClientCode + ' Exception opening Client, Error : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-
-        case fClientMigrationState of
-          cmsAccessSysDB   : ErrorStr := Format('Error Accessing System Database %s could not be accessed.', [CurrentClientCode]);
-          cmsAccessCltDB   : ErrorStr := Format('Error Accessing Current Client %s could not be opened.', [CurrentClientCode]);
-          cmsTransformData : ErrorStr := Format('%s data could not be migrated, please contact Support.', [CurrentClientCode]);
-          cmsConnectToAPI  : ErrorStr := Format('Process was interrupted %s was interrupted during upload, please try again.', [CurrentClientCode]);
-          cmsUploadError   : ErrorStr := Format('Error Uploading Data %s could not be uploaded to Cashbook.', [CurrentClientCode]);
-        end;
-        aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
-
+        AddVisualError();
         Continue;
       end;
     end;

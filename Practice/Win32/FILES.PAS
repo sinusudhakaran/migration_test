@@ -5,9 +5,34 @@ unit Files;
 interface
 
 uses
-  Dialogs, Classes, Windows, Sysutils,
-  LogUtil, clObj32, ChkProgressFrm, AuditMgr, WebCiCoClient,
+  Dialogs,
+  Classes,
+  Windows,
+  Sysutils,
+  LogUtil,
+  clObj32,
+  ChkProgressFrm,
+  AuditMgr,
+  WebCiCoClient,
   SysObj32;
+
+type
+  TOpenClientError = (oceNone,
+                      oceClientNotNil,
+                      oceClientCodeEmpty,
+                      oceNoClientInAdmin,
+                      oceInvalidFileSigniture,
+                      oceClientReadOnly,
+                      oceClientOpen,
+                      oceClientOffSite,
+                      oceClientSlientWithPassword,
+                      oceClientInvalidPassword,
+                      oceLoadAdminFailed,
+                      oceUserCanceled,
+                      oceRecoveryNoAutoSaveFile,
+                      oceInvalidDataInFile,
+                      oceBKFileError,
+                      oceIncorrectVersion);
 
   function GetBankLinkOnlineSubDomain: string;
 
@@ -44,6 +69,13 @@ uses
                         AllowOpenReadOnly : boolean = false;
                         PasswordVerified: Boolean = false;
                         IsDDE: Boolean = False);
+  function OpenAClientReturnErrors(OpenCode : string;
+                                   var Client : TClientObj;
+                                   Silent : boolean;
+                                   var aErrorCode : TOpenClientError;
+                                   AllowOpenReadOnly : boolean = false;
+                                   PasswordVerified: Boolean = false;
+                                   IsDDE: Boolean = False) : boolean;
   procedure CloseAClient(var Client : TClientObj; AllowReadOnlyToBeSaved : boolean = false);
   procedure SaveAClient(Client :TClientObj); // AJ: Is this ever used (Not in BK5)
   procedure AbandonAClient(var Client : TClientObj);
@@ -226,8 +258,28 @@ procedure OpenAClient( OpenCode : string;
                        AllowOpenReadOnly : boolean = false;
                        PasswordVerified: Boolean = false;
                        IsDDE: Boolean = False);
+var
+  ErrorCode : TOpenClientError;
+begin
+  OpenAClientReturnErrors(OpenCode,
+                          Client,
+                          Silent,
+                          ErrorCode,
+                          AllowOpenReadOnly,
+                          PasswordVerified,
+                          IsDDE);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function OpenAClientReturnErrors(OpenCode : string;
+                                 var Client : TClientObj;
+                                 Silent : boolean;
+                                 var aErrorCode : TOpenClientError;
+                                 AllowOpenReadOnly : boolean = false;
+                                 PasswordVerified: Boolean = false;
+                                 IsDDE: Boolean = False) : boolean;
 const
-  ThisMethodName = 'OpenAClient';
+  ThisMethodName = 'OpenAClientReturnErrors';
 var
   Code           : string;
   CFRec          : pClient_File_Rec;
@@ -248,91 +300,115 @@ var
   LExchangeSource: TExchangeSource;
   ISOCodes: TStrings;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  Result := true;
+  aErrorCode := oceNone;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   Code := '';
   try //finally  - clear status
     try //except
-       if Client <> nil then begin
-          raise EInvalidCall.CreateFmt( '%s %s Client object must be nil', [ UnitName, ThisMethodName ]);
-       end;
+      if Client <> nil then
+      begin
+        Result := false;
+        aErrorCode := oceClientNotNil;
+        raise EInvalidCall.CreateFmt( '%s %s Client object must be nil', [ UnitName, ThisMethodName ]);
+      end;
 
-       RefreshAdmin;
-       if OpenCode = '' then begin
-          //find code of first MRU an position on that
-          S := INI_MRUList[1];
-          p := Pos(#9, S) - 1;
-          If p <= 0 Then Begin
-             p := Length(S)
-          End;
-          S := Copy(S, 1, p);
+      RefreshAdmin;
+      if OpenCode = '' then
+      begin
+        //find code of first MRU an position on that
+        S := INI_MRUList[1];
+        p := Pos(#9, S) - 1;
+        If p <= 0 Then
+           p := Length(S);
+        S := Copy(S, 1, p);
+        //Select client from list
+        Code := ClientLookupExFrm.LookupClientCodes( 'Open a file', S, []);
+        if Code = '' then
+        begin
+          Result := false;
+          aErrorCode := oceClientCodeEmpty;
+          Exit;
+        end;
+      end
+      else
+        Code := OpenCode;
 
-          //Select client from list
-          Code := ClientLookupExFrm.LookupClientCodes( 'Open a file', S, []);
-          if Code = '' then
-             Exit
-       end
-       else
-          Code := OpenCode;
-
-       if Assigned(AdminSystem) then
-       begin
-         if ( AdminSystem.fdSystem_Client_File_List.FindCode( Code) = nil) then begin
-            Msg := Format( 'Client Code %s could not be found in the Admin System.', [Code] );
-
-            if not Silent then
-               HelpfulErrorMsg( Msg,0);
-            Exit;
-
-            LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
-         end;
-       end;
-
-       if not ClientFileExists(code) then
-       begin
-          Msg := Format( 'File not found for Client Code %s.', [ Code] );
+      if Assigned(AdminSystem) then
+      begin
+        if ( AdminSystem.fdSystem_Client_File_List.FindCode( Code) = nil) then
+        begin
+          Msg := Format( 'Client Code %s could not be found in the Admin System.', [Code] );
 
           if not Silent then
-             HelpfulErrorMsg( Msg,0);
+            HelpfulErrorMsg( Msg,0);
 
           LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+          Result := false;
+          aErrorCode := oceClientCodeEmpty;
+
           Exit;
-       end;
+        end;
+      end;
 
-       UpdateAppStatus('Opening Client',Code,0);
-       try
-          GetClientWrapper( DataDir+Code+FILEEXTN, Wrapper, false);  //to check password
+      if not ClientFileExists(code) then
+      begin
+        Msg := Format( 'File not found for Client Code %s.', [ Code] );
 
-          if ( Wrapper.wSignature <> BankLink_Signature) then
-            raise EFileWrapper.Create( 'Invalid File Signature');
-       except
-          on e : EFileWrapper do begin
-             Msg := 'Cannot open file for ' + Code + '. Error: ' + E.Message;
-             if not Silent then
-                HelpfulErrorMsg( Msg, 0);
+        if not Silent then
+          HelpfulErrorMsg( Msg,0);
 
-             LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
-             exit;
-          end;
-       end;
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
 
-       OpenReadOnly := False;
+        Result := false;
+        aErrorCode := oceNoClientInAdmin;
 
-       if Assigned( AdminSystem) then
-       begin
-         //Practice Version
+        Exit;
+      end;
 
-         RefreshAdmin;
+      UpdateAppStatus('Opening Client',Code,0);
+      try
+        GetClientWrapper( DataDir+Code+FILEEXTN, Wrapper, false);  //to check password
 
-         //check if file is currently read-only, offsite etc
-         //This is done before locking the admin system so that we can ask the
-         //user if they want to open the file read only.
-         //If we did this once the admin system is locked then it is possible that
-         //a dialog will be sitting on screen long enough to crash all other
-         //workstations
-         CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
-         if Assigned(CFRec) and (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite]) then
-         begin
+        if ( Wrapper.wSignature <> BankLink_Signature) then
+          raise EFileWrapper.Create( 'Invalid File Signature');
+
+      except
+        on e : EFileWrapper do
+        begin
+          Msg := 'Cannot open file for ' + Code + '. Error: ' + E.Message;
+          if not Silent then
+            HelpfulErrorMsg( Msg, 0);
+
+          LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+
+          Result := false;
+          aErrorCode := oceNoClientInAdmin;
+
+          exit;
+        end;
+      end;
+
+      OpenReadOnly := False;
+
+      if Assigned( AdminSystem) then
+      begin
+        //Practice Version
+
+        RefreshAdmin;
+
+        //check if file is currently read-only, offsite etc
+        //This is done before locking the admin system so that we can ask the
+        //user if they want to open the file read only.
+        //If we did this once the admin system is locked then it is possible that
+        //a dialog will be sitting on screen long enough to crash all other
+        //workstations
+        CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
+        if Assigned(CFRec) and (CFRec.cfFile_Status in [fsCheckedOut, fsOffsite]) then
+        begin
            //read only and off site clients may be opened read only
            if not Silent then
            begin
@@ -357,7 +433,11 @@ begin
                OpenReadOnly := (AskYesNo('Open Client File Read-Only', Msg, DLG_YES, 0) = DLG_YES);
 
                if not OpenReadOnly then
+               begin
+                 Result := false;
+                 aErrorCode := oceClientReadOnly;
                  Exit;
+               end;
              end
            end;
          end;
@@ -369,7 +449,11 @@ begin
          if Wrapper.wRead_Only then
          begin
            if Silent then
+           begin
+             Result := false;
+             aErrorCode := oceClientReadOnly;
              Exit;
+           end;
 
            if AllowOpenReadOnly then
            begin
@@ -378,7 +462,11 @@ begin
 
              OpenReadOnly := (AskYesNo('Open Client File Read-Only', Msg, DLG_YES, 0) = DLG_YES);
              if not OpenReadOnly then
+             begin
+               Result := false;
+               aErrorCode := oceClientReadOnly;
                Exit;
+             end;
 
              OpenReadOnly := true;
            end
@@ -393,6 +481,8 @@ begin
          begin
            Msg := Format( '%s Password Required in Silent Mode - Not Opened.', [ Code] );
            LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+           Result := false;
+           aErrorCode := oceClientSlientWithPassword;
            Exit;
          end;
          //Check against hashed password if it exists, if not against unhashed password
@@ -409,9 +499,11 @@ begin
 
          if not PasswordCorrect then
          begin
-            Msg := 'A valid password is required to open this file! [' + Code + ']';
-            HelpfulErrorMsg( Msg, 0);
-            Exit;
+           Msg := 'A valid password is required to open this file! [' + Code + ']';
+           HelpfulErrorMsg( Msg, 0);
+           Result := false;
+           aErrorCode := oceClientInvalidPassword;
+           Exit;
          end;
        end;
 
@@ -424,12 +516,16 @@ begin
            CFRec := AdminSystem.fdSystem_Client_File_List.FindCode( Code );
            if not Assigned(CFRec) then
            begin
-              UnlockAdmin;
+             UnlockAdmin;
 
-              Msg := Format( 'Client Code %s is not in the Admin System.', [Code] );
-              if DebugMe or Silent then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
-              if not Silent then HelpfulErrorMsg( Msg,0);
-              Exit;
+             Msg := Format( 'Client Code %s is not in the Admin System.', [Code] );
+             if DebugMe or Silent then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' : ' + Msg );
+             if not Silent then HelpfulErrorMsg( Msg,0);
+
+             Result := false;
+             aErrorCode := oceNoClientInAdmin;
+
+             Exit;
            end;
 
            //check file status
@@ -445,15 +541,18 @@ begin
              Msg := '';
              case CFRec.cfFile_Status of
                 fsOpen : begin
-                   Msg := Format( 'User %s is working on client file %s.', [ User, Code ] );
+                  aErrorCode := oceClientReadOnly;
+                  Msg := Format( 'User %s is working on client file %s.', [ User, Code ] );
                 end;
 
                 fsCheckedOut : begin
-                   Msg := Format( 'User %s has marked file %s as read-only.', [ User, Code ] );
+                  aErrorCode := oceClientOpen;
+                  Msg := Format( 'User %s has marked file %s as read-only.', [ User, Code ] );
                 end;
 
                 fsOffsite : begin
-                   Msg := Format( 'Client File %s is currently Off-site.', [ Code ] );
+                  aErrorCode := oceClientOffSite;
+                  Msg := Format( 'Client File %s is currently Off-site.', [ Code ] );
                 end;
              end; {case}
              if (Msg <> '') and ( DebugMe or Silent) then
@@ -469,9 +568,14 @@ begin
                else
                  HelpfulInfoMsg( 'Sorry, ' + Msg, 0 );
                if IsDDE then
-                DoClientManager(0, 0, 0, 0);
+                 DoClientManager(0, 0, 0, 0);
+
+               Result := false;
+               aErrorCode := oceNoClientInAdmin;
+
                Exit;
              end;
+             aErrorCode := oceNone;
            end;
 
            if OpenReadOnly then
@@ -488,7 +592,11 @@ begin
            end;
          end
          else
+         begin
+           Result := false;
+           aErrorCode := oceLoadAdminFailed;
            Exit;
+         end;
        end;
 
        //file is to be opened normally and password has been okayed
@@ -538,9 +646,14 @@ begin
                    end;
                  end;
                  2 : ;// open normally
-               else
-                 SetAdminStatusToClosed( Code);
-                 Exit;
+                 else
+                 begin
+                   SetAdminStatusToClosed( Code);
+
+                   Result := false;
+                   aErrorCode := oceUserCanceled;
+                   Exit;
+                 end;
                end;
              end;
            end;
@@ -550,6 +663,10 @@ begin
            //in silent mode so cant ask whether to recover or not
            SetAdminStatusToClosed( Code);
            LogMsg( lmInfo, Unitname, ThisMethodName + ': Auto save file found in silent mode for ' + Code + '- Not Opened.');
+
+           Result := false;
+           aErrorCode := oceRecoveryNoAutoSaveFile;
+
            Exit;
          end;
        end;
@@ -650,6 +767,7 @@ begin
        LogUtil.LogMsg( lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
 
     except
+
        on E : EInvalidDataInFile do begin
           //unknown token, bounds error
           Msg := Format( 'Unable to Open Client file %s. %s', [ Code, E.Message ] );
@@ -658,6 +776,8 @@ begin
              HelpfulErrorMsg( Msg, 0 );
           Client.Free;
           Client := nil;
+          Result := false;
+          aErrorCode := oceInvalidDataInFile;
        end;
 
        on E : EBKFileError do begin
@@ -668,6 +788,8 @@ begin
              HelpfulErrorMsg( Msg, 0 );
           Client.Free;
           Client := nil;
+          Result := false;
+          aErrorCode := oceBKFileError;
        end;
 
        on E : EIncorrectVersion do begin
@@ -691,6 +813,8 @@ begin
                    Application.Terminate;
                end;
              end;
+             Result := false;
+             aErrorCode := oceIncorrectVersion;
           end;
        end;
     end;  // try/except

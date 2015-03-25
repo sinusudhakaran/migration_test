@@ -847,8 +847,6 @@ procedure TFrmCashBookMigrationWiz.SignIn;
 var
   sError: string;
   OldCursor: TCursor;
-  Firms: TFirms;
-  SupportNumber : string;
   InvalidPass : boolean;
 begin
   OldCursor := Screen.Cursor;
@@ -926,6 +924,11 @@ begin
   case fCurrentStepID of
     mtOverview  : BrowserReadyState := BKOverviewWebBrowser.BrowserReadyState;
     mtCheckList : BrowserReadyState := BKChecklistWebBrowser.BrowserReadyState;
+  else
+    begin
+      tmrBrowserLoading.Enabled := false;
+      Exit;
+    end;
   end;
 
   case BrowserReadyState of
@@ -1000,10 +1003,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.InitialiseStep(StepID: integer);
-var
-  dtMonthEnding: TDateTime;
-  Overview1URL : string;
-  Overview2URL : string;
 begin
   inherited;
 
@@ -1177,7 +1176,6 @@ var
   FirmIndex : integer;
   MaxTextWidth : integer;
   AddToSides : integer;
-  CmbWidth : integer;
 begin
   Result := false;
   // No firms?
@@ -1305,7 +1303,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount, aVisibleRowCount : integer);
 var
-  Client: pClient_File_Rec;
   SelIndex : integer;
 begin
   aClientErrors.ColCount := 1;
@@ -1325,7 +1322,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.UpdateCompleteControls();
 var
-  ErrorIndex : integer;
   TotalClients : integer;
   SupportNumber : string;
   WindowTitle : string;

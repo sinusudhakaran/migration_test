@@ -2529,17 +2529,14 @@ end;
 
 procedure TfrmClientManager.actMigrateExecute(Sender: TObject);
 var
-  AClientIsCheckedOut, AClientIsUnsynced: boolean;
   Client: pClient_File_Rec;
   SelectedIndex: integer;
   SelectedList: TStringList;
   Archived, Unsynchronised, ReadOnly, Open: boolean;
-  ShowError : boolean;
   CurrentStatus : string;
   InvalidClientList : TStringList;
   InvalidClientStr : string;
   InvalidClientIndex : integer;
-  OldMemsSupportOption : TMemsSupportOptions;
 
   //----------------------------------------------------------------------------
   function DisplayAffectedStatuses() : string;
@@ -2830,7 +2827,6 @@ end;
 procedure TfrmClientManager.DoMergeDoc;
 var
   Codes: string;
-  Index: Integer;
 begin
   try
     //Clear any document objects that point to deleted files.
@@ -2872,7 +2868,6 @@ end;
 procedure TfrmClientManager.DoMergeEMail;
 var
   Codes: string;
-  Index: Integer;
 begin
   try
     //Clear any document objects that point to deleted files.
@@ -2913,7 +2908,6 @@ end;
 procedure TfrmClientManager.DoCreateDoc(var LoseFocus: Boolean);
 var
   Codes: string;
-  Index: Integer;
 begin
   try
     //Clear any document objects that point to deleted files.

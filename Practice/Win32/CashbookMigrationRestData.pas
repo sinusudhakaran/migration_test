@@ -993,7 +993,6 @@ end;
 procedure TClientData.Write(const aJson: TlkJSONobject; aSelectedData: TSelectedData);
 var
   JsonBusiness : TlkJSONobject;
-  JsonChartOfAccounts : TlkJSONobject;
 begin
   // Business data, create the ledger on cashbook
   JsonBusiness := TlkJSONobject.Create;
