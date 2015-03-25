@@ -1501,8 +1501,9 @@ begin
             break;
 
           JournalItem := TJournalData.Create(aJournalsData);
-          JournalItem.Date := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
+          JournalItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           JournalItem.Description := TransactionRec.txGL_Narration;
+          JournalItem.Reference   := TransactionRec.txReference;
 
           {LineItem := TLineData.Create(JournalItem.Lines);
 

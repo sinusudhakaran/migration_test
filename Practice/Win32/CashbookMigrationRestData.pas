@@ -82,6 +82,7 @@ type
   private
     fDate        : string;
     fDescription : string;
+    fReference   : string;
 
     fLines : TLinesData;
   public
@@ -92,6 +93,7 @@ type
 
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
+    property Reference : string read fReference write fReference;
 
     property Lines : TLinesData read fLines write fLines;
   end;
@@ -568,6 +570,7 @@ procedure TJournalData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('Date', Date);
   aJson.Add('Description', Description);
+  aJson.Add('Reference', Reference);
 
   Lines.Write(aJson);
 end;
