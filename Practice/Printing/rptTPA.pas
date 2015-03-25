@@ -233,7 +233,7 @@ begin
   //assume we have a canvas of A4 proportions as per GST forms
   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
 
-  myCanvas.Font.Size := 22;
+  myCanvas.Font.Size := 28;
   myCanvas.Font.Style := [fsbold];
   myCanvas.Font.Name := 'Calibri';
   UserReportSettings.s7Orientation := BK_PORTRAIT;
@@ -262,7 +262,6 @@ begin
   myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextLine('A Division of Media Transfer Services Limited', OutputLeft + BoxMargin2, OutputRight);
   CurrYPos := OutputTop + BoxMargin;
   myCanvas.Font.Size := 10;
   myCanvas.Font.Style := [fsBold];
@@ -362,7 +361,7 @@ begin
   TextLine('The General Manager,', XPosTwoThirds+60, OutputRight);
   NewLine;
   TempCurrYPos := CurrYPos;
-  TextLine('Media Transfer Services Limited', XPosTwoThirds+60, OutputRight);
+  TextLine('MYOB NZ Limited', XPosTwoThirds+60, OutputRight);
   NewLine;
   TextLine('("' + BRAND_FULL_NAME + '")', XPosTwoThirds+60, OutputRight);
   NewLine;
@@ -378,7 +377,7 @@ begin
   NewLine;
   HalfNewLine;
   CurrYPos := CurrYPos + 3;
-  TextLine('(Bank and Branch Name)', OutputLeft, OutputRight);
+  TextLine('(Supplier Name)', OutputLeft, OutputRight);
   myCanvas.Font.Size := 9;
 
   //----------------------------------------------------------------------------
@@ -408,7 +407,7 @@ begin
 
   TextLine('you and each of you are hereby authorised to disclose and/or', OutputLeft + 760, OutputRight);
   NewLine;
-  TextLine('make use of all data and information relating to my/our bank account(s) designated above which may be required in', OutputLeft, OutputRight);
+  TextLine('make use of all data and information relating to my/our account(s) designated above which may be required in', OutputLeft, OutputRight);
   NewLine;
   TextLine('connection with the performance of the processing services under any E.D.P. Services Contract which you or either of', OutputLeft, OutputRight);
   NewLine;
@@ -424,7 +423,7 @@ begin
   HalfNewLine;
   CurrYPos := CurrYPos + 8;
   myCanvas.Font.Size := 8;
-  TextLine('(my/our advisors)', OutputLeft, OutputRight);
+  TextLine('("my/our authorised recipients")', OutputLeft, OutputRight);
   TextLine('(Practice Code)', XPosTwoThirds-100, OutputRight);
   myCanvas.Font.Size := 9;
 
@@ -441,7 +440,7 @@ begin
   NewLine(2);
   TextLine('Any revocation of this authority by me/us will take effect fourteen (14) days after written notice is received by', OutputLeft, OutputRight);
   NewLine;
-  TextLine('the Bank from ' + BRAND_FULL_NAME + '.', OutputLeft, OutputRight);
+  TextLine('Supplier ' + BRAND_FULL_NAME + '.', OutputLeft, OutputRight);
   NewLine;
 
   //----------------------------------------------------------------------------
@@ -484,7 +483,7 @@ begin
   NewLineUp;
   HalfNewLineUp;
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (((values.InstitutionType = inOther) and (values.chkSupplyAsProvisional.Checked)) or (fProvisional)));
-  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Supplier', OutputLeft + 80 , OutputRight);
   NewLineUp;
   HalfNewLineUp;
   myCanvas.Font.Style := [fsBold];

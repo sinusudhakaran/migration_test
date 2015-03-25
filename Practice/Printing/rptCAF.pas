@@ -31,7 +31,7 @@ type
     constructor Create(RptType: TReportType); Override;
     procedure CreateQRCode(aCanvas : TCanvas; aDestRect : TRect);   
     procedure BKPrint;  override;
-    
+
 	property Values : TfrmCAF read FVAlues write FValues;
   end;
 
@@ -229,7 +229,7 @@ begin
   //assume we have a canvas of A4 proportions as per GST forms
   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
 
-  myCanvas.Font.Size := 22;
+  myCanvas.Font.Size := 28;
   myCanvas.Font.Style := [fsbold];
   myCanvas.Font.Name := 'Calibri';
   UserReportSettings.s7Orientation := BK_PORTRAIT;
@@ -258,7 +258,6 @@ begin
   myCanvas.Font.Size := 7;
   myCanvas.Font.Style := [];
   CurrLineSize := GetCurrLineSizeNoInflation;
-  TextLine('(A Division of Media Transfer Services Limited)', OutputLeft + BoxMargin2, OutputRight);
 
   CurrYPos := OutputTop + BoxMargin;
   myCanvas.Font.Size := 10;
@@ -268,7 +267,7 @@ begin
   NewLine;
   TextLine(BRAND_FULL_NAME,XPosTwoThirds, OutputRight);
   NewLine;
-  TextLine('GPO Box 4608, Sydney 2001, NSW',XPosTwoThirds, OutputRight);
+  TextLine('Reply Paid 86472, Sydney 2001, NSW',XPosTwoThirds, OutputRight);
   NewLine;
   DrawLineAtPos(OutputLeft+2, OutputRight-2, CurrYPos + BoxMargin);
 
@@ -363,7 +362,7 @@ begin
   TextLine('The General Manager,', XPosTwoThirds+60, OutputRight);
   NewLine;
   TempCurrYPos := CurrYPos;
-  TextLine('Media Transfer Services Limited', XPosTwoThirds+60, OutputRight);
+  TextLine('MYOB Australia Pty Ltd', XPosTwoThirds+60, OutputRight);
   NewLine;
   TextLine('("' + BRAND_FULL_NAME + '")', XPosTwoThirds+60, OutputRight);
   NewLine;
@@ -383,16 +382,15 @@ begin
   myCanvas.Font.Size := 7;
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
   CurrYPos := CurrYPos + 3;
-  TextLine('(Bank)', OutputLeft, OutputRight);
-  TextLine('(Branch)', OutputLeft+300, OutputRight);
+  TextLine('(Supplier Name)', OutputLeft, OutputRight);
   NewLine;
-  TextLine('("the Bank")', OutputLeft, OutputRight);
+  TextLine('("the Supplier")', OutputLeft, OutputRight);
   myCanvas.Font.Size := 8;
 
   //----------------------------------------------------------------------------
   NewLine;
   DecodeDate(Values.edtClientStartDte.AsDateTime, Year, Month, Day);
-  Point2StartTest := 'I/We hereby AUTHORISE the Bank and ' + BRAND_FULL_NAME + ' as at and from the first of';
+  Point2StartTest := 'I/We hereby AUTHORISE the Supplier and ' + BRAND_FULL_NAME + ' as at and from the first of';
   TextWidth := CanvasRenderEng.GetTextLength(Point2StartTest);
   CurrYPos := CurrYPos - 18;
 
@@ -418,7 +416,7 @@ begin
   TextLine('1.', NumColumn, OutputRight);
   TextLine('to forward all data and', XPosTwoThirds + 200, OutputRight);
   NewLine;
-  TextLine('information (whether in written, computer readable or any other format) relating to my/our banks account(s) designated above to each', OutputLeft, OutputRight);
+  TextLine('information (whether in written, computer readable or any other format) relating to my/our account(s) designated above to each', OutputLeft, OutputRight);
   NewLine;
   TextLine('other and to', OutputLeft, OutputRight);
   myCanvas.Font.Size := 7;
@@ -433,7 +431,7 @@ begin
   NewLine(1);
   HalfNewLine;
   CurrYPos := CurrYPos + 5;
-  TextLine('("my/our advisors")', OutputLeft, OutputRight);
+  TextLine('("my/our authorised recipients")', OutputLeft, OutputRight);
   TextLine('(Practice Code)', XPosTwoThirds-100, OutputRight);
   myCanvas.Font.Size := 8;
 
@@ -444,18 +442,18 @@ begin
   TextLine('I/We UNDERSTAND that:', OutputLeft, OutputRight);
   NewLine;
   TextLine('a)', OutputLeft, OutputRight);
-  TextLine('no agency, partnership, joint venture or any other type of similar relationship exists between the Bank and ' + BRAND_FULL_NAME + ' and that', IndentColumn, OutputRight);
+  TextLine('no agency, partnership, joint venture or any other type of similar relationship exists between the Supplier and ' + BRAND_FULL_NAME + ' and that', IndentColumn, OutputRight);
   NewLine;
-  TextLine('the Bank accepts no responsibility for the actions of ' + BRAND_FULL_NAME + ', my/our advisors or any other third party;', IndentColumn, OutputRight);
+  TextLine('the Supplier accepts no responsibility for the actions of ' + BRAND_FULL_NAME + ', my/our authorised recipients or any other third party;', IndentColumn, OutputRight);
   NewLine;
   TextLine('b)', OutputLeft, OutputRight);
-  TextLine('unless otherwise required or prohibited by any applicable law (including the Australian Consumer Law), neither the Bank nor', IndentColumn, OutputRight);
+  TextLine('unless otherwise required or prohibited by any applicable law (including the Australian Consumer Law), neither the Supplier nor', IndentColumn, OutputRight);
   NewLine;
   TextLine(BRAND_FULL_NAME + ' will be liable for delays, non-performance, failure to perform, processing errors or any other matter or thing arising', IndentColumn, OutputRight);
   NewLine;
-  TextLine('out of this authority or any agreement which the Bank or ' + BRAND_FULL_NAME + ' may have with my/our advisors and which occur for reasons', IndentColumn, OutputRight);
+  TextLine('out of this authority or any agreement which the Supplier or ' + BRAND_FULL_NAME + ' may have with my/our authorised recipients and which occur for reasons', IndentColumn, OutputRight);
   NewLine;
-  TextLine('beyond the control of respectively the Bank or ' + BRAND_FULL_NAME + ', as the case may be, nor will the liability of the Bank and/or', IndentColumn, OutputRight);
+  TextLine('beyond the control of respectively the Supplier or ' + BRAND_FULL_NAME + ', as the case may be, nor will the liability of the Supplier and/or', IndentColumn, OutputRight);
   NewLine;
   TextLine(BRAND_FULL_NAME + ' (whether jointly, severally or jointly and severally) include or extend to any special or consequential loss or', IndentColumn, OutputRight);
   NewLine;
@@ -465,9 +463,9 @@ begin
   NewLine;
   HalfNewLine;
   TextLine('3.', NumColumn, OutputRight);
-  TextLine('I/We ACKNOWLEDGE that the Bank will receive a commission from ' + BRAND_FULL_NAME + ' for disclosing the data and information referred to', OutputLeft, OutputRight);
+  TextLine('I/We ACKNOWLEDGE that the Supplier will receive a commission from ' + BRAND_FULL_NAME + ' for disclosing the data and information referred to', OutputLeft, OutputRight);
   NewLine;
-  TextLine('above, and that the Bank is under no obligation to me/us to supply the data and information referred to above to ' + BRAND_FULL_NAME + ', and', OutputLeft, OutputRight);
+  TextLine('above, and that the Supplier is under no obligation to me/us to supply the data and information referred to above to ' + BRAND_FULL_NAME + ', and', OutputLeft, OutputRight);
   NewLine;
   TextLine('may cease to do so without notice to me/us.', OutputLeft, OutputRight);
 
@@ -475,9 +473,9 @@ begin
   NewLine;
   HalfNewLine;
   TextLine('4.', NumColumn, OutputRight);
-  TextLine('This authority is terminable by any or both of the Bank or ' + BRAND_FULL_NAME + ' at any time where seven (7) days notice is given to me/us on', OutputLeft, OutputRight);
+  TextLine('This authority is terminable by any or both of the Supplier or ' + BRAND_FULL_NAME + ' at any time where seven (7) days notice is given to me/us on', OutputLeft, OutputRight);
   NewLine;
-  TextLine('any grounds thought fit, without rendering the Bank and/or ' + BRAND_FULL_NAME + ' liable in any way.', OutputLeft, OutputRight);
+  TextLine('any grounds thought fit, without rendering the Supplier and/or ' + BRAND_FULL_NAME + ' liable in any way.', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   NewLine;
@@ -485,7 +483,7 @@ begin
   TextLine('5.', NumColumn, OutputRight);
   TextLine('Any revocation of this authority by me/us will not take effect until 14 days after written notice of the revocation is received by the ', OutputLeft, OutputRight);
   NewLine;
-  TextLine('Bank from me/us.', OutputLeft, OutputRight);
+  TextLine('Supplier from me/us.', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   NewLine;
@@ -495,7 +493,7 @@ begin
   NewLine;
   TextLine(BRAND_FULL_NAME + ' in accordance with the ' + BRAND_GROUP_NAME + ' Privacy Disclosure Statement (www.myob.com.au/privacy-disclosure)', OutputLeft, OutputRight);
   NewLine;
-  TextLine('and the ' + BRAND_FULL_NAME + ' Privacy Policy (www.banklink.com.au/privacy).', OutputLeft, OutputRight);
+  TextLine('and the ' + BRAND_GROUP_NAME + ' Privacy Policy (www.myob.com/privacy).', OutputLeft, OutputRight);
 
   //----------------------------------------------------------------------------
   // Footer works from the bottom up so we align with the bottom properly
@@ -518,7 +516,7 @@ begin
 
   NewLineUp(2);
   DrawCheckbox(OutputLeft + BoxMargin2, CurrYPos, (((values.InstitutionType = inOther) and (values.chkSupplyAsProvisional.Checked)) or (fProvisional)));
-  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Bank', OutputLeft + 80 , OutputRight);
+  TextLine('Please supply the account(s) above as Provisional Account(s) if they are not available from the Supplier', OutputLeft + 80 , OutputRight);
   NewLineUp(2);
   myCanvas.Font.Style := [fsBold];
   TextLine('Additional Information to assist ' + BRAND_FULL_NAME + ' processing', OutputLeft + BoxMargin2 , OutputRight);
