@@ -2003,7 +2003,7 @@ var
     case fClientMigrationState of
       cmsAccessSysDB    : ErrorStr := Format('Error Accessing System Database %s could not be accessed.', [CurrentClientCode]);
       cmsAccessCltDB    : ErrorStr := Format('Error Accessing Current Client %s could not be opened.', [CurrentClientCode]);
-      cmsClientPassword : ErrorStr := Format('%s is password protected and could not be migrated', [CurrentClientCode]);
+      cmsClientPassword : ErrorStr := Format('%s is password protected and could not be migrated.', [CurrentClientCode]);
       cmsTransformData  : ErrorStr := Format('%s data could not be migrated, please contact Support.', [CurrentClientCode]);
       cmsConnectToAPI   : ErrorStr := Format('Process was interrupted %s was interrupted during upload, please try again.', [CurrentClientCode]);
       cmsUploadError    : ErrorStr := Format('Error Uploading Data %s could not be uploaded to Cashbook.', [CurrentClientCode]);
@@ -2061,7 +2061,7 @@ begin
 
       OpenAClientReturnErrors(ClientFileCode, CltClient, true, ClientErrorCode);
 
-      if ClientErrorCode = oceClientInvalidPassword then
+      if ClientErrorCode = oceClientSlientWithPassword then
         fClientMigrationState := cmsClientPassword;
 
       if not Assigned(CltClient) then
