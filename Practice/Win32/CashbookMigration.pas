@@ -163,7 +163,7 @@ type
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
-    function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; var aError : string) : boolean;
+    function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aClosingBalanceDate: TStDate; var aError : string) : boolean;
 
     // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
@@ -1467,7 +1467,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; var aError: string): boolean;
+function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; aClosingBalanceDate: TStDate; var aError: string): boolean;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
@@ -1493,7 +1493,7 @@ begin
           TransactionRec := BankAccount.baTransaction_List.Transaction_At(TransactionIndex)^;
 
           // if Transaction is older than Time Frame ignore the rest since we are going back in time.
-          if TransactionRec.txDate_Effective < fClientTimeFrameStart then
+          if TransactionRec.txDate_Effective <= aClosingBalanceDate then
             break;
 
           // Check if Transaction is not finalized and not presented
@@ -1504,20 +1504,6 @@ begin
           JournalItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           JournalItem.Description := TransactionRec.txGL_Narration;
           JournalItem.Reference   := TransactionRec.txReference;
-
-          {LineItem := TLineData.Create(JournalItem.Lines);
-
-          AccRec := MyClient.clChart.FindCode( TransactionRec.txAccount );
-          if Assigned(AccRec) then
-            LineItem.AccountNumber := MappingsData.UpdateCode(TransactionRec.txAccount)
-          else
-            LineItem.AccountNumber := '';
-
-          LineItem.Amount := trunc(TransactionRec.txAmount);
-          if trunc(TransactionRec.txAmount) < 0 then
-            LineItem.IsCredit := false
-          else
-            LineItem.IsCredit := true;}
 
           DissRec := TransactionRec.txFirst_Dissection;
           While (DissRec <> nil ) do
@@ -1755,7 +1741,7 @@ begin
         GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
         try
           GSTMapCol.FillGstClassMapArr;
-          FillGstMapCol(ChartExportCol, GSTMapCol);
+          FillGstMapCol(ChartExportCol, GSTMapCol, false);
 
           if aSelectedData.NonTransferedTransactions then
           begin
@@ -1763,8 +1749,9 @@ begin
             if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, NoTransactions, aError) then
               Exit;
 
-            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, aError) then
+            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, ClosingBalanceDate, aError) then
               Exit;
+
             fClientMigrationState := cmsAccessCltDB;
           end;
 

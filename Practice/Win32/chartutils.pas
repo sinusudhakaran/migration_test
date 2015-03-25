@@ -76,7 +76,7 @@ function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
 function GetMigrationClosingBalance(aValue : string) : integer;
 function IsGSTClassUsedInChart(aChartExportCol : TObject; aGST_Class: byte): boolean;
 function IsChartCodeABankContra(aCode: string): boolean;
-procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject);
+procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject; aExcludeGSTItemsNotInChart : boolean = true);
 
 //------------------------------------------------------------------------------
 Implementation
@@ -620,7 +620,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject);
+procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject; aExcludeGSTItemsNotInChart : boolean);
 var
   GstIndex : integer;
   ChartExportCol : TChartExportCol;
@@ -638,7 +638,8 @@ begin
   begin
     if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
     begin
-      if IsGSTClassUsedInChart(ChartExportCol, GstIndex) then
+      if (not aExcludeGSTItemsNotInChart) or
+         (IsGSTClassUsedInChart(ChartExportCol, GstIndex)) then
       begin
         GSTMapCol.AddGSTMapItem(GstIndex,
                                 MyClient.clfields.clGST_Class_Codes[GstIndex],
