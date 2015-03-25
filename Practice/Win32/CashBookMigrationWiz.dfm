@@ -187,7 +187,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           FixedCols = 0
           Options = [goRangeSelect, goRowSelect]
           TabOrder = 1
-          OnClick = stgSelectedClientsClick
           ColWidths = (
             122
             583)
@@ -669,7 +668,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             FixedCols = 0
             Options = [goRangeSelect, goRowSelect]
             TabOrder = 0
-            OnClick = stgSelectedClientsClick
             ColWidths = (
               122
               583)
@@ -739,7 +737,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             FixedCols = 0
             Options = [goRangeSelect, goRowSelect]
             TabOrder = 0
-            OnClick = stgSelectedClientsClick
             ColWidths = (
               122
               583)

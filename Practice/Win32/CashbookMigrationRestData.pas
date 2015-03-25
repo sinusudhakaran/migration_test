@@ -454,8 +454,8 @@ const
 var
   DebugMe : boolean = false;
 
-//------------------------------------------------------------------------------
 { TListDestroy }
+//------------------------------------------------------------------------------
 procedure TListDestroy.Notify(Ptr: Pointer; Action: TListNotification);
 var
   Item: TObject;
@@ -469,8 +469,8 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 { TFirm }
+//------------------------------------------------------------------------------
 procedure TFirm.Read(const aJson: TlkJSONobject);
 begin
   ASSERT(assigned(aJson));
@@ -479,8 +479,8 @@ begin
   Name := aJson.getString('name');
 end;
 
-//------------------------------------------------------------------------------
 { TFirms }
+//------------------------------------------------------------------------------
 function TFirms.GetItem(const aIndex: integer): TFirm;
 begin
   result := TFirm(Get(aIndex));
@@ -851,8 +851,8 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 { TDivisionData }
+//------------------------------------------------------------------------------
 procedure TDivisionData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('Id', Id);
@@ -866,6 +866,7 @@ begin
   inherited;
 end;
 
+//------------------------------------------------------------------------------
 function TDivisionsData.ItemAs(aIndex: integer): TDivisionData;
 begin
   Result := TDivisionData(Self.Items[aIndex]);
@@ -937,8 +938,8 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 { TBusinessData }
+//------------------------------------------------------------------------------
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
 begin
   ASSERT(assigned(aJson));
@@ -963,8 +964,8 @@ begin
   aJson.Add('FirmId', FirmId);
 end;
 
-//------------------------------------------------------------------------------
 { TClientData }
+//------------------------------------------------------------------------------
 constructor TClientData.Create;
 begin
   fBusinessData := TBusinessData.Create;
@@ -1013,7 +1014,6 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 { TClientBase }
 //------------------------------------------------------------------------------
 constructor TClientBase.Create;
@@ -1061,8 +1061,8 @@ begin
   end;
 end;
 
-//------------------------------------------------------------------------------
 { TFile }
+//------------------------------------------------------------------------------
 constructor TFile.Create;
 var
   NewID: TGUID;
@@ -1112,8 +1112,8 @@ begin
   aJson.Add('Data', sData);
 end;
 
-//------------------------------------------------------------------------------
 { TParameters }
+//------------------------------------------------------------------------------
 procedure TParameters.Write(const aJson: TlkJSONlist);
 var
   Parameter: TlkJSONobject;
@@ -1143,8 +1143,8 @@ begin
   Parameter.Add('Value', fBLIdentity);
 end;
 
-//------------------------------------------------------------------------------
 { TFileUpload }
+//------------------------------------------------------------------------------
 constructor TMigrationUpload.Create;
 var
   NewID: TGUID;
@@ -1192,8 +1192,8 @@ begin
   fParameters.Write(Parameters);
 end;
 
-//------------------------------------------------------------------------------
 { TUrlsMap }
+//------------------------------------------------------------------------------
 procedure TUrlsMap.Read(const aJson: TlkJSONobject);
 begin
   fName := aJson.NameOf[0];
@@ -1201,8 +1201,8 @@ begin
   fValue := aJson.getString(0);
 end;
 
-//------------------------------------------------------------------------------
 { TFileUploadResult }
+//------------------------------------------------------------------------------
 constructor TMigrationUploadResponse.Create;
 begin
   fUrlsMap := TUrlsMap.Create;

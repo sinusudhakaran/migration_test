@@ -41,11 +41,13 @@ uses
   Grids;
 
 type
+  //----------------------------------------------------------------------------
   TBrowserState = (bstNone,
                    bstNavigating,
                    bstLoading,
                    bstDone);
 
+  //----------------------------------------------------------------------------
   TFrmCashBookMigrationWiz = class(TForm)
     pnlButtons: TPanel;
     btnBack: TButton;
@@ -119,7 +121,6 @@ type
     procedure edtEmailChange(Sender: TObject);
     procedure lblForgotPasswordClick(Sender: TObject);
     procedure lblCashbookLoginLinkClick(Sender: TObject);
-    procedure stgSelectedClientsClick(Sender: TObject);
     procedure radCopyClick(Sender: TObject);
     procedure tmrBrowserLoadingTimer(Sender: TObject);
 
@@ -289,7 +290,6 @@ const
   ThisMethodName = 'RunCashBookMigrationWizard';
 var
   Wizard : TFrmCashBookMigrationWiz;
-
 begin
   MigrateCashbook.MarkSelectedClients(ord(fsOpen), aSelectClients);
   try
@@ -324,7 +324,6 @@ end;
 
 //------------------------------------------------------------------------------
 destructor TFrmCashBookMigrationWiz.Destroy;
-
 begin
   BKOverviewWebBrowser.Stop;
   BKChecklistWebBrowser.Stop;
@@ -342,7 +341,6 @@ procedure TFrmCashBookMigrationWiz.FormCreate(Sender: TObject);
 var
   i: integer;
 begin
-
   // Setup
   lblTitle.Font.Name := Font.Name;
   bkXPThemes.ThemeForm(Self);
@@ -909,11 +907,6 @@ function TFrmCashBookMigrationWiz.StepAvailable(StepID : integer) : boolean;
 //used by next and prev to determine if this step can be used
 begin
   result := True;
-end;
-
-procedure TFrmCashBookMigrationWiz.stgSelectedClientsClick(Sender: TObject);
-begin
-
 end;
 
 //------------------------------------------------------------------------------

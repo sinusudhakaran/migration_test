@@ -23,20 +23,18 @@ const
 
 type
   //----------------------------------------------------------------------------
-  TProgressEvent = procedure (aCurrentFile : integer;
-                              aTotalFiles : integer;
-                              aPercentOfCurrentFile : integer) of object;
-
   TClientMigrationState = (cmsAccessSysDB,
                            cmsAccessCltDB,
                            cmsTransformData,
                            cmsConnectToAPI,
                            cmsUploadError);
 
+  //----------------------------------------------------------------------------
   TMigrationStatus = (mgsSuccess,
                       mgsPartial,
                       mgsFailure);
 
+  //----------------------------------------------------------------------------
   THtmlPageToNavigate = (hpnCashBookStartCache,
                          hpnCashBookDetailCache);
 
@@ -47,6 +45,11 @@ type
     Authorization: string;
     MyobApiAccessToken: string;
   end;
+
+  //----------------------------------------------------------------------------
+  TProgressEvent = procedure (aCurrentFile : integer;
+                              aTotalFiles : integer;
+                              aPercentOfCurrentFile : integer) of object;
 
   //----------------------------------------------------------------------------
   TMappingData = class(TCollectionItem)
@@ -130,8 +133,6 @@ type
     procedure DoHttpHeader(ASender : TObject;
                            const AField : String;
                            const AValue : String); Virtual;
-
-    function LoadBrowserCashFile(aFileName : string) : boolean;
     procedure HttpSetup;
     procedure EncryptToken(aToken : string);
 
@@ -411,8 +412,8 @@ begin
   result := fCashbookMigration;
 end;
 
-//------------------------------------------------------------------------------
 { TCashbookMigration }
+//------------------------------------------------------------------------------
 procedure TCashbookMigration.LogHttpDebugSend(aCall : string; aHeaders: THttpHeaders; aPostData: TStringList);
 var
   PostIndex : integer;
@@ -449,20 +450,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.LoadBrowserCashFile(aFileName: string): boolean;
-begin
-  {FileLocking.ObtainLock( ltPracIni, TimeToWaitForPracINI );
-  try
-    WritePracticeINI;
-  finally
-    FileLocking.ReleaseLock( ltPracIni );
-  end;
-
-  AdminIsLocked := FileLocking.ObtainLock( ltAdminSystem, PRACINI_TicksToWaitForAdmin div 1000 );
-
-  Globals.HtmlCashe + aFileName}
-end;
-
 procedure TCashbookMigration.LogHttpDebugReponce(aCall : string; aresponse: string);
 begin
   LogUtil.LogMsg(lmDebug, UnitName, 'Server Respond : ' + aCall);
@@ -1373,28 +1360,6 @@ begin
             begin
               AllocationItem := TAllocationData.Create(TransactionItem.Allocations);
 
-              {if (trim(DissRec^.dsAccount) = '') then
-              begin
-                if (trim(TransactionRec.txAccount) = '') then
-                  AllocationItem.AccountNumber := ''
-                else
-                begin
-                  AccRec := MyClient.clChart.FindCode( TransactionRec.txAccount );
-                  if not Assigned(AccRec) then
-                    AllocationItem.AccountNumber := ''
-                  else
-                    AllocationItem.AccountNumber := MappingsData.UpdateCode(TransactionRec.txAccount);
-                end;
-              end
-              else
-              begin
-                AccRec := MyClient.clChart.FindCode( DissRec^.dsAccount );
-                if not Assigned(AccRec) then
-                  AllocationItem.AccountNumber := ''
-                else
-                  AllocationItem.AccountNumber := MappingsData.UpdateCode(DissRec^.dsAccount);
-              end; }
-
               if (trim(TransactionRec.txAccount) = '') then
                 AllocationItem.AccountNumber := ''
               else
@@ -1405,16 +1370,6 @@ begin
                 else
                   AllocationItem.AccountNumber := MappingsData.UpdateSysCode(DissRec^.dsAccount);
               end;
-
-              {if trim(DissRec^.dsGL_Narration) = '' then
-                AllocationItem.Description := TransactionRec.txGL_Narration
-              else
-                AllocationItem.Description := DissRec^.dsGL_Narration;
-
-              if trim(DissRec^.dsReference) = '' then
-                AllocationItem.Reference := TransactionRec.txReference
-              else
-                AllocationItem.Reference := DissRec^.dsReference;}
 
               AllocationItem.Description := DissRec^.dsGL_Narration;
               AllocationItem.Amount := trunc(DissRec^.dsAmount);
@@ -1718,11 +1673,6 @@ begin
     ClientBase := TClientBase.Create;
     try
       ClientBase.Token := fToken;
-
-      {if GetLastFullyCodedMonth(BalDate) then
-        ClosingBalanceDate := BalDate
-      else
-        ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);}
 
       ClosingBalanceDate := CalculateClosingBalanceDate(aClient);
 
