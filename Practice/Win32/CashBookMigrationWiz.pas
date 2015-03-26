@@ -1374,7 +1374,7 @@ begin
     end;
     mgsPartial : begin
       lblClientCompleteAmount.Caption :=
-        Format('%d client(s) are now being created in ' + BRAND_CASHBOOK_NAME + '.', [TotalClients]);
+        Format('%d client(s) are now being created in ' + BRAND_CASHBOOK_NAME + '.', [TotalClients-fNumErrorClients]);
 
       stgClientsMigrated.Visible := false;
       lblDescription.Caption := WindowTitle;

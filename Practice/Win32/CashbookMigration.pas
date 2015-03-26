@@ -164,7 +164,7 @@ type
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
-    function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aClosingBalanceDate: TStDate; var aError : string) : boolean;
+    function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aClosingBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
 
     // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
@@ -1413,7 +1413,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; aClosingBalanceDate: TStDate; var aError: string): boolean;
+function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; aClosingBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
@@ -1450,6 +1450,8 @@ begin
           JournalItem.Description := TransactionRec.txGL_Narration;
           JournalItem.Reference   := TransactionRec.txReference;
 
+
+
           DissRec := TransactionRec.txFirst_Dissection;
           While (DissRec <> nil ) do
           begin
@@ -1462,6 +1464,11 @@ begin
             AccRec := MyClient.clChart.FindCode( LineItem.AccountNumber );
             if not Assigned(AccRec) then
               LineItem.AccountNumber := '';
+
+            LineItem.Description := DissRec^.dsGL_Narration;
+            LineItem.Reference   := DissRec^.dsReference;
+            LineItem.TaxAmount   := trunc(DissRec^.dsGST_Amount);
+            LineItem.TaxRate     := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
 
             LineItem.Amount := abs(trunc(DissRec^.dsAmount));
             if trunc(DissRec^.dsAmount) < 0 then
@@ -1697,7 +1704,7 @@ begin
             if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, NoTransactions, aError) then
               Exit;
 
-            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, ClosingBalanceDate, aError) then
+            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, ClosingBalanceDate, GSTMapCol, aError) then
               Exit;
 
             fClientMigrationState := cmsAccessCltDB;

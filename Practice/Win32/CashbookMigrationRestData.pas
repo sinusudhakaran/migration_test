@@ -59,12 +59,22 @@ type
   private
     fAccountNumber : string;
     fAmount : integer;
+    fDescription : string;
+    fReference : string;
+    fTaxRate : string;
+    fTaxAmount : integer;
     fIsCredit : boolean;
   public
     procedure Write(const aJson: TlkJSONobject);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
     property Amount : integer read fAmount write fAmount;
+
+    property Description : string read fDescription write fDescription;
+    property Reference : string read fReference write fReference;
+    property TaxRate : string read fTaxRate write fTaxRate;
+    property TaxAmount : integer read fTaxAmount write fTaxAmount;
+
     property IsCredit : boolean read fIsCredit write fIsCredit;
   end;
 
@@ -514,6 +524,12 @@ procedure TLineData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('AccountNumber', AccountNumber);
   aJson.Add('Amount', Amount);
+
+  aJson.Add('Description', Description);
+  aJson.Add('Reference', Reference);
+  aJson.Add('TaxRate', TaxRate);
+  aJson.Add('TaxAmount', TaxAmount);
+
   aJson.Add('IsCredit', IsCredit);
 end;
 
