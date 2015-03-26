@@ -1032,11 +1032,26 @@ var
   BankFeedApplicationData : TBankFeedApplicationData;
   AccountIndex : integer;
   BankAccount : TBank_Account;
+
+  //----------------------------------------------------------------------------
+  function IsAccountMarkedForDelete(aBankAccount : string) : boolean;
+  var
+    SysAccount : pSystem_Bank_Account_Rec;
+  begin
+    Result := false;
+    SysAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(aBankAccount);
+
+    if Assigned(SysAccount) then
+      Result := SysAccount.sbMark_As_Deleted;
+  end;
+
 begin
   Result := false;
   try
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
+      //Mark_As_Deleted
+
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
       if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
          not (BankAccount.baFields.baIs_A_Manual_Account) then
@@ -1047,6 +1062,14 @@ begin
 
           if BankAccount.baFields.baContra_Account_Code = AccRec.chAccount_Code then
           begin
+            if IsAccountMarkedForDelete(BankAccount.baFields.baBank_Account_Number) then
+            begin
+              LogUtil.LogMsg(lmInfo, UnitName, 'Bank Account has been marked as deleted for Client Code : ' + aClient.clFields.clCode +
+                                               ', Bank Account : ' + BankAccount.baFields.baBank_Account_Number +
+                                               '. Not sending bank feed.');
+              Continue;
+            end;
+
             if BankAccount.baFields.baCore_Account_ID = 0 then
             begin
               LogUtil.LogMsg(lmInfo, UnitName, 'No CoreAccountId for Client Code : ' + aClient.clFields.clCode +
