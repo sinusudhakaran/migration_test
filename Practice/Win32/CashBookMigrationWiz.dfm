@@ -14,6 +14,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
   OldCreateOrder = False
   Position = poMainFormCenter
   Scaled = False
+  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow

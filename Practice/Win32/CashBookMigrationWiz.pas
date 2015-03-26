@@ -123,6 +123,7 @@ type
     procedure lblCashbookLoginLinkClick(Sender: TObject);
     procedure radCopyClick(Sender: TObject);
     procedure tmrBrowserLoadingTimer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     fCurrentStepID: integer;
@@ -320,6 +321,7 @@ begin
 
   fFirms := TFirms.create();
   fBrowserState := bstNone;
+  fSelectedData.DoMoveRatherThanCopy := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -767,13 +769,24 @@ begin
     end;
 
     mtSelectData : begin
-      radMove.SetFocus;
+      if fSelectedData.DoMoveRatherThanCopy then
+        radMove.SetFocus
+      else
+        radCopy.SetFocus;
+
       UpdateControls();
     end;
 
     mtProgress: begin
-      UpdateProgressControls();
-      DoMigrateCashbook();
+
+      EnableMenuItem( GetSystemMenu( handle, False ),SC_CLOSE, MF_BYCOMMAND or MF_GRAYED );
+      Try
+        UpdateProgressControls();
+        DoMigrateCashbook();
+      Finally
+        EnableMenuItem( GetSystemMenu( handle, False ), SC_CLOSE, MF_BYCOMMAND or MF_ENABLED );
+      End;
+
       MoveToNextStep();
     end;
 
@@ -809,11 +822,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  if fCurrentStepID = mtProgress then
+    Action := caNone;
+end;
+
+//------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 var
   iResult: integer;
 begin
+  if fCurrentStepID = mtProgress then
+  begin
+    CanClose := false;
+    Exit;
+  end;
+
   // Next/Finish button?
   if (ModalResult = mrOK) then
     exit;
@@ -1018,11 +1045,6 @@ begin
       fBrowserStartTick := GetTickCount();
       tmrBrowserLoading.enabled := true;
       TryNavToPageUpdateCache();
-
-      if not CloseClient() then
-      begin
-
-      end;
     end;
     mtSelectData :
     begin
@@ -1151,7 +1173,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.UpdateDataSelection;
 begin
-  radMove.Checked := true;
   lblBankfeeds1.Caption := 'Bank Feeds';
   radMove.Caption       := 'Move Bank feeds to ' + BRAND_CASHBOOK_NAME;
   lblBankfeeds2.Caption := 'They will be deleted from ' + BRAND_FULL_PRACTICE + '.';
