@@ -767,7 +767,7 @@ begin
     end;
 
     mtSelectData : begin
-      chkChartofAccount.SetFocus;
+      radMove.SetFocus;
       UpdateControls();
     end;
 
@@ -1152,7 +1152,6 @@ end;
 procedure TFrmCashBookMigrationWiz.UpdateDataSelection;
 begin
   radMove.Checked := true;
-
   lblBankfeeds1.Caption := 'Bank Feeds';
   radMove.Caption       := 'Move Bank feeds to ' + BRAND_CASHBOOK_NAME;
   lblBankfeeds2.Caption := 'They will be deleted from ' + BRAND_FULL_PRACTICE + '.';
