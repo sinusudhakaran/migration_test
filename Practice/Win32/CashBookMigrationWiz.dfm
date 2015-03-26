@@ -27,8 +27,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 449
-    ExplicitWidth = 744
     DesignSize = (
       754
       42)
@@ -57,7 +55,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       ParentFont = False
       TabOrder = 0
       OnClick = btnBackClick
-      ExplicitLeft = 490
     end
     object btnNext: TButton
       Left = 580
@@ -75,7 +72,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       ParentFont = False
       TabOrder = 1
       OnClick = btnNextClick
-      ExplicitLeft = 570
     end
     object btnCancel: TButton
       Left = 668
@@ -93,7 +89,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       ModalResult = 2
       ParentFont = False
       TabOrder = 2
-      ExplicitLeft = 658
     end
   end
   object pnlWizard: TPanel
@@ -105,8 +100,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
     BevelOuter = bvNone
     Caption = 'pnlWizard'
     TabOrder = 0
-    ExplicitWidth = 744
-    ExplicitHeight = 449
     object Bevel2: TBevel
       Left = 0
       Top = 69
@@ -125,7 +118,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       BevelOuter = bvNone
       Color = clWindow
       TabOrder = 0
-      ExplicitWidth = 744
       DesignSize = (
         754
         69)
@@ -161,21 +153,15 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       Top = 72
       Width = 754
       Height = 387
-      ActivePage = tabComplete
+      ActivePage = tabOverview
       Align = alClient
       Style = tsButtons
       TabHeight = 5
       TabOrder = 1
       TabStop = False
       TabWidth = 5
-      ExplicitWidth = 744
-      ExplicitHeight = 377
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 736
-        ExplicitHeight = 362
         DesignSize = (
           746
           372)
@@ -183,13 +169,11 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Left = 12
           Top = 124
           Width = 723
-          Height = 237
+          Height = 227
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 713
-          ExplicitHeight = 227
           ControlData = {
-            4C000000B1490000761700000000000000000000000000000000000000000000
+            4C000000B94A0000761700000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E12620A000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -198,7 +182,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         object stgSelectedClients: TStringGrid
           Left = 12
           Top = 3
-          Width = 713
+          Width = 723
           Height = 110
           ColCount = 2
           DefaultRowHeight = 20
@@ -214,10 +198,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 736
-        ExplicitHeight = 362
         DesignSize = (
           746
           372)
@@ -228,7 +208,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 169
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
-          ExplicitWidth = 713
           object lblEmail: TLabel
             Left = 24
             Top = 27
@@ -321,8 +300,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 164
           Anchors = [akLeft, akRight, akBottom]
           TabOrder = 1
-          ExplicitTop = 184
-          ExplicitWidth = 713
           object Label6: TLabel
             Left = 0
             Top = 51
@@ -364,7 +341,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Height = -13
             Font.Name = 'Tahoma'
             Font.Style = []
-            ItemHeight = 0
+            ItemHeight = 16
             ParentFont = False
             TabOrder = 0
             OnChange = cmbSelectFirmChange
@@ -381,10 +358,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Font.Style = []
         ImageIndex = 2
         ParentFont = False
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 736
-        ExplicitHeight = 362
         DesignSize = (
           746
           372)
@@ -395,8 +368,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 357
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 713
-          ExplicitHeight = 347
           object lblBankfeeds3: TLabel
             Left = 79
             Top = 125
@@ -559,10 +530,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 736
-        ExplicitHeight = 362
         DesignSize = (
           746
           372)
@@ -573,8 +540,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Height = 357
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 713
-          ExplicitHeight = 347
           object lblProgressTitle: TLabel
             Left = 150
             Top = 128
@@ -628,10 +593,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 5
         Caption = 'tabComplete'
         ImageIndex = 5
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 736
-        ExplicitHeight = 362
         object pnlCashbookComplete: TPanel
           Left = 0
           Top = 0
@@ -640,7 +601,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitWidth = 736
           object lblClientCompleteAmount: TLabel
             Left = 25
             Top = 15
@@ -723,8 +683,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
-          ExplicitWidth = 736
-          ExplicitHeight = 201
           DesignSize = (
             746
             211)
@@ -782,8 +740,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             FixedCols = 0
             Options = [goRangeSelect, goRowSelect]
             TabOrder = 0
-            ExplicitWidth = 681
-            ExplicitHeight = 125
             ColWidths = (
               122
               583)
@@ -793,10 +749,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       object tabCheckList: TTabSheet
         Caption = 'tabCheckList'
         ImageIndex = 6
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 736
-        ExplicitHeight = 362
         DesignSize = (
           746
           372)
@@ -804,13 +756,11 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
           Left = 12
           Top = 3
           Width = 723
-          Height = 357
+          Height = 347
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 713
-          ExplicitHeight = 347
           ControlData = {
-            4C000000B1490000DD2300000000000000000000000000000000000000000000
+            4C000000B94A0000DD2300000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E12620A000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000

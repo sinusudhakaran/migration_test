@@ -1012,7 +1012,7 @@ begin
       UpdateControls;
       btnNext.SetFocus;
 
-      UpdateClientStringGrid(stgSelectedClients, 582, SelectClients.Count, 4);
+      UpdateClientStringGrid(stgSelectedClients, 592, SelectClients.Count, 4);
 
       fBrowserState := bstNavigating;
       fBrowserStartTick := GetTickCount();
