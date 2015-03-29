@@ -1233,9 +1233,9 @@ begin
       if length(trim(NewChartItem.Name)) = 0 then
         NewChartItem.Name := NewChartItem.Code;
 
-      NewChartItem.InActive := AccRec.chInactive;
+      NewChartItem.InActive       := AccRec.chInactive;
       NewChartItem.PostingAllowed := AccRec.chPosting_Allowed;
-      NewChartItem.Divisions := GetValidDivisions();
+      NewChartItem.Divisions      := GetValidDivisions();
 
       if ChartExportFound then
       begin
@@ -2031,12 +2031,12 @@ var
   procedure AddVisualError();
   begin
     case fClientMigrationState of
-      cmsAccessSysDB    : ErrorStr := Format('Error Accessing System Database %s could not be accessed.', [CurrentClientCode]);
-      cmsAccessCltDB    : ErrorStr := Format('Error Accessing Current Client %s could not be opened.', [CurrentClientCode]);
+      cmsAccessSysDB    : ErrorStr := Format('%s could not be accessed.', [CurrentClientCode]);
+      cmsAccessCltDB    : ErrorStr := Format('%s could not be opened.', [CurrentClientCode]);
       cmsClientPassword : ErrorStr := Format('%s is password protected and could not be migrated.', [CurrentClientCode]);
       cmsTransformData  : ErrorStr := Format('%s data could not be migrated, please contact Support.', [CurrentClientCode]);
-      cmsConnectToAPI   : ErrorStr := Format('Process was interrupted %s was interrupted during upload, please try again.', [CurrentClientCode]);
-      cmsUploadError    : ErrorStr := Format('Error Uploading Data %s could not be uploaded to Cashbook.', [CurrentClientCode]);
+      cmsConnectToAPI   : ErrorStr := Format('%s was interrupted during upload, please try again.', [CurrentClientCode]);
+      cmsUploadError    : ErrorStr := Format('%s could not be uploaded to Cashbook.', [CurrentClientCode]);
     end;
     aClientErrors.AddObject(ErrorStr, TObject(ClientIndex));
   end;
