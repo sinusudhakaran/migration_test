@@ -1495,9 +1495,9 @@ begin
 
             LineItem.Amount := abs(trunc(DissRec^.dsAmount));
             if trunc(DissRec^.dsAmount) < 0 then
-              LineItem.IsCredit := false
+              LineItem.IsCredit := true
             else
-              LineItem.IsCredit := true;
+              LineItem.IsCredit := false;
 
             DissRec := DissRec^.dsNext;
           end;
