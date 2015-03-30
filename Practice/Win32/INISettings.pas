@@ -695,8 +695,8 @@ begin
 
         PRACINI_CashbookAPIFirmsURL        := ReadString(GrpPracLinks,'CashbookAPIFirmsURL', TUrls.CashbookAPIFirmsURL);
         PRACINI_CashbookAPIUploadURL       := ReadString(GrpPracLinks,'CashbookAPIUploadURL', TUrls.CashbookAPIUploadURL);
-        PRACINI_CashbookAPIUploadDataStore := ReadString(GrpPracLinks,'CashbookAPIUploadDataStore', 'banklinkmigration');
-        PRACINI_CashbookAPIUploadQueue     := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'BankLink-SQS');
+        PRACINI_CashbookAPIUploadDataStore := ReadString(GrpPracLinks,'CashbookAPIUploadDataStore', 'assetsmigrationstore-prod');
+        PRACINI_CashbookAPIUploadQueue     := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'Production-Banklink-SQS');
 
         PRACINI_CashbookModifiedCodeCount  := ReadInteger( GrpPracInfo, 'CashbookModifiedCodeCount', 0);
 
