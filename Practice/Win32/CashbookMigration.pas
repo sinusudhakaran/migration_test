@@ -1359,7 +1359,7 @@ begin
           TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           TransactionItem.Description := TransactionRec.txStatement_Details;
           TransactionItem.Amount      := trunc(TransactionRec.txAmount);
-          TransactionItem.Reference   := TransactionRec.txReference;
+          TransactionItem.Reference   := TrimLeadZ(TransactionRec.txReference);
 
           if BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex) > 0 then
             TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex))
@@ -1471,9 +1471,7 @@ begin
           JournalItem := TJournalData.Create(aJournalsData);
           JournalItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           JournalItem.Description := TransactionRec.txGL_Narration;
-          JournalItem.Reference   := TransactionRec.txReference;
-
-
+          JournalItem.Reference   := TrimLeadZ(TransactionRec.txReference);
 
           DissRec := TransactionRec.txFirst_Dissection;
           While (DissRec <> nil ) do
@@ -1489,7 +1487,7 @@ begin
               LineItem.AccountNumber := '';
 
             LineItem.Description := DissRec^.dsGL_Narration;
-            LineItem.Reference   := DissRec^.dsReference;
+            LineItem.Reference   := TrimLeadZ(DissRec^.dsReference);
             LineItem.TaxAmount   := trunc(DissRec^.dsGST_Amount);
             LineItem.TaxRate     := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
 

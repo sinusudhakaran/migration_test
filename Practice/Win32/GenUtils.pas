@@ -166,6 +166,7 @@ function AddFillerSpaces(aInString: string; aLength : integer): string;
 function InsFillerZeros(aInString: string; aLength : integer): string;
 function RemoveNonNumericData(aInString : string; KeepSpaces: boolean = true) : string;
 function FixJsonString(inString : string) : string;
+function TrimLeadZ( const S : ShortString ) : ShortString;
 
 //******************************************************************************
 Implementation
