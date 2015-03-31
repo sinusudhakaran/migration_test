@@ -523,7 +523,7 @@ end;
 procedure TLineData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('AccountNumber', AccountNumber);
-  aJson.Add('Amount', abs(Amount-TaxAmount));
+  aJson.Add('Amount', (abs(Amount)-abs(TaxAmount)));
 
   aJson.Add('Description', Description);
   aJson.Add('Reference', Reference);
