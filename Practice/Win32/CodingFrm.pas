@@ -1455,6 +1455,7 @@ begin
       begin
           //if get here then have a code which can be posted to from picklist
           TEdit(celAccount.CellEditor).Text := Code;
+
           //no need to do any more because will be handled by
           //celAccount.OnChange
       end
@@ -3887,12 +3888,15 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.LoadWTLMaintainPos;
 var
+   RestoreEditingState: boolean;
    pT : pTransaction_Rec;
    NewIndex,
    OldIndex : integer;
 begin
    if ( WorkTranList.ItemCount > 0 ) then
    begin
+      RestoreEditingState := tblCoding.InEditingState;
+
       if tblCoding.InEditingState then
         tblCoding.StopEditingState(true);
 
@@ -3917,6 +3921,9 @@ begin
          tblCoding.ActiveRow :=  Min(OldIndex, WorkTranList.ItemCount + 1)
       else
          tblCoding.ActiveRow := NewIndex+1;
+
+      if RestoreEditingState then
+        tblCoding.StartEditingState;
    end else begin
        //no trans in current list, reload the transaction list
        LoadWorkTranList;
