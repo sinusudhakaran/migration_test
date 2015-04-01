@@ -66,7 +66,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Caption = '&OK'
       ModalResult = 1
       TabOrder = 1
-      ExplicitTop = 45
     end
     object btnCancel: TButton
       Left = 536
@@ -78,7 +77,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
-      ExplicitTop = 45
     end
     object chkHideNonBS: TCheckBox
       Left = 387
@@ -95,9 +93,9 @@ object dlgOpeningBalances: TdlgOpeningBalances
     object chkHideInactive: TCheckBox
       Left = 387
       Top = 32
-      Width = 97
+      Width = 174
       Height = 17
-      Caption = 'Hide &Inactive'
+      Caption = 'Hide &Inactive Accounts'
       Checked = True
       State = cbChecked
       TabOrder = 3
@@ -182,7 +180,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
     OnMouseMove = tgBalancesMouseMove
     OnPaintCell = tgBalancesPaintCell
     OnStartCellEdit = tgBalancesStartCellEdit
-    ExplicitHeight = 338
     ColProperties = <
       item
         DataCol = 1
