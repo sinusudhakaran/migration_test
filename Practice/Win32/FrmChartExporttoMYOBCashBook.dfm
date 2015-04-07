@@ -89,9 +89,9 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
     object lblClosingBalanceDate: TLabel
       Left = 75
       Top = 158
-      Width = 119
+      Width = 125
       Height = 16
-      Caption = 'Closing Balance Date'
+      Caption = 'Opening Balance Date'
       FocusControl = edtSaveEntriesTo
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -177,7 +177,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Left = 112
       Top = 214
       Width = 467
-      Height = 19
+      Height = 22
       Ctl3D = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText

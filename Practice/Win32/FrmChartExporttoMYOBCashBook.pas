@@ -24,7 +24,7 @@ uses
   stDate;
 
 type
-  TCalcClosingBalanceEvent = procedure(aClosingBalanceDate : TstDate;
+  TCalcOpeningBalanceEvent = procedure(aOpeningBalanceDate : TstDate;
                                        var aNonBasicCodesHaveBalances : boolean;
                                        var aNonBasicCodes : TStringList) of object;
 
@@ -32,26 +32,26 @@ type
   TExportChartFrmProperties = class
   private
     fExportBasicChart : boolean;
-    fIncludeClosingBalances : boolean;
-    fClosingBalanceDate: TStDate;
+    fIncludeOpeningBalances : boolean;
+    fOpeningBalanceDate: TStDate;
     fClientCode : string;
     fExportFileLocation : string;
     fAreGSTAccountSetup : boolean;
     fAreOpeningBalancesSetup : boolean;
     fNonBasicCodesHaveBalances : boolean;
     fIsTransactionsUncodedorInvalidlyCoded : boolean;
-    fCalcClosingBalanceEvent : TCalcClosingBalanceEvent;
+    fCalcOpeningBalanceEvent : TCalcOpeningBalanceEvent;
   public
     NonBasicCodes : TStringList;
 
     constructor Create;
     destructor Destroy; override;
 
-    procedure CalcClosingBalance(aClosingBalanceDate : TstDate);
+    procedure CalcOpeningBalance(aOpeningBalanceDate : TstDate);
 
     property ExportBasicChart : boolean read fExportBasicChart write fExportBasicChart;
-    property IncludeClosingBalances : boolean read fIncludeClosingBalances write fIncludeClosingBalances;
-    property ClosingBalanceDate: TStDate read fClosingBalanceDate write fClosingBalanceDate;
+    property IncludeOpeningBalances : boolean read fIncludeOpeningBalances write fIncludeOpeningBalances;
+    property OpeningBalanceDate: TStDate read fOpeningBalanceDate write fOpeningBalanceDate;
     property ClientCode : string read fClientCode write fClientCode;
     property ExportFileLocation : string read fExportFileLocation write fExportFileLocation;
     property AreGSTAccountSetup : boolean read fAreGSTAccountSetup write fAreGSTAccountSetup;
@@ -59,7 +59,7 @@ type
     property NonBasicCodesHaveBalances : boolean read fNonBasicCodesHaveBalances write fNonBasicCodesHaveBalances;
     property IsTransactionsUncodedorInvalidlyCoded : boolean read  fIsTransactionsUncodedorInvalidlyCoded
                                                              write fIsTransactionsUncodedorInvalidlyCoded;
-    property CalcClosingBalanceEvent : TCalcClosingBalanceEvent read fCalcClosingBalanceEvent write fCalcClosingBalanceEvent;
+    property CalcOpeningBalanceEvent : TCalcOpeningBalanceEvent read fCalcOpeningBalanceEvent write fCalcOpeningBalanceEvent;
   end;
 
   //------------------------------------------------------------------------------
@@ -135,13 +135,13 @@ end;
 
 { TExportChartFrmProperties }
 //------------------------------------------------------------------------------
-procedure TExportChartFrmProperties.CalcClosingBalance(aClosingBalanceDate: TstDate);
+procedure TExportChartFrmProperties.CalcOpeningBalance(aOpeningBalanceDate: TstDate);
 var
   NonBasicCodesHaveBal: boolean;
 begin
-  if Assigned(fCalcClosingBalanceEvent) then
+  if Assigned(fCalcOpeningBalanceEvent) then
   begin
-    fCalcClosingBalanceEvent(aClosingBalanceDate, NonBasicCodesHaveBal, NonBasicCodes);
+    fCalcOpeningBalanceEvent(aOpeningBalanceDate, NonBasicCodesHaveBal, NonBasicCodes);
     NonBasicCodesHaveBalances := NonBasicCodesHaveBal;
   end;
 end;
@@ -200,7 +200,7 @@ begin
       end;
     end;
 
-    ExportChartFrmProperties.CalcClosingBalance(dteClosingBalanceDate.AsStDate);
+    ExportChartFrmProperties.CalcOpeningBalance(dteClosingBalanceDate.AsStDate);
     if (ExportChartFrmProperties.NonBasicCodesHaveBalances) and
        (radExportBasicChart.Checked) then
     begin
@@ -306,8 +306,8 @@ begin
     else
       radExportFullChart.Checked := true;
 
-    chkIncludeClosingBalances.Checked := ExportChartFrmProperties.IncludeClosingBalances;
-    dteClosingBalanceDate.AsStDate := ExportChartFrmProperties.ClosingBalanceDate;
+    chkIncludeClosingBalances.Checked := ExportChartFrmProperties.IncludeOpeningBalances;
+    dteClosingBalanceDate.AsStDate := ExportChartFrmProperties.OpeningBalanceDate;
     edtSaveEntriesTo.Text := ExportChartFrmProperties.ExportFileLocation;
   end;
 
@@ -320,13 +320,13 @@ begin
     if Assigned(ExportChartFrmProperties) then
     begin
       ExportChartFrmProperties.ExportBasicChart := (radExportBasicChart.Checked);
-      ExportChartFrmProperties.IncludeClosingBalances := chkIncludeClosingBalances.Checked;
-      ExportChartFrmProperties.ClosingBalanceDate := dteClosingBalanceDate.AsStDate;
+      ExportChartFrmProperties.IncludeOpeningBalances := chkIncludeClosingBalances.Checked;
+      ExportChartFrmProperties.OpeningBalanceDate := dteClosingBalanceDate.AsStDate;
       ExportChartFrmProperties.ExportFileLocation := edtSaveEntriesTo.Text;
 
-      if ExportChartFrmProperties.IncludeClosingBalances then
+      if ExportChartFrmProperties.IncludeOpeningBalances then
       begin
-        ExportChartFrmProperties.CalcClosingBalance(ExportChartFrmProperties.ClosingBalanceDate);
+        ExportChartFrmProperties.CalcOpeningBalance(ExportChartFrmProperties.OpeningBalanceDate);
       end;
     end;
   end;

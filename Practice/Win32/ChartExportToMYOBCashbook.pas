@@ -62,8 +62,8 @@ type
     fAccountDescription : string;
     fReportGroupId : byte;
     fGSTClassId : byte;
-    fClosingBalance : string;
-    fClosingBalanceDate : string;
+    fDisplayOpeningBalance : string;
+    fDisplayOpeningBalanceDate : string;
     fOpeningBalanceDate : TStDate;
     fPostingAllowed : boolean;
     fHasOpeningBalance : boolean;
@@ -74,8 +74,8 @@ type
     property AccountDescription : string read fAccountDescription write fAccountDescription;
     property ReportGroupId : byte read fReportGroupId write fReportGroupId;
     property GSTClassId : byte read fGSTClassId write fGSTClassId;
-    property ClosingBalance : string read fClosingBalance write fClosingBalance;
-    property ClosingBalanceDate : string read fClosingBalanceDate write fClosingBalanceDate;
+    property DisplayOpeningBalance : string read fDisplayOpeningBalance write fDisplayOpeningBalance;
+    property DisplayOpeningBalanceDate : string read fDisplayOpeningBalanceDate write fDisplayOpeningBalanceDate;
     property OpeningBalanceDate : TStDate read fOpeningBalanceDate write fOpeningBalanceDate;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
     property HasOpeningBalance : boolean read fHasOpeningBalance write fHasOpeningBalance;
@@ -119,9 +119,10 @@ type
     function IsThisAContraCode(aCode: string): Boolean;
     function GetMappedReportGroupId(aReportGroup : byte) : TCashBookChartClasses;
     procedure FillChartExportCol(aAllowIactive : Boolean);
-    procedure UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money; aIsContra : Boolean);
+    procedure UpdateOpeningBalancesForCode(aCode : String; aOpeningBalance : Money; aIsContra : Boolean);
     procedure UpdateClosingBalances(aClosingBalanceDate : TstDate);
-    procedure CheckIfNonBasicCodesHaveBalances(aClosingBalanceDate : TstDate;
+    procedure UpdateOpeningBalances(aOpeningBalanceDate : TstDate);
+    procedure CheckIfNonBasicCodesHaveBalances(aOpeningBalanceDate : TstDate;
                                                var aNonBasicCodesHaveBalances : boolean;
                                                var aNonBasicCodes : TStringList);
 
@@ -322,8 +323,8 @@ begin
   NewChartExportItem.ReportGroupId      := aReportGroupId;
   NewChartExportItem.GSTClassId         := aGSTClassId;
   NewChartExportItem.PostingAllowed     := aPostingAllowed;
-  NewChartExportItem.ClosingBalance     := '';
-  NewChartExportItem.ClosingBalanceDate := '';
+  NewChartExportItem.DisplayOpeningBalance     := '';
+  NewChartExportItem.fDisplayOpeningBalanceDate := '';
   NewChartExportItem.HasOpeningBalance  := false;
 end;
 
@@ -535,29 +536,88 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportCol.UpdateClosingBalancesForCode(aCode : String; aClosingBalance : Money; aIsContra : Boolean);
+procedure TChartExportCol.UpdateOpeningBalancesForCode(aCode : String; aOpeningBalance : Money; aIsContra : Boolean);
 var
   ChartExportItem : TChartExportItem;
-  ClosingBalance : Money;
-  DisplayClosingBalanceDate : string;
-  DisplayClosingBalance : string;
+  OpeningBalance : Money;
+  DisplayOpeningBalance : string;
   CrDrSignFromReportGroup : integer;
 begin
   if ItemAtCode(aCode, ChartExportItem) then
   begin
-    DisplayClosingBalanceDate := StDateToDateString('dd/mm/yyyy', IncDate(ToDate, 1, 0, 0), true);
-    ClosingBalance            := aClosingBalance;
     CrDrSignFromReportGroup   := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId);
-    ClosingBalance            := CrDrSignFromReportGroup * ClosingBalance;
-    DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
+    OpeningBalance            := CrDrSignFromReportGroup * aOpeningBalance;
+    DisplayOpeningBalance     := GetStringFromAmount(OpeningBalance);
 
-    ChartExportItem.OpeningBalanceDate := IncDate(ToDate, 1, 0, 0);
-    ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
-    ChartExportItem.ClosingBalance     := DisplayClosingBalance;
-    ChartExportItem.IsContra           := aIsContra;
+    ChartExportItem.OpeningBalanceDate        := MyClient.clFields.clTemp_FRS_To_Date;
+    ChartExportItem.DisplayOpeningBalanceDate := StDateToDateString('dd/mm/yyyy', MyClient.clFields.clTemp_FRS_To_Date, true);
+    ChartExportItem.DisplayOpeningBalance     := DisplayOpeningBalance;
+    ChartExportItem.IsContra                  := aIsContra;
 
-    if DisplayClosingBalance > '' then
+    if DisplayOpeningBalance > '' then
       ChartExportItem.HasOpeningBalance := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TChartExportCol.UpdateOpeningBalances(aOpeningBalanceDate: TstDate);
+var
+  BalanceStartDte : TstDate;
+  AccountIndex : integer;
+  BankAcc : TBank_Account;
+  AccRec  : tAccount_Rec;
+  ChartIndex : integer;
+  DayFinStart, MonthFinStart, YearFinStart: Integer;
+  DayStart, MonthStart, YearStart: Integer;
+  AmountIndex : integer;
+  OpeningBalance : Money;
+begin
+  // Convert Financial Year Start from Client Details
+  StDatetoDMY(MyClient.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+  StDatetoDMY(aOpeningBalanceDate, DayStart, MonthStart, YearStart);
+  BalanceStartDte := DMYtoStDate(DayFinStart, MonthFinStart, YearStart, Epoch);
+
+  if BalanceStartDte > aOpeningBalanceDate then
+    BalanceStartDte := incDate(BalanceStartDte, 0, 0, -1);
+
+  MyClient.clFields.cltemp_FRS_from_Date := BalanceStartDte;
+  MyClient.clFields.clTemp_FRS_To_Date   := aOpeningBalanceDate;
+
+  MyClient.clFields.clFRS_Reporting_Period_Type               := frpCustom;
+  MyClient.clFields.clTemp_FRS_Last_Period_To_Show            := 1;
+  MyClient.clFields.clTemp_FRS_Last_Actual_Period_To_Use      := MyClient.clFields.clTemp_FRS_Last_Period_To_Show;
+  MyClient.clFields.clTemp_FRS_Account_Totals_Cash_Only       := False;
+  MyClient.clFields.clTemp_FRS_Division_To_Use                := 0;
+  MyClient.clFields.clTemp_FRS_Job_To_Use                     := '';
+  MyClient.clFields.clTemp_FRS_Budget_To_Use                  := '';
+  MyClient.clFields.clTemp_FRS_Budget_To_Use_Date             := -1;
+  MyClient.clFields.clTemp_FRS_Use_Budgeted_Data_If_No_Actual := False;
+  MyClient.clFields.clGST_Inclusive_Cashflow                  := False;
+
+  for AccountIndex := 0 to MyClient.clBank_Account_List.ItemCount-1 do
+  begin
+    BankAcc := MyClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+    BankAcc.baFields.baTemp_Include_In_Report := True;
+  end;
+
+  CalculateAccountTotalsForClient(MyClient,
+                                  True,
+                                  nil,
+                                  -1,
+                                  False,
+                                  True);
+
+  for ChartIndex := 0 to MyClient.clChart.ItemCount-1 do
+  begin
+    AccRec := MyClient.clChart.Account_At(ChartIndex)^;
+
+    OpeningBalance := 0;
+    for AmountIndex := 0 to high(AccRec.chTemp_Amount.This_Year) do
+      OpeningBalance := OpeningBalance + AccRec.chTemp_Amount.This_Year[AmountIndex];
+
+    UpdateOpeningBalancesForCode(AccRec.chAccount_Code,
+                                 OpeningBalance,
+                                 IsThisAContraCode(AccRec.chAccount_Code));
   end;
 end;
 
@@ -599,15 +659,6 @@ begin
   FromDate := TransStartDte;
   ToDate   := TransEndDte;
 
-  {HelpfulErrorMsg('Bal From Date : ' +
-                  StDateToDateString('dd/mm/yyyy', MyClient.clFields.cltemp_FRS_from_Date, true) +
-                  ', Bal To Date : ' +
-                  StDateToDateString('dd/mm/yyyy', MyClient.clFields.clTemp_FRS_To_Date, true) +
-                  ', Rpt From Date : ' +
-                  StDateToDateString('dd/mm/yyyy', FromDate, true) +
-                  ', Rpt To Date : ' +
-                  StDateToDateString('dd/mm/yyyy', ToDate, true), 0);}
-
   MyClient.clFields.clFRS_Reporting_Period_Type               := frpCustom;
   MyClient.clFields.clTemp_FRS_Last_Period_To_Show            := 1;
   MyClient.clFields.clTemp_FRS_Last_Actual_Period_To_Use      := MyClient.clFields.clTemp_FRS_Last_Period_To_Show;
@@ -636,7 +687,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TChartExportCol.CheckIfNonBasicCodesHaveBalances(aClosingBalanceDate: TstDate;
+procedure TChartExportCol.CheckIfNonBasicCodesHaveBalances(aOpeningBalanceDate: TstDate;
                                                            var aNonBasicCodesHaveBalances: boolean;
                                                            var aNonBasicCodes : TStringList);
 var
@@ -649,7 +700,7 @@ begin
   aNonBasicCodesHaveBalances := false;
   aNonBasicCodes.Clear;
 
-  UpdateClosingBalances(aClosingBalanceDate);
+  UpdateOpeningBalances(aOpeningBalanceDate);
 
   for CodeIndex := 0 to Count-1 do
   begin
@@ -1009,7 +1060,7 @@ Var
   TravMgr   : TTravManagerCashBookExport;
   ChartItem : pAccount_Rec;
   IsContras, IsValidCode, OKToPrint: Boolean;
-  ClosingBalance : Money;
+  OpeningBalance : Money;
 begin
   TravMgr := TTravManagerCashBookExport(Sender);
   Code := TravMgr.Transaction^.txAccount;
@@ -1036,14 +1087,14 @@ begin
          (TravMgr.LastCodePrinted <> '') then
       begin
         if IsValidCode then
-          ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
+          OpeningBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
         else
         begin
-          ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+          OpeningBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
           IsTransactionsUncodedorInvalidlyCoded := true;
         end;
 
-        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
+        UpdateOpeningBalancesForCode(TravMgr.LastCodePrinted, OpeningBalance, false);
       end;
     end;
 
@@ -1081,9 +1132,9 @@ begin
             (GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code) <> 0)) then
         begin
           DoContras(TravMgr, ChartItem^.chAccount_Code);
-          ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
-          ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
-          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, IsContras);
+          OpeningBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
+          OpeningBalance := OpeningBalance + TravMgr.AccountTotalNet;
+          UpdateOpeningBalancesForCode(ChartItem^.chAccount_Code, OpeningBalance, IsContras);
           TravMgr.LastValidCode := ChartItem^.chAccount_Code;
         end;
         TravMgr.AccountTotalNet := 0;
@@ -1129,7 +1180,7 @@ Var
   TravMgr : TTravManagerCashBookExport;
   ChartItem : pAccount_Rec;
   IsContras, IsValidCode, OKToPrint: Boolean;
-  ClosingBalance : Money;
+  OpeningBalance : Money;
 begin
   TravMgr := TTravManagerCashBookExport(Sender);
    //with Mgr, ReportJob,TListLedgerReport(ReportJob).Params, Mgr.Transaction^, Mgr.Dissection^ do begin
@@ -1156,7 +1207,7 @@ begin
          (not TravMgr.DoneSubTotal) and
          (TravMgr.LastCodePrinted <> '') then
       begin
-        ClosingBalance := TravMgr.AccountTotalNet;
+        OpeningBalance := TravMgr.AccountTotalNet;
 
         {if IsValidCode then
           ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
@@ -1166,7 +1217,7 @@ begin
           IsTransactionsUncodedorInvalidlyCoded := true;
         end; }
 
-        UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
+        UpdateOpeningBalancesForCode(TravMgr.LastCodePrinted, OpeningBalance, false);
       end;
     end;
 
@@ -1203,9 +1254,9 @@ begin
             (GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code) <> 0)) then
         begin
           DoContras(TravMgr, ChartItem^.chAccount_Code);
-          ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
-          ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
-          UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, IsContras);
+          OpeningBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
+          OpeningBalance := OpeningBalance + TravMgr.AccountTotalNet;
+          UpdateOpeningBalancesForCode(ChartItem^.chAccount_Code, OpeningBalance, IsContras);
           TravMgr.LastValidCode := ChartItem^.chAccount_Code;
         end;
         TravMgr.AccountTotalNet := 0;
@@ -1231,8 +1282,8 @@ begin
       TravMgr.AccountHasActivity := DoContras(TravMgr, Code);
       TravMgr.ContraCodePrinted := Code;
 
-      ClosingBalance := TravMgr.AccountTotalNet;
-      UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, true);
+      OpeningBalance := TravMgr.AccountTotalNet;
+      UpdateOpeningBalancesForCode(ChartItem^.chAccount_Code, OpeningBalance, true);
 
       Exit;
     end;
@@ -1255,7 +1306,7 @@ var
   ChartItem : pAccount_Rec;
   IsContras : Boolean;
   ISOCodes  : string;
-  ClosingBalance : Money;
+  OpeningBalance : Money;
 begin
   IsTransactionsUncodedorInvalidlyCoded := false;
   //Check Forex
@@ -1290,16 +1341,16 @@ begin
      begin
        if (TravMgr.LastCodePrinted = TravMgr.ContraCodePrinted) then
        begin
-         ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet;
-         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
+         OpeningBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet;
+         UpdateOpeningBalancesForCode(TravMgr.LastCodePrinted, OpeningBalance, false);
        end
        else if (TravMgr.ContraCodePrinted = NullCode) then
        begin
          if TravMgr.LastCodePrinted = TravMgr.LastValidCode then
-           ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
+           OpeningBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
          else
-           ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
-         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
+           OpeningBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
+         UpdateOpeningBalancesForCode(TravMgr.LastCodePrinted, OpeningBalance, false);
        end;
 
      end; }
@@ -1321,9 +1372,9 @@ begin
          if IsContras then
          begin
            DoContras(TravMgr, ChartItem^.chAccount_Code);
-           ClosingBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
-           ClosingBalance := ClosingBalance + TravMgr.AccountTotalNet;
-           UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, IsContras);
+           OpeningBalance := GetOpeningBalanceAmount(MyClient, ChartItem^.chAccount_Code);
+           OpeningBalance := OpeningBalance + TravMgr.AccountTotalNet;
+           UpdateOpeningBalancesForCode(ChartItem^.chAccount_Code, OpeningBalance, IsContras);
          end;
          TravMgr.AccountTotalNet := 0;
          TravMgr.DoneSubTotal := False;
@@ -2137,9 +2188,9 @@ begin
           if SendZeroOpeningBalance(MappedGroupId, ChartExportItem.OpeningBalanceDate, MyClient.clFields.clFinancial_Year_Starts) then
             LineColumns.Add('0')
           else
-            LineColumns.Add(ChartExportItem.ClosingBalance);
+            LineColumns.Add(ChartExportItem.DisplayOpeningBalance);
 
-          LineColumns.Add(ChartExportItem.ClosingBalanceDate); // Opening Balance Date
+          LineColumns.Add(ChartExportItem.fDisplayOpeningBalanceDate); // Opening Balance Date
           FileLines.Add(LineColumns.DelimitedText);
         end;
       end;
@@ -2181,8 +2232,8 @@ begin
 
   fExportChartFrmProperties := TExportChartFrmProperties.Create;
   ExportChartFrmProperties.ExportBasicChart := false;
-  ExportChartFrmProperties.IncludeClosingBalances := false;
-  ExportChartFrmProperties.ClosingBalanceDate := CurrentDate;
+  ExportChartFrmProperties.IncludeOpeningBalances := false;
+  ExportChartFrmProperties.OpeningBalanceDate := CurrentDate;
   ExportChartFrmProperties.ExportFileLocation := '';
   ExportChartFrmProperties.ClientCode := '';
 end;
@@ -2301,12 +2352,12 @@ begin
     else
       ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
 
-    ExportChartFrmProperties.IncludeClosingBalances := aOverrideIncludeBalances;
+    ExportChartFrmProperties.IncludeOpeningBalances := aOverrideIncludeBalances;
 
     if GetLastFullyCodedMonth(BalDate) then
-      ExportChartFrmProperties.ClosingBalanceDate := BalDate
+      ExportChartFrmProperties.OpeningBalanceDate := incDate(BalDate, 1, 0, 0)
     else
-      ExportChartFrmProperties.ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+      ExportChartFrmProperties.OpeningBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
 
     ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
     ExportChartFrmProperties.AreOpeningBalancesSetup :=
@@ -2315,7 +2366,7 @@ begin
       DoNonBasicCodesHaveBalances(ExportChartFrmProperties.NonBasicCodes);
     ExportChartFrmProperties.IsTransactionsUncodedorInvalidlyCoded :=
       ChartExportCol.IsTransactionsUncodedorInvalidlyCoded;
-    ExportChartFrmProperties.CalcClosingBalanceEvent := ChartExportCol.CheckIfNonBasicCodesHaveBalances;
+    ExportChartFrmProperties.CalcOpeningBalanceEvent := ChartExportCol.CheckIfNonBasicCodesHaveBalances;
 
     if ShowUI then
       Res := ShowChartExport(aPopupParent, ExportChartFrmProperties)

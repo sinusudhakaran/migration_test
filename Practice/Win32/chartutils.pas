@@ -74,7 +74,7 @@ procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
                                     var aCashBookGstClassDesc : string);
 
 function GetLastFullyCodedMonth(var aFullyCodedMonth : TStDate): Boolean;
-function GetMigrationClosingBalance(aValue : string) : integer;
+function GetMigrationOpeningBalance(aValue : string) : integer;
 function IsGSTClassUsedInChart(aChartExportCol : TObject; aGST_Class: byte): boolean;
 function IsChartCodeABankContra(aCode: string): boolean;
 procedure FillGstMapCol(aChartExportCol : TObject; aGSTMapCol : TObject; aExcludeGSTItemsNotInChart : boolean = true);
@@ -570,7 +570,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function GetMigrationClosingBalance(aValue : string) : integer;
+function GetMigrationOpeningBalance(aValue : string) : integer;
 var
   ValStr : string;
   Index : integer;

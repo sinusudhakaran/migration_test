@@ -159,16 +159,16 @@ type
     function ValidateIRDGST(aValue : string; var aModifiedIRD : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
 
-    function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
+    function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aOpeningBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
     function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; aDoMoveRatherThanCopy : boolean; var aError : string) : boolean;
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
-    function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aClosingBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
+    function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aOpeningBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
 
     // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
-    function CalculateClosingBalanceDate(aClient : TClientObj) : TStDate;
+    function CalculateOpeningBalanceDate(aClient : TClientObj) : TStDate;
 
     function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
 
@@ -969,14 +969,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; aClosingBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError: string): boolean;
+function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; aOpeningBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError: string): boolean;
 var
   ClientCode : string;
   FYSday, FYSmonth, FYSyear : integer;
   ABN : string;
   Branch : string;
   IRD : string;
-  OpenBalDate : TStDate;
   ModifiedIRD : string;
 begin
   Result := false;
@@ -1007,12 +1006,11 @@ begin
     aBusinessData.ABN := ABN;
     aBusinessData.IRD := IRD;
 
-    OpenBalDate := IncDate(aClosingBalanceDate, 1, 0, 0);
-    if (OpenBalDate = BadDate) or
+    if (aOpeningBalanceDate = BadDate) or
        (not aDoChartOfAccountBalances) then
       aBusinessData.OpeningBalanceDate := ''
     else
-      aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', OpenBalDate, true);
+      aBusinessData.OpeningBalanceDate := StDateToDateString('yyyy-mm-dd', aOpeningBalanceDate, true);
 
     Result := true;
   except
@@ -1152,7 +1150,7 @@ var
   ChartExportItem : TChartExportItem;
   MappedGroupId : TCashBookChartClasses;
   ChartExportFound : boolean;
-  MigrationClosingBalance : integer;
+  MigrationOpeningBalance : integer;
   AccountIndex : integer;
   BankAccount : TBank_Account;
   SendChart : boolean;
@@ -1215,15 +1213,15 @@ begin
       if ChartExportFound then
       begin
         if aSelectedData.ChartOfAccountBalances then
-          MigrationClosingBalance := GetMigrationClosingBalance(ChartExportItem.ClosingBalance)
+          MigrationOpeningBalance := GetMigrationOpeningBalance(ChartExportItem.DisplayOpeningBalance)
         else
-          MigrationClosingBalance := 0;
+          MigrationOpeningBalance := 0;
       end
       else
-        MigrationClosingBalance := 0;
+        MigrationOpeningBalance := 0;
 
       if (AccRec.chTemp_Tag = TEMP_TAG_MANUAL_ADDED_GST) and
-        (MigrationClosingBalance = 0) then
+        (MigrationOpeningBalance = 0) then
         Continue;
 
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
@@ -1252,7 +1250,7 @@ begin
         if SendZeroOpeningBalance(MappedGroupId, ChartExportItem.OpeningBalanceDate, aClient.clFields.clFinancial_Year_Starts) then
           NewChartItem.OpeningBalance := 0
         else
-          NewChartItem.OpeningBalance := MigrationClosingBalance;
+          NewChartItem.OpeningBalance := MigrationOpeningBalance;
 
 
         NewChartItem.BankOrCreditFlag := IsChartCodeABankContra(AccRec.chAccount_Code);
@@ -1443,7 +1441,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; aClosingBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
+function TCashbookMigration.FillJournalData(aClient: TClientObj; aJournalsData: TJournalsData; aOpeningBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError: string): boolean;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
@@ -1468,7 +1466,7 @@ begin
           TransactionRec := BankAccount.baTransaction_List.Transaction_At(TransactionIndex)^;
 
           // if Transaction is older than Time Frame ignore the rest since we are going back in time.
-          if TransactionRec.txDate_Effective <= aClosingBalanceDate then
+          if TransactionRec.txDate_Effective < aOpeningBalanceDate then
             break;
 
           // Check if Transaction is not finalized and not presented
@@ -1687,7 +1685,7 @@ var
   ChartExportCol : TChartExportCol;
   GSTMapCol : TGSTMapCol;
   BalDate : TStDate;
-  ClosingBalanceDate : TStDate;
+  OpeningBalanceDate : TStDate;
   UsedDivisions : TStringList;
   NoTransactions : boolean;
 begin
@@ -1704,17 +1702,17 @@ begin
       ClientBase.Token := fToken;
 
       if aSelectedData.NonTransferedTransactions then
-        ClosingBalanceDate := CalculateClosingBalanceDate(aClient)
+        OpeningBalanceDate := CalculateOpeningBalanceDate(aClient)
       else
       begin
         if GetLastFullyCodedMonth(BalDate) then
-          ClosingBalanceDate := BalDate
+          OpeningBalanceDate := incDate(BalDate, 1, 0, 0)
         else
-          ClosingBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+          OpeningBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
       end;
 
       fClientMigrationState := cmsTransformData;
-      if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, ClosingBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
+      if not FillBusinessData(aClient, ClientBase.ClientData.BusinessData, aSelectedData.FirmId, OpeningBalanceDate, aSelectedData.ChartOfAccountBalances, aError) then
         Exit;
 
       if not FillBankFeedData(aClient, ClientBase.ClientData.BankFeedApplicationsData, aSelectedData.DoMoveRatherThanCopy, aError) then
@@ -1725,7 +1723,7 @@ begin
       ChartExportCol := TChartExportCol.Create(TChartExportItem);
       try
         ChartExportCol.FillChartExportCol(true);
-        ChartExportCol.UpdateClosingBalances(ClosingBalanceDate);
+        ChartExportCol.UpdateClosingBalances(OpeningBalanceDate);
         GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
         try
           GSTMapCol.FillGstClassMapArr;
@@ -1737,7 +1735,7 @@ begin
             if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, NoTransactions, aError) then
               Exit;
 
-            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, ClosingBalanceDate, GSTMapCol, aError) then
+            if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, OpeningBalanceDate, GSTMapCol, aError) then
               Exit;
 
             fClientMigrationState := cmsAccessCltDB;
@@ -1800,7 +1798,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.CalculateClosingBalanceDate(aClient : TClientObj) : TStDate;
+function TCashbookMigration.CalculateOpeningBalanceDate(aClient : TClientObj) : TStDate;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
@@ -1857,8 +1855,6 @@ begin
 
     Result := DMYtoStDate(Day, Month, Year, BKDATEEPOCH);
   end;
-
-  Result := IncDate(Result, -1, 0, 0);
 end;
 
 //------------------------------------------------------------------------------
