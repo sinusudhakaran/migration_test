@@ -57,15 +57,16 @@ function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
   const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
   KeepPostingAllowed: boolean = false) : boolean;
 
-Function GetChartFileName( ClientCode  : string; 
+Function GetChartFileName( ClientCode  : string;
                            aInitDir    : string;
-                           aFilter     : string; 
+                           aFilter     : string;
                            DefExtn     : string;
                            HelpCtx     : Integer ) : String;
 
 function StripInvalidCharacters(aValue: String): String;
 function GetMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses) : string;
 function GetMigrationMappedReportGroupCode(aMappedGroupId : TCashBookChartClasses): string;
+function SendZeroOpeningBalance(aMappedGroupId : TCashBookChartClasses; aOpeningBalanceDate, aFinancialYearStart : TstDate): boolean;
 function GetGSTClassTypeIndicatorFromGSTClass(aGST_Class : byte) : byte;
 function GetMappedNZGSTTypeCode(aGSTClassTypeIndicator : byte) : TCashBookGSTClasses;
 procedure GetMYOBCashbookGSTDetails(aCashBookGstClass : TCashBookGSTClasses;
@@ -422,6 +423,23 @@ begin
     ccEquity       : Result := 'equity';
     ccCostOfSales  : Result := 'cost_of_sales';
   end;
+end;
+
+//------------------------------------------------------------------------------
+function SendZeroOpeningBalance(aMappedGroupId : TCashBookChartClasses; aOpeningBalanceDate, aFinancialYearStart : TstDate): boolean;
+var
+  FinDay, FinMonth, FinYear : integer;
+  OpenDay, OpenMonth, OpenYear : Integer;
+begin
+  Result := false;
+
+  if not (aMappedGroupId in [ccIncome, ccCostOfSales, ccExpense]) then
+    Exit;
+
+  StDateToDMY(aFinancialYearStart, FinDay, FinMonth, FinYear);
+  StDateToDMY(aOpeningBalanceDate, OpenDay, OpenMonth, OpenYear);
+
+  Result := ((OpenDay = 1) and (OpenMonth = FinMonth));
 end;
 
 //------------------------------------------------------------------------------

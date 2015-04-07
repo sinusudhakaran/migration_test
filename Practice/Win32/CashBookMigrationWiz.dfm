@@ -163,6 +163,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       TabWidth = 5
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           746
           372)
@@ -199,6 +203,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 1
         Caption = 'tabMYOBCredentials'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           746
           372)
@@ -342,7 +350,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Font.Height = -13
             Font.Name = 'Tahoma'
             Font.Style = []
-            ItemHeight = 16
+            ItemHeight = 0
             ParentFont = False
             TabOrder = 0
             OnChange = cmbSelectFirmChange
@@ -359,6 +367,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Font.Style = []
         ImageIndex = 2
         ParentFont = False
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           746
           372)
@@ -531,6 +543,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 4
         Caption = 'tabProgress'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           746
           372)
@@ -594,6 +610,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
         Tag = 5
         Caption = 'tabComplete'
         ImageIndex = 5
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object pnlCashbookComplete: TPanel
           Left = 0
           Top = 0
@@ -750,6 +770,10 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       object tabCheckList: TTabSheet
         Caption = 'tabCheckList'
         ImageIndex = 6
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           746
           372)

@@ -325,7 +325,9 @@ begin
       ExportChartFrmProperties.ExportFileLocation := edtSaveEntriesTo.Text;
 
       if ExportChartFrmProperties.IncludeClosingBalances then
+      begin
         ExportChartFrmProperties.CalcClosingBalance(ExportChartFrmProperties.ClosingBalanceDate);
+      end;
     end;
   end;
 end;

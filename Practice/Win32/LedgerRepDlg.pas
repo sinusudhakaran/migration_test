@@ -200,8 +200,14 @@ uses
   bkDateUtils,
   ClDateUtils,
   bkMaskUtils,
-  StdHints, StDate, BKDefs,
-  BKConst,bkXPThemes, baObj32, WarningMoreFrm,
+  StdHints,
+  StDate,
+  StDateSt,
+  BKDefs,
+  BKConst,
+  bkXPThemes,
+  baObj32,
+  WarningMoreFrm,
   Software,
   BKReportColumnManager,
   UserReportSettings;
@@ -1000,6 +1006,15 @@ begin
 
           // Does it span a financial year?
           NextYearStart := DMYtoStDate(Df, Mf, Yp + 1, Epoch);
+
+          {HelpfulErrorMsg('Bal From Date : ' +
+                          StDateToDateString('dd/mm/yyyy', cltemp_FRS_from_Date, true) +
+                          ', Bal To Date : ' +
+                          StDateToDateString('dd/mm/yyyy', clTemp_FRS_To_Date, true) +
+                          ', Rpt From Date : ' +
+                          StDateToDateString('dd/mm/yyyy', Param.FromDate, true) +
+                          ', Rpt To Date : ' +
+                          StDateToDateString('dd/mm/yyyy', Param.ToDate, true), 0);}
 
           if param.ShowBalances
           and (NextYearStart <= Param.ToDate) then

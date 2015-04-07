@@ -6,6 +6,7 @@ uses
   Windows,
   SysUtils,
   Classes,
+  ecollect,
   uLkJSON;
 
 const
@@ -88,7 +89,7 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TJournalData = class(TCollectionItem)
+  TJournalData = class(TObject)
   private
     fDate        : string;
     fDescription : string;
@@ -96,8 +97,8 @@ type
 
     fLines : TLinesData;
   public
-    constructor Create(Collection: TCollection); override;
-    destructor  Destroy; override;
+    constructor Create(); reintroduce; overload;
+    destructor Destroy; override;
 
     procedure Write(const aJson: TlkJSONobject);
 
@@ -109,10 +110,13 @@ type
   end;
 
   //----------------------------------------------------------------------------
-  TJournalsData = class(TCollection)
+  TJournalsData = class(TExtdSortedCollection)
   private
   public
-    function ItemAs(aIndex : integer) : TJournalData;
+    destructor Destroy; override;
+
+    function Compare(aItem1, aItem2 : Pointer): Integer; override;
+    function ItemAs(aItem : Pointer) : TJournalData;
 
     procedure Write(const aJson: TlkJSONobject);
   end;
@@ -564,11 +568,10 @@ begin
   end;
 end;
 
-{ TJournalData }
 //------------------------------------------------------------------------------
-constructor TJournalData.Create(Collection: TCollection);
+constructor TJournalData.Create();
 begin
-  inherited;
+  inherited Create();
 
   fLines := TLinesData.Create(TLineData);
 end;
@@ -593,9 +596,23 @@ end;
 
 { TJournalsData }
 //------------------------------------------------------------------------------
-function TJournalsData.ItemAs(aIndex: integer): TJournalData;
+function TJournalsData.Compare(aItem1, aItem2: Pointer): Integer;
 begin
-  Result := TJournalData(Self.Items[aIndex]);
+  if TJournalData(aItem1^).Date < TJournalData(aItem2^).Date then result := -1 else
+  if TJournalData(aItem1^).Date > TJournalData(aItem2^).Date then result := 1 else
+  result := 0;
+end;
+
+//------------------------------------------------------------------------------
+destructor TJournalsData.Destroy;
+begin
+
+  inherited;
+end;
+
+function TJournalsData.ItemAs(aItem : Pointer): TJournalData;
+begin
+  Result := TJournalData(aItem^);
 end;
 
 //------------------------------------------------------------------------------
@@ -606,18 +623,18 @@ var
   Journal : TJournalData;
   JournalData : TlkJSONobject;
 begin
-  if self.Count = 0 then
+  if self.ItemCount = 0 then
     Exit;
 
   Journals := TlkJSONlist.Create;
   aJson.Add('generaljournals', Journals);
 
-  for JournalIndex := 0 to self.Count-1 do
+  for JournalIndex := 0 to self.ItemCount-1 do
   begin
     JournalData := TlkJSONobject.Create;
     Journals.Add(JournalData);
 
-    Journal := ItemAs(JournalIndex);
+    Journal := ItemAs(Items[JournalIndex]);
     Journal.Write(JournalData);
   end;
 end;
@@ -988,7 +1005,7 @@ begin
   fChartOfAccountsData := TChartOfAccountsData.Create(TChartOfAccountData);
   fDivisionsData := TDivisionsData.Create(TDivisionData);
   fBankAccountsData := TBankAccountsData.Create(TBankAccountData);
-  fJournalsData := TJournalsData.Create(TJournalData);
+  fJournalsData := TJournalsData.Create();
   fBankFeedApplicationsData := TBankFeedApplicationsData.Create(TBankFeedApplicationData);
 end;
 

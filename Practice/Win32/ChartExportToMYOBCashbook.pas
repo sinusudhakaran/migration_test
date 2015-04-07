@@ -19,6 +19,7 @@ uses
 
 type
   PNodeData = ^TNodeData;
+
   TNodeData = record
     Source: Integer;
   end;
@@ -63,6 +64,7 @@ type
     fGSTClassId : byte;
     fClosingBalance : string;
     fClosingBalanceDate : string;
+    fOpeningBalanceDate : TStDate;
     fPostingAllowed : boolean;
     fHasOpeningBalance : boolean;
     fIsContra : boolean;
@@ -74,6 +76,7 @@ type
     property GSTClassId : byte read fGSTClassId write fGSTClassId;
     property ClosingBalance : string read fClosingBalance write fClosingBalance;
     property ClosingBalanceDate : string read fClosingBalanceDate write fClosingBalanceDate;
+    property OpeningBalanceDate : TStDate read fOpeningBalanceDate write fOpeningBalanceDate;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
     property HasOpeningBalance : boolean read fHasOpeningBalance write fHasOpeningBalance;
     property IsContra : boolean read fIsContra write fIsContra;
@@ -548,6 +551,7 @@ begin
     ClosingBalance            := CrDrSignFromReportGroup * ClosingBalance;
     DisplayClosingBalance     := GetStringFromAmount(ClosingBalance);
 
+    ChartExportItem.OpeningBalanceDate := IncDate(ToDate, 1, 0, 0);
     ChartExportItem.ClosingBalanceDate := DisplayClosingBalanceDate;
     ChartExportItem.ClosingBalance     := DisplayClosingBalance;
     ChartExportItem.IsContra           := aIsContra;
@@ -639,6 +643,9 @@ var
   CodeIndex : integer;
   ChartExportItem : TChartExportItem;
 begin
+  clear();
+  FillChartExportCol(false);
+
   aNonBasicCodesHaveBalances := false;
   aNonBasicCodes.Clear;
 
@@ -1221,6 +1228,10 @@ begin
     begin
       TravMgr.AccountHasActivity := DoContras(TravMgr, Code);
       TravMgr.ContraCodePrinted := Code;
+
+      ClosingBalance := TravMgr.AccountTotalNet;
+      UpdateClosingBalancesForCode(ChartItem^.chAccount_Code, ClosingBalance, true);
+
       Exit;
     end;
   end;
@@ -2119,8 +2130,14 @@ begin
             GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
           end;
           LineColumns.Add(CashBookGstClassCode);
-          LineColumns.Add(ChartExportItem.ClosingBalance); // Opeing Balance
-          LineColumns.Add(ChartExportItem.ClosingBalanceDate); // Opeing Balance Date
+
+          // Opening Balance
+          if SendZeroOpeningBalance(MappedGroupId, ChartExportItem.OpeningBalanceDate, MyClient.clFields.clFinancial_Year_Starts) then
+            LineColumns.Add('0')
+          else
+            LineColumns.Add(ChartExportItem.ClosingBalance);
+
+          LineColumns.Add(ChartExportItem.ClosingBalanceDate); // Opening Balance Date
           FileLines.Add(LineColumns.DelimitedText);
         end;
       end;

@@ -1247,7 +1247,14 @@ begin
         NewChartItem.AccountType := GetMigrationMappedReportGroupCode(MappedGroupId);
 
         NewChartItem.GstType := GetCashBookGSTType(aGSTMapCol, ChartExportItem.GSTClassId);
-        NewChartItem.OpeningBalance := MigrationClosingBalance;
+
+        // Opening Balance
+        if SendZeroOpeningBalance(MappedGroupId, ChartExportItem.OpeningBalanceDate, aClient.clFields.clFinancial_Year_Starts) then
+          NewChartItem.OpeningBalance := 0
+        else
+          NewChartItem.OpeningBalance := MigrationClosingBalance;
+
+
         NewChartItem.BankOrCreditFlag := IsChartCodeABankContra(AccRec.chAccount_Code);
       end
       else
@@ -1468,10 +1475,11 @@ begin
           if (TransactionRec.txDate_Transferred > 0) then
             break;
 
-          JournalItem := TJournalData.Create(aJournalsData);
+          JournalItem := TJournalData.Create();
           JournalItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           JournalItem.Description := TransactionRec.txGL_Narration;
           JournalItem.Reference   := TrimLeadZ(TransactionRec.txReference);
+          aJournalsData.Insert(@JournalItem);
 
           DissRec := TransactionRec.txFirst_Dissection;
           While (DissRec <> nil ) do
@@ -1502,6 +1510,10 @@ begin
         end;
       end;
     end;
+
+    if aJournalsData.ItemCount > 1 then
+      aJournalsData.Sort();
+
     Result := true;
 
   except
