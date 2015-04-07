@@ -1156,13 +1156,15 @@ begin
          (not TravMgr.DoneSubTotal) and
          (TravMgr.LastCodePrinted <> '') then
       begin
-        if IsValidCode then
+        ClosingBalance := TravMgr.AccountTotalNet;
+
+        {if IsValidCode then
           ClosingBalance := GetOpeningBalanceAmount(MyClient, TravMgr.LastCodePrinted) + TravMgr.AccountTotalNet
         else
         begin
           ClosingBalance := GetOpeningBalanceForInvalidCode(MyClient, TravMgr.LastCodePrinted, Fromdate) + TravMgr.AccountTotalNet;
           IsTransactionsUncodedorInvalidlyCoded := true;
-        end;
+        end; }
 
         UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
       end;
@@ -1284,7 +1286,7 @@ begin
 
      TravMgr.TraverseAllEntries(Fromdate, Todate);
 
-     if TravMgr.AccountHasActivity then
+     {if TravMgr.AccountHasActivity then
      begin
        if (TravMgr.LastCodePrinted = TravMgr.ContraCodePrinted) then
        begin
@@ -1300,7 +1302,7 @@ begin
          UpdateClosingBalancesForCode(TravMgr.LastCodePrinted, ClosingBalance, false);
        end;
 
-     end;
+     end; }
 
      // show remaining empty codes
      // Show inactive codes if requested
