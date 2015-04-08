@@ -16,7 +16,6 @@ uses
   Tokens,
   baObj32,
   baList32,
-  mcList32,
   BKDefs,
   cmObj32,
   MemorisationsObj,
@@ -40,7 +39,6 @@ type
     fBankAccounts: TBank_Account_List;
     fLastCodingFrmKeyPress: TDateTime;
 
-    fMemScanCommands: TMem_Scan_Command_List;
     fUnscanned: TUnscanned_Transaction_List;
     fCandidate: TCandidate_Mem_Processing;
     fCandidates: TCandidate_Mem_List;
