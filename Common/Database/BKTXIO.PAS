@@ -133,6 +133,7 @@ CONST
    tktxTransfered_To_Online             = 246 ;
    tktxCore_Transaction_ID_High         = 247 ;
    tktxIsOnline_Transaction             = 248 ;
+   tktxSuggested_Mem_State              = 249 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -245,6 +246,7 @@ Begin
       F.WriteBooleanValue( tktxTransfered_To_Online , txTransfered_To_Online );
       F.WriteIntegerValue( tktxCore_Transaction_ID_High , txCore_Transaction_ID_High );
       F.WriteBooleanValue( tktxIsOnline_Transaction , txIsOnline_Transaction );
+      F.WriteByteValue( tktxSuggested_Mem_State , txSuggested_Mem_State );
       F.WriteToken( tkEnd_Transaction );
    end;
 end; { of Write_Transaction_Rec }
@@ -354,6 +356,7 @@ Begin
          tktxTransfered_To_Online             : txTransfered_To_Online := F.ReadBooleanValue;
          tktxCore_Transaction_ID_High         : txCore_Transaction_ID_High := F.ReadIntegerValue;
          tktxIsOnline_Transaction             : txIsOnline_Transaction := F.ReadBooleanValue;
+         tktxSuggested_Mem_State              : txSuggested_Mem_State := F.ReadByteValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -409,7 +412,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tktxSequence_No to tktxIsOnline_Transaction do begin
+  for i := tktxSequence_No to tktxSuggested_Mem_State do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -867,6 +870,11 @@ begin
   if (P1.txIsOnline_Transaction <> P2.txIsOnline_Transaction) then begin
     P3.txIsOnline_Transaction := P1.txIsOnline_Transaction;
     ChangedFields[i] := tktxIsOnline_Transaction;
+    Inc(i);
+  end;
+  if (P1.txSuggested_Mem_State <> P2.txSuggested_Mem_State) then begin
+    P3.txSuggested_Mem_State := P1.txSuggested_Mem_State;
+    ChangedFields[i] := tktxSuggested_Mem_State;
     Inc(i);
   end;
 

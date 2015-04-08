@@ -4,91 +4,96 @@ unit trxList32;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 uses
-   classes, bkdefs, ecollect, iostream, AuditMgr;
+  classes,
+  bkdefs,
+  ecollect,
+  iostream,
+  AuditMgr;
 
 type
-   TTransaction_List = class(TExtdSortedCollection)
-   protected
-      procedure FreeItem(Item : Pointer); override;
-   private
-      FLastSeq      : integer;
-      FClient       : TObject;
-      FBank_Account : TObject;
-      FAuditMgr     : TClientAuditManager;
-      FLoading: boolean;
-      function FindRecordID(ARecordID: integer):  pTransaction_Rec;
-      function FindDissectionRecordID(ATransaction: pTransaction_Rec;
-                                      ARecordID: integer): pDissection_Rec;
-      procedure SetClient(const Value: TObject);
-      procedure SetBank_Account(const Value: TObject);
-      procedure SetAuditMgr(const Value: TClientAuditManager);
-   public
-      constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager ); reintroduce; overload; virtual;
-      function Compare(Item1,Item2 : Pointer): Integer; override;
-      procedure Insert(Item:Pointer); override;
-      procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
-      procedure LoadFromFile(var S : TIOStream);
-      procedure SaveToFile(var S: TIOStream);
-      function  Transaction_At(Index : longint) : pTransaction_Rec;
-      function  GetTransCoreID_At(Index : longint) : int64;
-      function  FindTransactionFromECodingUID( UID : integer) : pTransaction_Rec;
-      function  FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
-      function New_Transaction : pTransaction_Rec;
+  TTransaction_List = class(TExtdSortedCollection)
+  protected
+    procedure FreeItem(Item : Pointer); override;
+  private
+    FLastSeq      : integer;
+    FClient       : TObject;
+    FBank_Account : TObject;
+    FAuditMgr     : TClientAuditManager;
+    FLoading: boolean;
+    function FindRecordID(ARecordID: integer):  pTransaction_Rec;
+    function FindDissectionRecordID(ATransaction: pTransaction_Rec;
+                                    ARecordID: integer): pDissection_Rec;
+    procedure SetClient(const Value: TObject);
+    procedure SetBank_Account(const Value: TObject);
+    procedure SetAuditMgr(const Value: TClientAuditManager);
+  public
+    constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager ); reintroduce; overload; virtual;
+    function Compare(Item1,Item2 : Pointer): Integer; override;
+    procedure Insert(Item:Pointer); override;
+    procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
+    procedure LoadFromFile(var S : TIOStream);
+    procedure SaveToFile(var S: TIOStream);
+    function  Transaction_At(Index : longint) : pTransaction_Rec;
+    function  GetTransCoreID_At(Index : longint) : int64;
+    function  FindTransactionFromECodingUID( UID : integer) : pTransaction_Rec;
+    function  FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
+    function New_Transaction : pTransaction_Rec;
 
-      // Effective date
-      // Note: returns 0 zero or first/last date of Effective Date
-      function  FirstEffectiveDate : LongInt;
-      function  LastEffectiveDate : LongInt;
+    // Effective date
+    // Note: returns 0 zero or first/last date of Effective Date
+    function  FirstEffectiveDate : LongInt;
+    function  LastEffectiveDate : LongInt;
 
-      // Presented date
-      function  FirstPresDate : LongInt;
-      function  LastPresDate : LongInt;
+    // Presented date
+    function  FirstPresDate : LongInt;
+    function  LastPresDate : LongInt;
 
-      procedure UpdateCRC(var CRC : Longword);
-      procedure DoAudit(ATransactionListCopy: TTransaction_List; AParentID: integer;
-                        AAccountType: byte; var AAuditTable: TAuditTable);
-      procedure DoDissectionAudit(ATransaction, ATransactionCopy: pTransaction_Rec;
-                                  AAccountType: byte;
-                                  var AAuditTable: TAuditTable);
-      procedure SetAuditInfo(P1, P2: pTransaction_Rec; AParentID: integer;
-                             var AAuditInfo: TAuditInfo);
-      procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
-                                       var AAuditInfo: TAuditInfo);
+    procedure UpdateCRC(var CRC : Longword);
+    procedure DoAudit(ATransactionListCopy: TTransaction_List; AParentID: integer;
+                      AAccountType: byte; var AAuditTable: TAuditTable);
+    procedure DoDissectionAudit(ATransaction, ATransactionCopy: pTransaction_Rec;
+                                AAccountType: byte;
+                                var AAuditTable: TAuditTable);
+    procedure SetAuditInfo(P1, P2: pTransaction_Rec; AParentID: integer;
+                           var AAuditInfo: TAuditInfo);
+    procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
+                                     var AAuditInfo: TAuditInfo);
       
-      property LastSeq : integer read FLastSeq;
-      property TxnClient: TObject read FClient write SetClient;
-      property TxnBankAccount: TObject read FBank_Account write SetBank_Account;
-      property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
-   end;
+    property LastSeq : integer read FLastSeq;
+    property TxnClient: TObject read FClient write SetClient;
+    property TxnBankAccount: TObject read FBank_Account write SetBank_Account;
+    property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
+  end;
 
-   procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
-   procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
-   procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
-                               AClientAuditManager: TClientAuditManager = nil );
+  procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
+  procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
+  procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
+                             AClientAuditManager: TClientAuditManager = nil );
 
 //******************************************************************************
 implementation
+
 uses
-   Math,
-   TransactionUtils,
-   bktxio,
-   bkdsio,
-   tokens,
-   LogUtil,
-   malloc,
-   SysUtils,
-   bkdbExcept,
-   bk5Except,
-   bkcrc,
-   bkconst,
-   BKAudit,
-   GenUtils,
-   bkDateUtils,
-   BKUTIL32;
+  Math,
+  TransactionUtils,
+  bktxio,
+  bkdsio,
+  tokens,
+  LogUtil,
+  malloc,
+  SysUtils,
+  bkdbExcept,
+  bk5Except,
+  bkcrc,
+  bkconst,
+  BKAudit,
+  GenUtils,
+  bkDateUtils,
+  BKUTIL32;
 
 const
-   DebugMe : boolean = false;
-   UnitName = 'TRXLIST32';
+  DebugMe : boolean = false;
+  UnitName = 'TRXLIST32';
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure Dispose_Dissection_Rec(p : PDissection_Rec);
@@ -190,28 +195,28 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TTransaction_List.Compare(Item1, Item2 : pointer): integer;
 begin
-    if pTransaction_Rec(Item1)^.txDate_Effective < pTransaction_Rec(Item2)^.txDate_Effective then result := -1 else
-    if pTransaction_Rec(Item1)^.txDate_Effective > pTransaction_Rec(Item2)^.txDate_Effective then result := 1 else
-    if pTransaction_Rec(Item1)^.txSequence_No    < pTransaction_Rec(Item2)^.txSequence_No then result := -1 else
-    if pTransaction_Rec(Item1)^.txSequence_No    > pTransaction_Rec(Item2)^.txSequence_No then result := 1 else
-    result := 0;
+  if pTransaction_Rec(Item1)^.txDate_Effective < pTransaction_Rec(Item2)^.txDate_Effective then result := -1 else
+  if pTransaction_Rec(Item1)^.txDate_Effective > pTransaction_Rec(Item2)^.txDate_Effective then result := 1 else
+  if pTransaction_Rec(Item1)^.txSequence_No    < pTransaction_Rec(Item2)^.txSequence_No then result := -1 else
+  if pTransaction_Rec(Item1)^.txSequence_No    > pTransaction_Rec(Item2)^.txSequence_No then result := 1 else
+  result := 0;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTransaction_List.Insert(Item:Pointer);
 const
   ThisMethodName = 'TTransaction_List.Insert';
 var
-   Msg : string;
+  Msg : string;
 begin
-   Msg := Format( '%s : Called Direct', [ ThisMethodName] );
-   LogUtil.LogMsg(lmError, UnitName, Msg );
-   raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
+  Msg := Format( '%s : Called Direct', [ ThisMethodName] );
+  LogUtil.LogMsg(lmError, UnitName, Msg );
+  raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTransaction_List.FreeItem(Item : Pointer);
 //Dispose Transaction has debug and error handling
 begin
-   Dispose_Transaction_Rec(pTransaction_Rec(item));
+  Dispose_Transaction_Rec(pTransaction_Rec(item));
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
@@ -219,21 +224,21 @@ procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
 const
   ThisMethodName = 'TTransaction_List.Insert_Transaction_Rec';
 Begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   If BKTXIO.IsATransaction_Rec( P ) then
-   Begin
-      Inc( FLastSeq );
-      P^.txSequence_No  := FLastSeq;
-      P^.txBank_Account := fBank_Account;
-      P^.txClient       := fClient;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  If BKTXIO.IsATransaction_Rec( P ) then
+  Begin
+    Inc( FLastSeq );
+    P^.txSequence_No  := FLastSeq;
+    P^.txBank_Account := fBank_Account;
+    P^.txClient       := fClient;
 
-      //Get next audit ID for new transactions
-      if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
-        P^.txAudit_Record_ID := fAuditMgr.NextAuditRecordID;
+    //Get next audit ID for new transactions
+    if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
+      P^.txAudit_Record_ID := fAuditMgr.NextAuditRecordID;
 
-      Inherited Insert( P );
-   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+    Inherited Insert( P );
+  end;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TTransaction_List.LoadFromFile(var S : TIOStream);
@@ -290,6 +295,7 @@ begin
   Result := BKTXIO.New_Transaction_Rec;
   Result.txBank_Account := fBank_Account;
   Result.txClient  := fClient;
+  Result.txSuggested_Mem_State := 0;
   ClearSuperFundFields(Result);
 
 end;

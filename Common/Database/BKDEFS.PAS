@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 728;
-   BK_IOLIB_Date    = '14/01/15';
+   BK_IOLIB_Version : Integer = 733;
+   BK_IOLIB_Date    = '09/04/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -272,7 +272,8 @@ Type
    pCandidate_Mem_Processing_Rec         = ^tCandidate_Mem_Processing_Rec ;
    pCandidate_Mem_Rec                    = ^tCandidate_Mem_Rec ;
    pRecommended_Mem_Rec                  = ^tRecommended_Mem_Rec ;
-   pMem_Scan_Command_Rec                 = ^tMem_Scan_Command_Rec ;
+   pSuggested_Mem_Rec                    = ^tSuggested_Mem_Rec ;
+   pTran_Suggested_Link_Rec              = ^tTran_Suggested_Link_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1000,6 +1001,7 @@ Type
       txTransfered_To_Online             : Boolean;       { Stored }
       txCore_Transaction_ID_High         : Integer;       { Stored }
       txIsOnline_Transaction             : Boolean;       { Stored }
+      txSuggested_Mem_State              : Byte;       { Stored }
       txEOR                              : Byte;
    end;
 
@@ -1434,14 +1436,24 @@ Type
 
 {  -------------------------------------------------------------------  }
 
-   tMem_Scan_Command_Rec = Packed Record
-      msRecord_Type                      : Byte;
-      msCommand                          : Integer;       { Stored }
-      msSection                          : Integer;       { Stored }
-      msIndex                            : Integer;       { Stored }
-      msSubIndex                         : Integer;       { Stored }
-      msBank_Account_Number              : String[ 20 ];       { Stored }
-      msEOR                              : Byte;
+   tSuggested_Mem_Rec = Packed Record
+      smRecord_Type                      : Byte;
+      smId                               : Integer;       { Stored }
+      smMatched_Phrase                   : String[ 200 ];       { Stored }
+      smCount                            : Integer;       { Stored }
+      smManual_Count                     : Integer;       { Stored }
+      smUncoded_Count                    : Integer;       { Stored }
+      smMatched_By                       : Byte;       { Stored }
+      smEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tTran_Suggested_Link_Rec = Packed Record
+      tsRecord_Type                      : Byte;
+      tsTran_Seq_No                      : Integer;       { Stored }
+      tsSuggestedId                      : Integer;       { Stored }
+      tsEOR                              : Byte;
    end;
 
 Const
@@ -1476,7 +1488,8 @@ Const
    Candidate_Mem_Processing_Rec_Size         = Sizeof( TCandidate_Mem_Processing_Rec ); 
    Candidate_Mem_Rec_Size                    = Sizeof( TCandidate_Mem_Rec ); 
    Recommended_Mem_Rec_Size                  = Sizeof( TRecommended_Mem_Rec ); 
-   Mem_Scan_Command_Rec_Size                 = Sizeof( TMem_Scan_Command_Rec ); 
+   Suggested_Mem_Rec_Size                    = Sizeof( TSuggested_Mem_Rec ); 
+   Tran_Suggested_Link_Rec_Size              = Sizeof( TTran_Suggested_Link_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

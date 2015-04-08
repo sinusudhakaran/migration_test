@@ -695,6 +695,14 @@ namespace BankLink.Practice.BooksIO
 		public bool IsOnlineTransaction { get; set; }
 
 
+
+		/// <summary>
+		/// SuggestedMemState property
+		/// </summary>
+		[XmlAttribute("SuggestedMemState", DataType = "unsignedByte")]
+		public byte SuggestedMemState { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -794,6 +802,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteBooleanValue(246, TransferedToOnline);
 			s.WriteInt32Value(247, CoreTransactionIDHigh);
 			s.WriteBooleanValue(248, IsOnlineTransaction);
+			s.WriteByteValue(249, SuggestedMemState);
 			s.WriteToken(161);
 		}
 
@@ -1066,6 +1075,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 248 :
 				IsOnlineTransaction = s.ReadBooleanValue("IsOnlineTransaction");
+				break;
+			case 249 :
+				SuggestedMemState = s.ReadByteValue("SuggestedMemState");
 				break;
 			case BeginToken :
 			case EndToken :

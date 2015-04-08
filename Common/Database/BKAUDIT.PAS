@@ -636,6 +636,7 @@ begin
     FAuditNamesArray[160,246] := 'Transfered_To_Online';
     FAuditNamesArray[160,247] := 'Core_Transaction_ID_High';
     FAuditNamesArray[160,248] := 'IsOnline_Transaction';
+    FAuditNamesArray[160,249] := 'Suggested_Mem_State';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';
@@ -961,12 +962,17 @@ begin
     FAuditNamesArray[168,174] := 'Manual_Count';
     FAuditNamesArray[168,175] := 'Uncoded_Count';
 
-   FAuditTableArray[169] := 'Mem_Scan_Command';
-    FAuditNamesArray[169,171] := 'Command';
-    FAuditNamesArray[169,172] := 'Section';
-    FAuditNamesArray[169,173] := 'Index';
-    FAuditNamesArray[169,174] := 'SubIndex';
-    FAuditNamesArray[169,175] := 'Bank_Account_Number';
+   FAuditTableArray[169] := 'Suggested_Mem';
+    FAuditNamesArray[169,171] := 'Id';
+    FAuditNamesArray[169,172] := 'Matched_Phrase';
+    FAuditNamesArray[169,173] := 'Count';
+    FAuditNamesArray[169,174] := 'Manual_Count';
+    FAuditNamesArray[169,175] := 'Uncoded_Count';
+    FAuditNamesArray[169,176] := 'Matched_By';
+
+   FAuditTableArray[170] := 'Tran_Suggested_Link';
+    FAuditNamesArray[170,172] := 'Tran_Seq_No';
+    FAuditNamesArray[170,173] := 'SuggestedId';
 
 end;
 

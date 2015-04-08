@@ -906,6 +906,7 @@ F|Core Transaction ID|L
 F|Transfered To Online|Y
 F|Core Transaction ID High|L
 F|IsOnline_Transaction|Y
+F|Suggested Mem State|B
 E
 
 N|Dissection|ds|180
@@ -1261,10 +1262,17 @@ F|Manual Count|L
 F|Uncoded Count|L
 E
 
-N|Mem Scan Command|ms|169
-F|Command|I
-F|Section|I
-F|Index|I
-F|SubIndex|I
-F|Bank Account Number|S|20
+N|Suggested Mem|sm|169
+F|Id|L
+F|Matched Phrase|S|200
+F|Count|L
+F|Manual Count|L
+F|Uncoded Count|L
+F|Matched By|B
 E
+
+N|Tran Suggested Link|ts|170
+F|Tran Seq No|L
+F|SuggestedId|L
+E
+

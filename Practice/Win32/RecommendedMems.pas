@@ -23,6 +23,11 @@ uses
   RecommendedMemsV2;
 
 type
+  TTranRecomendedMemStatus = (trmUnScanned,
+                              trmCandidate,
+                              trmRecomended,
+                              trmMemorised);
+
   TRecommended_Mems = class(TObject)
   private
     fMemScanRefCount : integer;
@@ -362,10 +367,7 @@ begin
         end;
         MEM_SCAN_SECTION_PROCESS : begin
           Transaction := BankAccount.baTransaction_List.Transaction_At(Command.msIndex);
-          NewUnScanTran := TUnscanned_Transaction.Create;
-          NewUnScanTran.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
-          NewUnScanTran.utFields.utSequence_No := Transaction.txSequence_No;
-          Unscanned.Insert(NewUnScanTran);
+          Transaction.txSuggested_Mem_State := ord(trmUnScanned);
 
           Command.msIndex := Command.msIndex - 1;
           if Command.msIndex = -1 then
@@ -398,10 +400,7 @@ begin
         end;
         MEM_SCAN_SECTION_PROCESS : begin
           Transaction := BankAccount.baTransaction_List.Transaction_At(Command.msSubIndex);
-          NewUnScanTran := TUnscanned_Transaction.Create;
-          NewUnScanTran.utFields.utBank_Account_Number := BankAccount.baFields.baBank_Account_Number;
-          NewUnScanTran.utFields.utSequence_No := Transaction.txSequence_No;
-          Unscanned.Insert(NewUnScanTran);
+          Transaction.txSuggested_Mem_State := ord(trmUnScanned);
 
           Command.msSubIndex := Command.msSubIndex - 1;
           if Command.msSubIndex = -1 then

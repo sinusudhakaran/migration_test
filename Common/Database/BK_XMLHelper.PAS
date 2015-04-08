@@ -259,7 +259,15 @@ public
 end;
 
 
-TMem_Scan_Command_RecHelper = record helper for TMem_Scan_Command_Rec
+TSuggested_Mem_RecHelper = record helper for TSuggested_Mem_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TTran_Suggested_Link_RecHelper = record helper for TTran_Suggested_Link_Rec
 public
 	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
 	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
@@ -2121,6 +2129,7 @@ begin
 	SetBoolAttr(Result, 'TransferedToOnline', txTransfered_To_Online);
 	SetIntAttr(Result, 'CoreTransactionIDHigh', txCore_Transaction_ID_High);
 	SetBoolAttr(Result, 'IsOnlineTransaction', txIsOnline_Transaction);
+	SetIntAttr(Result, 'SuggestedMemState', txSuggested_Mem_State);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2222,6 +2231,7 @@ begin
 	txTransfered_To_Online := GetBoolAttr(Result, 'TransferedToOnline');
 	txCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
 	txIsOnline_Transaction := GetBoolAttr(Result, 'IsOnlineTransaction');
+	txSuggested_Mem_State := GetIntAttr(Result, 'SuggestedMemState');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
 	end;
@@ -3710,22 +3720,23 @@ end;
 
 // ----------------------------------------------------------------------------
 
-class function TMem_Scan_Command_RecHelper.GetXMLNodeName: string;
+class function TSuggested_Mem_RecHelper.GetXMLNodeName: string;
 begin
-	result := 'BKMemScanCommand';
+	result := 'BKSuggestedMem';
 end;
 
 
-function TMem_Scan_Command_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+function TSuggested_Mem_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
 	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
-	SetIntAttr(Result, 'Command', msCommand);
-	SetIntAttr(Result, 'Section', msSection);
-	SetIntAttr(Result, 'Index', msIndex);
-	SetIntAttr(Result, 'SubIndex', msSubIndex);
-	SetTextAttr(Result, 'BankAccountNumber', msBank_Account_Number);
+	SetIntAttr(Result, 'Id', smId);
+	SetTextAttr(Result, 'MatchedPhrase', smMatched_Phrase);
+	SetIntAttr(Result, 'Count', smCount);
+	SetIntAttr(Result, 'ManualCount', smManual_Count);
+	SetIntAttr(Result, 'UncodedCount', smUncoded_Count);
+	SetIntAttr(Result, 'MatchedBy', smMatched_By);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3733,7 +3744,7 @@ begin
 end;
 
 
-function TMem_Scan_Command_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+function TSuggested_Mem_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
 	I, J: Integer;
 begin
@@ -3742,13 +3753,56 @@ begin
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
 	try
-	msCommand := GetIntAttr(Result, 'Command');
-	msSection := GetIntAttr(Result, 'Section');
-	msIndex := GetIntAttr(Result, 'Index');
-	msSubIndex := GetIntAttr(Result, 'SubIndex');
-	msBank_Account_Number := GetTextAttr(Result, 'BankAccountNumber');
+	smId := GetIntAttr(Result, 'Id');
+	smMatched_Phrase := GetTextAttr(Result, 'MatchedPhrase');
+	smCount := GetIntAttr(Result, 'Count');
+	smManual_Count := GetIntAttr(Result, 'ManualCount');
+	smUncoded_Count := GetIntAttr(Result, 'UncodedCount');
+	smMatched_By := GetIntAttr(Result, 'MatchedBy');
 	except
-		on E: Exception do ReRaise (E, 'Reading TMem_Scan_Command_Rec');
+		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TTran_Suggested_Link_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKTranSuggestedLink';
+end;
+
+
+function TTran_Suggested_Link_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'TranSeqNo', tsTran_Seq_No);
+	SetIntAttr(Result, 'SuggestedId', tsSuggestedId);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TTran_Suggested_Link_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	tsTran_Seq_No := GetIntAttr(Result, 'TranSeqNo');
+	tsSuggestedId := GetIntAttr(Result, 'SuggestedId');
+	except
+		on E: Exception do ReRaise (E, 'Reading TTran_Suggested_Link_Rec');
 	end;
 
 	CNode := nil;
