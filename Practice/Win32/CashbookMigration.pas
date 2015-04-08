@@ -1723,7 +1723,7 @@ begin
       ChartExportCol := TChartExportCol.Create(TChartExportItem);
       try
         ChartExportCol.FillChartExportCol(true);
-        ChartExportCol.UpdateClosingBalances(OpeningBalanceDate);
+        ChartExportCol.UpdateOpeningBalances(OpeningBalanceDate);
         GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
         try
           GSTMapCol.FillGstClassMapArr;
