@@ -609,8 +609,13 @@ begin
     AccRec := MyClient.clChart.Account_At(ChartIndex)^;
 
     OpeningBalance := 0;
-    for AmountIndex := 0 to high(AccRec.chTemp_Amount.This_Year) do
-      OpeningBalance := OpeningBalance + AccRec.chTemp_Amount.This_Year[AmountIndex];
+    if BalanceStartDte = aOpeningBalanceDate then
+      OpeningBalance := AccRec.chTemp_Amount.This_Year[0]
+    else
+    begin
+      for AmountIndex := 0 to high(AccRec.chTemp_Amount.This_Year) do
+        OpeningBalance := OpeningBalance + AccRec.chTemp_Amount.This_Year[AmountIndex];
+    end;
 
     UpdateOpeningBalancesForCode(AccRec.chAccount_Code,
                                  OpeningBalance,

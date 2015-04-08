@@ -1273,8 +1273,8 @@ begin
         begin
           if BankAccount.baFields.baContra_Account_Code = AccRec.chAccount_Code then
           begin
-            if not (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccAsset)) or
-                   (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccLiabilities)) then
+            if not ((NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccAsset)) or
+                    (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccLiabilities))) then
               NewChartItem.AccountType := GetMigrationMappedReportGroupCode(ccAsset);
           end;
         end;
