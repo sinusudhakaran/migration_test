@@ -126,7 +126,6 @@ uses
   MainFrm,
   OSFont,
   rmObj32,
-  msObj32,
   SysUtils,
   Windows,
   LogUtil,
@@ -268,10 +267,10 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.AddScanCommand(aCommand : integer; aAccountNumber : string; aSection : integer; aIndex : integer; aSubIndex : integer);
-var
-  NewMemScanCommand : TMem_Scan_Command;
+//var
+//  NewMemScanCommand : TMem_Scan_Command;
 begin
-  Assert((aCommand >= MEM_SCAN_COMMAND_MIN) and (aCommand <= MEM_SCAN_COMMAND_MAX),
+  {Assert((aCommand >= MEM_SCAN_COMMAND_MIN) and (aCommand <= MEM_SCAN_COMMAND_MAX),
          'AddScanCommand - Command not valid.');
 
   NewMemScanCommand := TMem_Scan_Command.Create;
@@ -281,18 +280,19 @@ begin
   NewMemScanCommand.msFields.msSubIndex := aSubIndex;
   NewMemScanCommand.msFields.msBank_Account_Number := aAccountNumber;
 
-  fMemScanCommands.Insert(NewMemScanCommand);
+  fMemScanCommands.Insert(NewMemScanCommand);}
 end;
 
 //------------------------------------------------------------------------------
 function TRecommended_Mems.AreThereMoreCommands(): boolean;
 begin
-  Result := fMemScanCommands.ItemCount > 0;
+  //Result := fMemScanCommands.ItemCount > 0;
 end;
 
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.DoCommandProcessing();
-var
+begin
+{var
   Command : pMem_Scan_Command_Rec;
   Transaction : pTransaction_Rec;
   NewUnScanTran : TUnscanned_Transaction;
@@ -1120,7 +1120,7 @@ begin
   fPopulateUnscannedLists := false;
   fBankAccounts := aBankAccounts;
 
-  fMemScanCommands := TMem_Scan_Command_List.Create;
+  //fMemScanCommands := TMem_Scan_Command_List.Create;
   fUnscanned := TUnscanned_Transaction_List.Create;
   fCandidate := TCandidate_Mem_Processing.Create;
   fCandidates := TCandidate_Mem_List.Create;
@@ -1142,7 +1142,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TRecommended_Mems.Destroy;
 begin
-  StopMemScan;
+  //StopMemScan;
 
   FreeAndNil(fMemsV2);
 
@@ -1150,7 +1150,7 @@ begin
   FreeAndNil(fUnscanned);
   FreeAndNil(fCandidate);
   FreeAndNil(fRecommended);
-  FreeAndNil(fMemScanCommands);
+  //FreeAndNil(fMemScanCommands);
 
   inherited;
 end;
@@ -1169,7 +1169,7 @@ begin
   fCandidate.SaveToFile(S);
   fCandidates.SaveToFile(S);
   fRecommended.SaveToFile(S);
-  fMemScanCommands.SaveToFile(S);
+  //fMemScanCommands.SaveToFile(S);
 
   S.WriteToken(tkEndSection);
 
@@ -1199,7 +1199,7 @@ begin
         tkBegin_Candidate_Mem_Processing  : fCandidate.LoadFromFile(S);
         tkBeginCandidate_Mem_List         : fCandidates.LoadFromFile(S);
         tkBeginRecommended_Mem_List       : fRecommended.LoadFromFile(S);
-        tkBeginMem_Scan_Command_List      : fMemScanCommands.LoadFromFile(S);
+        //tkBeginMem_Scan_Command_List      : fMemScanCommands.LoadFromFile(S);
       else
         begin { Should never happen }
           Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -1439,7 +1439,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.RemoveAccountFromMems(aAccountNumber : string; aDoPopulate: boolean);
 begin
-  AddScanCommand(MEM_SCAN_COMMAND_DEL_ACCOUNT_MEMS, aAccountNumber);
+  //AddScanCommand(MEM_SCAN_COMMAND_DEL_ACCOUNT_MEMS, aAccountNumber);
 
   if aDoPopulate then
     PopulateUnscannedListOneAccount(aAccountNumber);
@@ -1458,10 +1458,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.RemoveAccountsFromMems(aDoPopulate: boolean);
 begin
-  AddScanCommand(MEM_SCAN_COMMAND_DEL_ALL_ACCOUNTS_MEMS);
+  //AddScanCommand(MEM_SCAN_COMMAND_DEL_ALL_ACCOUNTS_MEMS);
 
-  if aDoPopulate then
-    AddScanCommand(MEM_SCAN_COMMAND_ADD_ALL_ACCOUNTS_UNSCANNED);
+  //if aDoPopulate then
+  //  AddScanCommand(MEM_SCAN_COMMAND_ADD_ALL_ACCOUNTS_UNSCANNED);
 end;
 
 // Removes a given list of accounts from candidates and recommended mems
@@ -1470,13 +1470,13 @@ procedure TRecommended_Mems.RemoveAccountsFromMems(aAccounts: TStringList; aDoPo
 var
   AccountIndex : integer;
 begin
-  for AccountIndex := 0 to aAccounts.Count-1 do
+  {for AccountIndex := 0 to aAccounts.Count-1 do
   begin
     if AccountIndex = 0 then
       AddScanCommand(MEM_SCAN_COMMAND_DEL_SELECTED_ACCOUNTS_MEMS, aAccounts.Strings[AccountIndex], 0, aAccounts.Count-1)
     else
       AddScanCommand(MEM_SCAN_COMMAND_DEL_SELECTED_ACCOUNTS_MEMS, aAccounts.Strings[AccountIndex]);
-  end;
+  end; }
 end;
 
 // Removes a given list of accounts from candidates and recommended mems
@@ -1501,7 +1501,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.PopulateUnscannedListOneAccount(aAccountNumber : string);
 begin
-  AddScanCommand(MEM_SCAN_COMMAND_ADD_ACCOUNT_UNSCANNED, aAccountNumber);
+  //AddScanCommand(MEM_SCAN_COMMAND_ADD_ACCOUNT_UNSCANNED, aAccountNumber);
 end;
 
 //------------------------------------------------------------------------------
@@ -1515,20 +1515,20 @@ procedure TRecommended_Mems.PopulateUnscannedListSelecedAccounts(aAccounts: TStr
 var
   AccountIndex : integer;
 begin
-  for AccountIndex := 0 to aAccounts.Count-1 do
+  {for AccountIndex := 0 to aAccounts.Count-1 do
   begin
     if AccountIndex = 0 then
       AddScanCommand(MEM_SCAN_COMMAND_ADD_SELECTED_ACCOUNTS_UNSCANNED, aAccounts.Strings[AccountIndex], 0, aAccounts.Count-1)
     else
       AddScanCommand(MEM_SCAN_COMMAND_ADD_SELECTED_ACCOUNTS_UNSCANNED, aAccounts.Strings[AccountIndex]);
-  end;
+  end; }
 end;
 
 // Builds the unscanned transactions list for all bank accounts
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.PopulateUnscannedListAllAccounts();
 begin
-  AddScanCommand(MEM_SCAN_COMMAND_ADD_ALL_ACCOUNTS_UNSCANNED);
+  //AddScanCommand(MEM_SCAN_COMMAND_ADD_ALL_ACCOUNTS_UNSCANNED);
 end;
 
 // Called after we have created a new memorisation, any matching recommended mems should be deleted.
