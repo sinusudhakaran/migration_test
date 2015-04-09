@@ -4625,7 +4625,8 @@ begin
           (MDIChildren[MDIIndex] is TfrmBudget) or
           (MDIChildren[MDIIndex] is TfrmClientHomePage)) then
       begin
-        TempStr := StringReplace(MDIChildren[MDIIndex].Caption, '&', '&&', [rfReplaceAll]);
+        // Note: only replace the first &, the remaining &s are output normally anyway
+        TempStr := StringReplace(MDIChildren[MDIIndex].Caption, '&', '&&', []);
         StrPos := Pos('Code Entries', TempStr);
         if StrPos > 0 then
           TempStr := Copy(TempStr, 14, Length(TempStr))
