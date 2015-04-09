@@ -12,17 +12,31 @@ unit baObj32;
 }
 //------------------------------------------------------------------------------
 interface
+
 uses
-  bkdateutils,classes, bkdefs, iostream, trxList32, mxList32, moneydef, MatchedItemsList,
-  MemorisationsObj, AuditMgr, glList32, frList32, dxList32;
+  bkdateutils,
+  classes,
+  bkdefs,
+  iostream,
+  trxList32,
+  mxList32,
+  moneydef,
+  MatchedItemsList,
+  MemorisationsObj,
+  AuditMgr,
+  glList32,
+  frList32,
+  dxList32,
+  smList32,
+  tsList32;
 
 type
   pDailyBalancesRec = ^tDailyBalancesRec;
   tDailyBalancesRec = Array[ 0..366 ] of Money;
 
 type
+  //----------------------------------------------------------------------------
   TBank_Account = class
-//    baClient : TObject;
     baFields : tBank_Account_Rec;
     baTransaction_List : tTransaction_List;
     baOld_Memorised_Transaction_List : tMemorised_Transaction_List_V53;
@@ -30,31 +44,32 @@ type
     baExchange_Gain_Loss_List: TExchange_Gain_Loss_List;
     baDeleted_Transaction_List: TDeleted_Transaction_List;
     baFinalized_Exchange_Rate_List: TFinalized_Exchange_Rate_List;
-  private
+    baSuggested_Mem_List : TSuggested_Mem_List;
+    baTran_Suggested_Link_List : TTran_Suggested_Link_List;
     FMatched_Items_List : tMatched_Items_List;
     FClient : TObject;
+
+  private
     procedure ApplyDefaultGST(pT: pTransaction_Rec);
     function GetAuditMgr: TAuditManager;
   public
-    constructor  Create(AClient: TObject);
-    destructor   Destroy; override;
-    procedure    SaveToFile(var s: TIOStream);
-    procedure    LoadFromFile(var s: TIOStream);
-    procedure    CalculateBalances( YSD : LongInt );
-    procedure    CalculatePDBalances( D1, D2 : LongInt; VAR OpBankBal, ClBankBal, OpCashbookBal, ClCashbookBal : Money );
-    procedure    CalculatePDBalancesInLocalCurrency( D1, D2 : LongInt;
-                    Out LocalOpBankBal, LocalClBankBal, LocalOpCashbookBal, LocalClCashbookBal,
-                        LocalBankMovement, LocalCashbookMovement, LocalBankForexGainOrLoss, LocalCashbookForexGainOrLoss : Money );
+    constructor Create(AClient: TObject);
+    destructor Destroy; override;
+    procedure SaveToFile(var s: TIOStream);
+    procedure LoadFromFile(var s: TIOStream);
+    procedure CalculateBalances( YSD : LongInt );
+    procedure CalculatePDBalances( D1, D2 : LongInt; VAR OpBankBal, ClBankBal, OpCashbookBal, ClCashbookBal : Money );
+    procedure CalculatePDBalancesInLocalCurrency(D1, D2 : LongInt;
+                                                 Out LocalOpBankBal, LocalClBankBal, LocalOpCashbookBal, LocalClCashbookBal,
+                                                 LocalBankMovement, LocalCashbookMovement, LocalBankForexGainOrLoss,
+                                                 LocalCashbookForexGainOrLoss : Money );
 
-    procedure    UpdateSequenceNumbers;
-
-    function     IsAJournalAccount : boolean;
-
-    function     FindOriginalItem( Match_ID : integer) : pTransaction_Rec;
-    function     MatchChildCount( OrigTrans : pTransaction_Rec) : integer;
-
-    function     MaxHistoricalDate: Integer;
-    procedure    UpdateCRC(var CRC : LongWord);
+    procedure UpdateSequenceNumbers;
+    function IsAJournalAccount : boolean;
+    function FindOriginalItem(Match_ID : integer) : pTransaction_Rec;
+    function MatchChildCount(OrigTrans : pTransaction_Rec) : integer;
+    function MaxHistoricalDate: Integer;
+    procedure UpdateCRC(var CRC : LongWord);
 
     function MoneyStrNoSymbol( Const Amount : Money ): String;
     function MoneyStr( const Amount : Money ): String;
@@ -85,47 +100,46 @@ type
 
     function LastTransactionFinalizedOrTransferred(FirstDayOfMonth: Integer): Boolean;
     function AllFinalizedOrTransferred(StartDate, EndDate: Integer): Boolean;
-
     function FindTransaction(TransactionDate: Integer; out Transaction: pTransaction_Rec): Boolean;
 
-    property AuditMgr: TAuditManager read GetAuditMgr;                  
+    property AuditMgr: TAuditManager read GetAuditMgr;
   end;
 
 const
-   UserDefinedBankAccountDesc   = 'Manual Bank Account';
+  UserDefinedBankAccountDesc   = 'Manual Bank Account';
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 implementation
 uses
-   Tokens,
-   LogUtil,
-   bkbaio,
-   dateDef,
-   ovcDate,
-   bkconst,
-   SysUtils,
-   Globals,
-   MoneyUtils,
-   clObj32,
-   bkdbExcept,
-   bkcrc,
-   PayeeObj,
-   InfoMoreFrm,
-   ForExHelpers,
-   ExchangeRateList,
-   GSTCALC32;
+  Tokens,
+  LogUtil,
+  bkbaio,
+  dateDef,
+  ovcDate,
+  bkconst,
+  SysUtils,
+  Globals,
+  MoneyUtils,
+  clObj32,
+  bkdbExcept,
+  bkcrc,
+  PayeeObj,
+  InfoMoreFrm,
+  ForExHelpers,
+  ExchangeRateList,
+  GSTCALC32;
 
 const
   UnitName = 'BAOBJ32';
 
 var
-   DebugMe : Boolean = false;
+  DebugMe : Boolean = false;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
 function TBank_Account.AccountName: string;
 begin
- With baFields do Begin
+  With baFields do
+  begin
     if IsAForexAccount then
       Result := Format( '%s (%s)', [ baBank_Account_Name, baCurrency_Code ] )
     else
@@ -133,52 +147,56 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function TBank_Account.BalanceStr( const Amount : Money): String;
 begin
   Result := MoneyUtils.BalanceStr( Amount, baFields.baCurrency_Code );
 end;
 
+//------------------------------------------------------------------------------
 function TBank_Account.BalanceStrNoSymbol(const Amount: Money): String;
 begin
   Result := MoneyUtils.MoneyStrNoSymbol( Amount );
 end;
 
+//------------------------------------------------------------------------------
 procedure TBank_Account.CalculateBalances( YSD : LongInt );
 const
   ThisMethodName = 'TBank_Account.CalculateBalances';
+var
+  LastYearStartDate : LongInt;
+  ThisYear : tPeriod_End_Dates; { in DATEDEF }
+  LastYear : tPeriod_End_Dates; { in DATEDEF }
+  D, M, Y  : Integer;
+  p : Byte;
+  E : LongInt;
+  Amount : Money;
+  Forex : Boolean;
 
-   procedure SetBalances(var Accumulator : TLBRec; Balance : Money);
-   var
-     p : byte;
-   begin
-     for p := 1 to 12 do
-     begin
-       Accumulator.This_Year[p] := Balance;
-       Accumulator.Last_Year[p] := Balance;
-     end;
-   end;
+  //----------------------------------------------------------------------------
+  procedure SetBalances(var Accumulator : TLBRec; Balance : Money);
+  var
+    p : byte;
+  begin
+    for p := 1 to 12 do
+    begin
+      Accumulator.This_Year[p] := Balance;
+      Accumulator.Last_Year[p] := Balance;
+    end;
+  end;
 
-
-Var
-   LastYearStartDate : LongInt;
-   ThisYear : tPeriod_End_Dates; { in DATEDEF }
-   LastYear : tPeriod_End_Dates; { in DATEDEF }
-   D, M, Y  : Integer;
-   p : Byte;
-   E : LongInt;
-   Amount : Money;
-   Forex : Boolean;
-
-   procedure ForexBalance(var Accumulator : TLBRec);
-   var
-      er: Double;
-      p: byte;
-   begin
-      for p := 1 to 12 do begin
-         Accumulator.This_Year[p] := Local_Currency_Equivalent(Accumulator.This_Year[p],ThisYear[p], er);
-         Accumulator.Last_Year[p] := Local_Currency_Equivalent(Accumulator.Last_Year[p],LastYear[p], er);
-      end;
-   end;
+  //----------------------------------------------------------------------------
+  procedure ForexBalance(var Accumulator : TLBRec);
+  var
+    er: Double;
+    p: byte;
+  begin
+    for p := 1 to 12 do
+    begin
+      Accumulator.This_Year[p] := Local_Currency_Equivalent(Accumulator.This_Year[p],ThisYear[p], er);
+      Accumulator.Last_Year[p] := Local_Currency_Equivalent(Accumulator.Last_Year[p],LastYear[p], er);
+    end;
+  end;
 
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Called' );
@@ -562,6 +580,9 @@ begin
    baDeleted_Transaction_List := TDeleted_Transaction_List.Create;
    baFinalized_Exchange_Rate_List := TFinalized_Exchange_Rate_List.Create;
 
+   baSuggested_Mem_List := TSuggested_Mem_List.Create;
+   baTran_Suggested_Link_List := TTran_Suggested_Link_List.Create;
+
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
@@ -615,6 +636,9 @@ begin
    baDeleted_Transaction_List.Free;
    FreeAndNil(baExchange_Gain_Loss_List);
    FreeAndNil(baFinalized_Exchange_Rate_List);
+   FreeAndNil(baSuggested_Mem_List);
+   FreeAndNil(baTran_Suggested_Link_List);
+
    FMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
 
@@ -757,7 +781,10 @@ Begin
          tkBeginMemorisationsList : baMemorisations_List.LoadFromStream(S);
          tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);
          tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);  
-         tkBeginFinalized_Exchange_Rate_List: baFinalized_Exchange_Rate_List.LoadFromFile(S);  
+         tkBeginFinalized_Exchange_Rate_List: baFinalized_Exchange_Rate_List.LoadFromFile(S);
+         tkBeginSuggested_Mem_List: baSuggested_Mem_List.LoadFromFile(S);
+         tkBeginTran_Suggested_Link_List: baTran_Suggested_Link_List.LoadFromFile(S);
+
          else
          begin { Should never happen }
             Msg := Format( '%s : Unknown Token %d', [ ThisMethodName, Token ] );
@@ -791,9 +818,11 @@ begin
 
    baTransaction_List.SaveToFile( S );
    baMemorisations_List.SaveToStream( S);
-   baExchange_Gain_Loss_List.SaveToFile(S); 
+   baExchange_Gain_Loss_List.SaveToFile(S);
    baDeleted_Transaction_List.SaveToFile(S); 
    baFinalized_Exchange_Rate_List.SaveToFile(S);
+   baSuggested_Mem_List.SaveToFile(S);
+   baTran_Suggested_Link_List.SaveToFile(S);
 
    //as of version 60.5 this list is no longer used.  It should be removed
    //in future version.  It has only been left in to aid in upgrading from version

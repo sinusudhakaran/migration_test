@@ -798,6 +798,7 @@ C|Temp Balance|$
 F|Core_Account_ID|L
 F|Secure_Online_Code|S|20
 F|Exchange Gain Loss Code|S|20
+F|Suggested UnProcessed Count|L
 E
 
 N|Transaction|tx|160

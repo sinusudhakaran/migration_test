@@ -897,7 +897,7 @@ begin
    FExchangeSource.SaveToStream( S );
    fAuditTable.SaveToStream( S );
    clTPR_Payee_Detail.SaveToFile( S );
-   clRecommended_Mems.SaveToFile(S);
+   //clRecommended_Mems.SaveToFile(S);  // removed Recommended Mems -- still in load when loading for first time
    S.WriteToken( tkEndSection );
    LogDebugMsg(ThisMethodName + ' Ends' );
 end;

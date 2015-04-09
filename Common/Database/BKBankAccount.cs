@@ -439,6 +439,14 @@ namespace BankLink.Practice.BooksIO
 		public String ExchangeGainLossCode { get; set; }
 
 
+
+		/// <summary>
+		/// SuggestedUnProcessedCount property
+		/// </summary>
+		[XmlAttribute("SuggestedUnProcessedCount", DataType = "int")]
+		public Int32 SuggestedUnProcessedCount { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -508,6 +516,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteInt32Value(204, CoreAccountID);
 			s.WriteShortStringValue(205, SecureOnlineCode);
 			s.WriteShortStringValue(206, ExchangeGainLossCode);
+			s.WriteInt32Value(207, SuggestedUnProcessedCount);
 			s.WriteToken(151);
 		}
 
@@ -690,6 +699,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 206 :
 				ExchangeGainLossCode = s.ReadShortStringValue("ExchangeGainLossCode");
+				break;
+			case 207 :
+				SuggestedUnProcessedCount = s.ReadInt32Value("SuggestedUnProcessedCount");
 				break;
 			case BeginToken :
 			case EndToken :

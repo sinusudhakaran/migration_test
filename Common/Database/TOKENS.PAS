@@ -69,6 +69,9 @@ CONST
    tkBeginRecommended_Mem_List         = 77;
    tkBeginMem_Scan_Command_List        = 78;
 
+   tkBeginSuggested_Mem_List           = 79;
+   tkBeginTran_Suggested_Link_List     = 80;
+
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;
    tkEndSection               = 254;
