@@ -29,8 +29,8 @@ Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\*.INF"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
 Source: "Bin\app_uk.ini"; DestDir: "{app}"; DestName: "app.ini"
-Source: "Bin\CMst.dat"; DestDir: "{app}\CACHE\HTML"
-Source: "Bin\CMdt.dat"; DestDir: "{app}\CACHE\HTML"
+Source: "Bin\CMst.html"; DestDir: "{app}\CACHE\HTML"
+Source: "Bin\CMdt.html"; DestDir: "{app}\CACHE\HTML"
 
 Source: "Practice Help\guide_uk.chm"; DestDir: "{app}"; DestName: "guide.chm"
 
