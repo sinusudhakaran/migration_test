@@ -460,7 +460,7 @@ var
       Writeln(f, writeStr);
     end;
 
-    LeftOver := (LenStr - (Chunks*MAX_LINE_LEN))-1;
+    LeftOver := (LenStr - (Chunks*MAX_LINE_LEN));
     if LeftOver > 0 then
     begin
       writeStr := midstr(aMsg, LenStr-LeftOver, LeftOver);
@@ -543,7 +543,7 @@ var
       Writeln(f, writeStr);
     end;
 
-    LeftOver := (LenStr - (Chunks*MAX_LINE_LEN))-1;
+    LeftOver := (LenStr - (Chunks*MAX_LINE_LEN));
     if LeftOver > 0 then
     begin
       writeStr := midstr(aMsg, LenStr-LeftOver, LeftOver);

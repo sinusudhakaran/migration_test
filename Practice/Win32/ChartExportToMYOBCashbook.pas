@@ -538,6 +538,9 @@ begin
   if ItemAtCode(aCode, ChartExportItem) then
   begin
     CrDrSignFromReportGroup   := GetCrDrSignFromReportGroup(ChartExportItem.ReportGroupId);
+    if CrDrSignFromReportGroup = 0 then
+      CrDrSignFromReportGroup := 1;
+
     OpeningBalance            := CrDrSignFromReportGroup * aOpeningBalance;
     DisplayOpeningBalance     := GetStringFromAmount(OpeningBalance);
 

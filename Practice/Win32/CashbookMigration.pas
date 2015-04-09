@@ -170,9 +170,9 @@ type
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
     function CalculateOpeningBalanceDate(aClient : TClientObj) : TStDate;
 
-    function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
+    function UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aUploadID, aError: string): boolean;
 
-    function MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
+    function MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aUploadID, aError: string): boolean;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -1524,7 +1524,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aError: string): boolean;
+function TCashbookMigration.UploadClient(aClientBase : TClientBase; aSelectedData: TSelectedData; var aUploadID, aError: string): boolean;
 var
   Request: TlkJSONobject;
   sURL: string;
@@ -1537,6 +1537,7 @@ var
   MigUpload : TMigrationUpload;
   MigUploadResponse : TMigrationUploadResponse;
 begin
+  aUploadID := '';
   Result := false;
   // FileUpload
 
@@ -1599,6 +1600,8 @@ begin
               end;
               Exit;
             end;
+
+            aUploadID := MigUploadResponse.UploadID;
             Result := true;
 
           finally
@@ -1679,7 +1682,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aError: string): boolean;
+function TCashbookMigration.MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData; var aUploadID, aError: string): boolean;
 var
   ClientBase : TClientBase;
   ChartExportCol : TChartExportCol;
@@ -1688,6 +1691,7 @@ var
   OpeningBalanceDate : TStDate;
   UsedDivisions : TStringList;
   NoTransactions : boolean;
+  CurrDay, CurrMonth, CurrYear : integer;
 begin
   result := false;
   NoTransactions := true;
@@ -1709,6 +1713,13 @@ begin
           OpeningBalanceDate := incDate(BalDate, 1, 0, 0)
         else
           OpeningBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+      end;
+
+      // If Date in the future set to 1st day of current year and month
+      if OpeningBalanceDate > CurrentDate then
+      begin
+        StDateToDMY(CurrentDate, CurrDay, CurrMonth, CurrYear);
+        OpeningBalanceDate := DMYtoStDate(1, CurrMonth, CurrYear, BKDATEEPOCH);
       end;
 
       fClientMigrationState := cmsTransformData;
@@ -1764,7 +1775,7 @@ begin
         FreeAndNil(ChartExportCol);
       end;
 
-      if not UploadClient(ClientBase, aSelectedData, aError) then
+      if not UploadClient(ClientBase, aSelectedData, aUploadID, aError) then
         Exit;
 
       result := true;
@@ -2033,6 +2044,7 @@ var
   LastClientIndex : integer;
   DiffDispString : string;
   ClientErrorCode : TOpenClientError;
+  UploadId : string;
 
   procedure AddVisualError();
   begin
@@ -2113,7 +2125,7 @@ begin
       try
         Screen.Cursor := crHourglass;
 
-        if not MigrateClient(CltClient, aSelectedData, ErrorStr) then
+        if not MigrateClient(CltClient, aSelectedData, UploadId, ErrorStr) then
         begin
           ErrorStr := CurrentClientCode + ' ' + ErrorStr;
           LogUtil.LogMsg(lmError, UnitName, ErrorStr);
@@ -2149,7 +2161,7 @@ begin
             end;
           end;
 
-          LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '.');
+          LogUtil.LogMsg(lmInfo, UnitName, CurrentClientCode + ' Successfully uploaded client to ' + BRAND_CASHBOOK_NAME + '. UploadId - ' + UploadId);
         end;
       finally
         MyClient := nil;
