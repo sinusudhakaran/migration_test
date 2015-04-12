@@ -1693,6 +1693,7 @@ var
   UsedDivisions : TStringList;
   NoTransactions : boolean;
   CurrDay, CurrMonth, CurrYear : integer;
+  DayFinStart, MonthFinStart, YearFinStart: Integer;
 begin
   result := false;
   NoTransactions := true;
@@ -1713,7 +1714,15 @@ begin
         if GetLastFullyCodedMonth(BalDate) then
           OpeningBalanceDate := incDate(BalDate, 1, 0, 0)
         else
-          OpeningBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+        begin
+          // Convert Financial Year Start from Client Details
+          StDatetoDMY(MyClient.clFields.clFinancial_Year_Starts, DayFinStart, MonthFinStart, YearFinStart);
+          StDateToDMY(CurrentDate, CurrDay, CurrMonth, CurrYear);
+          OpeningBalanceDate := DMYtoStDate(DayFinStart, MonthFinStart, CurrYear, Epoch);
+
+          if OpeningBalanceDate > CurrentDate then
+            OpeningBalanceDate := incDate(OpeningBalanceDate, 0, 0, -1);
+        end;
       end;
 
       // If Date in the future set to 1st day of current year and month
