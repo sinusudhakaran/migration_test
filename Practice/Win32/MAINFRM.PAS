@@ -1113,6 +1113,7 @@ uses
   UpgradeReminder,
   RecommendedMemorisationsFrm,
   JournalDlg,
+  SuggestedMems,
   ChartExportToMYOBCashbook;
   //StockBalancesDlg;
 

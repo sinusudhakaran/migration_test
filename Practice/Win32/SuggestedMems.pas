@@ -26,7 +26,7 @@ type
   end;
 
 Const
-  TRAN_SUGGESTIONS_ALLDONE = tssLongestPhraseDone;
+  TRAN_SUGGESTIONS_ALLDONE = ord(tssLongestPhraseDone);
 
   //----------------------------------------------------------------------------
   function CallSuggestedMems(): TSuggestedMems;
@@ -59,13 +59,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TSuggestedMems.ProcessTransaction(aBankAccount: TBank_Account; aTranRec : tTransaction_Rec);
 begin
-  if aTranRec.txSuggested_Mem_State = tssUnScanned then
+  if aTranRec.txSuggested_Mem_State = ord(tssUnScanned) then
   begin
-    aTranRec.txSuggested_Mem_State := tssSimpleCompareDone;
+    aTranRec.txSuggested_Mem_State := ord(tssSimpleCompareDone);
   end;
-  if aTranRec.txSuggested_Mem_State = tssSimpleCompareDone then
+  if aTranRec.txSuggested_Mem_State = ord(tssSimpleCompareDone) then
   begin
-    aTranRec.txSuggested_Mem_State := tssLongestPhraseDone;
+    aTranRec.txSuggested_Mem_State := ord(tssLongestPhraseDone);
   end;
 
   Dec(aBankAccount.baFields.baSuggested_UnProcessed_Count);
