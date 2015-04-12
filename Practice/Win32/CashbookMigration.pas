@@ -1477,7 +1477,6 @@ begin
           JournalItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
           JournalItem.Description := TransactionRec.txGL_Narration;
           JournalItem.Reference   := TrimLeadZ(TransactionRec.txReference);
-          aJournalsData.Insert(@JournalItem);
 
           DissRec := TransactionRec.txFirst_Dissection;
           While (DissRec <> nil ) do
@@ -1505,6 +1504,8 @@ begin
 
             DissRec := DissRec^.dsNext;
           end;
+
+          aJournalsData.Insert(JournalItem);
         end;
       end;
     end;

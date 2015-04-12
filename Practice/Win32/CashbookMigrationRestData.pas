@@ -110,8 +110,13 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  pJournalData = ^TJournalData;
+
+  //----------------------------------------------------------------------------
   TJournalsData = class(TExtdSortedCollection)
   private
+  protected
+    procedure FreeItem( Item : Pointer ); override;
   public
     destructor Destroy; override;
 
@@ -596,11 +601,21 @@ end;
 
 { TJournalsData }
 //------------------------------------------------------------------------------
+procedure TJournalsData.FreeItem(Item: Pointer);
+begin
+  inherited;
+
+end;
+
+//------------------------------------------------------------------------------
 function TJournalsData.Compare(aItem1, aItem2: Pointer): Integer;
 begin
-  if TJournalData(aItem1^).Date < TJournalData(aItem2^).Date then result := -1 else
-  if TJournalData(aItem1^).Date > TJournalData(aItem2^).Date then result := 1 else
-  result := 0;
+  if TJournalData(aItem1^).Date < TJournalData(aItem2^).Date then
+    result := -1
+  else if TJournalData(aItem1^).Date > TJournalData(aItem2^).Date then
+    result := 1
+  else
+    result := 0;
 end;
 
 //------------------------------------------------------------------------------
@@ -610,9 +625,10 @@ begin
   inherited;
 end;
 
+//------------------------------------------------------------------------------
 function TJournalsData.ItemAs(aItem : Pointer): TJournalData;
 begin
-  Result := TJournalData(aItem^);
+  Result := TJournalData(aItem);
 end;
 
 //------------------------------------------------------------------------------
@@ -1005,8 +1021,10 @@ begin
   fChartOfAccountsData := TChartOfAccountsData.Create(TChartOfAccountData);
   fDivisionsData := TDivisionsData.Create(TDivisionData);
   fBankAccountsData := TBankAccountsData.Create(TBankAccountData);
-  fJournalsData := TJournalsData.Create();
   fBankFeedApplicationsData := TBankFeedApplicationsData.Create(TBankFeedApplicationData);
+
+  fJournalsData := TJournalsData.Create();
+  fJournalsData.Duplicates := true;
 end;
 
 //------------------------------------------------------------------------------
