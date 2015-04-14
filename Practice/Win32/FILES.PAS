@@ -139,6 +139,7 @@ uses
   ExchangeGainLoss,
   bkProduct,
   bkBranding,
+  SuggestedMems,
   RecommendedMems;
 
 const
@@ -1359,6 +1360,7 @@ begin
      end;
 
      // The Client has been opened by the user we can start the mems scan timer
+     SuggestedMem.StartMemScan(true);
      MyClient.clRecommended_Mems.StartMemScan;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -1389,6 +1391,7 @@ begin
         //could not close all the child windows
         Exit;
 
+      SuggestedMem.StopMemScan(true);
       MyClient.clRecommended_Mems.StopMemScan;
 
       //Check the status of the client file. Don't save if it has been openned Read Only
@@ -1470,6 +1473,7 @@ var
     Result := CloseMDIChildren(True);
     if (Result) then
     begin
+      SuggestedMem.StopMemScan(true);
       MyClient.clRecommended_Mems.StopMemScan;
       AbandonAClient(MyClient);
       BatchReports.XMLString := '';

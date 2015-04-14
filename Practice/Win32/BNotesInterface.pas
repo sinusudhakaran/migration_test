@@ -64,14 +64,20 @@ uses
    SysUtils,
    TransactionUtils,
    trxList32,
-   ECollect, ecBankAccountsListObj, BaList32,
+   ECollect,
+   ecBankAccountsListObj,
+   BaList32,
    ecPayeeObj,
    ecJobObj,
    pyList32,
    SuperfieldsUtils,
-   ECodingUtils, ClientUtils, SchedRepUtils, Globals,
+   ECodingUtils,
+   ClientUtils,
+   SchedRepUtils,
+   Globals,
    ISO_4217,
    ForexHelpers,
+   SuggestedMems,
    bkBranding;
 
 const
@@ -2571,6 +2577,8 @@ begin
                                           ECFile, aClient, ba);
 
             Inc( ImportedCount);
+
+            SuggestedMem.SetSuggestedTransactionState(BA, T, tssNoScan);
           end
           else
           begin

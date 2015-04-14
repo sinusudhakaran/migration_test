@@ -40,9 +40,29 @@ function IsWebFileWaiting: Boolean;
 
 implementation
 
-uses SysUtils, WDDX_COMLib_TLB, trxList32, bktxio, bkdsio, bkbaio, ECodingUtils,
-  GenUtils, BKDateUtils, BKConst, stDate, glConst, PayeeObj, GSTCalc32, MoneyDef,
-  TransactionUtils, Globals, COMObj, WebXOffice, WinUtils, UTransactionCompare;
+uses
+  SysUtils,
+  WDDX_COMLib_TLB,
+  trxList32,
+  bktxio,
+  bkdsio,
+  bkbaio,
+  ECodingUtils,
+  GenUtils,
+  BKDateUtils,
+  BKConst,
+  stDate,
+  glConst,
+  PayeeObj,
+  GSTCalc32,
+  MoneyDef,
+  TransactionUtils,
+  Globals,
+  COMObj,
+  WebXOffice,
+  WinUtils,
+  SuggestedMems,
+  UTransactionCompare;
 
 // Test to see if the file is an export file - if so we wont allow import
 function IsExportFile(const Filename: string): Boolean;
@@ -1603,6 +1623,8 @@ begin
                 ImportDissectedTransaction( ECT, T, aClient);
               end;            
             end;
+
+            SuggestedMem.SetSuggestedTransactionState(ba, T, tssNoScan);
 
             Inc( ImportedCount);
           end

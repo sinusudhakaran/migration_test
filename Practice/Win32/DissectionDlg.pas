@@ -486,6 +486,7 @@ uses
    stStrs, ConfigColumnsFrm, NewReportUtils,
    ForexHelpers,
    CountryUtils,
+   SuggestedMems,
    MainFrm;
    {,TransactionNotesFrm;}
 
@@ -3749,6 +3750,7 @@ begin
                 pT^.txTransfered_To_Online := False;
               end;
            end;
+           SuggestedMem.SetSuggestedTransactionState(BA, pT, tssNoScan);
          end
          else
          begin

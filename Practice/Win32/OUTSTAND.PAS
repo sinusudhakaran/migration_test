@@ -48,6 +48,7 @@ uses
    BaUtils,
    LogUtil,
    dxList32,
+   SuggestedMems,
    TransactionUtils;
 
 const
@@ -713,6 +714,7 @@ begin
 
              try
                BA.baTransaction_List.DelFreeItem( psPtr );
+               SuggestedMem.UpdateAccountWithTransDelete(BA);
 
                BA.baDeleted_Transaction_List.Insert(DeletedTrans);
              except
@@ -724,6 +726,7 @@ begin
            else
            begin
              BA.baTransaction_List.DelFreeItem( psPtr );
+             SuggestedMem.UpdateAccountWithTransDelete(BA);
            end;
 
            Inc( DelCount);

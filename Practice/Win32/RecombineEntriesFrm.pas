@@ -87,6 +87,7 @@ uses
   Globals,
   AuditMgr,
   dxList32,
+  SuggestedMems,
   TransactionUtils;
 {$R *.DFM}
 
@@ -306,6 +307,7 @@ begin
 
                  try
                    BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
+                   SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                    BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
                  except
@@ -317,6 +319,7 @@ begin
                else
                begin
                  BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
+                 SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
                end;
 
                lvEntries.Items[ i].SubItems.Objects[0] := nil;

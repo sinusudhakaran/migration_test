@@ -243,7 +243,10 @@ uses
   WinUtils,
   YesNoDlg,
   CountryUtils,
-  ForexHelpers, bkBranding, bkProduct;
+  ForexHelpers,
+  bkBranding,
+  SuggestedMems,
+  bkProduct;
 
 {$R *.dfm}
 
@@ -416,7 +419,10 @@ begin
         if Assigned( YE_Journal_Account) then begin
           //remove the temp journal if not keeping
           if Assigned( TempYEAdjustment) then
+          begin
             YE_Journal_Account.baTransaction_List.DelFreeItem( TempYEAdjustment);
+            SuggestedMem.UpdateAccountWithTransDelete(YE_Journal_Account);
+          end;
           //replace the pre existing journal
           if Assigned( Existing_YE_Adjustment) then begin
             YE_Journal_Account.baTransaction_List.Insert_Transaction_Rec( Existing_YE_Adjustment);
@@ -738,6 +744,7 @@ begin
   else begin
     //there are no lines in the journal so delete it
     YE_Journal_Account.baTransaction_List.DelFreeItem( TempYEAdjustment);
+    SuggestedMem.UpdateAccountWithTransDelete(YE_Journal_Account);
     TempYEAdjustment := nil;
   end;
 end;
@@ -1789,6 +1796,7 @@ begin
   else begin
     //there are no lines in the journal so delete it
     OpeningBalancesAccount.baTransaction_List.DelFreeItem( OpeningBalanceRec);
+    SuggestedMem.UpdateAccountWithTransDelete(OpeningBalancesAccount);
     OpeningBalanceRec := nil;
   end;
 

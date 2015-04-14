@@ -72,6 +72,8 @@ uses
    Globals,
    cldateutils,
    ForexHelpers,
+   trxList32,
+   SuggestedMems,
    MainFrm;
 
 
@@ -193,6 +195,7 @@ begin
           if ReplaceText(tx.txAccount) then
           begin
             tx.txHas_Been_Edited := True;
+            SuggestedMem.SetSuggestedTransactionState(BA, TX, tssNoScan);
             if tx.txGST_Has_Been_Edited then
               Inc(cGStSkipped)
             else

@@ -57,6 +57,7 @@ uses
   SystemMemorisationList,
   SYDEFS,
   MainFrm,
+  SuggestedMems,
   windows;
 
 const
@@ -219,7 +220,11 @@ begin
                  if txAccount > '' then begin
                     //TFS 12252 - update alternative account codes when chart has been refreshed
                     if HasAlternativeChartCode(aClient.clFields.clCountry, aClient.clFields.clAccounting_System_Used) then
+                    begin
                       txAccount := aCLient.clChart.MatchAltCode(txAccount);
+                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                    end;
+
                     Continue; // Must be True
                  end;
                  if txSF_Super_Fields_Edited then
@@ -356,6 +361,8 @@ begin
                           else
                              txAccount := MemorisationLine.mlAccount;
 
+                          SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+
                           txPayee_Number := MemorisationLine.mlPayee;
                           if MemorisationLine.mlJob_Code > '' then
                              txJob_Code := MemorisationLine.mlJob_Code;
@@ -433,6 +440,9 @@ begin
                       //Entry needs to be dissected
                       mxUtils.MemorisationSplit( Amount, MX, Split, SplitPct );
                       txAccount      := DISSECT_DESC;
+
+                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+
                       txPayee_Number := 0;
                       ClearGSTFields( Transaction);
                       ClearSuperFundFields( Transaction);
@@ -594,6 +604,9 @@ begin
                                  if Assigned( PayeeLine) then
                                    begin
                                      txAccount      := PayeeLine.plAccount;
+
+                                     SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+
                                      if PayeeLine.plGL_Narration <> '' then
                                        txGL_Narration := PayeeLine.plGL_Narration;
                                      //calculate GST.  If has been edited then use class, otherwise use default
@@ -617,7 +630,8 @@ begin
                               txCoded_By     := cbAutoPayee;
                               txPayee_Number := Payee.pdNumber;
                               txAccount      := DISSECT_DESC;
-                              //txGL_Narration := Payee.pdName;
+
+                              SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
 
                               ClearGSTFields( Transaction);
                               ClearSuperFundFields( Transaction);
@@ -758,6 +772,9 @@ begin
                          if AnalysisMatchFound then begin
                             //match found
                             txAccount      := TestCode;
+
+                            SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+
                             txCoded_By     := cbAnalysis;
                             CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                             txGST_Has_Been_Edited := false;

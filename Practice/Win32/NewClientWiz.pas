@@ -73,14 +73,44 @@ uses
   BKHelp,
   UBatchBase,
   ClientHomePageFrm,
-  globals,clientdetailsfrm, acctsystemdlg, editgstdlg, MaintainChartfrm,
-  MaintainPayeesFrm, updatemf, clobj32, YesNoDlg, files, admin32, Merge32,
-  sycfIO, sydefs, bkconst, ovcDate, warningMoreFrm, ErrorMoreFrm, bkdefs,
-  MaintainBankFrm, imagesfrm, Import32, glConst, LogUtil, baobj32,
-  ClientReportScheduleDlg, ClientDetailCacheObj, GlobalClientSetupRoutines,
-  ToDoHandler, ToDoListUnit, syamio, ClientManagerFrm,
-  BanklinkOnlineSettingsFrm, BankLinkOnlineServices, InfoMoreFrm,
-  bkBranding, bkProduct;
+  globals,
+  clientdetailsfrm,
+  acctsystemdlg,
+  editgstdlg,
+  MaintainChartfrm,
+  MaintainPayeesFrm,
+  updatemf,
+  clobj32,
+  YesNoDlg,
+  files,
+  admin32,
+  Merge32,
+  sycfIO,
+  sydefs,
+  bkconst,
+  ovcDate,
+  warningMoreFrm,
+  ErrorMoreFrm,
+  bkdefs,
+  MaintainBankFrm,
+  imagesfrm,
+  Import32,
+  glConst,
+  LogUtil,
+  baobj32,
+  ClientReportScheduleDlg,
+  ClientDetailCacheObj,
+  GlobalClientSetupRoutines,
+  ToDoHandler,
+  ToDoListUnit,
+  syamio,
+  ClientManagerFrm,
+  BanklinkOnlineSettingsFrm,
+  BankLinkOnlineServices,
+  InfoMoreFrm,
+  bkBranding,
+  bkProduct,
+  SuggestedMems;
 
 {$R *.DFM}
 
@@ -252,6 +282,7 @@ begin
 
               //When creating a new client we need to make sure that it is opened  otherwise blopi will not be queried when opening banklink settings.
               MyClient.Opened := True;
+              SuggestedMem.StartMemScan(true);
               MyClient.clRecommended_Mems.StartMemScan;
            end;
            if Assigned(MyClient) then

@@ -628,6 +628,7 @@ uses
    RecommendedMemorisationsFrm,
    MemorisationsObj,
    BudgetFrm,
+   SuggestedMems,
    mxFiles32;
 
 const
@@ -3001,6 +3002,7 @@ begin
 
                     try
                       BankAccount.baTransaction_List.DelFreeItem( pT );
+                      SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                       BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
                     except
@@ -3012,6 +3014,7 @@ begin
                   else
                   begin
                     BankAccount.baTransaction_List.DelFreeItem( pT );
+                    SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
                   end;
 
                   LoadWTLMaintainPos;
@@ -3289,6 +3292,7 @@ begin
 
               try
                 BankAccount.baTransaction_List.DelFreeItem( pT);
+                SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                 BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
               except
@@ -3300,6 +3304,7 @@ begin
             else
             begin
               BankAccount.baTransaction_List.DelFreeItem( pT);
+              SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
             end;
 
             //reload and reposition
@@ -3347,6 +3352,7 @@ begin
 
         try
           BankAccount.baTransaction_List.DelFreeItem( pT );
+          SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
           BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
         except
@@ -3358,6 +3364,7 @@ begin
       else
       begin
         BankAccount.baTransaction_List.DelFreeItem( pT );
+        SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
       end;
 
       sMsg := 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt);
@@ -3453,6 +3460,9 @@ begin
     pT^.txGST_Amount      := 0;
     pT^.txHas_Been_Edited := False;
     pT^.txGST_Has_Been_Edited := False;
+
+    SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+
     ClearSuperFundFields(pT);
 
     RedrawRow;
@@ -3483,6 +3493,7 @@ begin
    tblCoding.AllowRedraw := False;
 
    BankAccount.baTransaction_List.DelFreeItem( pT );
+   SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
    LoadWorkTranList;
    tblCoding.AllowRedraw := True;
@@ -5355,6 +5366,8 @@ begin
                pT^.txAccount :=tmpShortStr;
                AccountEdited(pT);
 
+               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+
                pT.txTransfered_To_Online := False;
             end;
          end;
@@ -5364,6 +5377,8 @@ begin
             if pT.txPayee_Number <> tmpPayee  then
             begin
               pT.txTransfered_To_Online := False;
+
+              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
             end;
          end;
 
@@ -5373,6 +5388,8 @@ begin
            if pT.txJob_Code <> tmpJob then
            begin
              pT.txTransfered_To_Online := False;
+
+             SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
            end;
          end;
 
@@ -5472,6 +5489,7 @@ begin
 
          ceEntryType:
          begin
+           SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
            pT.txTransfered_To_Online := False;
          end;
 
@@ -7731,6 +7749,7 @@ begin
            pT^.txPayee_Number := tmpPayee;
            if PayeeEdited(pT) then
            begin
+              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
               pT^.txHas_Been_Edited := true;
            end
            else
@@ -7745,6 +7764,7 @@ begin
               pT^.txHas_Been_Edited := true;
               if pt^.txCoded_By in [cbMemorisedC,cbMemorisedM] then
                  pT^.txCoded_By := cbManual;
+              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
            end
            else
               pT^.txJob_Code := OldJob;
@@ -7804,6 +7824,7 @@ begin
                  WorkTranList.DelFreeItem(WorkTranList.Transaction_At(tblCoding.ActiveRow-1));
 
                  BankAccount.baTransaction_List.Delete(pT);
+                 SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                  pNew^.txDate_Effective := TmpDate;
                  if not IsJournal then

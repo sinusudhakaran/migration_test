@@ -58,6 +58,8 @@ end;
 {------------------------------------------------------------------------------}
 function TSuggested_Mem_List.Compare(Item1, Item2: Pointer): integer;
 begin
+  Result := 0;
+
   {Result := CompareText(TSuggested_Mem(Item1).smFields.rmStatement_Details,
                         TSuggested_Mem(Item2).smFields.rmStatement_Details);
   if (Result <> 0) then Exit;

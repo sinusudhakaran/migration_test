@@ -440,6 +440,7 @@ uses
    Files,
    BudgetFrm,
    CodingFrm,
+   SuggestedMems,
    MAINFRM;
 
 {$R *.DFM}
@@ -4540,7 +4541,11 @@ begin
          Dissection := dsNext;
       end;
 
-      If not SomeThere then Bank_Account.baTransaction_List.DelFreeItem(pTran); {delete if empty}
+      If not SomeThere then
+      begin
+        Bank_Account.baTransaction_List.DelFreeItem(pTran); {delete if empty}
+        SuggestedMem.UpdateAccountWithTransDelete(Bank_Account);
+      end;
    end;
 end;
 //------------------------------------------------------------------------------

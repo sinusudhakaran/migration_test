@@ -58,7 +58,7 @@ type
                            var AAuditInfo: TAuditInfo);
     procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
                                      var AAuditInfo: TAuditInfo);
-      
+
     property LastSeq : integer read FLastSeq;
     property TxnClient: TObject read FClient write SetClient;
     property TxnBankAccount: TObject read FBank_Account write SetBank_Account;
@@ -89,6 +89,8 @@ uses
   BKAudit,
   GenUtils,
   bkDateUtils,
+  baObj32,
+  SuggestedMems,
   BKUTIL32;
 
 const
@@ -232,6 +234,11 @@ Begin
     P^.txBank_Account := fBank_Account;
     P^.txClient       := fClient;
 
+    if fBank_Account is TBank_Account then
+      SuggestedMem.UpdateAccountWithTransInsert(TBank_Account(fBank_Account),
+                                                P,
+                                                ((not FLoading) and NewAuditID));
+
     //Get next audit ID for new transactions
     if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
       P^.txAudit_Record_ID := fAuditMgr.NextAuditRecordID;
@@ -253,6 +260,9 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    FLoading := True;
    try
+     if (fBank_Account is TBank_Account) then
+       TBank_Account(fBank_Account).baFields.baSuggested_UnProcessed_Count := 0;
+
      pTX := NIL;
      Token := S.ReadToken;
      While ( Token <> tkEndSection ) do
@@ -295,9 +305,8 @@ begin
   Result := BKTXIO.New_Transaction_Rec;
   Result.txBank_Account := fBank_Account;
   Result.txClient  := fClient;
-  Result.txSuggested_Mem_State := 0;
-  ClearSuperFundFields(Result);
 
+  ClearSuperFundFields(Result);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

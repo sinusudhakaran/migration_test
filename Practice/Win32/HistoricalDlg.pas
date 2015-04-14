@@ -451,8 +451,16 @@ uses
   ECollect,
   Software,
   CountryUtils,
-  PayeeObj, baUtils, EditBankDlg, TransactionUtils,ImportHistDlg, Finalise32,
-  AuditMgr, SYPEIO, MAINFRM;
+  PayeeObj,
+  baUtils,
+  EditBankDlg,
+  TransactionUtils,
+  ImportHistDlg,
+  Finalise32,
+  AuditMgr,
+  SYPEIO,
+  SuggestedMems,
+  MAINFRM;
 
 {$R *.DFM}
 
@@ -1643,13 +1651,15 @@ begin
       //and created a number of blank links with automatic dates.
       tblHist.AllowRedraw := false;  //stop any redraws because we may be deleting transactions
       i := 0;
-      While (i <= Pred(HistTranList.ItemCount)) do begin
-         pT := HistTranList.Transaction_At(i);
-         if not (pT^.txHas_Been_Edited ) then begin
-            HistTranList.DelFreeItem(pT);
-         end
-         else
-           Inc(i);  //try next one
+      While (i <= Pred(HistTranList.ItemCount)) do
+      begin
+        pT := HistTranList.Transaction_At(i);
+        if not (pT^.txHas_Been_Edited ) then
+        begin
+          HistTranList.DelFreeItem(pT);
+        end
+        else
+          Inc(i);  //try next one
       end;
       tblHist.RowLimit := Max( HistTranList.ItemCount + 1, 2);
       SetTableAccess;
@@ -2671,6 +2681,7 @@ begin
                // Edited flag not set if when coded from Blank
                pT^.txAccount         :=tmpShortStr;
                AccountEdited(pT);
+               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
             end;
          end;
 
@@ -2707,6 +2718,7 @@ begin
 
          cePayee : begin
             // can't popup a dialog in here - case 7255
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
          end;
 
          ceJob : begin
@@ -2719,6 +2731,7 @@ begin
                   pd := pd.dsNext;
                end;
             end;
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
          end;
 
          ceEffDate : if tmpInteger <>  pT^.txDate_Effective then begin
@@ -2805,6 +2818,7 @@ begin
             //call routine to update the txCheque_Number field
 
             EntryTypeEdited( pT);
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
          end;
       end;
       pT^.txHas_Been_Edited := true;
@@ -3874,7 +3888,10 @@ begin
         OldPayeeNo := pT^.txPayee_Number;
         pT^.txPayee_Number  := tmpPayee;
         if PayeeEdited(pT) then
-          pT^.txHas_Been_Edited := true
+        begin
+          pT^.txHas_Been_Edited := true;
+          SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+        end
         else
           //restore original value
           pT^.txPayee_Number := OldPayeeNo;

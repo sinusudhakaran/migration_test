@@ -149,6 +149,7 @@ uses
   WebUtils,
   UTransactionCompare,
   bkBranding,
+  SuggestedMems,
   bkProduct;
   
 const
@@ -1503,6 +1504,7 @@ var AccountNo: string;
             end;
 
              Inc(ImportedCount);
+             SuggestedMem.SetSuggestedTransactionState(BA, Trans, tssNoScan);
           end
           else
           begin

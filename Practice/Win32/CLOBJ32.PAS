@@ -204,6 +204,7 @@ uses
    ForexHelpers,
    GSTUTIL32,
    WebUtils,
+   SuggestedMems,
 {$ENDIF}
    bk5Except,
    VclZip;
@@ -681,10 +682,10 @@ begin
         if MEMSINI_SupportOptions = meiResetMems then
         begin
           MEMSINI_SupportOptions := meiFullfunctionality;
-          if Assigned(clRecommended_Mems) then
-            clRecommended_Mems.ResetAll;
+          SuggestedMem.ResetAll(Self);
           WriteMemorisationINI_WithLock(clFields.clCode);
         end;
+        SuggestedMem.SetMainState();
 
         FOpened := true;
   {$ENDIF}
