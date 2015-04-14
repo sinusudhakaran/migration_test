@@ -983,7 +983,8 @@ var Retrieved: Boolean;
       var P : Integer;
       begin
          Result := False;
-         for P := stFirstPeriod to stLastPeriod do
+         // Note: don't use stFirstPeriod or stLastPeriod here
+         for P := 1 to 12 do
            if Selected[P]
            and (FCodingStats.NoOfEntries(P)> 0) then
              Exit;
