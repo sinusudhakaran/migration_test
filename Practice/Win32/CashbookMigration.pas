@@ -223,6 +223,7 @@ uses
   CalculateAccountTotals,
   iniSettings,
   Bk5Except,
+  Merge32,
   SYDEFS;
 
 const
@@ -2134,6 +2135,7 @@ begin
       MyClient := CltClient;
       try
         Screen.Cursor := crHourglass;
+        SyncClientToAdmin(MyClient, True, True, False, False, True, True, False);
 
         if not MigrateClient(CltClient, aSelectedData, UploadId, ErrorStr) then
         begin
