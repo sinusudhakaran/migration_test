@@ -451,19 +451,19 @@ begin
   NewLine;
   TextLine(BRAND_FULL_NAME + ' will be liable for delays, non-performance, failure to perform, processing errors or any other matter or thing arising', IndentColumn, OutputRight);
   NewLine;
-  TextLine('out of this authority or any agreement which the Supplier or ' + BRAND_FULL_NAME + ' may have with my/our authorised recipients and which occur for reasons', IndentColumn, OutputRight);
+  TextLine('out of this authority or any agreement which the Supplier or ' + BRAND_FULL_NAME + ' may have with my/our authorised recipients and which', IndentColumn, OutputRight);
   NewLine;
-  TextLine('beyond the control of respectively the Supplier or ' + BRAND_FULL_NAME + ', as the case may be, nor will the liability of the Supplier and/or', IndentColumn, OutputRight);
+  TextLine('occur for reasons beyond the control of respectively the Supplier or ' + BRAND_FULL_NAME + ', as the case may be, nor will the liability of the', IndentColumn, OutputRight);
   NewLine;
-  TextLine(BRAND_FULL_NAME + ' (whether jointly, severally or jointly and severally) include or extend to any special or consequential loss or', IndentColumn, OutputRight);
+  TextLine('Supplier and/or ' + BRAND_FULL_NAME + ' (whether jointly, severally or jointly and severally) include or extend to any special or consequential', IndentColumn, OutputRight);
   NewLine;
-  TextLine('damage suffered by me/us.', IndentColumn, OutputRight);
+  TextLine('loss or damage suffered by me/us.', IndentColumn, OutputRight);
 
   //----------------------------------------------------------------------------
   NewLine;
   HalfNewLine;
   TextLine('3.', NumColumn, OutputRight);
-  TextLine('I/We ACKNOWLEDGE that the Supplier will receive a commission from ' + BRAND_FULL_NAME + ' for disclosing the data and information referred to', OutputLeft, OutputRight);
+  TextLine('I/We ACKNOWLEDGE that the Supplier may receive a commission from ' + BRAND_FULL_NAME + ' for disclosing the data and information referred to', OutputLeft, OutputRight);
   NewLine;
   TextLine('above, and that the Supplier is under no obligation to me/us to supply the data and information referred to above to ' + BRAND_FULL_NAME + ', and', OutputLeft, OutputRight);
   NewLine;

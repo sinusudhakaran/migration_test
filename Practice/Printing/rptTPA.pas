@@ -440,7 +440,7 @@ begin
   NewLine(2);
   TextLine('Any revocation of this authority by me/us will take effect fourteen (14) days after written notice is received by', OutputLeft, OutputRight);
   NewLine;
-  TextLine('Supplier ' + BRAND_FULL_NAME + '.', OutputLeft, OutputRight);
+  TextLine('the Supplier from ' + BRAND_FULL_NAME + '.', OutputLeft, OutputRight);
   NewLine;
 
   //----------------------------------------------------------------------------
