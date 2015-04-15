@@ -82,11 +82,12 @@ begin
     Eula.Add('Last updated: February 2015');
     Eula.Add('');
     Eula.Add('Software End-User Licence Agreement');
+    Eula.Add('');
     Eula.Add('‘MYOB BankLink’ means MYOB Australia Pty Ltd (if you acquire this Software in Australia) or MYOB NZ Limited (if you acquire this Software in New Zealand).');
+    Eula.Add('');
     Eula.Add('');
     Eula.Add('IMPORTANT NOTICE PLEASE READ CAREFULLY BEFORE INSTALLING OR USING');
     Eula.Add('THE SOFTWARE:');
-    Eula.Add('');
     Eula.Add('');
     Eula.Add('1	Agreement');
     Eula.Add('');
@@ -336,7 +337,7 @@ begin
     Eula.Add('        	affect MYOB BankLink’s ability to do business with you.');
     Eula.Add('');
     Eula.Add('        	You consent to MYOB BankLink collecting, using and disclosing your ');
-    Eula.Add('        	personal information for the purposes set out above.');
+    Eula.Add('        	information for the purposes set out above.');
     Eula.Add('');
     Eula.Add('9.3	If you acquired this Software in Australia:');
     Eula.Add('');
