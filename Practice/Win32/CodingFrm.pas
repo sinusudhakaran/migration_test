@@ -3933,8 +3933,16 @@ begin
       else
          tblCoding.ActiveRow := NewIndex+1;
 
+      // Note: for Refresh Chart button (PickAccount form) we must also restore
+      // the editing state and focus.
       if RestoreEditingState then
+      begin
         tblCoding.StartEditingState;
+
+        if tblCoding.CanFocus then
+          tblCoding.SetFocus;
+      end;
+
    end else begin
        //no trans in current list, reload the transaction list
        LoadWorkTranList;
