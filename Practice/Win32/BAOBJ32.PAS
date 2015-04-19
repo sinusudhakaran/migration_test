@@ -44,10 +44,12 @@ type
     baExchange_Gain_Loss_List: TExchange_Gain_Loss_List;
     baDeleted_Transaction_List: TDeleted_Transaction_List;
     baFinalized_Exchange_Rate_List: TFinalized_Exchange_Rate_List;
-    baSuggested_Mem_List : TSuggested_Mem_List;
-    baTran_Suggested_Link_List : TTran_Suggested_Link_List;
     FMatched_Items_List : tMatched_Items_List;
     FClient : TObject;
+
+    baSuggested_Mem_List : TSuggested_Mem_List;
+    baTran_Suggested_Link_List : TTran_Suggested_Link_List;
+    baSuggested_Tran_Link_List : TTran_Suggested_Link_List;
 
   private
     procedure ApplyDefaultGST(pT: pTransaction_Rec);
@@ -774,16 +776,32 @@ Begin
    While ( Token <> tkEndSection ) and not Done do
    Begin
       Case Token of
-         tkBegin_Bank_Account    : Read_Bank_Account_Rec ( baFields, S );
+         tkBegin_Bank_Account    :
+         begin
+           Read_Bank_Account_Rec ( baFields, S );
+           baFields.baSuggested_UnProcessed_Count := 0;
+         end;
          tkBeginEntries          : baTransaction_List.LoadFromFile( S );
          tkBeginMemorisedEntries : baOld_Memorised_Transaction_List.LoadFromFile( S );
          tkBeginMatchedItems     : FMatched_Items_List.LoadFromFile( S);
          tkBeginMemorisationsList : baMemorisations_List.LoadFromStream(S);
          tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);
-         tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);  
+         tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);
          tkBeginFinalized_Exchange_Rate_List: baFinalized_Exchange_Rate_List.LoadFromFile(S);
          tkBeginSuggested_Mem_List: baSuggested_Mem_List.LoadFromFile(S);
-         tkBeginTran_Suggested_Link_List: baTran_Suggested_Link_List.LoadFromFile(S);
+         tkBeginTran_Suggested_Link_List:
+         begin
+           baTran_Suggested_Link_List.SortingOn := false;
+           baSuggested_Tran_Link_List.SortingOn := false;
+           baTran_Suggested_Link_List.LoadFromFile(S);
+           baSuggested_Tran_Link_List.Copyfrom(baTran_Suggested_Link_List);
+           baTran_Suggested_Link_List.SortingOn := true;
+           baSuggested_Tran_Link_List.SortingOn := true;
+           baTran_Suggested_Link_List.SortType := tstTranId;
+           baSuggested_Tran_Link_List.SortType := tstSuggId;
+           baTran_Suggested_Link_List.Sort();
+           baSuggested_Tran_Link_List.Sort();
+         end;
 
          else
          begin { Should never happen }

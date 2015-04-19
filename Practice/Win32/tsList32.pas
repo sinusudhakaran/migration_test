@@ -19,35 +19,47 @@ uses
   bkConst;
 
 type
-  { ----------------------------------------------------------------------------
-    TRecommended_Mem_List
-  ---------------------------------------------------------------------------- }
+  TTranSuggSortType = (tstTranId, tstSuggId);
+
   TTran_Suggested_Link_List = class(TExtdSortedCollection)
+  private
+    fSortType : TTranSuggSortType;
+    fSortingOn : boolean;
   protected
     procedure FreeItem(Item: Pointer); override;
 
+    procedure SetSortType(aValue : TTranSuggSortType);
   public
     constructor Create; override;
-    function  Compare(Item1, Item2: Pointer) : integer; override;
+    function Compare(Item1, Item2: Pointer) : integer; override;
+    procedure Copyfrom(aSourceList : TTran_Suggested_Link_List);
+    procedure Insert( Item : Pointer ); override;
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
 
-    function  Tran_Suggested_Link_At(Index: integer): TTran_Suggested_Link;
+    function Tran_Suggested_Link_At(Index: integer): TTran_Suggested_Link;
 
-    function  GetAs_pRec(Item: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
+    function GetAs_pRec(Item: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
+
+    property SortType : TTranSuggSortType read fSortType write SetSortType;
+    property SortingOn : boolean read fSortingOn write fSortingOn;
   end;
 
 
 implementation
 
 const
-   UnitName = 'rmList32';
-   DebugMe: boolean = false;
+  UnitName = 'rmList32';
+  DebugMe: boolean = false;
 
-{ ------------------------------------------------------------------------------
-  TRecommended_Mem_List
------------------------------------------------------------------------------- }
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Link_List.SetSortType(aValue: TTranSuggSortType);
+begin
+  fSortType := aValue;
+end;
+
+//------------------------------------------------------------------------------
 constructor TTran_Suggested_Link_List.Create;
 begin
   inherited Create;
@@ -55,30 +67,46 @@ begin
   Duplicates := false;
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
 function TTran_Suggested_Link_List.Compare(Item1, Item2: Pointer): integer;
 begin
   Result := 0;
-  {Result := CompareText(TSuggested_Mem(Item1).smFields.rmStatement_Details,
-                        TSuggested_Mem(Item2).smFields.rmStatement_Details);
-  if (Result <> 0) then Exit;
-  Result := CompareValue(TSuggested_Mem(Item1).smFields.rmType,
-                         TSuggested_Mem(Item2).smFields.rmType);
-  if (Result <> 0) then Exit;
-  Result := CompareText(TSuggested_Mem(Item1).smFields.rmBank_Account_Number,
-                        TSuggested_Mem(Item2).smFields.rmBank_Account_Number);
-  if (Result <> 0) then Exit;
-  Result := CompareText(TSuggested_Mem(Item1).smFields.rmAccount,
-                        TSuggested_Mem(Item2).smFields.rmAccount);
-  if (Result <> 0) then Exit;
-  Result := CompareValue(TSuggested_Mem(Item1).smFields.rmManual_Count,
-                         TSuggested_Mem(Item2).smFields.rmManual_Count);
-  if (Result <> 0) then Exit;
-  Result := CompareValue(TSuggested_Mem(Item1).smFields.rmUncoded_Count,
-                         TSuggested_Mem(Item2).smFields.rmUncoded_Count);}
+  if fSortType = tstTranId then
+  begin
+    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
+                           TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
+
+    if (Result <> 0) then Exit;
+    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
+                           TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
+  end
+  else
+  begin
+    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
+                           TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
+
+    if (Result <> 0) then Exit;
+    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
+                           TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
+  end;
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Link_List.Copyfrom(aSourceList: TTran_Suggested_Link_List);
+var
+  SourceIndex : integer;
+  NewSuggLink : pTran_Suggested_Link_Rec;
+begin
+  for SourceIndex := 0 to aSourceList.ItemCount-1 do
+  begin
+    NewSuggLink := BKtsIO.New_Tran_Suggested_Link_Rec;
+    NewSuggLink^.tsTran_Seq_No := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsTran_Seq_No;
+    NewSuggLink^.tsSuggestedId := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsSuggestedId;
+    Insert(NewSuggLink);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TTran_Suggested_Link_List.FreeItem(Item: Pointer);
 var
   P: TTran_Suggested_Link;
@@ -88,7 +116,7 @@ begin
     P.Free;
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
 procedure TTran_Suggested_Link_List.SaveToFile(var S: TIOStream);
 const
   ThisMethodName = 'TTran_Suggested_Link_List.SaveToFile';
@@ -112,7 +140,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
 procedure TTran_Suggested_Link_List.LoadFromFile(var S: TIOStream);
 const
   ThisMethodName = 'TTran_Suggested_Link_List.LoadFromFile';
@@ -153,7 +181,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
 function TTran_Suggested_Link_List.Tran_Suggested_Link_At(Index: integer): TTran_Suggested_Link;
 var
   P: Pointer;
@@ -163,7 +191,7 @@ Begin
   result := TTran_Suggested_Link(P);
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
 function TTran_Suggested_Link_List.GetAs_pRec(Item: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
 begin
   if Assigned(Item) then
@@ -172,9 +200,23 @@ begin
     result := nil;
 end;
 
-{------------------------------------------------------------------------------}
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Link_List.Insert(Item: Pointer);
+var
+  Index : integer;
+begin
+  if fSortingOn then
+    inherited
+  else
+  begin
+    if ( Item = nil ) then Error( coInvalidPointer, 0 );
+    Index := FCount;
+    AtInsert( Index, Item );
+  end;
+end;
+
+//------------------------------------------------------------------------------
 initialization
   DebugMe := DebugUnit(UnitName);
-
 
 end.

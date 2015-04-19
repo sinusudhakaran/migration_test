@@ -48,10 +48,10 @@ end;
 CONST
    tksmId                               = 171 ;
    tksmMatched_Phrase                   = 172 ;
-   tksmCount                            = 173 ;
+   tksmTotal_Count                      = 173 ;
    tksmManual_Count                     = 174 ;
    tksmUncoded_Count                    = 175 ;
-   tksmMatched_By                       = 176 ;
+   tksmUpdate_Date                      = 176 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -79,10 +79,10 @@ Begin
       F.WriteToken( tkBegin_Suggested_Mem );
       F.WriteIntegerValue( tksmId , smId );
       F.WriteStringValue( tksmMatched_Phrase , smMatched_Phrase );
-      F.WriteIntegerValue( tksmCount , smCount );
+      F.WriteIntegerValue( tksmTotal_Count , smTotal_Count );
       F.WriteIntegerValue( tksmManual_Count , smManual_Count );
       F.WriteIntegerValue( tksmUncoded_Count , smUncoded_Count );
-      F.WriteByteValue( tksmMatched_By , smMatched_By );
+      F.WriteDateValue( tksmUpdate_Date , smUpdate_Date );
       F.WriteToken( tkEnd_Suggested_Mem );
    end;
 end; { of Write_Suggested_Mem_Rec }
@@ -107,10 +107,10 @@ Begin
          tkEnd_Suggested_Mem :; { Do Nothing }
          tksmId                               : smId := F.ReadIntegerValue;
          tksmMatched_Phrase                   : smMatched_Phrase := F.ReadStringValue;
-         tksmCount                            : smCount := F.ReadIntegerValue;
+         tksmTotal_Count                      : smTotal_Count := F.ReadIntegerValue;
          tksmManual_Count                     : smManual_Count := F.ReadIntegerValue;
          tksmUncoded_Count                    : smUncoded_Count := F.ReadIntegerValue;
-         tksmMatched_By                       : smMatched_By := F.ReadByteValue;
+         tksmUpdate_Date                      : smUpdate_Date := F.ReadDateValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -157,7 +157,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tksmId to tksmMatched_By do begin
+  for i := tksmId to tksmUpdate_Date do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -192,9 +192,9 @@ begin
     ChangedFields[i] := tksmMatched_Phrase;
     Inc(i);
   end;
-  if (P1.smCount <> P2.smCount) then begin
-    P3.smCount := P1.smCount;
-    ChangedFields[i] := tksmCount;
+  if (P1.smTotal_Count <> P2.smTotal_Count) then begin
+    P3.smTotal_Count := P1.smTotal_Count;
+    ChangedFields[i] := tksmTotal_Count;
     Inc(i);
   end;
   if (P1.smManual_Count <> P2.smManual_Count) then begin
@@ -207,9 +207,9 @@ begin
     ChangedFields[i] := tksmUncoded_Count;
     Inc(i);
   end;
-  if (P1.smMatched_By <> P2.smMatched_By) then begin
-    P3.smMatched_By := P1.smMatched_By;
-    ChangedFields[i] := tksmMatched_By;
+  if (P1.smUpdate_Date <> P2.smUpdate_Date) then begin
+    P3.smUpdate_Date := P1.smUpdate_Date;
+    ChangedFields[i] := tksmUpdate_Date;
     Inc(i);
   end;
 

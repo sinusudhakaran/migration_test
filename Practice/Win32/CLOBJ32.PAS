@@ -639,6 +639,12 @@ begin
   if not BKFileExists( bk5filename) then
     raise EFileAccess.CreateFmt( SFileNotFoundError, [ bk5filename]);
 
+  {$IFDEF ParserDll}
+  {$ELSE}
+    ReadMemorisationINI(clFields.clCode);
+    SuggestedMem.SetMainState();
+  {$ENDIF}
+
   //read the file
   ZipStream := TBigMemoryStream.Create;
   try
@@ -677,15 +683,13 @@ begin
            clTemp_Old_Download_From   := clDownload_From;
         end;
 
-        ReadMemorisationINI(clFields.clCode);
-
         if MEMSINI_SupportOptions = meiResetMems then
         begin
           MEMSINI_SupportOptions := meiFullfunctionality;
+          SuggestedMem.SetMainState();
           SuggestedMem.ResetAll(Self);
           WriteMemorisationINI_WithLock(clFields.clCode);
         end;
-        SuggestedMem.SetMainState();
 
         FOpened := true;
   {$ENDIF}

@@ -547,7 +547,6 @@ begin
     FAuditNamesArray[150,204] := 'Core_Account_ID';
     FAuditNamesArray[150,205] := 'Secure_Online_Code';
     FAuditNamesArray[150,206] := 'Exchange_Gain_Loss_Code';
-    FAuditNamesArray[150,207] := 'Suggested_UnProcessed_Count';
 
    FAuditTableArray[160] := 'Transaction';
     FAuditNamesArray[160,162] := 'Sequence_No';
@@ -966,10 +965,10 @@ begin
    FAuditTableArray[169] := 'Suggested_Mem';
     FAuditNamesArray[169,171] := 'Id';
     FAuditNamesArray[169,172] := 'Matched_Phrase';
-    FAuditNamesArray[169,173] := 'Count';
+    FAuditNamesArray[169,173] := 'Total_Count';
     FAuditNamesArray[169,174] := 'Manual_Count';
     FAuditNamesArray[169,175] := 'Uncoded_Count';
-    FAuditNamesArray[169,176] := 'Matched_By';
+    FAuditNamesArray[169,176] := 'Update_Date';
 
    FAuditTableArray[170] := 'Tran_Suggested_Link';
     FAuditNamesArray[170,172] := 'Tran_Seq_No';

@@ -102,12 +102,17 @@ procedure Dispose_Dissection_Rec(p : PDissection_Rec);
 const
   ThisMethodName = 'Dispose_Dissection_Rec';
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   If (BKDSIO.IsADissection_Rec( P ) )  then begin
-      BKDSIO.Free_Dissection_Rec_Dynamic_Fields( p^);
-      MALLOC.SafeFreeMem( P, Dissection_Rec_Size );
-   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  if (BKDSIO.IsADissection_Rec( P ) )  then
+  begin
+    BKDSIO.Free_Dissection_Rec_Dynamic_Fields( p^);
+    MALLOC.SafeFreeMem( P, Dissection_Rec_Size );
+  end;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
@@ -234,7 +239,8 @@ Begin
     P^.txBank_Account := fBank_Account;
     P^.txClient       := fClient;
 
-    if fBank_Account is TBank_Account then
+    if (fBank_Account is TBank_Account) and
+       (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
       SuggestedMem.UpdateAccountWithTransInsert(TBank_Account(fBank_Account),
                                                 P,
                                                 ((not FLoading) and NewAuditID));

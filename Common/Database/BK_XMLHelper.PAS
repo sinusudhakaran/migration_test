@@ -1951,7 +1951,6 @@ begin
 	SetIntAttr(Result, 'CoreAccountID', baCore_Account_ID);
 	SetTextAttr(Result, 'SecureOnlineCode', baSecure_Online_Code);
 	SetTextAttr(Result, 'ExchangeGainLossCode', baExchange_Gain_Loss_Code);
-	SetIntAttr(Result, 'SuggestedUnProcessedCount', baSuggested_UnProcessed_Count);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2023,7 +2022,6 @@ begin
 	baCore_Account_ID := GetIntAttr(Result, 'CoreAccountID');
 	baSecure_Online_Code := GetTextAttr(Result, 'SecureOnlineCode');
 	baExchange_Gain_Loss_Code := GetTextAttr(Result, 'ExchangeGainLossCode');
-	baSuggested_UnProcessed_Count := GetIntAttr(Result, 'SuggestedUnProcessedCount');
 	except
 		on E: Exception do ReRaise (E, 'Reading TBank_Account_Rec');
 	end;
@@ -3735,10 +3733,10 @@ begin
 	Result := Node.AddChild(GetXMLNodeName);
 	SetIntAttr(Result, 'Id', smId);
 	SetTextAttr(Result, 'MatchedPhrase', smMatched_Phrase);
-	SetIntAttr(Result, 'Count', smCount);
+	SetIntAttr(Result, 'TotalCount', smTotal_Count);
 	SetIntAttr(Result, 'ManualCount', smManual_Count);
 	SetIntAttr(Result, 'UncodedCount', smUncoded_Count);
-	SetIntAttr(Result, 'MatchedBy', smMatched_By);
+	SetIntAttr(Result, 'UpdateDate', smUpdate_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3757,10 +3755,10 @@ begin
 	try
 	smId := GetIntAttr(Result, 'Id');
 	smMatched_Phrase := GetTextAttr(Result, 'MatchedPhrase');
-	smCount := GetIntAttr(Result, 'Count');
+	smTotal_Count := GetIntAttr(Result, 'TotalCount');
 	smManual_Count := GetIntAttr(Result, 'ManualCount');
 	smUncoded_Count := GetIntAttr(Result, 'UncodedCount');
-	smMatched_By := GetIntAttr(Result, 'MatchedBy');
+	smUpdate_Date := GetIntAttr(Result, 'UpdateDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
 	end;
