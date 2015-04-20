@@ -641,7 +641,7 @@ begin
 
   {$IFDEF ParserDll}
   {$ELSE}
-    ReadMemorisationINI(clFields.clCode);
+    ReadMemorisationINI(FileCode);
     SuggestedMem.SetMainState();
   {$ENDIF}
 

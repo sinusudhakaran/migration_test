@@ -9,6 +9,7 @@ uses
   baObj32,
   BKDEFS,
   clObj32,
+  smObj32,
   ExtCtrls,
   Classes;
 
@@ -35,14 +36,20 @@ type
   protected
     procedure DoScanTimer(Sender: TObject);
 
+    procedure LogAllSuggestedMemsForAccount(aBankAccount : TBank_Account);
+    procedure LogAllSuggestedMemsForClient(aClient: TClientObj);
+
+    function FindSuggIdUsingTranId(aBankAccount : TBank_Account; aTranSeqNo : integer; var aFoundIndex : integer) : boolean;
+    procedure FindOtherSuggIdsUsingFoundId(aBankAccount : TBank_Account; aTranSeqNo, aFoundIndex : integer; var aFoundIds : TArrInt);
     function FindSuggIdsUsingTranId(aBankAccount : TBank_Account; aMatchedTrans : pTransaction_Rec; var aFoundIds : TArrInt) : boolean;
-    function FindTranIdsUsingSuggId(aBankAccount : TBank_Account; aMatchedTrans : pTransaction_Rec; var aFoundIndex : integer) : boolean;
+
+    function FindTranIdsUsingSuggId(aBankAccount : TBank_Account; aSuggId : integer; var aFoundIndex : integer) : boolean;
     function FindSuggestedItem(aBankAccount : TBank_Account; aSuggId : integer; var aFoundItem : pSuggested_Mem_Rec) : boolean;
 
     function SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec) : boolean;
 
     procedure InsertNewLink(aBankAccount : TBank_Account; aTranSeqNo, aSuggId : integer; aSuggestion : pSuggested_Mem_Rec);
-    procedure SearchFoundMatch(aPhrase : string; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; aCurrentTranSuggestions : TArrSuggPointers);
+    procedure SearchFoundMatch(aPhrase : string; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers);
 
     procedure MemScan();
     procedure ProcessTransaction(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
@@ -75,18 +82,20 @@ uses
   Globals,
   bkConst,
   BKtsIO,
-  BKsmIO,
+  tsObj32,
   DateUtils,
   Math,
   LogUtil;
 
 const
   UnitName = 'SuggestedMems';
+  UnitNameExt = 'SuggestedMemsExt';
   CodedByToInclude = [cbManual, cbECodingManual];
 
 var
   fSuggestedMems: TSuggestedMems;
   DebugMe : boolean = false;
+  DebugMeExt : boolean = false;
 
 //------------------------------------------------------------------------------
 function SuggestedMem(): TSuggestedMems;
@@ -118,42 +127,112 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.FindSuggIdsUsingTranId(aBankAccount : TBank_Account; aMatchedTrans: pTransaction_Rec; var aFoundIds : TArrInt): boolean;
+procedure TSuggestedMems.LogAllSuggestedMemsForAccount(aBankAccount: TBank_Account);
 var
-  SearchForSequenceNo : integer;
+  SuggIndex : integer;
+begin
+  LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, BankAccount - ' + aBankAccount.baFields.baBank_Account_Number);
+  for SuggIndex := 0 to aBankAccount.baSuggested_Mem_List.ItemCount-1 do
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName,
+      'MemScan, Suggestion ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smId) +
+      ', Phrase - ''' + aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smMatched_Phrase +
+      ''', TotalCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smTotal_Count) +
+      ', ManualCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smManual_Count) +
+      ', UnCodedCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smUncoded_Count));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.LogAllSuggestedMemsForClient(aClient: TClientObj);
+var
+  BankAccIndex : integer;
+  BankAccount: TBank_Account;
+begin
+  if MainState = tssNoScan then
+    Exit;
+
+  for BankAccIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+  begin
+    BankAccount := aClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+    if BankAccount.IsAJournalAccount then
+      Continue;
+
+    LogAllSuggestedMemsForAccount(BankAccount);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.FindSuggIdUsingTranId(aBankAccount: TBank_Account; aTranSeqNo: integer; var aFoundIndex: integer): boolean;
+var
   MidIndex : integer;
-  SearchIndex : integer;
   CompareInt : integer;
   DiffValue : integer;
+  LastDiffValue : integer;
+  LastCompareInt : integer;
+  OddValue : integer;
 begin
+  aFoundIndex := -1;
+  if Odd(aBankAccount.baTran_Suggested_Link_List.ItemCount-1) then
+    OddValue := 1
+  else
+    OddValue := 0;
+
   // Quick Find for first ID
-  SearchForSequenceNo := aMatchedTrans^.txSequence_No;
-  MidIndex := trunc((aBankAccount.baTran_Suggested_Link_List.ItemCount-1)/2);
-  DiffValue := trunc(MidIndex/2);
-  CompareInt := -1;
-  while ((CompareInt <> 0) or (DiffValue = 0)) do
-  begin
-    CompareInt := CompareValue(SearchForSequenceNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(MidIndex).tsFields.tsTran_Seq_No);
+  MidIndex := floor((aBankAccount.baTran_Suggested_Link_List.ItemCount-1)/2);
+  DiffValue := MidIndex;
+  CompareInt := -99;
+  repeat
+    LastCompareInt := CompareInt;
+    LastDiffValue := DiffValue;
+    DiffValue := ceil(DiffValue/2);
+    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(MidIndex).tsFields.tsTran_Seq_No);
+
+    if ((CompareInt+LastCompareInt) = 0) and (LastDiffValue = 1) then
+      break;
 
     if CompareInt = -1 then
-      MidIndex := MidIndex - DiffValue
+    begin
+      MidIndex := MidIndex - DiffValue;
+      if MidIndex < 0 then
+        DiffValue := 0;
+    end
     else if CompareInt = 1 then
-      MidIndex := MidIndex + DiffValue;
-    DiffValue := trunc(DiffValue/2);
-  end;
+    begin
+      if not odd(MidIndex) then
+        DiffValue := DiffValue + OddValue;
 
+      MidIndex := MidIndex + DiffValue;
+      if MidIndex >= aBankAccount.baTran_Suggested_Link_List.ItemCount then
+        DiffValue := 0;
+    end;
+  until((CompareInt = 0) or (DiffValue = 0));
   Result := (CompareInt = 0);
 
   if Result then
-  begin
-    // Found one id add to list
-    setlength(aFoundIds,1);
-    aFoundIds[0] := aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(MidIndex).tsFields.tsSuggestedId;
+    aFoundIndex := MidIndex;
+end;
 
-    // Search down for more
-    SearchIndex := MidIndex;
-    dec(SearchIndex);
-    CompareInt := CompareValue(SearchForSequenceNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.FindOtherSuggIdsUsingFoundId(aBankAccount: TBank_Account; aTranSeqNo, aFoundIndex: integer; var aFoundIds: TArrInt);
+var
+  FoundIndex : integer;
+  SearchIndex : integer;
+  CompareInt : integer;
+  DiffValue : integer;
+  OddValue : integer;
+begin
+  // Found one id add to list
+  setlength(aFoundIds,1);
+  aFoundIds[0] := aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(aFoundIndex).tsFields.tsSuggestedId;
+
+  // Search down for more
+  SearchIndex := aFoundIndex;
+  dec(SearchIndex);
+
+  if SearchIndex > -1 then
+  begin
+    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
     while (SearchIndex > -1) and
           (CompareInt = 0) do
     begin
@@ -162,15 +241,19 @@ begin
 
       dec(SearchIndex);
       if SearchIndex > -1 then
-        CompareInt := CompareValue(SearchForSequenceNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
+        CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
       else
         CompareInt := -1;
     end;
+  end;
 
-    // Search up for more
-    SearchIndex := MidIndex;
-    inc(SearchIndex);
-    CompareInt := CompareValue(SearchForSequenceNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
+  // Search up for more
+  SearchIndex := aFoundIndex;
+  inc(SearchIndex);
+
+  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
+  begin
+    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
     while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
           (CompareInt = 0) do
     begin
@@ -179,39 +262,74 @@ begin
 
       inc(SearchIndex);
       if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-        CompareInt := CompareValue(SearchForSequenceNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
+        CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
       else
         CompareInt := 1;
     end;
-
   end;
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.FindTranIdsUsingSuggId(aBankAccount : TBank_Account; aMatchedTrans: pTransaction_Rec; var aFoundIndex : integer): boolean;
+function TSuggestedMems.FindSuggIdsUsingTranId(aBankAccount : TBank_Account; aMatchedTrans: pTransaction_Rec; var aFoundIds : TArrInt): boolean;
 var
-  SearchForSequenceNo : integer;
+  FoundIndex : integer;
+begin
+  Result := false;
+  if aBankAccount.baTran_Suggested_Link_List.ItemCount = 0 then
+    Exit;
+
+  if FindSuggIdUsingTranId(aBankAccount, aMatchedTrans^.txSequence_No, FoundIndex) then
+  begin
+    FindOtherSuggIdsUsingFoundId(aBankAccount, aMatchedTrans^.txSequence_No, FoundIndex, aFoundIds);
+    Result := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.FindTranIdsUsingSuggId(aBankAccount : TBank_Account; aSuggId : integer; var aFoundIndex : integer): boolean;
+var
   MidIndex : integer;
   CompareInt : integer;
   DiffValue : integer;
+  LastDiffValue : integer;
+  LastCompareInt : integer;
+  OddValue : integer;
 begin
-  SearchForSequenceNo := aMatchedTrans^.txSequence_No;
+  aFoundIndex := -1;
+  if Odd(aBankAccount.baSuggested_Tran_Link_List.ItemCount-1) then
+    OddValue := 1
+  else
+    OddValue := 0;
 
-  MidIndex := trunc((aBankAccount.baTran_Suggested_Link_List.ItemCount-1)/2);
-  DiffValue := trunc(MidIndex/2);
+  // Quick Find for first ID
+  MidIndex := floor((aBankAccount.baSuggested_Tran_Link_List.ItemCount-1)/2);
+  DiffValue := MidIndex;
+  CompareInt := -99;
+  repeat
+    LastCompareInt := CompareInt;
+    LastDiffValue := DiffValue;
+    DiffValue := ceil(DiffValue/2);
+    CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(MidIndex).tsFields.tsSuggestedId);
 
-  CompareInt := -1;
-  while ((CompareInt <> 0) or (DiffValue = 0)) do
-  begin
-    CompareInt := CompareValue(SearchForSequenceNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(MidIndex).tsFields.tsTran_Seq_No);
+    if ((CompareInt+LastCompareInt) = 0) and (LastDiffValue = 1) then
+      break;
 
     if CompareInt = -1 then
-      MidIndex := MidIndex - DiffValue
+    begin
+      MidIndex := MidIndex - DiffValue;
+      if MidIndex < 0 then
+        DiffValue := 0;
+    end
     else if CompareInt = 1 then
-      MidIndex := MidIndex + DiffValue;
-    DiffValue := trunc(DiffValue/2);
-  end;
+    begin
+      if not odd(MidIndex) then
+        DiffValue := DiffValue + OddValue;
 
+      MidIndex := MidIndex + DiffValue;
+      if MidIndex >= aBankAccount.baSuggested_Tran_Link_List.ItemCount then
+        DiffValue := 0;
+    end;
+  until((CompareInt = 0) or (DiffValue = 0));
   Result := (CompareInt = 0);
 
   if Result then
@@ -224,22 +342,44 @@ var
   MidIndex : integer;
   CompareInt : integer;
   DiffValue : integer;
+  LastDiffValue : integer;
+  LastCompareInt : integer;
+  OddValue : integer;
 begin
-  MidIndex := trunc((aBankAccount.baTran_Suggested_Link_List.ItemCount-1)/2);
-  DiffValue := trunc(MidIndex/2);
+  if Odd(aBankAccount.baSuggested_Mem_List.ItemCount-1) then
+    OddValue := 1
+  else
+    OddValue := 0;
 
-  CompareInt := -1;
-  while ((CompareInt <> 0) or (DiffValue = 0)) do
-  begin
+  // Quick Find for first ID
+  MidIndex := floor((aBankAccount.baSuggested_Mem_List.ItemCount-1)/2);
+  DiffValue := MidIndex;
+  CompareInt := -99;
+  repeat
+    LastCompareInt := CompareInt;
+    LastDiffValue := DiffValue;
+    DiffValue := ceil(DiffValue/2);
     CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(MidIndex).smFields.smId);
 
-    if CompareInt = -1 then
-      MidIndex := MidIndex - DiffValue
-    else if CompareInt = 1 then
-      MidIndex := MidIndex + DiffValue;
-    DiffValue := trunc(DiffValue/2);
-  end;
+    if ((CompareInt+LastCompareInt) = 0) and (LastDiffValue = 1) then
+      break;
 
+    if CompareInt = -1 then
+    begin
+      MidIndex := MidIndex - DiffValue;
+      if MidIndex < 0 then
+        DiffValue := 0;
+    end
+    else if CompareInt = 1 then
+    begin
+      if not odd(MidIndex) then
+        DiffValue := DiffValue + OddValue;
+
+      MidIndex := MidIndex + DiffValue;
+      if MidIndex >= aBankAccount.baSuggested_Mem_List.ItemCount then
+        DiffValue := 0;
+    end;
+  until((CompareInt = 0) or (DiffValue = 0));
   Result := (CompareInt = 0);
 
   if Result then
@@ -249,17 +389,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TSuggestedMems.InsertNewLink(aBankAccount : TBank_Account; aTranSeqNo, aSuggId : integer; aSuggestion : pSuggested_Mem_Rec);
 var
-  NewSuggLink : pTran_Suggested_Link_Rec;
+  NewSuggLink : TTran_Suggested_Link;
 begin
   // Current Trans already added to Suggestion so add search trans to suggestion
-  NewSuggLink := BKtsIO.New_Tran_Suggested_Link_Rec;
-  NewSuggLink^.tsTran_Seq_No := aTranSeqNo;
-  NewSuggLink^.tsSuggestedId := aSuggId;
+  NewSuggLink := TTran_Suggested_Link.Create();
+  NewSuggLink.tsFields.tsTran_Seq_No := aTranSeqNo;
+  NewSuggLink.tsFields.tsSuggestedId := aSuggId;
   aBankAccount.baTran_Suggested_Link_List.Insert(NewSuggLink);
 
-  NewSuggLink := BKtsIO.New_Tran_Suggested_Link_Rec;
-  NewSuggLink^.tsTran_Seq_No := aTranSeqNo;
-  NewSuggLink^.tsSuggestedId := aSuggId;
+  NewSuggLink := TTran_Suggested_Link.Create();
+  NewSuggLink.tsFields.tsTran_Seq_No := aTranSeqNo;
+  NewSuggLink.tsFields.tsSuggestedId := aSuggId;
   aBankAccount.baSuggested_Tran_Link_List.Insert(NewSuggLink);
 
   inc(aSuggestion^.smTotal_Count);
@@ -267,20 +407,29 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.SearchFoundMatch(aPhrase : string; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; aCurrentTranSuggestions : TArrSuggPointers);
+procedure TSuggestedMems.SearchFoundMatch(aPhrase : string; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers);
 var
   CurrentIndex  : integer;
   FoundSuggIds  : TArrInt;
   FoundSuggestion : pSuggested_Mem_Rec;
-  NewSuggestion : pSuggested_Mem_Rec;
+  AddedSuggestion : pSuggested_Mem_Rec;
+  NewSuggestion : TSuggested_Mem;
   NewSuggIndex  : integer;
+
+  //----------------------------------------------------------------------------
+  procedure AddCurrentTranSuggestion(aSuggestion : pSuggested_Mem_Rec);
+  begin
+    SetLength(aCurrentTranSuggestions, length(aCurrentTranSuggestions)+1);
+    aCurrentTranSuggestions[High(aCurrentTranSuggestions)] := aSuggestion;
+  end;
+
 begin
   for CurrentIndex := 0 to high(aCurrentTranSuggestions) do
   begin
     if CompareText(aPhrase, aCurrentTranSuggestions[CurrentIndex]^.smMatched_Phrase) = 0 then
     begin
       // Current Trans already added to Suggestion so add search trans to suggestion
-      InsertNewLink(aBankAccount, aMatchedTrans.txSequence_No, aCurrentTranSuggestions[CurrentIndex]^.smId, aCurrentTranSuggestions[CurrentIndex]);
+      //InsertNewLink(aBankAccount, aMatchedTrans.txSequence_No, aCurrentTranSuggestions[CurrentIndex]^.smId, aCurrentTranSuggestions[CurrentIndex]);
 
       Exit;
     end;
@@ -296,6 +445,7 @@ begin
         begin
           // Search Trans already added to Suggestion so add Current Trans
           InsertNewLink(aBankAccount, aScanTrans.txSequence_No, FoundSuggestion^.smId, FoundSuggestion);
+          AddCurrentTranSuggestion(FoundSuggestion);
           Exit;
         end;
       end;
@@ -303,15 +453,18 @@ begin
   end;
 
   // if not found add a new suggestion and new link
-  NewSuggestion := BKsmIO.New_Suggested_Mem_Rec;
-  NewSuggestion.smMatched_Phrase := '';
-  NewSuggestion.smTotal_Count := 0;
-  NewSuggestion.smManual_Count := 0;
-  NewSuggestion.smUncoded_Count := 0;
+  NewSuggestion := TSuggested_Mem.Create;
+  NewSuggestion.smFields.smMatched_Phrase := aPhrase;
+  NewSuggestion.smFields.smTotal_Count := 0;
+  NewSuggestion.smFields.smManual_Count := 0;
+  NewSuggestion.smFields.smUncoded_Count := 0;
   NewSuggIndex := aBankAccount.baSuggested_Mem_List.Insert_Suggested_Mem_Rec(NewSuggestion);
 
-  InsertNewLink(aBankAccount, aScanTrans.txSequence_No, NewSuggIndex, NewSuggestion);
-  InsertNewLink(aBankAccount, aMatchedTrans.txSequence_No, NewSuggIndex, NewSuggestion);
+  AddedSuggestion := aBankAccount.baSuggested_Mem_List.GetAs_pRec(NewSuggestion);
+
+  AddCurrentTranSuggestion(AddedSuggestion);
+  InsertNewLink(aBankAccount, aScanTrans.txSequence_No, NewSuggIndex, AddedSuggestion);
+  InsertNewLink(aBankAccount, aMatchedTrans.txSequence_No, NewSuggIndex, AddedSuggestion);
 end;
 
 //------------------------------------------------------------------------------
@@ -332,9 +485,12 @@ begin
        (aTrans^.txCoded_By in CodedByToInclude) and
        (aTrans^.txAccount   = TranRec^.txAccount) then
     begin
-      if CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0 then
+      if length(aTrans^.txStatement_Details) > 2 then
       begin
-        SearchFoundMatch(aTrans^.txStatement_Details, aBankAccount, aTrans, TranRec, CurrentTranSuggestions);
+        if CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0 then
+        begin
+          SearchFoundMatch(aTrans^.txStatement_Details, aBankAccount, aTrans, TranRec, CurrentTranSuggestions);
+        end;
       end;
     end;
   end;
@@ -350,7 +506,10 @@ var
   StartTime : TDateTime;
   BankAccount: TBank_Account;
   Trans : pTransaction_Rec;
+  SuggIndex : integer;
+  ScannedOnce : boolean;
 begin
+  ScannedOnce := false;
   if MyClient.clBank_Account_List.ItemCount = 0 then
     Exit;
 
@@ -368,17 +527,27 @@ begin
     begin
       if fAccountIndex = 0 then
       begin
-
         if DebugMe then
         begin
           if fNoMoreRecord <> fTempNoMoreRecord then
           begin
             if fTempNoMoreRecord then
-              LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, No More Records, Client ' + MyClient.clFields.clCode)
+            begin
+              LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, No More Records, Client ' + MyClient.clFields.clCode);
+              if DebugMeExt then
+                LogAllSuggestedMemsForClient(MyClient);
+            end
             else
               LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, Found More Records, Client ' + MyClient.clFields.clCode);
           end;
         end;
+
+        if (ScannedOnce) and (fNoMoreRecord) and (fTempNoMoreRecord) then
+        begin
+          Exit;
+        end;
+
+        ScannedOnce := true;
 
         fNoMoreRecord := fTempNoMoreRecord;
         fTempNoMoreRecord := true;
@@ -413,7 +582,7 @@ begin
     Trans := BankAccount.baTransaction_List.Transaction_At(fTranIndex);
     Dec(fTranIndex);
 
-    if Trans^.txSuggested_Mem_State <> tssExcluded then
+    if not (Trans^.txSuggested_Mem_State in [tssExcluded, tssScan]) then
       ProcessTransaction(BankAccount, Trans);
   end;
 end;
@@ -554,12 +723,12 @@ begin
     Exit;
   end;
 
-  if aNew then
+  if (aNew) or (MEMSINI_SupportOptions = meiResetMems) then
   begin
     if aTrans^.txCoded_By in CodedByToInclude then
-      aTrans^.txSuggested_Mem_State := tssExcluded
+      aTrans^.txSuggested_Mem_State := tssNoScan
     else
-      aTrans^.txSuggested_Mem_State := tssNoScan;
+      aTrans^.txSuggested_Mem_State := tssExcluded;
   end;
 
   if aTrans^.txSuggested_Mem_State = tssNoScan then
@@ -571,6 +740,7 @@ procedure TSuggestedMems.SetMainState();
 begin
   case MEMSINI_SupportOptions of
     meiDisableSuggestedMemsAll : fMainState := tssNoScan;
+    meiResetMems               : fMainState := tssScan;
     meiDisableSuggestedMemsv2  : fMainState := tssScan;
     meiFullfunctionality       : fMainState := tssScan;
   end;
@@ -582,7 +752,7 @@ var
   BankAccIndex : integer;
   BankAccount: TBank_Account;
   TranIndex : integer;
-  Trans : pTransaction_Rec;
+  TranRec : pTransaction_Rec;
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'ResetAll, Client ' + aClient.clFields.clCode);
@@ -599,18 +769,23 @@ begin
       if BankAccount.IsAJournalAccount then
         Continue;
 
-      BankAccount.baFields.baSuggested_UnProcessed_Count := BankAccount.baTransaction_List.ItemCount;
-
-      for TranIndex := 0 to BankAccount.baTransaction_List.ItemCount-1 do
+      BankAccount.baFields.baSuggested_UnProcessed_Count := 0;
+      for TranIndex := 0 to BankAccount.baTransaction_List.ItemCount-1  do
       begin
-        Trans := BankAccount.baTransaction_List.Transaction_At(TranIndex);
+        TranRec := BankAccount.baTransaction_List.Transaction_At(TranIndex);
 
-        if Trans^.txCoded_By in CodedByToInclude then
-          Trans^.txSuggested_Mem_State := tssExcluded
+        if TranRec^.txCoded_By in CodedByToInclude then
+        begin
+          TranRec^.txSuggested_Mem_State := tssNoScan;
+          inc(BankAccount.baFields.baSuggested_UnProcessed_Count);
+        end
         else
-          Trans^.txSuggested_Mem_State := tssNoScan;
-
+          TranRec^.txSuggested_Mem_State := tssExcluded;
       end;
+
+      BankAccount.baSuggested_Mem_List.DeleteFreeAll();
+      BankAccount.baTran_Suggested_Link_List.DeleteFreeAll();
+      BankAccount.baSuggested_Tran_Link_List.DeleteFreeAll();
     end;
   finally
     StartMemScan();
@@ -676,6 +851,7 @@ end;
 initialization
 begin
   DebugMe := DebugUnit(UnitName);
+  DebugMeExt := DebugUnit(UnitNameExt) or DebugMe;
   fSuggestedMems := nil;
 end;
 

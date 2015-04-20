@@ -34,6 +34,7 @@ type
     function Compare(Item1, Item2: Pointer) : integer; override;
     procedure Copyfrom(aSourceList : TTran_Suggested_Link_List);
     procedure Insert( Item : Pointer ); override;
+    procedure DeleteFreeAll();
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
@@ -68,6 +69,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TTran_Suggested_Link_List.DeleteFreeAll;
+var
+  index : integer;
+begin
+  for index := ItemCount-1 downto 0 do
+    DelFreeItem(self.Items[index]);
+end;
+
+//------------------------------------------------------------------------------
 function TTran_Suggested_Link_List.Compare(Item1, Item2: Pointer): integer;
 begin
   Result := 0;
@@ -95,13 +105,13 @@ end;
 procedure TTran_Suggested_Link_List.Copyfrom(aSourceList: TTran_Suggested_Link_List);
 var
   SourceIndex : integer;
-  NewSuggLink : pTran_Suggested_Link_Rec;
+  NewSuggLink : TTran_Suggested_Link;
 begin
   for SourceIndex := 0 to aSourceList.ItemCount-1 do
   begin
-    NewSuggLink := BKtsIO.New_Tran_Suggested_Link_Rec;
-    NewSuggLink^.tsTran_Seq_No := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsTran_Seq_No;
-    NewSuggLink^.tsSuggestedId := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsSuggestedId;
+    NewSuggLink := TTran_Suggested_Link.Create();
+    NewSuggLink.tsFields.tsTran_Seq_No := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsTran_Seq_No;
+    NewSuggLink.tsFields.tsSuggestedId := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsSuggestedId;
     Insert(NewSuggLink);
   end;
 end;

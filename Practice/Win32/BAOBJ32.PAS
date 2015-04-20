@@ -584,6 +584,7 @@ begin
 
    baSuggested_Mem_List := TSuggested_Mem_List.Create;
    baTran_Suggested_Link_List := TTran_Suggested_Link_List.Create;
+   baSuggested_Tran_Link_List := TTran_Suggested_Link_List.Create;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -640,6 +641,7 @@ begin
    FreeAndNil(baFinalized_Exchange_Rate_List);
    FreeAndNil(baSuggested_Mem_List);
    FreeAndNil(baTran_Suggested_Link_List);
+   FreeAndNil(baSuggested_Tran_Link_List);
 
    FMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
@@ -795,10 +797,10 @@ Begin
            baSuggested_Tran_Link_List.SortingOn := false;
            baTran_Suggested_Link_List.LoadFromFile(S);
            baSuggested_Tran_Link_List.Copyfrom(baTran_Suggested_Link_List);
-           baTran_Suggested_Link_List.SortingOn := true;
-           baSuggested_Tran_Link_List.SortingOn := true;
            baTran_Suggested_Link_List.SortType := tstTranId;
            baSuggested_Tran_Link_List.SortType := tstSuggId;
+           baTran_Suggested_Link_List.SortingOn := true;
+           baSuggested_Tran_Link_List.SortingOn := true;
            baTran_Suggested_Link_List.Sort();
            baSuggested_Tran_Link_List.Sort();
          end;

@@ -30,7 +30,8 @@ type
     constructor Create; override;
     function  Compare(Item1, Item2: Pointer) : integer; override;
 
-    function Insert_Suggested_Mem_Rec(var aSuggested_Mem : pSuggested_Mem_Rec) : integer;
+    function Insert_Suggested_Mem_Rec(var aSuggested_Mem : TSuggested_Mem) : integer;
+    procedure DeleteFreeAll();
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
@@ -57,6 +58,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TSuggested_Mem_List.DeleteFreeAll;
+var
+  index : integer;
+begin
+  for index := ItemCount-1 downto 0 do
+    DelFreeItem(self.Items[index]);
+end;
+
+//------------------------------------------------------------------------------
 function TSuggested_Mem_List.Compare(Item1, Item2: Pointer): integer;
 begin
   Result := CompareValue(TSuggested_Mem(Item1).smFields.smId,
@@ -74,18 +84,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggested_Mem_List.Insert_Suggested_Mem_Rec(var aSuggested_Mem : pSuggested_Mem_Rec) : integer;
+function TSuggested_Mem_List.Insert_Suggested_Mem_Rec(var aSuggested_Mem : TSuggested_Mem) : integer;
 Begin
   Result := -1;
-  If Bksmio.IsASuggested_Mem_Rec( aSuggested_Mem ) then
-  Begin
-    Inc( fHighId );
-    Result := fHighId;
 
-    aSuggested_Mem^.smId := fHighId;
+  Inc( fHighId );
+  Result := fHighId;
 
-    Inherited Insert( aSuggested_Mem );
-  end;
+  aSuggested_Mem.smFields.smId := fHighId;
+
+  Inherited Insert( aSuggested_Mem );
 end;
 
 //------------------------------------------------------------------------------
