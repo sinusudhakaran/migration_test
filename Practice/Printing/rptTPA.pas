@@ -493,7 +493,7 @@ begin
   myCanvas.Font.Size := 9;
 
   //----------------------------------------------------------------------------
-  CreateQRCode(MyCanvas, XYSizeRect(OutputRight-((OutputBottom-CurrYPos-40)+20), CurrYPos + 20, OutputRight-20, OutputBottom-20));
+  CreateQRCode(MyCanvas, XYSizeRect(OutputRight-((OutputBottom-CurrYPos-80)+40), CurrYPos + 40, OutputRight-40, OutputBottom-40));
 
   //----------------------------------------------------------------------------
   NewLineUp(2);

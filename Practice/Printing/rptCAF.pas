@@ -225,6 +225,7 @@ var
   IndentColumn : integer;
   TextWidth : integer;
   Point2StartTest : string;
+  XPosDateBox : integer;
 begin
   //assume we have a canvas of A4 proportions as per GST forms
   myCanvas     := CanvasRenderEng.OutputBuilder.Canvas;
@@ -394,45 +395,91 @@ begin
   TextWidth := CanvasRenderEng.GetTextLength(Point2StartTest);
   CurrYPos := CurrYPos - 18;
 
+  XPosDateBox := OutputLeft + TextWidth + CanvasRenderEng.GetTextLength(' SEPTEMBER ');
+
   if length(trim(Values.edtClientStartDte.Text)) <= 4 then
   begin
-    TextBox(Point2StartTest,
-            '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight - 6, true);
-    TextBox('20', '', myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight - 6, true);
+    TextBox(
+      Point2StartTest,
+      '',
+      myCanvas.Font.Size,
+      myCanvas.Font.Size + 1,
+      jtLeft,
+      jtCenter,
+      OutputLeft,
+      OutputLeft + TextWidth + 20,
+      XPosDateBox + 70,
+      CurrYPos,
+      CurrYPos + BoxHeight - 6,
+      true);
+
+    TextBox(
+      '20',
+      '',
+      myCanvas.Font.Size,
+      myCanvas.Font.Size + 1,
+      jtLeft,
+      jtCenter,
+      XPosDateBox + 80,
+      XPosDateBox + 120,
+      XPosDateBox + 190,
+      CurrYPos,
+      CurrYPos + BoxHeight - 6,
+      true);
   end
   else
   begin
-    TextBox(Point2StartTest,
-            UpperCase(moNames[Month]), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            OutputLeft, OutputLeft + TextWidth + 20, XPosTwoThirds + 70, CurrYPos, CurrYPos + BoxHeight - 6, true);
-    TextBox('20', RightStr(inttoStr(Year),2), myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtCenter,
-            XPosTwoThirds + 80, XPosTwoThirds + 120, XPosTwoThirds + 190, CurrYPos, CurrYPos + BoxHeight - 6, true);
+    TextBox(
+      Point2StartTest,
+      UpperCase(moNames[Month]),
+      myCanvas.Font.Size,
+      myCanvas.Font.Size + 1,
+      jtLeft,
+      jtCenter,
+      OutputLeft,
+      OutputLeft + TextWidth + 20,
+      XPosDateBox + 70,
+      CurrYPos,
+      CurrYPos + BoxHeight - 6,
+      true);
+
+    TextBox(
+      '20',
+      RightStr(inttoStr(Year),2),
+      myCanvas.Font.Size,
+      myCanvas.Font.Size + 1,
+      jtLeft,
+      jtCenter,
+      XPosDateBox + 80,
+      XPosDateBox + 120,
+      XPosDateBox + 190,
+      CurrYPos,
+      CurrYPos + BoxHeight - 6,
+      true);
   end;
 
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   TextLine('1.', NumColumn, OutputRight);
-  TextLine('to forward all data and', XPosTwoThirds + 200, OutputRight);
+  TextLine('to forward all data', XPosDateBox + 200, OutputRight);
   NewLine;
-  TextLine('information (whether in written, computer readable or any other format) relating to my/our account(s) designated above to each', OutputLeft, OutputRight);
+  TextLine('and information (whether in written, computer readable or any other format) relating to my/our account(s) designated above', OutputLeft, OutputRight);
   NewLine;
-  TextLine('other and to', OutputLeft, OutputRight);
+  TextLine('to each other and to', OutputLeft, OutputRight);
   myCanvas.Font.Size := 7;
   CurrLineSize := GetCurrLineSizeNoInflation + 3;
   NewLine;
   HalfNewLine;
   TextBox('', Values.PracticeName, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
-          0, OutputLeft, XPosTwoThirds-300, CurrYPos, CurrYPos + BoxHeight);
+          0, OutputLeft, XPosDateBox-300, CurrYPos, CurrYPos + BoxHeight);
   TextBox('', Values.PracticeCode, myCanvas.Font.Size, myCanvas.Font.Size + 1, jtLeft, jtLeft,
-          XPosTwoThirds-100, XPosTwoThirds-100, XPosTwoThirds+400, CurrYPos, CurrYPos + BoxHeight);
+          XPosDateBox-100, XPosDateBox-100, XPosDateBox+400, CurrYPos, CurrYPos + BoxHeight);
   CurrYPos := GetTextYPos(CurrYPos);
   NewLine(1);
   HalfNewLine;
   CurrYPos := CurrYPos + 5;
   TextLine('("my/our authorised recipients")', OutputLeft, OutputRight);
-  TextLine('(Practice Code)', XPosTwoThirds-100, OutputRight);
+  TextLine('(Practice Code)', XPosDateBox-100, OutputRight);
   myCanvas.Font.Size := 8;
 
   //----------------------------------------------------------------------------
@@ -442,9 +489,9 @@ begin
   TextLine('I/We UNDERSTAND that:', OutputLeft, OutputRight);
   NewLine;
   TextLine('a)', OutputLeft, OutputRight);
-  TextLine('no agency, partnership, joint venture or any other type of similar relationship exists between the Supplier and ' + BRAND_FULL_NAME + ' and that', IndentColumn, OutputRight);
+  TextLine('no agency, partnership, joint venture or any other type of similar relationship exists between the Supplier and ' + BRAND_FULL_NAME + ' and', IndentColumn, OutputRight);
   NewLine;
-  TextLine('the Supplier accepts no responsibility for the actions of ' + BRAND_FULL_NAME + ', my/our authorised recipients or any other third party;', IndentColumn, OutputRight);
+  TextLine('that the Supplier accepts no responsibility for the actions of ' + BRAND_FULL_NAME + ', my/our authorised recipients or any other third party;', IndentColumn, OutputRight);
   NewLine;
   TextLine('b)', OutputLeft, OutputRight);
   TextLine('unless otherwise required or prohibited by any applicable law (including the Australian Consumer Law), neither the Supplier nor', IndentColumn, OutputRight);
