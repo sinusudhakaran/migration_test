@@ -52,6 +52,8 @@ CONST
    tksmManual_Count                     = 174 ;
    tksmUncoded_Count                    = 175 ;
    tksmUpdate_Date                      = 176 ;
+   tksmStart_Data                       = 177 ;
+   tksmEnd_Data                         = 178 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -83,6 +85,8 @@ Begin
       F.WriteIntegerValue( tksmManual_Count , smManual_Count );
       F.WriteIntegerValue( tksmUncoded_Count , smUncoded_Count );
       F.WriteDateValue( tksmUpdate_Date , smUpdate_Date );
+      F.WriteBooleanValue( tksmStart_Data , smStart_Data );
+      F.WriteBooleanValue( tksmEnd_Data , smEnd_Data );
       F.WriteToken( tkEnd_Suggested_Mem );
    end;
 end; { of Write_Suggested_Mem_Rec }
@@ -111,6 +115,8 @@ Begin
          tksmManual_Count                     : smManual_Count := F.ReadIntegerValue;
          tksmUncoded_Count                    : smUncoded_Count := F.ReadIntegerValue;
          tksmUpdate_Date                      : smUpdate_Date := F.ReadDateValue;
+         tksmStart_Data                       : smStart_Data := F.ReadBooleanValue;
+         tksmEnd_Data                         : smEnd_Data := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -157,7 +163,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tksmId to tksmUpdate_Date do begin
+  for i := tksmId to tksmEnd_Data do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -210,6 +216,16 @@ begin
   if (P1.smUpdate_Date <> P2.smUpdate_Date) then begin
     P3.smUpdate_Date := P1.smUpdate_Date;
     ChangedFields[i] := tksmUpdate_Date;
+    Inc(i);
+  end;
+  if (P1.smStart_Data <> P2.smStart_Data) then begin
+    P3.smStart_Data := P1.smStart_Data;
+    ChangedFields[i] := tksmStart_Data;
+    Inc(i);
+  end;
+  if (P1.smEnd_Data <> P2.smEnd_Data) then begin
+    P3.smEnd_Data := P1.smEnd_Data;
+    ChangedFields[i] := tksmEnd_Data;
     Inc(i);
   end;
 

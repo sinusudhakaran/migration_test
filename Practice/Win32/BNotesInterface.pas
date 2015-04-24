@@ -2578,7 +2578,7 @@ begin
 
             Inc( ImportedCount);
 
-            SuggestedMem.SetSuggestedTransactionState(BA, T, tssNoScan);
+            SuggestedMem.SetSuggestedTransactionState(BA, T, tssUnScanned);
           end
           else
           begin

@@ -3737,6 +3737,8 @@ begin
 	SetIntAttr(Result, 'ManualCount', smManual_Count);
 	SetIntAttr(Result, 'UncodedCount', smUncoded_Count);
 	SetIntAttr(Result, 'UpdateDate', smUpdate_Date);
+	SetBoolAttr(Result, 'StartData', smStart_Data);
+	SetBoolAttr(Result, 'EndData', smEnd_Data);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3759,6 +3761,8 @@ begin
 	smManual_Count := GetIntAttr(Result, 'ManualCount');
 	smUncoded_Count := GetIntAttr(Result, 'UncodedCount');
 	smUpdate_Date := GetIntAttr(Result, 'UpdateDate');
+	smStart_Data := GetBoolAttr(Result, 'StartData');
+	smEnd_Data := GetBoolAttr(Result, 'EndData');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
 	end;
@@ -3781,6 +3785,7 @@ var PNode, CNode, CCNode: IXMLNode;
 	I, J, M: Integer;
 begin
 	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'DateEffective', tsDate_Effective);
 	SetIntAttr(Result, 'TranSeqNo', tsTran_Seq_No);
 	SetIntAttr(Result, 'SuggestedId', tsSuggestedId);
 
@@ -3799,6 +3804,7 @@ begin
 	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
 	if not assigned(Result) then exit;
 	try
+	tsDate_Effective := GetIntAttr(Result, 'DateEffective');
 	tsTran_Seq_No := GetIntAttr(Result, 'TranSeqNo');
 	tsSuggestedId := GetIntAttr(Result, 'SuggestedId');
 	except

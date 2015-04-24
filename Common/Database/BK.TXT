@@ -1270,9 +1270,12 @@ F|Total Count|L
 F|Manual Count|L
 F|Uncoded Count|L
 F|Update Date|D
+F|Start Data|Y
+F|End Data|Y
 E
 
 N|Tran Suggested Link|ts|170
+F|Date Effective|D
 F|Tran Seq No|L
 F|SuggestedId|L
 E

@@ -119,7 +119,6 @@ type
     celTransferedToOnline: TOvcTCCheckBox;
     celCoreTransactionId: TOvcTCString;
     lblRecommendedMemorisations: TLabel;
-    tmrMemLabel: TTimer;
     tcWindows: TRzTabControl;
     pnlLine: TPanel;
     procedure FormCreate(Sender: TObject);
@@ -310,7 +309,6 @@ type
     procedure ConvertVATAmount(Sender: TObject);
     procedure celAnalysisChange(Sender: TObject);
     procedure lblRecommendedMemorisationsClick(Sender: TObject);
-    procedure tmrMemLabelTimer(Sender: TObject);
     procedure tcWindowsTabClick(Sender: TObject);
 
   private
@@ -497,6 +495,9 @@ type
     procedure SetSearchText(const Value: string);
     procedure SetSearchVisible(const Value: Boolean);
     function GetSearchVisible: Boolean;
+
+    procedure DoSuggestedMemsDoneProcessing();
+
   protected
     procedure SetMDIChildSortedIndex(aIndex : integer);
   public
@@ -2437,6 +2438,13 @@ begin
    SetOrClearTransferDate( True );
    LogUtil.LogMsg(lmInfo,UnitName,'Transfer Flags Set to ' + bkDate2Str( CurrentDate));
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TfrmCoding.DoSuggestedMemsDoneProcessing;
+begin
+  UpdateSuggestedMemLabel;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoAddOutstandingCheques;
 //Adds Outstanding Cheques
@@ -3461,7 +3469,7 @@ begin
     pT^.txHas_Been_Edited := False;
     pT^.txGST_Has_Been_Edited := False;
 
-    SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+    SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
 
     ClearSuperFundFields(pT);
 
@@ -5374,7 +5382,7 @@ begin
                pT^.txAccount :=tmpShortStr;
                AccountEdited(pT);
 
-               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
 
                pT.txTransfered_To_Online := False;
             end;
@@ -5386,7 +5394,7 @@ begin
             begin
               pT.txTransfered_To_Online := False;
 
-              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
             end;
          end;
 
@@ -5397,7 +5405,7 @@ begin
            begin
              pT.txTransfered_To_Online := False;
 
-             SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+             SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
            end;
          end;
 
@@ -5497,7 +5505,7 @@ begin
 
          ceEntryType:
          begin
-           SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+           SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
            pT.txTransfered_To_Online := False;
          end;
 
@@ -7722,11 +7730,6 @@ begin
   SearchVisible := False;
 end;
 
-procedure TfrmCoding.tmrMemLabelTimer(Sender: TObject);
-begin
-  UpdateSuggestedMemLabel;
-end;
-
 procedure TfrmCoding.tmrPayeeTimer(Sender: TObject);
 var
    pT, pNew: pTransaction_Rec;
@@ -7757,7 +7760,7 @@ begin
            pT^.txPayee_Number := tmpPayee;
            if PayeeEdited(pT) then
            begin
-              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
               pT^.txHas_Been_Edited := true;
            end
            else
@@ -7772,7 +7775,7 @@ begin
               pT^.txHas_Been_Edited := true;
               if pt^.txCoded_By in [cbMemorisedC,cbMemorisedM] then
                  pT^.txCoded_By := cbManual;
-              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+              SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
            end
            else
               pT^.txJob_Code := OldJob;
@@ -7934,7 +7937,7 @@ begin
 
   if Assigned(BankAccount) then
   begin
-    MemCount := MyClient.clRecommended_Mems.GetCountOfRecMemsInAccount(BankAccount.baFields.baBank_Account_Number);
+    MemCount := SuggestedMem.GetSuggestedMemsCount(BankAccount);
     if (MemCount = 0) then
     begin
       ShowLblRecommendedMemorisations := False;
@@ -8020,6 +8023,8 @@ begin
    ThisForm := TfrmCoding.Create( aOwner);
    with ThisForm do begin
       BankAccount := aBankAccount;
+      SuggestedMem.DoneProcessingEvent := ThisForm.DoSuggestedMemsDoneProcessing;
+
       BankPrefix  := copy(BankAccount.baFields.baBank_Account_Number, 1, 2);
       SectionName := Format( SectionNameTemplate, [ BankPrefix ] );
       fIsForex := Bank_Account.IsAForexAccount;
@@ -8171,8 +8176,7 @@ begin
 
            end;
       *)
-      
-      tmrMemLabel.Enabled := not BankAccount.IsAJournalAccount;
+
    end;
 
    result := ThisForm;
@@ -10280,3 +10284,4 @@ initialization
    DebugMe := DebugUnit(UnitName);
 
 end.
+

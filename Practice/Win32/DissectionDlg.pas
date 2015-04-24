@@ -3750,7 +3750,7 @@ begin
                 pT^.txTransfered_To_Online := False;
               end;
            end;
-           SuggestedMem.SetSuggestedTransactionState(BA, pT, tssNoScan);
+           SuggestedMem.SetSuggestedTransactionState(BA, pT, tssUnScanned);
          end
          else
          begin

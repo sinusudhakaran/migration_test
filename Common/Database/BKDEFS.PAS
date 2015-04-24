@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 740;
-   BK_IOLIB_Date    = '18/04/15';
+   BK_IOLIB_Version : Integer = 744;
+   BK_IOLIB_Date    = '22/04/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -1445,6 +1445,8 @@ Type
       smManual_Count                     : Integer;       { Stored }
       smUncoded_Count                    : Integer;       { Stored }
       smUpdate_Date                      : Integer;       { Stored }
+      smStart_Data                       : Boolean;       { Stored }
+      smEnd_Data                         : Boolean;       { Stored }
       smEOR                              : Byte;
    end;
 
@@ -1452,6 +1454,7 @@ Type
 
    tTran_Suggested_Link_Rec = Packed Record
       tsRecord_Type                      : Byte;
+      tsDate_Effective                   : Integer;       { Stored }
       tsTran_Seq_No                      : Integer;       { Stored }
       tsSuggestedId                      : Integer;       { Stored }
       tsEOR                              : Byte;

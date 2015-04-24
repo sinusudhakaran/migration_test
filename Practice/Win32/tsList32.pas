@@ -86,18 +86,22 @@ begin
     Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
                            TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
 
-    if (Result <> 0) then Exit;
+    if (Result <> 0) then
+      Exit;
+
     Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
                            TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
   end
   else
   begin
-    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
-                           TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
-
-    if (Result <> 0) then Exit;
     Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
                            TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
+
+    if (Result <> 0) then
+      Exit;
+
+    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
+                           TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
   end;
 end;
 
@@ -110,8 +114,9 @@ begin
   for SourceIndex := 0 to aSourceList.ItemCount-1 do
   begin
     NewSuggLink := TTran_Suggested_Link.Create();
-    NewSuggLink.tsFields.tsTran_Seq_No := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsTran_Seq_No;
-    NewSuggLink.tsFields.tsSuggestedId := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsSuggestedId;
+    NewSuggLink.tsFields.tsDate_Effective := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsDate_Effective;
+    NewSuggLink.tsFields.tsTran_Seq_No    := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsTran_Seq_No;
+    NewSuggLink.tsFields.tsSuggestedId    := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsSuggestedId;
     Insert(NewSuggLink);
   end;
 end;

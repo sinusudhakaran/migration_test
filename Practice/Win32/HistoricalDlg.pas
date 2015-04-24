@@ -2681,7 +2681,7 @@ begin
                // Edited flag not set if when coded from Blank
                pT^.txAccount         :=tmpShortStr;
                AccountEdited(pT);
-               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
             end;
          end;
 
@@ -2718,7 +2718,7 @@ begin
 
          cePayee : begin
             // can't popup a dialog in here - case 7255
-            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
          end;
 
          ceJob : begin
@@ -2731,7 +2731,7 @@ begin
                   pd := pd.dsNext;
                end;
             end;
-            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
          end;
 
          ceEffDate : if tmpInteger <>  pT^.txDate_Effective then begin
@@ -2818,7 +2818,7 @@ begin
             //call routine to update the txCheque_Number field
 
             EntryTypeEdited( pT);
-            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
          end;
       end;
       pT^.txHas_Been_Edited := true;
@@ -3890,7 +3890,7 @@ begin
         if PayeeEdited(pT) then
         begin
           pT^.txHas_Been_Edited := true;
-          SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssNoScan);
+          SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
         end
         else
           //restore original value

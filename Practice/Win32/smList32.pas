@@ -62,6 +62,7 @@ procedure TSuggested_Mem_List.DeleteFreeAll;
 var
   index : integer;
 begin
+  fHighId := 0;
   for index := ItemCount-1 downto 0 do
     DelFreeItem(self.Items[index]);
 end;

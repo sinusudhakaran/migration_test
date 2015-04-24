@@ -584,7 +584,11 @@ begin
 
    baSuggested_Mem_List := TSuggested_Mem_List.Create;
    baTran_Suggested_Link_List := TTran_Suggested_Link_List.Create;
+   baTran_Suggested_Link_List.SortingOn := true;
+   baTran_Suggested_Link_List.SortType := tstTranId;
    baSuggested_Tran_Link_List := TTran_Suggested_Link_List.Create;
+   baSuggested_Tran_Link_List.SortingOn := true;
+   baSuggested_Tran_Link_List.SortType := tstSuggId;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;

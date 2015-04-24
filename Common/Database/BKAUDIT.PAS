@@ -969,10 +969,13 @@ begin
     FAuditNamesArray[169,174] := 'Manual_Count';
     FAuditNamesArray[169,175] := 'Uncoded_Count';
     FAuditNamesArray[169,176] := 'Update_Date';
+    FAuditNamesArray[169,177] := 'Start_Data';
+    FAuditNamesArray[169,178] := 'End_Data';
 
    FAuditTableArray[170] := 'Tran_Suggested_Link';
-    FAuditNamesArray[170,172] := 'Tran_Seq_No';
-    FAuditNamesArray[170,173] := 'SuggestedId';
+    FAuditNamesArray[170,172] := 'Date_Effective';
+    FAuditNamesArray[170,173] := 'Tran_Seq_No';
+    FAuditNamesArray[170,174] := 'SuggestedId';
 
 end;
 

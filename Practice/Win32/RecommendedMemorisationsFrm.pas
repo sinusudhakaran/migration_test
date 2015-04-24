@@ -23,13 +23,14 @@ uses
   baObj32,
   rmObj32,
   rmList32,
+  SuggestedMems,
   OSFont,
   ImagesFrm;
 
 type
   PTreeData = ^TTreeData;
   TTreeData = record
-    RecommendedMem: TRecommended_Mem;
+    SuggestedMem : pSuggestedMemsData;
   end;
 
   //----------------------------------------------------------------------------
@@ -63,7 +64,7 @@ type
   private
     fMouseDownX, fMouseDownY : integer;
     fBankAccount: TBank_Account;
-    fData: array of TRecommended_Mem;
+    fData: TSuggestedMemsArr;
     fAdded: boolean;
 
     procedure BuildData;
@@ -250,22 +251,21 @@ begin
     0:
     begin
       CellText := Format('%d:%s', [
-        pData.RecommendedMem.rmFields.rmType,
-        MyClient.clFields.clShort_Name[pData.RecommendedMem.rmFields.rmType]
+        pData.SuggestedMem^.smType,
+        MyClient.clFields.clShort_Name[pData.SuggestedMem^.smType]
         ]);
     end;
 
     // Statement details
-    1: CellText := pData.RecommendedMem.rmFields.rmStatement_Details;
+    1: CellText := pData.SuggestedMem^.smMatchedPhrase;
 
     // Code
-    2: CellText := pData.RecommendedMem.rmFields.rmAccount;
+    2: CellText := pData.SuggestedMem^.smAccount;
 
     // Total #
     3:
     begin
-      iTotal := pData.RecommendedMem.rmFields.rmManual_Count +
-        pData.RecommendedMem.rmFields.rmUncoded_Count;
+      iTotal := pData.SuggestedMem^.smTotalCount;
       CellText := IntToStr(iTotal);
     end;
   end;
@@ -306,31 +306,29 @@ var
   var
     EntryType1, EntryType2: integer;
   begin
-    EntryType1 := pData1.RecommendedMem.rmFields.rmType;
-    EntryType2 := pData2.RecommendedMem.rmFields.rmType;
+    EntryType1 := pData1.SuggestedMem.smType;
+    EntryType2 := pData2.SuggestedMem.smType;
     Result := CompareValue(EntryType1, EntryType2);
   end;
 
   function CompareStatementDetails: integer;
   begin
-    Result := CompareText(pData1.RecommendedMem.rmFields.rmStatement_Details,
-                          pData2.RecommendedMem.rmFields.rmStatement_Details);
+    Result := CompareText(pData1.SuggestedMem.smMatchedPhrase,
+                          pData2.SuggestedMem.smMatchedPhrase);
   end;
 
   function CompareAccountCode: integer;
   begin
-    Result := CompareText(pData1.RecommendedMem.rmFields.rmAccount,
-                          pData2.RecommendedMem.rmFields.rmAccount);
+    Result := CompareText(pData1.SuggestedMem.smAccount,
+                          pData2.SuggestedMem.smAccount);
   end;
 
   function CompareTotal: integer;
   var
     Total1, Total2: integer;
   begin
-    Total1 := pData1.RecommendedMem.rmFields.rmManual_Count +
-              pData1.RecommendedMem.rmFields.rmUncoded_Count;
-    Total2 := pData2.RecommendedMem.rmFields.rmManual_Count +
-              pData2.RecommendedMem.rmFields.rmUncoded_Count;
+    Total1 := pData1.SuggestedMem.smTotalCount;
+    Total2 := pData2.SuggestedMem.smTotalCount;
     Result := CompareValue(Total1, Total2);
   end;
 
@@ -338,9 +336,9 @@ begin
   pData1 := PTreeData(vstTree.GetNodeData(Node1));
   pData2 := PTreeData(vstTree.GetNodeData(Node2));
 
-  if not Assigned(pData1.RecommendedMem) then
+  if not Assigned(pData1.SuggestedMem) then
     CompareResult := 1
-  else if not Assigned(pData2.RecommendedMem) then
+  else if not Assigned(pData2.SuggestedMem) then
     CompareResult := -1
   else
   begin
@@ -401,34 +399,11 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.BuildData;
-var
-  Mems: TRecommended_Mem_List;
-  i: integer;
-  Mem: TRecommended_Mem;
-  iCount: integer;
 begin
-  Mems := MyClient.clRecommended_Mems.Recommended;
+  Setlength(fData,0);
   fData := nil;
 
-  { Note: The RepopulateRecommendedMems has been removed because with large
-    client files or with Mems V2 this would have taken a long time. It would
-    have affected the startup of the form (FormCreate) and clicking of the "+"
-    button, and leaving the Memorisation edit form. }
-
-  for i := 0 to Mems.ItemCount-1 do
-  begin
-    Mem := Mems.Recommended_Mem_At(i);
-
-    // Only include our bank account entries
-    if (fBankAccount.baFields.baBank_Account_Number <>
-      Mem.rmFields.rmBank_Account_Number) then
-      continue;
-
-    // Add
-    iCount := Length(fData);
-    SetLength(fData, iCount+1);
-    fData[iCount] := Mem;
-  end;
+  fData := SuggestedMem.GetSuggestedMems(fBankAccount);
 end;
 
 //------------------------------------------------------------------------------
@@ -460,8 +435,8 @@ var
     pData := PTreeData(vstTree.GetNodeData(aNode));
     if Assigned(pData) then
     begin
-      aAccount := pData.RecommendedMem.rmFields.rmAccount;
-      aStatement := pData.RecommendedMem.rmFields.rmStatement_Details;
+      aAccount := pData.SuggestedMem.smAccount;
+      aStatement := pData.SuggestedMem.smMatchedPhrase;
     end;
   end;
 
@@ -474,8 +449,8 @@ var
     pData := PTreeData(vstTree.GetNodeData(aNode));
     if Assigned(pData) then
     begin
-      if (aAccount = pData.RecommendedMem.rmFields.rmAccount) and
-         (aStatement = pData.RecommendedMem.rmFields.rmStatement_Details) then
+      if (aAccount = pData.SuggestedMem.smAccount) and
+         (aStatement = pData.SuggestedMem.smMatchedPhrase) then
         Result := true;
     end;
   end;
@@ -517,7 +492,7 @@ begin
       // Add
       NewNode := vstTree.AddChild(nil);
       NewData := PTreeData(vstTree.GetNodeData(NewNode));
-      NewData.RecommendedMem := fData[Index];
+      NewData.SuggestedMem := @fData[Index];
 
       if IsAccAndStatEqualtoNode(NewNode, SelAccount, SelStatement) then
       begin
@@ -605,36 +580,21 @@ begin
   Mems := fBankAccount.baMemorisations_List;
   Mem := TMemorisation.Create(Mems.AuditMgr);
   Mem.mdFields.mdMatch_On_Statement_Details := true;
-  Mem.mdFields.mdStatement_Details := pData.RecommendedMem.rmFields.rmStatement_Details;
-  Mem.mdFields.mdType := pData.RecommendedMem.rmFields.rmType;
+  Mem.mdFields.mdStatement_Details := pData.SuggestedMem.smMatchedPhrase;
+  Mem.mdFields.mdType := pData.SuggestedMem.smType;
 
   // Create memorisation line
   MemLine := New_Memorisation_Line_Rec;
-  MemLine.mlAccount := pData.RecommendedMem.rmFields.rmAccount;
+  MemLine.mlAccount := pData.SuggestedMem.smAccount;
   MemLine.mlGST_Class := MyClient.clChart.GSTClass(
-    pData.RecommendedMem.rmFields.rmAccount);
+    pData.SuggestedMem.smAccount);
   MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
   Mem.mdLines.Insert(MemLine);
 
   // OK pressed, and insert mem?
   if CreateMemorisation(fBankAccount, Mems, Mem) then
   begin
-    { Remove this from the recommended mem list, now that's it been turned
-      into a memorisation. }
-
-    { WORKAROUND: DelFreeItem wasn't working. No idea why, as the item is
-      definitely there. }
-    Recommended := MyClient.clRecommended_Mems.Recommended;
-    for i := 0 to Recommended.ItemCount-1 do
-    begin
-      if (Recommended[i] = pData.RecommendedMem) then
-      begin
-        Recommended.AtDelete(i);
-        FreeAndNil(pData.RecommendedMem);
-        vstTree.DeleteNode(aNode);
-        break;
-      end;
-    end;
+    BuildData;
 
     // Repopulate the recommended mems list from scratch (just the rec mems,
     // not the unscanned transactions or candidate mems)

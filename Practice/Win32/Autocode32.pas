@@ -222,7 +222,7 @@ begin
                     if HasAlternativeChartCode(aClient.clFields.clCountry, aClient.clFields.clAccounting_System_Used) then
                     begin
                       txAccount := aCLient.clChart.MatchAltCode(txAccount);
-                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned);
                     end;
 
                     Continue; // Must be True
@@ -361,7 +361,7 @@ begin
                           else
                              txAccount := MemorisationLine.mlAccount;
 
-                          SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                          SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned);
 
                           txPayee_Number := MemorisationLine.mlPayee;
                           if MemorisationLine.mlJob_Code > '' then
@@ -441,7 +441,7 @@ begin
                       mxUtils.MemorisationSplit( Amount, MX, Split, SplitPct );
                       txAccount      := DISSECT_DESC;
 
-                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned);
 
                       txPayee_Number := 0;
                       ClearGSTFields( Transaction);
@@ -605,7 +605,7 @@ begin
                                    begin
                                      txAccount      := PayeeLine.plAccount;
 
-                                     SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                                     SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned);
 
                                      if PayeeLine.plGL_Narration <> '' then
                                        txGL_Narration := PayeeLine.plGL_Narration;
@@ -631,7 +631,7 @@ begin
                               txPayee_Number := Payee.pdNumber;
                               txAccount      := DISSECT_DESC;
 
-                              SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                              SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned);
 
                               ClearGSTFields( Transaction);
                               ClearSuperFundFields( Transaction);
@@ -773,7 +773,7 @@ begin
                             //match found
                             txAccount      := TestCode;
 
-                            SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssNoScan);
+                            SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned);
 
                             txCoded_By     := cbAnalysis;
                             CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );

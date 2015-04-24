@@ -46,8 +46,9 @@ end;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tktsTran_Seq_No                      = 172 ;
-   tktsSuggestedId                      = 173 ;
+   tktsDate_Effective                   = 172 ;
+   tktsTran_Seq_No                      = 173 ;
+   tktsSuggestedId                      = 174 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -73,6 +74,7 @@ Begin
    If IsATran_Suggested_Link_Rec ( @O ) then With O do
    Begin
       F.WriteToken( tkBegin_Tran_Suggested_Link );
+      F.WriteDateValue( tktsDate_Effective , tsDate_Effective );
       F.WriteIntegerValue( tktsTran_Seq_No , tsTran_Seq_No );
       F.WriteIntegerValue( tktsSuggestedId , tsSuggestedId );
       F.WriteToken( tkEnd_Tran_Suggested_Link );
@@ -97,6 +99,7 @@ Begin
       Case Token of
          tkBegin_Tran_Suggested_Link :; { Do Nothing }
          tkEnd_Tran_Suggested_Link :; { Do Nothing }
+         tktsDate_Effective                   : tsDate_Effective := F.ReadDateValue;
          tktsTran_Seq_No                      : tsTran_Seq_No := F.ReadIntegerValue;
          tktsSuggestedId                      : tsSuggestedId := F.ReadIntegerValue;
          else
@@ -145,7 +148,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tktsTran_Seq_No to tktsSuggestedId do begin
+  for i := tktsDate_Effective to tktsSuggestedId do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -170,6 +173,11 @@ begin
 
   //Change
   i := 0;
+  if (P1.tsDate_Effective <> P2.tsDate_Effective) then begin
+    P3.tsDate_Effective := P1.tsDate_Effective;
+    ChangedFields[i] := tktsDate_Effective;
+    Inc(i);
+  end;
   if (P1.tsTran_Seq_No <> P2.tsTran_Seq_No) then begin
     P3.tsTran_Seq_No := P1.tsTran_Seq_No;
     ChangedFields[i] := tktsTran_Seq_No;

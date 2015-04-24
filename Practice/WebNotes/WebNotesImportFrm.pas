@@ -1504,7 +1504,7 @@ var AccountNo: string;
             end;
 
              Inc(ImportedCount);
-             SuggestedMem.SetSuggestedTransactionState(BA, Trans, tssNoScan);
+             SuggestedMem.SetSuggestedTransactionState(BA, Trans, tssUnScanned);
           end
           else
           begin
