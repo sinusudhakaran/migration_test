@@ -163,10 +163,6 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       TabWidth = 5
       object tabOverview: TTabSheet
         Caption = 'tabOverview'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           746
           372)

@@ -1008,6 +1008,17 @@ var
 begin
   case fCurrentStepID of
     mtOverview : begin
+      BKOverviewWebBrowser.Stop;
+      BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+    end;
+    mtCheckList : begin
+      BKChecklistWebBrowser.Stop;
+      BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+    end;
+  end;
+
+  {case fCurrentStepID of
+    mtOverview : begin
       case AdminSystem.fdFields.fdCountry of
         whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
         whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
@@ -1025,7 +1036,7 @@ begin
       BKChecklistWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete;
       BKChecklistWebBrowser.NavigateToURL(URL);
     end;
-  end;
+  end; }
 end;
 
 //------------------------------------------------------------------------------
