@@ -238,8 +238,8 @@ const
   CASHBOOK_ACCEPT = 'application/vnd.cashbook-v1+json';
   CASHBOOK_AUTH_PREFIX = 'Bearer ';
 
-  CASHBOOK_SYSTEM_ACCOUNTS : Array[0..7] of string =
-    ('2-2200','2-2400','2-2800','3-1600','3-1800','3-8000','3-8001','3-9999');
+  CASHBOOK_SYSTEM_ACCOUNTS : Array[0..8] of string =
+    ('2-2000','2-2200','2-2400','2-2800','3-1600','3-1800','3-8000','3-8001','3-9999');
 
 var
   fCashbookMigration: TCashbookMigration;
