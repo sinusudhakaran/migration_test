@@ -933,8 +933,6 @@ begin
    FClosing := False;
    FAbandon := False;
    RegisterWebNotesUpdate(Self.Handle);
-
-   MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts();
 end;
 
 procedure TfrmClientHomePage.FormDestroy(Sender: TObject);

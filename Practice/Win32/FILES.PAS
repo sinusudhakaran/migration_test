@@ -1277,12 +1277,6 @@ begin
 
     if Assigned(MyClient) then
     begin
-       MyClient.clRecommended_Mems.SetBankAccounts(MyClient.clBank_Account_List);
-       // Uncomment these next two lines to rebuild the recommended mem data for this client.
-       // For debugging purposes only, DO NOT check these in uncommented
-       // MyClient.clRecommended_Mems.ResetAll;
-       // MyClient.clRecommended_Mems.PopulateUnscannedListAllAccounts(false);
-
        with MyClient.clFields do
          AddToMRU( clCode, clName );
 
@@ -1361,7 +1355,6 @@ begin
 
      // The Client has been opened by the user we can start the mems scan timer
      SuggestedMem.StartMemScan(true);
-     MyClient.clRecommended_Mems.StartMemScan;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -1392,7 +1385,6 @@ begin
         Exit;
 
       SuggestedMem.StopMemScan(true);
-      MyClient.clRecommended_Mems.StopMemScan;
 
       //Check the status of the client file. Don't save if it has been openned Read Only
       if (not MyClient.clFields.clFile_Read_Only) then begin
@@ -1474,7 +1466,6 @@ var
     if (Result) then
     begin
       SuggestedMem.StopMemScan(true);
-      MyClient.clRecommended_Mems.StopMemScan;
       AbandonAClient(MyClient);
       BatchReports.XMLString := '';
       WasAbandoned := True;

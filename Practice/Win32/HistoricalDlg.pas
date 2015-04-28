@@ -3880,7 +3880,6 @@ begin
    pT := HistTranList.Transaction_At(TimerRow-1);
    if not assigned(pt) then
       Exit;  // Not Much I Can do...
-   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
    case tmrPayee.Tag of
    cePayee : if ( pT^.txPayee_Number <> tmpInteger ) then begin
@@ -4732,9 +4731,6 @@ begin
       // Run the dialog
       Result := ShowModal = mrOK;
 
-      if Result then
-        MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
-
     finally
       Free;
     end;
@@ -4812,9 +4808,6 @@ begin
       tbImportTrans.Visible := False;
 
       Result := ShowModal = mroK;
-
-      if Result then
-        MyClient.clRecommended_Mems.RemoveAccountFromMems(SelectedBA);
 
    finally
       Free;
@@ -5029,9 +5022,6 @@ begin
             SaveToArchives;
             Result := True;
          end;
-
-         if Result  then
-           MyClient.clRecommended_Mems.RemoveAccountFromMems(TempAccount);
       finally
          Free;
       end;

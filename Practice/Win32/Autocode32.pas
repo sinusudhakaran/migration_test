@@ -284,10 +284,6 @@ begin
               If Edited then
                 Continue;
 
-              // Update recommended memorisation scanning
-              if DoUpdateRecMemCandidates then
-                aClient.clRecommended_Mems.UpdateCandidateMems(Transaction, True, True);
-
               //clear any existing coding
               txAccount         := '';
               txJob_Code        := '';

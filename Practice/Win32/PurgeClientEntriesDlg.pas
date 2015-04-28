@@ -299,8 +299,6 @@ begin
         try
           GetBAList(L);
           PurgeEntriesFromMyClient( PurgeDate, chkTransOnly.checked, TotalDeleted, TotalUnpresented, L );
-          if Assigned(L) then          
-            MyClient.clRecommended_Mems.RemoveAccountsFromMems(L);
         finally
           L.Free;
         end;

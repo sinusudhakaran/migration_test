@@ -4300,19 +4300,6 @@ const
 
   procedure UpgradeToVersion184;
   begin
-    // Need to clear the suggested mem data, because unscanned transactions from
-    // journals have been erroneously included in the prior version
-    aClient.clRecommended_Mems.StopMemScan;
-    try
-      aClient.clRecommended_Mems.Candidates.FreeAll;
-      aClient.clRecommended_Mems.Recommended.FreeAll;
-      aClient.clRecommended_Mems.Unscanned.FreeAll;
-      aClient.clRecommended_Mems.Candidate.cpFields.cpCandidate_ID_To_Process := 1;
-      aClient.clRecommended_Mems.Candidate.cpFields.cpNext_Candidate_ID := 1;
-      aClient.clRecommended_Mems.PopulateUnscannedListAllAccounts();
-    finally
-      aClient.clRecommended_Mems.StartMemScan;
-    end;
   end;
 
   function OneCharacterPhoneNumber(const aPhoneNumber: string): boolean;

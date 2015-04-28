@@ -438,7 +438,6 @@ begin
                try
                  AccList.Add(TempBa.baFields.baBank_Account_Number);
                  AccList.Add(BankBa.baFields.baBank_Account_Number);
-                 MyClient.clRecommended_Mems.RemoveAccountsFromMems(AccList, False);
                finally
                  FreeAndNil(AccList);
                end;
@@ -520,7 +519,6 @@ begin
                      end;
                   until ( TrxIndex >= ItemCount) or ( pT^.txDate_Effective > TempToDate);
                end;
-               MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(BankBa);
             finally
                //clear progress
                ClearStatus;

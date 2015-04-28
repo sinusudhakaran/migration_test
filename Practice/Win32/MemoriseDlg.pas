@@ -666,7 +666,6 @@ begin
      else
        BA := SourceBankAccount.baFields.baBank_Account_Number;
      EntryType := GetTxTypeFromCmbType;
-     MyClient.clRecommended_Mems.RemoveRecommendedMems(BA, EntryType, eStatementDetails.Text, chkMaster.Checked);
      Modalresult := mrOk;
    end;
 end;

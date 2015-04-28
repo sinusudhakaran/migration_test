@@ -3364,7 +3364,6 @@ begin
    lDlg := TdlgDissection.Create(Application.MainForm);
    with lDlg do
      try
-       MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
        BankAcct := BA;
        fIsForex := BA.IsAForexAccount;
        CCode := MyClient.clExtra.ceLocal_Currency_Code;

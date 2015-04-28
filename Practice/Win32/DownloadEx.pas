@@ -1172,8 +1172,6 @@ begin
           begin
             RefreshAllProcessingStatistics(True);
           end;
-
-          MyClient.clRecommended_Mems.RemoveAccountsFromMems;
         end;
       except
         on E : EDownloadVerify do

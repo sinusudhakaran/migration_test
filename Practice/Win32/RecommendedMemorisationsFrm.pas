@@ -169,7 +169,7 @@ begin
 
   lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
 
-  lblStatus.Caption := MyClient.clRecommended_Mems.DetermineStatus(BankAccNum);
+  lblStatus.Caption := SuggestedMem.DetermineStatus(fBankAccount);
 
   PopulateTree;
   vstTree.Header.SortColumn := ccEntryType;

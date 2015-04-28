@@ -163,8 +163,6 @@ begin
           try
             AccList.Add(FromBa.baFields.baBank_Account_Number);
             AccList.Add(ToBa.baFields.baBank_Account_Number);
-
-            MyClient.clRecommended_Mems.RemoveAccountsFromMems(AccList, False);
           finally
             FreeAndNil(AccList);
           end;
@@ -200,7 +198,6 @@ begin
                 Inc(TransferCount);
               until (ItemCount = 0);
           end;
-          MyClient.clRecommended_Mems.PopulateUnscannedListOneAccount(ToBa);
           // Also copy contra, use master mems, and sched rep selection
           ToBa.baFields.baContra_Account_Code := FromBa.baFields.baContra_Account_Code;
           ToBa.baFields.baExchange_Gain_Loss_Code := FromBa.baFields.baExchange_Gain_Loss_Code;

@@ -457,9 +457,6 @@ Begin
   {report on what happened}
   if NoOfEntries > 0 then
   begin
-    if Assigned(aClient) then
-      aClient.clRecommended_Mems.RemoveAccountsFromMems(aClient.clBank_Account_List, true);
-
     if (not Silent) or (IsScheduledReports) then
     begin
       Msg := Format('Imported %d transactions dated from %s to %s',

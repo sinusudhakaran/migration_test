@@ -173,10 +173,10 @@ begin
    //---------------------------
    ShowModal;
    //---------------------------
-   If MatchPressed and Assigned( lvUEItems.Selected) then begin
-      MatchedEntry := pUE( lvUEItems.Selected.SubItems.Objects[0]);
-      MyClient.clRecommended_Mems.UpdateCandidateMems(p, True);
-      result := true;
+   If MatchPressed and Assigned( lvUEItems.Selected) then
+   begin
+     MatchedEntry := pUE( lvUEItems.Selected.SubItems.Objects[0]);
+     result := true;
    end;
 end;
 //------------------------------------------------------------------------------

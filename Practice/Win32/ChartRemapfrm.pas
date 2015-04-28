@@ -1827,8 +1827,6 @@ begin //TfrmRemapChart.RemapCharts;
         end;
       end;
 
-      MyClient.clRecommended_Mems.RemoveAccountsFromMems;
-
       HelpfulInfoMsg(lStat,0);
 
       Modalresult := mrOK;

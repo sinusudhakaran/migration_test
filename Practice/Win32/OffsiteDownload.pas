@@ -556,7 +556,6 @@ begin
 
                   //fields populated, add transaction to list
                   ClientAccount.baTransaction_List.Insert_Transaction_Rec( pT);
-//                    MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
                 end;
 
                 //add transaction amount to current balance
@@ -666,9 +665,6 @@ var
 begin
   if ( MyClient.clFields.clDownload_From = dlAdminSystem ) then
     exit;
-
-  if Assigned(MyClient) then
-    MyClient.clRecommended_Mems.RemoveAccountsFromMems;
 
   //images found may return the following
   // -1 : user cancelled copy from floppy or bconnect

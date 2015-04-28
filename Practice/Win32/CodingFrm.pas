@@ -1668,9 +1668,6 @@ var
 begin
   MaintainMemScanStatus := False;
 
-  MyClient.clRecommended_Mems.StopMemScan;
-  try
-
    if not ValidDataRow(tblCoding.ActiveRow) then exit;
    pT   := WorkTranList.Transaction_At( tblCoding.ActiveRow - 1);
    if pT^.txLocked then
@@ -1687,8 +1684,6 @@ begin
       if pD^.dsPayee_Number <> 0 then exit;
       pD := pD^.dsNext;
    end;
-
-   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
    //Check to see if a payee col exists and is editable
    PayeeNotEditable :=  not ColumnFmtList.FieldIsEditable( cePayee);
@@ -1748,9 +1743,6 @@ begin
          end;
       end;
    end;
-  finally
-    MyClient.clRecommended_Mems.StartMemScan;
-  end;
 end; //DoPayeeLookup;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2845,10 +2837,6 @@ var
    AuditType: TAuditType;
    DeletedTrans: pDeleted_Transaction_Rec;
 begin
-
-  MyClient.clRecommended_Mems.StopMemScan;
-  try
-
    with tblCoding do
    begin
      if not ValidDataRow(ActiveRow) then exit;
@@ -2861,8 +2849,6 @@ begin
      DoDeleteJournal(PT);
      Exit;
    end;
-
-   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, False);
 
    with pT^ do
    begin
@@ -3389,9 +3375,6 @@ begin
       tblCoding.Refresh;
       RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
    end;  //with pT^
-  finally
-    MyClient.clRecommended_Mems.StartMemScan;
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3445,38 +3428,30 @@ procedure TfrmCoding.DoDeleteDissection( pT : pTransaction_Rec);
 //allows the user to delete all lines from a dissection without using the
 //dissect dlg
 begin
+  if pT^.txLocked then
+    Exit;
+  if pT^.txDate_Transferred <> 0 then
+    Exit;
 
-  MyClient.clRecommended_Mems.StopMemScan;
-  try
-    if pT^.txLocked then
-      Exit;
-    if pT^.txDate_Transferred <> 0 then
-      Exit;
+  if YesNoDlg.AskYesNo( 'Remove Dissection',
+                       'Do you want to remove all of the dissection lines for this entry?',
+                       dlg_no, 0) <> DLG_Yes then
+   Exit;
 
-    if YesNoDlg.AskYesNo( 'Remove Dissection',
-                         'Do you want to remove all of the dissection lines for this entry?',
-                         dlg_no, 0) <> DLG_Yes then
-     Exit;
+  //dispose of all dissection lines
+  Dump_Dissections( pT);
+  //clear transaction details
+  pT^.txCoded_By        := cbNotcoded;
+  pT^.txGST_Class       := 0;
+  pT^.txGST_Amount      := 0;
+  pT^.txHas_Been_Edited := False;
+  pT^.txGST_Has_Been_Edited := False;
 
-    MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
+  SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
 
-    //dispose of all dissection lines
-    Dump_Dissections( pT);
-    //clear transaction details
-    pT^.txCoded_By        := cbNotcoded;
-    pT^.txGST_Class       := 0;
-    pT^.txGST_Amount      := 0;
-    pT^.txHas_Been_Edited := False;
-    pT^.txGST_Has_Been_Edited := False;
+  ClearSuperFundFields(pT);
 
-    SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
-
-    ClearSuperFundFields(pT);
-
-    RedrawRow;
-  finally
-    MyClient.clRecommended_Mems.StartMemScan;
-  end;
+  RedrawRow;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoDeleteJournal(pT: pTransaction_Rec);
@@ -3494,8 +3469,6 @@ begin
                          'Do you want to delete this Journal entry?',
                          dlg_no, 0) <> DLG_Yes then
       Exit;
-
-   MyClient.clRecommended_Mems.UpdateCandidateMems(pT, False);
 
    I := WorkTranList.IndexOf(pt);
    tblCoding.AllowRedraw := False;
@@ -5246,7 +5219,6 @@ begin
 
     case FieldID of
        ceAccount: begin
-          MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
           Account := Trim( TEdit( TOvcTCString(Cell).CellEditor ).Text );
           if (Account <> '') then begin
              if not MyClient.clChart.CanCodeTo( Account, IsActive ) then begin
@@ -7752,7 +7724,6 @@ begin
    if ValidDataRow(TmrRow) then
    begin
       pT := WorkTranList.Transaction_At(TmrRow-1);
-      MyClient.clRecommended_Mems.UpdateCandidateMems(pT, True);
 
       case tmrPayee.Tag of
       cepayee : if ( pT^.txPayee_Number <> tmpPayee ) then begin
@@ -9485,9 +9456,6 @@ end;
 
 procedure TfrmCoding.SetLastKeyPress;
 begin
-  if Assigned(MyClient) then
-    if Assigned(MyClient.clRecommended_Mems) then    
-      MyClient.clRecommended_Mems.SetLastCodingFrmKeyPress;
 end;
 
 procedure TfrmCoding.SetMDIChildSortedIndex(aIndex: integer);

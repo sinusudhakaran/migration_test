@@ -108,6 +108,8 @@ type
     function GetSuggestedMemsCount(aBankAccount : TBank_Account) : integer;
     function GetSuggestedMems(aBankAccount : TBank_Account) : TSuggestedMemsArr;
 
+    function DetermineStatus(aBankAccount : TBank_Account): string;
+
     property MainState : byte read fMainState write fMainState;
     property NoMoreRecord : boolean read fNoMoreRecord;
 
@@ -676,6 +678,39 @@ begin
     end;
   finally
     StartMemScan();
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.DetermineStatus(aBankAccount : TBank_Account): string;
+const
+  MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time.';
+  MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled, please contact Support.';
+  MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
+var
+  AccountHasRecMems : boolean;
+begin
+  result := '';
+
+  if fMainState = mtsNoScan then
+  begin
+    Result := MSG_DISABLED_MEMORISATIONS;
+    Exit;
+  end;
+
+  if fNoMoreRecord then
+  begin
+    AccountHasRecMems := (GetSuggestedMemsCount(aBankAccount) > 0);
+
+    if not AccountHasRecMems then
+      result := MSG_NO_MEMORISATIONS;
+  end
+  else
+  begin
+    if Assigned(AdminSystem) then
+      result := BRAND_PRACTICE_SHORT_NAME + MSG_STILL_PROCESSING
+    else
+      result := BRAND_BOOKS_SHORT_NAME + MSG_STILL_PROCESSING;
   end;
 end;
 

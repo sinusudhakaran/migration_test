@@ -246,9 +246,6 @@ begin
     else
       Result := True;
   end;
-
-  if Result then
-    MyClient.clRecommended_Mems.RemoveAccountsFromMems();
 end;
 
 procedure TFindReplaceDlg.FormCreate(Sender: TObject);
