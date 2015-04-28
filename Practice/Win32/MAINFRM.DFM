@@ -657,13 +657,6 @@ object frmMain: TfrmMain
       end
     end
   end
-  object tmrMemScan: TTimer
-    Enabled = False
-    Interval = 60
-    OnTimer = tmrMemScanTimer
-    Left = 782
-    Top = 4
-  end
   object MainMenu: TMainMenu
     Images = AppImages.Client
     Left = 544

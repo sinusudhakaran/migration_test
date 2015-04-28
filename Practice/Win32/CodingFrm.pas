@@ -8182,9 +8182,9 @@ begin
    result := ThisForm;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCoding.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure TfrmCoding.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  SuggestedMem.DoneProcessingEvent := nil;
   SaveLayoutForThisAcct;
   IsClosing := true;
   if not FIsReloading then begin

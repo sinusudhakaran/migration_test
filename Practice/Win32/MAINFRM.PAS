@@ -725,7 +725,6 @@ type
     procedure tbBudgetImportClick(Sender: TObject);
     procedure tbBudgetExportClick(Sender: TObject);
     procedure tbRecommendedMemorisationsClick(Sender: TObject);
-    procedure tmrMemScanTimer(Sender: TObject);
     procedure mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
     procedure mniAssertClick(Sender: TObject);
     procedure mniListManualClick(Sender: TObject);
@@ -5851,13 +5850,6 @@ begin
   *)  
 end;
 
-procedure TfrmMain.tmrMemScanTimer(Sender: TObject);
-begin
-  if Assigned(MyClient) then
-    if Assigned(MyClient.clRecommended_Mems) then
-      MyClient.clRecommended_Mems.MemScan();
-end;
-
 procedure TfrmMain.mniImportFromCSVClick(Sender: TObject);
 begin
 {$IFDEF CSVImport}
@@ -6006,8 +5998,9 @@ begin
 end;
 *)
 
+//------------------------------------------------------------------------------
 initialization
    DebugMe := DebugUnit(UnitName);
    DebugAutoSave := DebugUnit(AutoSaveUnit);
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 end.

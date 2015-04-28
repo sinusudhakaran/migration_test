@@ -81,7 +81,7 @@ type
     function SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec) : boolean;
 
     procedure DeleteSuggestionAndLinks(aBankAccount : TBank_Account; aSuggId : integer);
-    procedure DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
+    procedure DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
     procedure InsertNewLink(aBankAccount : TBank_Account; aTranState : byte; aTrans : pTransaction_Rec; aSuggId : integer; aSuggestion : pSuggested_Mem_Rec);
     procedure SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers);
 
@@ -460,11 +460,25 @@ var
   end;
 
 begin
-  // Found one id add to list
-  AddFound(aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(aFoundIndex).tsFields.tsSuggestedId, aFoundIndex);
-
-  // Search down for more
+  // Search up for Top of the list, the reason  for this is to get id's going down in order
   SearchIndex := aFoundIndex;
+  inc(SearchIndex);
+
+  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
+  begin
+    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
+    while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
+          (CompareInt = 0) do
+    begin
+      inc(SearchIndex);
+      if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
+        CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
+      else
+        CompareInt := 1;
+    end;
+  end;
+
+  // Search down while adding
   dec(SearchIndex);
 
   if SearchIndex > -1 then
@@ -480,26 +494,6 @@ begin
         CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
       else
         CompareInt := -1;
-    end;
-  end;
-
-  // Search up for more
-  SearchIndex := aFoundIndex;
-  inc(SearchIndex);
-
-  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-  begin
-    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
-    while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
-          (CompareInt = 0) do
-    begin
-      AddFound(aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId, SearchIndex);
-
-      inc(SearchIndex);
-      if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-        CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
-      else
-        CompareInt := 1;
     end;
   end;
 end;
@@ -537,11 +531,25 @@ var
   end;
 
 begin
-  // Found one id add to list
-  AddFound(aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(aFoundIndex).tsFields.tsTran_Seq_No, aFoundIndex);
-
-  // Search down for more
+  // Search up for Top of the list, the reason  for this is to get id's going down in order
   SearchIndex := aFoundIndex;
+  inc(SearchIndex);
+
+  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
+  begin
+    CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId);
+    while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
+          (CompareInt = 0) do
+    begin
+      inc(SearchIndex);
+      if SearchIndex < aBankAccount.baSuggested_Tran_Link_List.ItemCount then
+        CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId)
+      else
+        CompareInt := 1;
+    end;
+  end;
+
+  // Search down while adding
   dec(SearchIndex);
 
   if SearchIndex > -1 then
@@ -557,26 +565,6 @@ begin
         CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId)
       else
         CompareInt := -1;
-    end;
-  end;
-
-  // Search up for more
-  SearchIndex := aFoundIndex;
-  inc(SearchIndex);
-
-  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-  begin
-    CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId);
-    while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
-          (CompareInt = 0) do
-    begin
-      AddFound(aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No, SearchIndex);
-
-      inc(SearchIndex);
-      if SearchIndex < aBankAccount.baSuggested_Tran_Link_List.ItemCount then
-        CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId)
-      else
-        CompareInt := 1;
     end;
   end;
 end;
@@ -934,7 +922,7 @@ begin
       end
       else
       begin
-        if FindLCS(aTrans^.txStatement_Details, TranRec^.txStatement_Details, StartData, FoundLCS, EndData) then
+        if FindLCS(Uppercase(aTrans^.txStatement_Details), Uppercase(TranRec^.txStatement_Details), StartData, FoundLCS, EndData) then
           SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions);
       end;
     end;
@@ -986,19 +974,23 @@ begin
           end;
         end;
 
-        if (Assigned(fDoneProcessingEvent)) and
-           (fNoMoreRecord = false) and
-           (fTempNoMoreRecord = true) then
-          fDoneProcessingEvent();
-
         if (ScannedOnce) and (fNoMoreRecord) and (fTempNoMoreRecord) then
         begin
           Exit;
         end;
 
+        if (Assigned(fDoneProcessingEvent)) and
+           (fNoMoreRecord = false) and
+           (fTempNoMoreRecord = true) then
+        begin
+          fNoMoreRecord := fTempNoMoreRecord;
+          fDoneProcessingEvent();
+        end
+        else
+          fNoMoreRecord := fTempNoMoreRecord;
+
         ScannedOnce := true;
 
-        fNoMoreRecord := fTempNoMoreRecord;
         fTempNoMoreRecord := true;
       end;
 
@@ -1102,7 +1094,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
+procedure TSuggestedMems.DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
 var
   SuggIdIndex : integer;
   TranIdIndex : integer;
@@ -1117,6 +1109,8 @@ var
   FoundSuggListIndex : integer;
   SuggId : integer;
   TranId : integer;
+  TranEffDate : integer;
+  TranToDel : pTransaction_Rec;
 begin
   TranSeqNo := aTrans^.txSequence_No;
 
@@ -1138,9 +1132,17 @@ begin
           SuggId := FoundSuggestion.smId;
 
           if FindLinkIndexUsingBothIds(aBankAccount, SuggId, TranSeqNo, tstSuggId, FoundSuggListIndex) then
-            aBankAccount.baSuggested_Tran_Link_List.AtFree(FoundTranListIndex);
+            aBankAccount.baSuggested_Tran_Link_List.AtFree(FoundSuggListIndex);
 
-          aBankAccount.baTran_Suggested_Link_List.AtFree(FoundLinkSuggIndexes[SuggIdIndex]);
+          if FindLinkIndexUsingBothIds(aBankAccount, SuggId, TranSeqNo, tstTranId, FoundTranListIndex) then
+            aBankAccount.baTran_Suggested_Link_List.AtFree(FoundTranListIndex);
+
+          if aOldTranState = tssManualScanned then
+            dec(FoundSuggestion^.smManual_Count)
+          else if aOldTranState = tssUnCodedScaned then
+            dec(FoundSuggestion^.smUncoded_Count);
+
+          dec(FoundSuggestion^.smTotal_Count);
         end;
       end;
     end;
@@ -1175,7 +1177,7 @@ begin
     if (aTrans^.txSuggested_Mem_State = tssUnScanned) then
     begin
       if (OldState in tssScanned) then
-        DeleteLinksAndSuggestions(aBankAccount, aTrans);
+        DeleteLinksAndSuggestions(aBankAccount, aTrans, OldState);
 
       inc(aBankAccount.baFields.baSuggested_UnProcessed_Count);
     end;
