@@ -54,6 +54,7 @@ CONST
    tksmUpdate_Date                      = 176 ;
    tksmStart_Data                       = 177 ;
    tksmEnd_Data                         = 178 ;
+   tksmHas_Changed                      = 179 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -87,6 +88,7 @@ Begin
       F.WriteDateValue( tksmUpdate_Date , smUpdate_Date );
       F.WriteBooleanValue( tksmStart_Data , smStart_Data );
       F.WriteBooleanValue( tksmEnd_Data , smEnd_Data );
+      F.WriteBooleanValue( tksmHas_Changed , smHas_Changed );
       F.WriteToken( tkEnd_Suggested_Mem );
    end;
 end; { of Write_Suggested_Mem_Rec }
@@ -117,6 +119,7 @@ Begin
          tksmUpdate_Date                      : smUpdate_Date := F.ReadDateValue;
          tksmStart_Data                       : smStart_Data := F.ReadBooleanValue;
          tksmEnd_Data                         : smEnd_Data := F.ReadBooleanValue;
+         tksmHas_Changed                      : smHas_Changed := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -163,7 +166,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tksmId to tksmEnd_Data do begin
+  for i := tksmId to tksmHas_Changed do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -226,6 +229,11 @@ begin
   if (P1.smEnd_Data <> P2.smEnd_Data) then begin
     P3.smEnd_Data := P1.smEnd_Data;
     ChangedFields[i] := tksmEnd_Data;
+    Inc(i);
+  end;
+  if (P1.smHas_Changed <> P2.smHas_Changed) then begin
+    P3.smHas_Changed := P1.smHas_Changed;
+    ChangedFields[i] := tksmHas_Changed;
     Inc(i);
   end;
 

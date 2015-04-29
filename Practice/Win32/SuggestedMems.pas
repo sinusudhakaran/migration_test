@@ -80,12 +80,12 @@ type
 
     function GetSuggestionMatchText(const aMatchPhrase : string; aStart, aEnd : boolean) : string;
 
-    function SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec) : boolean;
+    function SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte) : boolean;
 
     procedure DeleteSuggestionAndLinks(aBankAccount : TBank_Account; aSuggId : integer);
     procedure DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
     procedure InsertNewLink(aBankAccount : TBank_Account; aTranState : byte; aTrans : pTransaction_Rec; aSuggId : integer; aSuggestion : pSuggested_Mem_Rec);
-    procedure SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers);
+    procedure SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
 
     function IsMemorisation(aMemorisations: TMemorisations_List; aType : byte; const aMatchPhrase : string): boolean;
     function IsMasterMemorisation(aType: byte; const aMatchPhrase, aBankPrefix: string): boolean;
@@ -182,12 +182,16 @@ begin
   LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, BankAccount - ' + aBankAccount.baFields.baBank_Account_Number);
   for SuggIndex := 0 to aBankAccount.baSuggested_Mem_List.ItemCount-1 do
   begin
-    LogUtil.LogMsg(lmDebug, UnitName,
-      'MemScan, Suggestion ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smId) +
-      ', Phrase - ''' + aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smMatched_Phrase +
-      ''', TotalCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smTotal_Count) +
-      ', ManualCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smManual_Count) +
-      ', UnCodedCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smUncoded_Count));
+    if aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smHas_Changed then
+    begin
+      aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smHas_Changed := false;
+      LogUtil.LogMsg(lmDebug, UnitName,
+        'MemScan, Suggestion ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smId) +
+        ', Phrase - ''' + aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smMatched_Phrase +
+        ''', TotalCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smTotal_Count) +
+        ', ManualCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smManual_Count) +
+        ', UnCodedCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smUncoded_Count));
+    end;
   end;
 end;
 
@@ -600,7 +604,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec) : boolean;
+function TSuggestedMems.SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte) : boolean;
 var
   TranIndex : integer;
   TranRec : pTransaction_Rec;
@@ -635,12 +639,12 @@ begin
       if (SearchTranDetailsLength = MatchTranDetailLength) and
         (CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0) then
       begin
-        SearchFoundMatch(false, aTrans^.txStatement_Details, false, aBankAccount, aTrans, TranRec, CurrentTranSuggestions);
+        SearchFoundMatch(false, aTrans^.txStatement_Details, false, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
       end
       else
       begin
         if FindLCS(Uppercase(aTrans^.txStatement_Details), Uppercase(TranRec^.txStatement_Details), StartData, FoundLCS, EndData) then
-          SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions);
+          SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
       end;
     end;
   end;
@@ -702,7 +706,7 @@ begin
     begin
       if FindSuggestedItem(aBankAccount, FoundSuggIds[SuggIdIndex], FoundSuggestionIndex, FoundSuggestion) then
       begin
-        if FoundSuggestion.smTotal_Count = 2 then
+        if FoundSuggestion.smTotal_Count < 3 then
         begin
           DeleteSuggestionAndLinks(aBankAccount, FoundSuggIds[SuggIdIndex]);
         end
@@ -753,10 +757,12 @@ begin
     inc(aSuggestion^.smManual_Count)
   else
     inc(aSuggestion^.smUncoded_Count);
+
+  aSuggestion^.smHas_Changed := true;
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers);
+procedure TSuggestedMems.SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
 var
   CurrentIndex  : integer;
   FoundSuggIds  : TArrInt;
@@ -812,7 +818,7 @@ begin
         if CompareText(aLCSstr, FoundSuggestion^.smMatched_Phrase) = 0 then
         begin
           // Search Trans already added to Suggestion so add Current Trans
-          InsertNewLink(aBankAccount, aScanTrans^.txSuggested_Mem_State, aScanTrans,
+          InsertNewLink(aBankAccount, aTranNewState, aScanTrans,
                         FoundSuggestion^.smId, FoundSuggestion);
 
           FoundSuggestion^.smStart_Data := FoundSuggestion^.smStart_Data or aStartData;
@@ -1029,16 +1035,20 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TSuggestedMems.ProcessTransaction(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
+var
+  TranNewState : byte;
 begin
   if MainState = mtsNoScan then
     Exit;
 
-  SearchForLongestCommonPhrase(aBankAccount, aTrans);
-
   if (aTrans^.txCoded_By in ManualCodedBy) then
-    SetSuggestedTransactionState(aBankAccount, aTrans, tssManualScanned)
+    TranNewState := tssManualScanned
   else
-    SetSuggestedTransactionState(aBankAccount, aTrans, tssUnCodedScaned);
+    TranNewState := tssUnCodedScaned;
+
+  SearchForLongestCommonPhrase(aBankAccount, aTrans, TranNewState);
+
+  SetSuggestedTransactionState(aBankAccount, aTrans, TranNewState);
 end;
 
 //------------------------------------------------------------------------------

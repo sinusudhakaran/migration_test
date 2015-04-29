@@ -1272,6 +1272,7 @@ F|Uncoded Count|L
 F|Update Date|D
 F|Start Data|Y
 F|End Data|Y
+F|Has Changed|Y
 E
 
 N|Tran Suggested Link|ts|170

@@ -3739,6 +3739,7 @@ begin
 	SetIntAttr(Result, 'UpdateDate', smUpdate_Date);
 	SetBoolAttr(Result, 'StartData', smStart_Data);
 	SetBoolAttr(Result, 'EndData', smEnd_Data);
+	SetBoolAttr(Result, 'HasChanged', smHas_Changed);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3763,6 +3764,7 @@ begin
 	smUpdate_Date := GetIntAttr(Result, 'UpdateDate');
 	smStart_Data := GetBoolAttr(Result, 'StartData');
 	smEnd_Data := GetBoolAttr(Result, 'EndData');
+	smHas_Changed := GetBoolAttr(Result, 'HasChanged');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
 	end;

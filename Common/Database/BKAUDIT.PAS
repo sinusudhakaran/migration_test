@@ -971,6 +971,7 @@ begin
     FAuditNamesArray[169,176] := 'Update_Date';
     FAuditNamesArray[169,177] := 'Start_Data';
     FAuditNamesArray[169,178] := 'End_Data';
+    FAuditNamesArray[169,179] := 'Has_Changed';
 
    FAuditTableArray[170] := 'Tran_Suggested_Link';
     FAuditNamesArray[170,172] := 'Date_Effective';
