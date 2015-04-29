@@ -727,6 +727,8 @@ begin
             dec(FoundSuggestion^.smUncoded_Count);
 
           dec(FoundSuggestion^.smTotal_Count);
+
+          FoundSuggestion^.smHas_Changed := true;
         end;
       end;
     end;
