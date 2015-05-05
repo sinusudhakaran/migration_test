@@ -183,8 +183,6 @@ function TSuggested_Mem_List.Insert_Suggested_Mem_Rec(var aSuggested_Mem : TSugg
 var
   NewSuggested_Mem_Index_Rec : pSuggested_Mem_Index_Rec;
 begin
-  Result := -1;
-
   if aNew then
   begin
     Inc( fHighId );
@@ -239,7 +237,6 @@ var
   Token: Byte;
   Msg: string;
   P: TSuggested_Mem;
-  NewSuggested_Mem_Index_Rec : pSuggested_Mem_Index_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 

@@ -293,7 +293,6 @@ var
   Token: Byte;
   Msg: string;
   P: TTran_Suggested_Link;
-  NewTran_Suggested_Link_Index_Rec : pTran_Suggested_Link_Index_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 

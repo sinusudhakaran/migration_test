@@ -258,7 +258,6 @@ var
   Token: Byte;
   Msg: string;
   P: TSuggested_Account_Link;
-  NewSuggested_Account_Link_Index_Rec : pSuggested_Account_Link_Index_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 

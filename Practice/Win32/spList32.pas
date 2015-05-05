@@ -174,8 +174,6 @@ function TSuggested_Phrase_List.Insert_Suggested_Phrase_Rec(var aSuggested_Phras
 var
   NewSuggested_Phrase_Index_Rec : pSuggested_Phrase_Index_Rec;
 Begin
-  Result := -1;
-
   if aNew then
   begin
     Inc( fHighId );
@@ -228,7 +226,6 @@ var
   Token: Byte;
   Msg: string;
   P: TSuggested_Phrase;
-  NewSuggested_Phrase_Index_Rec : pSuggested_Phrase_Index_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 

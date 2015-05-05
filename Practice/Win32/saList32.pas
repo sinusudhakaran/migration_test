@@ -174,8 +174,6 @@ function TSuggested_Account_List.Insert_Suggested_Account_Rec(var aSuggested_Acc
 var
   NewSuggested_Account_Index_Rec : pSuggested_Account_Index_Rec;
 Begin
-  Result := -1;
-
   if aNew then
   begin
     Inc( fHighId );
@@ -256,7 +254,6 @@ var
   Token: Byte;
   Msg: string;
   P: TSuggested_Account;
-  NewSuggested_Account_Index_Rec : pSuggested_Account_Index_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
