@@ -39,8 +39,11 @@ PROCEDURE UpdateCRC( CONST Rec : TUnscanned_Transaction_Rec; VAR CRC : LongWord 
 PROCEDURE UpdateCRC( CONST Rec : TCandidate_Mem_Processing_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TCandidate_Mem_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TRecommended_Mem_Rec; VAR CRC : LongWord ); OVERLOAD;
-PROCEDURE UpdateCRC( CONST Rec : TSuggested_Mem_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TTran_Suggested_Link_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Mem_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Account_Link_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Account_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Phrase_Rec; VAR CRC : LongWord ); OVERLOAD;
 
 // ------------------------------------------------------------------- 
 Implementation uses CRC32, MoneyDef;
@@ -593,6 +596,21 @@ end;
 
 // ------------------------------------------------------------------- 
 
+PROCEDURE UpdateCRC( CONST Rec : TTran_Suggested_Link_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @tsRecord_Type;
+      RE    := @tsEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
 PROCEDURE UpdateCRC( CONST Rec : TSuggested_Mem_Rec; VAR CRC : LongWord ); OVERLOAD;
 Var
    Len    : Integer;
@@ -608,14 +626,44 @@ end;
 
 // ------------------------------------------------------------------- 
 
-PROCEDURE UpdateCRC( CONST Rec : TTran_Suggested_Link_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Account_Link_Rec; VAR CRC : LongWord ); OVERLOAD;
 Var
    Len    : Integer;
    RS, RE : Pointer;
 Begin
    With Rec do begin
-      RS    := @tsRecord_Type;
-      RE    := @tsEOR;
+      RS    := @slRecord_Type;
+      RE    := @slEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Account_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @saRecord_Type;
+      RE    := @saEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TSuggested_Phrase_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @spRecord_Type;
+      RE    := @spEOR;
       Len   := Integer( RE ) - Integer( RS );
       CRC32.UpdateCRC( CRC , RS^, Len );
    end;

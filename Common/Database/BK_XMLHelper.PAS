@@ -259,6 +259,14 @@ public
 end;
 
 
+TTran_Suggested_Link_RecHelper = record helper for TTran_Suggested_Link_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 TSuggested_Mem_RecHelper = record helper for TSuggested_Mem_Rec
 public
 	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
@@ -267,7 +275,23 @@ public
 end;
 
 
-TTran_Suggested_Link_RecHelper = record helper for TTran_Suggested_Link_Rec
+TSuggested_Account_Link_RecHelper = record helper for TSuggested_Account_Link_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TSuggested_Account_RecHelper = record helper for TSuggested_Account_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TSuggested_Phrase_RecHelper = record helper for TSuggested_Phrase_Rec
 public
 	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
 	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
@@ -3720,62 +3744,6 @@ end;
 
 // ----------------------------------------------------------------------------
 
-class function TSuggested_Mem_RecHelper.GetXMLNodeName: string;
-begin
-	result := 'BKSuggestedMem';
-end;
-
-
-function TSuggested_Mem_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
-var PNode, CNode, CCNode: IXMLNode;
-	I, J, M: Integer;
-begin
-	Result := Node.AddChild(GetXMLNodeName);
-	SetIntAttr(Result, 'Id', smId);
-	SetTextAttr(Result, 'MatchedPhrase', smMatched_Phrase);
-	SetIntAttr(Result, 'TotalCount', smTotal_Count);
-	SetIntAttr(Result, 'ManualCount', smManual_Count);
-	SetIntAttr(Result, 'UncodedCount', smUncoded_Count);
-	SetIntAttr(Result, 'UpdateDate', smUpdate_Date);
-	SetBoolAttr(Result, 'StartData', smStart_Data);
-	SetBoolAttr(Result, 'EndData', smEnd_Data);
-	SetBoolAttr(Result, 'HasChanged', smHas_Changed);
-
-	CNode := nil;
-	CCNode := nil;
-	PNode := nil;
-end;
-
-
-function TSuggested_Mem_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
-var PNode, CNode, CCNode: IXMLNode;
-	I, J: Integer;
-begin
-	if Node.NodeName = GetXMLNodeName then Result := Node
-	else
-	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
-	if not assigned(Result) then exit;
-	try
-	smId := GetIntAttr(Result, 'Id');
-	smMatched_Phrase := GetTextAttr(Result, 'MatchedPhrase');
-	smTotal_Count := GetIntAttr(Result, 'TotalCount');
-	smManual_Count := GetIntAttr(Result, 'ManualCount');
-	smUncoded_Count := GetIntAttr(Result, 'UncodedCount');
-	smUpdate_Date := GetIntAttr(Result, 'UpdateDate');
-	smStart_Data := GetBoolAttr(Result, 'StartData');
-	smEnd_Data := GetBoolAttr(Result, 'EndData');
-	smHas_Changed := GetBoolAttr(Result, 'HasChanged');
-	except
-		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
-	end;
-
-	CNode := nil;
-	CCNode := nil;
-	PNode := nil;
-end;
-
-// ----------------------------------------------------------------------------
-
 class function TTran_Suggested_Link_RecHelper.GetXMLNodeName: string;
 begin
 	result := 'BKTranSuggestedLink';
@@ -3790,6 +3758,7 @@ begin
 	SetIntAttr(Result, 'DateEffective', tsDate_Effective);
 	SetIntAttr(Result, 'TranSeqNo', tsTran_Seq_No);
 	SetIntAttr(Result, 'SuggestedId', tsSuggestedId);
+	SetIntAttr(Result, 'AccountId', tsAccountId);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3809,8 +3778,191 @@ begin
 	tsDate_Effective := GetIntAttr(Result, 'DateEffective');
 	tsTran_Seq_No := GetIntAttr(Result, 'TranSeqNo');
 	tsSuggestedId := GetIntAttr(Result, 'SuggestedId');
+	tsAccountId := GetIntAttr(Result, 'AccountId');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTran_Suggested_Link_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TSuggested_Mem_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKSuggestedMem';
+end;
+
+
+function TSuggested_Mem_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Id', smId);
+	SetIntAttr(Result, 'TypeId', smTypeId);
+	SetIntAttr(Result, 'PhraseId', smPhraseId);
+	SetBoolAttr(Result, 'StartData', smStart_Data);
+	SetBoolAttr(Result, 'EndData', smEnd_Data);
+	SetIntAttr(Result, 'UpdateDate', smUpdate_Date);
+	SetBoolAttr(Result, 'HasChanged', smHas_Changed);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TSuggested_Mem_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	smId := GetIntAttr(Result, 'Id');
+	smTypeId := GetIntAttr(Result, 'TypeId');
+	smPhraseId := GetIntAttr(Result, 'PhraseId');
+	smStart_Data := GetBoolAttr(Result, 'StartData');
+	smEnd_Data := GetBoolAttr(Result, 'EndData');
+	smUpdate_Date := GetIntAttr(Result, 'UpdateDate');
+	smHas_Changed := GetBoolAttr(Result, 'HasChanged');
+	except
+		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TSuggested_Account_Link_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKSuggestedAccountLink';
+end;
+
+
+function TSuggested_Account_Link_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SuggestedId', slSuggestedId);
+	SetIntAttr(Result, 'AccountId', slAccountId);
+	SetIntAttr(Result, 'Count', slCount);
+	SetBoolAttr(Result, 'IsUncoded', slIsUncoded);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TSuggested_Account_Link_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	slSuggestedId := GetIntAttr(Result, 'SuggestedId');
+	slAccountId := GetIntAttr(Result, 'AccountId');
+	slCount := GetIntAttr(Result, 'Count');
+	slIsUncoded := GetBoolAttr(Result, 'IsUncoded');
+	except
+		on E: Exception do ReRaise (E, 'Reading TSuggested_Account_Link_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TSuggested_Account_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKSuggestedAccount';
+end;
+
+
+function TSuggested_Account_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Id', saId);
+	SetTextAttr(Result, 'Account', saAccount);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TSuggested_Account_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	saId := GetIntAttr(Result, 'Id');
+	saAccount := GetTextAttr(Result, 'Account');
+	except
+		on E: Exception do ReRaise (E, 'Reading TSuggested_Account_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TSuggested_Phrase_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKSuggestedPhrase';
+end;
+
+
+function TSuggested_Phrase_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'Id', spId);
+	SetTextAttr(Result, 'Phrase', spPhrase);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TSuggested_Phrase_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	spId := GetIntAttr(Result, 'Id');
+	spPhrase := GetTextAttr(Result, 'Phrase');
+	except
+		on E: Exception do ReRaise (E, 'Reading TSuggested_Phrase_Rec');
 	end;
 
 	CNode := nil;

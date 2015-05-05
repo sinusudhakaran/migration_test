@@ -71,6 +71,9 @@ CONST
 
    tkBeginSuggested_Mem_List           = 79;
    tkBeginTran_Suggested_Link_List     = 80;
+   tkBeginSuggested_Account_List       = 81;
+   tkBeginSuggested_Account_Link_List  = 82;
+   tkBeginSuggested_Phrase_List        = 83;
 
    tkLastAuditRecordID        = 252;
    tkEndRecord                = 253;

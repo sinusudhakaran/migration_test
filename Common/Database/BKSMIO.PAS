@@ -9,8 +9,8 @@ INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tkBegin_Suggested_Mem                = 169 ;
-   tkEnd_Suggested_Mem                  = 170 ;
+   tkBegin_Suggested_Mem                = 170 ;
+   tkEnd_Suggested_Mem                  = 171 ;
 
 FUNCTION  IsASuggested_Mem_Rec ( P : Pointer ): Boolean;
 PROCEDURE Write_Suggested_Mem_Rec ( Var O : TSuggested_Mem_Rec ; Var F : TIOStream );
@@ -46,15 +46,13 @@ end;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tksmId                               = 171 ;
-   tksmMatched_Phrase                   = 172 ;
-   tksmTotal_Count                      = 173 ;
-   tksmManual_Count                     = 174 ;
-   tksmUncoded_Count                    = 175 ;
-   tksmUpdate_Date                      = 176 ;
-   tksmStart_Data                       = 177 ;
-   tksmEnd_Data                         = 178 ;
-   tksmHas_Changed                      = 179 ;
+   tksmId                               = 172 ;
+   tksmTypeId                           = 173 ;
+   tksmPhraseId                         = 174 ;
+   tksmStart_Data                       = 175 ;
+   tksmEnd_Data                         = 176 ;
+   tksmUpdate_Date                      = 177 ;
+   tksmHas_Changed                      = 178 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -81,13 +79,11 @@ Begin
    Begin
       F.WriteToken( tkBegin_Suggested_Mem );
       F.WriteIntegerValue( tksmId , smId );
-      F.WriteStringValue( tksmMatched_Phrase , smMatched_Phrase );
-      F.WriteIntegerValue( tksmTotal_Count , smTotal_Count );
-      F.WriteIntegerValue( tksmManual_Count , smManual_Count );
-      F.WriteIntegerValue( tksmUncoded_Count , smUncoded_Count );
-      F.WriteDateValue( tksmUpdate_Date , smUpdate_Date );
+      F.WriteByteValue( tksmTypeId , smTypeId );
+      F.WriteIntegerValue( tksmPhraseId , smPhraseId );
       F.WriteBooleanValue( tksmStart_Data , smStart_Data );
       F.WriteBooleanValue( tksmEnd_Data , smEnd_Data );
+      F.WriteDateValue( tksmUpdate_Date , smUpdate_Date );
       F.WriteBooleanValue( tksmHas_Changed , smHas_Changed );
       F.WriteToken( tkEnd_Suggested_Mem );
    end;
@@ -112,13 +108,11 @@ Begin
          tkBegin_Suggested_Mem :; { Do Nothing }
          tkEnd_Suggested_Mem :; { Do Nothing }
          tksmId                               : smId := F.ReadIntegerValue;
-         tksmMatched_Phrase                   : smMatched_Phrase := F.ReadStringValue;
-         tksmTotal_Count                      : smTotal_Count := F.ReadIntegerValue;
-         tksmManual_Count                     : smManual_Count := F.ReadIntegerValue;
-         tksmUncoded_Count                    : smUncoded_Count := F.ReadIntegerValue;
-         tksmUpdate_Date                      : smUpdate_Date := F.ReadDateValue;
+         tksmTypeId                           : smTypeId := F.ReadByteValue;
+         tksmPhraseId                         : smPhraseId := F.ReadIntegerValue;
          tksmStart_Data                       : smStart_Data := F.ReadBooleanValue;
          tksmEnd_Data                         : smEnd_Data := F.ReadBooleanValue;
+         tksmUpdate_Date                      : smUpdate_Date := F.ReadDateValue;
          tksmHas_Changed                      : smHas_Changed := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
@@ -196,29 +190,14 @@ begin
     ChangedFields[i] := tksmId;
     Inc(i);
   end;
-  if (P1.smMatched_Phrase <> P2.smMatched_Phrase) then begin
-    P3.smMatched_Phrase := P1.smMatched_Phrase;
-    ChangedFields[i] := tksmMatched_Phrase;
+  if (P1.smTypeId <> P2.smTypeId) then begin
+    P3.smTypeId := P1.smTypeId;
+    ChangedFields[i] := tksmTypeId;
     Inc(i);
   end;
-  if (P1.smTotal_Count <> P2.smTotal_Count) then begin
-    P3.smTotal_Count := P1.smTotal_Count;
-    ChangedFields[i] := tksmTotal_Count;
-    Inc(i);
-  end;
-  if (P1.smManual_Count <> P2.smManual_Count) then begin
-    P3.smManual_Count := P1.smManual_Count;
-    ChangedFields[i] := tksmManual_Count;
-    Inc(i);
-  end;
-  if (P1.smUncoded_Count <> P2.smUncoded_Count) then begin
-    P3.smUncoded_Count := P1.smUncoded_Count;
-    ChangedFields[i] := tksmUncoded_Count;
-    Inc(i);
-  end;
-  if (P1.smUpdate_Date <> P2.smUpdate_Date) then begin
-    P3.smUpdate_Date := P1.smUpdate_Date;
-    ChangedFields[i] := tksmUpdate_Date;
+  if (P1.smPhraseId <> P2.smPhraseId) then begin
+    P3.smPhraseId := P1.smPhraseId;
+    ChangedFields[i] := tksmPhraseId;
     Inc(i);
   end;
   if (P1.smStart_Data <> P2.smStart_Data) then begin
@@ -229,6 +208,11 @@ begin
   if (P1.smEnd_Data <> P2.smEnd_Data) then begin
     P3.smEnd_Data := P1.smEnd_Data;
     ChangedFields[i] := tksmEnd_Data;
+    Inc(i);
+  end;
+  if (P1.smUpdate_Date <> P2.smUpdate_Date) then begin
+    P3.smUpdate_Date := P1.smUpdate_Date;
+    ChangedFields[i] := tksmUpdate_Date;
     Inc(i);
   end;
   if (P1.smHas_Changed <> P2.smHas_Changed) then begin

@@ -962,21 +962,34 @@ begin
     FAuditNamesArray[168,174] := 'Manual_Count';
     FAuditNamesArray[168,175] := 'Uncoded_Count';
 
-   FAuditTableArray[169] := 'Suggested_Mem';
-    FAuditNamesArray[169,171] := 'Id';
-    FAuditNamesArray[169,172] := 'Matched_Phrase';
-    FAuditNamesArray[169,173] := 'Total_Count';
-    FAuditNamesArray[169,174] := 'Manual_Count';
-    FAuditNamesArray[169,175] := 'Uncoded_Count';
-    FAuditNamesArray[169,176] := 'Update_Date';
-    FAuditNamesArray[169,177] := 'Start_Data';
-    FAuditNamesArray[169,178] := 'End_Data';
-    FAuditNamesArray[169,179] := 'Has_Changed';
+   FAuditTableArray[169] := 'Tran_Suggested_Link';
+    FAuditNamesArray[169,171] := 'Date_Effective';
+    FAuditNamesArray[169,172] := 'Tran_Seq_No';
+    FAuditNamesArray[169,173] := 'SuggestedId';
+    FAuditNamesArray[169,174] := 'AccountId';
 
-   FAuditTableArray[170] := 'Tran_Suggested_Link';
-    FAuditNamesArray[170,172] := 'Date_Effective';
-    FAuditNamesArray[170,173] := 'Tran_Seq_No';
-    FAuditNamesArray[170,174] := 'SuggestedId';
+   FAuditTableArray[170] := 'Suggested_Mem';
+    FAuditNamesArray[170,172] := 'Id';
+    FAuditNamesArray[170,173] := 'TypeId';
+    FAuditNamesArray[170,174] := 'PhraseId';
+    FAuditNamesArray[170,175] := 'Start_Data';
+    FAuditNamesArray[170,176] := 'End_Data';
+    FAuditNamesArray[170,177] := 'Update_Date';
+    FAuditNamesArray[170,178] := 'Has_Changed';
+
+   FAuditTableArray[171] := 'Suggested_Account_Link';
+    FAuditNamesArray[171,173] := 'SuggestedId';
+    FAuditNamesArray[171,174] := 'AccountId';
+    FAuditNamesArray[171,175] := 'Count';
+    FAuditNamesArray[171,176] := 'IsUncoded';
+
+   FAuditTableArray[172] := 'Suggested_Account';
+    FAuditNamesArray[172,174] := 'Id';
+    FAuditNamesArray[172,175] := 'Account';
+
+   FAuditTableArray[173] := 'Suggested_Phrase';
+    FAuditNamesArray[173,175] := 'Id';
+    FAuditNamesArray[173,176] := 'Phrase';
 
 end;
 

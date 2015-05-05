@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 745;
-   BK_IOLIB_Date    = '29/04/15';
+   BK_IOLIB_Version : Integer = 727;
+   BK_IOLIB_Date    = '05/05/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -272,8 +272,11 @@ Type
    pCandidate_Mem_Processing_Rec         = ^tCandidate_Mem_Processing_Rec ;
    pCandidate_Mem_Rec                    = ^tCandidate_Mem_Rec ;
    pRecommended_Mem_Rec                  = ^tRecommended_Mem_Rec ;
-   pSuggested_Mem_Rec                    = ^tSuggested_Mem_Rec ;
    pTran_Suggested_Link_Rec              = ^tTran_Suggested_Link_Rec ;
+   pSuggested_Mem_Rec                    = ^tSuggested_Mem_Rec ;
+   pSuggested_Account_Link_Rec           = ^tSuggested_Account_Link_Rec ;
+   pSuggested_Account_Rec                = ^tSuggested_Account_Rec ;
+   pSuggested_Phrase_Rec                 = ^tSuggested_Phrase_Rec ;
 
 {  -------------------------------------------------------------------  }
 
@@ -1437,28 +1440,56 @@ Type
 
 {  -------------------------------------------------------------------  }
 
+   tTran_Suggested_Link_Rec = Packed Record
+      tsRecord_Type                      : Byte;
+      tsDate_Effective                   : Integer;       { Stored }
+      tsTran_Seq_No                      : Integer;       { Stored }
+      tsSuggestedId                      : Integer;       { Stored }
+      tsAccountId                        : Integer;       { Stored }
+      tsEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
    tSuggested_Mem_Rec = Packed Record
       smRecord_Type                      : Byte;
       smId                               : Integer;       { Stored }
-      smMatched_Phrase                   : String[ 200 ];       { Stored }
-      smTotal_Count                      : Integer;       { Stored }
-      smManual_Count                     : Integer;       { Stored }
-      smUncoded_Count                    : Integer;       { Stored }
-      smUpdate_Date                      : Integer;       { Stored }
+      smTypeId                           : Byte;       { Stored }
+      smPhraseId                         : Integer;       { Stored }
       smStart_Data                       : Boolean;       { Stored }
       smEnd_Data                         : Boolean;       { Stored }
+      smUpdate_Date                      : Integer;       { Stored }
       smHas_Changed                      : Boolean;       { Stored }
       smEOR                              : Byte;
    end;
 
 {  -------------------------------------------------------------------  }
 
-   tTran_Suggested_Link_Rec = Packed Record
-      tsRecord_Type                      : Byte;
-      tsDate_Effective                   : Integer;       { Stored }
-      tsTran_Seq_No                      : Integer;       { Stored }
-      tsSuggestedId                      : Integer;       { Stored }
-      tsEOR                              : Byte;
+   tSuggested_Account_Link_Rec = Packed Record
+      slRecord_Type                      : Byte;
+      slSuggestedId                      : Integer;       { Stored }
+      slAccountId                        : Integer;       { Stored }
+      slCount                            : Integer;       { Stored }
+      slIsUncoded                        : Boolean;       { Stored }
+      slEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tSuggested_Account_Rec = Packed Record
+      saRecord_Type                      : Byte;
+      saId                               : Integer;       { Stored }
+      saAccount                          : String[ 20 ];       { Stored }
+      saEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tSuggested_Phrase_Rec = Packed Record
+      spRecord_Type                      : Byte;
+      spId                               : Integer;       { Stored }
+      spPhrase                           : String[ 200 ];       { Stored }
+      spEOR                              : Byte;
    end;
 
 Const
@@ -1493,8 +1524,11 @@ Const
    Candidate_Mem_Processing_Rec_Size         = Sizeof( TCandidate_Mem_Processing_Rec ); 
    Candidate_Mem_Rec_Size                    = Sizeof( TCandidate_Mem_Rec ); 
    Recommended_Mem_Rec_Size                  = Sizeof( TRecommended_Mem_Rec ); 
-   Suggested_Mem_Rec_Size                    = Sizeof( TSuggested_Mem_Rec ); 
    Tran_Suggested_Link_Rec_Size              = Sizeof( TTran_Suggested_Link_Rec ); 
+   Suggested_Mem_Rec_Size                    = Sizeof( TSuggested_Mem_Rec ); 
+   Suggested_Account_Link_Rec_Size           = Sizeof( TSuggested_Account_Link_Rec ); 
+   Suggested_Account_Rec_Size                = Sizeof( TSuggested_Account_Rec ); 
+   Suggested_Phrase_Rec_Size                 = Sizeof( TSuggested_Phrase_Rec ); 
 
 {  -------------------------------------------------------------------  }
 Implementation

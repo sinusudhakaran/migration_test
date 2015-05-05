@@ -64,6 +64,7 @@ type
   TExtdSortedCollection = class( TExtdCollection )
   protected
     FCompare: TListSortCompare;
+    fSortingOn : boolean;
   public
     Duplicates : boolean;
     constructor Create; override;
@@ -73,6 +74,8 @@ type
     function Search( Item : Pointer; var Index : integer ) : Boolean; virtual;
     procedure Sort(DropDuplicates: Boolean = false); overload;
     procedure Sort(Compare: TListSortCompare); overload;
+
+    property SortingOn : boolean read fSortingOn write fSortingOn;
   end;
 
 //******************************************************************************
@@ -306,6 +309,7 @@ begin
   inherited Create;
   Duplicates := false;
   FCompare := nil;
+  fSortingOn := true;
 end;
 
 function TExtdSortedCollection.IndexOf( Item : Pointer ) : Integer;
@@ -326,16 +330,25 @@ end;
 
 procedure TExtdSortedCollection.Insert( Item : Pointer );
 var
-  i : integer;
+  Index : integer;
   found : boolean;
 begin
-  found := Search( Item, I );
-  if ( found and ( not Duplicates ) ) then
-  begin //raise exception if trying to add duplicate
-    Error( coDuplicate, 0 );
+  if fSortingOn then
+  begin
+    found := Search( Item, Index );
+    if ( found and ( not Duplicates ) ) then
+    begin //raise exception if trying to add duplicate
+      Error( coDuplicate, 0 );
+    end
+    else
+      AtInsert( Index, Item );
   end
   else
-    AtInsert( I, Item );
+  begin
+    if ( Item = nil ) then Error( coInvalidPointer, 0 );
+    Index := FCount;
+    AtInsert( Index, Item );
+  end;
 end;
 
 {----------------------------------------------------------}

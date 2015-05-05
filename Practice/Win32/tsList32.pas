@@ -1,5 +1,6 @@
 unit tsList32;
 
+//------------------------------------------------------------------------------
 interface
 
 uses
@@ -19,53 +20,138 @@ uses
   bkConst;
 
 type
-  TTranSuggSortType = (tstTranId, tstSuggId);
 
-  TTran_Suggested_Link_List = class(TExtdSortedCollection)
+  //----------------------------------------------------------------------------
+  pTran_Suggested_Link_Index_Rec = ^TTran_Suggested_Link_Index_Rec;
+  TTran_Suggested_Link_Index_Rec = Packed Record
+    Date_Effective : integer;
+    Tran_Seq_No    : integer;
+    SuggestedId    : Integer;
+  end;
+
+const
+  Tran_Suggested_Link_Index_Rec_Size = Sizeof(TTran_Suggested_Link_Index_Rec);
+
+type
+  //----------------------------------------------------------------------------
+  TTran_Suggested_Link_Index = class(TExtdSortedCollection)
   private
-    fSortType : TTranSuggSortType;
-    fSortingOn : boolean;
   protected
+    function NewItem() : Pointer;
     procedure FreeItem(Item: Pointer); override;
-
-    procedure SetSortType(aValue : TTranSuggSortType);
   public
     constructor Create; override;
-    function Compare(Item1, Item2: Pointer) : integer; override;
-    procedure Copyfrom(aSourceList : TTran_Suggested_Link_List);
-    procedure Insert( Item : Pointer ); override;
+    function  Compare(Item1, Item2: Pointer) : integer; override;
+  end;
+
+  //----------------------------------------------------------------------------
+  TTran_Suggested_Link_List = class(TExtdSortedCollection)
+  private
+    fHighId : integer;
+    fTran_Suggested_Link_Index : TTran_Suggested_Link_Index;
+
+  protected
+    procedure FreeItem(Item: Pointer); override;
+    function FindFirstUsingSuggestedId(aSuggestedId : integer; var aIndex : integer) : Boolean;
+    function FindFirstUsingTranSeqNo(aTranSeqNo : integer; var aIndex : integer) : Boolean;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    function  Compare(Item1, Item2: Pointer) : integer; override;
+
+    procedure Insert_Tran_Suggested_Link_Rec(var aTran_Suggested_Link : TTran_Suggested_Link);
     procedure DeleteFreeAll();
 
     procedure SaveToFile(var S: TIOStream);
     procedure LoadFromFile(var S: TIOStream);
 
-    function Tran_Suggested_Link_At(Index: integer): TTran_Suggested_Link;
+    function SearchUsingSuggestedId(aSuggestedId: integer; var aBottomIndex, aTopIndex : integer): Boolean;
+    function SearchUsingTranSeqNo(aTranSeqNo : integer; var aBottomIndex, aTopIndex : integer): Boolean;
+    function SearchUsingTranSeqNoAndSuggestedId(aTranSeqNo, aSuggestedId : integer; var aIndex : integer) : Boolean;
+    function SearchUsingSuggestedIdAndTranSeqNo(aSuggestedId, aTranSeqNo : integer; var aIndex : integer) : Boolean;
 
-    function GetAs_pRec(Item: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
+    function  GetPRec(aIndex: integer): pTran_Suggested_Link_Rec;
+    function  GetIndexPRec(aIndex: integer): pTran_Suggested_Link_Index_Rec;
 
-    property SortType : TTranSuggSortType read fSortType write SetSortType;
-    property SortingOn : boolean read fSortingOn write fSortingOn;
+    function  Tran_Suggested_Link_At(aIndex: integer): TTran_Suggested_Link;
+
+    function  GetAs_pRec(aItem: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
+
+    property Tran_Suggested_Link_Index : TTran_Suggested_Link_Index read fTran_Suggested_Link_Index;
   end;
 
-
+//------------------------------------------------------------------------------
 implementation
 
-const
-  UnitName = 'rmList32';
-  DebugMe: boolean = false;
+uses
+  MALLOC;
 
+const
+  UnitName = 'slList32';
+  DebugMe: boolean = false;
+  SInsufficientMemory = UnitName + ' Error: Out of memory in TTran_Suggested_Link_Index.NewItem';
+
+{ TTran_Suggested_Link_Index }
 //------------------------------------------------------------------------------
-procedure TTran_Suggested_Link_List.SetSortType(aValue: TTranSuggSortType);
-begin
-  fSortType := aValue;
+function TTran_Suggested_Link_Index.NewItem: Pointer;
+var
+  P : pTran_Suggested_Link_Index_Rec;
+Begin
+  SafeGetMem( P, Tran_Suggested_Link_Index_Rec_Size );
+
+  If Assigned( P ) then
+    FillChar( P^, Tran_Suggested_Link_Index_Rec_Size, 0 )
+  else
+    Raise EInsufficientMemory.Create( SInsufficientMemory );
+
+  Result := P;
 end;
 
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Link_Index.FreeItem(Item: Pointer);
+begin
+  SafeFreeMem(Item, Tran_Suggested_Link_Index_Rec_Size);
+end;
+
+//------------------------------------------------------------------------------
+constructor TTran_Suggested_Link_Index.Create;
+begin
+  inherited;
+
+  Duplicates := false;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_Index.Compare(Item1, Item2: Pointer): integer;
+begin
+  Result := CompareValue(pTran_Suggested_Link_Index_Rec(Item1)^.SuggestedId,
+                         pTran_Suggested_Link_Index_Rec(Item2)^.SuggestedId);
+
+  if Result <> 0 then
+    Exit;
+
+  Result := CompareValue(pTran_Suggested_Link_Index_Rec(Item1)^.Tran_Seq_No,
+                         pTran_Suggested_Link_Index_Rec(Item2)^.Tran_Seq_No);
+end;
+
+{ TTran_Suggested_Link_List }
 //------------------------------------------------------------------------------
 constructor TTran_Suggested_Link_List.Create;
 begin
   inherited Create;
 
+  fTran_Suggested_Link_Index := TTran_Suggested_Link_Index.Create;
+
+  fHighId := 0;
   Duplicates := false;
+end;
+
+//------------------------------------------------------------------------------
+destructor TTran_Suggested_Link_List.Destroy;
+begin
+  FreeAndNil(fTran_Suggested_Link_Index);
+
+  inherited;
 end;
 
 //------------------------------------------------------------------------------
@@ -73,52 +159,24 @@ procedure TTran_Suggested_Link_List.DeleteFreeAll;
 var
   index : integer;
 begin
+  fHighId := 0;
   for index := ItemCount-1 downto 0 do
     DelFreeItem(self.Items[index]);
+
+  fTran_Suggested_Link_Index.FreeAll;
 end;
 
 //------------------------------------------------------------------------------
 function TTran_Suggested_Link_List.Compare(Item1, Item2: Pointer): integer;
 begin
-  Result := 0;
-  if fSortType = tstTranId then
-  begin
-    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
-                           TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
+  Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
+                         TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
 
-    if (Result <> 0) then
-      Exit;
+  if Result <> 0 then
+    Exit;
 
-    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
-                           TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
-  end
-  else
-  begin
-    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
-                           TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
-
-    if (Result <> 0) then
-      Exit;
-
-    Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsTran_Seq_No,
-                           TTran_Suggested_Link(Item2).tsFields.tsTran_Seq_No);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TTran_Suggested_Link_List.Copyfrom(aSourceList: TTran_Suggested_Link_List);
-var
-  SourceIndex : integer;
-  NewSuggLink : TTran_Suggested_Link;
-begin
-  for SourceIndex := 0 to aSourceList.ItemCount-1 do
-  begin
-    NewSuggLink := TTran_Suggested_Link.Create();
-    NewSuggLink.tsFields.tsDate_Effective := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsDate_Effective;
-    NewSuggLink.tsFields.tsTran_Seq_No    := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsTran_Seq_No;
-    NewSuggLink.tsFields.tsSuggestedId    := aSourceList.Tran_Suggested_Link_At(SourceIndex).tsFields.tsSuggestedId;
-    Insert(NewSuggLink);
-  end;
+  Result := CompareValue(TTran_Suggested_Link(Item1).tsFields.tsSuggestedId,
+                         TTran_Suggested_Link(Item2).tsFields.tsSuggestedId);
 end;
 
 //------------------------------------------------------------------------------
@@ -129,6 +187,78 @@ begin
   P := TTran_Suggested_Link(Item);
   if Assigned(P) then
     P.Free;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.FindFirstUsingSuggestedId( aSuggestedId: integer; var aIndex: integer): Boolean;
+var
+  Top, Bottom, Index, CompRes : Integer;
+begin
+  Result := False;
+  Top := 0;
+  Bottom := FCount - 1;
+  while Top <= Bottom do
+  begin
+    Index := ( Top + Bottom ) shr 1;
+
+    CompRes := CompareValue(aSuggestedId, GetIndexPRec(Index)^.SuggestedId);
+
+    if CompRes > 0 then
+      Top := Index + 1
+    else
+    begin
+      Bottom := Index - 1;
+      if CompRes = 0 then
+      begin
+        Result := True;
+        aIndex := Index;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.FindFirstUsingTranSeqNo(aTranSeqNo : integer; var aIndex: integer): Boolean;
+var
+  Top, Bottom, Index, CompRes : Integer;
+begin
+  Result := False;
+  Top := 0;
+  Bottom := FCount - 1;
+  while Top <= Bottom do
+  begin
+    Index := ( Top + Bottom ) shr 1;
+
+    CompRes := CompareValue(aTranSeqNo, GetPRec(Index)^.tsTran_Seq_No);
+
+    if CompRes > 0 then
+      Top := Index + 1
+    else
+    begin
+      Bottom := Index - 1;
+      if CompRes = 0 then
+      begin
+        Result := True;
+        aIndex := Index;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Link_List.Insert_Tran_Suggested_Link_Rec(var aTran_Suggested_Link : TTran_Suggested_Link);
+var
+  NewTran_Suggested_Link_Index_Rec : pTran_Suggested_Link_Index_Rec;
+Begin
+  NewTran_Suggested_Link_Index_Rec := fTran_Suggested_Link_Index.NewItem;
+  NewTran_Suggested_Link_Index_Rec^.Date_Effective := aTran_Suggested_Link.tsFields.tsDate_Effective;
+  NewTran_Suggested_Link_Index_Rec^.Tran_Seq_No    := aTran_Suggested_Link.tsFields.tsTran_Seq_No;
+  NewTran_Suggested_Link_Index_Rec^.SuggestedId    := aTran_Suggested_Link.tsFields.tsSuggestedId;
+  fTran_Suggested_Link_Index.Insert(NewTran_Suggested_Link_Index_Rec);
+
+  Inherited Insert( aTran_Suggested_Link );
 end;
 
 //------------------------------------------------------------------------------
@@ -163,10 +293,15 @@ var
   Token: Byte;
   Msg: string;
   P: TTran_Suggested_Link;
+  NewTran_Suggested_Link_Index_Rec : pTran_Suggested_Link_Index_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
   Token := S.ReadToken;
+
+  fTran_Suggested_Link_Index.SortingOn := false;
+  SortingOn := false;
+
   While (Token <> tkEndSection) do
   begin
     // Should never happen
@@ -181,7 +316,8 @@ begin
     P := TTran_Suggested_Link.Create;
     try
       P.LoadFromFile(S);
-      Insert(P);
+
+      Insert_Tran_Suggested_Link_Rec(P);
     except
       on E: Exception do
       begin
@@ -193,41 +329,174 @@ begin
     Token := S.ReadToken;
   end;
 
+  fTran_Suggested_Link_Index.SortingOn := true;
+  SortingOn := true;
+
+  fTran_Suggested_Link_Index.Sort();
+  Sort();
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
 
 //------------------------------------------------------------------------------
-function TTran_Suggested_Link_List.Tran_Suggested_Link_At(Index: integer): TTran_Suggested_Link;
+function TTran_Suggested_Link_List.SearchUsingSuggestedId(aSuggestedId: integer; var aBottomIndex, aTopIndex : integer): Boolean;
+var
+  FirstIndex : integer;
+  SearchIndex : integer;
+  CompRes : integer;
+begin
+  Result := false;
+  if FindFirstUsingSuggestedId(aSuggestedId, FirstIndex) then
+  begin
+    SearchIndex := FirstIndex;
+    inc(SearchIndex);
+
+    if SearchIndex < ItemCount then
+    begin
+      CompRes := CompareValue(aSuggestedId, GetIndexPRec(SearchIndex)^.SuggestedId);
+      while (SearchIndex < ItemCount) and
+            (CompRes = 0) do
+      begin
+        inc(SearchIndex);
+        if SearchIndex < ItemCount then
+          CompRes := CompareValue(aSuggestedId, GetIndexPRec(SearchIndex)^.SuggestedId)
+        else
+          CompRes := 1;
+      end;
+    end;
+
+    dec(SearchIndex);
+    aTopIndex := SearchIndex;
+
+    if SearchIndex > -1 then
+    begin
+      CompRes := CompareValue(aSuggestedId, GetIndexPRec(SearchIndex)^.SuggestedId);
+      while (SearchIndex > -1) and
+            (CompRes = 0) do
+      begin
+        dec(SearchIndex);
+        if SearchIndex > -1 then
+          CompRes := CompareValue(aSuggestedId, GetIndexPRec(SearchIndex)^.SuggestedId)
+        else
+          CompRes := -1;
+      end;
+    end;
+
+    inc(SearchIndex);
+    aBottomIndex := SearchIndex;
+    Result := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.SearchUsingTranSeqNo(aTranSeqNo : integer; var aBottomIndex, aTopIndex: integer): Boolean;
+var
+  FirstIndex : integer;
+  SearchIndex : integer;
+  CompRes : integer;
+begin
+  Result := false;
+  if FindFirstUsingTranSeqNo(aTranSeqNo, FirstIndex) then
+  begin
+    SearchIndex := FirstIndex;
+    inc(SearchIndex);
+
+    if SearchIndex < ItemCount then
+    begin
+      CompRes := CompareValue(aTranSeqNo, GetPRec(SearchIndex)^.tsTran_Seq_No);
+      while (SearchIndex < ItemCount) and
+            (CompRes = 0) do
+      begin
+        inc(SearchIndex);
+        if SearchIndex < ItemCount then
+          CompRes := CompareValue(aTranSeqNo, GetPRec(SearchIndex)^.tsTran_Seq_No)
+        else
+          CompRes := 1;
+      end;
+    end;
+
+    dec(SearchIndex);
+    aTopIndex := SearchIndex;
+
+    if SearchIndex > -1 then
+    begin
+      CompRes := CompareValue(aTranSeqNo, GetPRec(SearchIndex)^.tsTran_Seq_No);
+      while (SearchIndex > -1) and
+            (CompRes = 0) do
+      begin
+        dec(SearchIndex);
+        if SearchIndex > -1 then
+          CompRes := CompareValue(aTranSeqNo, GetPRec(SearchIndex)^.tsTran_Seq_No)
+        else
+          CompRes := -1;
+      end;
+    end;
+
+    inc(SearchIndex);
+    aBottomIndex := SearchIndex;
+    Result := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.SearchUsingTranSeqNoAndSuggestedId(aTranSeqNo, aSuggestedId : integer; var aIndex : integer) : Boolean;
+var
+  SearchTran_Suggested_Link : TTran_Suggested_Link;
+begin
+  SearchTran_Suggested_Link := TTran_Suggested_Link.Create;
+  try
+    SearchTran_Suggested_Link.tsFields.tsTran_Seq_No := aTranSeqNo;
+    SearchTran_Suggested_Link.tsFields.tsSuggestedId := aSuggestedId;
+    Result := Search(SearchTran_Suggested_Link, aIndex);
+  finally
+    FreeAndNil(SearchTran_Suggested_Link);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.SearchUsingSuggestedIdAndTranSeqNo(aSuggestedId, aTranSeqNo : integer; var aIndex : integer) : Boolean;
+var
+  SearchpTran_Suggested_Link_Index_Rec : pTran_Suggested_Link_Index_Rec;
+begin
+  SearchpTran_Suggested_Link_Index_Rec := fTran_Suggested_Link_Index.NewItem;
+  try
+    SearchpTran_Suggested_Link_Index_Rec.SuggestedId := aSuggestedId;
+    SearchpTran_Suggested_Link_Index_Rec.Tran_Seq_No := aTranSeqNo;
+    Result := fTran_Suggested_Link_Index.Search(SearchpTran_Suggested_Link_Index_Rec, aIndex);
+  finally
+    fTran_Suggested_Link_Index.FreeItem(SearchpTran_Suggested_Link_Index_Rec);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.GetPRec(aIndex: integer): pTran_Suggested_Link_Rec;
+begin
+  Result := TTran_Suggested_Link(At(aIndex)).As_pRec;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.GetIndexPRec(aIndex: integer): pTran_Suggested_Link_Index_Rec;
+begin
+  Result := fTran_Suggested_Link_Index.At(aIndex);
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Link_List.Tran_Suggested_Link_At(aIndex: integer): TTran_Suggested_Link;
 var
   P: Pointer;
 Begin
-  P := At(Index);
+  P := At(aIndex);
 
   result := TTran_Suggested_Link(P);
 end;
 
 //------------------------------------------------------------------------------
-function TTran_Suggested_Link_List.GetAs_pRec(Item: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
+function TTran_Suggested_Link_List.GetAs_pRec(aItem: TTran_Suggested_Link): pTran_Suggested_Link_Rec;
 begin
-  if Assigned(Item) then
-    result := Item.As_pRec
+  if Assigned(aItem) then
+    result := aItem.As_pRec
   else
     result := nil;
-end;
-
-//------------------------------------------------------------------------------
-procedure TTran_Suggested_Link_List.Insert(Item: Pointer);
-var
-  Index : integer;
-begin
-  if fSortingOn then
-    inherited
-  else
-  begin
-    if ( Item = nil ) then Error( coInvalidPointer, 0 );
-    Index := FCount;
-    AtInsert( Index, Item );
-  end;
 end;
 
 //------------------------------------------------------------------------------

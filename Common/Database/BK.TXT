@@ -1263,21 +1263,36 @@ F|Manual Count|L
 F|Uncoded Count|L
 E
 
-N|Suggested Mem|sm|169
-F|Id|L
-F|Matched Phrase|S|200
-F|Total Count|L
-F|Manual Count|L
-F|Uncoded Count|L
-F|Update Date|D
-F|Start Data|Y
-F|End Data|Y
-F|Has Changed|Y
-E
-
-N|Tran Suggested Link|ts|170
+N|Tran Suggested Link|ts|169
 F|Date Effective|D
 F|Tran Seq No|L
 F|SuggestedId|L
+F|AccountId|L
 E
 
+N|Suggested Mem|sm|170
+F|Id|L
+F|TypeId|B
+F|PhraseId|L
+F|Start Data|Y
+F|End Data|Y
+F|Update Date|D
+F|Has Changed|Y
+E
+
+N|Suggested Account Link|sl|171
+F|SuggestedId|L
+F|AccountId|L
+F|Count|L
+F|IsUncoded|Y
+E
+
+N|Suggested Account|sa|172
+F|Id|L
+F|Account|S|20
+E
+
+N|Suggested Phrase|sp|173
+F|Id|L
+F|Phrase|S|200
+E

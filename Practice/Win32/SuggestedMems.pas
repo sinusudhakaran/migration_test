@@ -16,9 +16,10 @@ uses
   Classes;
 
 const
-  mtsNoScan   = 0; mtsMin = 0;
-  mtsExcluded = 1;
-  mtsScan     = 2; mtsMax = 3;
+  mtsNoScan      = 0; mtsMin = 0;
+  mtsMems2NoScan = 1;
+  mtsExcluded    = 2;
+  mtsScan        = 3; mtsMax = 3;
 
   tssUnScanned     = 0; tssMin = 0;
   tssExcluded      = 1;
@@ -29,6 +30,8 @@ const
   tssScannedAndExluded = [tssExcluded, tssManualScanned, tssUnCodedScaned];
 
 type
+  TFoundCreate = (fcFound, fcCreated);
+
   //----------------------------------------------------------------------------
   TArrInt = Array of integer;
   TArrSuggPointers = Array of pSuggested_Mem_Rec;
@@ -67,25 +70,23 @@ type
     procedure LogAllSuggestedMemsForAccount(aBankAccount : TBank_Account);
     procedure LogAllSuggestedMemsForClient(aClient: TClientObj);
 
-    function FindLinkIndexUsingBothIds(aBankAccount: TBank_Account; aSuggId, aTranSeqNo : integer; aSearchList : TTranSuggSortType; var aFoundIndex: integer): boolean;
-    function FindLinkId(aBankAccount: TBank_Account; aSearchId: integer; aSearchType : TTranSuggSortType; var aFoundIndex: integer) : boolean;
-    function FindTransUsingEffDateAndSeqNo(aBankAccount: TBank_Account; aEffDate, aTranSeqNo : integer; var aTran : pTransaction_Rec) : boolean;
-    function FindSuggestedItem(aBankAccount : TBank_Account; aSuggId : integer; var aFoundIndex : integer; var aFoundItem : pSuggested_Mem_Rec) : boolean;
-
-    procedure FindOtherSuggIdsUsingFoundId(aBankAccount: TBank_Account; aTranSeqNo, aFoundIndex: integer; var aFoundIds, aFoundIndexes: TArrInt);
-    function FindSuggIdsUsingTranId(aBankAccount : TBank_Account; aTranSeqNo : integer; var aFoundIds : TArrInt) : boolean;
-
-    procedure FindOtherTranIdsUsingFoundId(aBankAccount : TBank_Account; aSuggId, aFoundIndex : integer; var aFoundIds, aFoundIndexes : TArrInt);
-    function FindTranIdsUsingSuggId(aBankAccount : TBank_Account; aSuggId : integer; var aFoundIds : TArrInt) : boolean;
-
     function GetSuggestionMatchText(const aMatchPhrase : string; aStart, aEnd : boolean) : string;
 
-    function SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte) : boolean;
+    procedure SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
 
-    procedure DeleteSuggestionAndLinks(aBankAccount : TBank_Account; aSuggId : integer);
+    procedure DeleteSuggestionAndLinks(aBankAccount : TBank_Account; aSuggestionId : integer);
     procedure DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
-    procedure InsertNewLink(aBankAccount : TBank_Account; aTranState : byte; aTrans : pTransaction_Rec; aSuggId : integer; aSuggestion : pSuggested_Mem_Rec);
-    procedure SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
+
+    function FindPhraseOrCreate(aBankAccount : TBank_Account; aPhrase : string; var aPhraseid : integer) : TFoundCreate;
+    function FindSuggestionUsingPhraseIdAndType(aBankAccount: TBank_Account; aTypeId: byte; aPhraseId: integer; var aSuggested_Mem_Rec: pSuggested_Mem_Rec): boolean;
+    procedure CreateSuggestion(aBankAccount : TBank_Account; aTypeId: byte; aPhraseId: integer; Start_Data, End_Data : boolean; var aSuggested_Mem_Rec: pSuggested_Mem_Rec);
+    function FindAccountOrCreate(aBankAccount : TBank_Account; aAccount : string; var aAccountid : integer) : TFoundCreate;
+    function FindSuggestionAccountLinkOrCreate(aBankAccount: TBank_Account; aSuggestionId, aAccountId: integer; aAccount : string; var aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec): TFoundCreate;
+    procedure CreateSuggestionAccountLink(aBankAccount: TBank_Account; aSuggestionId, aAccountId: integer; aAccount : string; var aSuggested_Account_Link_Rec : pSuggested_Account_Link_Rec);
+    function FindTranSuggestionLink(aBankAccount: TBank_Account; aTranSeqNo : integer; aSuggestionId : integer) : boolean;
+    procedure CreateTranSuggestionLink(aBankAccount: TBank_Account; aTranSeqNo: integer; aDate_Effective : integer; aSuggested_Mem_Rec: pSuggested_Mem_Rec; aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec);
+
+    procedure SearchFoundMatch(aStartData: boolean; var aMatchedPhrase : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
 
     function IsMemorisation(aMemorisations: TMemorisations_List; aType : byte; const aMatchPhrase : string): boolean;
     function IsMasterMemorisation(aType: byte; const aMatchPhrase, aBankPrefix: string): boolean;
@@ -128,11 +129,15 @@ uses
   bkConst,
   BKtsIO,
   tsObj32,
+  spObj32,
+  saObj32,
+  slObj32,
   DateUtils,
   Math,
   lcs2,
   SYDEFS,
   mxFiles32,
+  stDate,
   LogUtil;
 
 const
@@ -177,20 +182,42 @@ end;
 //------------------------------------------------------------------------------
 procedure TSuggestedMems.LogAllSuggestedMemsForAccount(aBankAccount: TBank_Account);
 var
+  AccIndex : integer;
+  AccountIndex : integer;
   SuggIndex : integer;
+  SuggestedId : integer;
+  FoundSuggLowIndex : integer;
+  FoundSuggHighIndex : integer;
+  PhraseIndex : integer;
+  Phrase : string;
 begin
   LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, BankAccount - ' + aBankAccount.baFields.baBank_Account_Number);
   for SuggIndex := 0 to aBankAccount.baSuggested_Mem_List.ItemCount-1 do
   begin
-    if aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smHas_Changed then
+    if aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHas_Changed then
     begin
-      aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smHas_Changed := false;
+      SuggestedId := aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smId;
+
+      aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHas_Changed := false;
+
+      if aBankAccount.baSuggested_Phrase_List.SearchUsingPhraseId(aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smPhraseId, PhraseIndex) then
+        Phrase := aBankAccount.baSuggested_Phrase_List.GetPRec(PhraseIndex)^.spPhrase;
+
       LogUtil.LogMsg(lmDebug, UnitName,
-        'MemScan, Suggestion ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smId) +
-        ', Phrase - ''' + aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smMatched_Phrase +
-        ''', TotalCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smTotal_Count) +
-        ', ManualCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smManual_Count) +
-        ', UnCodedCount = ' + inttostr(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggIndex).smFields.smUncoded_Count));
+        'Scan, Sug ' + inttostr(aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smId) +
+        ', Text - ''' + Phrase + '''');
+
+      if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, FoundSuggLowIndex, FoundSuggHighIndex) then
+      begin
+        for AccountIndex := FoundSuggLowIndex to FoundSuggHighIndex do
+        begin
+          if aBankAccount.baSuggested_Account_List.SearchUsingAccountId(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slAccountId, AccIndex) then
+          begin
+            LogUtil.LogMsg(lmDebug, UnitName,'    Code = ' + aBankAccount.baSuggested_Account_List.GetPRec(AccIndex)^.saAccount +
+                                             '    Count = ' + inttostr(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount));
+          end;
+        end;
+      end;
     end;
   end;
 end;
@@ -215,381 +242,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.FindLinkIndexUsingBothIds(aBankAccount: TBank_Account; aSuggId, aTranSeqNo : integer; aSearchList : TTranSuggSortType; var aFoundIndex: integer): boolean;
-var
-  CurrIndex : integer;
-  OldIndex : integer;
-  CurrValue : double;
-  DiffValue : double;
-  CompareInt : integer;
-  LinkList : TTran_Suggested_Link_List;
-
-  //----------------------------------------------------------------------------
-  function Compare() : integer;
-  begin
-    if aSearchList = tstTranId then
-    begin
-      Result := CompareValue(aTranSeqNo, LinkList.Tran_Suggested_Link_At(CurrIndex).tsFields.tsTran_Seq_No);
-      if Result = 0 then
-        Result := CompareValue(aSuggId, LinkList.Tran_Suggested_Link_At(CurrIndex).tsFields.tsSuggestedId);
-    end
-    else
-    begin
-      Result := CompareValue(aSuggId, LinkList.Tran_Suggested_Link_At(CurrIndex).tsFields.tsSuggestedId);
-      if Result = 0 then
-        Result := CompareValue(aTranSeqNo, LinkList.Tran_Suggested_Link_At(CurrIndex).tsFields.tsTran_Seq_No);
-    end;
-  end;
-begin
-  aFoundIndex := -1;
-
-  if aSearchList = tstTranId then
-    LinkList := aBankAccount.baTran_Suggested_Link_List
-  else
-    LinkList := aBankAccount.baSuggested_Tran_Link_List;
-
-  CurrValue := (LinkList.ItemCount-1)/2;
-  CurrIndex := round(CurrValue);
-  DiffValue := CurrValue/2;
-  repeat
-    CompareInt := Compare();
-
-    if CompareInt = 0 then
-      break;
-
-    OldIndex := CurrIndex;
-    if CompareInt = -1 then
-      CurrValue := CurrValue - DiffValue
-    else if CompareInt = 1 then
-      CurrValue := CurrValue + DiffValue;
-    CurrIndex := round(CurrValue);
-
-    DiffValue := DiffValue/2;
-
-    if (CompareInt <> 0) and (CurrIndex = OldIndex) then
-    begin
-      CurrIndex := CurrIndex + CompareInt;
-      if (CurrIndex > -1) and (CurrIndex < LinkList.ItemCount) then
-        CompareInt := Compare();
-      OldIndex := CurrIndex;
-    end;
-  until ((CompareInt = 0) or (CurrIndex = OldIndex));
-
-  Result := (CompareInt = 0);
-
-  if Result then
-    aFoundIndex := CurrIndex;
-end;
-
-//------------------------------------------------------------------------------
-function TSuggestedMems.FindLinkId(aBankAccount: TBank_Account; aSearchId: integer; aSearchType : TTranSuggSortType; var aFoundIndex: integer): boolean;
-var
-  CurrIndex : integer;
-  OldIndex : integer;
-  CurrValue : double;
-  DiffValue : double;
-  CompareInt : integer;
-  LinkList : TTran_Suggested_Link_List;
-
-  //----------------------------------------------------------------------------
-  function Compare() : integer;
-  begin
-    if aSearchType = tstTranId then
-      Result := CompareValue(aSearchId, LinkList.Tran_Suggested_Link_At(CurrIndex).tsFields.tsTran_Seq_No)
-    else
-      Result := CompareValue(aSearchId, LinkList.Tran_Suggested_Link_At(CurrIndex).tsFields.tsSuggestedId);
-  end;
-begin
-  aFoundIndex := -1;
-
-  if aSearchType = tstTranId then
-    LinkList := aBankAccount.baTran_Suggested_Link_List
-  else
-    LinkList := aBankAccount.baSuggested_Tran_Link_List;
-
-  CurrValue := (LinkList.ItemCount-1)/2;
-  CurrIndex := round(CurrValue);
-  DiffValue := CurrValue/2;
-  repeat
-    CompareInt := Compare();
-
-    if CompareInt = 0 then
-      break;
-
-    OldIndex := CurrIndex;
-    if CompareInt = -1 then
-      CurrValue := CurrValue - DiffValue
-    else if CompareInt = 1 then
-      CurrValue := CurrValue + DiffValue;
-    CurrIndex := round(CurrValue);
-
-    DiffValue := DiffValue/2;
-
-    if not (CompareInt = 0) and (CurrIndex = OldIndex) then
-    begin
-      CurrIndex := CurrIndex + CompareInt;
-      if (CurrIndex > -1) and (CurrIndex < LinkList.ItemCount) then
-        CompareInt := Compare();
-      OldIndex := CurrIndex;
-    end;
-  until ((CompareInt = 0) or (CurrIndex = OldIndex));
-
-  Result := (CompareInt = 0);
-
-  if Result then
-    aFoundIndex := CurrIndex;
-end;
-
-//------------------------------------------------------------------------------
-function TSuggestedMems.FindTransUsingEffDateAndSeqNo(aBankAccount: TBank_Account; aEffDate, aTranSeqNo : integer; var aTran : pTransaction_Rec) : boolean;
-var
-  CurrIndex : integer;
-  OldIndex : integer;
-  CurrValue : double;
-  DiffValue : double;
-  CompareInt : integer;
-
-  //----------------------------------------------------------------------------
-  function Compare() : integer;
-  begin
-    if aEffDate < aBankAccount.baTransaction_List.Transaction_At(CurrIndex)^.txDate_Effective then result := -1 else
-    if aEffDate > aBankAccount.baTransaction_List.Transaction_At(CurrIndex)^.txDate_Effective then result := 1  else
-    if aTranSeqNo < aBankAccount.baTransaction_List.Transaction_At(CurrIndex)^.txSequence_No  then result := -1 else
-    if aTranSeqNo > aBankAccount.baTransaction_List.Transaction_At(CurrIndex)^.txSequence_No  then result := 1  else
-    result := 0;
-  end;
-begin
-  aTran := nil;
-
-  CurrValue := (aBankAccount.baTransaction_List.ItemCount-1)/2;
-  CurrIndex := round(CurrValue);
-  DiffValue := CurrValue/2;
-  repeat
-    CompareInt := Compare();
-
-    if CompareInt = 0 then
-      break;
-
-    OldIndex := CurrIndex;
-    if CompareInt = -1 then
-      CurrValue := CurrValue - DiffValue
-    else if CompareInt = 1 then
-      CurrValue := CurrValue + DiffValue;
-    CurrIndex := round(CurrValue);
-
-    DiffValue := DiffValue/2;
-
-    if not (CompareInt = 0) and (CurrIndex = OldIndex) then
-    begin
-      CurrIndex := CurrIndex + CompareInt;
-      if (CurrIndex > -1) and (CurrIndex < aBankAccount.baTransaction_List.ItemCount) then
-        CompareInt := Compare();
-      OldIndex := CurrIndex;
-    end;
-  until ((CompareInt = 0) or (OldIndex = CurrIndex));
-
-  Result := (CompareInt = 0);
-
-  if Result then
-    aTran := aBankAccount.baTransaction_List.Transaction_At(CurrIndex);
-end;
-
-//------------------------------------------------------------------------------
-function TSuggestedMems.FindSuggestedItem(aBankAccount : TBank_Account; aSuggId : integer; var aFoundIndex : integer; var aFoundItem : pSuggested_Mem_Rec): boolean;
-var
-  CurrIndex : integer;
-  OldIndex : integer;
-  CurrValue : double;
-  DiffValue : double;
-  CompareInt : integer;
-
-  //----------------------------------------------------------------------------
-  function Compare() : integer;
-  begin
-    Result := CompareValue(aSuggId, aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(CurrIndex).smFields.smId);
-  end;
-begin
-  aFoundItem := nil;
-
-  CurrValue := (aBankAccount.baSuggested_Mem_List.ItemCount-1)/2;
-  CurrIndex := round(CurrValue);
-  DiffValue := CurrValue/2;
-  repeat
-    CompareInt := Compare();
-
-    if CompareInt = 0 then
-      break;
-
-    OldIndex := CurrIndex;
-    if CompareInt = -1 then
-      CurrValue := CurrValue - DiffValue
-    else if CompareInt = 1 then
-      CurrValue := CurrValue + DiffValue;
-    CurrIndex := round(CurrValue);
-
-    DiffValue := DiffValue/2;
-
-    if not (CompareInt = 0) and (CurrIndex = OldIndex) then
-    begin
-      CurrIndex := CurrIndex + CompareInt;
-      if (CurrIndex > -1) and (CurrIndex < aBankAccount.baSuggested_Mem_List.ItemCount) then
-        CompareInt := Compare();
-      OldIndex := CurrIndex;
-    end;
-  until ((CompareInt = 0) or (OldIndex = CurrIndex));
-
-  Result := (CompareInt = 0);
-
-  if Result then
-  begin
-    aFoundIndex := CurrIndex;
-    aFoundItem := aBankAccount.baSuggested_Mem_List.GetAs_pRec(aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(aFoundIndex));
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TSuggestedMems.FindOtherSuggIdsUsingFoundId(aBankAccount: TBank_Account; aTranSeqNo, aFoundIndex: integer; var aFoundIds, aFoundIndexes: TArrInt);
-var
-  SearchIndex : integer;
-  CompareInt : integer;
-
-  //----------------------------------------------------------------------------
-  procedure AddFound(aId, aIndex : integer);
-  begin
-    setlength(aFoundIds, length(aFoundIds)+1);
-    setlength(aFoundIndexes, length(aFoundIndexes)+1);
-    aFoundIds[high(aFoundIds)] := aId;
-    aFoundIndexes[high(aFoundIndexes)] := aIndex;
-  end;
-
-begin
-  // Search up for Top of the list, the reason  for this is to get id's going down in order
-  SearchIndex := aFoundIndex;
-  inc(SearchIndex);
-
-  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-  begin
-    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
-    while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
-          (CompareInt = 0) do
-    begin
-      inc(SearchIndex);
-      if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-        CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
-      else
-        CompareInt := 1;
-    end;
-  end;
-
-  // Search down while adding
-  dec(SearchIndex);
-
-  if SearchIndex > -1 then
-  begin
-    CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No);
-    while (SearchIndex > -1) and
-          (CompareInt = 0) do
-    begin
-      AddFound(aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId, SearchIndex);
-
-      dec(SearchIndex);
-      if SearchIndex > -1 then
-        CompareInt := CompareValue(aTranSeqNo, aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No)
-      else
-        CompareInt := -1;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TSuggestedMems.FindSuggIdsUsingTranId(aBankAccount : TBank_Account; aTranSeqNo : integer; var aFoundIds : TArrInt): boolean;
-var
-  FoundIndex : integer;
-  FoundIndexes: TArrInt;
-begin
-  Result := false;
-  if aBankAccount.baTran_Suggested_Link_List.ItemCount = 0 then
-    Exit;
-
-  if FindLinkId(aBankAccount, aTranSeqNo, tstTranId, FoundIndex) then
-  begin
-    FindOtherSuggIdsUsingFoundId(aBankAccount, aTranSeqNo, FoundIndex, aFoundIds, FoundIndexes);
-    Result := true;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TSuggestedMems.FindOtherTranIdsUsingFoundId(aBankAccount: TBank_Account; aSuggId, aFoundIndex: integer; var aFoundIds, aFoundIndexes: TArrInt);
-var
-  SearchIndex : integer;
-  CompareInt : integer;
-
-  //----------------------------------------------------------------------------
-  procedure AddFound(aId, aIndex : integer);
-  begin
-    setlength(aFoundIds, length(aFoundIds)+1);
-    setlength(aFoundIndexes, length(aFoundIndexes)+1);
-    aFoundIds[high(aFoundIds)] := aId;
-    aFoundIndexes[high(aFoundIndexes)] := aIndex;
-  end;
-
-begin
-  // Search up for Top of the list, the reason  for this is to get id's going down in order
-  SearchIndex := aFoundIndex;
-  inc(SearchIndex);
-
-  if SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount then
-  begin
-    CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId);
-    while (SearchIndex < aBankAccount.baTran_Suggested_Link_List.ItemCount) and
-          (CompareInt = 0) do
-    begin
-      inc(SearchIndex);
-      if SearchIndex < aBankAccount.baSuggested_Tran_Link_List.ItemCount then
-        CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId)
-      else
-        CompareInt := 1;
-    end;
-  end;
-
-  // Search down while adding
-  dec(SearchIndex);
-
-  if SearchIndex > -1 then
-  begin
-    CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId);
-    while (SearchIndex > -1) and
-          (CompareInt = 0) do
-    begin
-      AddFound(aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsTran_Seq_No, SearchIndex);
-
-      dec(SearchIndex);
-      if SearchIndex > -1 then
-        CompareInt := CompareValue(aSuggId, aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(SearchIndex).tsFields.tsSuggestedId)
-      else
-        CompareInt := -1;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TSuggestedMems.FindTranIdsUsingSuggId(aBankAccount : TBank_Account; aSuggId : integer; var aFoundIds : TArrInt): boolean;
-var
-  FoundIndex : integer;
-  FoundIndexes: TArrInt;
-begin
-  Result := false;
-  if aBankAccount.baTran_Suggested_Link_List.ItemCount = 0 then
-    Exit;
-
-  if FindLinkId(aBankAccount, aSuggId, tstSuggId, FoundIndex) then
-  begin
-    FindOtherTranIdsUsingFoundId(aBankAccount, aSuggId, FoundIndex, aFoundIds, FoundIndexes);
-    Result := true;
-  end;
-end;
-
-//------------------------------------------------------------------------------
 function TSuggestedMems.GetSuggestionMatchText(const aMatchPhrase: string; aStart, aEnd: boolean): string;
 begin
   result := '';
@@ -604,7 +256,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.SearchForLongestCommonPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte) : boolean;
+procedure TSuggestedMems.SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
 var
   TranIndex : integer;
   TranRec : pTransaction_Rec;
@@ -614,10 +266,27 @@ var
   EndData   : boolean;
   SearchTranDetailsLength : integer;
   MatchTranDetailLength : integer;
+  RunMems2 : boolean;
+  Date_Effective : integer;
+  Days, Months, Years : Integer;
 begin
   SearchTranDetailsLength := length(aTrans^.txStatement_Details);
   if SearchTranDetailsLength < 3 then
     Exit;
+
+  RunMems2 := true;
+  if aBankAccount.baTransaction_List.ItemCount < 150 then
+    RunMems2 := false
+  else
+  begin
+    Date_Effective := aBankAccount.baTransaction_List.Transaction_At(aBankAccount.baTransaction_List.ItemCount-1)^.txDate_Effective;
+    DateDiff(Date_Effective, CurrentDate, Days, Months, Years);
+    if Months > 2 then
+      RunMems2 := false;
+  end;
+
+  if Mainstate = mtsMems2NoScan then
+    RunMems2 := false;
 
   for TranIndex := aBankAccount.baTransaction_List.ItemCount-1 downto 0 do
   begin
@@ -639,96 +308,159 @@ begin
       if (SearchTranDetailsLength = MatchTranDetailLength) and
         (CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0) then
       begin
+        // Mems 1
         SearchFoundMatch(false, aTrans^.txStatement_Details, false, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
       end
       else
       begin
-        if FindLCS(Uppercase(aTrans^.txStatement_Details), Uppercase(TranRec^.txStatement_Details), StartData, FoundLCS, EndData) then
-          SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
+        // Mems 2
+        if RunMems2 then
+          if FindLCS(Uppercase(aTrans^.txStatement_Details), Uppercase(TranRec^.txStatement_Details), StartData, FoundLCS, EndData) then
+            SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
       end;
     end;
   end;
-
-  Result := true;
 
   SetLength(CurrentTranSuggestions,0);
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.DeleteSuggestionAndLinks(aBankAccount: TBank_Account; aSuggId: integer);
+procedure TSuggestedMems.DeleteSuggestionAndLinks(aBankAccount: TBank_Account; aSuggestionId: integer);
 var
-  FoundTranListIndex   : integer;
-  FoundSuggListIndex   : integer;
-  FoundSuggListIndexes : TArrInt;
-  FoundTranIds         : TArrInt;
-  TranIndex            : integer;
-  FoundSuggestion : pSuggested_Mem_Rec;
-  FoundSuggestionIndex : integer;
+  ArrIndex : integer;
+  TranSeqIndex : integer;
+  TranSeqNoArr : Array of integer;
+
+  AccountIndex : integer;
+  AccountArr : Array of integer;
+
+  SuggIndex : integer;
+  FoundSuggLowIndex : integer;
+  FoundSuggHighIndex : integer;
+
+  TypeId : integer;
+  PhraseId : integer;
+  TypePhraseIndex : integer;
 begin
-  if FindLinkId(aBankAccount, aSuggId, tstSuggId, FoundSuggListIndex) then
+  // Transaction Links
+  if aBankAccount.baTran_Suggested_Link_List.SearchUsingSuggestedId(aSuggestionId, FoundSuggLowIndex, FoundSuggHighIndex) then
   begin
-    FindOtherTranIdsUsingFoundId(aBankAccount, aSuggId, FoundSuggListIndex, FoundTranIds, FoundSuggListIndexes);
+    setlength(TranSeqNoArr, (FoundSuggHighIndex-FoundSuggLowIndex)+1);
+    for SuggIndex := FoundSuggLowIndex to FoundSuggHighIndex do
+      TranSeqNoArr[SuggIndex] := aBankAccount.baTran_Suggested_Link_List.GetIndexPRec(SuggIndex)^.Tran_Seq_No;
 
-    for TranIndex := 0 to high(FoundTranIds) do
+    for ArrIndex := high(TranSeqNoArr) downto 0 do
     begin
-      if FindLinkIndexUsingBothIds(aBankAccount, aSuggId, FoundTranIds[TranIndex], tstTranId, FoundTranListIndex) then
-        aBankAccount.baTran_Suggested_Link_List.AtFree(FoundTranListIndex);
+      SuggIndex := ArrIndex + FoundSuggLowIndex;
+      if aBankAccount.baTran_Suggested_Link_List.SearchUsingTranSeqNoAndSuggestedId(TranSeqNoArr[ArrIndex], aSuggestionId, TranSeqIndex) then
+      begin
+        aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_Index.DelFreeItem(aBankAccount.baTran_Suggested_Link_List.GetIndexPRec(SuggIndex));
+        aBankAccount.baTran_Suggested_Link_List.DelFreeItem(aBankAccount.baTran_Suggested_Link_List.Items[TranSeqIndex]);
+      end;
     end;
-
-    for TranIndex := 0 to high(FoundSuggListIndexes) do
-      aBankAccount.baSuggested_Tran_Link_List.AtFree(FoundSuggListIndexes[TranIndex]);
   end;
 
-  if FindSuggestedItem(aBankAccount, aSuggId, FoundSuggestionIndex, FoundSuggestion) then
-    aBankAccount.baSuggested_Mem_List.AtFree(FoundSuggestionIndex);
+  // Account Links
+  if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(aSuggestionId, FoundSuggLowIndex, FoundSuggHighIndex) then
+  begin
+    setlength(AccountArr, (FoundSuggHighIndex-FoundSuggLowIndex)+1);
+    for SuggIndex := FoundSuggLowIndex to FoundSuggHighIndex do
+      AccountArr[SuggIndex] := aBankAccount.baSuggested_Account_Link_List.GetPRec(SuggIndex)^.slAccountId;
+
+    for ArrIndex := high(AccountArr) downto 0 do
+    begin
+      SuggIndex := ArrIndex + FoundSuggLowIndex;
+      if aBankAccount.baSuggested_Account_Link_List.SearchUsingAccountAndSuggestedId(AccountArr[ArrIndex], aSuggestionId, AccountIndex) then
+      begin
+        aBankAccount.baSuggested_Account_Link_List.DelFreeItem(aBankAccount.baSuggested_Account_Link_List.Items[SuggIndex]);
+        aBankAccount.baSuggested_Account_Link_List.Suggested_Account_Link_Index.DelFreeItem(aBankAccount.baSuggested_Account_Link_List.GetIndexPRec(AccountIndex));
+      end;
+    end;
+  end;
+
+  // Suggestion
+  if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(aSuggestionId, SuggIndex) then
+  begin
+    TypeId   := aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smTypeId;
+    PhraseId := aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smPhraseId;
+
+    if aBankAccount.baSuggested_Mem_List.SearchUsingTypeAndPhraseId(TypeId, PhraseId, TypePhraseIndex) then
+    begin
+      aBankAccount.baSuggested_Mem_List.DelFreeItem(aBankAccount.baSuggested_Mem_List.Items[SuggIndex]);
+      aBankAccount.baSuggested_Mem_List.Suggested_Mem_Index.DelFreeItem(aBankAccount.baSuggested_Mem_List.GetIndexPRec(TypePhraseIndex));
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TSuggestedMems.DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
 var
-  SuggIdIndex : integer;
-  FoundSuggIds : TArrInt;
-  FoundLinkSuggIndexes : TArrInt;
-  FoundSuggestion : pSuggested_Mem_Rec;
-  FoundSuggestionIndex : integer;
+  ArrIndex : integer;
+  SuggIndex : integer;
+  SuggArr : Array of integer;
+
+  TranSeqIndex : integer;
   TranSeqNo : integer;
-  FoundTranListIndex : integer;
-  FoundSuggListIndex : integer;
-  SuggId : integer;
+  FoundSuggLowIndex : integer;
+  FoundSuggHighIndex : integer;
+
+  AccountIndex : integer;
+  AccountId : integer;
+  OldAccountId : integer;
+
+  LowIndex : integer;
+  HighIndex : integer;
 begin
   TranSeqNo := aTrans^.txSequence_No;
 
-  if FindLinkId(aBankAccount, TranSeqNo, tstTranId, FoundTranListIndex) then
+  if aBankAccount.baTran_Suggested_Link_List.SearchUsingTranSeqNo(TranSeqNo, FoundSuggLowIndex, FoundSuggHighIndex) then
   begin
-    FindOtherSuggIdsUsingFoundId(aBankAccount, TranSeqNo, FoundTranListIndex, FoundSuggIds, FoundLinkSuggIndexes);
-
-    for SuggIdIndex := 0 to high(FoundSuggIds) do
+    setlength(SuggArr, (FoundSuggHighIndex-FoundSuggLowIndex)+1);
+    for ArrIndex := 0 to high(SuggArr) do
     begin
-      if FindSuggestedItem(aBankAccount, FoundSuggIds[SuggIdIndex], FoundSuggestionIndex, FoundSuggestion) then
+      SuggIndex := ArrIndex + FoundSuggLowIndex;
+      SuggArr[ArrIndex] := aBankAccount.baTran_Suggested_Link_List.GetPRec(SuggIndex)^.tsSuggestedId;
+    end;
+
+    for ArrIndex := high(SuggArr) downto 0 do
+    begin
+      TranSeqIndex := ArrIndex + FoundSuggLowIndex;
+      OldAccountId := aBankAccount.baTran_Suggested_Link_List.GetPRec(TranSeqIndex)^.tsAccountId;
+
+      // Transaction Link
+      if aBankAccount.baTran_Suggested_Link_List.SearchUsingSuggestedIdAndTranSeqNo(SuggArr[ArrIndex], TranSeqNo, SuggIndex) then
       begin
-        if FoundSuggestion.smTotal_Count < 3 then
+        aBankAccount.baTran_Suggested_Link_List.DelFreeItem(aBankAccount.baTran_Suggested_Link_List.Items[TranSeqIndex]);
+        aBankAccount.baTran_Suggested_Link_List.Tran_Suggested_Link_Index.DelFreeItem(aBankAccount.baTran_Suggested_Link_List.GetIndexPRec(SuggIndex));
+      end;
+
+      // Suggestion
+      if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(SuggArr[ArrIndex], SuggIndex) then
+      begin
+        aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smUpdate_Date := CurrentDate;
+        aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHas_Changed := true;
+
+        // Account
+        if aBankAccount.baSuggested_Account_List.SearchUsingAccountId(OldAccountId, AccountIndex) then
         begin
-          DeleteSuggestionAndLinks(aBankAccount, FoundSuggIds[SuggIdIndex]);
-        end
-        else
-        begin
-          // Delete Current Transaction Link for this Suggestion
-          SuggId := FoundSuggestion.smId;
+          AccountId := aBankAccount.baSuggested_Account_List.GetPRec(AccountIndex)^.saId;
 
-          if FindLinkIndexUsingBothIds(aBankAccount, SuggId, TranSeqNo, tstSuggId, FoundSuggListIndex) then
-            aBankAccount.baSuggested_Tran_Link_List.AtFree(FoundSuggListIndex);
+          if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedAndAccountId(SuggArr[ArrIndex], AccountId, AccountIndex) then
+          begin
+            dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount);
+            if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount < 1 then
+            begin
+              if aBankAccount.baSuggested_Account_Link_List.SearchUsingAccountAndSuggestedId(AccountId, SuggArr[ArrIndex], SuggIndex) then
+              begin
+                aBankAccount.baSuggested_Account_Link_List.DelFreeItem(aBankAccount.baSuggested_Account_Link_List.Items[AccountIndex]);
+                aBankAccount.baSuggested_Account_Link_List.Suggested_Account_Link_Index.DelFreeItem(aBankAccount.baSuggested_Account_Link_List.GetIndexPRec(SuggIndex));
+              end;
 
-          if FindLinkIndexUsingBothIds(aBankAccount, SuggId, TranSeqNo, tstTranId, FoundTranListIndex) then
-            aBankAccount.baTran_Suggested_Link_List.AtFree(FoundTranListIndex);
-
-          if aOldTranState = tssManualScanned then
-            dec(FoundSuggestion^.smManual_Count)
-          else if aOldTranState = tssUnCodedScaned then
-            dec(FoundSuggestion^.smUncoded_Count);
-
-          dec(FoundSuggestion^.smTotal_Count);
-
-          FoundSuggestion^.smHas_Changed := true;
+              // If no more links delete suggestion
+              if not aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggArr[ArrIndex], LowIndex, HighIndex) then
+                DeleteSuggestionAndLinks(aBankAccount, SuggArr[ArrIndex]);
+            end;
+          end;
         end;
       end;
     end;
@@ -736,126 +468,176 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.InsertNewLink(aBankAccount : TBank_Account; aTranState : byte; aTrans : pTransaction_Rec; aSuggId : integer; aSuggestion : pSuggested_Mem_Rec);
+function TSuggestedMems.FindPhraseOrCreate(aBankAccount : TBank_Account; aPhrase : string; var aPhraseid : integer) : TFoundCreate;
+var
+  PhraseIndex : integer;
+  NewSuggested_Phrase : TSuggested_Phrase;
+begin
+  if aBankAccount.baSuggested_Phrase_List.SearchUsingPhrase(aPhrase, PhraseIndex) then
+  begin
+    aPhraseid := aBankAccount.baSuggested_Phrase_List.GetIndexPRec(PhraseIndex)^.Id;
+    Result := fcFound;
+  end
+  else
+  begin
+    NewSuggested_Phrase := TSuggested_Phrase.Create();
+    NewSuggested_Phrase.spFields.spPhrase := aPhrase;
+    aPhraseid := aBankAccount.baSuggested_Phrase_List.Insert_Suggested_Phrase_Rec(NewSuggested_Phrase, true);
+    Result := fcCreated;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.FindSuggestionUsingPhraseIdAndType(aBankAccount: TBank_Account; aTypeId: byte; aPhraseId: integer; var aSuggested_Mem_Rec: pSuggested_Mem_Rec): boolean;
+var
+  Sugg1Index : integer;
+  Sugg2Index : integer;
+  SuggId : integer;
+begin
+  Result := false;
+
+  if aBankAccount.baSuggested_Mem_List.SearchUsingTypeAndPhraseId(aTypeId, aPhraseId, Sugg1Index) then
+  begin
+    SuggId := aBankAccount.baSuggested_Mem_List.GetIndexPRec(Sugg1Index)^.Id;
+    if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(SuggId, Sugg2Index) then
+    begin
+      aSuggested_Mem_Rec := aBankAccount.baSuggested_Mem_List.GetPRec(Sugg2Index);
+      Result := true;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.CreateSuggestion(aBankAccount: TBank_Account; aTypeId: byte; aPhraseId: integer; Start_Data, End_Data: boolean; var aSuggested_Mem_Rec: pSuggested_Mem_Rec);
+var
+  NewSuggested_Mem : TSuggested_Mem;
+begin
+  NewSuggested_Mem := TSuggested_Mem.Create();
+  NewSuggested_Mem.smFields.smTypeId      := aTypeId;
+  NewSuggested_Mem.smFields.smPhraseId    := aPhraseId;
+  NewSuggested_Mem.smFields.smStart_Data  := Start_Data;
+  NewSuggested_Mem.smFields.smEnd_Data    := End_Data;
+  NewSuggested_Mem.smFields.smUpdate_Date := CurrentDate;
+  NewSuggested_Mem.smFields.smHas_Changed := true;
+  aBankAccount.baSuggested_Mem_List.Insert_Suggested_Mem_Rec(NewSuggested_Mem);
+  aSuggested_Mem_Rec := aBankAccount.baSuggested_Mem_List.GetAs_pRec(NewSuggested_Mem);
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.FindAccountOrCreate(aBankAccount: TBank_Account; aAccount: string; var aAccountid: integer): TFoundCreate;
+var
+  AccountIndex : integer;
+  NewSuggested_Account : TSuggested_Account;
+begin
+  if aBankAccount.baSuggested_Account_List.SearchUsingAccount(aAccount, AccountIndex) then
+  begin
+    aAccountid := aBankAccount.baSuggested_Account_List.GetIndexPRec(AccountIndex)^.Id;
+    Result := fcFound;
+  end
+  else
+  begin
+    NewSuggested_Account := TSuggested_Account.Create();
+    NewSuggested_Account.saFields.saAccount := aAccount;
+    aAccountid := aBankAccount.baSuggested_Account_List.Insert_Suggested_Account_Rec(NewSuggested_Account, true);
+    Result := fcCreated;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.FindSuggestionAccountLinkOrCreate(aBankAccount: TBank_Account; aSuggestionId, aAccountId: integer; aAccount : string; var aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec): TFoundCreate;
+var
+  AccountLinkIndex : integer;
+begin
+  if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedAndAccountId(aSuggestionId, aAccountId, AccountLinkIndex) then
+  begin
+    aSuggested_Account_Link_Rec := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex);
+    Result := fcFound;
+  end
+  else
+  begin
+    CreateSuggestionAccountLink(aBankAccount, aSuggestionId, aAccountId, aAccount, aSuggested_Account_Link_Rec);
+    Result := fcCreated;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.CreateSuggestionAccountLink(aBankAccount: TBank_Account; aSuggestionId, aAccountId: integer; aAccount : string; var aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec);
+var
+  NewSuggested_Account_Link : TSuggested_Account_Link;
+begin
+  NewSuggested_Account_Link := TSuggested_Account_Link.Create();
+  NewSuggested_Account_Link.slFields.slSuggestedId := aSuggestionId;
+  NewSuggested_Account_Link.slFields.slAccountId   := aAccountId;
+  NewSuggested_Account_Link.slFields.slCount       := 0;
+  NewSuggested_Account_Link.slFields.slIsUncoded   := (length(trim(aAccount)) = 0);
+  aBankAccount.baSuggested_Account_Link_List.Insert_Suggested_Account_Link_Rec(NewSuggested_Account_Link);
+  aSuggested_Account_Link_Rec := aBankAccount.baSuggested_Account_Link_List.GetAs_pRec(NewSuggested_Account_Link);
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.FindTranSuggestionLink(aBankAccount: TBank_Account; aTranSeqNo : integer; aSuggestionId: integer): boolean;
+var
+  Index : integer;
+begin
+  Result := aBankAccount.baTran_Suggested_Link_List.SearchUsingTranSeqNoAndSuggestedId(aTranSeqNo, aSuggestionId, Index);
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.CreateTranSuggestionLink(aBankAccount: TBank_Account; aTranSeqNo: integer; aDate_Effective : integer; aSuggested_Mem_Rec: pSuggested_Mem_Rec; aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec);
 var
   NewSuggLink : TTran_Suggested_Link;
 begin
-  // Current Trans already added to Suggestion so add search trans to suggestion
   NewSuggLink := TTran_Suggested_Link.Create();
-  NewSuggLink.tsFields.tsDate_Effective := aTrans^.txDate_Effective;
-  NewSuggLink.tsFields.tsTran_Seq_No := aTrans^.txSequence_No;
-  NewSuggLink.tsFields.tsSuggestedId := aSuggId;
-  aBankAccount.baTran_Suggested_Link_List.Insert(NewSuggLink);
+  NewSuggLink.tsFields.tsDate_Effective := aDate_Effective;
+  NewSuggLink.tsFields.tsTran_Seq_No := aTranSeqNo;
+  NewSuggLink.tsFields.tsSuggestedId := aSuggested_Mem_Rec^.smId;
+  NewSuggLink.tsFields.tsAccountId   := aSuggested_Account_Link_Rec^.slAccountId;
+  aBankAccount.baTran_Suggested_Link_List.Insert_Tran_Suggested_Link_Rec(NewSuggLink);
 
-  NewSuggLink := TTran_Suggested_Link.Create();
-  NewSuggLink.tsFields.tsDate_Effective := aTrans^.txDate_Effective;
-  NewSuggLink.tsFields.tsTran_Seq_No := aTrans^.txSequence_No;
-  NewSuggLink.tsFields.tsSuggestedId := aSuggId;
-  aBankAccount.baSuggested_Tran_Link_List.Insert(NewSuggLink);
+  inc(aSuggested_Account_Link_Rec^.slCount);
 
-  inc(aSuggestion^.smTotal_Count);
-
-  if aTranState = tssManualScanned then
-    inc(aSuggestion^.smManual_Count)
-  else
-    inc(aSuggestion^.smUncoded_Count);
-
-  aSuggestion^.smHas_Changed := true;
+  aSuggested_Mem_Rec^.smUpdate_Date := CurrentDate;
+  aSuggested_Mem_Rec^.smHas_Changed := true;
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.SearchFoundMatch(aStartData: boolean; var aLCSstr : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
+procedure TSuggestedMems.SearchFoundMatch(aStartData: boolean; var aMatchedPhrase : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
 var
-  CurrentIndex  : integer;
-  FoundSuggIds  : TArrInt;
-  FoundTranIds  : TArrInt;
-  TranIndex  : integer;
-  FoundSuggestion : pSuggested_Mem_Rec;
-  AddedSuggestion : pSuggested_Mem_Rec;
-  NewSuggestion : TSuggested_Mem;
-  NewSuggIndex  : integer;
-  SuggItemIndex : integer;
-  Found : boolean;
+  PhraseId : integer;
+  AccountId : integer;
 
-  //----------------------------------------------------------------------------
-  procedure AddCurrentTranSuggestion(aSuggestion : pSuggested_Mem_Rec);
-  begin
-    SetLength(aCurrentTranSuggestions, length(aCurrentTranSuggestions)+1);
-    aCurrentTranSuggestions[High(aCurrentTranSuggestions)] := aSuggestion;
-  end;
+  PhraseCreated : boolean;
+  AccountCreated : boolean;
 
+  Suggested_Mem_Rec: pSuggested_Mem_Rec;
+  Suggested_Account_Link_Rec : pSuggested_Account_Link_Rec;
 begin
-  for CurrentIndex := 0 to high(aCurrentTranSuggestions) do
-  begin
-    if CompareText(aLCSstr, aCurrentTranSuggestions[CurrentIndex]^.smMatched_Phrase) = 0 then
-    begin
-      FindTranIdsUsingSuggId(aBankAccount, aCurrentTranSuggestions[CurrentIndex]^.smId, FoundTranIds);
+  // Phrase
+  PhraseCreated := (FindPhraseOrCreate(aBankAccount, aMatchedPhrase, PhraseId) = fcCreated);
 
-      Found := false;
-      for TranIndex := 0 to high(FoundTranIds) do
-      begin
-        if FoundTranIds[TranIndex] = aMatchedTrans^.txSequence_No then
-        begin
-          found := true;
-          break;
-        end;
-      end;
+  // Suggestion
+  if not PhraseCreated then
+    PhraseCreated := not (FindSuggestionUsingPhraseIdAndType(aBankAccount, aScanTrans^.txType, PhraseId, Suggested_Mem_Rec));
+  if PhraseCreated then
+    CreateSuggestion(aBankAccount, aScanTrans^.txType, PhraseId, aStartData, aEndData, Suggested_Mem_Rec);
 
-      if not found then
-      begin
-        InsertNewLink(aBankAccount, aMatchedTrans^.txSuggested_Mem_State, aMatchedTrans,
-                      aCurrentTranSuggestions[CurrentIndex]^.smId, aCurrentTranSuggestions[CurrentIndex]);
-      end;
+  // Account and
+  AccountCreated := (FindAccountOrCreate(aBankAccount, aScanTrans^.txAccount, AccountId) = fcCreated);
 
-      Exit;
-    end;
-  end;
-
-  if FindSuggIdsUsingTranId(aBankAccount, aMatchedTrans^.txSequence_No, FoundSuggIds) then
-  begin
-    for CurrentIndex := 0 to high(FoundSuggIds) do
-    begin
-      if FindSuggestedItem(aBankAccount, FoundSuggIds[CurrentIndex], SuggItemIndex, FoundSuggestion) then
-      begin
-        if CompareText(aLCSstr, FoundSuggestion^.smMatched_Phrase) = 0 then
-        begin
-          // Search Trans already added to Suggestion so add Current Trans
-          InsertNewLink(aBankAccount, aTranNewState, aScanTrans,
-                        FoundSuggestion^.smId, FoundSuggestion);
-
-          FoundSuggestion^.smStart_Data := FoundSuggestion^.smStart_Data or aStartData;
-          FoundSuggestion^.smEnd_Data   := FoundSuggestion^.smEnd_Data or aEndData;
-
-          AddCurrentTranSuggestion(FoundSuggestion);
-          Exit;
-        end;
-      end;
-    end;
-  end;
-
-  // if not found add a new suggestion and new link
-  NewSuggestion := TSuggested_Mem.Create;
-  NewSuggestion.smFields.smMatched_Phrase := aLCSstr;
-  NewSuggestion.smFields.smTotal_Count   := 0;
-  NewSuggestion.smFields.smManual_Count  := 0;
-  NewSuggestion.smFields.smUncoded_Count := 0;
-  NewSuggestion.smFields.smStart_Data    := aStartData;
-  NewSuggestion.smFields.smEnd_Data      := aEndData;
-  NewSuggIndex := aBankAccount.baSuggested_Mem_List.Insert_Suggested_Mem_Rec(NewSuggestion);
-
-  AddedSuggestion := aBankAccount.baSuggested_Mem_List.GetAs_pRec(NewSuggestion);
-
-  AddCurrentTranSuggestion(AddedSuggestion);
-
-  if (aScanTrans^.txCoded_By in ManualCodedBy) then
-    InsertNewLink(aBankAccount, tssManualScanned, aScanTrans,
-                NewSuggIndex, AddedSuggestion)
+  // Account Links
+  if (PhraseCreated) or (AccountCreated) then
+    CreateSuggestionAccountLink(aBankAccount, Suggested_Mem_Rec^.smId, AccountId, aScanTrans^.txAccount, Suggested_Account_Link_Rec)
   else
-    InsertNewLink(aBankAccount, tssUnCodedScaned, aScanTrans,
-                NewSuggIndex, AddedSuggestion);
+    FindSuggestionAccountLinkOrCreate(aBankAccount, Suggested_Mem_Rec^.smId, AccountId, aScanTrans^.txAccount, Suggested_Account_Link_Rec);
 
-  InsertNewLink(aBankAccount, aMatchedTrans^.txSuggested_Mem_State, aMatchedTrans,
-                NewSuggIndex, AddedSuggestion);
+  // Transaction Links
+  if (PhraseCreated) or
+     (not FindTranSuggestionLink(aBankAccount, aScanTrans^.txSequence_No, Suggested_Mem_Rec^.smId)) then
+    CreateTranSuggestionLink(aBankAccount, aScanTrans^.txSequence_No, aScanTrans^.txDate_Effective, Suggested_Mem_Rec, Suggested_Account_Link_Rec);
+
+  if (PhraseCreated) or
+     (not FindTranSuggestionLink(aBankAccount, aMatchedTrans^.txSequence_No, Suggested_Mem_Rec^.smId)) then
+    CreateTranSuggestionLink(aBankAccount, aMatchedTrans^.txSequence_No, aMatchedTrans^.txDate_Effective, Suggested_Mem_Rec, Suggested_Account_Link_Rec);
 end;
 
 //------------------------------------------------------------------------------
@@ -904,38 +686,27 @@ end;
 //------------------------------------------------------------------------------
 function TSuggestedMems.IsSuggestionUsedByMem(aBankAccount: TBank_Account; aSuggestion: pSuggested_Mem_Rec): boolean;
 var
+  PhraseIndex : integer;
   BankPrefix : string;
-  FoundIndex : integer;
-  DateEffective : integer;
-  TranSeqNo : integer;
-  Tran : pTransaction_Rec;
-  TranType : byte;
-  MatchText : string;
+  MatchedPhrase : string;
 begin
   result := false;
-
-  if FindLinkId(aBankAccount, aSuggestion.smId, tstSuggId, FoundIndex) then
+  if aBankAccount.baSuggested_Phrase_List.SearchUsingPhraseId(aSuggestion^.smPhraseId, PhraseIndex) then
   begin
-    DateEffective := aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(FoundIndex).tsFields.tsDate_Effective;
-    TranSeqNo := aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(FoundIndex).tsFields.tsTran_Seq_No;
+    MatchedPhrase := aBankAccount.baSuggested_Phrase_List.GetPRec(PhraseIndex)^.spPhrase;
+    MatchedPhrase := GetSuggestionMatchText(MatchedPhrase, aSuggestion^.smStart_Data, aSuggestion^.smEnd_Data);
 
-    if FindTransUsingEffDateAndSeqNo(aBankAccount, DateEffective, TranSeqNo, Tran) then
+    if IsMemorisation(aBankAccount.baMemorisations_List, aSuggestion^.smTypeId, MatchedPhrase) then
     begin
-      TranType := Tran^.txType;
-      MatchText := GetSuggestionMatchText(aSuggestion^.smMatched_Phrase, aSuggestion^.smStart_Data, aSuggestion^.smEnd_Data);
+      result := true;
+      exit;
+    end;
 
-      if IsMemorisation(aBankAccount.baMemorisations_List, TranType, MatchText) then
-      begin
-        result := true;
-        exit;
-      end;
-
-      BankPrefix := GetBankPrefix(aBankAccount.baFields.baBank_Account_Number);
-      if IsMasterMemorisation(TranType, MatchText, BankPrefix) then
-      begin
-        result := true;
-        exit;
-      end;
+    BankPrefix := GetBankPrefix(aBankAccount.baFields.baBank_Account_Number);
+    if IsMasterMemorisation(aSuggestion^.smTypeId, MatchedPhrase, BankPrefix) then
+    begin
+      result := true;
+      exit;
     end;
   end;
 end;
@@ -1048,7 +819,7 @@ begin
   else
     TranNewState := tssUnCodedScaned;
 
-  SearchForLongestCommonPhrase(aBankAccount, aTrans, TranNewState);
+  SearchForMatchedPhrase(aBankAccount, aTrans, TranNewState);
 
   SetSuggestedTransactionState(aBankAccount, aTrans, TranNewState);
 end;
@@ -1171,7 +942,7 @@ begin
   case MEMSINI_SupportOptions of
     meiDisableSuggestedMemsAll : fMainState := mtsNoScan;
     meiResetMems               : fMainState := mtsScan;
-    meiDisableSuggestedMemsv2  : fMainState := mtsScan;
+    meiDisableSuggestedMemsv2  : fMainState := mtsMems2NoScan;
     meiFullfunctionality       : fMainState := mtsScan;
   end;
 end;
@@ -1213,9 +984,11 @@ begin
           TranRec^.txSuggested_Mem_State := tssExcluded;
       end;
 
-      BankAccount.baSuggested_Mem_List.DeleteFreeAll();
       BankAccount.baTran_Suggested_Link_List.DeleteFreeAll();
-      BankAccount.baSuggested_Tran_Link_List.DeleteFreeAll();
+      BankAccount.baSuggested_Mem_List.DeleteFreeAll();
+      BankAccount.baSuggested_Account_List.DeleteFreeAll();
+      BankAccount.baSuggested_Account_Link_List.DeleteFreeAll();
+      BankAccount.baSuggested_Phrase_List.DeleteFreeAll();
     end;
   finally
     StartMemScan();
@@ -1281,6 +1054,12 @@ end;
 function TSuggestedMems.GetSuggestedMemsCount(aBankAccount : TBank_Account) : integer;
 var
   SuggestedMemIndex : integer;
+  SuggestedId : integer;
+  LowAccountIndex : integer;
+  HighAccountIndex : integer;
+  AccountIndex : integer;
+  ManualCount : integer;
+  ManualAccountCount : integer;
 begin
   Result := 0;
 
@@ -1291,11 +1070,26 @@ begin
   try
     for SuggestedMemIndex := 0 to aBankAccount.baSuggested_Mem_List.ItemCount - 1 do
     begin
-      if aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smManual_Count > 2 then
+      SuggestedId := aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)^.smId;
+      ManualCount := 0;
+      ManualAccountCount := 0;
+
+      if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex) then
+      begin
+        for AccountIndex := LowAccountIndex to HighAccountIndex do
+        begin
+          if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsUncoded then
+          begin
+            inc(ManualAccountCount);
+            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount;
+          end;
+        end;
+      end;
+
+      if (ManualAccountCount = 1) and (ManualCount > 2) then
       begin
         if not IsSuggestionUsedByMem(aBankAccount,
-                                     aBankAccount.baSuggested_Mem_List.GetAs_pRec(
-                                     aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex))) then
+                                     aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)) then
           inc(Result);
       end;
     end;
@@ -1308,44 +1102,70 @@ end;
 function TSuggestedMems.GetSuggestedMems(aBankAccount: TBank_Account): TSuggestedMemsArr;
 var
   SuggestedMemIndex : integer;
+  SuggestedId : integer;
+  LowAccountIndex : integer;
+  HighAccountIndex : integer;
+  AccountIndex : integer;
+  ManualCount : integer;
+  TotalCount : integer;
+  ManualAccountCount : integer;
   CurrIndex : integer;
-  SuggId : integer;
-  FoundIndex : integer;
-  FoundEffDate : integer;
-  FoundTranSeqNo : integer;
-  FoundTran : pTransaction_Rec;
+  Suggestion: pSuggested_Mem_Rec;
+  PhraseIndex : integer;
+  MatchedPhrase : string;
+  SearchAccountIndex : integer;
+  SearchAccountId : integer;
 begin
   Result := nil;
+
+  if not NoMoreRecord then
+    Exit;
 
   StopMemScan();
   try
     for SuggestedMemIndex := 0 to aBankAccount.baSuggested_Mem_List.ItemCount - 1 do
     begin
-      if aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smManual_Count > 2 then
-      begin
-        if not IsSuggestionUsedByMem(aBankAccount,
-                                     aBankAccount.baSuggested_Mem_List.GetAs_pRec(
-                                     aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex))) then
-        begin
-          SuggId := aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smId;
-          if FindLinkId(aBankAccount, SuggId, tstSuggId, FoundIndex) then
-          begin
-            FoundEffDate := aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(FoundIndex).tsFields.tsDate_Effective;
-            FoundTranSeqNo := aBankAccount.baSuggested_Tran_Link_List.Tran_Suggested_Link_At(FoundIndex).tsFields.tsTran_Seq_No;
+      Suggestion := aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex);
+      SuggestedId := Suggestion^.smId;
+      ManualCount := 0;
+      ManualAccountCount := 0;
+      TotalCount := 0;
+      SearchAccountId := -1;
 
-            if FindTransUsingEffDateAndSeqNo(aBankAccount, FoundEffDate, FoundTranSeqNo, FoundTran) then
+      if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex) then
+      begin
+        for AccountIndex := LowAccountIndex to HighAccountIndex do
+        begin
+          if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsUncoded then
+          begin
+            inc(ManualAccountCount);
+            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount;
+            SearchAccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slAccountId;
+          end;
+          TotalCount := TotalCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount;
+        end;
+      end;
+
+      if (ManualAccountCount = 1) and (ManualCount > 2) then
+      begin
+        if not IsSuggestionUsedByMem(aBankAccount, Suggestion) then
+        begin
+          if aBankAccount.baSuggested_Phrase_List.SearchUsingPhraseId(Suggestion^.smPhraseId, PhraseIndex) then
+          begin
+            if (SearchAccountId > -1) and
+               (aBankAccount.baSuggested_Account_List.SearchUsingAccountId(SearchAccountId, SearchAccountIndex)) then
             begin
+              MatchedPhrase := aBankAccount.baSuggested_Phrase_List.GetPRec(PhraseIndex)^.spPhrase;
+              MatchedPhrase := GetSuggestionMatchText(MatchedPhrase, Suggestion^.smStart_Data, Suggestion^.smEnd_Data);
+
               CurrIndex := length(Result);
               setlength(Result, CurrIndex + 1);
 
-              Result[CurrIndex].smId := aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smId;
-              Result[CurrIndex].smType := FoundTran^.txType;
-              Result[CurrIndex].smMatchedPhrase := GetSuggestionMatchText(
-                                                     aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smMatched_Phrase,
-                                                     aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smStart_Data,
-                                                     aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smEnd_Data);
-              Result[CurrIndex].smAccount := FoundTran^.txAccount;
-              Result[CurrIndex].smTotalCount := aBankAccount.baSuggested_Mem_List.Suggested_Mem_At(SuggestedMemIndex).smFields.smTotal_Count;
+              Result[CurrIndex].smId   := SuggestedId;
+              Result[CurrIndex].smType := Suggestion^.smTypeId;
+              Result[CurrIndex].smMatchedPhrase := MatchedPhrase;
+              Result[CurrIndex].smAccount := aBankAccount.baSuggested_Account_List.GetPRec(SearchAccountIndex)^.saAccount;
+              Result[CurrIndex].smTotalCount := TotalCount;
             end;
           end;
         end;

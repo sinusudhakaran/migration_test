@@ -27,7 +27,10 @@ uses
   glList32,
   frList32,
   dxList32,
+  saList32,
   smList32,
+  slList32,
+  spList32,
   tsList32;
 
 type
@@ -47,9 +50,11 @@ type
     FMatched_Items_List : tMatched_Items_List;
     FClient : TObject;
 
-    baSuggested_Mem_List : TSuggested_Mem_List;
     baTran_Suggested_Link_List : TTran_Suggested_Link_List;
-    baSuggested_Tran_Link_List : TTran_Suggested_Link_List;
+    baSuggested_Mem_List : TSuggested_Mem_List;
+    baSuggested_Account_List : TSuggested_Account_List;
+    baSuggested_Account_Link_List : TSuggested_Account_Link_List;
+    baSuggested_Phrase_List : TSuggested_Phrase_List;
 
   private
     procedure ApplyDefaultGST(pT: pTransaction_Rec);
@@ -582,13 +587,11 @@ begin
    baDeleted_Transaction_List := TDeleted_Transaction_List.Create;
    baFinalized_Exchange_Rate_List := TFinalized_Exchange_Rate_List.Create;
 
-   baSuggested_Mem_List := TSuggested_Mem_List.Create;
-   baTran_Suggested_Link_List := TTran_Suggested_Link_List.Create;
-   baTran_Suggested_Link_List.SortingOn := true;
-   baTran_Suggested_Link_List.SortType := tstTranId;
-   baSuggested_Tran_Link_List := TTran_Suggested_Link_List.Create;
-   baSuggested_Tran_Link_List.SortingOn := true;
-   baSuggested_Tran_Link_List.SortType := tstSuggId;
+   baTran_Suggested_Link_List    := TTran_Suggested_Link_List.Create;
+   baSuggested_Mem_List          := TSuggested_Mem_List.Create;
+   baSuggested_Account_List      := TSuggested_Account_List.Create;
+   baSuggested_Account_Link_List := TSuggested_Account_Link_List.Create;
+   baSuggested_Phrase_List       := TSuggested_Phrase_List.Create;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -641,11 +644,15 @@ begin
    baOld_Memorised_Transaction_List.Free;
    baMemorisations_List.Free;
    baDeleted_Transaction_List.Free;
+
    FreeAndNil(baExchange_Gain_Loss_List);
    FreeAndNil(baFinalized_Exchange_Rate_List);
-   FreeAndNil(baSuggested_Mem_List);
+
    FreeAndNil(baTran_Suggested_Link_List);
-   FreeAndNil(baSuggested_Tran_Link_List);
+   FreeAndNil(baSuggested_Mem_List);
+   FreeAndNil(baSuggested_Account_List);
+   FreeAndNil(baSuggested_Account_Link_List);
+   FreeAndNil(baSuggested_Phrase_List);
 
    FMatched_Items_List.Free;
    BKBAIO.Free_Bank_Account_Rec_Dynamic_Fields( baFields);
@@ -794,20 +801,12 @@ Begin
          tkBeginExchange_Gain_Loss_List: baExchange_Gain_Loss_List.LoadFromFile(S);
          tkBeginDeleted_Transaction_List: baDeleted_Transaction_List.LoadFromFile(S);
          tkBeginFinalized_Exchange_Rate_List: baFinalized_Exchange_Rate_List.LoadFromFile(S);
+
+         tkBeginTran_Suggested_Link_List: baTran_Suggested_Link_List.LoadFromFile(S);
          tkBeginSuggested_Mem_List: baSuggested_Mem_List.LoadFromFile(S);
-         tkBeginTran_Suggested_Link_List:
-         begin
-           baTran_Suggested_Link_List.SortingOn := false;
-           baSuggested_Tran_Link_List.SortingOn := false;
-           baTran_Suggested_Link_List.LoadFromFile(S);
-           baSuggested_Tran_Link_List.Copyfrom(baTran_Suggested_Link_List);
-           baTran_Suggested_Link_List.SortType := tstTranId;
-           baSuggested_Tran_Link_List.SortType := tstSuggId;
-           baTran_Suggested_Link_List.SortingOn := true;
-           baSuggested_Tran_Link_List.SortingOn := true;
-           baTran_Suggested_Link_List.Sort();
-           baSuggested_Tran_Link_List.Sort();
-         end;
+         tkBeginSuggested_Account_List: baSuggested_Account_List.LoadFromFile(S);
+         tkBeginSuggested_Account_Link_List: baSuggested_Account_Link_List.LoadFromFile(S);
+         tkBeginSuggested_Phrase_List: baSuggested_Phrase_List.LoadFromFile(S);
 
          else
          begin { Should never happen }
@@ -845,8 +844,12 @@ begin
    baExchange_Gain_Loss_List.SaveToFile(S);
    baDeleted_Transaction_List.SaveToFile(S); 
    baFinalized_Exchange_Rate_List.SaveToFile(S);
-   baSuggested_Mem_List.SaveToFile(S);
+
    baTran_Suggested_Link_List.SaveToFile(S);
+   baSuggested_Mem_List.SaveToFile(S);
+   baSuggested_Account_List.SaveToFile(S);
+   baSuggested_Account_Link_List.SaveToFile(S);
+   baSuggested_Phrase_List.SaveToFile(S);
 
    //as of version 60.5 this list is no longer used.  It should be removed
    //in future version.  It has only been left in to aid in upgrading from version

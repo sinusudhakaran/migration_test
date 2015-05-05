@@ -9,8 +9,8 @@ INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tkBegin_Tran_Suggested_Link          = 170 ;
-   tkEnd_Tran_Suggested_Link            = 171 ;
+   tkBegin_Tran_Suggested_Link          = 169 ;
+   tkEnd_Tran_Suggested_Link            = 170 ;
 
 FUNCTION  IsATran_Suggested_Link_Rec ( P : Pointer ): Boolean;
 PROCEDURE Write_Tran_Suggested_Link_Rec ( Var O : TTran_Suggested_Link_Rec ; Var F : TIOStream );
@@ -46,9 +46,10 @@ end;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tktsDate_Effective                   = 172 ;
-   tktsTran_Seq_No                      = 173 ;
-   tktsSuggestedId                      = 174 ;
+   tktsDate_Effective                   = 171 ;
+   tktsTran_Seq_No                      = 172 ;
+   tktsSuggestedId                      = 173 ;
+   tktsAccountId                        = 174 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -77,6 +78,7 @@ Begin
       F.WriteDateValue( tktsDate_Effective , tsDate_Effective );
       F.WriteIntegerValue( tktsTran_Seq_No , tsTran_Seq_No );
       F.WriteIntegerValue( tktsSuggestedId , tsSuggestedId );
+      F.WriteIntegerValue( tktsAccountId , tsAccountId );
       F.WriteToken( tkEnd_Tran_Suggested_Link );
    end;
 end; { of Write_Tran_Suggested_Link_Rec }
@@ -102,6 +104,7 @@ Begin
          tktsDate_Effective                   : tsDate_Effective := F.ReadDateValue;
          tktsTran_Seq_No                      : tsTran_Seq_No := F.ReadIntegerValue;
          tktsSuggestedId                      : tsSuggestedId := F.ReadIntegerValue;
+         tktsAccountId                        : tsAccountId := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -148,7 +151,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tktsDate_Effective to tktsSuggestedId do begin
+  for i := tktsDate_Effective to tktsAccountId do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -186,6 +189,11 @@ begin
   if (P1.tsSuggestedId <> P2.tsSuggestedId) then begin
     P3.tsSuggestedId := P1.tsSuggestedId;
     ChangedFields[i] := tktsSuggestedId;
+    Inc(i);
+  end;
+  if (P1.tsAccountId <> P2.tsAccountId) then begin
+    P3.tsAccountId := P1.tsAccountId;
+    ChangedFields[i] := tktsAccountId;
     Inc(i);
   end;
 
