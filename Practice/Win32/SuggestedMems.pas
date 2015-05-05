@@ -72,8 +72,6 @@ type
 
     function GetSuggestionMatchText(const aMatchPhrase : string; aStart, aEnd : boolean) : string;
 
-    procedure SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
-
     procedure DeleteSuggestionAndLinks(aBankAccount : TBank_Account; aSuggestionId : integer);
     procedure DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
 
@@ -94,6 +92,7 @@ type
 
     procedure MemScan();
     procedure ProcessTransaction(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
+    procedure SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -231,13 +230,18 @@ begin
   if MainState = mtsNoScan then
     Exit;
 
-  for BankAccIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
-  begin
-    BankAccount := aClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-    if BankAccount.IsAJournalAccount then
-      Continue;
+  StopMemScan();
+  try
+    for BankAccIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    begin
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+      if BankAccount.IsAJournalAccount then
+        Continue;
 
-    LogAllSuggestedMemsForAccount(BankAccount);
+      LogAllSuggestedMemsForAccount(BankAccount);
+    end;
+  finally
+    StartMemScan();
   end;
 end;
 
@@ -253,75 +257,6 @@ begin
 
   if aEnd then
     result := result + '*';
-end;
-
-//------------------------------------------------------------------------------
-procedure TSuggestedMems.SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
-var
-  TranIndex : integer;
-  TranRec : pTransaction_Rec;
-  CurrentTranSuggestions : TArrSuggPointers;
-  StartData : boolean;
-  FoundLCS  : string;
-  EndData   : boolean;
-  SearchTranDetailsLength : integer;
-  MatchTranDetailLength : integer;
-  RunMems2 : boolean;
-  Date_Effective : integer;
-  Days, Months, Years : Integer;
-begin
-  SearchTranDetailsLength := length(aTrans^.txStatement_Details);
-  if SearchTranDetailsLength < 3 then
-    Exit;
-
-  RunMems2 := true;
-  if aBankAccount.baTransaction_List.ItemCount < 150 then
-    RunMems2 := false
-  else
-  begin
-    Date_Effective := aBankAccount.baTransaction_List.Transaction_At(aBankAccount.baTransaction_List.ItemCount-1)^.txDate_Effective;
-    DateDiff(Date_Effective, CurrentDate, Days, Months, Years);
-    if Months > 2 then
-      RunMems2 := false;
-  end;
-
-  if Mainstate = mtsMems2NoScan then
-    RunMems2 := false;
-
-  for TranIndex := aBankAccount.baTransaction_List.ItemCount-1 downto 0 do
-  begin
-    TranRec := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
-
-    MatchTranDetailLength := length(TranRec^.txStatement_Details);
-    if MatchTranDetailLength < 3 then
-      Continue;
-
-    if TranRec^.txSuggested_Mem_State in [tssUnScanned, tssExcluded] then
-      Continue;
-
-    if aTrans^.txType <> TranRec^.txType then
-      Continue;
-
-    if ((TranRec^.txCoded_By in ManualCodedBy) and (aTrans^.txAccount = TranRec^.txAccount)) or
-       (TranRec^.txCoded_By = cbNotCoded) then
-    begin
-      if (SearchTranDetailsLength = MatchTranDetailLength) and
-        (CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0) then
-      begin
-        // Mems 1
-        SearchFoundMatch(false, aTrans^.txStatement_Details, false, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
-      end
-      else
-      begin
-        // Mems 2
-        if RunMems2 then
-          if FindLCS(Uppercase(aTrans^.txStatement_Details), Uppercase(TranRec^.txStatement_Details), StartData, FoundLCS, EndData) then
-            SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
-      end;
-    end;
-  end;
-
-  SetLength(CurrentTranSuggestions,0);
 end;
 
 //------------------------------------------------------------------------------
@@ -822,6 +757,75 @@ begin
   SearchForMatchedPhrase(aBankAccount, aTrans, TranNewState);
 
   SetSuggestedTransactionState(aBankAccount, aTrans, TranNewState);
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
+var
+  TranIndex : integer;
+  TranRec : pTransaction_Rec;
+  CurrentTranSuggestions : TArrSuggPointers;
+  StartData : boolean;
+  FoundLCS  : string;
+  EndData   : boolean;
+  SearchTranDetailsLength : integer;
+  MatchTranDetailLength : integer;
+  RunMems2 : boolean;
+  Date_Effective : integer;
+  Days, Months, Years : Integer;
+begin
+  SearchTranDetailsLength := length(aTrans^.txStatement_Details);
+  if SearchTranDetailsLength < 3 then
+    Exit;
+
+  RunMems2 := true;
+  if aBankAccount.baTransaction_List.ItemCount < 150 then
+    RunMems2 := false
+  else
+  begin
+    Date_Effective := aBankAccount.baTransaction_List.Transaction_At(aBankAccount.baTransaction_List.ItemCount-1)^.txDate_Effective;
+    DateDiff(Date_Effective, CurrentDate, Days, Months, Years);
+    if Months > 2 then
+      RunMems2 := false;
+  end;
+
+  if Mainstate = mtsMems2NoScan then
+    RunMems2 := false;
+
+  for TranIndex := aBankAccount.baTransaction_List.ItemCount-1 downto 0 do
+  begin
+    TranRec := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
+
+    MatchTranDetailLength := length(TranRec^.txStatement_Details);
+    if MatchTranDetailLength < 3 then
+      Continue;
+
+    if TranRec^.txSuggested_Mem_State in [tssUnScanned, tssExcluded] then
+      Continue;
+
+    if aTrans^.txType <> TranRec^.txType then
+      Continue;
+
+    if ((TranRec^.txCoded_By in ManualCodedBy) and (aTrans^.txAccount = TranRec^.txAccount)) or
+       (TranRec^.txCoded_By = cbNotCoded) then
+    begin
+      if (SearchTranDetailsLength = MatchTranDetailLength) and
+        (CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0) then
+      begin
+        // Mems 1
+        SearchFoundMatch(false, aTrans^.txStatement_Details, false, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
+      end
+      else
+      begin
+        // Mems 2
+        if RunMems2 then
+          if FindLCS(Uppercase(aTrans^.txStatement_Details), Uppercase(TranRec^.txStatement_Details), StartData, FoundLCS, EndData) then
+            SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aTrans, TranRec, CurrentTranSuggestions, aTranNewState);
+      end;
+    end;
+  end;
+
+  SetLength(CurrentTranSuggestions,0);
 end;
 
 //------------------------------------------------------------------------------
