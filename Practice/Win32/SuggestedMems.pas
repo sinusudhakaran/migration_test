@@ -783,9 +783,10 @@ begin
     RunMems2 := false
   else
   begin
-    Date_Effective := aBankAccount.baTransaction_List.Transaction_At(aBankAccount.baTransaction_List.ItemCount-1)^.txDate_Effective;
+    // Check Oldest Transaction if it
+    Date_Effective := aBankAccount.baTransaction_List.Transaction_At(0)^.txDate_Effective;
     DateDiff(Date_Effective, CurrentDate, Days, Months, Years);
-    if Months > 2 then
+    if (Years = 0) and (Months < 3) then
       RunMems2 := false;
   end;
 
