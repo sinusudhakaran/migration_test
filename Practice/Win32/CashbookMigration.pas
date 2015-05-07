@@ -95,6 +95,7 @@ type
     fMappingsData : TMappingsData;
     fClientMigrationState : TClientMigrationState;
     fCurrentCBClientCode : string;
+    fHasProvisionalAccountsAndMoved : boolean;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -158,6 +159,7 @@ type
     procedure AddCommentToClient(aClientLRN : integer; aNote : string);
     function ValidateIRDGST(aValue : string; var aModifiedIRD : string) : boolean;
     function FixClientCodeForCashbook(aInClientCode : string; var aOutClientCode, aError : string) : boolean;
+    procedure MarkAccountsForDelete(aClient: TClientObj);
 
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aOpeningBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
     function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; aDoMoveRatherThanCopy : boolean; var aError : string) : boolean;
@@ -191,6 +193,7 @@ type
 
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
     property MappingsData : TMappingsData read fMappingsData write fMappingsData;
+    property HasProvisionalAccountsAndMoved : boolean read fHasProvisionalAccountsAndMoved;
   end;
 
   //----------------------------------------------------------------------------
@@ -964,6 +967,39 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.MarkAccountsForDelete(aClient: TClientObj);
+var
+  AccountIndex : integer;
+  BankAccount : TBank_Account;
+  SystemBankAccount : pSystem_Bank_Account_Rec;
+begin
+  if not Assigned(AdminSystem) then
+    Exit;
+
+  if LoadAdminSystem(True, 'MarkAccountsForDelete') then
+  begin
+    for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    begin
+      BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
+
+      if not BankAccount.baFields.baIs_A_Provisional_Account then
+      begin
+        SystemBankAccount := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAccount.baFields.baBank_Account_Number);
+        if Assigned(SystemBankAccount) then
+          SystemBankAccount^.sbMark_As_Deleted := True;
+      end
+      else
+      begin
+        LogUtil.LogMsg(lmInfo, UnitName, 'Can not move Bank Feed for Provisional Account, Client Code : ' + aClient.clFields.clCode +
+                                 ', Bank Account : ' + BankAccount.baFields.baBank_Account_Number +
+                                 '.');
+      end;
+    end;
+    SaveAdminSystem;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 function TCashbookMigration.FillBusinessData(aClient: TClientObj; aBusinessData: TBusinessData; aFirmId : string; aOpeningBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError: string): boolean;
 var
   ClientCode : string;
@@ -1043,12 +1079,16 @@ begin
   try
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
-      //Mark_As_Deleted
-
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(AccountIndex);
       if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
          not (BankAccount.baFields.baIs_A_Manual_Account) then
       begin
+        if (aDoMoveRatherThanCopy) and (BankAccount.baFields.baIs_A_Provisional_Account) then
+        begin
+          fHasProvisionalAccountsAndMoved := true;
+          Continue;
+        end;
+
         for ChartIndex := 0 to aClient.clChart.ItemCount-1 do
         begin
           AccRec := aClient.clChart.Account_At(ChartIndex)^;
@@ -1078,10 +1118,8 @@ begin
               BankFeedApplicationData.CountryCode := 'NZ';
 
             BankFeedApplicationData.CoreClientCode := AdminSystem.fdFields.fdBankLink_Code;
-
             BankFeedApplicationData.BankAccountNumber :=  MappingsData.UpdateContraCode(AccRec.chAccount_Code, AccountIndex);
             BankFeedApplicationData.BankAccountNumber := MappingsData.UpdateSysCode(BankFeedApplicationData.BankAccountNumber);
-
             BankFeedApplicationData.CoreAccountId := inttostr(BankAccount.baFields.baCore_Account_ID);
 
             if aDoMoveRatherThanCopy then
@@ -1692,6 +1730,7 @@ var
 begin
   result := false;
   NoTransactions := true;
+  fHasProvisionalAccountsAndMoved := false;
 
   // pre calculate Time frame start used later in Transactions and Journals
   fClientTimeFrameStart := GetTimeFrameStart(aClient.clFields.clFinancial_Year_Starts);
@@ -1782,6 +1821,9 @@ begin
 
       if not UploadClient(ClientBase, aSelectedData, aUploadID, aError) then
         Exit;
+
+      if aSelectedData.DoMoveRatherThanCopy then
+        MarkAccountsForDelete(aClient);
 
       result := true;
     finally
@@ -1882,6 +1924,7 @@ begin
   HttpSetup;
 
   fCurrentMyDotUser := '';
+  fHasProvisionalAccountsAndMoved := false;
 end;
 
 //------------------------------------------------------------------------------
