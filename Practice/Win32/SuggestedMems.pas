@@ -778,17 +778,22 @@ begin
   if SearchTranDetailsLength < 3 then
     Exit;
 
-  RunMems2 := true;
-  if aBankAccount.baTransaction_List.ItemCount < 150 then
-    RunMems2 := false
-  else
+  if (aBankAccount.baTransaction_List.ItemCount > 0) then
   begin
-    // Check Oldest Transaction if it
     Date_Effective := aBankAccount.baTransaction_List.Transaction_At(0)^.txDate_Effective;
     DateDiff(Date_Effective, CurrentDate, Days, Months, Years);
-    if (Years = 0) and (Months < 3) then
-      RunMems2 := false;
+  end
+  else
+  begin
+    Days := 0;
+    Months := 0;
+    Years := 0;
   end;
+
+  RunMems2 := true;
+  // Disable Mems v2 when there are less than 150 transactions AND the oldest transaction is less than 3 months ago
+  if (aBankAccount.baTransaction_List.ItemCount < 150) and (Years = 0) and (Months < 3) then
+    RunMems2 := false;
 
   if Mainstate = mtsMems2NoScan then
     RunMems2 := false;
