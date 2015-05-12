@@ -167,6 +167,8 @@ type
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aOpeningBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
+    function FillPayeeData(aClient: TClientObj; aPayeesData: TPayeesData; var aError: string): boolean;
+    function FillJobData(aClient: TClientObj; aJobsData: TJobsData; var aError: string): boolean;
 
     // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
@@ -227,7 +229,9 @@ uses
   iniSettings,
   Bk5Except,
   Merge32,
-  SYDEFS;
+  SYDEFS,
+  PayeeObj,
+  JobObj;
 
 const
   UnitName = 'CashbookMigration';
@@ -1404,6 +1408,10 @@ begin
           else
             TransactionItem.CoreTransactionId := '';
 
+          TransactionItem.Quantity := TransactionRec.txQuantity;
+          TransactionItem.PayeeNumber := TransactionRec.txPayee_Number;
+          TransactionItem.JobCode := TransactionRec.txJob_Code;
+
           // Dissection
           DissRec := TransactionRec.txFirst_Dissection;
           if DissRec <> nil then
@@ -1428,6 +1436,10 @@ begin
               AllocationItem.TaxAmount := trunc(DissRec^.dsGST_Amount);
 
               AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+
+              AllocationItem.Quantity := DissRec^.dsQuantity;
+              AllocationItem.PayeeNumber := DissRec^.dsPayee_Number;
+              AllocationItem.JobCode := DissRec^.dsJob_Code;
 
               DissRec := DissRec^.dsNext;
             end;
@@ -1455,6 +1467,9 @@ begin
             AllocationItem.Amount := trunc(TransactionRec.txAmount);
             AllocationItem.TaxAmount := trunc(TransactionRec.txGST_Amount);
             AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, TransactionRec.txGST_Class);
+            AllocationItem.Quantity := TransactionRec.txQuantity;
+            AllocationItem.PayeeNumber := TransactionRec.txPayee_Number;
+            AllocationItem.JobCode := TransactionRec.txJob_Code;
           end;
 
           if TransactionItem.Allocations.Count > 0 then
@@ -1535,6 +1550,10 @@ begin
             else
               LineItem.IsCredit := false;
 
+            LineItem.Quantity := DissRec^.dsQuantity;
+            LineItem.PayeeNumber := DissRec^.dsPayee_Number;
+            LineItem.JobCode := DissRec^.dsJob_Code;
+
             DissRec := DissRec^.dsNext;
           end;
 
@@ -1555,6 +1574,88 @@ begin
       exit;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.FillPayeeData(aClient: TClientObj; aPayeesData: TPayeesData; var aError: string): boolean;
+var
+  i: integer;
+  Payees: TPayee_List;
+  Payee: TPayee;
+  PayeeData: TPayeeData;
+begin
+  try
+    Payees := aClient.clPayee_List;
+
+    for i := 0 to Payees.ItemCount-1 do
+    begin
+      Payee := Payees.Payee_At(i);
+
+      PayeeData := TPayeeData.Create(aPayeesData);
+
+      PayeeData.PayeeNumber := Payee.pdFields.pdNumber;
+      PayeeData.Inactive := Payee.pdFields.pdInactive;
+      PayeeData.ContractorPayee := Payee.pdFields.pdContractor;
+      PayeeData.PayeeName := Payee.pdFields.pdName;
+      PayeeData.PayeeSurname := Payee.pdFields.pdSurname;
+      PayeeData.PayeeGivenName := Payee.pdFields.pdGiven_Name;
+      PayeeData.OtherName := Payee.pdFields.pdOther_Name;
+      PayeeData.Address := Payee.pdFields.pdAddress;
+      PayeeData.Town := Payee.pdFields.pdTown;
+      PayeeData.State := Payee.pdFields.pdState;
+      PayeeData.Postcode := Payee.pdFields.pdPost_Code;
+      PayeeData.PhoneNumber := Payee.pdFields.pdPhone_Number;
+      PayeeData.ABN := Payee.pdFields.pdABN;
+    end;
+
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Payees : ' + E.Message;
+
+      result := false;
+
+      exit;
+    end;
+  end;
+
+  result := true;
+end;
+
+//------------------------------------------------------------------------------
+function TCashbookMigration.FillJobData(aClient: TClientObj; aJobsData: TJobsData; var aError: string): boolean;
+var
+  i: integer;
+  Jobs: TClient_Job_List;
+  Job: pJob_Heading_Rec;
+  JobData: TJobData;
+begin
+  try
+    Jobs := aClient.clJobs;
+
+    for i := 0 to Jobs.ItemCount-1 do
+    begin
+      Job := Jobs.Job_At(i);
+
+      JobData := TJobData.Create(aJobsData);
+
+      JobData.Code := Job.jhCode;
+      JobData.Name := Job.jhHeading;
+      JobData.Completed := Job.jhDate_Completed;
+    end;
+
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception retrieving Jobs : ' + E.Message;
+
+      result := false;
+
+      exit;
+    end;
+  end;
+
+  result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -1791,6 +1892,12 @@ begin
               Exit;
 
             if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, OpeningBalanceDate, GSTMapCol, aError) then
+              Exit;
+
+            if not FillPayeeData(aClient, ClientBase.ClientData.PayeesData, aError) then
+              Exit;
+
+            if not FillJobData(aClient, ClientBase.ClientData.JobsData, aError) then
               Exit;
 
             fClientMigrationState := cmsAccessCltDB;

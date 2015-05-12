@@ -65,6 +65,9 @@ type
     fTaxRate : string;
     fTaxAmount : integer;
     fIsCredit : boolean;
+    fQuantity: comp;
+    fPayeeNumber: integer;
+    fJobCode: string;
   public
     procedure Write(const aJson: TlkJSONobject);
 
@@ -77,6 +80,10 @@ type
     property TaxAmount : integer read fTaxAmount write fTaxAmount;
 
     property IsCredit : boolean read fIsCredit write fIsCredit;
+
+    property Quantity: comp read fQuantity write fQuantity;
+    property PayeeNumber: integer read fPayeeNumber write fPayeeNumber;
+    property JobCode: string read fJobCode write fJobCode;
   end;
 
   //----------------------------------------------------------------------------
@@ -134,6 +141,9 @@ type
     fAmount : integer;
     fTaxRate : string;
     fTaxAmount : integer;
+    fQuantity: comp;
+    fPayeeNumber: integer;
+    fJobCode: string;
   public
     procedure Write(const aJson: TlkJSONobject; aTransAmount : integer);
 
@@ -142,6 +152,9 @@ type
     property Amount : integer read fAmount write fAmount;
     property TaxRate : string read fTaxRate write fTaxRate;
     property TaxAmount : integer read fTaxAmount write fTaxAmount;
+    property Quantity: comp read fQuantity write fQuantity;
+    property PayeeNumber: integer read fPayeeNumber write fPayeeNumber;
+    property JobCode: string read fJobCode write fJobCode;
   end;
 
   //----------------------------------------------------------------------------
@@ -161,6 +174,9 @@ type
     fReference : string;
     fAmount : integer;
     fCoreTransactionId : string;
+    fQuantity: comp;
+    fPayeeNumber: integer;
+    fJobCode: string;
 
     fAllocations : TAllocationsData;
   public
@@ -174,6 +190,9 @@ type
     property Reference : string read fReference write fReference;
     property Amount : integer read fAmount write fAmount;
     property CoreTransactionId : string read fCoreTransactionId write fCoreTransactionId;
+    property Quantity: comp read fQuantity write fQuantity;
+    property PayeeNumber: integer read fPayeeNumber write fPayeeNumber;
+    property JobCode: string read fJobCode write fJobCode;
 
     property Allocations : TAllocationsData read fAllocations write fAllocations;
   end;
@@ -304,6 +323,72 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  TPayeeData = class(TCollectionItem)
+  private
+    fPayeeNumber: integer;
+    fInactive: boolean;
+    fContractorPayee: boolean;
+    fPayeeName: string;
+    fPayeeSurname: string;
+    fPayeeGivenName: string;
+    fOtherName: string;
+    fAddress: string;
+    fTown: string;
+    fState: string;
+    fPostcode: string;
+    fPhoneNumber: string;
+    fABN: string;
+
+  public
+    procedure Write(const aJson: TlkJSONobject);
+
+    property  PayeeNumber: integer read fPayeeNumber write fPayeeNumber;
+    property  Inactive: boolean read fInactive write fInactive;
+    property  ContractorPayee: boolean read fContractorPayee write fContractorPayee;
+    property  PayeeName: string read fPayeeName write fPayeeName;
+    property  PayeeSurname: string read fPayeeSurname write fPayeeSurname;
+    property  PayeeGivenName: string read fPayeeGivenName write fPayeeGivenName;
+    property  OtherName: string read fOtherName write fOtherName;
+    property  Address: string read fAddress write fAddress;
+    property  Town: string read fTown write fTown;
+    property  State: string read fState write fState;
+    property  Postcode: string read fPostcode write fPostcode;
+    property  PhoneNumber: string read fPhoneNumber write fPhoneNumber;
+    property  ABN: string read fABN write fABN;
+  end;
+
+  //----------------------------------------------------------------------------
+  TPayeesData = class(TCollection)
+  public
+    function  ItemAs(aIndex: integer): TPayeeData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+  //----------------------------------------------------------------------------
+  TJobData = class(TCollectionItem)
+  private
+    fCode: string;
+    fName: string;
+    fCompleted: integer;
+
+  public
+    procedure Write(const aJson: TlkJSONobject);
+
+    property  Code: string read fCode write fCode;
+    property  Name: string read fName write fName;
+    property  Completed: integer read fCompleted write fCompleted;
+  end;
+
+  //----------------------------------------------------------------------------
+  TJobsData = class(TCollection)
+  public
+    function  ItemAs(aIndex: integer): TJobData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+  //----------------------------------------------------------------------------
   TBusinessData = class
   private
     fABN : string;
@@ -336,6 +421,8 @@ type
     fDivisionsData : TDivisionsData;
     fBankAccountsData : TBankAccountsData;
     fJournalsData : TJournalsData;
+    fPayeesData: TPayeesData;
+    fJobsData: TJobsData;
   public
     constructor Create;
     destructor Destroy; override;
@@ -348,6 +435,8 @@ type
     property DivisionsData: TDivisionsData read fDivisionsData write fDivisionsData;
     property BankAccountsData : TBankAccountsData read fBankAccountsData write fBankAccountsData;
     property JournalsData: TJournalsData read fJournalsData write fJournalsData;
+    property PayeesData: TPayeesData read fPayeesData;
+    property JobsData: TJobsData read fJobsData;
   end;
 
   //----------------------------------------------------------------------------
@@ -540,6 +629,10 @@ begin
   aJson.Add('TaxAmount', abs(TaxAmount) );
 
   aJson.Add('IsCredit', IsCredit);
+
+  aJson.Add('Quantity', Quantity);
+  aJson.Add('PayeeNumber', PayeeNumber);
+  aJson.Add('JobCode', JobCode);
 end;
 
 { TLinesData }
@@ -665,6 +758,10 @@ begin
   aJson.Add('Amount', (Amount-TaxAmount));
   aJson.Add('TaxRate', TaxRate);
   aJson.Add('TaxAmount', TaxAmount);
+
+  aJson.Add('Quantity', Quantity);
+  aJson.Add('PayeeNumber', PayeeNumber);
+  aJson.Add('JobCode', JobCode);
 end;
 
 { TAllocationsData }
@@ -726,6 +823,10 @@ begin
 
   if CoreTransactionId <> '' then
     aJson.Add('CoreTransactionId', CoreTransactionId);
+
+  aJson.Add('Quantity', Quantity);
+  aJson.Add('PayeeNumber', PayeeNumber);
+  aJson.Add('JobCode', JobCode);
 
   Allocations.Write(aJson, Amount);
 end;
@@ -987,6 +1088,96 @@ begin
   end;
 end;
 
+{ TPayeeData }
+//------------------------------------------------------------------------------
+procedure TPayeeData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('PayeeNumber', fPayeeNumber);
+  aJson.Add('Inactive', fInactive);
+  aJson.Add('ContractorPayee', fContractorPayee);
+  aJson.Add('PayeeName', fPayeeName);
+  aJson.Add('PayeeSurname', fPayeeSurname);
+  aJson.Add('PayeeGivenName', fPayeeGivenName);
+  aJson.Add('OtherName', fOtherName);
+  aJson.Add('Address', fAddress);
+  aJson.Add('Town', fTown);
+  aJson.Add('State', fState);
+  aJson.Add('Postcode', fPostcode);
+  aJson.Add('PhoneNumber', fPhoneNumber);
+  aJson.Add('ABN', fABN);
+end;
+
+{ TPayeesData }
+//------------------------------------------------------------------------------
+function TPayeesData.ItemAs(aIndex: integer): TPayeeData;
+begin
+  Result := TPayeeData(Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TPayeesData.Write(const aJson: TlkJSONobject);
+var
+  Payees: TlkJSONlist;
+  i: integer;
+  Payee: TlkJSONobject;
+  PayeeData: TPayeeData;
+begin
+  if (Count = 0) then
+    exit;
+
+  Payees := TlkJSONlist.Create;
+  aJson.Add('payees', Payees);
+
+  for i := 0 to Count-1 do
+  begin
+    Payee := TlkJSONobject.Create;
+    Payees.Add(Payee);
+
+    PayeeData := ItemAs(i);
+    PayeeData.Write(Payee);
+  end;
+end;
+
+{ TJobData }
+//------------------------------------------------------------------------------
+procedure TJobData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('Code', fCode);
+  aJson.Add('Name', fName);
+  aJson.Add('Completed', fCompleted);
+end;
+
+{ TJobsData }
+//------------------------------------------------------------------------------
+function TJobsData.ItemAs(aIndex: integer): TJobData;
+begin
+  Result := TJobData(Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TJobsData.Write(const aJson: TlkJSONobject);
+var
+  Jobs: TlkJSONlist;
+  i: integer;
+  Job: TlkJSONobject;
+  JobData: TJobData;
+begin
+  if (Count = 0) then
+    exit;
+
+  Jobs := TlkJSONlist.Create;
+  aJson.Add('jobs', Jobs);
+
+  for i := 0 to Count-1 do
+  begin
+    Job := TlkJSONobject.Create;
+    Jobs.Add(Job);
+
+    JobData := ItemAs(i);
+    JobData.Write(Job);
+  end;
+end;
+
 { TBusinessData }
 //------------------------------------------------------------------------------
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
@@ -1025,6 +1216,9 @@ begin
 
   fJournalsData := TJournalsData.Create();
   fJournalsData.Duplicates := true;
+
+  fPayeesData := TPayeesData.Create(TPayeeData);
+  fJobsData := TJobsData.Create(TJobData);
 end;
 
 //------------------------------------------------------------------------------
@@ -1036,6 +1230,8 @@ begin
   FreeAndNil(fDivisionsData);
   FreeAndNil(fBankAccountsData);
   FreeAndNil(fJournalsData);
+  FreeAndNil(fPayeesData);
+  FreeAndNil(fJobsData);
 
   inherited;
 end;
@@ -1061,6 +1257,10 @@ begin
     BankAccountsData.Write(aJson);
 
     JournalsData.Write(aJson);
+
+    PayeesData.Write(aJson);
+
+    JobsData.Write(aJson);
   end;
 end;
 
