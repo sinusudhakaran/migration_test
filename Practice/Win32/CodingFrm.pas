@@ -5354,7 +5354,7 @@ begin
                pT^.txAccount :=tmpShortStr;
                AccountEdited(pT);
 
-               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
+               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned, true);
 
                pT.txTransfered_To_Online := False;
             end;

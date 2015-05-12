@@ -195,7 +195,7 @@ begin
           if ReplaceText(tx.txAccount) then
           begin
             tx.txHas_Been_Edited := True;
-            SuggestedMem.SetSuggestedTransactionState(BA, TX, tssUnScanned);
+            SuggestedMem.SetSuggestedTransactionState(BA, TX, tssUnScanned, true);
             if tx.txGST_Has_Been_Edited then
               Inc(cGStSkipped)
             else

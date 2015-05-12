@@ -2681,7 +2681,7 @@ begin
                // Edited flag not set if when coded from Blank
                pT^.txAccount         :=tmpShortStr;
                AccountEdited(pT);
-               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
+               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned, true);
             end;
          end;
 

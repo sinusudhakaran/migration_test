@@ -70,10 +70,13 @@ type
     procedure LogAllSuggestedMemsForAccount(aBankAccount : TBank_Account);
     procedure LogAllSuggestedMemsForClient(aClient: TClientObj);
 
+    procedure LogDoneProcessing(aNoMoreRecords : Boolean);
+
     function GetSuggestionMatchText(const aMatchPhrase : string; aStart, aEnd : boolean) : string;
 
     procedure DeleteSuggestionAndLinks(aBankAccount : TBank_Account; aSuggestionId : integer);
     procedure DeleteLinksAndSuggestions(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aOldTranState : byte);
+    function UpdateSuggestionAccountAndLinks(aBankAccount : TBank_Account; aTrans : pTransaction_Rec) : boolean;
 
     function FindPhraseOrCreate(aBankAccount : TBank_Account; aPhrase : string; var aPhraseid : integer) : TFoundCreate;
     function FindSuggestionUsingPhraseIdAndType(aBankAccount: TBank_Account; aTypeId: byte; aPhraseId: integer; var aSuggested_Mem_Rec: pSuggested_Mem_Rec): boolean;
@@ -97,7 +100,7 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte);
+    procedure SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false);
     procedure UpdateAccountWithTransDelete(aBankAccount : TBank_Account);
     procedure UpdateAccountWithTransInsert(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aNew : boolean);
 
@@ -243,6 +246,19 @@ begin
   finally
     StartMemScan();
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.LogDoneProcessing(aNoMoreRecords : boolean);
+begin
+  if aNoMoreRecords then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, No More Records, Client ' + MyClient.clFields.clCode);
+    if DebugMeExt then
+      LogAllSuggestedMemsForClient(MyClient);
+  end
+  else
+    LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, Found More Records, Client ' + MyClient.clFields.clCode);
 end;
 
 //------------------------------------------------------------------------------
@@ -396,6 +412,83 @@ begin
                 DeleteSuggestionAndLinks(aBankAccount, SuggArr[ArrIndex]);
             end;
           end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.UpdateSuggestionAccountAndLinks(aBankAccount: TBank_Account; aTrans : pTransaction_Rec): boolean;
+var
+  TranSeqNo : integer;
+
+  FoundSuggLowIndex : integer;
+  FoundSuggHighIndex : integer;
+
+  SuggTranIndex : integer;
+
+  SuggIndex : integer;
+  SuggestedId : integer;
+  OldAccountId : integer;
+  NewAccountId : integer;
+  AccountIndex : integer;
+
+  AccountCreated : boolean;
+  Suggested_Account_Link_Rec : pSuggested_Account_Link_Rec;
+
+  AccountLinkIndex : integer;
+  AccountLinkSubIndex : integer;
+  LowIndex, HighIndex : integer;
+begin
+  Result := false;
+
+  TranSeqNo := aTrans^.txSequence_No;
+
+  if aBankAccount.baTran_Suggested_Link_List.SearchUsingTranSeqNo(TranSeqNo, FoundSuggLowIndex, FoundSuggHighIndex) then
+  begin
+    for SuggTranIndex := FoundSuggLowIndex to FoundSuggHighIndex do
+    begin
+      SuggestedId := aBankAccount.baTran_Suggested_Link_List.GetPRec(SuggTranIndex)^.tsSuggestedId;
+      OldAccountId := aBankAccount.baTran_Suggested_Link_List.GetPRec(SuggTranIndex)^.tsAccountId;
+
+      // Account
+      AccountCreated := (FindAccountOrCreate(aBankAccount, aTrans^.txAccount, NewAccountId) = fcCreated);
+
+            // Account has not changed
+      if NewAccountId = OldAccountId then
+        Exit;
+
+      if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(SuggestedId, SuggIndex) then
+      begin
+        aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smUpdate_Date := CurrentDate;
+        aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHas_Changed := true;
+      end;
+
+      if AccountCreated then
+        CreateSuggestionAccountLink(aBankAccount, SuggestedId, NewAccountId, aTrans^.txAccount, Suggested_Account_Link_Rec)
+      else
+        FindSuggestionAccountLinkOrCreate(aBankAccount, SuggestedId, NewAccountId, aTrans^.txAccount, Suggested_Account_Link_Rec);
+
+      // Add to New Account
+      aBankAccount.baTran_Suggested_Link_List.GetPRec(SuggTranIndex)^.tsAccountId := NewAccountId;
+      inc(Suggested_Account_Link_Rec^.slCount);
+
+      // Removed from Old Account
+      if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedAndAccountId(SuggestedId, OldAccountId, AccountLinkIndex) then
+      begin
+        dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount);
+        if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount < 1 then
+        begin
+          if aBankAccount.baSuggested_Account_Link_List.SearchUsingAccountAndSuggestedId(OldAccountId, SuggestedId, AccountLinkSubIndex) then
+          begin
+            aBankAccount.baSuggested_Account_Link_List.DelFreeItem(aBankAccount.baSuggested_Account_Link_List.Items[AccountLinkIndex]);
+            aBankAccount.baSuggested_Account_Link_List.Suggested_Account_Link_Index.DelFreeItem(aBankAccount.baSuggested_Account_Link_List.GetIndexPRec(AccountLinkSubIndex));
+          end;
+
+          // If no more links delete suggestion
+          if not aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowIndex, HighIndex) then
+            DeleteSuggestionAndLinks(aBankAccount, SuggestedId);
         end;
       end;
     end;
@@ -675,16 +768,7 @@ begin
         if DebugMe then
         begin
           if fNoMoreRecord <> fTempNoMoreRecord then
-          begin
-            if fTempNoMoreRecord then
-            begin
-              LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, No More Records, Client ' + MyClient.clFields.clCode);
-              if DebugMeExt then
-                LogAllSuggestedMemsForClient(MyClient);
-            end
-            else
-              LogUtil.LogMsg(lmDebug, UnitName, 'MemScan, Found More Records, Client ' + MyClient.clFields.clCode);
-          end;
+            LogDoneProcessing(fTempNoMoreRecord);
         end;
 
         if (ScannedOnce) and (fNoMoreRecord) and (fTempNoMoreRecord) then
@@ -857,9 +941,10 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte);
+procedure TSuggestedMems.SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean);
 var
   OldState : byte;
+  AccLinkUpdated : boolean;
 begin
   if MainState = mtsNoScan then
     Exit;
@@ -884,9 +969,26 @@ begin
     if (aTrans^.txSuggested_Mem_State = tssUnScanned) then
     begin
       if (OldState in tssScanned) then
-        DeleteLinksAndSuggestions(aBankAccount, aTrans, OldState);
+      begin
+        AccLinkUpdated := false;
+        if aAccountChanged then
+          AccLinkUpdated := UpdateSuggestionAccountAndLinks(aBankAccount, aTrans);
 
-      inc(aBankAccount.baFields.baSuggested_UnProcessed_Count);
+        if aAccountChanged then
+        begin
+          aTrans^.txSuggested_Mem_State := OldState;
+          if DebugMe then
+            LogDoneProcessing(true);
+
+          if Assigned(fDoneProcessingEvent) then
+            fDoneProcessingEvent();
+        end
+        else
+        begin
+          DeleteLinksAndSuggestions(aBankAccount, aTrans, OldState);
+          inc(aBankAccount.baFields.baSuggested_UnProcessed_Count);
+        end;
+      end;
     end;
 
     if not (OldState in tssScanned) and
