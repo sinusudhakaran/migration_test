@@ -106,6 +106,7 @@ type
 
     procedure SetMainState();
     procedure ResetAll(aClient: TClientObj);
+    procedure ResetLogging(aClient: TClientObj);
 
     procedure StartMemScan(aForceStart : boolean = false);
     procedure StopMemScan(aForceStop : boolean = false);
@@ -730,11 +731,14 @@ begin
       exit;
     end;
 
-    BankPrefix := GetBankPrefix(aBankAccount.baFields.baBank_Account_Number);
-    if IsMasterMemorisation(aSuggestion^.smTypeId, MatchedPhrase, BankPrefix) then
+    if aBankAccount.baFields.baApply_Master_Memorised_Entries then
     begin
-      result := true;
-      exit;
+      BankPrefix := GetBankPrefix(aBankAccount.baFields.baBank_Account_Number);
+      if IsMasterMemorisation(aSuggestion^.smTypeId, MatchedPhrase, BankPrefix) then
+      begin
+        result := true;
+        exit;
+      end;
     end;
   end;
 end;
@@ -1104,6 +1108,24 @@ begin
     end;
   finally
     StartMemScan();
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.ResetLogging(aClient: TClientObj);
+var
+  BankAccIndex : integer;
+  BankAccount: TBank_Account;
+  SuggestedMemIndex : integer;
+begin
+  for BankAccIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+  begin
+    BankAccount := aClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+
+    for SuggestedMemIndex := 0 to BankAccount.baSuggested_Mem_List.ItemCount-1 do
+    begin
+      BankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex).smHas_Changed := true;
+    end;
   end;
 end;
 

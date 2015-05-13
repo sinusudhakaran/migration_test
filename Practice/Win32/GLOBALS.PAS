@@ -699,7 +699,8 @@ var
 
 Type
     TMemsSupportOptions = (meiFullfunctionality, meiResetMems,
-                           meiDisableSuggestedMemsv2, meiDisableSuggestedMemsAll);
+                           meiDisableSuggestedMemsv2, meiDisableSuggestedMemsAll,
+                           meiLogAllMems);
 
 Var
     MEMSINI_SupportOptions : TMemsSupportOptions;

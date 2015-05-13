@@ -691,6 +691,14 @@ begin
           WriteMemorisationINI_WithLock(clFields.clCode);
         end;
 
+        if MEMSINI_SupportOptions = meiLogAllMems then
+        begin
+          MEMSINI_SupportOptions := meiFullfunctionality;
+          SuggestedMem.SetMainState();
+          SuggestedMem.ResetLogging(Self);
+          WriteMemorisationINI_WithLock(clFields.clCode);
+        end;
+
         FOpened := true;
   {$ENDIF}
     finally

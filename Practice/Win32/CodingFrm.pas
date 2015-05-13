@@ -2812,6 +2812,8 @@ end;
 procedure TfrmCoding.DoRecommendedMems;
 begin
   ShowRecommendedMemorisations(self, BankAccount);
+
+  DoSuggestedMemsDoneProcessing();
 end;
 
 //------------------------------------------------------------------------------
