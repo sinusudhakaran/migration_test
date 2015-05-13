@@ -96,6 +96,7 @@ type
     fClientMigrationState : TClientMigrationState;
     fCurrentCBClientCode : string;
     fHasProvisionalAccountsAndMoved : boolean;
+    fProvisionalAccounts  : TStringList;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -196,6 +197,7 @@ type
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
     property MappingsData : TMappingsData read fMappingsData write fMappingsData;
     property HasProvisionalAccountsAndMoved : boolean read fHasProvisionalAccountsAndMoved;
+    property ProvisionalAccounts : TStringList read fProvisionalAccounts write fProvisionalAccounts;
   end;
 
   //----------------------------------------------------------------------------
@@ -1089,6 +1091,9 @@ begin
       begin
         if (aDoMoveRatherThanCopy) and (BankAccount.baFields.baIs_A_Provisional_Account) then
         begin
+          fProvisionalAccounts.Add(aClient.clFields.clCode + ', ' +
+                                   BankAccount.baFields.baBank_Account_Name + ', ' +
+                                   BankAccount.baFields.baBank_Account_Number);
           fHasProvisionalAccountsAndMoved := true;
           Continue;
         end;
@@ -2032,6 +2037,8 @@ begin
 
   fCurrentMyDotUser := '';
   fHasProvisionalAccountsAndMoved := false;
+
+  fProvisionalAccounts := TStringlist.Create;
 end;
 
 //------------------------------------------------------------------------------
@@ -2040,6 +2047,7 @@ begin
   // Http
   freeAndNil(fMappingsData);
   FreeAndNil(FHttpRequester);
+  FreeAndNil(fProvisionalAccounts);
 
   inherited;
 end;
@@ -2217,6 +2225,7 @@ begin
   // Initialize ErrorList and progress event
   fClientMigrationState := cmsAccessSysDB;
   aClientErrors.clear;
+  fProvisionalAccounts.Clear;
 
   fClientCount := aSelectClients.Count;
   fCurrentClient := 1;

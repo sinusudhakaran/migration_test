@@ -192,7 +192,6 @@ type
     procedure UpdateProgressControls();
     procedure UpdateCompleteControls();
     procedure TryNavToPageUpdateCache();
-
   public
     constructor Create(AOwner: tComponent); override;
     destructor Destroy; override;
@@ -240,6 +239,7 @@ uses
   Files,
   DateUtils,
   SYDefs,
+  CashbookWarningFrm,
   WarningMoreFrm;
 
 const
@@ -1425,6 +1425,12 @@ begin
       pnlCashbookErrors.Visible   := true;
       pnlCashbookErrors.Align     := alClient;
     end;
+  end;
+
+  if (fSelectedData.DoMoveRatherThanCopy) and
+     (MigrateCashbook.HasProvisionalAccountsAndMoved) then
+  begin
+    ShowCashbookWarning(self, MigrateCashbook.ProvisionalAccounts);
   end;
 end;
 
