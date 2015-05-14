@@ -204,6 +204,9 @@ type
     function ItemAs(aIndex : integer) : TTransactionData;
 
     procedure Write(const aJson: TlkJSONobject);
+
+    function  PayeeExists(const aPayeeNumber: integer): boolean;
+    function  JobExists(const aJobCode: string): boolean;
   end;
 
   //----------------------------------------------------------------------------
@@ -229,6 +232,9 @@ type
     function ItemAs(aIndex : integer) : TBankAccountData;
 
     procedure Write(const aJson: TlkJSONobject);
+
+    function  PayeeExists(const aPayeeNumber: integer): boolean;
+    function  JobExists(const aJobCode: string): boolean;
   end;
 
   //----------------------------------------------------------------------------
@@ -862,6 +868,46 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+function TTransactionsData.PayeeExists(const aPayeeNumber: integer): boolean;
+var
+  i: integer;
+  TransactionData: TTransactionData;
+begin
+  for i := 0 to Count-1 do
+  begin
+    TransactionData := ItemAs(i);
+
+    if (TransactionData.PayeeNumber = aPayeeNumber) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TTransactionsData.JobExists(const aJobCode: string): boolean;
+var
+  i: integer;
+  TransactionData: TTransactionData;
+begin
+  for i := 0 to Count-1 do
+  begin
+    TransactionData := ItemAs(i);
+
+    if (TransactionData.JobCode = aJobCode) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
+end;
+
 { TBankAccountData }
 //------------------------------------------------------------------------------
 constructor TBankAccountData.Create(Collection: TCollection);
@@ -926,6 +972,46 @@ begin
     BankAccount := ItemAs(BankAccountIndex);
     BankAccount.Write(BankAccountData);
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TBankAccountsData.PayeeExists(const aPayeeNumber: integer): boolean;
+var
+  i: integer;
+  BankAccountData: TBankAccountData;
+begin
+  for i := 0 to Count-1 do
+  begin
+    BankAccountData := ItemAs(i);
+
+    if BankAccountData.Transactions.PayeeExists(aPayeeNumber) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TBankAccountsData.JobExists(const aJobCode: string): boolean;
+var
+  i: integer;
+  BankAccountData: TBankAccountData;
+begin
+  for i := 0 to Count-1 do
+  begin
+    BankAccountData := ItemAs(i);
+
+    if BankAccountData.Transactions.JobExists(aJobCode) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+
+  result := false;
 end;
 
 { TChartOfAccountData }
@@ -1141,10 +1227,13 @@ end;
 { TJobData }
 //------------------------------------------------------------------------------
 procedure TJobData.Write(const aJson: TlkJSONobject);
+var
+  bCompleted: boolean;
 begin
   aJson.Add('Code', fCode);
   aJson.Add('Name', fName);
-  aJson.Add('Completed', fCompleted);
+  bCompleted := (fCompleted <> 0);
+  aJson.Add('Completed', bCompleted);
 end;
 
 { TJobsData }

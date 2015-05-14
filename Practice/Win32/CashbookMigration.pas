@@ -168,8 +168,13 @@ type
     function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
     function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aOpeningBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
-    function FillPayeeData(aClient: TClientObj; aPayeesData: TPayeesData; var aError: string): boolean;
-    function FillJobData(aClient: TClientObj; aJobsData: TJobsData; var aError: string): boolean;
+
+    function  FillPayeeData(aClient: TClientObj; const aHasTransactions: boolean;
+                const aBankAccountsData: TBankAccountsData;
+                const aPayeesData: TPayeesData; var aError: string): boolean;
+    function  FillJobData(aClient: TClientObj; const aHasTransactions: boolean;
+                const aBankAccountsData: TBankAccountsData; const aJobsData: TJobsData;
+                var aError: string): boolean;
 
     // this is to fix the wierd Allocation rule where the sum of all allocation ammounts must be positive
     procedure FixAllocationValues(aAllocationsData : TAllocationsData);
@@ -1582,7 +1587,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillPayeeData(aClient: TClientObj; aPayeesData: TPayeesData; var aError: string): boolean;
+function TCashbookMigration.FillPayeeData(aClient: TClientObj;
+  const aHasTransactions: boolean; const aBankAccountsData: TBankAccountsData;
+  const aPayeesData: TPayeesData; var aError: string): boolean;
 var
   i: integer;
   Payees: TPayee_List;
@@ -1595,6 +1602,20 @@ begin
     for i := 0 to Payees.ItemCount-1 do
     begin
       Payee := Payees.Payee_At(i);
+
+      if aHasTransactions then
+      begin
+        if Payee.pdFields.pdInactive then
+        begin
+          if not aBankAccountsData.PayeeExists(Payee.pdFields.pdNumber) then
+            continue;
+        end;
+      end
+      else
+      begin
+        if Payee.pdFields.pdInactive then
+          continue;
+      end;
 
       PayeeData := TPayeeData.Create(aPayeesData);
 
@@ -1628,7 +1649,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillJobData(aClient: TClientObj; aJobsData: TJobsData; var aError: string): boolean;
+function TCashbookMigration.FillJobData(aClient: TClientObj;
+  const aHasTransactions: boolean; const aBankAccountsData: TBankAccountsData;
+  const aJobsData: TJobsData; var aError: string): boolean;
 var
   i: integer;
   Jobs: TClient_Job_List;
@@ -1641,6 +1664,20 @@ begin
     for i := 0 to Jobs.ItemCount-1 do
     begin
       Job := Jobs.Job_At(i);
+
+      if aHasTransactions then
+      begin
+        if (Job.jhDate_Completed = 0) then
+        begin
+          if not aBankAccountsData.JobExists(Job.jhHeading) then
+            continue;
+        end;
+      end
+      else
+      begin
+        if (Job.jhDate_Completed <> 0) then
+          continue;
+      end;
 
       JobData := TJobData.Create(aJobsData);
 
@@ -1899,13 +1936,21 @@ begin
             if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, OpeningBalanceDate, GSTMapCol, aError) then
               Exit;
 
-            if not FillPayeeData(aClient, ClientBase.ClientData.PayeesData, aError) then
-              Exit;
-
-            if not FillJobData(aClient, ClientBase.ClientData.JobsData, aError) then
-              Exit;
-
             fClientMigrationState := cmsAccessCltDB;
+          end;
+
+          if not FillPayeeData(aClient, aSelectedData.NonTransferedTransactions,
+            ClientBase.ClientData.BankAccountsData,
+            ClientBase.ClientData.PayeesData, aError) then
+          begin
+            exit;
+          end;
+
+          if not FillJobData(aClient, aSelectedData.NonTransferedTransactions,
+            ClientBase.ClientData.BankAccountsData,
+            ClientBase.ClientData.JobsData, aError) then
+          begin
+            exit;
           end;
 
           fClientMigrationState := cmsTransformData;
