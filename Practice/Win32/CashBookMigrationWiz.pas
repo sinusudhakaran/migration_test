@@ -1428,7 +1428,8 @@ begin
   end;
 
   if (fSelectedData.DoMoveRatherThanCopy) and
-     (MigrateCashbook.HasProvisionalAccountsAndMoved) then
+     (MigrateCashbook.HasProvisionalAccountsAndMoved) and
+     (fMigrationStatus in [mgsSuccess, mgsPartial]) then
   begin
     ShowCashbookWarning(self, MigrateCashbook.ProvisionalAccounts);
   end;
