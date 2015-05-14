@@ -81,8 +81,8 @@ procedure TFrmCashbookWarning.DoRebranding;
 begin
   lblProvisinalAccounts.caption := 'Provisional accounts are not available in ' + BRAND_CASHBOOK_NAME +
                                    ' and will not be migrated. If you''d like to delete a provisional account' +
-                                   ' from ' + BRAND_FULL_PRACTICE + '. please send a delete request through to' +
-                                   ' Client Services from the System | Bank | Accounts menu option.';
+                                   ' from ' + BRAND_FULL_PRACTICE + ', please send a delete request through to' +
+                                   ' Client Services from the System | Bank Accounts menu option.';
 end;
 
 //------------------------------------------------------------------------------

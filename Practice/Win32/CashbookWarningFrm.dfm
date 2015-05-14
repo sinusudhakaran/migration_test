@@ -85,9 +85,9 @@ object FrmCashbookWarning: TFrmCashbookWarning
       583)
   end
   object btnOK: TButton
-    Left = 235
-    Top = 335
-    Width = 75
+    Left = 232
+    Top = 333
+    Width = 76
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -95,6 +95,5 @@ object FrmCashbookWarning: TFrmCashbookWarning
     Default = True
     ModalResult = 1
     TabOrder = 1
-    ExplicitLeft = 234
   end
 end

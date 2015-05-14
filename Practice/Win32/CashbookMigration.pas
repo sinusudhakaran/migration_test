@@ -1001,7 +1001,7 @@ begin
       end
       else
       begin
-        LogUtil.LogMsg(lmInfo, UnitName, 'Can not move Bank Feed for Provisional Account, Client Code : ' + aClient.clFields.clCode +
+        LogUtil.LogMsg(lmInfo, UnitName, 'Cannot move Bank Feed for Provisional Account, Client Code : ' + aClient.clFields.clCode +
                                  ', Bank Account : ' + BankAccount.baFields.baBank_Account_Number +
                                  '.');
       end;
