@@ -15,7 +15,7 @@ uses
   Dialogs,
   OSFont,
   Grids,
-  StdCtrls;
+  StdCtrls, ExtCtrls;
 
 type
   TFrmCashbookWarning = class(TForm)
@@ -23,6 +23,7 @@ type
     btnOK: TButton;
     lblYouHave: TLabel;
     lblProvisinalAccounts: TLabel;
+    Image1: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -41,6 +42,7 @@ implementation
 {$R *.dfm}
 
 uses
+  imagesfrm,
   BKConst;
 
 //------------------------------------------------------------------------------
@@ -64,6 +66,8 @@ end;
 procedure TFrmCashbookWarning.FormCreate(Sender: TObject);
 begin
   DoRebranding();
+
+  Image1.Picture := AppImages.WarningBmp.Picture;
 end;
 
 //------------------------------------------------------------------------------
@@ -87,7 +91,7 @@ var
   SelIndex : integer;
 begin
   stgSelectedClients.ColCount := 1;
-  stgSelectedClients.ColWidths[0] := 498;
+  stgSelectedClients.ColWidths[0] := 494;
 
   stgSelectedClients.RowCount := SelectClientAccounts.Count;
   for SelIndex := 0 to SelectClientAccounts.Count-1 do

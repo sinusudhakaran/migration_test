@@ -4,9 +4,9 @@ object FrmCashbookWarning: TFrmCashbookWarning
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Warning'
-  ClientHeight = 362
-  ClientWidth = 518
-  Color = clBtnFace
+  ClientHeight = 366
+  ClientWidth = 534
+  Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -17,14 +17,14 @@ object FrmCashbookWarning: TFrmCashbookWarning
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    518
-    362)
+    534
+    366)
   PixelsPerInch = 96
   TextHeight = 13
   object lblYouHave: TLabel
-    Left = 8
-    Top = 16
-    Width = 393
+    Left = 50
+    Top = 15
+    Width = 440
     Height = 16
     Caption = 
       'You have Provisional Bank Accounts attached to the following cli' +
@@ -37,10 +37,10 @@ object FrmCashbookWarning: TFrmCashbookWarning
     ParentFont = False
   end
   object lblProvisinalAccounts: TLabel
-    Left = 8
-    Top = 234
-    Width = 502
-    Height = 82
+    Left = 50
+    Top = 247
+    Width = 442
+    Height = 74
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'Provisional accounts are available in'
@@ -51,13 +51,21 @@ object FrmCashbookWarning: TFrmCashbookWarning
     Font.Style = []
     ParentFont = False
     WordWrap = True
-    ExplicitWidth = 512
+  end
+  object Image1: TImage
+    Left = 6
+    Top = 5
+    Width = 36
+    Height = 36
+    AutoSize = True
+    Stretch = True
+    Transparent = True
   end
   object stgSelectedClients: TStringGrid
-    Left = 8
-    Top = 38
-    Width = 502
-    Height = 190
+    Left = 50
+    Top = 47
+    Width = 440
+    Height = 194
     Anchors = [akLeft, akTop, akRight, akBottom]
     ColCount = 2
     DefaultRowHeight = 20
@@ -72,14 +80,13 @@ object FrmCashbookWarning: TFrmCashbookWarning
     Options = [goRangeSelect, goRowSelect]
     ParentFont = False
     TabOrder = 0
-    ExplicitWidth = 512
     ColWidths = (
       122
       583)
   end
   object btnOK: TButton
-    Left = 435
-    Top = 329
+    Left = 235
+    Top = 335
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -88,6 +95,6 @@ object FrmCashbookWarning: TFrmCashbookWarning
     Default = True
     ModalResult = 1
     TabOrder = 1
-    ExplicitLeft = 445
+    ExplicitLeft = 234
   end
 end
