@@ -965,9 +965,13 @@ begin
 
   StopMemScan();
   try
-    if (aTrans^.txCoded_By in ManualCodedBy) or (aTrans^.txCoded_By = cbNotCoded) then
-      aTrans^.txSuggested_Mem_State := aState
-    else
+    aTrans^.txSuggested_Mem_State := aState;
+
+    if ((aTrans^.txCoded_By > cbManual) and (aTrans^.txCoded_By < cbECodingManual)) or
+       ((aTrans^.txCoded_By > cbECodingManual)) then
+      aTrans^.txSuggested_Mem_State := tssExcluded;
+
+    if (aTrans^.txAccount = DISSECT_DESC) then
       aTrans^.txSuggested_Mem_State := tssExcluded;
 
     if (aTrans^.txSuggested_Mem_State = tssUnScanned) then
@@ -1091,13 +1095,21 @@ begin
       begin
         TranRec := BankAccount.baTransaction_List.Transaction_At(TranIndex);
 
-        if (TranRec^.txCoded_By in ManualCodedBy) or (TranRec^.txCoded_By = cbNotCoded) then
+        if ((TranRec^.txCoded_By > cbManual) and (TranRec^.txCoded_By < cbECodingManual)) or
+         ((TranRec^.txCoded_By > cbECodingManual)) then
         begin
-          TranRec^.txSuggested_Mem_State := tssUnScanned;
-          inc(BankAccount.baFields.baSuggested_UnProcessed_Count);
-        end
-        else
           TranRec^.txSuggested_Mem_State := tssExcluded;
+          Continue;
+        end;
+
+        if (TranRec^.txAccount = DISSECT_DESC) then
+        begin
+          TranRec^.txSuggested_Mem_State := tssExcluded;
+          Continue;
+        end;
+
+        TranRec^.txSuggested_Mem_State := tssUnScanned;
+        inc(BankAccount.baFields.baSuggested_UnProcessed_Count);
       end;
 
       BankAccount.baTran_Suggested_Link_List.DeleteFreeAll();
