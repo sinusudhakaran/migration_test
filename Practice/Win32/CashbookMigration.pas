@@ -1094,12 +1094,16 @@ begin
       if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
          not (BankAccount.baFields.baIs_A_Manual_Account) then
       begin
-        if (aDoMoveRatherThanCopy) and (BankAccount.baFields.baIs_A_Provisional_Account) then
+        if BankAccount.baFields.baIs_A_Provisional_Account then
         begin
-          fProvisionalAccounts.Add(aClient.clFields.clCode + ', ' +
-                                   BankAccount.baFields.baBank_Account_Name + ', ' +
-                                   BankAccount.baFields.baBank_Account_Number);
-          fHasProvisionalAccountsAndMoved := true;
+          if aDoMoveRatherThanCopy then
+          begin
+            fProvisionalAccounts.Add(aClient.clFields.clCode + ', ' +
+                                     BankAccount.baFields.baBank_Account_Name + ', ' +
+                                     BankAccount.baFields.baBank_Account_Number);
+            fHasProvisionalAccountsAndMoved := true;
+          end;
+
           Continue;
         end;
 
