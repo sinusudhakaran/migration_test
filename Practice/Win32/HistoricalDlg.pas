@@ -2681,7 +2681,6 @@ begin
                // Edited flag not set if when coded from Blank
                pT^.txAccount         :=tmpShortStr;
                AccountEdited(pT);
-               SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned, true);
             end;
          end;
 
@@ -2718,7 +2717,6 @@ begin
 
          cePayee : begin
             // can't popup a dialog in here - case 7255
-            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
          end;
 
          ceJob : begin
@@ -2731,7 +2729,6 @@ begin
                   pd := pd.dsNext;
                end;
             end;
-            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
          end;
 
          ceEffDate : if tmpInteger <>  pT^.txDate_Effective then begin
@@ -2818,7 +2815,6 @@ begin
             //call routine to update the txCheque_Number field
 
             EntryTypeEdited( pT);
-            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
          end;
       end;
       pT^.txHas_Been_Edited := true;
@@ -3760,7 +3756,8 @@ begin
             //pointer does not need to be inserted so remove from list
             HistTranList.DelFreeItem( pT);
          end
-         else begin
+         else
+         begin
             // update balance if this tx is after latest tx
             if IsManual {and (pT.txDate_Presented >= BankAccount.baTransaction_List.LastPresDate)} then
             begin
@@ -3769,6 +3766,7 @@ begin
               else
                 BankAccount.baFields.baCurrent_Balance := BankAccount.baFields.baCurrent_Balance + pT.txAmount;
             end;
+
             BankAccount.baTransaction_List.Insert_Transaction_Rec(pT);
 
             //Flag Audit for bank account
@@ -3779,14 +3777,14 @@ begin
          Inc(Count);
       end; //while
    finally
-      UEList.Free;
+     UEList.Free;
    end;
    //DON'T FREE !!!, transactions are now part of BankAccount, however must
    //delete from list otherwise will be free'd when HistTranList is destroyed
    HistTranList.DeleteAll;
 
    finally
-      Screen.Cursor := kc;
+     Screen.Cursor := kc;
    end;
    S := Format( 'Add %s Entries complete.'#13#13'Added %d new entries.',[AccountType, Count ]);
    LogMsg(lmInfo,UnitName, S);
@@ -3889,7 +3887,6 @@ begin
         if PayeeEdited(pT) then
         begin
           pT^.txHas_Been_Edited := true;
-          SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
         end
         else
           //restore original value

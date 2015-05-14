@@ -900,8 +900,7 @@ begin
     if aTrans^.txType <> TranRec^.txType then
       Continue;
 
-    if ((TranRec^.txCoded_By in ManualCodedBy) and (aTrans^.txAccount = TranRec^.txAccount)) or
-       (TranRec^.txCoded_By = cbNotCoded) then
+    if (aTrans^.txCoded_By <= cbManual) or (aTrans^.txCoded_By = cbECodingManual) then
     begin
       if (SearchTranDetailsLength = MatchTranDetailLength) and
         (CompareText(aTrans^.txStatement_Details, TranRec^.txStatement_Details) = 0) then
