@@ -1094,6 +1094,7 @@ begin
       if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
          not (BankAccount.baFields.baIs_A_Manual_Account) then
       begin
+      
         if BankAccount.baFields.baIs_A_Provisional_Account then
         begin
           if aDoMoveRatherThanCopy then

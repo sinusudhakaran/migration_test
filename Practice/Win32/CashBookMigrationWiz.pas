@@ -1382,6 +1382,7 @@ begin
   end;
 
   lblYuoCanCheckYourStatus.Caption := BRAND_CASHBOOK_NAME + '.';
+
   WindowTitle := 'Congratulations and welcome to ' + BRAND_CASHBOOK_NAME;
 
   case fMigrationStatus of
