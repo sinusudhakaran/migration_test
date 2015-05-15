@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 727;
-   BK_IOLIB_Date    = '05/05/15';
+   BK_IOLIB_Version : Integer = 728;
+   BK_IOLIB_Date    = '15/05/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -1471,6 +1471,7 @@ Type
       slAccountId                        : Integer;       { Stored }
       slCount                            : Integer;       { Stored }
       slIsUncoded                        : Boolean;       { Stored }
+      slIsDissected                      : Boolean;       { Stored }
       slEOR                              : Byte;
    end;
 

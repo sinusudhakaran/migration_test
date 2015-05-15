@@ -599,6 +599,7 @@ begin
   NewSuggested_Account_Link.slFields.slAccountId   := aAccountId;
   NewSuggested_Account_Link.slFields.slCount       := 0;
   NewSuggested_Account_Link.slFields.slIsUncoded   := (length(trim(aAccount)) = 0);
+  NewSuggested_Account_Link.slFields.slIsDissected := (aAccount = DISSECT_DESC);
   aBankAccount.baSuggested_Account_Link_List.Insert_Suggested_Account_Link_Rec(NewSuggested_Account_Link);
   aSuggested_Account_Link_Rec := aBankAccount.baSuggested_Account_Link_List.GetAs_pRec(NewSuggested_Account_Link);
 end;
@@ -633,14 +634,21 @@ end;
 procedure TSuggestedMems.SearchFoundMatch(aStartData: boolean; var aMatchedPhrase : string; aEndData: boolean; aBankAccount : TBank_Account; aScanTrans, aMatchedTrans : pTransaction_Rec; var aCurrentTranSuggestions : TArrSuggPointers; aTranNewState : byte);
 var
   PhraseId : integer;
-  AccountId : integer;
+  ScanAccountId : integer;
+  MatchAccountId : integer;
 
   PhraseCreated : boolean;
-  AccountCreated : boolean;
+  ScanAccountCreated : boolean;
+  MatchAccountCreated : boolean;
 
   Suggested_Mem_Rec: pSuggested_Mem_Rec;
-  Suggested_Account_Link_Rec : pSuggested_Account_Link_Rec;
+  Scan_Suggested_Account_Link_Rec : pSuggested_Account_Link_Rec;
+  Match_Suggested_Account_Link_Rec : pSuggested_Account_Link_Rec;
+
+  AccountsNotTheSame : boolean;
 begin
+  AccountsNotTheSame := not (aScanTrans^.txAccount = aMatchedTrans^.txAccount);
+
   // Phrase
   PhraseCreated := (FindPhraseOrCreate(aBankAccount, aMatchedPhrase, PhraseId) = fcCreated);
 
@@ -650,23 +658,39 @@ begin
   if PhraseCreated then
     CreateSuggestion(aBankAccount, aScanTrans^.txType, PhraseId, aStartData, aEndData, Suggested_Mem_Rec);
 
-  // Account and
-  AccountCreated := (FindAccountOrCreate(aBankAccount, aScanTrans^.txAccount, AccountId) = fcCreated);
+  // Account or Accounts if code not the same
+  if AccountsNotTheSame then
+    ScanAccountCreated := (FindAccountOrCreate(aBankAccount, aScanTrans^.txAccount, ScanAccountId) = fcCreated);
+
+  MatchAccountCreated := (FindAccountOrCreate(aBankAccount, aMatchedTrans^.txAccount, MatchAccountId) = fcCreated);
 
   // Account Links
-  if (PhraseCreated) or (AccountCreated) then
-    CreateSuggestionAccountLink(aBankAccount, Suggested_Mem_Rec^.smId, AccountId, aScanTrans^.txAccount, Suggested_Account_Link_Rec)
+  if AccountsNotTheSame then
+  begin
+    if (PhraseCreated) or (ScanAccountCreated) then
+      CreateSuggestionAccountLink(aBankAccount, Suggested_Mem_Rec^.smId, ScanAccountId, aScanTrans^.txAccount, Scan_Suggested_Account_Link_Rec)
+    else
+      FindSuggestionAccountLinkOrCreate(aBankAccount, Suggested_Mem_Rec^.smId, ScanAccountId, aScanTrans^.txAccount, Scan_Suggested_Account_Link_Rec);
+  end;
+
+  if (PhraseCreated) or (MatchAccountCreated) then
+    CreateSuggestionAccountLink(aBankAccount, Suggested_Mem_Rec^.smId, MatchAccountId, aMatchedTrans^.txAccount, Match_Suggested_Account_Link_Rec)
   else
-    FindSuggestionAccountLinkOrCreate(aBankAccount, Suggested_Mem_Rec^.smId, AccountId, aScanTrans^.txAccount, Suggested_Account_Link_Rec);
+    FindSuggestionAccountLinkOrCreate(aBankAccount, Suggested_Mem_Rec^.smId, MatchAccountId, aMatchedTrans^.txAccount, Match_Suggested_Account_Link_Rec);
 
   // Transaction Links
   if (PhraseCreated) or
      (not FindTranSuggestionLink(aBankAccount, aScanTrans^.txSequence_No, Suggested_Mem_Rec^.smId)) then
-    CreateTranSuggestionLink(aBankAccount, aScanTrans^.txSequence_No, aScanTrans^.txDate_Effective, Suggested_Mem_Rec, Suggested_Account_Link_Rec);
+  begin
+    if AccountsNotTheSame then
+      CreateTranSuggestionLink(aBankAccount, aScanTrans^.txSequence_No, aScanTrans^.txDate_Effective, Suggested_Mem_Rec, Scan_Suggested_Account_Link_Rec)
+    else
+      CreateTranSuggestionLink(aBankAccount, aScanTrans^.txSequence_No, aScanTrans^.txDate_Effective, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec);
+  end;
 
   if (PhraseCreated) or
      (not FindTranSuggestionLink(aBankAccount, aMatchedTrans^.txSequence_No, Suggested_Mem_Rec^.smId)) then
-    CreateTranSuggestionLink(aBankAccount, aMatchedTrans^.txSequence_No, aMatchedTrans^.txDate_Effective, Suggested_Mem_Rec, Suggested_Account_Link_Rec);
+    CreateTranSuggestionLink(aBankAccount, aMatchedTrans^.txSequence_No, aMatchedTrans^.txDate_Effective, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec);
 end;
 
 //------------------------------------------------------------------------------
@@ -970,9 +994,6 @@ begin
        ((aTrans^.txCoded_By > cbECodingManual)) then
       aTrans^.txSuggested_Mem_State := tssExcluded;
 
-    if (aTrans^.txAccount = DISSECT_DESC) then
-      aTrans^.txSuggested_Mem_State := tssExcluded;
-
     if (aTrans^.txSuggested_Mem_State = tssUnScanned) then
     begin
       if (OldState in tssScanned) then
@@ -1101,12 +1122,6 @@ begin
           Continue;
         end;
 
-        if (TranRec^.txAccount = DISSECT_DESC) then
-        begin
-          TranRec^.txSuggested_Mem_State := tssExcluded;
-          Continue;
-        end;
-
         TranRec^.txSuggested_Mem_State := tssUnScanned;
         inc(BankAccount.baFields.baSuggested_UnProcessed_Count);
       end;
@@ -1205,6 +1220,7 @@ var
   AccountIndex : integer;
   ManualCount : integer;
   ManualAccountCount : integer;
+  HasDissectedTran : boolean;
 begin
   Result := 0;
 
@@ -1218,11 +1234,15 @@ begin
       SuggestedId := aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)^.smId;
       ManualCount := 0;
       ManualAccountCount := 0;
+      HasDissectedTran := false;
 
       if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex) then
       begin
         for AccountIndex := LowAccountIndex to HighAccountIndex do
         begin
+          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsDissected then
+            HasDissectedTran := true;
+
           if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsUncoded then
           begin
             inc(ManualAccountCount);
@@ -1231,7 +1251,7 @@ begin
         end;
       end;
 
-      if (ManualAccountCount = 1) and (ManualCount > 2) then
+      if (ManualAccountCount = 1) and (ManualCount > 2) and (not HasDissectedTran) then
       begin
         if not IsSuggestionUsedByMem(aBankAccount,
                                      aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)) then
@@ -1260,6 +1280,7 @@ var
   MatchedPhrase : string;
   SearchAccountIndex : integer;
   SearchAccountId : integer;
+  HasDissectedTran : boolean;
 begin
   Result := nil;
 
@@ -1276,11 +1297,15 @@ begin
       ManualAccountCount := 0;
       TotalCount := 0;
       SearchAccountId := -1;
+      HasDissectedTran := false;
 
       if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex) then
       begin
         for AccountIndex := LowAccountIndex to HighAccountIndex do
         begin
+          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsDissected then
+            HasDissectedTran := true;
+
           if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsUncoded then
           begin
             inc(ManualAccountCount);
@@ -1291,7 +1316,7 @@ begin
         end;
       end;
 
-      if (ManualAccountCount = 1) and (ManualCount > 2) then
+      if (ManualAccountCount = 1) and (ManualCount > 2) and (not HasDissectedTran) then
       begin
         if not IsSuggestionUsedByMem(aBankAccount, Suggestion) then
         begin
