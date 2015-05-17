@@ -3864,6 +3864,8 @@ begin
               pT^.txTransfered_To_Online := False;
             end;
 
+            SuggestedMem.SetSuggestedTransactionState(BA, pT, tssUnScanned, true);
+
             Result := True;
          end;
        finally
