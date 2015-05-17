@@ -2637,13 +2637,6 @@ begin
           LogUtil.LogMsg(lmDebug, UnitName, 'Selected Clients - ' + SelectedList.CommaText);
 
         RunCashBookMigrationWizard(self, SelectedList);
-
-        RefreshLookup(ClientLookup.FirstSelectedCode);
-        if pnlFrameHolder.Enabled then
-          try
-          ClientLookup.SetFocusToGrid;
-          except
-          end;
       end
       else
       begin
@@ -2654,8 +2647,17 @@ begin
         if DebugMe then
           LogUtil.LogMsg(lmDebug, UnitName, 'Invalid Clients - ' + InvalidClientList.CommaText);
 
-        HelpfulWarningMsg('You cannot migrate ' + DisplayAffectedStatuses() + ' Client files.' + #13 +
+        HelpfulWarningMsg('You cannot migrate ' + DisplayAffectedStatuses() + ' client files.' + #13 +
                           InvalidClientStr, 0);
+      end;
+
+      RefreshLookup(ClientLookup.FirstSelectedCode);
+      if pnlFrameHolder.Enabled then
+      begin
+        try
+          ClientLookup.SetFocusToGrid;
+        except
+        end;
       end;
 
     finally
