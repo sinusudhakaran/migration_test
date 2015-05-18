@@ -164,6 +164,9 @@ type
     function ItemAs(aIndex : integer) : TAllocationData;
 
     procedure Write(const aJson: TlkJSONobject; aTransAmount : integer);
+
+    function  PayeeExists(const aPayeeNumber: integer): boolean;
+    function  JobExists(const aJobCode: string): boolean;
   end;
 
   //----------------------------------------------------------------------------
@@ -801,6 +804,48 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+function TAllocationsData.PayeeExists(const aPayeeNumber: integer): boolean;
+var
+  i: integer;
+  AllocationData: TAllocationData;
+begin
+  for i := 0 to Count-1 do
+  begin
+    AllocationData := ItemAs(i);
+
+    if (AllocationData.PayeeNumber = aPayeeNumber) then
+    begin
+      result := true;
+
+      exit;
+    end;
+  end;
+
+  result := false;
+end;
+
+//------------------------------------------------------------------------------
+function TAllocationsData.JobExists(const aJobCode: string): boolean;
+var
+  i: integer;
+  AllocationData: TAllocationData;
+begin
+  for i := 0 to Count-1 do
+  begin
+    AllocationData := ItemAs(i);
+
+    if (AllocationData.JobCode = aJobCode) then
+    begin
+      result := true;
+
+      exit;
+    end;
+  end;
+
+  result := false;
+end;
+
 { TTransactionData }
 //------------------------------------------------------------------------------
 constructor TTransactionData.Create(Collection: TCollection);
@@ -883,6 +928,12 @@ begin
       result := true;
       exit;
     end;
+
+    if TransactionData.Allocations.PayeeExists(aPayeeNumber) then
+    begin
+      result := true;
+      exit;
+    end;
   end;
 
   result := false;
@@ -899,6 +950,12 @@ begin
     TransactionData := ItemAs(i);
 
     if (TransactionData.JobCode = aJobCode) then
+    begin
+      result := true;
+      exit;
+    end;
+
+    if TransactionData.Allocations.JobExists(aJobCode) then
     begin
       result := true;
       exit;
@@ -1346,11 +1403,11 @@ begin
     BankAccountsData.Write(aJson);
 
     JournalsData.Write(aJson);
-
-    PayeesData.Write(aJson);
-
-    JobsData.Write(aJson);
   end;
+
+  PayeesData.Write(aJson);
+
+  JobsData.Write(aJson);
 end;
 
 { TClientBase }

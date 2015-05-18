@@ -1672,7 +1672,7 @@ begin
 
       if aHasTransactions then
       begin
-        if (Job.jhDate_Completed = 0) then
+        if (Job.jhDate_Completed <> 0) then
         begin
           if not aBankAccountsData.JobExists(Job.jhHeading) then
             continue;
