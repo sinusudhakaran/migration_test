@@ -286,6 +286,7 @@ end;
 //------------------------------------------------------------------------------
 function TRecommended_Mems.AreThereMoreCommands(): boolean;
 begin
+  Result := false;
   //Result := fMemScanCommands.ItemCount > 0;
 end;
 
@@ -1328,6 +1329,7 @@ begin
   if not Assigned(TranRec) then
     Exit; // this shouldn't happen!
 
+  StartTickCount := GetTickCount;
   if (DebugMe and (not IsBulk)) then
   begin
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
@@ -1467,8 +1469,8 @@ end;
 // Removes a given list of accounts from candidates and recommended mems
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.RemoveAccountsFromMems(aAccounts: TStringList; aDoPopulate: boolean);
-var
-  AccountIndex : integer;
+//var
+//  AccountIndex : integer;
 begin
   {for AccountIndex := 0 to aAccounts.Count-1 do
   begin
@@ -1512,8 +1514,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TRecommended_Mems.PopulateUnscannedListSelecedAccounts(aAccounts: TStringList);
-var
-  AccountIndex : integer;
+//var
+ // AccountIndex : integer;
 begin
   {for AccountIndex := 0 to aAccounts.Count-1 do
   begin
