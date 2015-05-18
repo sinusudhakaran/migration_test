@@ -1674,7 +1674,7 @@ begin
       begin
         if (Job.jhDate_Completed <> 0) then
         begin
-          if not aBankAccountsData.JobExists(Job.jhHeading) then
+          if not aBankAccountsData.JobExists(Job.jhCode) then
             continue;
         end;
       end
