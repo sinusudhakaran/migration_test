@@ -1247,7 +1247,7 @@ begin
   aJson.Add('State', fState);
   aJson.Add('Postcode', fPostcode);
   aJson.Add('PhoneNumber', fPhoneNumber);
-  aJson.Add('ABN', fABN);
+  aJson.Add('Abn', fABN);
 end;
 
 { TPayeesData }
