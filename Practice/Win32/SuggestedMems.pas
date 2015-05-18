@@ -13,6 +13,7 @@ uses
   ExtCtrls,
   tsList32,
   MemorisationsObj,
+  chList32,
   Classes;
 
 const
@@ -113,10 +114,10 @@ type
     procedure StartMemScan(aForceStart : boolean = false);
     procedure StopMemScan(aForceStop : boolean = false);
 
-    function GetSuggestedMemsCount(aBankAccount : TBank_Account) : integer;
-    function GetSuggestedMems(aBankAccount : TBank_Account) : TSuggestedMemsArr;
+    function GetSuggestedMemsCount(aBankAccount : TBank_Account; aChart : TChart) : integer;
+    function GetSuggestedMems(aBankAccount : TBank_Account; aChart : TChart) : TSuggestedMemsArr;
 
-    function DetermineStatus(aBankAccount : TBank_Account): string;
+    function DetermineStatus(aBankAccount : TBank_Account; aChart : TChart): string;
 
     property MainState : byte read fMainState write fMainState;
     property NoMoreRecord : boolean read fNoMoreRecord;
@@ -1247,16 +1248,20 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.GetSuggestedMemsCount(aBankAccount : TBank_Account) : integer;
+function TSuggestedMems.GetSuggestedMemsCount(aBankAccount : TBank_Account; aChart : TChart) : integer;
 var
   SuggestedMemIndex : integer;
   SuggestedId : integer;
   LowAccountIndex : integer;
   HighAccountIndex : integer;
-  AccountIndex : integer;
+  AccountLinkIndex : integer;
   ManualCount : integer;
   ManualAccountCount : integer;
   HasDissectedTran : boolean;
+  AccountId : integer;
+  AccountIndex : integer;
+  AccountCode : string;
+  Account_Rec : pAccount_Rec;
 begin
   Result := 0;
 
@@ -1278,16 +1283,28 @@ begin
 
       if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex) then
       begin
-        for AccountIndex := LowAccountIndex to HighAccountIndex do
+        for AccountLinkIndex := LowAccountIndex to HighAccountIndex do
         begin
-          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsDissected then
+          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slIsDissected then
             HasDissectedTran := true;
 
-          if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsUncoded then
+          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slIsUncoded then
+            Continue;
+
+          AccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slAccountId;
+          if aBankAccount.baSuggested_Account_List.SearchUsingAccountId(AccountId, AccountIndex) then
           begin
-            inc(ManualAccountCount);
-            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount;
+            AccountCode := aBankAccount.baSuggested_Account_List.GetPRec(AccountIndex)^.saAccount;
+            Account_Rec := aChart.FindCode(AccountCode);
+            if not Assigned(Account_Rec) then
+              Continue;
+
+            if Account_Rec^.chInactive then
+              Continue;
           end;
+
+          inc(ManualAccountCount);
+          ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
         end;
       end;
 
@@ -1304,13 +1321,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.GetSuggestedMems(aBankAccount: TBank_Account): TSuggestedMemsArr;
+function TSuggestedMems.GetSuggestedMems(aBankAccount: TBank_Account; aChart : TChart): TSuggestedMemsArr;
 var
   SuggestedMemIndex : integer;
   SuggestedId : integer;
   LowAccountIndex : integer;
   HighAccountIndex : integer;
-  AccountIndex : integer;
+  AccountLinkIndex : integer;
   ManualCount : integer;
   TotalCount : integer;
   ManualAccountCount : integer;
@@ -1321,6 +1338,11 @@ var
   SearchAccountIndex : integer;
   SearchAccountId : integer;
   HasDissectedTran : boolean;
+
+  AccountId : integer;
+  AccountIndex : integer;
+  AccountCode : string;
+  Account_Rec : pAccount_Rec;
 begin
   Result := nil;
 
@@ -1345,18 +1367,30 @@ begin
 
       if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex) then
       begin
-        for AccountIndex := LowAccountIndex to HighAccountIndex do
+        for AccountLinkIndex := LowAccountIndex to HighAccountIndex do
         begin
-          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsDissected then
+          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slIsDissected then
             HasDissectedTran := true;
 
-          if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slIsUncoded then
+          if not aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slIsUncoded then
           begin
-            inc(ManualAccountCount);
-            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount;
-            SearchAccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slAccountId;
+            AccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slAccountId;
+            if aBankAccount.baSuggested_Account_List.SearchUsingAccountId(AccountId, AccountIndex) then
+            begin
+              AccountCode := aBankAccount.baSuggested_Account_List.GetPRec(AccountIndex)^.saAccount;
+              Account_Rec := aChart.FindCode(AccountCode);
+              if Assigned(Account_Rec) then
+              begin
+                if not Account_Rec^.chInactive then
+                begin
+                  inc(ManualAccountCount);
+                  ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
+                  SearchAccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slAccountId;
+                end;
+              end;
+            end;
           end;
-          TotalCount := TotalCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount;
+          TotalCount := TotalCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
         end;
       end;
 
@@ -1391,7 +1425,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.DetermineStatus(aBankAccount : TBank_Account): string;
+function TSuggestedMems.DetermineStatus(aBankAccount : TBank_Account; aChart : TChart): string;
 const
   MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time.';
   MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled, please contact Support.';
@@ -1409,7 +1443,7 @@ begin
 
   if fNoMoreRecord then
   begin
-    AccountHasRecMems := (GetSuggestedMemsCount(aBankAccount) > 0);
+    AccountHasRecMems := (GetSuggestedMemsCount(aBankAccount, aChart) > 0);
 
     if not AccountHasRecMems then
       result := MSG_NO_MEMORISATIONS;

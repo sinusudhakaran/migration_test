@@ -7910,7 +7910,7 @@ begin
 
   if Assigned(BankAccount) then
   begin
-    MemCount := SuggestedMem.GetSuggestedMemsCount(BankAccount);
+    MemCount := SuggestedMem.GetSuggestedMemsCount(BankAccount, MyClient.clChart);
     if (MemCount = 0) then
     begin
       ShowLblRecommendedMemorisations := False;
@@ -8205,6 +8205,7 @@ procedure TfrmCoding.DoReCodeEntries;
 begin
    AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo);
    LoadWTLMaintainPos;
+   UpdateSuggestedMemLabel;
    Refresh;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

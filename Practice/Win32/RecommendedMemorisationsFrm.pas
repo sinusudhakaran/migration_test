@@ -169,7 +169,7 @@ begin
 
   lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
 
-  lblStatus.Caption := SuggestedMem.DetermineStatus(fBankAccount);
+  lblStatus.Caption := SuggestedMem.DetermineStatus(fBankAccount, MyClient.clChart);
 
   PopulateTree;
   vstTree.Header.SortColumn := ccEntryType;
@@ -403,7 +403,7 @@ begin
   Setlength(fData,0);
   fData := nil;
 
-  fData := SuggestedMem.GetSuggestedMems(fBankAccount);
+  fData := SuggestedMem.GetSuggestedMems(fBankAccount, MyClient.clChart);
 end;
 
 //------------------------------------------------------------------------------
