@@ -306,8 +306,8 @@ begin
                  DeletedTrans := Create_Deleted_Transaction_Rec(CurrTrans, CurrUser.Code);
 
                  try
+                   SuggestedMem.UpdateAccountWithTransDelete(BankAccount, CurrTrans);
                    BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
-                   SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                    BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
                  except
@@ -318,8 +318,8 @@ begin
                end
                else
                begin
+                 SuggestedMem.UpdateAccountWithTransDelete(BankAccount, CurrTrans);
                  BankAccount.baTransaction_List.DelFreeItem(CurrTrans);
-                 SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
                end;
 
                lvEntries.Items[ i].SubItems.Objects[0] := nil;

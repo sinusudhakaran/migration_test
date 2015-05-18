@@ -713,8 +713,8 @@ begin
              DeletedTrans := Create_Deleted_Transaction_Rec(psPtr, CurrUser.Code);
 
              try
+               SuggestedMem.UpdateAccountWithTransDelete(BA, psPtr);
                BA.baTransaction_List.DelFreeItem( psPtr );
-               SuggestedMem.UpdateAccountWithTransDelete(BA);
 
                BA.baDeleted_Transaction_List.Insert(DeletedTrans);
              except
@@ -725,8 +725,8 @@ begin
            end
            else
            begin
+             SuggestedMem.UpdateAccountWithTransDelete(BA, psPtr);
              BA.baTransaction_List.DelFreeItem( psPtr );
-             SuggestedMem.UpdateAccountWithTransDelete(BA);
            end;
 
            Inc( DelCount);

@@ -2997,8 +2997,8 @@ begin
                     DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
 
                     try
+                      SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
                       BankAccount.baTransaction_List.DelFreeItem( pT );
-                      SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                       BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
                     except
@@ -3009,8 +3009,8 @@ begin
                   end
                   else
                   begin
+                    SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
                     BankAccount.baTransaction_List.DelFreeItem( pT );
-                    SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
                   end;
 
                   LoadWTLMaintainPos;
@@ -3287,8 +3287,8 @@ begin
               DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
 
               try
+                SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
                 BankAccount.baTransaction_List.DelFreeItem( pT);
-                SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                 BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
               except
@@ -3299,8 +3299,8 @@ begin
             end
             else
             begin
+              SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
               BankAccount.baTransaction_List.DelFreeItem( pT);
-              SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
             end;
 
             //reload and reposition
@@ -3347,8 +3347,9 @@ begin
         DeletedTrans := Create_Deleted_Transaction_Rec(pT, CurrUser.Code);
 
         try
+          SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
+
           BankAccount.baTransaction_List.DelFreeItem( pT );
-          SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
           BankAccount.baDeleted_Transaction_List.Insert(DeletedTrans);
         except
@@ -3359,8 +3360,8 @@ begin
       end
       else
       begin
+        SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
         BankAccount.baTransaction_List.DelFreeItem( pT );
-        SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
       end;
 
       sMsg := 'Deleted Transaction '+ TransRef+' ' + MakeAmount( TransAmt);
@@ -3476,7 +3477,6 @@ begin
    tblCoding.AllowRedraw := False;
 
    BankAccount.baTransaction_List.DelFreeItem( pT );
-   SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
    LoadWorkTranList;
    tblCoding.AllowRedraw := True;
@@ -7807,8 +7807,8 @@ begin
                  Move( pT^, pNew^, SizeOf( TTransaction_Rec));
                  WorkTranList.DelFreeItem(WorkTranList.Transaction_At(tblCoding.ActiveRow-1));
 
+                 SuggestedMem.UpdateAccountWithTransDelete(BankAccount, pT);
                  BankAccount.baTransaction_List.Delete(pT);
-                 SuggestedMem.UpdateAccountWithTransDelete(BankAccount);
 
                  pNew^.txDate_Effective := TmpDate;
                  if not IsJournal then

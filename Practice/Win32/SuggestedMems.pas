@@ -101,7 +101,7 @@ type
     destructor Destroy; override;
 
     procedure SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false);
-    procedure UpdateAccountWithTransDelete(aBankAccount : TBank_Account);
+    procedure UpdateAccountWithTransDelete(aBankAccount : TBank_Account; aTrans: pTransaction_Rec);
     procedure UpdateAccountWithTransInsert(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aNew : boolean);
 
     procedure SetMainState();
@@ -1032,7 +1032,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.UpdateAccountWithTransDelete(aBankAccount: TBank_Account);
+procedure TSuggestedMems.UpdateAccountWithTransDelete(aBankAccount: TBank_Account; aTrans: pTransaction_Rec);
 begin
   if MainState = mtsNoScan then
     Exit;
@@ -1040,8 +1040,16 @@ begin
   if aBankAccount.IsAJournalAccount then
     Exit;
 
-  if aBankAccount.baFields.baSuggested_UnProcessed_Count > 0 then
-    Dec(aBankAccount.baFields.baSuggested_UnProcessed_Count);
+  DeleteLinksAndSuggestions(aBankAccount, aTrans, aTrans^.txSuggested_Mem_State);
+
+  if DebugMe then
+    LogDoneProcessing(true);
+
+  if Assigned(fDoneProcessingEvent) then
+    fDoneProcessingEvent();
+
+  {if aBankAccount.baFields.baSuggested_UnProcessed_Count > 0 then
+    Dec(aBankAccount.baFields.baSuggested_UnProcessed_Count);}
 end;
 
 //------------------------------------------------------------------------------

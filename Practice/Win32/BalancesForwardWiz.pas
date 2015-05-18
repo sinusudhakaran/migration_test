@@ -421,7 +421,6 @@ begin
           if Assigned( TempYEAdjustment) then
           begin
             YE_Journal_Account.baTransaction_List.DelFreeItem( TempYEAdjustment);
-            SuggestedMem.UpdateAccountWithTransDelete(YE_Journal_Account);
           end;
           //replace the pre existing journal
           if Assigned( Existing_YE_Adjustment) then begin
@@ -744,7 +743,6 @@ begin
   else begin
     //there are no lines in the journal so delete it
     YE_Journal_Account.baTransaction_List.DelFreeItem( TempYEAdjustment);
-    SuggestedMem.UpdateAccountWithTransDelete(YE_Journal_Account);
     TempYEAdjustment := nil;
   end;
 end;
@@ -1796,7 +1794,6 @@ begin
   else begin
     //there are no lines in the journal so delete it
     OpeningBalancesAccount.baTransaction_List.DelFreeItem( OpeningBalanceRec);
-    SuggestedMem.UpdateAccountWithTransDelete(OpeningBalancesAccount);
     OpeningBalanceRec := nil;
   end;
 

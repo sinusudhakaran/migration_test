@@ -445,7 +445,6 @@ begin
    else begin
      //there are no lines in the journal so delete it
      Journal_Account.baTransaction_List.DelFreeItem( pJ);
-     SuggestedMem.UpdateAccountWithTransDelete(Journal_Account);
      pJ := nil;
    end;
 end;

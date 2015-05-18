@@ -4544,7 +4544,6 @@ begin
       If not SomeThere then
       begin
         Bank_Account.baTransaction_List.DelFreeItem(pTran); {delete if empty}
-        SuggestedMem.UpdateAccountWithTransDelete(Bank_Account);
       end;
    end;
 end;
