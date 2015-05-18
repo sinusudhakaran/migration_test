@@ -44,8 +44,10 @@ type
   //----------------------------------------------------------------------------
   TBrowserState = (bstNone,
                    bstNavigating,
+                   bstDoneNavigating,
                    bstLoading,
-                   bstDone);
+                   bstDoneLoading,
+                   bstError);
 
   //----------------------------------------------------------------------------
   TFrmCashBookMigrationWiz = class(TForm)
@@ -140,19 +142,31 @@ type
     fNumErrorClients : integer;
 
     fMigrationStatus : TMigrationStatus;
-    fBrowserState : TBrowserState;
-    fBrowserStartTick : int64;
+
+    fBrowser1State : TBrowserState;
+    fBrowser1StartTick : int64;
+    fBrowser2State : TBrowserState;
+    fBrowser2StartTick : int64;
 
   protected
-    procedure DoNavigationError(ASender: TObject;
-                                const pDisp: IDispatch;
-                                var URL: OleVariant;
-                                var Frame: OleVariant;
-                                var StatusCode: OleVariant;
-                                var Cancel: WordBool);
-    procedure DoWebBrowserDocumentComplete(ASender: TObject;
-                                           const pDisp: IDispatch;
-                                           var URL: OleVariant);
+    procedure DoNavigationError1(ASender: TObject;
+                                 const pDisp: IDispatch;
+                                 var URL: OleVariant;
+                                 var Frame: OleVariant;
+                                 var StatusCode: OleVariant;
+                                 var Cancel: WordBool);
+    procedure DoWebBrowserDocumentComplete1(ASender: TObject;
+                                            const pDisp: IDispatch;
+                                            var URL: OleVariant);
+    procedure DoNavigationError2(ASender: TObject;
+                                 const pDisp: IDispatch;
+                                 var URL: OleVariant;
+                                 var Frame: OleVariant;
+                                 var StatusCode: OleVariant;
+                                 var Cancel: WordBool);
+    procedure DoWebBrowserDocumentComplete2(ASender: TObject;
+                                            const pDisp: IDispatch;
+                                            var URL: OleVariant);
 
     procedure UpdateClientStringGrid(aClients : TStringGrid; aClientNameWidth, aSelectClientsCount, aVisibleRowCount : integer);
     procedure UpdateClientErrorsStringGrid(aClientErrors : TStringGrid; aClientErrorWidth, aClientErrorsCount, aVisibleRowCount : integer);
@@ -191,7 +205,9 @@ type
     procedure UpdateSignInControls(aBusySigningIn : Boolean);
     procedure UpdateProgressControls();
     procedure UpdateCompleteControls();
-    procedure TryNavToPageUpdateCache();
+
+    procedure TryNavToOverview();
+    procedure TryNavToCheckList();
   public
     constructor Create(AOwner: tComponent); override;
     destructor Destroy; override;
@@ -320,7 +336,8 @@ begin
   fNumErrorClients := 0;
 
   fFirms := TFirms.create();
-  fBrowserState := bstNone;
+  fBrowser1State := bstNone;
+  fBrowser1State := bstNone;
   fSelectedData.DoMoveRatherThanCopy := true;
 end;
 
@@ -559,19 +576,6 @@ begin
 
   MovingForward := GetOrderArrayPos(NewStepID) > GetOrderArrayPos(OldStepId);
 
-  case OldStepID of
-    mtOverview : begin
-      fBrowserState := bstNone;
-      BKOverviewWebBrowser.OnNavigateError := nil;
-      BKOverviewWebBrowser.Stop;
-    end;
-    mtCheckList : begin
-      fBrowserState := bstNone;
-      BKChecklistWebBrowser.OnNavigateError := nil;
-      BKChecklistWebBrowser.Stop;
-    end;
-  end;
-
   if MovingForward then
   begin
     case OldStepID of
@@ -634,87 +638,86 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.DoNavigationError(ASender: TObject;
-  const pDisp: IDispatch; var URL, Frame, StatusCode: OleVariant;
-  var Cancel: WordBool);
+procedure TFrmCashBookMigrationWiz.DoNavigationError1(ASender: TObject;
+                                                      const pDisp: IDispatch;
+                                                      var URL, Frame, StatusCode: OleVariant;
+                                                      var Cancel: WordBool);
 begin
-  if fBrowserState = bstNavigating then
+  if fBrowser1State = bstNavigating then
   begin
-    fBrowserState := bstLoading;
-    fBrowserStartTick := GetTickCount();
-
-    case fCurrentStepID of
-      mtOverview : begin
-        BKOverviewWebBrowser.Stop;
-        BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
-      end;
-      mtCheckList : begin
-        BKChecklistWebBrowser.Stop;
-        BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
-      end;
-    end;
+    fBrowser1State := bstLoading;
+    BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
   end
   else
-  begin
-    tmrBrowserLoading.Enabled := false;
-    fBrowserState := bstNone;
-    case fCurrentStepID of
-      mtOverview : BKOverviewWebBrowser.Stop;
-      mtCheckList : BKChecklistWebBrowser.Stop;
-    end;
-  end;
+    fBrowser1State := bstError;
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.DoWebBrowserDocumentComplete(ASender: TObject; const pDisp: IDispatch; var URL: OleVariant);
+procedure TFrmCashBookMigrationWiz.DoWebBrowserDocumentComplete1(ASender: TObject;
+                                                                 const pDisp: IDispatch;
+                                                                 var URL: OleVariant);
 var
   ExpectedURL : string;
 begin
-  if fBrowserState = bstNavigating then
+  if fBrowser1State = bstNavigating then
   begin
-    case fCurrentStepID of
-      mtOverview : begin
-        case AdminSystem.fdFields.fdCountry of
-          whNewZealand: ExpectedURL := Globals.PRACINI_NZCashMigrationURLOverview1;
-          whAustralia : ExpectedURL := Globals.PRACINI_AUCashMigrationURLOverview1;
-        end;
-      end;
-      mtCheckList : begin
-        case AdminSystem.fdFields.fdCountry of
-          whNewZealand: ExpectedURL := Globals.PRACINI_NZCashMigrationURLOverview2;
-          whAustralia : ExpectedURL := Globals.PRACINI_AUCashMigrationURLOverview2;
-        end;
-      end;
+    case AdminSystem.fdFields.fdCountry of
+      whNewZealand: ExpectedURL := Globals.PRACINI_NZCashMigrationURLOverview1;
+      whAustralia : ExpectedURL := Globals.PRACINI_AUCashMigrationURLOverview1;
     end;
 
     if ExpectedURL <> URL then
     begin
-      fBrowserState := bstLoading;
-      fBrowserStartTick := GetTickCount();
-
-      case fCurrentStepID of
-        mtOverview : begin
-          BKOverviewWebBrowser.Stop;
-          BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
-        end;
-        mtCheckList : begin
-          BKChecklistWebBrowser.Stop;
-          BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
-        end;
-      end;
+      fBrowser1State := bstLoading;
+      BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
     end
     else
-      fBrowserState := bstDone;
+      fBrowser1State := bstDoneNavigating;
+  end
+  else if fBrowser1State = bstLoading then
+    fBrowser1State := bstDoneLoading;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.DoNavigationError2(ASender: TObject;
+                                                      const pDisp: IDispatch;
+                                                      var URL, Frame, StatusCode: OleVariant;
+                                                      var Cancel: WordBool);
+begin
+  if fBrowser2State = bstNavigating then
+  begin
+    fBrowser2State := bstLoading;
+
+    BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
   end
   else
+    fBrowser2State := bstError;
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.DoWebBrowserDocumentComplete2(ASender: TObject;
+                                                                 const pDisp: IDispatch;
+                                                                 var URL: OleVariant);
+var
+  ExpectedURL : string;
+begin
+  if fBrowser2State = bstNavigating then
   begin
-    tmrBrowserLoading.Enabled := false;
-    fBrowserState := bstNone;
-    case fCurrentStepID of
-      mtOverview : BKOverviewWebBrowser.Stop;
-      mtCheckList : BKChecklistWebBrowser.Stop;
+    case AdminSystem.fdFields.fdCountry of
+      whNewZealand: ExpectedURL := Globals.PRACINI_NZCashMigrationURLOverview2;
+      whAustralia : ExpectedURL := Globals.PRACINI_AUCashMigrationURLOverview2;
     end;
-  end;
+
+    if ExpectedURL <> URL then
+    begin
+      fBrowser2State := bstLoading;
+      BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+    end
+    else
+      fBrowser2State := bstDoneNavigating;
+  end
+  else if fBrowser2State = bstLoading then
+    fBrowser2State := bstDoneLoading;
 end;
 
 //------------------------------------------------------------------------------
@@ -742,20 +745,12 @@ begin
       UpdateControls();
 
       if OldStep = mtCheckList then
-      begin
-        fBrowserState := bstNavigating;
-        fBrowserStartTick := GetTickCount();
-        tmrBrowserLoading.enabled := true;
-        TryNavToPageUpdateCache();
-      end;
+        TryNavToOverview();
     end;
     mtCheckList : begin
       UpdateControls();
 
-      fBrowserState := bstNavigating;
-      fBrowserStartTick := GetTickCount();
-      tmrBrowserLoading.enabled := true;
-      TryNavToPageUpdateCache();
+      TryNavToCheckList();
     end;
 
     mtMYOBCredentials : begin
@@ -939,104 +934,83 @@ procedure TFrmCashBookMigrationWiz.tmrBrowserLoadingTimer(Sender: TObject);
 var
   BrowserReadyState : TOleEnum;
 begin
-  if fBrowserState in [bstNone, bstDone] then
+  if fBrowser1State = bstNavigating then
   begin
-    tmrBrowserLoading.Enabled := false;
-    Exit;
-  end;
-
-  if (GetTickCount() < (fBrowserStartTick + BROWSER_TIME_OUT)) then
-    Exit;
-
-  case fCurrentStepID of
-    mtOverview  : BrowserReadyState := BKOverviewWebBrowser.BrowserReadyState;
-    mtCheckList : BrowserReadyState := BKChecklistWebBrowser.BrowserReadyState;
-  else
-    begin
-      tmrBrowserLoading.Enabled := false;
+    if (GetTickCount() < (fBrowser1StartTick + BROWSER_TIME_OUT)) then
       Exit;
-    end;
-  end;
 
-  case BrowserReadyState of
-    READYSTATE_UNINITIALIZED : begin
-      tmrBrowserLoading.Enabled := false;
-      fBrowserState := bstNone;
-      Exit;
-    end;
-    READYSTATE_LOADING : begin
-      if fBrowserState = bstNavigating then
-      begin
-        fBrowserState := bstLoading;
-        fBrowserStartTick := GetTickCount();
+    BrowserReadyState := BKOverviewWebBrowser.BrowserReadyState;
 
-        case fCurrentStepID of
-          mtOverview : begin
-            BKOverviewWebBrowser.Stop;
-            BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
-          end;
-          mtCheckList : begin
-            BKChecklistWebBrowser.Stop;
-            BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
-          end;
-        end;
-      end
-      else
-      begin
-        tmrBrowserLoading.Enabled := false;
-        fBrowserState := bstNone;
-        case fCurrentStepID of
-          mtOverview : BKOverviewWebBrowser.Stop;
-          mtCheckList : BKChecklistWebBrowser.Stop;
-        end;
+    case BrowserReadyState of
+      READYSTATE_UNINITIALIZED : begin
+        fBrowser1State := bstNone;
         Exit;
       end;
-      
+      READYSTATE_LOADING : begin
+        fBrowser1State := bstLoading;
+        BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+      end;
     end;
-    READYSTATE_LOADED, READYSTATE_INTERACTIVE, READYSTATE_COMPLETE : begin
-      tmrBrowserLoading.Enabled := false;
-      fBrowserState := bstDone;
+  end;
+
+  if fBrowser2State = bstNavigating then
+  begin
+    if (GetTickCount() < (fBrowser2StartTick + BROWSER_TIME_OUT)) then
       Exit;
+
+    BrowserReadyState := BKChecklistWebBrowser.BrowserReadyState;
+
+    case BrowserReadyState of
+      READYSTATE_UNINITIALIZED : begin
+        fBrowser2State := bstNone;
+        Exit;
+      end;
+      READYSTATE_LOADING : begin
+        fBrowser2State := bstLoading;
+        BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+      end;
     end;
   end;
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.TryNavToPageUpdateCache();
+procedure TFrmCashBookMigrationWiz.TryNavToOverview;
 var
   URL : string;
 begin
-  case fCurrentStepID of
-    mtOverview : begin
-      BKOverviewWebBrowser.Stop;
-      BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
-    end;
-    mtCheckList : begin
-      BKChecklistWebBrowser.Stop;
-      BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
-    end;
-  end;
+  if not (fBrowser1State = bstNone) then
+    Exit;
 
-  {case fCurrentStepID of
-    mtOverview : begin
-      case AdminSystem.fdFields.fdCountry of
-        whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
-        whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
-      end;
-      BKOverviewWebBrowser.OnNavigateError := DoNavigationError;
-      BKOverviewWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete;
-      BKOverviewWebBrowser.NavigateToURL(URL);
-    end;
-    mtCheckList : begin
-      case AdminSystem.fdFields.fdCountry of
-        whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview2;
-        whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
-      end;
-      BKChecklistWebBrowser.OnNavigateError := DoNavigationError;
-      BKChecklistWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete;
-      BKChecklistWebBrowser.NavigateToURL(URL);
-    end;
-  end; }
+  fBrowser1State := bstNavigating;
+  fBrowser1StartTick := GetTickCount();
+
+  case AdminSystem.fdFields.fdCountry of
+    whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
+    whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
+  end;
+  BKOverviewWebBrowser.OnNavigateError := DoNavigationError1;
+  BKOverviewWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete1;
+  BKOverviewWebBrowser.NavigateToURL(URL);
+end;
+
+//------------------------------------------------------------------------------
+procedure TFrmCashBookMigrationWiz.TryNavToCheckList;
+var
+  URL : string;
+begin
+  if not (fBrowser2State = bstNone) then
+    Exit;
+
+  fBrowser2State := bstNavigating;
+  fBrowser2StartTick := GetTickCount();
+
+  case AdminSystem.fdFields.fdCountry of
+    whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview2;
+    whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
+  end;
+  BKChecklistWebBrowser.OnNavigateError := DoNavigationError2;
+  BKChecklistWebBrowser.OnDocumentComplete := DoWebBrowserDocumentComplete2;
+  BKChecklistWebBrowser.NavigateToURL(URL);
 end;
 
 //------------------------------------------------------------------------------
@@ -1052,10 +1026,8 @@ begin
 
       UpdateClientStringGrid(stgSelectedClients, 592, SelectClients.Count, 4);
 
-      fBrowserState := bstNavigating;
-      fBrowserStartTick := GetTickCount();
       tmrBrowserLoading.enabled := true;
-      TryNavToPageUpdateCache();
+      TryNavToOverview();
     end;
     mtSelectData :
     begin
