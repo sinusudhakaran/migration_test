@@ -93,6 +93,8 @@ type
     function IsMasterMemorisation(aType: byte; const aMatchPhrase, aBankPrefix: string): boolean;
     function IsSuggestionUsedByMem(aBankAccount : TBank_Account; aSuggestion : pSuggested_Mem_Rec): boolean;
 
+    function IsSuggestionInIgnoreList(aBankAccount : TBank_Account; aSuggestion : pSuggested_Mem_Rec): boolean;
+
     procedure MemScan();
     procedure ProcessTransaction(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
     procedure SearchForMatchedPhrase(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aTranNewState : byte);
@@ -768,6 +770,32 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TSuggestedMems.IsSuggestionInIgnoreList(aBankAccount: TBank_Account; aSuggestion: pSuggested_Mem_Rec): boolean;
+const
+  IGNORE_LIST : Array[1..3] of string =
+    ('and','the','ltd');
+var
+  PhraseIndex : integer;
+  MatchedPhrase : string;
+  IgnoreIndex : integer;
+begin
+  result := false;
+  if aBankAccount.baSuggested_Phrase_List.SearchUsingPhraseId(aSuggestion^.smPhraseId, PhraseIndex) then
+  begin
+    MatchedPhrase := aBankAccount.baSuggested_Phrase_List.GetPRec(PhraseIndex)^.spPhrase;
+
+    for IgnoreIndex := 1 to high(IGNORE_LIST) do
+    begin
+      if CompareText(MatchedPhrase, IGNORE_LIST[IgnoreIndex]) = 0 then
+      begin
+        result := true;
+        Exit;
+      end;  
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TSuggestedMems.MemScan();
 var
   StartTime : TDateTime;
@@ -1240,6 +1268,10 @@ begin
     for SuggestedMemIndex := 0 to aBankAccount.baSuggested_Mem_List.ItemCount - 1 do
     begin
       SuggestedId := aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)^.smId;
+
+      if IsSuggestionInIgnoreList(aBankAccount, aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)) then
+        Continue;
+
       ManualCount := 0;
       ManualAccountCount := 0;
       HasDissectedTran := false;
@@ -1301,6 +1333,10 @@ begin
     begin
       Suggestion := aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex);
       SuggestedId := Suggestion^.smId;
+
+      if IsSuggestionInIgnoreList(aBankAccount, aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex)) then
+        Continue;
+
       ManualCount := 0;
       ManualAccountCount := 0;
       TotalCount := 0;
