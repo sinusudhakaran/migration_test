@@ -282,6 +282,7 @@ begin
 
               //When creating a new client we need to make sure that it is opened  otherwise blopi will not be queried when opening banklink settings.
               MyClient.Opened := True;
+              SuggestedMem.NewClientMainState();
               SuggestedMem.StartMemScan(true);
            end;
            if Assigned(MyClient) then

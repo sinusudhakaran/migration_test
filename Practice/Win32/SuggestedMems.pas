@@ -109,6 +109,7 @@ type
     procedure DoProcessingComplete();
 
     procedure SetMainState();
+    Procedure NewClientMainState();
     procedure ResetAll(aClient: TClientObj);
     procedure ResetLogging(aClient: TClientObj);
 
@@ -884,6 +885,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TSuggestedMems.NewClientMainState;
+begin
+  fMainState := mtsScan;
+end;
+
+//------------------------------------------------------------------------------
 procedure TSuggestedMems.ProcessTransaction(aBankAccount : TBank_Account; aTrans : pTransaction_Rec);
 var
   TranNewState : byte;
@@ -1068,13 +1075,19 @@ begin
   if aBankAccount.IsAJournalAccount then
     Exit;
 
-  DeleteLinksAndSuggestions(aBankAccount, aTrans, aTrans^.txSuggested_Mem_State);
+  StopMemScan();
+  try
+    DeleteLinksAndSuggestions(aBankAccount, aTrans, aTrans^.txSuggested_Mem_State);
 
-  if DebugMe then
-    LogDoneProcessing(true);
+    if DebugMe then
+      LogDoneProcessing(true);
 
-  if Assigned(fDoneProcessingEvent) then
-    fDoneProcessingEvent();
+    if Assigned(fDoneProcessingEvent) then
+      fDoneProcessingEvent();
+
+  finally
+    StartMemScan();
+  end;
 
   {if aBankAccount.baFields.baSuggested_UnProcessed_Count > 0 then
     Dec(aBankAccount.baFields.baSuggested_UnProcessed_Count);}
