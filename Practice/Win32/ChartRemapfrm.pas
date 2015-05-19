@@ -227,6 +227,7 @@ uses
    clOBJ32,
    bkXPThemes,
    AuditMgr,
+   SuggestedMems,
    MainFrm;
 
 {$R *.dfm}
@@ -1457,6 +1458,7 @@ var
   Dis: pDissection_Rec;
   SaveAuditMgr: TClientAuditManager;
   Index: Integer;
+  AccountsRemapped : boolean;
 
   procedure ResortBudget(var bdList: TBudget_Detail_List);
   var LL: PPointerList;
@@ -1490,6 +1492,9 @@ var
 
 
 begin
+  AccountsRemapped := false;
+  SuggestedMem.StopMemScan();
+  try
     LCount := 0;
     LCountA := 0;
     // Do the chart itself..
@@ -1535,18 +1540,26 @@ begin
     LCountM := 0;
     LCountB := 0;
     LCountC := 0;
-    
+
     // Do The Accounts
     for A := 0 to MyClient.clBank_Account_List.Last do
        with MyClient.clBank_Account_List.Bank_Account_At(A) do
        begin
           baFields.baContra_Account_Code := Value.Remap(baFields.baContra_Account_Code,LCountA);
           baFields.baExchange_Gain_Loss_Code := Value.Remap(baFields.baExchange_Gain_Loss_Code, LCountB);
-           
+
           // transactions...
           for I := 0 to baTransaction_List.ItemCount - 1 do
-             with baTransaction_List.Transaction_At(I)^ do begin
+             with baTransaction_List.Transaction_At(I)^ do
+             begin
                 txAccount := Value.remap(txAccount,LCountT);
+                AccountsRemapped := true;
+                SuggestedMem.SetSuggestedTransactionState(MyClient.clBank_Account_List.Bank_Account_At(A),
+                                                          baTransaction_List.Transaction_At(I),
+                                                          tssUnScanned,
+                                                          true,
+                                                          true);
+
                 Dis := txFirst_Dissection;
                 while Dis <> nil do begin
                    Dis.dsAccount := Value.remap(Dis.dsAccount,LCountT);
@@ -1624,6 +1637,12 @@ begin
           MyClient.clFields.clBAS_Field_Account_Code[I] :=
              Value.Remap(MyClient.clFields.clBAS_Field_Account_Code[I],lCount);
     AddCount(lCount,'BAS Rules');
+
+    if AccountsRemapped then
+      SuggestedMem.DoProcessingComplete();
+  finally
+    SuggestedMem.StartMemScan();
+  end;
 end;
 
 procedure TfrmRemapChart.RemapCharts;

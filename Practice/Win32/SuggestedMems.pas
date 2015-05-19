@@ -103,9 +103,10 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false);
+    procedure SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false; aIsBulk : boolean = false);
     procedure UpdateAccountWithTransDelete(aBankAccount : TBank_Account; aTrans: pTransaction_Rec);
     procedure UpdateAccountWithTransInsert(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aNew : boolean);
+    procedure DoProcessingComplete();
 
     procedure SetMainState();
     procedure ResetAll(aClient: TClientObj);
@@ -997,7 +998,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean);
+procedure TSuggestedMems.SetSuggestedTransactionState(aBankAccount : TBank_Account; aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean; aIsBulk : boolean);
 var
   OldState : byte;
   AccLinkUpdated : boolean;
@@ -1034,11 +1035,9 @@ begin
         if aAccountChanged then
         begin
           aTrans^.txSuggested_Mem_State := OldState;
-          if DebugMe then
-            LogDoneProcessing(true);
 
-          if Assigned(fDoneProcessingEvent) then
-            fDoneProcessingEvent();
+          if not aIsBulk then
+            DoProcessingComplete();
         end
         else
         begin
@@ -1111,6 +1110,16 @@ begin
     if aTrans^.txSuggested_Mem_State = tssUnScanned then
       inc(aBankAccount.baFields.baSuggested_UnProcessed_Count);
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.DoProcessingComplete;
+begin
+  if DebugMe then
+    LogDoneProcessing(true);
+
+  if Assigned(fDoneProcessingEvent) then
+    fDoneProcessingEvent();
 end;
 
 //------------------------------------------------------------------------------
