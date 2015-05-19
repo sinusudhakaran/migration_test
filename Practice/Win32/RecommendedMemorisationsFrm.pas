@@ -67,6 +67,9 @@ type
     fData: TSuggestedMemsArr;
     fAdded: boolean;
 
+    procedure GetAccAndStatFromNode(aNode: PVirtualNode; var aAccount, aStatement : string);
+    function IsAccAndStatEqualtoNode(aNode: PVirtualNode; aAccount, aStatement : string) : boolean;
+
     procedure BuildData;
     procedure PopulateTree;
     function  GetButtonRect(const aCellRect: TRect): TRect;
@@ -390,11 +393,39 @@ end;
 procedure TRecommendedMemorisationsFrm.btnCreateClick(Sender: TObject);
 var
   SelNode : PVirtualNode;
+  NextNode : PVirtualNode;
+  NextAccount : string;
+  NextStatement : string;
 begin
   SelNode := vstTree.GetFirstSelected();
 
-  if assigned(SelNode) then
-    DoCreateNewMemorisation(SelNode);
+  if not assigned(SelNode) then
+    Exit;
+
+  NextNode := vstTree.GetPreviousVisible(SelNode);
+  if not Assigned(NextNode) then
+    NextNode := vstTree.GetNextVisible(SelNode);
+
+  if Assigned(NextNode) then
+    GetAccAndStatFromNode(NextNode, NextAccount, NextStatement);
+
+  DoCreateNewMemorisation(SelNode);
+
+  if Assigned(NextNode) then
+  begin
+    SelNode := vstTree.GetFirst;
+    while Assigned(SelNode) do
+    begin
+      if IsAccAndStatEqualtoNode(SelNode, NextAccount, NextStatement) then
+      begin
+        vstTree.Selected[SelNode] := true;
+        vstTree.FocusedNode := SelNode;
+        break;
+      end;
+
+      SelNode := SelNode.NextSibling;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -404,6 +435,36 @@ begin
   fData := nil;
 
   fData := SuggestedMem.GetSuggestedMems(fBankAccount, MyClient.clChart);
+end;
+
+//----------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.GetAccAndStatFromNode(aNode: PVirtualNode; var aAccount, aStatement : string);
+var
+  pData: PTreeData;
+begin
+  aAccount := '';
+  aStatement := '';
+  pData := PTreeData(vstTree.GetNodeData(aNode));
+  if Assigned(pData) then
+  begin
+    aAccount := pData.SuggestedMem.smAccount;
+    aStatement := pData.SuggestedMem.smMatchedPhrase;
+  end;
+end;
+
+//----------------------------------------------------------------------------
+function TRecommendedMemorisationsFrm.IsAccAndStatEqualtoNode(aNode: PVirtualNode; aAccount, aStatement : string) : boolean;
+var
+  pData: PTreeData;
+begin
+  Result := false;
+  pData := PTreeData(vstTree.GetNodeData(aNode));
+  if Assigned(pData) then
+  begin
+    if (aAccount = pData.SuggestedMem.smAccount) and
+       (aStatement = pData.SuggestedMem.smMatchedPhrase) then
+      Result := true;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -424,36 +485,6 @@ var
   NewData: PTreeData;
 
   FirstNode: PVirtualNode;
-
-  //----------------------------------------------------------------------------
-  procedure GetAccAndStatFromNode(aNode: PVirtualNode; var aAccount, aStatement : string);
-  var
-    pData: PTreeData;
-  begin
-    aAccount := '';
-    aStatement := '';
-    pData := PTreeData(vstTree.GetNodeData(aNode));
-    if Assigned(pData) then
-    begin
-      aAccount := pData.SuggestedMem.smAccount;
-      aStatement := pData.SuggestedMem.smMatchedPhrase;
-    end;
-  end;
-
-  //----------------------------------------------------------------------------
-  function IsAccAndStatEqualtoNode(aNode: PVirtualNode; aAccount, aStatement : string) : boolean;
-  var
-    pData: PTreeData;
-  begin
-    Result := false;
-    pData := PTreeData(vstTree.GetNodeData(aNode));
-    if Assigned(pData) then
-    begin
-      if (aAccount = pData.SuggestedMem.smAccount) and
-         (aStatement = pData.SuggestedMem.smMatchedPhrase) then
-        Result := true;
-    end;
-  end;
 
 begin
   NextNode := nil;
