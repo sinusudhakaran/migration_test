@@ -141,7 +141,7 @@ begin
     Eula.Add(' ');
     Eula.Add('3.3	MYOB BankLink may sell, sub-licence, assign, transfer, charge or lend');
     Eula.Add('        	the Software to any other person or entity or otherwise dispose of');
-    Eula.Add('        	the rights or obligations under this Agreement at any time without');
+    Eula.Add('        	rights or obligations under this Agreement at any time without');
     Eula.Add('        	your consent.');
     Eula.Add('');
     Eula.Add('');
@@ -174,7 +174,7 @@ begin
     Eula.Add('        	of the New Zealand Consumer Guarantees Act 1993 pursuant to clause');
     Eula.Add('        	43(2) thereof and the provisions of the New Zealand Sale of Goods');
     Eula.Add('        	Act 1908 pursuant to clause 56 thereof. You confirm that you have');
-    Eula.Add('        	acquired the Software for business purposes.');
+    Eula.Add('        	the Software for business purposes.');
     Eula.Add('');
     Eula.Add('5.3	If you acquired this Software in Australia:');
     Eula.Add('(a)	This Agreement does not exclude, restrict or modify:');
@@ -344,7 +344,7 @@ begin
     Eula.Add('        	You can ask MYOB BankLink not to use your information to promote');
     Eula.Add('        	the Software and other products and services by following the');
     Eula.Add('        	process outlined in the MYOB Group Privacy Policy');
-    Eula.Add('        	(www.myob.com.au/privacy).');
+    Eula.Add('        	(www.myob.com/privacy).');
     Eula.Add('');
     Eula.Add('        	The MYOB Group Privacy Policy contains information on how to:');
     Eula.Add('');
