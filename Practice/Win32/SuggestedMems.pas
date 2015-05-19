@@ -702,12 +702,29 @@ end;
 function TSuggestedMems.IsMemorisation(aMemorisations: TMemorisations_List; aType: byte; const aMatchPhrase: string): boolean;
 var
   MemIndex : integer;
+  MemStatementDetails : string;
+
+  //----------------------------------------------------------------------------
+  function DropWildCards(aInString : string) : string;
+  var
+    Index : integer;
+  begin
+    Result := '';
+    for Index := 1 to length(aInString) do
+    begin
+      if aInString[Index] <> '*' then
+        Result := Result + aInString[Index];
+    end;
+  end;
 begin
   result := false;
   for MemIndex := 0 to aMemorisations.ItemCount-1 do
   begin
+    MemStatementDetails := aMemorisations.Memorisation_At(MemIndex).mdFields.mdStatement_Details;
+    MemStatementDetails := trim(DropWildCards(MemStatementDetails));
+
     if (aType = aMemorisations.Memorisation_At(MemIndex).mdFields.mdType) and
-       (aMatchPhrase = aMemorisations.Memorisation_At(MemIndex).mdFields.mdStatement_Details) then
+       (aMatchPhrase = MemStatementDetails) then
     begin
       result := true;
       exit;
@@ -752,7 +769,6 @@ begin
   if aBankAccount.baSuggested_Phrase_List.SearchUsingPhraseId(aSuggestion^.smPhraseId, PhraseIndex) then
   begin
     MatchedPhrase := aBankAccount.baSuggested_Phrase_List.GetPRec(PhraseIndex)^.spPhrase;
-    MatchedPhrase := GetSuggestionMatchText(MatchedPhrase, aSuggestion^.smStart_Data, aSuggestion^.smEnd_Data);
 
     if IsMemorisation(aBankAccount.baMemorisations_List, aSuggestion^.smTypeId, MatchedPhrase) then
     begin
