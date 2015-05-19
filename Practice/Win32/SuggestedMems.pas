@@ -1043,7 +1043,8 @@ begin
         begin
           aTrans^.txSuggested_Mem_State := OldState;
 
-          if not aIsBulk then
+          if (not aIsBulk) and
+             (NoMoreRecord) then
             DoProcessingComplete();
         end
         else
