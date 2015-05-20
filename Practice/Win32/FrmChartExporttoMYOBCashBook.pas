@@ -181,14 +181,6 @@ begin
      (not fLoading) then
   begin
 
-    if not ExportChartFrmProperties.AreGSTAccountSetup then
-    begin
-      HelpfulErrorMsg('Please enter GST Control accounts for GST rates with a ' +
-                      'percentage amount under Other Functions | GST Setup | Rates.',0);
-      chkIncludeClosingBalances.Checked := false;
-      Exit;
-    end;
-
     if not ExportChartFrmProperties.AreOpeningBalancesSetup then
     begin
       if not (AskYesNo('Opening balances not been set',

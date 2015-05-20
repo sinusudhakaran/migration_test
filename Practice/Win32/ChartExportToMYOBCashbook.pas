@@ -119,7 +119,6 @@ type
                                                var aNonBasicCodesHaveBalances : boolean;
                                                var aNonBasicCodes : TStringList);
 
-    function CheckAccountCodesLength(aErrors : TStringList) : Boolean;
     function ItemAtColIndex(aClientChartIndex: integer; out aChartExportItem : TChartExportItem) : boolean;
     function ItemAtCode(aCode: string; out aChartExportItem : TChartExportItem) : boolean;
 
@@ -783,26 +782,6 @@ function TChartExportCol.IsThisAContraCode(aCode: string): Boolean;
 begin
   Result := (IsABankContra(aCode, 0) > -1) or
             (IsAGSTContra(aCode, Low(MyClient.clFields.clGST_Account_Codes)) > -1);
-end;
-
-//------------------------------------------------------------------------------
-function TChartExportCol.CheckAccountCodesLength(aErrors : TStringList) : Boolean;
-var
-  ChartIndex : integer;
-  AccountRec : pAccount_Rec;
-begin
-  for ChartIndex := 0 to MyClient.clChart.ItemCount-1 do
-  begin
-    AccountRec := MyClient.clChart.Account_At(ChartIndex);
-
-    if AccountRec.chInactive then
-      continue;
-
-    if length(AccountRec.chAccount_Code) > 10 then
-      aErrors.Add(AccountRec.chAccount_Code + ' - ' + AccountRec.chAccount_Description);
-  end;
-
-  Result := (aErrors.Count = 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -1665,34 +1644,114 @@ begin
 
   ShowUI := Assigned(aPopupParent);
 
-  ErrorStrings := TStringList.Create;
-  Try
-    if not ChartExportCol.CheckAccountCodesLength(ErrorStrings) then
-    begin
-      if ShowUI then
-        ShowChartExportAccountCodeErrors(Application.MainForm, ErrorStrings);
-
-      Res := false;
-      Exit;
-    end;
-  Finally
-    FreeAndNil(ErrorStrings);
-  End;
-
   ExportChartFrmProperties.ClientCode := MyClient.clFields.clCode;
-  ChartExportCol.FillChartExportCol(false);
 
-  if (Country = whAustralia) then
-  begin
-    GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
-    FillGstMapCol(ChartExportCol, GSTMapCol);
+  CalculateAccountTotals.AddAutoGSTContraCodes(MyClient, true);
+  try
+    ChartExportCol.FillChartExportCol(false);
 
-    if GSTMapCol.PrevGSTFileLocation <> '' then
+    if (Country = whAustralia) then
     begin
-      if FileExists(GSTMapCol.PrevGSTFileLocation) then
+      GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
+      FillGstMapCol(ChartExportCol, GSTMapCol, false);
+
+      if GSTMapCol.PrevGSTFileLocation <> '' then
       begin
-        Filename := GSTMapCol.PrevGSTFileLocation;
-        if not GSTMapCol.LoadGSTFile(Filename, ErrorStr) then
+        if FileExists(GSTMapCol.PrevGSTFileLocation) then
+        begin
+          Filename := GSTMapCol.PrevGSTFileLocation;
+          if not GSTMapCol.LoadGSTFile(Filename, ErrorStr) then
+          begin
+            if ShowUI then
+            begin
+              HelpfulErrorMsg(ErrorStr,0);
+              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+            end;
+          end;
+        end;
+      end;
+
+      if ShowUI then
+        Res := ShowMapGSTClass(aPopupParent, fGSTMapCol)
+      else
+        Res := true;
+
+      if Res then
+      begin
+        if (ShowUI) and
+           (not (Filename = '')) then
+          Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
+
+        if Res then
+        begin
+          if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
+            MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
+        end
+        else
+        begin
+          if ShowUI then
+          begin
+            HelpfulErrorMsg(ErrorStr,0);
+            LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
+          end;
+        end;
+      end;
+    end
+    else if (Country = whNewZealand) then
+    begin
+      if not CheckNZGStTypes() then
+      begin
+        if ShowUI then
+        begin
+          ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
+          HelpfulWarningMsg(ErrorStr,0);
+        end;
+        Exit;
+      end;
+    end;
+
+    if Res then
+    begin
+      if (MyClient.clExtra.ceCashbook_Export_File_Location = '') then
+        ExportChartFrmProperties.ExportFileLocation := UserDir + MyClient.clFields.clCode +
+                                                       '_MYOB_Cashbook_Chart.csv'
+      else
+        ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
+
+      ExportChartFrmProperties.IncludeOpeningBalances := aOverrideIncludeBalances;
+
+      if GetLastFullyCodedMonth(BalDate) then
+        ExportChartFrmProperties.OpeningBalanceDate := incDate(BalDate, 1, 0, 0)
+      else
+        ExportChartFrmProperties.OpeningBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
+
+      ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
+      ExportChartFrmProperties.AreOpeningBalancesSetup :=
+        JnlUtils32.CheckForOpeningBalance( MyClient, MyClient.clFields.clReporting_Year_Starts);
+      ExportChartFrmProperties.NonBasicCodesHaveBalances :=
+        DoNonBasicCodesHaveBalances(ExportChartFrmProperties.NonBasicCodes);
+      ExportChartFrmProperties.IsTransactionsUncodedorInvalidlyCoded :=
+        ChartExportCol.IsTransactionsUncodedorInvalidlyCoded;
+      ExportChartFrmProperties.CalcOpeningBalanceEvent := ChartExportCol.CheckIfNonBasicCodesHaveBalances;
+
+      if ShowUI then
+        Res := ShowChartExport(aPopupParent, ExportChartFrmProperties)
+      else
+        Res := true;
+
+      if Res then
+      begin
+        if Length(aOverrideFilename) > 0 then
+          ExportChartFrmProperties.ExportFileLocation := aOverrideFilename;
+
+        Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr, ShowUI);
+
+        if Res then
+        begin
+          if (ExportChartFrmProperties.ExportFileLocation <> MyClient.clExtra.ceCashbook_Export_File_Location) then
+            MyClient.clExtra.ceCashbook_Export_File_Location := ExportChartFrmProperties.ExportFileLocation;
+        end
+        else
         begin
           if ShowUI then
           begin
@@ -1702,96 +1761,8 @@ begin
         end;
       end;
     end;
-
-    if ShowUI then
-      Res := ShowMapGSTClass(aPopupParent, fGSTMapCol)
-    else
-      Res := true;
-
-    if Res then
-    begin
-      if (ShowUI) and
-         (not (Filename = '')) then
-        Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
-
-      if Res then
-      begin
-        if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
-          MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
-      end
-      else
-      begin
-        if ShowUI then
-        begin
-          HelpfulErrorMsg(ErrorStr,0);
-          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
-        end;
-      end;
-    end;
-  end
-  else if (Country = whNewZealand) then
-  begin
-    if not CheckNZGStTypes() then
-    begin
-      if ShowUI then
-      begin
-        ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
-        HelpfulWarningMsg(ErrorStr,0);
-      end;
-      Exit;
-    end;
-  end;
-
-  if Res then
-  begin
-    if (MyClient.clExtra.ceCashbook_Export_File_Location = '') then
-      ExportChartFrmProperties.ExportFileLocation := UserDir + MyClient.clFields.clCode +
-                                                     '_MYOB_Cashbook_Chart.csv'
-    else
-      ExportChartFrmProperties.ExportFileLocation := MyClient.clExtra.ceCashbook_Export_File_Location;
-
-    ExportChartFrmProperties.IncludeOpeningBalances := aOverrideIncludeBalances;
-
-    if GetLastFullyCodedMonth(BalDate) then
-      ExportChartFrmProperties.OpeningBalanceDate := incDate(BalDate, 1, 0, 0)
-    else
-      ExportChartFrmProperties.OpeningBalanceDate := BkNull2St(MyClient.clFields.clPeriod_End_Date);
-
-    ExportChartFrmProperties.AreGSTAccountSetup := CheckGSTControlAccAndRates();
-    ExportChartFrmProperties.AreOpeningBalancesSetup :=
-      JnlUtils32.CheckForOpeningBalance( MyClient, MyClient.clFields.clReporting_Year_Starts);
-    ExportChartFrmProperties.NonBasicCodesHaveBalances :=
-      DoNonBasicCodesHaveBalances(ExportChartFrmProperties.NonBasicCodes);
-    ExportChartFrmProperties.IsTransactionsUncodedorInvalidlyCoded :=
-      ChartExportCol.IsTransactionsUncodedorInvalidlyCoded;
-    ExportChartFrmProperties.CalcOpeningBalanceEvent := ChartExportCol.CheckIfNonBasicCodesHaveBalances;
-
-    if ShowUI then
-      Res := ShowChartExport(aPopupParent, ExportChartFrmProperties)
-    else
-      Res := true;
-
-    if Res then
-    begin
-      if Length(aOverrideFilename) > 0 then
-        ExportChartFrmProperties.ExportFileLocation := aOverrideFilename;
-
-      Res := RunExportChartToFile(ExportChartFrmProperties.ExportFileLocation, ErrorStr, ShowUI);
-
-      if Res then
-      begin
-        if (ExportChartFrmProperties.ExportFileLocation <> MyClient.clExtra.ceCashbook_Export_File_Location) then
-          MyClient.clExtra.ceCashbook_Export_File_Location := ExportChartFrmProperties.ExportFileLocation;
-      end
-      else
-      begin
-        if ShowUI then
-        begin
-          HelpfulErrorMsg(ErrorStr,0);
-          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
-        end;
-      end;
-    end;
+  finally
+    CalculateAccountTotals.RemoveAutoContraCodes( MyClient);
   end;
 end;
 

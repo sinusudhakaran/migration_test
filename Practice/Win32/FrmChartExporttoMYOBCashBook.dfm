@@ -177,7 +177,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Left = 112
       Top = 214
       Width = 467
-      Height = 22
+      Height = 19
       Ctl3D = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText

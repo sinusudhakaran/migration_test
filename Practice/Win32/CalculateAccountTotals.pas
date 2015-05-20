@@ -81,6 +81,8 @@ const
 
 procedure CalculateAccountTotalsForClient( aClient : TClientObj; AddContras : boolean = true; AccountList: TList = nil; MaxDate: integer = -1; UseMaxDate: Boolean = False; IncludeExchangeGainLoss: Boolean = False; UseLocalAmountAsBase: Boolean = False; ExcludeGainLossFromBudget: Boolean = False);
 
+procedure AddAutoGSTContraCodes( aClient : TClientObj; aAddTempTags : boolean = false);
+
 procedure AddAutoContraCodes( aClient : TClientObj; aAddExtraAccounts : boolean = true; aAddTempTags : boolean = false);
 procedure RemoveAutoContraCodes( aClient : TClientObj);
 
@@ -1049,6 +1051,80 @@ begin
        clTemp_FRS_Last_Actual_Period_To_Use := clTemp_Last_Period_Of_Actual_Data;
   end;
 end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure AddAutoGSTContraCodes( aClient : TClientObj; aAddTempTags : boolean);
+
+   function CodeToAdd( DefaultCode : bk5CodeStr) : bk5CodeStr;
+   var
+      NewCode : bk5codeStr;
+      i       : integer;
+   begin
+      NewCode := DefaultCode;
+      i := 1;
+      while ( aClient.clChart.FindCode( NewCode) <> nil) do begin
+         NewCode := DefaultCode + inttostr( i);
+         Inc( i);
+      end;
+      result := NewCode;
+   end;
+
+var
+  NewAcct : pAccount_Rec;
+  pAcct   : pAccount_Rec;
+  NewCode : bk5CodeStr;
+  ClassNo : integer;
+  BankAccount : TBank_Account;
+  b           : integer;
+begin
+  //add an account for each valid gst type
+  for ClassNo := 1 to Max_GST_Class do
+  begin
+    if (aClient.clFields.clGST_Class_Codes[ ClassNo] <> '') then
+    begin
+      if (aClient.clFields.clGST_Account_Codes[ ClassNo] = '') then
+      begin
+        //add a contra for missing codes
+        NewCode := CodeToAdd( aClient.TaxSystemNameUC + '_' + aClient.clFields.clGST_Class_Codes[ ClassNo] );
+        NewAcct := bkchio.New_Account_Rec;
+        with NewAcct^ do
+        begin
+          chAccount_Type         := BKCONST.atGSTPayable;
+          chAccount_Description  := 'Contra for ' + aClient.clFields.clGST_Class_Names[ ClassNo];
+          chAccount_Code         := NewCode;
+          chPosting_Allowed      := true;
+          chTemp_Calc_Totals_Tag := Tag_Temp_GST_Contra;
+          if aAddTempTags then
+            chTemp_Tag := TEMP_TAG_MANUAL_ADDED_GST;
+        end;
+        aClient.clChart.Insert( NewAcct);
+        aClient.clFields.clGST_Account_Codes[ ClassNo] := NewCode;
+      end
+      else
+      begin
+        //add an account for invalid codes so that still appear on the report
+        pAcct := aClient.clChart.FindCode( aClient.clFields.clGST_Account_Codes[ ClassNo]);
+        if pAcct = nil then
+        begin
+          NewCode := aClient.clFields.clGST_Account_Codes[ ClassNo];
+          NewAcct := bkchio.New_Account_Rec;
+          with NewAcct^ do
+          begin
+            chAccount_Type         := BKCONST.atGSTPayable;
+            chAccount_Description  := 'Contra for ' + aClient.clFields.clGST_Class_Names[ ClassNo];
+            chAccount_Code         := NewCode;
+            chPosting_Allowed      := true;
+            chTemp_Calc_Totals_Tag := Tag_Invalid_GST_Contra;
+            if aAddTempTags then
+              chTemp_Tag := TEMP_TAG_MANUAL_ADDED_GST;
+          end;
+          aClient.clChart.Insert( NewAcct);
+        end;
+      end;
+    end;
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure AddAutoContraCodes( aClient : TClientObj; aAddExtraAccounts : boolean; aAddTempTags : boolean);
 
@@ -1142,45 +1218,7 @@ begin
      aClient.clChart.Insert( NewAcct);//add missing gst contra codes
    end;
 
-   //add an account for each valid gst type
-   for ClassNo := 1 to Max_GST_Class do begin
-     if (aClient.clFields.clGST_Class_Codes[ ClassNo] <> '') then begin
-       if (aClient.clFields.clGST_Account_Codes[ ClassNo] = '') then begin
-         //add a contra for missing codes
-         NewCode := CodeToAdd( aClient.TaxSystemNameUC + '_' + aClient.clFields.clGST_Class_Codes[ ClassNo] );
-         NewAcct := bkchio.New_Account_Rec;
-         with NewAcct^ do begin
-            chAccount_Type         := BKCONST.atGSTPayable;
-            chAccount_Description  := 'Contra for ' + aClient.clFields.clGST_Class_Names[ ClassNo];
-            chAccount_Code         := NewCode;
-            chPosting_Allowed      := true;
-            chTemp_Calc_Totals_Tag := Tag_Temp_GST_Contra;
-            if aAddTempTags then
-              chTemp_Tag := TEMP_TAG_MANUAL_ADDED_GST;
-         end;
-         aClient.clChart.Insert( NewAcct);
-         aClient.clFields.clGST_Account_Codes[ ClassNo] := NewCode;
-       end
-       else begin
-         //add an account for invalid codes so that still appear on the report
-         pAcct := aClient.clChart.FindCode( aClient.clFields.clGST_Account_Codes[ ClassNo]);
-         if pAcct = nil then begin
-           NewCode := aClient.clFields.clGST_Account_Codes[ ClassNo];
-           NewAcct := bkchio.New_Account_Rec;
-           with NewAcct^ do begin
-              chAccount_Type         := BKCONST.atGSTPayable;
-              chAccount_Description  := 'Contra for ' + aClient.clFields.clGST_Class_Names[ ClassNo];
-              chAccount_Code         := NewCode;
-              chPosting_Allowed      := true;
-              chTemp_Calc_Totals_Tag := Tag_Invalid_GST_Contra;
-              if aAddTempTags then
-                chTemp_Tag := TEMP_TAG_MANUAL_ADDED_GST;
-           end;
-           aClient.clChart.Insert( NewAcct);
-         end;
-       end;
-     end;
-   end;
+   AddAutoGSTContraCodes(aClient, aAddTempTags);
 
    //add missing bank account contras
    for b := 0 to Pred( aClient.clBank_Account_List.ItemCount) do begin
