@@ -171,7 +171,8 @@ type
 
     function  FillPayeeData(aClient: TClientObj; const aHasTransactions: boolean;
                 const aBankAccountsData: TBankAccountsData;
-                const aPayeesData: TPayeesData; var aError: string): boolean;
+                const aGSTMapCol : TGSTMapCol; const aPayeesData: TPayeesData;
+                var aError: string): boolean;
     function  FillJobData(aClient: TClientObj; const aHasTransactions: boolean;
                 const aBankAccountsData: TBankAccountsData; const aJobsData: TJobsData;
                 var aError: string): boolean;
@@ -1594,19 +1595,25 @@ end;
 //------------------------------------------------------------------------------
 function TCashbookMigration.FillPayeeData(aClient: TClientObj;
   const aHasTransactions: boolean; const aBankAccountsData: TBankAccountsData;
-  const aPayeesData: TPayeesData; var aError: string): boolean;
+  const aGSTMapCol : TGSTMapCol; const aPayeesData: TPayeesData;
+  var aError: string): boolean;
 var
-  i: integer;
+  iPayee: integer;
   Payees: TPayee_List;
   Payee: TPayee;
   PayeeData: TPayeeData;
+
+  Lines: TPayeeLinesList;
+  iLine: integer;
+  pLine: pPayee_Line_Rec;
+  LineData: TPayeeLineData;
 begin
   try
     Payees := aClient.clPayee_List;
 
-    for i := 0 to Payees.ItemCount-1 do
+    for iPayee := 0 to Payees.ItemCount-1 do
     begin
-      Payee := Payees.Payee_At(i);
+      Payee := Payees.Payee_At(iPayee);
 
       if aHasTransactions then
       begin
@@ -1624,6 +1631,7 @@ begin
 
       PayeeData := TPayeeData.Create(aPayeesData);
 
+      // Payee
       PayeeData.PayeeNumber := Payee.pdFields.pdNumber;
       PayeeData.Inactive := Payee.pdFields.pdInactive;
       PayeeData.ContractorPayee := Payee.pdFields.pdContractor;
@@ -1637,6 +1645,29 @@ begin
       PayeeData.Postcode := Payee.pdFields.pdPost_Code;
       PayeeData.PhoneNumber := Payee.pdFields.pdPhone_Number;
       PayeeData.ABN := Payee.pdFields.pdABN;
+      PayeeData.BusinessName := Payee.pdFields.pdBusinessName;
+      PayeeData.TradingName := Payee.pdFields.pdTradingName;
+      PayeeData.AddressLine2 := Payee.pdFields.pdAddressLine2;
+      PayeeData.Country := Payee.pdFields.pdCountry;
+      PayeeData.InstitutionAccountNumber := Payee.pdFields.pdInstitutionAccountNumber;
+      PayeeData.StateId := Payee.pdFields.pdStateId;
+
+      // Lines
+      Lines := Payee.pdLines;
+      for iLine := 0 to Lines.ItemCount-1 do
+      begin
+        pLine := Lines[iLine];
+
+        LineData := TPayeeLineData.Create(PayeeData.Lines);
+
+        // Line
+        LineData.Account :=  pLine.plAccount;
+        LineData.Percentage := pLine.plPercentage;
+        LineData.TaxRate := GetCashBookGSTType(aGSTMapCol, pLine.plGST_Class);
+        LineData.Narration := pLine.plGL_Narration;
+        LineData.GSTAmount := pLine.plGST_Amount;
+      end;
+
     end;
 
   except
@@ -1945,7 +1976,7 @@ begin
           end;
 
           if not FillPayeeData(aClient, aSelectedData.NonTransferedTransactions,
-            ClientBase.ClientData.BankAccountsData,
+            ClientBase.ClientData.BankAccountsData, GSTMapCol,
             ClientBase.ClientData.PayeesData, aError) then
           begin
             exit;

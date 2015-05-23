@@ -332,6 +332,35 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  TPayeeLineData = class(TCollectionItem)
+  private
+    fAccount: string;
+    fPercentage: comp;
+    fTaxRate: string;
+    fNarration: string;
+    fGSTAmount: comp;
+
+  public
+    procedure Write(const aJson: TlkJSONobject);
+
+    property  Account: string read fAccount write fAccount;
+    property  Percentage: comp read fPercentage write fPercentage;
+    property  TaxRate: string read fTaxRate write fTaxRate;
+    property  Narration: string read fNarration write fNarration;
+    property  GSTAmount: comp read fGSTAmount write fGSTAmount;
+
+  end;
+
+  //----------------------------------------------------------------------------
+  TPayeeLinesData = class(TCollection)
+  private
+  public
+    function ItemAs(aIndex: integer): TPayeeLineData;
+
+    procedure Write(const aJson: TlkJSONobject);
+  end;
+
+  //----------------------------------------------------------------------------
   TPayeeData = class(TCollectionItem)
   private
     fPayeeNumber: integer;
@@ -347,8 +376,19 @@ type
     fPostcode: string;
     fPhoneNumber: string;
     fABN: string;
+    fBusinessName: string;
+    fTradingName: string;
+    fAddressLine2: string;
+    fCountry: string;
+    fInstitutionAccountNumber: string;
+    fStateId: integer;
+
+    fLines: TPayeeLinesData;
 
   public
+    constructor Create(Collection: TCollection); override;
+    destructor  Destroy; override;
+
     procedure Write(const aJson: TlkJSONobject);
 
     property  PayeeNumber: integer read fPayeeNumber write fPayeeNumber;
@@ -364,6 +404,14 @@ type
     property  Postcode: string read fPostcode write fPostcode;
     property  PhoneNumber: string read fPhoneNumber write fPhoneNumber;
     property  ABN: string read fABN write fABN;
+    property  BusinessName: string read fBusinessName write fBusinessName;
+    property  TradingName: string read fTradingName write fTradingName;
+    property  AddressLine2: string read fAddressLine2 write fAddressLine2;
+    property  Country: string read fCountry write fCountry;
+    property  InstitutionAccountNumber: string read fInstitutionAccountNumber write fInstitutionAccountNumber;
+    property  StateId: integer read fStateId write fStateId;
+
+    property  Lines: TPayeeLinesData read fLines;
   end;
 
   //----------------------------------------------------------------------------
@@ -1231,7 +1279,63 @@ begin
   end;
 end;
 
+{ TPayeeLineData }
+//------------------------------------------------------------------------------
+procedure TPayeeLineData.Write(const aJson: TlkJSONobject);
+begin
+  aJson.Add('Account', fAccount);
+  aJson.Add('Percentage', fPercentage);
+  aJson.Add('TaxRate', fTaxRate);
+  aJson.Add('Narration', fNarration);
+  aJson.Add('GSTAmount', fGSTAmount);
+end;
+
+{ TPayeeLinesData }
+//------------------------------------------------------------------------------
+function TPayeeLinesData.ItemAs(aIndex: integer): TPayeeLineData;
+begin
+  result := TPayeeLineData(Items[aIndex]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TPayeeLinesData.Write(const aJson: TlkJSONobject);
+var
+  Lines: TlkJSONlist;
+  i: integer;
+  Line: TlkJSONobject;
+  LineData: TPayeeLineData;
+begin
+  if (Count = 0) then
+    exit;
+
+  Lines := TlkJSONlist.Create;
+  aJson.Add('lines', Lines);
+
+  for i := 0 to Count-1 do
+  begin
+    Line := TlkJSONobject.Create;
+    Lines.Add(Line);
+
+    LineData := ItemAs(i);
+    LineData.Write(Line);
+  end;
+end;
+
 { TPayeeData }
+//------------------------------------------------------------------------------
+constructor TPayeeData.Create(Collection: TCollection);
+begin
+  inherited;
+
+  fLines := TPayeeLinesData.Create(TPayeeLineData);
+end;
+
+//------------------------------------------------------------------------------
+destructor TPayeeData.Destroy;
+begin
+  FreeAndNil(fLines);
+end;
+
 //------------------------------------------------------------------------------
 procedure TPayeeData.Write(const aJson: TlkJSONobject);
 begin
@@ -1248,6 +1352,14 @@ begin
   aJson.Add('Postcode', fPostcode);
   aJson.Add('PhoneNumber', fPhoneNumber);
   aJson.Add('Abn', fABN);
+  aJson.Add('BusinessName', fBusinessName);
+  aJson.Add('TradingName', fTradingName);
+  aJson.Add('AddressLine2', fAddressLine2);
+  aJson.Add('Country', fCountry);
+  aJson.Add('InstitutionAccountNumber', fInstitutionAccountNumber);
+  aJson.Add('StateId', fStateId);
+
+  fLines.Write(aJson);
 end;
 
 { TPayeesData }
