@@ -381,7 +381,6 @@ type
     fAddressLine2: string;
     fCountry: string;
     fInstitutionAccountNumber: string;
-    fStateId: integer;
 
     fLines: TPayeeLinesData;
 
@@ -409,7 +408,6 @@ type
     property  AddressLine2: string read fAddressLine2 write fAddressLine2;
     property  Country: string read fCountry write fCountry;
     property  InstitutionAccountNumber: string read fInstitutionAccountNumber write fInstitutionAccountNumber;
-    property  StateId: integer read fStateId write fStateId;
 
     property  Lines: TPayeeLinesData read fLines;
   end;
@@ -1357,7 +1355,6 @@ begin
   aJson.Add('AddressLine2', fAddressLine2);
   aJson.Add('Country', fCountry);
   aJson.Add('InstitutionAccountNumber', fInstitutionAccountNumber);
-  aJson.Add('StateId', fStateId);
 
   fLines.Write(aJson);
 end;

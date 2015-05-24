@@ -239,7 +239,8 @@ uses
   Merge32,
   SYDEFS,
   PayeeObj,
-  JobObj;
+  JobObj,
+  CountryUtils;
 
 const
   UnitName = 'CashbookMigration';
@@ -1602,6 +1603,8 @@ var
   Payees: TPayee_List;
   Payee: TPayee;
   PayeeData: TPayeeData;
+  sStateCode: string;
+  sStateDesc: string;
 
   Lines: TPayeeLinesList;
   iLine: integer;
@@ -1641,7 +1644,13 @@ begin
       PayeeData.OtherName := Payee.pdFields.pdOther_Name;
       PayeeData.Address := Payee.pdFields.pdAddress;
       PayeeData.Town := Payee.pdFields.pdTown;
-      PayeeData.State := Payee.pdFields.pdState;
+
+      if Payee.pdFields.pdContractor then
+      begin
+        GetAustraliaStateFromIndex(Payee.pdFields.pdStateId, sStateCode, sStateDesc);
+        PayeeData.State := sStateCode;
+      end;
+
       PayeeData.Postcode := Payee.pdFields.pdPost_Code;
       PayeeData.PhoneNumber := Payee.pdFields.pdPhone_Number;
       PayeeData.ABN := Payee.pdFields.pdABN;
@@ -1650,7 +1659,6 @@ begin
       PayeeData.AddressLine2 := Payee.pdFields.pdAddressLine2;
       PayeeData.Country := Payee.pdFields.pdCountry;
       PayeeData.InstitutionAccountNumber := Payee.pdFields.pdInstitutionAccountNumber;
-      PayeeData.StateId := Payee.pdFields.pdStateId;
 
       // Lines
       Lines := Payee.pdLines;
