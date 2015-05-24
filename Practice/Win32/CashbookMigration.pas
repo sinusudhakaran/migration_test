@@ -1658,7 +1658,8 @@ begin
       PayeeData.TradingName := Payee.pdFields.pdTradingName;
       PayeeData.AddressLine2 := Payee.pdFields.pdAddressLine2;
       PayeeData.Country := Payee.pdFields.pdCountry;
-      PayeeData.InstitutionAccountNumber := Payee.pdFields.pdInstitutionAccountNumber;
+      PayeeData.BankAccountNumber := Payee.pdFields.pdInstitutionBSB +
+        Payee.pdFields.pdInstitutionAccountNumber;
 
       // Lines
       Lines := Payee.pdLines;

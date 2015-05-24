@@ -380,7 +380,7 @@ type
     fTradingName: string;
     fAddressLine2: string;
     fCountry: string;
-    fInstitutionAccountNumber: string;
+    fBankAccountNumber: string;
 
     fLines: TPayeeLinesData;
 
@@ -407,7 +407,7 @@ type
     property  TradingName: string read fTradingName write fTradingName;
     property  AddressLine2: string read fAddressLine2 write fAddressLine2;
     property  Country: string read fCountry write fCountry;
-    property  InstitutionAccountNumber: string read fInstitutionAccountNumber write fInstitutionAccountNumber;
+    property  BankAccountNumber: string read fBankAccountNumber write fBankAccountNumber;
 
     property  Lines: TPayeeLinesData read fLines;
   end;
@@ -1354,7 +1354,7 @@ begin
   aJson.Add('TradingName', fTradingName);
   aJson.Add('AddressLine2', fAddressLine2);
   aJson.Add('Country', fCountry);
-  aJson.Add('InstitutionAccountNumber', fInstitutionAccountNumber);
+  aJson.Add('BankAccountNumber', fBankAccountNumber);
 
   fLines.Write(aJson);
 end;
