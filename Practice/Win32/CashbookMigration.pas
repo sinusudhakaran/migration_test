@@ -1671,10 +1671,15 @@ begin
 
         // Line
         LineData.Account :=  pLine.plAccount;
-        LineData.Percentage := pLine.plPercentage;
+
+        // Percentage or dollar amount (same field depending on line type)
+        if (pLine.plLine_Type = pltPercentage) then
+          LineData.Percentage := pLine.plPercentage
+        else
+          LineData.Amount := pLine.plPercentage;
+
         LineData.TaxRate := GetCashBookGSTType(aGSTMapCol, pLine.plGST_Class);
         LineData.Narration := pLine.plGL_Narration;
-        LineData.GSTAmount := pLine.plGST_Amount;
       end;
 
     end;

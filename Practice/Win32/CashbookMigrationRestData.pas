@@ -338,7 +338,7 @@ type
     fPercentage: comp;
     fTaxRate: string;
     fNarration: string;
-    fGSTAmount: comp;
+    fAmount: comp;
 
   public
     procedure Write(const aJson: TlkJSONobject);
@@ -347,7 +347,7 @@ type
     property  Percentage: comp read fPercentage write fPercentage;
     property  TaxRate: string read fTaxRate write fTaxRate;
     property  Narration: string read fNarration write fNarration;
-    property  GSTAmount: comp read fGSTAmount write fGSTAmount;
+    property  Amount: comp read fAmount write fAmount;
 
   end;
 
@@ -1285,7 +1285,7 @@ begin
   aJson.Add('Percentage', fPercentage);
   aJson.Add('TaxRate', fTaxRate);
   aJson.Add('Narration', fNarration);
-  aJson.Add('GSTAmount', fGSTAmount);
+  aJson.Add('Amount', fAmount);
 end;
 
 { TPayeeLinesData }
