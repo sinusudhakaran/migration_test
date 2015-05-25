@@ -334,7 +334,7 @@ type
   //----------------------------------------------------------------------------
   TPayeeLineData = class(TCollectionItem)
   private
-    fAccount: string;
+    fAccountNumber: string;
     fPercentage: comp;
     fTaxRate: string;
     fNarration: string;
@@ -343,7 +343,7 @@ type
   public
     procedure Write(const aJson: TlkJSONobject);
 
-    property  Account: string read fAccount write fAccount;
+    property  AccountNumber: string read fAccountNumber write fAccountNumber;
     property  Percentage: comp read fPercentage write fPercentage;
     property  TaxRate: string read fTaxRate write fTaxRate;
     property  Narration: string read fNarration write fNarration;
@@ -1281,7 +1281,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TPayeeLineData.Write(const aJson: TlkJSONobject);
 begin
-  aJson.Add('Account', fAccount);
+  aJson.Add('AccountNumber', fAccountNumber);
   aJson.Add('Percentage', fPercentage);
   aJson.Add('TaxRate', fTaxRate);
   aJson.Add('Narration', fNarration);
@@ -1307,7 +1307,7 @@ begin
     exit;
 
   Lines := TlkJSONlist.Create;
-  aJson.Add('lines', Lines);
+  aJson.Add('Lines', Lines);
 
   for i := 0 to Count-1 do
   begin
