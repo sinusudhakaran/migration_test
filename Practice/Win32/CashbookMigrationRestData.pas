@@ -378,7 +378,7 @@ type
     fABN: string;
     fBusinessName: string;
     fTradingName: string;
-    fAddressLine2: string;
+    fAddress2: string;
     fCountry: string;
     fBankAccountNumber: string;
 
@@ -405,7 +405,7 @@ type
     property  ABN: string read fABN write fABN;
     property  BusinessName: string read fBusinessName write fBusinessName;
     property  TradingName: string read fTradingName write fTradingName;
-    property  AddressLine2: string read fAddressLine2 write fAddressLine2;
+    property  Address2: string read fAddress2 write fAddress2;
     property  Country: string read fCountry write fCountry;
     property  BankAccountNumber: string read fBankAccountNumber write fBankAccountNumber;
 
@@ -1345,15 +1345,15 @@ begin
   aJson.Add('PayeeGivenName', fPayeeGivenName);
   aJson.Add('OtherName', fOtherName);
   aJson.Add('Address', fAddress);
+  aJson.Add('Address2', fAddress2);
   aJson.Add('Town', fTown);
   aJson.Add('State', fState);
   aJson.Add('Postcode', fPostcode);
+  aJson.Add('Country', fCountry);
   aJson.Add('PhoneNumber', fPhoneNumber);
   aJson.Add('Abn', fABN);
   aJson.Add('BusinessName', fBusinessName);
   aJson.Add('TradingName', fTradingName);
-  aJson.Add('AddressLine2', fAddressLine2);
-  aJson.Add('Country', fCountry);
   aJson.Add('BankAccountNumber', fBankAccountNumber);
 
   fLines.Write(aJson);

@@ -1656,7 +1656,7 @@ begin
       PayeeData.ABN := Payee.pdFields.pdABN;
       PayeeData.BusinessName := Payee.pdFields.pdBusinessName;
       PayeeData.TradingName := Payee.pdFields.pdTradingName;
-      PayeeData.AddressLine2 := Payee.pdFields.pdAddressLine2;
+      PayeeData.Address2 := Payee.pdFields.pdAddressLine2;
       PayeeData.Country := Payee.pdFields.pdCountry;
       PayeeData.BankAccountNumber := Payee.pdFields.pdInstitutionBSB +
         Payee.pdFields.pdInstitutionAccountNumber;
