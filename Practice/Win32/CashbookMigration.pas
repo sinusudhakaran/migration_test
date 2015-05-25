@@ -1670,7 +1670,7 @@ begin
         LineData := TPayeeLineData.Create(PayeeData.Lines);
 
         // Line
-        LineData.Account :=  pLine.plAccount;
+        LineData.AccountNumber :=  pLine.plAccount;
 
         // Percentage or dollar amount (same field depending on line type)
         if (pLine.plLine_Type = pltPercentage) then
