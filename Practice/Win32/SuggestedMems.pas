@@ -897,7 +897,8 @@ begin
         fTempNoMoreRecord := true;
       end;
 
-      if (BankAccount.baTransaction_List.ItemCount > 0) then
+      if (BankAccount.baTransaction_List.ItemCount > 0) and
+         (not BankAccount.IsAJournalAccount) then
       begin
         Date_Effective := BankAccount.baTransaction_List.Transaction_At(0)^.txDate_Effective;
         DateDiff(Date_Effective, CurrentDate, Days, Months, Years);
