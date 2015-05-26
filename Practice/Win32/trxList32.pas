@@ -1,8 +1,10 @@
 unit trxList32;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 // Transaction List Object
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+
 interface
+
 uses
   classes,
   bkdefs,
@@ -11,42 +13,82 @@ uses
   AuditMgr;
 
 type
-  TTransaction_List = class(TExtdSortedCollection)
+  //----------------------------------------------------------------------------
+  pTran_Suggested_Index_Rec = ^TTran_Suggested_Index_Rec;
+  TTran_Suggested_Index_Rec = Packed Record
+    tiType                : Byte;
+    tiCoded_By            : Byte;
+    tiSuggested_Mem_State : Byte;
+    tiDate_Effective      : integer;
+    tiTran_Seq_No         : integer;
+    tiAccount             : String[ 20 ];
+    tiStatement_Details   : AnsiString;
+  end;
+
+const
+  Tran_Suggested_Index_Rec_Size = Sizeof(TTran_Suggested_Index_Rec);
+
+type
+  //----------------------------------------------------------------------------
+  TTran_Suggested_Index = class(TExtdSortedCollection)
+  private
+    fSortForSave : boolean;
   protected
-    procedure FreeItem(Item : Pointer); override;
+    function NewItem() : Pointer;
+    procedure FreeItem(Item: Pointer); override;
+  public
+    constructor Create; override;
+    function  Compare(Item1, Item2: Pointer) : integer; override;
+
+    procedure FreeTheItem(Item: Pointer);
+
+    property SortForSave : boolean read fSortForSave write fSortForSave;
+  end;
+
+  //----------------------------------------------------------------------------
+  TTransaction_List = class(TExtdSortedCollection)
   private
     FLastSeq      : integer;
     FClient       : TObject;
     FBank_Account : TObject;
     FAuditMgr     : TClientAuditManager;
-    FLoading: boolean;
+    FLoading      : boolean;
+
+    fTran_Suggested_Index : TTran_Suggested_Index;
+
     function FindRecordID(ARecordID: integer):  pTransaction_Rec;
     function FindDissectionRecordID(ATransaction: pTransaction_Rec;
                                     ARecordID: integer): pDissection_Rec;
     procedure SetClient(const Value: TObject);
     procedure SetBank_Account(const Value: TObject);
     procedure SetAuditMgr(const Value: TClientAuditManager);
+  protected
+    procedure FreeItem(Item : Pointer); override;
   public
     constructor Create( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager ); reintroduce; overload; virtual;
+    destructor Destroy; override;
     function Compare(Item1,Item2 : Pointer): Integer; override;
     procedure Insert(Item:Pointer); override;
     procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
+
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S: TIOStream);
-    function  Transaction_At(Index : longint) : pTransaction_Rec;
-    function  GetTransCoreID_At(Index : longint) : int64;
-    function  FindTransactionFromECodingUID( UID : integer) : pTransaction_Rec;
-    function  FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
+    function Transaction_At(Index : longint) : pTransaction_Rec;
+    function GetTransCoreID_At(Index : longint) : int64;
+    function FindTransactionFromECodingUID( UID : integer) : pTransaction_Rec;
+    function FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
+    function SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
+    function SearchUsingTypeDateandTranSeqNo(aType : Byte; aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
     function New_Transaction : pTransaction_Rec;
 
     // Effective date
     // Note: returns 0 zero or first/last date of Effective Date
-    function  FirstEffectiveDate : LongInt;
-    function  LastEffectiveDate : LongInt;
+    function FirstEffectiveDate : LongInt;
+    function LastEffectiveDate : LongInt;
 
     // Presented date
-    function  FirstPresDate : LongInt;
-    function  LastPresDate : LongInt;
+    function FirstPresDate : LongInt;
+    function LastPresDate : LongInt;
 
     procedure UpdateCRC(var CRC : Longword);
     procedure DoAudit(ATransactionListCopy: TTransaction_List; AParentID: integer;
@@ -58,11 +100,14 @@ type
                            var AAuditInfo: TAuditInfo);
     procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
                                      var AAuditInfo: TAuditInfo);
+    function GetIndexPRec(aIndex: integer): pTran_Suggested_Index_Rec;
 
     property LastSeq : integer read FLastSeq;
     property TxnClient: TObject read FClient write SetClient;
     property TxnBankAccount: TObject read FBank_Account write SetBank_Account;
     property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
+
+    property Tran_Suggested_Index : TTran_Suggested_Index read fTran_Suggested_Index;
   end;
 
   procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
@@ -70,7 +115,7 @@ type
   procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
                              AClientAuditManager: TClientAuditManager = nil );
 
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
 
 uses
@@ -96,8 +141,80 @@ uses
 const
   DebugMe : boolean = false;
   UnitName = 'TRXLIST32';
+  SInsufficientMemory = UnitName + ' Error: Out of memory in TTran_Suggested_Index.NewItem';
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+{ TTran_Suggested_Index }
+//------------------------------------------------------------------------------
+function TTran_Suggested_Index.NewItem: Pointer;
+var
+  P : pTran_Suggested_Index_Rec;
+Begin
+  SafeGetMem( P, Tran_Suggested_Index_Rec_Size );
+
+  If Assigned( P ) then
+    FillChar( P^, Tran_Suggested_Index_Rec_Size, 0 )
+  else
+    Raise EInsufficientMemory.Create( SInsufficientMemory );
+
+  Result := P;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Index.FreeItem(Item: Pointer);
+begin
+  pTran_Suggested_Index_Rec(Item)^.tiAccount := '';
+  pTran_Suggested_Index_Rec(Item)^.tiStatement_Details := '';
+
+  SafeFreeMem(Item, Tran_Suggested_Index_Rec_Size);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTran_Suggested_Index.FreeTheItem(Item: Pointer);
+begin
+  DelFreeItem(Item);
+end;
+
+//------------------------------------------------------------------------------
+constructor TTran_Suggested_Index.Create;
+begin
+  inherited;
+
+  SortForSave := false;
+  Duplicates := false;
+end;
+
+//------------------------------------------------------------------------------
+function TTran_Suggested_Index.Compare(Item1, Item2: Pointer): integer;
+begin
+  if fSortForSave then
+  begin
+    if pTran_Suggested_Index_Rec(Item1)^.tiDate_Effective < pTran_Suggested_Index_Rec(Item2)^.tiDate_Effective then result := -1 else
+    if pTran_Suggested_Index_Rec(Item1)^.tiDate_Effective > pTran_Suggested_Index_Rec(Item2)^.tiDate_Effective then result := 1 else
+    if pTran_Suggested_Index_Rec(Item1)^.tiTran_Seq_No    < pTran_Suggested_Index_Rec(Item2)^.tiTran_Seq_No then result := -1 else
+    if pTran_Suggested_Index_Rec(Item1)^.tiTran_Seq_No    > pTran_Suggested_Index_Rec(Item2)^.tiTran_Seq_No then result := 1 else
+    result := 0;
+  end
+  else
+  begin
+    Result := CompareValue(pTran_Suggested_Index_Rec(Item1)^.tiType,
+                           pTran_Suggested_Index_Rec(Item2)^.tiType);
+
+    if Result <> 0 then
+      Exit;
+
+    Result := CompareValue(pTran_Suggested_Index_Rec(Item1)^.tiDate_Effective,
+                           pTran_Suggested_Index_Rec(Item2)^.tiDate_Effective);
+
+    if Result <> 0 then
+      Exit;
+
+    Result := CompareValue(pTran_Suggested_Index_Rec(Item1)^.tiTran_Seq_No,
+                           pTran_Suggested_Index_Rec(Item2)^.tiTran_Seq_No);
+  end;
+end;
+
+{ TTransaction_List }
+//------------------------------------------------------------------------------
 procedure Dispose_Dissection_Rec(p : PDissection_Rec);
 const
   ThisMethodName = 'Dispose_Dissection_Rec';
@@ -114,7 +231,7 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
 const
   ThisMethodName = 'Dispose_Transaction_Rec';
@@ -138,7 +255,7 @@ Begin
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
 const
   ThisMethodName = 'Dump_Dissections';
@@ -167,7 +284,7 @@ Begin
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 Procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
   AClientAuditManager: TClientAuditManager);
@@ -199,7 +316,7 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TTransaction_List.Compare(Item1, Item2 : pointer): integer;
 begin
   if pTransaction_Rec(Item1)^.txDate_Effective < pTransaction_Rec(Item2)^.txDate_Effective then result := -1 else
@@ -208,7 +325,7 @@ begin
   if pTransaction_Rec(Item1)^.txSequence_No    > pTransaction_Rec(Item2)^.txSequence_No then result := 1 else
   result := 0;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TTransaction_List.Insert(Item:Pointer);
 const
   ThisMethodName = 'TTransaction_List.Insert';
@@ -219,17 +336,18 @@ begin
   LogUtil.LogMsg(lmError, UnitName, Msg );
   raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TTransaction_List.FreeItem(Item : Pointer);
-//Dispose Transaction has debug and error handling
 begin
   Dispose_Transaction_Rec(pTransaction_Rec(item));
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
   NewAuditID: Boolean = True);
 const
   ThisMethodName = 'TTransaction_List.Insert_Transaction_Rec';
+var
+  NewTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   If BKTXIO.IsATransaction_Rec( P ) then
@@ -241,9 +359,21 @@ Begin
 
     if (fBank_Account is TBank_Account) and
        (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
+    begin
+      NewTran_Suggested_Index_Rec := fTran_Suggested_Index.NewItem;
+      NewTran_Suggested_Index_Rec^.tiType                := P^.txType;
+      NewTran_Suggested_Index_Rec^.tiDate_Effective      := P^.txDate_Effective;
+      NewTran_Suggested_Index_Rec^.tiTran_Seq_No         := P^.txSequence_No;
+      NewTran_Suggested_Index_Rec^.tiStatement_Details   := P^.txStatement_Details;
+      NewTran_Suggested_Index_Rec^.tiAccount             := P^.txAccount;
+      NewTran_Suggested_Index_Rec^.tiSuggested_Mem_State := P^.txSuggested_Mem_State;
+
       SuggestedMem.UpdateAccountWithTransInsert(TBank_Account(fBank_Account),
-                                                P,
+                                                NewTran_Suggested_Index_Rec,
                                                 ((not FLoading) and NewAuditID));
+
+      fTran_Suggested_Index.Insert(NewTran_Suggested_Index_Rec);
+    end;
 
     //Get next audit ID for new transactions
     if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
@@ -253,7 +383,7 @@ Begin
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TTransaction_List.LoadFromFile(var S : TIOStream);
 const
   ThisMethodName = 'TTransaction_List.LoadFromFile';
@@ -265,6 +395,7 @@ Var
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    FLoading := True;
+   fTran_Suggested_Index.SortingOn := false;
    try
      if (fBank_Account is TBank_Account) then
        TBank_Account(fBank_Account).baFields.baSuggested_UnProcessed_Count := 0;
@@ -299,6 +430,8 @@ Begin
      end;
    finally
      FLoading := False;
+     fTran_Suggested_Index.SortingOn := true;
+     fTran_Suggested_Index.Sort();
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -315,7 +448,7 @@ begin
   ClearSuperFundFields(Result);
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TTransaction_List.SaveToFile(var S: TIOStream);
 const
   ThisMethodName = 'TTransaction_List.SaveToFile';
@@ -325,17 +458,34 @@ Var
    pDS : pDissection_Rec;
    TXCount  : LongInt;
    DSCount  : LongInt;
+
+   IsNotAJournalAccount : boolean;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
    TXCount := 0;
    DSCount := 0;
 
+   IsNotAJournalAccount := true;
+   if (fBank_Account is TBank_Account) and
+      (TBank_Account(fBank_Account).IsAJournalAccount) then
+     IsNotAJournalAccount := false;
+
+   if IsNotAJournalAccount then
+   begin
+     fTran_Suggested_Index.SortForSave := true;
+     fTran_Suggested_Index.Sort();
+   end;
+
    S.WriteToken( tkBeginEntries );
 
    For i := 0 to Pred( ItemCount ) do
    Begin
       pTX := Transaction_At( i );
+
+      if IsNotAJournalAccount then
+        pTx^.txSuggested_Mem_State := self.GetIndexPRec(i)^.tiSuggested_Mem_State;
+
       pTx^.txLRN_NOW_UNUSED := 0;   //clear any obsolete data
 
       BKTXIO.Write_Transaction_Rec ( pTX^, S );
@@ -350,6 +500,12 @@ Begin
       end;
    end;
    S.WriteToken( tkEndSection );
+
+   if IsNotAJournalAccount then
+   begin
+     fTran_Suggested_Index.SortForSave := false;
+     fTran_Suggested_Index.Sort();
+   end;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, Format('%s : %d transactions %d dissection saved',[ThisMethodName, txCount, dsCount]));
@@ -436,7 +592,7 @@ begin
 
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TTransaction_List.Transaction_At(Index : longint) : pTransaction_Rec;
 const
   ThisMethodName = 'TTransaction_List.Transaction_At';
@@ -451,13 +607,19 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+function TTransaction_List.GetIndexPRec(aIndex: integer): pTran_Suggested_Index_Rec;
+begin
+  Result := fTran_Suggested_Index.At(aIndex);
+end;
+
+//------------------------------------------------------------------------------
 function TTransaction_List.GetTransCoreID_At(Index : longint) : int64;
 begin
   Result := BKUTIL32.GetTransCoreID(Transaction_At(Index));
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TTransaction_List.FirstEffectiveDate : LongInt;
 var
   i: integer;
@@ -476,7 +638,7 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TTransaction_List.LastEffectiveDate : LongInt;
 var
   i: integer;
@@ -495,7 +657,7 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TTransaction_List.FirstPresDate : LongInt;
 //returns 0 if no transactions or the first Date of Presentation
 const
@@ -517,7 +679,7 @@ begin
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TTransaction_List.LastPresDate : LongInt;
 //returns 0 if no transactions or the highest Date of Presentation
 const
@@ -538,7 +700,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TTransaction_List.UpdateCRC(var CRC: Longword);
 var
   T: Integer;
@@ -558,11 +720,12 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
 constructor TTransaction_List.Create(AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager);
 begin
   inherited Create;
+
+  fTran_Suggested_Index := TTran_Suggested_Index.Create;
   FLoading := False;
   Duplicates := false;
   FLastSeq := 0;
@@ -571,6 +734,13 @@ begin
   FAuditMgr := AAuditMgr;
 end;
 
+destructor TTransaction_List.Destroy;
+begin
+  FreeAndNil(fTran_Suggested_Index);
+  inherited;
+end;
+
+//------------------------------------------------------------------------------
 procedure TTransaction_List.DoAudit(ATransactionListCopy: TTransaction_List;
   AParentID: integer; AAccountType: byte; var AAuditTable: TAuditTable);
 var
@@ -758,7 +928,55 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+function TTransaction_List.SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
+var
+  Top, Bottom, Index, CompRes : Integer;
+begin
+  Result := False;
+  Top := 0;
+  Bottom := FCount - 1;
+  while Top <= Bottom do
+  begin
+    Index := ( Top + Bottom ) shr 1;
+
+    CompRes := CompareValue(aDate_Effective, pTransaction_Rec(At(Index))^.txDate_Effective);
+    if CompRes = 0 then
+      CompRes := CompareValue(aTranSeqNo, pTransaction_Rec(At(Index))^.txSequence_No);
+
+    if CompRes > 0 then
+      Top := Index + 1
+    else
+    begin
+      Bottom := Index - 1;
+      if CompRes = 0 then
+      begin
+        Result := True;
+        aIndex := Index;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTransaction_List.SearchUsingTypeDateandTranSeqNo(aType: Byte; aDate_Effective, aTranSeqNo: integer; var aIndex: integer): Boolean;
+var
+  SearchpTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
+begin
+  SearchpTran_Suggested_Index_Rec := fTran_Suggested_Index.NewItem;
+  try
+    SearchpTran_Suggested_Index_Rec^.tiType := aType;
+    SearchpTran_Suggested_Index_Rec^.tiDate_Effective := aDate_Effective;
+    SearchpTran_Suggested_Index_Rec^.tiTran_Seq_No := aTranSeqNo;
+    Result := fTran_Suggested_Index.Search(SearchpTran_Suggested_Index_Rec, aIndex);
+  finally
+    fTran_Suggested_Index.FreeItem(SearchpTran_Suggested_Index_Rec);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 initialization
    DebugMe := DebugUnit(UnitName);
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 end.
