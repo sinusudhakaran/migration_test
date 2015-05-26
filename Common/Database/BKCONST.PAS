@@ -151,6 +151,7 @@ CONST
    cbCodeIT                = 9;
    cbManualSuper           = 10;
    cbImported              = 11; cbMax = 11;
+   cbRemoveSuggestion = [cbMemorisedC, cbAnalysis, cbAutoPayee, cbMemorisedM];
 
    cbNames : Array[ cbMin..cbMax ] of String[11] =
       (  '',
