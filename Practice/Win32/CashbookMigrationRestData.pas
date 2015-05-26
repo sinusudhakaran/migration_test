@@ -1332,6 +1332,8 @@ end;
 destructor TPayeeData.Destroy;
 begin
   FreeAndNil(fLines);
+
+  inherited;
 end;
 
 //------------------------------------------------------------------------------
