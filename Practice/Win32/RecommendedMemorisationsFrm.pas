@@ -402,9 +402,9 @@ begin
   if not assigned(SelNode) then
     Exit;
 
-  NextNode := vstTree.GetPreviousVisible(SelNode);
+  NextNode := vstTree.GetNextVisible(SelNode);
   if not Assigned(NextNode) then
-    NextNode := vstTree.GetNextVisible(SelNode);
+    NextNode := vstTree.GetPreviousVisible(SelNode);
 
   if Assigned(NextNode) then
     GetAccAndStatFromNode(NextNode, NextAccount, NextStatement);
