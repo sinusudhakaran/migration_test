@@ -465,15 +465,15 @@ begin
       // Account
       AccountCreated := (FindAccountOrCreate(aBankAccount, aTrans^.tiAccount, NewAccountId) = fcCreated);
 
-      // Account has not changed
-      if NewAccountId = OldAccountId then
-        Exit;
-
       if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(SuggestedId, SuggIndex) then
       begin
         aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smUpdate_Date := CurrentDate;
         aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHas_Changed := true;
       end;
+
+      // Account has not changed
+      if NewAccountId = OldAccountId then
+        Exit;
 
       if AccountCreated then
         CreateSuggestionAccountLink(aBankAccount, SuggestedId, NewAccountId, aTrans^.tiAccount, Suggested_Account_Link_Rec)
@@ -1127,12 +1127,15 @@ procedure TSuggestedMems.UpdateAccountWithTransDelete(const aBankAccount: TBank_
 var
   foundIndex : integer;
   Tran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
+  DoLogging : boolean;
 begin
   if MainState = mtsNoScan then
     Exit;
 
   if aBankAccount.IsAJournalAccount then
     Exit;
+
+  DoLogging := (fMemScanRefCount = 0);
 
   StopMemScan();
   try
@@ -1147,7 +1150,7 @@ begin
 
       aBankAccount.baTransaction_List.Tran_Suggested_Index.FreeTheItem(Tran_Suggested_Index_Rec);
 
-      if NoMoreRecord then
+      if DoLogging and NoMoreRecord then
       begin
         if DebugMe then
           LogDoneProcessing(true);
@@ -1178,6 +1181,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TSuggestedMems.DoProcessingComplete;
 begin
+  if not NoMoreRecord then
+    Exit;
+
   if DebugMe then
     LogDoneProcessing(true);
 

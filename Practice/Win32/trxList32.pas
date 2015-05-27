@@ -367,6 +367,7 @@ Begin
       NewTran_Suggested_Index_Rec^.tiStatement_Details   := P^.txStatement_Details;
       NewTran_Suggested_Index_Rec^.tiAccount             := P^.txAccount;
       NewTran_Suggested_Index_Rec^.tiSuggested_Mem_State := P^.txSuggested_Mem_State;
+      NewTran_Suggested_Index_Rec^.tiCoded_By            := P^.txCoded_By;
 
       SuggestedMem.UpdateAccountWithTransInsert(TBank_Account(fBank_Account),
                                                 NewTran_Suggested_Index_Rec,

@@ -133,7 +133,11 @@ Var
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   StartTickCount : int64;
   TimeTaken : double;
+  OldTranAccount : string;
+  SuggestionChanged : boolean;
+  TranSuggestionUpdated : boolean;
 begin
+  SuggestionChanged := false;
   if DebugMe then
   begin
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Start');
@@ -146,6 +150,7 @@ begin
   end;
 
    IsActive := True;
+   SuggestedMem.StopMemScan();
    try
 
      With aClient, BA do
@@ -193,9 +198,11 @@ begin
         //cycle thru the transactions
         With baTransaction_List do For EntryNo := 0 to Pred( ItemCount ) do
         Begin
+           TranSuggestionUpdated := false;
            Transaction := Transaction_At( EntryNo );
            With Transaction^ do
            Begin
+              OldTranAccount := txAccount;
               //figure out if transaction needs to be skipped
               If txLocked then
                  Continue; // Locked, don't change
@@ -222,7 +229,6 @@ begin
                     if HasAlternativeChartCode(aClient.clFields.clCountry, aClient.clFields.clAccounting_System_Used) then
                     begin
                       txAccount := aCLient.clChart.MatchAltCode(txAccount);
-                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true);
                     end;
 
                     Continue; // Must be True
@@ -357,7 +363,9 @@ begin
                           else
                              txAccount := MemorisationLine.mlAccount;
 
-                          SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true);
+                          SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true, true);
+                          SuggestionChanged := true;
+                          TranSuggestionUpdated := true;
 
                           txPayee_Number := MemorisationLine.mlPayee;
                           if MemorisationLine.mlJob_Code > '' then
@@ -436,8 +444,6 @@ begin
                       //Entry needs to be dissected
                       mxUtils.MemorisationSplit( Amount, MX, Split, SplitPct );
                       txAccount      := DISSECT_DESC;
-
-                      SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true);
 
                       txPayee_Number := 0;
                       ClearGSTFields( Transaction);
@@ -601,8 +607,6 @@ begin
                                    begin
                                      txAccount      := PayeeLine.plAccount;
 
-                                     SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true);
-
                                      if PayeeLine.plGL_Narration <> '' then
                                        txGL_Narration := PayeeLine.plGL_Narration;
                                      //calculate GST.  If has been edited then use class, otherwise use default
@@ -626,8 +630,6 @@ begin
                               txCoded_By     := cbAutoPayee;
                               txPayee_Number := Payee.pdNumber;
                               txAccount      := DISSECT_DESC;
-
-                              SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true);
 
                               ClearGSTFields( Transaction);
                               ClearSuperFundFields( Transaction);
@@ -769,8 +771,6 @@ begin
                             //match found
                             txAccount      := TestCode;
 
-                            SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true);
-
                             txCoded_By     := cbAnalysis;
                             CalculateGST( aClient, txDate_Effective, txAccount, Local_Amount, txGST_Class, txGST_Amount );
                             txGST_Has_Been_Edited := false;
@@ -782,6 +782,16 @@ begin
                    end;
                  end;
               end; { of Analysis Code Processing }
+
+              if (OldTranAccount <> txAccount) then
+              begin
+                if not TranSuggestionUpdated then
+                begin
+                  SuggestedMem.SetSuggestedTransactionState(BA, Transaction, tssUnScanned, true, true);
+                  SuggestionChanged := true;
+                end;
+              end;
+
            end; { Scope of Transaction^ }
         end; { of EntryNo }
 
@@ -795,6 +805,9 @@ begin
        TimeTaken := (GetTickCount - StartTickCount)/1000;
        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
      end;
+     SuggestedMem.StartMemScan();
+     if SuggestionChanged then
+       SuggestedMem.DoProcessingComplete();
    end;
 end; { of AUTOCODE }
 
