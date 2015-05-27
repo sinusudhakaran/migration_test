@@ -610,34 +610,38 @@ begin
   // Create memorisation
   Mems := fBankAccount.baMemorisations_List;
   Mem := TMemorisation.Create(Mems.AuditMgr);
-  Mem.mdFields.mdMatch_On_Statement_Details := true;
-  Mem.mdFields.mdStatement_Details := pData.SuggestedMem.smMatchedPhrase;
-  Mem.mdFields.mdType := pData.SuggestedMem.smType;
 
-  // Create memorisation line
-  MemLine := New_Memorisation_Line_Rec;
-  MemLine.mlAccount := pData.SuggestedMem.smAccount;
-  MemLine.mlGST_Class := MyClient.clChart.GSTClass(
-    pData.SuggestedMem.smAccount);
-  MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
-  Mem.mdLines.Insert(MemLine);
+  try
+    Mem.mdFields.mdMatch_On_Statement_Details := true;
+    Mem.mdFields.mdStatement_Details := pData.SuggestedMem.smMatchedPhrase;
+    Mem.mdFields.mdType := pData.SuggestedMem.smType;
 
-  // OK pressed, and insert mem?
-  if CreateMemorisation(fBankAccount, Mems, Mem) then
-  begin
-    BuildData;
+    // Create memorisation line
+    MemLine := New_Memorisation_Line_Rec;
+    MemLine.mlAccount := pData.SuggestedMem.smAccount;
+    MemLine.mlGST_Class := MyClient.clChart.GSTClass(
+      pData.SuggestedMem.smAccount);
+    MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
+    Mem.mdLines.Insert(MemLine);
 
-    // Repopulate the recommended mems list from scratch (just the rec mems,
-    // not the unscanned transactions or candidate mems)
-    // Note: RepopulateRecommendedMems removed, see note in PopulateTree
-    RedrawTree; // if we don't do this, the recommendation we just accepted will still be in the list
-    fAdded := true;
-  end
-  else
-  begin
+    // OK pressed, and insert mem?
+    if CreateMemorisation(fBankAccount, Mems, Mem) then
+    begin
+      BuildData;
+
+      // Repopulate the recommended mems list from scratch (just the rec mems,
+      // not the unscanned transactions or candidate mems)
+      // Note: RepopulateRecommendedMems removed, see note in PopulateTree
+      RedrawTree; // if we don't do this, the recommendation we just accepted will still be in the list
+      fAdded := true;
+    end
+    else
+    begin
+      // Note: RepopulateRecommendedMems removed, see note in PopulateTree
+      RedrawTree;
+    end;
+  finally
     FreeAndNil(Mem);
-    // Note: RepopulateRecommendedMems removed, see note in PopulateTree
-    RedrawTree;
   end;
 end;
 

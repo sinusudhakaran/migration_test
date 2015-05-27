@@ -1694,25 +1694,30 @@ begin
        if SplitLineIsValid(i) then
        begin
          MemLine := BKMLIO.New_Memorisation_Line_Rec;
-         with MemLine^ do
-         begin
-           mlAccount := SplitData[i].AcctCode;
-           if not MyClient.clChart.CanCodeto(mlAccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
+         try
+           with MemLine^ do
            begin
-             if ShowInvalidWarnings then
+             mlAccount := SplitData[i].AcctCode;
+             if not MyClient.clChart.CanCodeto(mlAccount, IsActive, HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then
              begin
-               DoInvalidWarning := True;
-               InvalidCodes.Add(mlAccount);
-             end;
-           end else
-           if not IsActive then
-           begin
-             if ShowInactiveWarnings then
+               if ShowInvalidWarnings then
+               begin
+                 DoInvalidWarning := True;
+                 InvalidCodes.Add(mlAccount);
+               end;
+             end else
+             if not IsActive then
              begin
-               DoInactiveWarning := True;
-               InactiveCodes.Add(mlAccount);
+               if ShowInactiveWarnings then
+               begin
+                 DoInactiveWarning := True;
+                 InactiveCodes.Add(mlAccount);
+               end;
              end;
            end;
+         finally
+           Free_Memorisation_Line_Rec_Dynamic_Fields(MemLine^);
+           SafeFreeMem(MemLine, Memorisation_Line_Rec_Size);
          end;
        end;
      end;
