@@ -778,11 +778,4 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
       TabOrder = 2
     end
   end
-  object tmrBrowserLoading: TTimer
-    Enabled = False
-    Interval = 100
-    OnTimer = tmrBrowserLoadingTimer
-    Left = 704
-    Top = 8
-  end
 end

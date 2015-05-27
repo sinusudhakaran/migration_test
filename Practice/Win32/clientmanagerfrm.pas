@@ -273,7 +273,7 @@ type
     FCAFImportFile: String;
     FCAFOutputFolder: String;
     FCAFFileFormat: TCAFFileFormat;
-        
+
     procedure FillClientDetails;
     procedure ShowSelectedNo( Count : integer);
     procedure UpdateClientDetails(Count: integer);
@@ -437,6 +437,7 @@ uses
   InstitutionCol,
   CashBookMigrationWiz,
   bkProduct,
+  CashbookMigration,
   WarningMoreFrm;
 
 {$R *.dfm}
@@ -547,6 +548,9 @@ procedure TfrmClientManager.FormCreate(Sender: TObject);
 
 begin
   //check max columns
+  if Assigned(AdminSystem) then
+    MigrateCashbook.PreloadURLs();
+
   fDoNotRefreshLookup := false;
 
   GBClientmanager.GradientColorStop := bkBranding.GroupBackGroundStopColor;

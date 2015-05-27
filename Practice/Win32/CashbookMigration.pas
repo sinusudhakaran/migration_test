@@ -53,6 +53,14 @@ type
                               aPercentOfCurrentFile : integer) of object;
 
   //----------------------------------------------------------------------------
+  TURLThread = class(TThread)
+  private
+    procedure TryDownloadURLToFile(aHttpGetURL : TipsHTTPS; aExpectedTitle, aURL , aFile : string);
+  public
+    procedure Execute; override;
+  end;
+
+  //----------------------------------------------------------------------------
   TMappingData = class(TCollectionItem)
   private
     fOrigCode : string;
@@ -79,6 +87,7 @@ type
   //----------------------------------------------------------------------------
   TCashbookMigration = class
   private
+    fURLsArePreload : boolean;
     fToken: string;
     fUnEncryptedToken : string;
     fTokenStartDate : TDateTime;
@@ -97,6 +106,7 @@ type
     fCurrentCBClientCode : string;
     fHasProvisionalAccountsAndMoved : boolean;
     fProvisionalAccounts  : TStringList;
+    fURLThread : TURLThread;
 
   protected
     procedure LogHttpDebugSend(aCall : string;
@@ -154,6 +164,7 @@ type
                                     var aResponse: TlkJSONbase; var aRespStr : string;
                                     var aError: string; aEncryptToken : boolean = false): boolean;
 
+
     function GetCashBookGSTType(aGSTMapCol : TGSTMapCol; aGSTClassId : byte) : string;
 
     function GetTimeFrameStart(aFinancialYearStart : TStDate) : TStDate;
@@ -188,6 +199,7 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
+    procedure PreloadURLs();
     procedure MarkSelectedClients(aFileStatus: Integer; aSelectClients : TStringList);
     procedure MarkSelectClient(aFileStatus: Integer; aClientCode : string);
 
@@ -260,6 +272,75 @@ const
 var
   fCashbookMigration: TCashbookMigration;
   DebugMe : boolean = false;
+
+{ TURLThread }
+//------------------------------------------------------------------------------
+procedure TURLThread.TryDownloadURLToFile(aHttpGetURL : TipsHTTPS; aExpectedTitle, aURL, aFile: string);
+var
+  Response : string;
+  StringStream : TStringStream;
+  FileStream : TFileStream;
+begin
+  try
+    aHttpGetURL.Get(aURL);
+
+    if aHttpGetURL.ContentType = '' then
+    begin
+      Response := aHttpGetURL.TransferredData;
+      if (Pos('404',Response) = 0) and
+         (Pos('<title>' + aExpectedTitle + '</title>',Response) > 0) then
+      begin
+        StringStream := TStringStream.Create(Response);
+        try
+          FileStream := TFileStream.Create(aFile, fmOpenWrite);
+          Try
+            FileStream.CopyFrom(StringStream, StringStream.Size);
+
+            if DebugMe then
+              LogUtil.LogMsg(lmDebug, UnitName, 'Successful Get of ' + aURL);
+          Finally
+            FreeAndNil(FileStream);
+          End;
+        finally
+          FreeAndNil(StringStream);
+        end;
+      end
+      else
+        LogUtil.LogMsg(lmError, UnitName, 'Failed to Get ' + aURL + ', Not expected page.');
+    end;
+  except
+    on E: Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, 'Failed to Get ' + aURL + ', ' + E.Message);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TURLThread.Execute;
+var
+  HttpGetURL : TipsHTTPS;
+  URL : string;
+begin
+  HttpGetURL := TIpsHTTPS.Create(nil);
+  try
+    case AdminSystem.fdFields.fdCountry of
+      whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
+      whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
+    end;
+
+    TryDownloadURLToFile(HttpGetURL, 'Before you start', URL, Globals.HtmlCache + CashBookStartCacheFileName);
+
+    case AdminSystem.fdFields.fdCountry of
+      whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview2;
+      whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview2;
+    end;
+
+    TryDownloadURLToFile(HttpGetURL, 'Migration details', URL, Globals.HtmlCache + CashBookDetailCacheFileName);
+  finally
+    FreeAndNil(HttpGetURL);
+  end;
+end;
 
 { TMappingsData }
 //------------------------------------------------------------------------------
@@ -1857,6 +1938,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TCashbookMigration.PreloadURLs;
+var
+  URL : string;
+begin
+  if fURLsArePreload then
+    Exit;
+
+  fURLThread := TURLThread.Create(false);
+
+  fURLsArePreload := true;
+end;
+
+//------------------------------------------------------------------------------
 procedure TCashbookMigration.MarkSelectedClients(aFileStatus: Integer; aSelectClients : TStringList);
 const
   ThisMethodName = 'TCashbookMigration.MarkSelectedClients';
@@ -2126,6 +2220,7 @@ end;
 constructor TCashbookMigration.Create;
 begin
   // Http
+  fURLsArePreload := false;
   FHttpRequester := TIpsHTTPS.Create(nil);
   fMappingsData := TMappingsData.Create(TMappingData);
   HttpSetup;
@@ -2143,6 +2238,7 @@ begin
   freeAndNil(fMappingsData);
   FreeAndNil(FHttpRequester);
   FreeAndNil(fProvisionalAccounts);
+  FreeAndNil(fURLThread);
 
   inherited;
 end;
@@ -2470,7 +2566,6 @@ begin
     Result := mgsPartial;
 end;
 
-//------------------------------------------------------------------------------
 initialization
 begin
   DebugMe := DebugUnit(UnitName);
