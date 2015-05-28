@@ -830,7 +830,12 @@ begin
     Exit;
 
   fBrowser1Loaded := true;
-  BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName);
+
+  if fileExists(Globals.HtmlCache + CashBookStartCacheFileName) then
+    BKOverviewWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookStartCacheFileName)
+  else
+    LogUtil.LogMsg( lmError, UnitName, 'Error loading file : ' +
+                    Globals.HtmlCache + CashBookStartCacheFileName + ', file not found.');
 end;
 
 //------------------------------------------------------------------------------
@@ -840,7 +845,12 @@ begin
     Exit;
 
   fBrowser2Loaded := true;
-  BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName);
+
+  if fileExists(Globals.HtmlCache + CashBookDetailCacheFileName) then
+    BKChecklistWebBrowser.LoadFromFile(Globals.HtmlCache + CashBookDetailCacheFileName)
+  else
+    LogUtil.LogMsg( lmError, UnitName, 'Error loading file : ' +
+                    Globals.HtmlCache + CashBookDetailCacheFileName + ', file not found.');
 end;
 
 //------------------------------------------------------------------------------

@@ -292,7 +292,7 @@ begin
       begin
         StringStream := TStringStream.Create(Response);
         try
-          FileStream := TFileStream.Create(aFile, fmOpenWrite);
+          FileStream := TFileStream.Create(aFile, fmCreate);
           Try
             FileStream.CopyFrom(StringStream, StringStream.Size);
 
