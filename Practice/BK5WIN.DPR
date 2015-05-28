@@ -4,6 +4,8 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
+  fastmm4,
+  madScreenShot,
   madExcept,
   madLinkDisAsm,
   madListHardware,
@@ -66,8 +68,7 @@ uses
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
   BlopiClient in 'Win32\BlopiClient.pas',
   AcclipseX in 'Extract\AcclipseX.pas',
-  INISettings in 'Win32\INISettings.pas',
-  SuggestedMems in 'Win32\SuggestedMems.pas';
+  INISettings in 'Win32\INISettings.pas';
 
 //  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 

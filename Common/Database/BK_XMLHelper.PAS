@@ -3858,6 +3858,7 @@ begin
 	SetIntAttr(Result, 'Count', slCount);
 	SetBoolAttr(Result, 'IsUncoded', slIsUncoded);
 	SetBoolAttr(Result, 'IsDissected', slIsDissected);
+	SetIntAttr(Result, 'ManualCount', slManual_Count);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3879,6 +3880,7 @@ begin
 	slCount := GetIntAttr(Result, 'Count');
 	slIsUncoded := GetBoolAttr(Result, 'IsUncoded');
 	slIsDissected := GetBoolAttr(Result, 'IsDissected');
+	slManual_Count := GetIntAttr(Result, 'ManualCount');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSuggested_Account_Link_Rec');
 	end;

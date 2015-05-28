@@ -1286,6 +1286,7 @@ F|AccountId|L
 F|Count|L
 F|IsUncoded|Y
 F|IsDissected|Y
+F|Manual Count|L
 E
 
 N|Suggested Account|sa|172

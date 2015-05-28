@@ -983,6 +983,7 @@ begin
     FAuditNamesArray[171,175] := 'Count';
     FAuditNamesArray[171,176] := 'IsUncoded';
     FAuditNamesArray[171,177] := 'IsDissected';
+    FAuditNamesArray[171,178] := 'Manual_Count';
 
    FAuditTableArray[172] := 'Suggested_Account';
     FAuditNamesArray[172,174] := 'Id';

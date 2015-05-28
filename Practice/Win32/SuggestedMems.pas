@@ -409,6 +409,10 @@ begin
 
           if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedAndAccountId(SuggArr[ArrIndex], AccountId, AccountIndex) then
           begin
+            if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                       
+              if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slManual_Count > 0 then
+                dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slManual_Count);
+
             dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount);
             if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount < 1 then
             begin
@@ -482,11 +486,19 @@ begin
 
       // Add to New Account
       aBankAccount.baTran_Suggested_Link_List.GetPRec(SuggTranIndex)^.tsAccountId := NewAccountId;
+
+      if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                           
+        inc(Suggested_Account_Link_Rec^.slManual_Count);
+
       inc(Suggested_Account_Link_Rec^.slCount);
 
       // Removed from Old Account
       if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedAndAccountId(SuggestedId, OldAccountId, AccountLinkIndex) then
       begin
+        if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                           
+          if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slManual_Count > 0 then
+            dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slManual_Count);
+
         dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount);
         if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount < 1 then
         begin
@@ -607,6 +619,7 @@ begin
   NewSuggested_Account_Link.slFields.slSuggestedId      := aSuggestionId;
   NewSuggested_Account_Link.slFields.slAccountId        := aAccountId;
   NewSuggested_Account_Link.slFields.slCount            := 0;
+  NewSuggested_Account_Link.slFields.slManual_Count     := 0;
   NewSuggested_Account_Link.slFields.slIsUncoded        := (length(trim(aAccount)) = 0);
   //NewSuggested_Account_Link.slFields.slRemoveSuggestion := (aAccount = DISSECT_DESC);
   //NewSuggested_Account_Link.slFields
@@ -634,6 +647,9 @@ begin
   NewSuggLink.tsFields.tsSuggestedId      := aSuggested_Mem_Rec^.smId;
   NewSuggLink.tsFields.tsAccountId        := aSuggested_Account_Link_Rec^.slAccountId;
   aBankAccount.baTran_Suggested_Link_List.Insert_Tran_Suggested_Link_Rec(NewSuggLink);
+
+  if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                          
+    inc(aSuggested_Account_Link_Rec^.slManual_Count);
 
   inc(aSuggested_Account_Link_Rec^.slCount);
 
@@ -1396,7 +1412,7 @@ begin
             end;
 
             inc(ManualAccountCount);
-            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
+            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slManual_Count;
           end;
         end;
       end;
@@ -1504,7 +1520,7 @@ begin
             end;
 
             inc(ManualAccountCount);
-            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
+            ManualCount := ManualCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slManual_Count;
             SearchAccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slAccountId;
           end;
         end;

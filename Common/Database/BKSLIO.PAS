@@ -51,6 +51,7 @@ CONST
    tkslCount                            = 175 ;
    tkslIsUncoded                        = 176 ;
    tkslIsDissected                      = 177 ;
+   tkslManual_Count                     = 178 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -81,6 +82,7 @@ Begin
       F.WriteIntegerValue( tkslCount , slCount );
       F.WriteBooleanValue( tkslIsUncoded , slIsUncoded );
       F.WriteBooleanValue( tkslIsDissected , slIsDissected );
+      F.WriteIntegerValue( tkslManual_Count , slManual_Count );
       F.WriteToken( tkEnd_Suggested_Account_Link );
    end;
 end; { of Write_Suggested_Account_Link_Rec }
@@ -108,6 +110,7 @@ Begin
          tkslCount                            : slCount := F.ReadIntegerValue;
          tkslIsUncoded                        : slIsUncoded := F.ReadBooleanValue;
          tkslIsDissected                      : slIsDissected := F.ReadBooleanValue;
+         tkslManual_Count                     : slManual_Count := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -154,7 +157,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkslSuggestedId to tkslIsDissected do begin
+  for i := tkslSuggestedId to tkslManual_Count do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -202,6 +205,11 @@ begin
   if (P1.slIsDissected <> P2.slIsDissected) then begin
     P3.slIsDissected := P1.slIsDissected;
     ChangedFields[i] := tkslIsDissected;
+    Inc(i);
+  end;
+  if (P1.slManual_Count <> P2.slManual_Count) then begin
+    P3.slManual_Count := P1.slManual_Count;
+    ChangedFields[i] := tkslManual_Count;
     Inc(i);
   end;
 
