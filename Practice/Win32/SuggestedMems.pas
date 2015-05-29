@@ -88,7 +88,7 @@ type
     function FindSuggestionAccountLinkOrCreate(const aBankAccount: TBank_Account; aSuggestionId, aAccountId: integer; const aAccount : string; var aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec): TFoundCreate;
     procedure CreateSuggestionAccountLink(const aBankAccount: TBank_Account; aSuggestionId, aAccountId: integer; const aAccount : string; var aSuggested_Account_Link_Rec : pSuggested_Account_Link_Rec);
     function FindTranSuggestionLink(const aBankAccount: TBank_Account; aTranSeqNo : integer; aSuggestionId : integer) : boolean;
-    procedure CreateTranSuggestionLink(const aBankAccount: TBank_Account; const aTrans : pTran_Suggested_Index_Rec; const aSuggested_Mem_Rec: pSuggested_Mem_Rec; const aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec);
+    procedure CreateTranSuggestionLink(const aBankAccount: TBank_Account; const aTrans : pTran_Suggested_Index_Rec; const aSuggested_Mem_Rec: pSuggested_Mem_Rec; const aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec; aTranNewState : byte);
 
     procedure SearchFoundMatch(aStartData: boolean; var aMatchedPhrase : string; aEndData: boolean; const aBankAccount : TBank_Account; const aScanTrans, aMatchedTrans : pTran_Suggested_Index_Rec; aTranNewState : byte);
 
@@ -227,7 +227,8 @@ begin
           if aBankAccount.baSuggested_Account_List.SearchUsingAccountId(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slAccountId, AccIndex) then
           begin
             LogUtil.LogMsg(lmDebug, UnitName,'    Code = ' + aBankAccount.baSuggested_Account_List.GetPRec(AccIndex)^.saAccount +
-                                             '    Count = ' + inttostr(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount));
+                                             '    Count = ' + inttostr(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slCount) +
+                                             '    Manual Count = ' + inttostr(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountIndex)^.slManual_Count));
           end;
         end;
       end;
@@ -637,7 +638,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.CreateTranSuggestionLink(const aBankAccount: TBank_Account; const aTrans : pTran_Suggested_Index_Rec; const aSuggested_Mem_Rec: pSuggested_Mem_Rec; const aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec);
+procedure TSuggestedMems.CreateTranSuggestionLink(const aBankAccount: TBank_Account; const aTrans : pTran_Suggested_Index_Rec; const aSuggested_Mem_Rec: pSuggested_Mem_Rec; const aSuggested_Account_Link_Rec: pSuggested_Account_Link_Rec; aTranNewState : byte);
 var
   NewSuggLink : TTran_Suggested_Link;
 begin
@@ -648,7 +649,7 @@ begin
   NewSuggLink.tsFields.tsAccountId        := aSuggested_Account_Link_Rec^.slAccountId;
   aBankAccount.baTran_Suggested_Link_List.Insert_Tran_Suggested_Link_Rec(NewSuggLink);
 
-  if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                          
+  if aTranNewState = tssCreateSuggestion then
     inc(aSuggested_Account_Link_Rec^.slManual_Count);
 
   inc(aSuggested_Account_Link_Rec^.slCount);
@@ -710,14 +711,14 @@ begin
      (not FindTranSuggestionLink(aBankAccount, aScanTrans^.tiTran_Seq_No, Suggested_Mem_Rec^.smId)) then
   begin
     if AccountsNotTheSame then
-      CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Scan_Suggested_Account_Link_Rec)
+      CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Scan_Suggested_Account_Link_Rec, aTranNewState)
     else
-      CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec);
+      CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec, aTranNewState);
   end;
 
   if (PhraseCreated) or
      (not FindTranSuggestionLink(aBankAccount, aMatchedTrans^.tiTran_Seq_No, Suggested_Mem_Rec^.smId)) then
-    CreateTranSuggestionLink(aBankAccount, aMatchedTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec);
+    CreateTranSuggestionLink(aBankAccount, aMatchedTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec, aTranNewState);
 end;
 
 //------------------------------------------------------------------------------
