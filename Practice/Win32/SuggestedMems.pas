@@ -1107,12 +1107,12 @@ begin
       not (OldState = tssUnScanned) then
     begin
       AccLinkUpdated := false;
-      if aAccountChanged then
-        AccLinkUpdated := UpdateSuggestionAccountAndLinks(aBankAccount, aTrans);
 
       if aAccountChanged then
       begin
         aTrans^.tiSuggested_Mem_State := GetScannedState(aTrans^.tiCoded_By);
+
+        AccLinkUpdated := UpdateSuggestionAccountAndLinks(aBankAccount, aTrans);
 
         if (not aIsBulk) and
            (NoMoreRecord) then
