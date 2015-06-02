@@ -1751,7 +1751,10 @@ begin
         LineData := TPayeeLineData.Create(PayeeData.Lines);
 
         // Line
-        LineData.AccountNumber :=  pLine.plAccount;
+        if aClient.clChart.CodeIsThere(pLine.plAccount) then
+          LineData.AccountNumber := pLine.plAccount
+        else
+          LineData.AccountNumber := 'UNCODED';
 
         // Percentage or dollar amount (same field depending on line type)
         if (pLine.plLine_Type = pltPercentage) then
