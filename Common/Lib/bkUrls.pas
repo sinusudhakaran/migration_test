@@ -188,7 +188,7 @@ end;
 
 class function TUrls.CashbookAPIUploadURL: String;
 begin
-  Result := 'https://adppcloudservices.com.au/adcommon/v1/Upload';
+  Result := 'https://adcloudservices.com.au/adcommon/v1/Upload';
 end;
 
 class function TUrls.DefaultNZCatalogServer: String;
