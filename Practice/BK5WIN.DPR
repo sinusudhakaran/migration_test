@@ -4,7 +4,6 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
-  fastmm4,
   madScreenShot,
   madExcept,
   madLinkDisAsm,
