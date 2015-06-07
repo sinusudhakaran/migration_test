@@ -324,6 +324,9 @@ var
 begin
   HttpGetURL := TIpsHTTPS.Create(nil);
   try
+    if not DirectoryExists(Globals.HtmlCache) then
+      CreateDir(RemoveSlash(Globals.HtmlCache));
+
     case AdminSystem.fdFields.fdCountry of
       whNewZealand: URL := Globals.PRACINI_NZCashMigrationURLOverview1;
       whAustralia : URL := Globals.PRACINI_AUCashMigrationURLOverview1;
@@ -1414,6 +1417,13 @@ begin
           end;
         end;
       end;
+
+      if NewChartItem.BankOrCreditFlag then
+      begin
+        if not ((NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccAsset)) or
+                (NewChartItem.AccountType = GetMigrationMappedReportGroupCode(ccLiabilities))) then
+          NewChartItem.AccountType := GetMigrationMappedReportGroupCode(ccAsset);
+      end;
     end;
 
     // Add Uncoded Chart
@@ -1502,7 +1512,7 @@ begin
           TransactionItem.Reference   := TrimLeadZ(TransactionRec.txReference);
 
           if BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex) > 0 then
-            TransactionItem.CoreTransactionId := inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex))
+            TransactionItem.CoreTransactionId := InsFillerZeros(inttostr(BankAccount.baTransaction_List.GetTransCoreID_At(TransactionIndex)),15)
           else
             TransactionItem.CoreTransactionId := '';
 
