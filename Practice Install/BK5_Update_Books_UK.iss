@@ -28,8 +28,6 @@ Source: "Bin\bkinstall.exe"; DestDir: "{app}"
 Source: "Bin\bkupgcor.dll"; DestDir: "{app}"
 Source: "Bin\Institutions.dat"; DestDir: "{app}"
 Source: "Bin\app_uk.ini"; DestDir: "{app}"; DestName: "app.ini"
-Source: "Bin\CMst.html"; DestDir: "{app}\CACHE\HTML"
-Source: "Bin\CMdt.html"; DestDir: "{app}\CACHE\HTML"
 
 Source: "Books Files\guide_uk.chm"; DestDir: "{app}"; DestName: "guide.chm"
 

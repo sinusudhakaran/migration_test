@@ -4697,6 +4697,7 @@ begin
           txGL_Narration   := pdName;
      end;
   end;  {with payee^}
+  SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmCoding.ValidDataRow(RowNum : integer): boolean;

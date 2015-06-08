@@ -1376,7 +1376,7 @@ begin
       begin
         MappedGroupId := aChartExportCol.GetMappedReportGroupId(ChartExportItem.ReportGroupId);
 
-        NewChartItem.OrigAccountType := atNames[AccRec.chAccount_Type];
+        NewChartItem.OrigAccountType := atNames[ChartExportItem.ReportGroupId];
         NewChartItem.OrigGstType := trim(aClient.clFields.clGST_Class_Codes[ AccRec.chGST_Class ] + ' ' +
                                          aClient.clFields.clGST_Class_Names[ AccRec.chGST_Class]);
         NewChartItem.AccountType := GetMigrationMappedReportGroupCode(MappedGroupId);
