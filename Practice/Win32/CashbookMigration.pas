@@ -176,14 +176,14 @@ type
     function FillBusinessData(aClient : TClientObj; aBusinessData : TBusinessData; aFirmId : string; aOpeningBalanceDate: TStDate; aDoChartOfAccountBalances : boolean; var aError : string) : boolean;
     function FillBankFeedData(aClient : TClientObj; aBankFeedApplicationsData : TBankFeedApplicationsData; aDoMoveRatherThanCopy : boolean; var aError : string) : boolean;
     function FillDivisionData(aClient : TClientObj; aDivisionsData : TDivisionsData; var aUsedDivisions : TStringList; var aError : string) : boolean;
-    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
-    function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError : string) : boolean;
+    function FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aHasTransactions, aHasPayees : boolean; var aError : string) : boolean;
+    function FillTransactionData(aClient : TClientObj; aBankAccountsData : TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aHasTransactions : boolean; var aError : string) : boolean;
     function FillJournalData(aClient : TClientObj; aJournalsData : TJournalsData; aOpeningBalanceDate: TStDate; aGSTMapCol : TGSTMapCol; var aError : string) : boolean;
 
     function  FillPayeeData(aClient: TClientObj; const aHasTransactions: boolean;
                 const aBankAccountsData: TBankAccountsData;
                 const aGSTMapCol : TGSTMapCol; const aPayeesData: TPayeesData;
-                var aError: string): boolean;
+                var aHasPayees : boolean; var aError: string): boolean;
     function  FillJobData(aClient: TClientObj; const aHasTransactions: boolean;
                 const aBankAccountsData: TBankAccountsData; const aJobsData: TJobsData;
                 var aError: string): boolean;
@@ -420,8 +420,7 @@ begin
       if trim(BankAccount.baFields.baContra_Account_Code ) = '' then
         Continue;
 
-      if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) and
-         not (BankAccount.baFields.baIs_A_Manual_Account) then
+      if not (BankAccount.baFields.baAccount_Type in LedgerNoContrasJournalSet) then
       begin
         if Duplicates.find(BankAccount.baFields.baContra_Account_Code, FoundIndex) then
         begin
@@ -1280,7 +1279,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aNoTransactions : boolean; var aError : string) : boolean;
+function TCashbookMigration.FillChartOfAccountData(aClient : TClientObj; aChartOfAccountsData : TChartOfAccountsData; aSelectedData: TSelectedData; aChartExportCol : TChartExportCol; aGSTMapCol : TGSTMapCol; aUsedDivisions : TStringList; aHasTransactions, aHasPayees : boolean; var aError : string) : boolean;
 var
   ChartIndex : integer;
   AccRec : tAccount_Rec;
@@ -1427,7 +1426,8 @@ begin
     end;
 
     // Add Uncoded Chart
-    if not aNoTransactions then
+    if (aHasTransactions) or
+       (aHasPayees) then
     begin
       NewChartItem := TChartOfAccountData.Create(aChartOfAccountsData);
       NewChartItem.Code := 'UNCODED';
@@ -1456,7 +1456,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.FillTransactionData(aClient: TClientObj; aBankAccountsData: TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aNoTransactions : boolean; var aError: string): boolean;
+function TCashbookMigration.FillTransactionData(aClient: TClientObj; aBankAccountsData: TBankAccountsData; aChartOfAccountsData : TChartOfAccountsData; aGSTMapCol : TGSTMapCol; var aHasTransactions : boolean; var aError: string): boolean;
 var
   AccountIndex : integer;
   TransactionIndex : integer;
@@ -1469,7 +1469,7 @@ var
   DissRec: pDissection_Rec;
 begin
   Result := false;
-  aNoTransactions := true;
+  aHasTransactions := false;
   try
     for AccountIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
@@ -1503,7 +1503,7 @@ begin
           if (TransactionRec.txDate_Transferred > 0) then
             break;
 
-          aNoTransactions := false;
+          aHasTransactions := true;
 
           TransactionItem := TTransactionData.Create(BankAccountItem.Transactions);
           TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', TransactionRec.txDate_Effective, true);
@@ -1688,7 +1688,7 @@ end;
 function TCashbookMigration.FillPayeeData(aClient: TClientObj;
   const aHasTransactions: boolean; const aBankAccountsData: TBankAccountsData;
   const aGSTMapCol : TGSTMapCol; const aPayeesData: TPayeesData;
-  var aError: string): boolean;
+  var aHasPayees : boolean; var aError: string): boolean;
 var
   iPayee: integer;
   Payees: TPayee_List;
@@ -1703,6 +1703,8 @@ var
   LineData: TPayeeLineData;
 begin
   try
+    aHasPayees := false;
+
     Payees := aClient.clPayee_List;
 
     for iPayee := 0 to Payees.ItemCount-1 do
@@ -1723,6 +1725,7 @@ begin
           continue;
       end;
 
+      aHasPayees := true;
       PayeeData := TPayeeData.Create(aPayeesData);
 
       // Payee
@@ -2024,12 +2027,12 @@ var
   BalDate : TStDate;
   OpeningBalanceDate : TStDate;
   UsedDivisions : TStringList;
-  NoTransactions : boolean;
+  HasTransactions, HasPayees : boolean;
   CurrDay, CurrMonth, CurrYear : integer;
   DayFinStart, MonthFinStart, YearFinStart: Integer;
 begin
   result := false;
-  NoTransactions := true;
+  HasTransactions := false;
   fHasProvisionalAccountsAndMoved := false;
 
   // pre calculate Time frame start used later in Transactions and Journals
@@ -2087,7 +2090,7 @@ begin
           if aSelectedData.NonTransferedTransactions then
           begin
             fClientMigrationState := cmsTransformData;
-            if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, NoTransactions, aError) then
+            if not FillTransactionData(aClient, ClientBase.ClientData.BankAccountsData, ClientBase.ClientData.ChartOfAccountsData, GSTMapCol, HasTransactions, aError) then
               Exit;
 
             if not FillJournalData(aClient, ClientBase.ClientData.JournalsData, OpeningBalanceDate, GSTMapCol, aError) then
@@ -2096,30 +2099,29 @@ begin
             fClientMigrationState := cmsAccessCltDB;
           end;
 
-          if not FillPayeeData(aClient, aSelectedData.NonTransferedTransactions,
-            ClientBase.ClientData.BankAccountsData, GSTMapCol,
-            ClientBase.ClientData.PayeesData, aError) then
-          begin
-            exit;
-          end;
-
-          if not FillJobData(aClient, aSelectedData.NonTransferedTransactions,
-            ClientBase.ClientData.BankAccountsData,
-            ClientBase.ClientData.JobsData, aError) then
-          begin
-            exit;
-          end;
-
           fClientMigrationState := cmsTransformData;
           UsedDivisions := TStringList.Create();
           UsedDivisions.Delimiter := ',';
           UsedDivisions.StrictDelimiter := true;
           try
+            HasPayees := false;
             if aSelectedData.ChartOfAccount then
-              if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
+            begin
+              if not FillPayeeData(aClient, aSelectedData.NonTransferedTransactions,
+                                   ClientBase.ClientData.BankAccountsData, GSTMapCol,
+                                   ClientBase.ClientData.PayeesData, HasPayees, aError) then
                 Exit;
 
-            if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData, ChartExportCol, GSTMapCol, UsedDivisions, NoTransactions, aError) then
+              if not FillJobData(aClient, aSelectedData.NonTransferedTransactions,
+                                 ClientBase.ClientData.BankAccountsData,
+                                 ClientBase.ClientData.JobsData, aError) then
+                Exit;
+
+              if not FillDivisionData(aClient, ClientBase.ClientData.DivisionsData, UsedDivisions, aError) then
+                Exit;
+            end;
+
+            if not FillChartOfAccountData(aClient, ClientBase.ClientData.ChartOfAccountsData, aSelectedData, ChartExportCol, GSTMapCol, UsedDivisions, HasTransactions, HasPayees, aError) then
               Exit;
           finally
             FreeAndNil(UsedDivisions);
