@@ -500,7 +500,7 @@ object dlgLedgerRep: TdlgLedgerRep
           Top = 171
           Width = 310
           Height = 17
-          Hint = 'Check to include non-transferring journal entires on the Report'
+          Hint = 'Check to include non-transferring journal entries on the Report'
           Caption = 'Include Non-Transferring &Journals'
           TabOrder = 1
         end
