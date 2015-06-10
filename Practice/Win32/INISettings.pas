@@ -31,6 +31,7 @@ procedure ReadUsersINI( UserCode : string);
 
 procedure ReadAppINI;
 
+procedure UpdateMemorisationINI_WithLock();
 procedure WriteMemorisationINI_WithLock(aClientCode : string);
 procedure ReadMemorisationINI(aClientCode : string);
 
@@ -100,12 +101,11 @@ const
    //Mems Ini groups
    GrpMemsSupport = 'Support';
 
-   MEM_COMMENTS : Array[ 0..6 ] of String =
+   MEM_COMMENTS : Array[ 0..5 ] of String =
       (  '; Support Section Help',
          '; 0 = Full Suggested Mems functionality',
          '; 1 = Refresh/Reset Suggested Mems',
-         '; 2 = Disable Suggested Mems v2 only',
-         '; 3 = Disable Suggested Mems v1 and v2',
+         '; 2 = Disable Suggested Mems',
          '; Format to use is ClientCode=Number e.g. SAMPLE=1',
          '' );
 
@@ -1320,6 +1320,40 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure UpdateMemorisationINI_WithLock();
+var
+  MemsIniFile : TCommentMemIniFile;
+  MemCommentIndex : integer;
+  Msg : String;
+begin
+  if not FileExists( ExecDir + MEMSINIFILENAME) then
+    CreateMemsFileIfNotExists();
+
+  FileLocking.ObtainLock( ltMemsIni, TimeToWaitForPracINI );
+  try
+    try
+      MemsIniFile := TCommentMemIniFile.Create(ExecDir + MEMSINIFILENAME);
+      try
+        for MemCommentIndex := 0 to high(MEM_COMMENTS) do
+          MemsIniFile.Comments.Add(MEM_COMMENTS[MemCommentIndex]);
+      finally
+        MemsIniFile.UpdateFile;
+        FreeAndNil(MemsIniFile);
+      end;
+    except
+      on e : Exception do
+      begin
+        Msg := 'Error during write of MemsIniFile - '+ e.Message;
+        LogUtil.LogError( UnitName, Msg);
+      end;
+    end;
+
+  finally
+    FileLocking.ReleaseLock( ltMemsIni );
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure WriteMemorisationINI_WithLock(aClientCode : string);
 begin
   if not FileExists( ExecDir + MEMSINIFILENAME) then
@@ -1347,6 +1381,10 @@ begin
     try
       MEMSINI_SupportOptions :=
         TMemsSupportOptions(MemsIniFile.ReadInteger(GrpMemsSupport, aClientCode, 0));
+
+      if MEMSINI_SupportOptions = meiDisableSuggestedMemsOld then
+        MEMSINI_SupportOptions := meiDisableSuggestedMems;
+
     finally
       FreeAndNil(MemsIniFile);
     end;

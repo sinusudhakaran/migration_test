@@ -1212,10 +1212,9 @@ end;
 procedure TSuggestedMems.SetMainState();
 begin
   case MEMSINI_SupportOptions of
-    meiDisableSuggestedMemsAll : fMainState := mtsNoScan;
-    meiResetMems               : fMainState := mtsScan;
-    meiDisableSuggestedMemsv2  : fMainState := mtsMems2NoScan;
-    meiFullfunctionality       : fMainState := mtsScan;
+    meiDisableSuggestedMems : fMainState := mtsNoScan;
+    meiResetMems            : fMainState := mtsScan;
+    meiFullfunctionality    : fMainState := mtsScan;
   end;
 end;
 

@@ -698,8 +698,10 @@ var
     PRACINI_IPClientLocking_GROUP_ID : string;
 
 Type
-    TMemsSupportOptions = (meiFullfunctionality, meiResetMems,
-                           meiDisableSuggestedMemsv2, meiDisableSuggestedMemsAll,
+    TMemsSupportOptions = (meiFullfunctionality,
+                           meiResetMems,
+                           meiDisableSuggestedMems,
+                           meiDisableSuggestedMemsOld,
                            meiLogAllMems);
 
 Var

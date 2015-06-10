@@ -1148,11 +1148,6 @@ var
   iTrans: integer;
   Transaction: pTransaction_Rec;
 begin
-  if (MEMSINI_SupportOptions = meiDisableSuggestedMemsv2) then
-  begin
-    Result := False;
-    Exit;
-  end;
 
   // Init
   dtMonthsAgo := IncDate(CurrentDate, 0, -MONTHS_BACK, 0);

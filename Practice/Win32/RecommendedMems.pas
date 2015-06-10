@@ -1229,9 +1229,6 @@ var
 begin
   Result := False;
 
-  if (MEMSINI_SupportOptions = meiDisableSuggestedMemsAll) then
-    Exit;
-
   // only allows one instance of MemScan to run
   StopMemScan();
   try
@@ -1575,12 +1572,6 @@ var
   RecommendIndex    : integer;
 begin
   result := '';
-
-  if MEMSINI_SupportOptions = meiDisableSuggestedMemsAll then
-  begin
-    Result := MSG_DISABLED_MEMORISATIONS;
-    Exit;
-  end;
 
   if (Candidate.cpFields.cpCandidate_ID_To_Process >= Candidate.cpFields.cpNext_Candidate_ID) and
      (Candidate.cpFields.cpNext_Candidate_ID <> 1) then

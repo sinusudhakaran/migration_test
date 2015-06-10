@@ -259,6 +259,9 @@ begin
   Application.Title := APPTITLE;
   if BKFileExists(ExtractFilePath(Application.ExeName) + HelpFileName) then
     Application.HelpFile := ExtractFilePath(Application.ExeName) + HelpFileName;
+
+  UpdateMemorisationINI_WithLock();
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
