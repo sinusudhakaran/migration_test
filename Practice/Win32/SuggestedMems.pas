@@ -79,7 +79,7 @@ type
 
     procedure DeleteSuggestionAndLinks(const aBankAccount : TBank_Account; aSuggestionId : integer);
     procedure DeleteLinksAndSuggestions(const aBankAccount : TBank_Account; const aTrans : pTran_Suggested_Index_Rec; aOldTranState : byte);
-    function UpdateSuggestionAccountAndLinks(const aBankAccount : TBank_Account; const aTrans : pTran_Suggested_Index_Rec) : boolean;
+    function UpdateSuggestionAccountAndLinks(const aBankAccount : TBank_Account; const aTrans : pTran_Suggested_Index_Rec; aOldState : byte) : boolean;
 
     function FindPhraseOrCreate(const aBankAccount : TBank_Account; const aPhrase : string; var aPhraseid : integer) : TFoundCreate;
     function FindSuggestionUsingPhraseIdAndType(const aBankAccount: TBank_Account; aTypeId: byte; aPhraseId: integer; var aSuggested_Mem_Rec: pSuggested_Mem_Rec): boolean;
@@ -435,7 +435,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.UpdateSuggestionAccountAndLinks(const aBankAccount: TBank_Account; const aTrans : pTran_Suggested_Index_Rec): boolean;
+function TSuggestedMems.UpdateSuggestionAccountAndLinks(const aBankAccount: TBank_Account; const aTrans : pTran_Suggested_Index_Rec; aOldState : byte): boolean;
 var
   TranSeqNo : integer;
 
@@ -488,7 +488,7 @@ begin
       // Add to New Account
       aBankAccount.baTran_Suggested_Link_List.GetPRec(SuggTranIndex)^.tsAccountId := NewAccountId;
 
-      if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                           
+      if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then
         inc(Suggested_Account_Link_Rec^.slManual_Count);
 
       inc(Suggested_Account_Link_Rec^.slCount);
@@ -496,7 +496,7 @@ begin
       // Removed from Old Account
       if aBankAccount.baSuggested_Account_Link_List.SearchUsingSuggestedAndAccountId(SuggestedId, OldAccountId, AccountLinkIndex) then
       begin
-        if aTrans^.tiSuggested_Mem_State = tssCreateSuggestion then                                                                           
+        if aOldState = tssCreateSuggestion then
           if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slManual_Count > 0 then
             dec(aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slManual_Count);
 
@@ -622,8 +622,7 @@ begin
   NewSuggested_Account_Link.slFields.slCount            := 0;
   NewSuggested_Account_Link.slFields.slManual_Count     := 0;
   NewSuggested_Account_Link.slFields.slIsUncoded        := (length(trim(aAccount)) = 0);
-  //NewSuggested_Account_Link.slFields.slRemoveSuggestion := (aAccount = DISSECT_DESC);
-  //NewSuggested_Account_Link.slFields
+  NewSuggested_Account_Link.slFields.slIsDissected      := (aAccount = DISSECT_DESC);
 
   aBankAccount.baSuggested_Account_Link_List.Insert_Suggested_Account_Link_Rec(NewSuggested_Account_Link);
   aSuggested_Account_Link_Rec := aBankAccount.baSuggested_Account_Link_List.GetAs_pRec(NewSuggested_Account_Link);
@@ -713,12 +712,12 @@ begin
     if AccountsNotTheSame then
       CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Scan_Suggested_Account_Link_Rec, aTranNewState)
     else
-      CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec, aTranNewState);
+      CreateTranSuggestionLink(aBankAccount, aScanTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec, aTranNewState );
   end;
 
   if (PhraseCreated) or
      (not FindTranSuggestionLink(aBankAccount, aMatchedTrans^.tiTran_Seq_No, Suggested_Mem_Rec^.smId)) then
-    CreateTranSuggestionLink(aBankAccount, aMatchedTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec, aTranNewState);
+    CreateTranSuggestionLink(aBankAccount, aMatchedTrans, Suggested_Mem_Rec, Match_Suggested_Account_Link_Rec, aMatchedTrans^.tiSuggested_Mem_State );
 end;
 
 //------------------------------------------------------------------------------
@@ -1112,7 +1111,7 @@ begin
       begin
         aTrans^.tiSuggested_Mem_State := GetScannedState(aTrans^.tiCoded_By);
 
-        AccLinkUpdated := UpdateSuggestionAccountAndLinks(aBankAccount, aTrans);
+        AccLinkUpdated := UpdateSuggestionAccountAndLinks(aBankAccount, aTrans, OldState);
 
         if (not aIsBulk) and
            (NoMoreRecord) then
@@ -1443,7 +1442,6 @@ var
   MatchedPhrase : string;
   SearchAccountIndex : integer;
   SearchAccountId : integer;
-  HasDissectedTran : boolean;
   TranLinkIndex : integer;
 
   AccountId : integer;
