@@ -78,17 +78,27 @@ uses
 
 
 procedure FindAndReplace;
-var Ldlg: TFindReplaceDlg;
+var
+  Index : integer;
+  Ldlg: TFindReplaceDlg;
+  ActiveCaption : string;
+  OldCaption : string;
 begin
-   Ldlg := TFindReplaceDlg.Create( Application.MainForm);
-   try
-      if lDlg.ShowModal = mrOK then begin
-         RefreshHomepage;
-         ReloadCodingScreens(false);
-      end;
-   finally
-      ldlg.Free;
-   end;
+  OldCaption := frmMain.GetMDICurrentChildCaption;
+
+  Ldlg := TFindReplaceDlg.Create( Application.MainForm);
+  try
+    if lDlg.ShowModal = mrOK then
+    begin
+      RefreshHomepage;
+      ReloadCodingScreens(false);
+
+      frmMain.UpdateAllWindowTabs('');
+      frmMain.ActivateMDIChild(frmMain.GetMDIIndexFromCaption(OldCaption));
+    end;
+  finally
+    ldlg.Free;
+  end;
 end;
 
 

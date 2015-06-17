@@ -28,7 +28,6 @@ type
    TCodingOptions = set of TCodingCommands;
 
   TfrmCoding = class(TForm)
-    barCodingStatus: TStatusBar;
     cntController: TOvcController;
     celStatus: TOvcTCBitMap;
     celDate: TOvcTCString;
@@ -46,7 +45,6 @@ type
     celOther: TOvcTCString;
     celAccount: TOvcTCString;
     hdrColumnHeadings: TOvcTCColHead;
-    tblCoding: TOvcTable;
     popGST: TPopupMenu;
     mniRecalcGST: TMenuItem;
     popTransfer: TPopupMenu;
@@ -55,14 +53,6 @@ type
     popCoding: TPopupMenu;
     celGSTCode: TOvcTCString;
     pfHiddenAmount: TOvcPictureField;
-    RzSizePanel1: TRzSizePanel;
-    pnlNotes: TPanel;
-    Panel2: TPanel;
-    memImportNotes: TMemo;
-    memNotes: TMemo;
-    pnlNotesTitle: TPanel;
-    rzPinBtn: TRzBmpButton;
-    rzXBtn: TRzBmpButton;
     popNotes: TPopupMenu;
     pmiNotesVisible: TMenuItem;
     N100: TMenuItem;
@@ -121,6 +111,18 @@ type
     lblRecommendedMemorisations: TLabel;
     tcWindows: TRzTabControl;
     pnlLine: TPanel;
+    pnlLayout1: TPanel;
+    barCodingStatus: TStatusBar;
+    pnlLayout2: TPanel;
+    RzSizePanel1: TRzSizePanel;
+    pnlNotes: TPanel;
+    Panel2: TPanel;
+    memImportNotes: TMemo;
+    memNotes: TMemo;
+    pnlNotesTitle: TPanel;
+    rzPinBtn: TRzBmpButton;
+    rzXBtn: TRzBmpButton;
+    tblCoding: TOvcTable;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -7152,6 +7154,8 @@ begin
    pT.txCoded_By := cbManual;//So it gets cleaned up below..
    AccountEdited(pT);
 
+   SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned);
+
    RedrawRow;
 end;
 
@@ -9670,6 +9674,8 @@ begin
       if SuperFieldsUtils.EditSuperFields( pT, Move, FSuperTop, FSuperLeft, BankAccount) then begin
 
           AccountEdited(pT); // Cleanup any changes
+
+          SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned, (OldAccount <> pT.txAccount));
 
           RedrawRow;
 

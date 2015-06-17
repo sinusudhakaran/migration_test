@@ -843,6 +843,7 @@ type
 
     procedure NextSortedMDI();
     procedure PrevSortedMDI();
+    function GetMDIIndexFromCaption(aCaption : string) : integer;
     procedure ActivateMDIChild(aMDIIndex: integer);
     procedure UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
     procedure UpdateAllWindowTabs(aActionedPage: string = '');
@@ -870,6 +871,7 @@ type
     procedure RefreshUserControls;
     procedure UpdateWindowsAfterChartRefresh();
 
+    function GetMDICurrentChildCaption : string;
     property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
   end;
 
@@ -3381,6 +3383,25 @@ begin
   end;
 
   Result := fMDIChildSortedList;
+end;
+
+function TfrmMain.GetMDICurrentChildCaption: string;
+begin
+  Result := MDIChildSortedList.Strings[MDIChildSortedIndex];
+end;
+
+function TfrmMain.GetMDIIndexFromCaption(aCaption: string): integer;
+var
+  MDIIndex : integer;
+begin
+  for MDIIndex := 0 to MDIChildSortedList.Count-1 do
+  begin
+    if MDIChildSortedList.Strings[MDIIndex] = aCaption then
+    begin
+      Result := MDIIndex;
+      Exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------

@@ -3,8 +3,8 @@ object frmCoding: TfrmCoding
   Top = 293
   Anchors = []
   Caption = 'Code Bank Statements'
-  ClientHeight = 571
-  ClientWidth = 728
+  ClientHeight = 611
+  ClientWidth = 844
   Color = clBtnFace
   ParentFont = True
   FormStyle = fsMDIChild
@@ -24,103 +24,6 @@ object frmCoding: TfrmCoding
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object barCodingStatus: TStatusBar
-    Left = 0
-    Top = 525
-    Width = 728
-    Height = 24
-    AutoHint = True
-    Panels = <
-      item
-        Alignment = taCenter
-        Text = 'x'
-        Width = 150
-      end
-      item
-        Text = 'X of XXX'
-        Width = 85
-      end
-      item
-        Alignment = taCenter
-        Text = 'XXX%'
-        Width = 70
-      end
-      item
-        Text = 'XXX - Account Desc'
-        Width = 350
-      end
-      item
-        Text = 'Gst  X | $XX.XX'
-        Width = 135
-      end
-      item
-        Text = 'Closing Balance $XX.XX'
-        Width = 235
-      end>
-    ParentFont = True
-    ParentShowHint = False
-    ShowHint = True
-    SizeGrip = False
-    UseSystemFont = False
-    OnClick = barCodingStatusClick
-    OnMouseUp = barCodingStatusMouseUp
-  end
-  object tblCoding: TOvcTable
-    Left = 0
-    Top = 63
-    Width = 728
-    Height = 372
-    RowLimit = 2
-    LockedCols = 0
-    LeftCol = 0
-    ActiveCol = 0
-    Align = alClient
-    BorderStyle = bsNone
-    Color = clWindow
-    Colors.ActiveUnfocused = clBtnFace
-    Colors.ActiveUnfocusedText = clWindowText
-    Colors.Locked = clGray
-    Colors.LockedText = clWhite
-    Colors.Editing = clWindow
-    Controller = cntController
-    Ctl3D = False
-    GridPenSet.NormalGrid.NormalColor = clSilver
-    GridPenSet.NormalGrid.Style = psSolid
-    GridPenSet.NormalGrid.Effect = geVertical
-    GridPenSet.LockedGrid.NormalColor = clBtnShadow
-    GridPenSet.LockedGrid.Style = psSolid
-    GridPenSet.LockedGrid.Effect = ge3D
-    GridPenSet.CellWhenFocused.NormalColor = clBlack
-    GridPenSet.CellWhenFocused.Style = psSolid
-    GridPenSet.CellWhenFocused.Effect = geBoth
-    GridPenSet.CellWhenUnfocused.NormalColor = clWindowText
-    GridPenSet.CellWhenUnfocused.Style = psSolid
-    GridPenSet.CellWhenUnfocused.Effect = geBoth
-    LockedRowsCell = hdrColumnHeadings
-    Options = [otoTabToArrow, otoEnterToArrow, otoNoSelection]
-    ParentCtl3D = False
-    ParentShowHint = False
-    ShowHint = False
-    TabOrder = 1
-    OnActiveCellChanged = tblCodingActiveCellChanged
-    OnDblClick = tblCodingDblClick
-    OnEnter = tblCodingEnter
-    OnExit = tblCodingExit
-    OnKeyDown = tblCodingKeyDown
-    OnKeyPress = tblCodingKeyPress
-    OnKeyUp = tblCodingKeyUp
-    OnMouseUp = tblCodingMouseUp
-    OnMouseWheel = BkMouseWheelHandler
-    OnTopLeftCellChanged = tblCodingTopLeftCellChanged
-    CellData = (
-      'frmCoding.hdrColumnHeadings')
-    RowData = (
-      28)
-    ColData = (
-      32
-      False
-      False)
-  end
   object pfHiddenAmount: TOvcPictureField
     Left = 672
     Top = 400
@@ -143,228 +46,15 @@ object frmCoding: TfrmCoding
     MaxLength = 12
     Options = []
     PictureMask = '#########.##'
-    TabOrder = 2
+    TabOrder = 0
     Visible = False
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
-  object RzSizePanel1: TRzSizePanel
-    Left = 0
-    Top = 435
-    Width = 728
-    Height = 90
-    Align = alBottom
-    HotSpotSizePercent = 10
-    HotSpotVisible = True
-    ShowDockClientCaptions = False
-    SizeBarStyle = ssBump
-    SizeBarWidth = 9
-    TabOrder = 3
-    VisualStyle = vsGradient
-    OnResize = RzSizePanel1Resize
-    object pnlNotes: TPanel
-      Left = 0
-      Top = 10
-      Width = 728
-      Height = 80
-      Align = alClient
-      BevelOuter = bvNone
-      TabOrder = 0
-      OnEnter = pnlNotesEnter
-      OnExit = pnlNotesExit
-      object Panel2: TPanel
-        Left = 21
-        Top = 0
-        Width = 707
-        Height = 80
-        Align = alClient
-        BevelOuter = bvNone
-        Caption = 'Panel2'
-        TabOrder = 0
-        object memImportNotes: TMemo
-          Left = 0
-          Top = 0
-          Width = 707
-          Height = 41
-          TabStop = False
-          Align = alTop
-          Ctl3D = False
-          ParentCtl3D = False
-          PopupMenu = popNotes
-          ReadOnly = True
-          ScrollBars = ssVertical
-          TabOrder = 0
-          OnKeyUp = memImportNotesKeyUp
-        end
-        object memNotes: TMemo
-          Left = 0
-          Top = 41
-          Width = 707
-          Height = 39
-          Align = alClient
-          Ctl3D = False
-          Lines.Strings = (
-            '')
-          ParentCtl3D = False
-          PopupMenu = popNotes
-          ScrollBars = ssVertical
-          TabOrder = 1
-          OnChange = memNotesChange
-          OnExit = memNotesExit
-          OnKeyUp = memImportNotesKeyUp
-        end
-      end
-      object pnlNotesTitle: TPanel
-        Left = 0
-        Top = 0
-        Width = 21
-        Height = 80
-        Align = alLeft
-        BevelOuter = bvNone
-        Ctl3D = False
-        ParentCtl3D = False
-        TabOrder = 1
-        object rzPinBtn: TRzBmpButton
-          Left = 1
-          Top = 3
-          Width = 18
-          Height = 18
-          Hint = 'Click Pin to Keep Visible'
-          Bitmaps.Down.Data = {
-            06050000424D060500000000000036040000280000000E0000000D0000000100
-            080000000000D0000000C40E0000C40E00000001000000000000000000000000
-            80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
-            A6000020400000206000002080000020A0000020C0000020E000004000000040
-            20000040400000406000004080000040A0000040C0000040E000006000000060
-            20000060400000606000006080000060A0000060C0000060E000008000000080
-            20000080400000806000008080000080A0000080C0000080E00000A0000000A0
-            200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
-            200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
-            200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
-            20004000400040006000400080004000A0004000C0004000E000402000004020
-            20004020400040206000402080004020A0004020C0004020E000404000004040
-            20004040400040406000404080004040A0004040C0004040E000406000004060
-            20004060400040606000406080004060A0004060C0004060E000408000004080
-            20004080400040806000408080004080A0004080C0004080E00040A0000040A0
-            200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
-            200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
-            200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
-            20008000400080006000800080008000A0008000C0008000E000802000008020
-            20008020400080206000802080008020A0008020C0008020E000804000008040
-            20008040400080406000804080008040A0008040C0008040E000806000008060
-            20008060400080606000806080008060A0008060C0008060E000808000008080
-            20008080400080806000808080008080A0008080C0008080E00080A0000080A0
-            200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
-            200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
-            200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
-            2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
-            2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
-            2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
-            2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
-            2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
-            2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
-            2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00F9F9F9F9F9F9
-            F9F9F9F9F9F9F9F90000F9F9F9F9F9F9F9F9F9F9F9F9F9F90000F9F9F900F9F9
-            F9F9F9F9F9F9F9F90000F9F9F9F9000000000000F9F9F9F90000F9F9F9F90000
-            A4A4000000F9F9F90000F9F9F9F900A4A4A4A4000000F9F90000F9F9F9F900A4
-            FFFB00000000F9F90000F9F9F9F900FFFB00A4A4A40000F90000F9F9F9F900FB
-            FF00FBFFA4A400F90000F9F9F9F9F900FB00FFFBFFA400F90000F9F9F9F9F9F9
-            0000FBFFFBA400F90000F9F9F9F9F9F9F9F900000000F9F90000F9F9F9F9F9F9
-            F9F9F9F9F9F9F9F90000}
-          Bitmaps.TransparentColor = clRed
-          Bitmaps.Up.Data = {
-            36050000424D3605000000000000360400002800000010000000100000000100
-            08000000000000010000C40E0000C40E00000001000000000000000000000000
-            80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
-            A6000020400000206000002080000020A0000020C0000020E000004000000040
-            20000040400000406000004080000040A0000040C0000040E000006000000060
-            20000060400000606000006080000060A0000060C0000060E000008000000080
-            20000080400000806000008080000080A0000080C0000080E00000A0000000A0
-            200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
-            200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
-            200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
-            20004000400040006000400080004000A0004000C0004000E000402000004020
-            20004020400040206000402080004020A0004020C0004020E000404000004040
-            20004040400040406000404080004040A0004040C0004040E000406000004060
-            20004060400040606000406080004060A0004060C0004060E000408000004080
-            20004080400040806000408080004080A0004080C0004080E00040A0000040A0
-            200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
-            200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
-            200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
-            20008000400080006000800080008000A0008000C0008000E000802000008020
-            20008020400080206000802080008020A0008020C0008020E000804000008040
-            20008040400080406000804080008040A0008040C0008040E000806000008060
-            20008060400080606000806080008060A0008060C0008060E000808000008080
-            20008080400080806000808080008080A0008080C0008080E00080A0000080A0
-            200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
-            200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
-            200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
-            2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
-            2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
-            2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
-            2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
-            2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
-            2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
-            2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00F9F9F9F9F9F9
-            F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9
-            F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9
-            F900F9F9F9F9F9F9F9F9F9F9F9F9F9F9F90000F9F9F90000F9F9F9F9F9F9F9F9
-            F900A4000000A400F9F9F9F9F9F9F9F9F900FB00A400FB00F9F9F9F9F9000000
-            0000FFFBFFA4FF00F9F9F9F9F9F9F9F9F900FBFFFBFBFB00F9F9F9F9F9F9F9F9
-            F900FF000000FF00F9F9F9F9F9F9F9F9F90000F9F9F90000F9F9F9F9F9F9F9F9
-            F900F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9
-            F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9}
-          Color = clBtnFace
-          ButtonBorder = bbButton
-          ButtonSize = bszNeither
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 0
-          TabStop = False
-          Visible = False
-          OnClick = rzPinBtnClick
-        end
-        object rzXBtn: TRzBmpButton
-          Left = 2
-          Top = 3
-          Width = 18
-          Height = 18
-          Hint = 'Click to Close'
-          Bitmaps.TransparentColor = clRed
-          Bitmaps.Up.Data = {
-            E6000000424DE6000000000000007600000028000000100000000E0000000100
-            04000000000070000000C40E0000C40E00001000000000000000000000000000
-            8000008000000080800080000000800080008080000080808000C0C0C0000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00999999999999
-            9999999999999999999999999999999999999999999999999999999900999900
-            9999999990099009999999999900009999999999999009999999999999000099
-            9999999990099009999999990099990099999999999999999999999999999999
-            99999999999999999999}
-          Color = clBtnFace
-          ButtonBorder = bbButton
-          ButtonSize = bszNeither
-          ButtonStyle = bsNew
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 1
-          TabStop = False
-          OnClick = rzXBtnClick
-        end
-      end
-    end
-  end
   object pnlExtraTitleBar: TRzPanel
     Left = 0
     Top = 0
-    Width = 728
+    Width = 844
     Height = 41
     Align = alTop
     BorderSides = []
@@ -376,7 +66,7 @@ object frmCoding: TfrmCoding
     GradientColorStyle = gcsCustom
     GradientColorStop = 10525952
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 1
     VisualStyle = vsGradient
     object lblAcctDetails: TLabel
       Left = 3
@@ -430,7 +120,7 @@ object frmCoding: TfrmCoding
       Visible = False
     end
     object imgRight: TImage
-      Left = 495
+      Left = 611
       Top = 0
       Width = 233
       Height = 41
@@ -446,12 +136,12 @@ object frmCoding: TfrmCoding
   object pnlSearch: TPanel
     Left = 0
     Top = 41
-    Width = 728
+    Width = 844
     Height = 22
     Align = alTop
     BevelInner = bvRaised
     BevelOuter = bvLowered
-    TabOrder = 5
+    TabOrder = 2
     object Label1: TLabel
       AlignWithMargins = True
       Left = 31
@@ -524,27 +214,383 @@ object frmCoding: TfrmCoding
   end
   object tcWindows: TRzTabControl
     Left = 0
-    Top = 550
-    Width = 728
+    Top = 589
+    Width = 844
     Height = 21
     Align = alBottom
     TabIndex = 0
-    TabOrder = 6
+    TabOrder = 3
     TabOrientation = toBottom
     Tabs = <
       item
         Caption = 'Tab1'
       end>
     OnTabClick = tcWindowsTabClick
+    ExplicitLeft = 135
+    ExplicitTop = 416
+    ExplicitWidth = 728
     FixedDimension = 19
   end
   object pnlLine: TPanel
     Left = 0
-    Top = 549
-    Width = 728
+    Top = 610
+    Width = 844
     Height = 1
     Align = alBottom
-    TabOrder = 7
+    TabOrder = 4
+  end
+  object pnlLayout1: TPanel
+    Left = 0
+    Top = 63
+    Width = 844
+    Height = 526
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 5
+    ExplicitLeft = 190
+    ExplicitTop = 152
+    ExplicitWidth = 443
+    ExplicitHeight = 283
+    object barCodingStatus: TStatusBar
+      Left = 0
+      Top = 502
+      Width = 844
+      Height = 24
+      AutoHint = True
+      Panels = <
+        item
+          Alignment = taCenter
+          Text = 'x'
+          Width = 150
+        end
+        item
+          Text = 'X of XXX'
+          Width = 85
+        end
+        item
+          Alignment = taCenter
+          Text = 'XXX%'
+          Width = 70
+        end
+        item
+          Text = 'XXX - Account Desc'
+          Width = 350
+        end
+        item
+          Text = 'Gst  X | $XX.XX'
+          Width = 135
+        end
+        item
+          Text = 'Closing Balance $XX.XX'
+          Width = 235
+        end>
+      ParentFont = True
+      ParentShowHint = False
+      ShowHint = True
+      SizeGrip = False
+      UseSystemFont = False
+      OnClick = barCodingStatusClick
+      OnMouseUp = barCodingStatusMouseUp
+      ExplicitTop = 258
+      ExplicitWidth = 441
+    end
+    object pnlLayout2: TPanel
+      Left = 0
+      Top = 0
+      Width = 844
+      Height = 502
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 1
+      ExplicitLeft = 1
+      ExplicitTop = -5
+      ExplicitWidth = 441
+      ExplicitHeight = 257
+      object RzSizePanel1: TRzSizePanel
+        Left = 0
+        Top = 422
+        Width = 844
+        Height = 80
+        Align = alBottom
+        HotSpotSizePercent = 10
+        HotSpotVisible = True
+        ShowDockClientCaptions = False
+        SizeBarStyle = ssBump
+        SizeBarWidth = 9
+        TabOrder = 0
+        VisualStyle = vsGradient
+        OnResize = RzSizePanel1Resize
+        ExplicitLeft = 1
+        ExplicitTop = 176
+        ExplicitWidth = 439
+        object pnlNotes: TPanel
+          Left = 0
+          Top = 10
+          Width = 844
+          Height = 70
+          Align = alClient
+          BevelOuter = bvNone
+          TabOrder = 0
+          OnEnter = pnlNotesEnter
+          OnExit = pnlNotesExit
+          ExplicitTop = 0
+          ExplicitWidth = 718
+          ExplicitHeight = 90
+          object Panel2: TPanel
+            Left = 21
+            Top = 0
+            Width = 823
+            Height = 70
+            Align = alClient
+            BevelOuter = bvNone
+            Caption = 'Panel2'
+            TabOrder = 0
+            ExplicitWidth = 697
+            ExplicitHeight = 90
+            object memImportNotes: TMemo
+              Left = 0
+              Top = 0
+              Width = 823
+              Height = 41
+              TabStop = False
+              Align = alTop
+              Ctl3D = False
+              ParentCtl3D = False
+              PopupMenu = popNotes
+              ReadOnly = True
+              ScrollBars = ssVertical
+              TabOrder = 0
+              OnKeyUp = memImportNotesKeyUp
+              ExplicitWidth = 697
+            end
+            object memNotes: TMemo
+              Left = 0
+              Top = 41
+              Width = 823
+              Height = 29
+              Align = alClient
+              Ctl3D = False
+              Lines.Strings = (
+                '')
+              ParentCtl3D = False
+              PopupMenu = popNotes
+              ScrollBars = ssVertical
+              TabOrder = 1
+              OnChange = memNotesChange
+              OnExit = memNotesExit
+              OnKeyUp = memImportNotesKeyUp
+              ExplicitWidth = 697
+              ExplicitHeight = 214
+            end
+          end
+          object pnlNotesTitle: TPanel
+            Left = 0
+            Top = 0
+            Width = 21
+            Height = 70
+            Align = alLeft
+            BevelOuter = bvNone
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 1
+            ExplicitHeight = 255
+            object rzPinBtn: TRzBmpButton
+              Left = 1
+              Top = 3
+              Width = 18
+              Height = 18
+              Hint = 'Click Pin to Keep Visible'
+              Bitmaps.Down.Data = {
+                06050000424D060500000000000036040000280000000E0000000D0000000100
+                080000000000D0000000C40E0000C40E00000001000000000000000000000000
+                80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
+                A6000020400000206000002080000020A0000020C0000020E000004000000040
+                20000040400000406000004080000040A0000040C0000040E000006000000060
+                20000060400000606000006080000060A0000060C0000060E000008000000080
+                20000080400000806000008080000080A0000080C0000080E00000A0000000A0
+                200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
+                200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
+                200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
+                20004000400040006000400080004000A0004000C0004000E000402000004020
+                20004020400040206000402080004020A0004020C0004020E000404000004040
+                20004040400040406000404080004040A0004040C0004040E000406000004060
+                20004060400040606000406080004060A0004060C0004060E000408000004080
+                20004080400040806000408080004080A0004080C0004080E00040A0000040A0
+                200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
+                200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
+                200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
+                20008000400080006000800080008000A0008000C0008000E000802000008020
+                20008020400080206000802080008020A0008020C0008020E000804000008040
+                20008040400080406000804080008040A0008040C0008040E000806000008060
+                20008060400080606000806080008060A0008060C0008060E000808000008080
+                20008080400080806000808080008080A0008080C0008080E00080A0000080A0
+                200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
+                200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
+                200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
+                2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
+                2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
+                2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
+                2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
+                2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
+                2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
+                2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
+                FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00F9F9F9F9F9F9
+                F9F9F9F9F9F9F9F90000F9F9F9F9F9F9F9F9F9F9F9F9F9F90000F9F9F900F9F9
+                F9F9F9F9F9F9F9F90000F9F9F9F9000000000000F9F9F9F90000F9F9F9F90000
+                A4A4000000F9F9F90000F9F9F9F900A4A4A4A4000000F9F90000F9F9F9F900A4
+                FFFB00000000F9F90000F9F9F9F900FFFB00A4A4A40000F90000F9F9F9F900FB
+                FF00FBFFA4A400F90000F9F9F9F9F900FB00FFFBFFA400F90000F9F9F9F9F9F9
+                0000FBFFFBA400F90000F9F9F9F9F9F9F9F900000000F9F90000F9F9F9F9F9F9
+                F9F9F9F9F9F9F9F90000}
+              Bitmaps.TransparentColor = clRed
+              Bitmaps.Up.Data = {
+                36050000424D3605000000000000360400002800000010000000100000000100
+                08000000000000010000C40E0000C40E00000001000000000000000000000000
+                80000080000000808000800000008000800080800000C0C0C000C0DCC000F0CA
+                A6000020400000206000002080000020A0000020C0000020E000004000000040
+                20000040400000406000004080000040A0000040C0000040E000006000000060
+                20000060400000606000006080000060A0000060C0000060E000008000000080
+                20000080400000806000008080000080A0000080C0000080E00000A0000000A0
+                200000A0400000A0600000A0800000A0A00000A0C00000A0E00000C0000000C0
+                200000C0400000C0600000C0800000C0A00000C0C00000C0E00000E0000000E0
+                200000E0400000E0600000E0800000E0A00000E0C00000E0E000400000004000
+                20004000400040006000400080004000A0004000C0004000E000402000004020
+                20004020400040206000402080004020A0004020C0004020E000404000004040
+                20004040400040406000404080004040A0004040C0004040E000406000004060
+                20004060400040606000406080004060A0004060C0004060E000408000004080
+                20004080400040806000408080004080A0004080C0004080E00040A0000040A0
+                200040A0400040A0600040A0800040A0A00040A0C00040A0E00040C0000040C0
+                200040C0400040C0600040C0800040C0A00040C0C00040C0E00040E0000040E0
+                200040E0400040E0600040E0800040E0A00040E0C00040E0E000800000008000
+                20008000400080006000800080008000A0008000C0008000E000802000008020
+                20008020400080206000802080008020A0008020C0008020E000804000008040
+                20008040400080406000804080008040A0008040C0008040E000806000008060
+                20008060400080606000806080008060A0008060C0008060E000808000008080
+                20008080400080806000808080008080A0008080C0008080E00080A0000080A0
+                200080A0400080A0600080A0800080A0A00080A0C00080A0E00080C0000080C0
+                200080C0400080C0600080C0800080C0A00080C0C00080C0E00080E0000080E0
+                200080E0400080E0600080E0800080E0A00080E0C00080E0E000C0000000C000
+                2000C0004000C0006000C0008000C000A000C000C000C000E000C0200000C020
+                2000C0204000C0206000C0208000C020A000C020C000C020E000C0400000C040
+                2000C0404000C0406000C0408000C040A000C040C000C040E000C0600000C060
+                2000C0604000C0606000C0608000C060A000C060C000C060E000C0800000C080
+                2000C0804000C0806000C0808000C080A000C080C000C080E000C0A00000C0A0
+                2000C0A04000C0A06000C0A08000C0A0A000C0A0C000C0A0E000C0C00000C0C0
+                2000C0C04000C0C06000C0C08000C0C0A000F0FBFF00A4A0A000808080000000
+                FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00F9F9F9F9F9F9
+                F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9
+                F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9
+                F900F9F9F9F9F9F9F9F9F9F9F9F9F9F9F90000F9F9F90000F9F9F9F9F9F9F9F9
+                F900A4000000A400F9F9F9F9F9F9F9F9F900FB00A400FB00F9F9F9F9F9000000
+                0000FFFBFFA4FF00F9F9F9F9F9F9F9F9F900FBFFFBFBFB00F9F9F9F9F9F9F9F9
+                F900FF000000FF00F9F9F9F9F9F9F9F9F90000F9F9F90000F9F9F9F9F9F9F9F9
+                F900F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9
+                F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9F9}
+              Color = clBtnFace
+              ButtonBorder = bbButton
+              ButtonSize = bszNeither
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              TabStop = False
+              Visible = False
+              OnClick = rzPinBtnClick
+            end
+            object rzXBtn: TRzBmpButton
+              Left = 2
+              Top = 3
+              Width = 18
+              Height = 18
+              Hint = 'Click to Close'
+              Bitmaps.TransparentColor = clRed
+              Bitmaps.Up.Data = {
+                E6000000424DE6000000000000007600000028000000100000000E0000000100
+                04000000000070000000C40E0000C40E00001000000000000000000000000000
+                8000008000000080800080000000800080008080000080808000C0C0C0000000
+                FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00999999999999
+                9999999999999999999999999999999999999999999999999999999900999900
+                9999999990099009999999999900009999999999999009999999999999000099
+                9999999990099009999999990099990099999999999999999999999999999999
+                99999999999999999999}
+              Color = clBtnFace
+              ButtonBorder = bbButton
+              ButtonSize = bszNeither
+              ButtonStyle = bsNew
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              TabStop = False
+              OnClick = rzXBtnClick
+            end
+          end
+        end
+      end
+      object tblCoding: TOvcTable
+        Left = 0
+        Top = 0
+        Width = 844
+        Height = 422
+        RowLimit = 2
+        LockedCols = 0
+        LeftCol = 0
+        ActiveCol = 0
+        Align = alClient
+        BorderStyle = bsNone
+        Color = clWindow
+        Colors.ActiveUnfocused = clBtnFace
+        Colors.ActiveUnfocusedText = clWindowText
+        Colors.Locked = clGray
+        Colors.LockedText = clWhite
+        Colors.Editing = clWindow
+        Controller = cntController
+        Ctl3D = False
+        GridPenSet.NormalGrid.NormalColor = clSilver
+        GridPenSet.NormalGrid.Style = psSolid
+        GridPenSet.NormalGrid.Effect = geVertical
+        GridPenSet.LockedGrid.NormalColor = clBtnShadow
+        GridPenSet.LockedGrid.Style = psSolid
+        GridPenSet.LockedGrid.Effect = ge3D
+        GridPenSet.CellWhenFocused.NormalColor = clBlack
+        GridPenSet.CellWhenFocused.Style = psSolid
+        GridPenSet.CellWhenFocused.Effect = geBoth
+        GridPenSet.CellWhenUnfocused.NormalColor = clWindowText
+        GridPenSet.CellWhenUnfocused.Style = psSolid
+        GridPenSet.CellWhenUnfocused.Effect = geBoth
+        Options = [otoTabToArrow, otoEnterToArrow, otoNoSelection]
+        ParentCtl3D = False
+        ParentShowHint = False
+        ShowHint = False
+        TabOrder = 1
+        OnActiveCellChanged = tblCodingActiveCellChanged
+        OnDblClick = tblCodingDblClick
+        OnEnter = tblCodingEnter
+        OnExit = tblCodingExit
+        OnKeyDown = tblCodingKeyDown
+        OnKeyPress = tblCodingKeyPress
+        OnKeyUp = tblCodingKeyUp
+        OnMouseUp = tblCodingMouseUp
+        OnMouseWheel = BkMouseWheelHandler
+        OnTopLeftCellChanged = tblCodingTopLeftCellChanged
+        ExplicitLeft = -287
+        ExplicitTop = -115
+        ExplicitWidth = 728
+        ExplicitHeight = 372
+        CellData = (
+          'frmCoding.hdrColumnHeadings')
+        RowData = (
+          28)
+        ColData = (
+          32
+          False
+          False)
+      end
+    end
   end
   object cntController: TOvcController
     EntryCommands.TableList = (
@@ -558,14 +604,12 @@ object frmCoding: TfrmCoding
     Top = 160
   end
   object celStatus: TOvcTCBitMap
-    Table = tblCoding
     Left = 48
     Top = 217
   end
   object celDate: TOvcTCString
     Access = otxReadOnly
     MaxLength = 8
-    Table = tblCoding
     UseASCIIZStrings = True
     Left = 112
     Top = 217
@@ -573,7 +617,6 @@ object frmCoding: TfrmCoding
   object celRef: TOvcTCString
     Access = otxReadOnly
     MaxLength = 12
-    Table = tblCoding
     UseASCIIZStrings = True
     OnOwnerDraw = celRefOwnerDraw
     Left = 144
@@ -582,7 +625,6 @@ object frmCoding: TfrmCoding
   object celAnalysis: TOvcTCString
     Access = otxReadOnly
     MaxLength = 100
-    Table = tblCoding
     OnChange = celAnalysisChange
     Left = 176
     Top = 217
@@ -590,7 +632,6 @@ object frmCoding: TfrmCoding
   object celAmount: TOvcTCString
     Access = otxReadOnly
     Adjust = otaCenterRight
-    Table = tblCoding
     UseASCIIZStrings = True
     OnExit = celAmountExit
     OnOwnerDraw = celAmountOwnerDraw
@@ -599,21 +640,18 @@ object frmCoding: TfrmCoding
   end
   object celEntryType: TOvcTCString
     Access = otxReadOnly
-    Table = tblCoding
     UseASCIIZStrings = True
     Left = 464
     Top = 217
   end
   object celBSDate: TOvcTCString
     Access = otxReadOnly
-    Table = tblCoding
     UseASCIIZStrings = True
     Left = 496
     Top = 217
   end
   object celCoded: TOvcTCString
     Access = otxReadOnly
-    Table = tblCoding
     Left = 528
     Top = 217
   end
@@ -627,7 +665,6 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     PictureMask = '999999'
     ShowHint = True
-    Table = tblCoding
     OnKeyDown = celPayeeKeyDown
     OnOwnerDraw = celPayeeOwnerDraw
     Left = 432
@@ -646,7 +683,6 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     PictureMask = '#########.##'
     ShowHint = True
-    Table = tblCoding
     OnChange = celGstAmtChange
     OnKeyPress = celGstAmtKeyPress
     OnOwnerDraw = celGstAmtOwnerDraw
@@ -666,7 +702,6 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     PictureMask = '#########.####'
     ShowHint = True
-    Table = tblCoding
     OnChange = celQuantityChange
     OnExit = celQuantityExit
     Left = 336
@@ -678,7 +713,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 12
     ShowHint = True
-    Table = tblCoding
     Left = 304
     Top = 257
   end
@@ -686,7 +720,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 200
     ShowHint = True
-    Table = tblCoding
     UseASCIIZStrings = True
     Left = 304
     Top = 165
@@ -695,7 +728,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 20
     ShowHint = True
-    Table = tblCoding
     Left = 272
     Top = 257
   end
@@ -703,7 +735,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
-    Table = tblCoding
     OnExit = celAccountExit
     OnKeyDown = celAccountKeyDown
     OnKeyPress = celAccountKeyPress
@@ -716,7 +747,6 @@ object frmCoding: TfrmCoding
     Headings.Strings = (
       'S')
     ShowLetters = False
-    Table = tblCoding
     OnClick = hdrColumnHeadingsClick
     Left = 64
     Top = 162
@@ -750,7 +780,6 @@ object frmCoding: TfrmCoding
   object celGSTCode: TOvcTCString
     MaxLength = 3
     ShowHint = True
-    Table = tblCoding
     OnKeyDown = celGSTCodeKeyDown
     OnOwnerDraw = celGSTCodeOwnerDraw
     Left = 368
@@ -841,7 +870,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 200
     ShowHint = True
-    Table = tblCoding
     UseASCIIZStrings = True
     Left = 304
     Top = 197
@@ -910,7 +938,6 @@ object frmCoding: TfrmCoding
       0000000000000000000000000000000000000000000000000000}
     CellGlyphs.GlyphCount = 3
     CellGlyphs.ActiveGlyphCount = 2
-    Table = tblCoding
     OnKeyUp = celTaxInvKeyUp
     OnMouseUp = celTaxInvMouseUp
     Left = 564
@@ -919,7 +946,6 @@ object frmCoding: TfrmCoding
   object celBalance: TOvcTCString
     Access = otxReadOnly
     Adjust = otaCenterRight
-    Table = tblCoding
     UseASCIIZStrings = True
     OnOwnerDraw = celBalanceOwnerDraw
     Left = 600
@@ -941,7 +967,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
-    Table = tblCoding
     Left = 240
     Top = 257
   end
@@ -961,7 +986,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
-    Table = tblCoding
     OnOwnerDraw = celPayeeNameOwnerDraw
     Left = 432
     Top = 289
@@ -969,7 +993,6 @@ object frmCoding: TfrmCoding
   object celDocument: TOvcTCString
     Adjust = otaCenterLeft
     ShowHint = True
-    Table = tblCoding
     UseASCIIZStrings = True
     OnOwnerDraw = celDocumentOwnerDraw
     Left = 639
@@ -988,7 +1011,6 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     Epoch = 1970
     Options = [efoForceOvertype]
-    Table = tblCoding
     OnOwnerDraw = celEditDateOwnerDraw
     Left = 120
     Top = 264
@@ -1005,7 +1027,6 @@ object frmCoding: TfrmCoding
   object CelJob: TOvcTCString
     MaxLength = 8
     ShowHint = True
-    Table = tblCoding
     OnKeyDown = CelJobKeyDown
     OnOwnerDraw = CelJobOwnerDraw
     Left = 488
@@ -1014,19 +1035,16 @@ object frmCoding: TfrmCoding
   object CelJobName: TOvcTCString
     MaxLength = 8
     ShowHint = True
-    Table = tblCoding
     OnOwnerDraw = CelJobOwnerDraw
     Left = 528
     Top = 290
   end
   object CelAction: TOvcTCString
     ShowHint = True
-    Table = tblCoding
     Left = 568
     Top = 290
   end
   object celForexAmount: TOvcTCString
-    Table = tblCoding
     OnOwnerDraw = celForexAmountOwnerDraw
     Left = 656
     Top = 48
@@ -1041,7 +1059,6 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     Options = [efoCaretToEnd]
     PictureMask = '####.####'
-    Table = tblCoding
     Left = 624
     Top = 48
     RangeHigh = {73B2DBB9838916F2FE43}
@@ -1057,7 +1074,6 @@ object frmCoding: TfrmCoding
     EFColors.Highlight.TextColor = clHighlightText
     Options = [efoCaretToEnd]
     PictureMask = '########.##'
-    Table = tblCoding
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit
     OnOwnerDraw = celLocalCurrencyAmountOwnerDraw
@@ -1075,7 +1091,6 @@ object frmCoding: TfrmCoding
   object CelAltCode: TOvcTCString
     Access = otxReadOnly
     MaxLength = 100
-    Table = tblCoding
     Left = 608
     Top = 257
   end
@@ -1157,7 +1172,6 @@ object frmCoding: TfrmCoding
       0000000000000000000000000000000000000000000000000000}
     CellGlyphs.GlyphCount = 3
     CellGlyphs.ActiveGlyphCount = 2
-    Table = tblCoding
     Left = 372
     Top = 314
   end
@@ -1166,7 +1180,6 @@ object frmCoding: TfrmCoding
     Adjust = otaCenterLeft
     MaxLength = 30
     ShowHint = True
-    Table = tblCoding
     Left = 336
     Top = 313
   end

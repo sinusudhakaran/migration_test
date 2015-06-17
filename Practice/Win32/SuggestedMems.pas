@@ -1590,8 +1590,8 @@ end;
 //------------------------------------------------------------------------------
 initialization
 begin
-  DebugMe := DebugUnit(UnitName);
-  DebugMeExt := DebugUnit(UnitNameExt) or DebugMe;
+  DebugMe := DebugUnit(UnitName) or DebugMe;
+  DebugMeExt := DebugUnit(UnitNameExt);
   fSuggestedMems := nil;
 end;
 

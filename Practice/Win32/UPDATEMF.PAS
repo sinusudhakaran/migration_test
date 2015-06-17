@@ -203,18 +203,29 @@ begin
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure ReloadCodingScreens(DoUpdateRecMemCandidates: boolean = True);
-var i : integer;
+var
+  i : integer;
+  ActiveCaption : string;
 begin
+  ActiveCaption := '';
   for i := 0 to frmMain.MDIChildCount-1 do
-     if (frmMain.MDIChildren[i] is TfrmCoding) then
-     begin
-        TfrmCoding(frmMain.MDIChildren[i]).Reload(DoUpdateRecMemCandidates);
-        Application.ProcessMessages;  //force update of MDI Child counter
-     end else if (frmMain.MDIChildren[i] is TBaseClientHomePage) then
-     begin
-        TBaseClientHomePage(frmMain.MDIChildren[i]).RefreshRequest := [HPR_Coding];
-        Application.ProcessMessages;  //force update of MDI Child counter
-     end
+  begin
+    if TForm(frmMain.MDIChildren[i]).Active then
+      ActiveCaption := TForm(frmMain.MDIChildren[i]).Caption;
+  end;
+
+  for i := 0 to frmMain.MDIChildCount-1 do
+  begin
+    if (frmMain.MDIChildren[i] is TfrmCoding) then
+    begin
+       TfrmCoding(frmMain.MDIChildren[i]).Reload(DoUpdateRecMemCandidates);
+       Application.ProcessMessages;  //force update of MDI Child counter
+    end else if (frmMain.MDIChildren[i] is TBaseClientHomePage) then
+    begin
+       TBaseClientHomePage(frmMain.MDIChildren[i]).RefreshRequest := [HPR_Coding];
+       Application.ProcessMessages;  //force update of MDI Child counter
+    end
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure UpdateStatusMsg(msg : string);
