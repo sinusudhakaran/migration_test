@@ -18,7 +18,7 @@ type
   public
     constructor Create; virtual;
     destructor Destroy; override;
-    
+
     procedure Deserialize(Json: String); override;
     function Serialize: String; override;
 

@@ -76,7 +76,7 @@ type
     function Serialize: String; override;
 
     function SurveyByName(SurveyName: String): TLESurvey;
-    
+
     property Items[Index: Integer]: TLESurvey read GetItems; default;
     property Count: Integer read GetCount;
   end;
@@ -98,9 +98,23 @@ type
     property TriggerActionType : TTriggerActionType read FTriggerActionType write FTriggerActionType; *)
   end;
 
+  TFeedbackJSON = class(TJsonObject)
+  private
+    FUrl: String;
+    fHasUrl : boolean;
+  public
+    procedure Deserialize(Json: String); override;
+//    function Serialize: String; override;
+
+    property Url: String read FUrl write FUrl;
+    property HasUrl : boolean read fHasURL;
+  end;
+
+
 
 implementation
-
+uses
+  SysUtils;
 
 { TLEIdentity }
 
@@ -288,7 +302,7 @@ begin
   begin
     Exit;
   end;
-  
+
   try
     if not (JsonObject.Field['feedback'] is TlkJSONobject) then
     begin
@@ -334,5 +348,28 @@ begin
     User.Free;
   end;
 end;
+
+{ TFeedback }
+
+procedure TFeedbackJSON.Deserialize(Json: String);
+var
+  JsonObject: TlkJSONbase;
+begin
+  JsonObject := TlkJSON.ParseText(Json);
+
+  if (JsonObject = nil) then
+  begin
+    Exit;
+  end;
+
+  try
+    FUrl := JsonObject.Field['url'].Value;
+    fHasUrl :=  trim (FUrl) <> '';
+  finally
+    JsonObject.Free;
+  end;
+
+end;
+
 
 end.

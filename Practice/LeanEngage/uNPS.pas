@@ -89,6 +89,8 @@ type
   private
     FTriggerActionType : TTriggerActionType;
     FMessageContent: String;
+    FHasFeedbackURL : boolean;
+    FFeedbackURL : string;
   protected
     procedure Execute; override;
   public
@@ -96,6 +98,8 @@ type
       aMessageContent : string; aOnCompleted: TNotifyEvent = nil); reintroduce;
 
     property OnCompleted: TNotifyEvent read FOnCompleted write FOnCompleted;
+    property HasFeedbackURL : boolean read FHasFeedbackURL;
+    property FeedbackURL : string read FFeedbackURL;
   end;
 
 
@@ -127,6 +131,8 @@ type
     procedure InitTriggerFeedbackAsync(aOnCompleted: TNotifyEvent = nil);
 
     function GetHasSurvey : boolean;
+    function GetHasFeedbackURL : boolean;
+    function GetFeedbackURL : string;
     procedure SetIdentityId( aValue : string );
   public
     constructor Create(aIdentityID, aServerUrl, aServerKey, aCompanyName,
@@ -143,6 +149,8 @@ type
     property IdentityId: String read FIdentityId write SetIdentityId;
 
     property HasSurvey: boolean read GetHasSurvey;
+    property HasFeedbackURL : boolean read GetHasFeedbackURL;
+    property FeedbackURL : string read GetFeedbackURL;
     property StaffID: string read FStaffID write FStaffID;
     property Country: String read FCountry write FCountry;
     property CompanyName: String read FCompanyName write FCompanyName;
@@ -239,6 +247,18 @@ begin
 
     FLETriggeredActionThread:= nil;
   end;
+end;
+
+function TNPSLeanEngage.GetFeedbackURL: string;
+begin
+  if assigned( FLETriggeredActionThread ) then
+    result := FLETriggeredActionThread.FFeedbackURL;
+end;
+
+function TNPSLeanEngage.GetHasFeedbackURL: boolean;
+begin
+  if assigned( FLETriggeredActionThread ) then
+    result := FLETriggeredActionThread.FHasFeedbackURL;
 end;
 
 function TNPSLeanEngage.GetHasSurvey: boolean;
@@ -557,7 +577,7 @@ end;
 procedure TLETriggeredActionThread.Execute;
 var
   JSONObject: TJsonObject;
-  Server: TNPSServer;
+  Feedback: TFeedbackJSON;
 begin
   if not Terminated then
   begin
@@ -565,23 +585,26 @@ begin
       try
         JSONObject := TLETriggerActionJSON.Create( FTriggerActionType, fIdentity.Id, FMessageContent );
         try
-//          Server := TNPSServer.Create(Server.AuthenticationKey, Server.ServerBaseUrl
-                      (*//DN - Probably Redundant code  , FCompanyName*));
-          try
-            case FTriggerActionType of
-              taEventTrack       : Server.setEventTrack( fIdentity.Id, JSONObject );
-              taFeedbackResponse : Server.setFeedBackResponse( fIdentity.Id, JSONObject );
-            end;
-
-            if not Terminated then
-            begin
-              if Assigned(FOnCompleted) then
-              begin
-                FOnCompleted(Self);
+          case FTriggerActionType of
+            taEventTrack       : Server.setEventTrack( fIdentity.Id, JSONObject );
+            taFeedbackResponse : begin
+              Feedback:= TFeedbackJSON.Create;
+              try
+                Server.setFeedBackResponse( fIdentity.Id, JSONObject, Feedback );
+                FHasFeedbackURL := Feedback.HasUrl;
+                FFeedbackURL    := Feedback.Url;
+              finally
+                freeAndNil( Feedback );
               end;
             end;
-          finally
-//            Server.Free;
+          end;
+
+          if not Terminated then
+          begin
+            if Assigned(FOnCompleted) then
+            begin
+              FOnCompleted(Self);
+            end;
           end;
         finally
           JSONObject.Free;
@@ -608,6 +631,7 @@ begin
 
   inherited FireAndForget( aOnCompleted );
 end;
+
 
 { TLENPSSurveyThread }
 

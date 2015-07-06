@@ -11,12 +11,15 @@ const
   ENDPOINT_NPS_GETSURVEY = '/api/v1/feedback/check';
   ENDPOINT_EVENT_TRACK = '/api/v1/track';
   ENDPOINT_FEEDBACK_RESPONSE = '/api/v1/messages';
-  ENDPOINT_CONVERSATION_RESPONSE = '/api/v1/conversations/';
+  ENDPOINT_CONVERSATION_RESPONSE = '/api/v1/conversations/info?user_id={user_id}';
 
 type
   TNPSServer = class(TBaseNPSServer)
   private
     fAuthenticationKey: String;
+
+    fFeedbackURL: string;
+    fHasFeedbackURL : boolean;
 //    fServerBaseUrl: string;
 //DN - Probably Redundant code      FCompanyName: String;
 //DN - Probably Redundant code      FDbVersion: String;
@@ -34,7 +37,7 @@ type
     procedure SetNPSIdentity(Identity: TJsonObject);
     procedure GetNPSSurvey(UserId: String; Survey: TJsonObject);
     procedure setEventTrack( UserId: string; MessageContent : TJsonObject);
-    procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject);
+    procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject; Feedback : TJsonObject);
 
     property AuthenticationKey : string read fAuthenticationKey;
 //DN - Probably Redundant code      property DbVersion: String read FDbVersion write FDbVersion;
@@ -82,6 +85,8 @@ constructor TNPSServer.Create(AuthenticationKey, ServerBaseUrl
 begin
   fAuthenticationKey := AuthenticationKey;
   fServerBaseUrl := ServerBaseUrl;
+  fHasFeedbackURL := false;
+  
 //DN - Probably Redundant code    FCompanyName := CompanyName;
 end;
 
@@ -106,10 +111,24 @@ begin
 end;
 
 procedure TNPSServer.setFeedBackResponse(UserId: string;
-  MessageContent: TJsonObject);
+  MessageContent: TJsonObject; Feedback : TJsonObject);
+var
+  URLParams : TURLParams;
+
 begin
 //  Post(ENDPOINT_FEEDBACK_RESPONSE, MessageContent);
-/////////;//  Get( ENDPOINT_CONVERSATION_RESPONSE, 
+/////////;//
+///
+///
+  URLParams := TURLParams.Create;
+  try
+    URLParams.Add('user_id', UserID);
+
+    Get( ENDPOINT_CONVERSATION_RESPONSE, URLParams, FeedBack );
+
+  finally
+    freeAndNil( URLParams );
+  end;
 end;
 
 procedure TNPSServer.SetNPSIdentity(Identity: TJsonObject);
