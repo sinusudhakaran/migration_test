@@ -11,32 +11,35 @@ const
   ENDPOINT_NPS_GETSURVEY = '/api/v1/feedback/check';
   ENDPOINT_EVENT_TRACK = '/api/v1/track';
   ENDPOINT_FEEDBACK_RESPONSE = '/api/v1/messages';
+  ENDPOINT_CONVERSATION_RESPONSE = '/api/v1/conversations/';
 
 type
   TNPSServer = class(TBaseNPSServer)
   private
-    FKey: String;
-    FCompanyName: String;
-    FDbVersion: String;
-    FStaffName: String;
-    FSqlVersion: String;
+    fAuthenticationKey: String;
+//    fServerBaseUrl: string;
+//DN - Probably Redundant code      FCompanyName: String;
+//DN - Probably Redundant code      FDbVersion: String;
+//DN - Probably Redundant code      FStaffName: String;
+//DN - Probably Redundant code      FSqlVersion: String;
   protected
     procedure AddHeaders(Http: TipsHTTPS; EndPoint: String);override;
     procedure AddAuthenticationHeader(Http: TipsHTTPS; EndPoint: String);
     function Base64Encode( aString : string ) : string;
     function Base64Decode( aString : string ) : string;
   public
-    constructor Create(AuthenticationKey, ServerBaseUrl, CompanyName: String); virtual;
-
+    constructor Create(AuthenticationKey, ServerBaseUrl
+      (*//DN - Probably Redundant code  , CompanyName*): String); virtual;
 
     procedure SetNPSIdentity(Identity: TJsonObject);
     procedure GetNPSSurvey(UserId: String; Survey: TJsonObject);
     procedure setEventTrack( UserId: string; MessageContent : TJsonObject);
     procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject);
 
-    property DbVersion: String read FDbVersion write FDbVersion;
-    property SqlVersion: String read FSqlVersion write FSqlVersion;
-    property StaffName: String read FStaffName write FStaffName;
+    property AuthenticationKey : string read fAuthenticationKey;
+//DN - Probably Redundant code      property DbVersion: String read FDbVersion write FDbVersion;
+//DN - Probably Redundant code      property SqlVersion: String read FSqlVersion write FSqlVersion;
+//DN - Probably Redundant code      property StaffName: String read FStaffName write FStaffName;
   end;
 
 implementation
@@ -52,10 +55,10 @@ type
 procedure TNPSServer.AddAuthenticationHeader(Http: TipsHTTPS; EndPoint: String);
 begin
   Http.AuthScheme := authBasic;
-  Http.User       := FKey;
+  Http.User       := fAuthenticationKey;
   Http.Password   := '';
 
-  http.Authorization := 'Basic ' + Base64Encode(FKEY + ':');
+  http.Authorization := 'Basic ' + Base64Encode(fAuthenticationKey + ':');
 end;
 
 procedure TNPSServer.AddHeaders(Http: TipsHTTPS; EndPoint: String);
@@ -74,11 +77,12 @@ begin
   result := IdCoder.EncodeString(TIdEncoderMIME, aString);
 end;
 
-constructor TNPSServer.Create(AuthenticationKey, ServerBaseUrl, CompanyName: String);
+constructor TNPSServer.Create(AuthenticationKey, ServerBaseUrl
+              (*DN - Probably Redundant code  , CompanyName *): String);
 begin
-  FKey := AuthenticationKey;
-  FBaseUrl := ServerBaseUrl;
-  FCompanyName := CompanyName;
+  fAuthenticationKey := AuthenticationKey;
+  fServerBaseUrl := ServerBaseUrl;
+//DN - Probably Redundant code    FCompanyName := CompanyName;
 end;
 
 procedure TNPSServer.GetNPSSurvey(UserId: String; Survey: TJsonObject);
@@ -98,15 +102,14 @@ end;
 
 procedure TNPSServer.setEventTrack(UserId: string; MessageContent: TJsonObject);
 begin
-  Post(ENDPOINT_NPS_IDENTIFY, Identity);
-
+  Post(ENDPOINT_EVENT_TRACK, MessageContent);
 end;
 
 procedure TNPSServer.setFeedBackResponse(UserId: string;
   MessageContent: TJsonObject);
 begin
-  Post(ENDPOINT_NPS_IDENTIFY, Identity);
-
+//  Post(ENDPOINT_FEEDBACK_RESPONSE, MessageContent);
+/////////;//  Get( ENDPOINT_CONVERSATION_RESPONSE, 
 end;
 
 procedure TNPSServer.SetNPSIdentity(Identity: TJsonObject);

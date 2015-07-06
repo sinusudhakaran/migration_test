@@ -9,7 +9,7 @@ type
   TBaseNPSServer = class
   private
   protected
-    FBaseUrl: string;
+    fServerBaseUrl: string;
     procedure AddHeaders(Http: TipsHTTPS; EndPoint: String);virtual;
     function MakeAddress(BaseUrl, EndPoint: String): string;
 
@@ -19,6 +19,7 @@ type
     procedure Get(EndPoint: String; UrlParams: TUrlParams; ResponseContent: TJsonObject);overload;
     function Get(EndPoint: String; UrlParams: TUrlParams): TlkJSONobject;overload;
   public
+    property ServerBaseUrl: string read fServerBaseUrl;
   end;
 
 implementation
@@ -72,7 +73,7 @@ begin
       HttpRequester.ContentType := 'application/x-www-form-urlencoded';
       HttpRequester.Accept := 'application/json';
 
-      HttpRequester.Get(THttpLib.MakeUrl(FBaseUrl, EndPoint, UrlParams));
+      HttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, EndPoint, UrlParams));
       aResponse := HttpRequester.TransferredData;
 
       JsonObj := TlkJSON.ParseText(aResponse);
@@ -104,7 +105,7 @@ begin
       HttpRequester.ContentType := 'application/x-www-form-urlencoded';
       HttpRequester.Accept := 'application/json';
 
-      HttpRequester.Get(THttpLib.MakeUrl(FBaseUrl, EndPoint, UrlParams));
+      HttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, EndPoint, UrlParams));
       aResponse := HttpRequester.TransferredData;
       ResponseContent.Deserialize(aResponse);
     finally
@@ -144,7 +145,7 @@ begin
     try
       HttpRequester.PostData := RequestObject.Serialize;
 
-      HttpRequester.Post(THttpLib.MakeUrl(FBaseUrl, EndPoint));
+      HttpRequester.Post(THttpLib.MakeUrl(fServerBaseUrl, EndPoint));
       aResponse := HttpRequester.TransferredData;
 
       if ResponseObject <> nil then
@@ -192,7 +193,7 @@ begin
       end;
 
       HttpRequester.PostData := sFormData;
-        HttpRequester.Post(MakeAddress(FBaseUrl, EndPoint));
+        HttpRequester.Post(MakeAddress(fServerBaseUrl, EndPoint));
         aResponse := HttpRequester.TransferredData;
     except
       on E: Exception do begin

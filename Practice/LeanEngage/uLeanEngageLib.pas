@@ -81,26 +81,21 @@ type
     property Count: Integer read GetCount;
   end;
 
-  TLEEventTrack = class(TJsonObject)
+  TTriggerActionType = ( taEventTrack, taFeedbackResponse );
+
+  TLETriggerActionJSON = class(TJsonObject)
   private
-    FId: String;
-    FEventTrack: String;
+    FIdentityId: String;
+    FMessageContent: String;
+    FTriggerActionType : TTriggerActionType;
   public
+    constructor Create( aTriggerActionType : TTriggerActionType;
+                  aIdentityId: String; aMessageContent: String ); reintroduce;
     function Serialize: String; override;
 
-    property Id: String read FId write FId;
-    property EventTrack: String read FEventTrack write FEventTrack;
-  end;
-
-  TLEFeedbackResponse = class(TJsonObject)
-  private
-    FId: String;
-    FFeedbackResponse: String;
-  public
-    function Serialize: String; override;
-
-    property Id: String read FId write FId;
-    property FeedbackResponse: String read FFeedbackResponse write FFeedbackResponse;
+(*    property IdentityId: String read FIdentityId write FIdentityId;
+    property MessageContent: String read FMessageContent write FMessageContent;
+    property TriggerActionType : TTriggerActionType read FTriggerActionType write FTriggerActionType; *)
   end;
 
 
@@ -310,41 +305,29 @@ begin
   end;
 end;
 
-{ TLEEventTrack }
+{ TLETriggerActionJSON }
 
-procedure TLEEventTrack.Deserialize(Json: String);
+constructor TLETriggerActionJSON.Create( aTriggerActionType : TTriggerActionType;
+              aIdentityId: String; aMessageContent: String );
 begin
+  inherited Create;
+  fIdentityId            := aIdentityId;
+  fMessageContent        := aMessageContent;
+  fTriggerActionType     := aTriggerActionType;
 end;
 
-function TLEEventTrack.Serialize: String;
+function TLETriggerActionJSON.Serialize: String;
 var
   User: TlkJSONobject;
 begin
   User := TlkJSONobject.Create();
 
   try
-    User.Add('user_id', FId);
-
-    User.Add('event', FEventTrack);
-
-    Result := TlkJSON.GenerateText(User);
-  finally
-    User.Free;
-  end;
-end;
-
-{ TLEFeedbackResponse }
-
-function TLEFeedbackResponse.Serialize: String;
-var
-  User: TlkJSONobject;
-begin
-  User := TlkJSONobject.Create();
-
-  try
-    User.Add('user_id', FId);
-
-    User.Add('text', FFeedbackResponse);
+    User.Add('user_id', FIdentityId);
+    case FTriggerActionType of
+      taEventTrack: User.Add('event', FMessageContent);
+      taFeedbackResponse: User.Add('text', FMessageContent);
+    end;
 
     Result := TlkJSON.GenerateText(User);
   finally

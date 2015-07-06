@@ -7,7 +7,7 @@ uses
   Classes, uLeanEngageLib, Contnrs, uNPSServer;
 
 type
-  TNPSSurvey = class
+(*  TNPSSurvey = class
   private
     FName: String;
     FId: String;
@@ -16,211 +16,333 @@ type
     property Id: String read FId write FId;
     property Name: String read FName write FName;
     property Url: String read FUrl write FUrl;
-  end;
+  end; *)
 
   TNPSSurveys = class
   private
     FItems: TObjectList;
     function GetCount: Integer;
-    function GetSurvey(Index: Integer): TNPSSurvey;
+    function GetSurvey(Index: Integer): TLESurvey;
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure Clear;
 
-    procedure Add(Survey: TNPSSurvey);
+    procedure Add(Survey: TLESurvey);
 
-    function SurveyByName(SurveyName: String): TNPSSurvey;
+    function SurveyByName(SurveyName: String): TLESurvey;
 
-    property Items[Index: Integer]: TNPSSurvey read GetSurvey; default;
+    property Items[Index: Integer]: TLESurvey read GetSurvey; default;
     property Count: Integer read GetCount;
   end;
 
-  TLEInitializationThread = class(TThread)
+  TLENPSBaseThread = class(TThread)
   private
-    FOnCompleted: TNotifyEvent;
-
-    FSurvey: TLESurvey;
-    FHasSurvey: Boolean;
-
-    FModuleVersion: String;
-    FCompanyName: String;
-    FIdentityId: String;
-    FParentCompanyName: String;
-    FModuleId: String;
-    FStaffId: String;
-    FCountry: String;
-    FDBVersion: String;
-    FSqlVersion: String;
-    FServerKey: String;
-    FServerUrl: String;
+    fIdentity: TLEIdentity;
+    fServer: TNPSServer;
+    fOnCompleted: TNotifyEvent;
   protected
-    procedure Execute; override;
+    property Identity: TLEIdentity read FIdentity;
+    property Server: TNPSServer read fServer;
   public
-    constructor Create; reintroduce;
+    constructor Create( aIdentityID, aServerUrl, aServerKey : string ); reintroduce;
     destructor Destroy; override;
 
-    property IdentityId: String read FIdentityId write FIdentityId;
-    property StaffID: String read FStaffId write FStaffId;
-    property Country: String read FCountry write FCountry;
-    property CompanyName: String read FCompanyName write FCompanyName;
-    property ParentCompanyName: String read FParentCompanyName write FParentCompanyName;
-    property ModuleId: String read FModuleId write FModuleId;
-    property ModuleVersion: String read FModuleVersion write FModuleVersion;
-    property DbVersion: String read FDBVersion write FDBVersion;
-    property SqlVersion: String read FSqlVersion write FSqlVersion;
-    property ServerKey: String read FServerKey write FServerKey;
-    property ServerUrl: String read FServerUrl write FServerUrl;
-    property HasSurvey: boolean read fHasSurvey;
+    procedure FireAndForget( aOnCompleted: TNotifyEvent = nil); virtual;
+  end;
+
+  TLENPSBaseIdentifySurveyThread = class(TLENPSBaseThread)
+  private
+  protected
+  public
+    constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion : string ); reintroduce;
 
     property OnCompleted: TNotifyEvent read FOnCompleted write FOnCompleted;
 
-    procedure GetSurveys(Surveys: TNPSSurveys);
   end;
+
+  TLENPSIdentifyThread = class(TLENPSBaseIdentifySurveyThread)
+  private
+  protected
+    procedure Execute; override;
+  public
+  end;
+
+  TLENPSSurveyThread = class(TLENPSBaseIdentifySurveyThread)
+  private
+    fSurveys: TNPSSurveys;
+
+    FHasSurvey: Boolean;
+
+  protected
+    procedure Execute; override;
+  public
+    constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion : string );
+
+    destructor Destroy; override;
+  end;
+
+  TLETriggeredActionThread = class(TLENPSBaseThread)
+  private
+    FTriggerActionType : TTriggerActionType;
+    FMessageContent: String;
+  protected
+    procedure Execute; override;
+  public
+    procedure FireAndForget( aTriggerActionType : TTriggerActionType;
+      aMessageContent : string; aOnCompleted: TNotifyEvent = nil); reintroduce;
+
+    property OnCompleted: TNotifyEvent read FOnCompleted write FOnCompleted;
+  end;
+
 
   TNPSLeanEngage = class
   private
-    FModuleVersion: String;
+    FIdentityId    : string;
+    FServerUrl     : string;
+    FServerKey     : string;
     FCompanyName: String;
-    FParentCompanyName: String;
     FCountry: String;
-    FDBVersion: String;
     FStaffID: string;
     FModuleId: String;
-    FSqlVersion: String;
+    FModuleVersion : String;
 
-    FInitializationThread: TLEInitializationThread;
+    FLENPSIdentityThread: TLENPSIdentifyThread;
+    FLENPSSurveyThread: TLENPSSurveyThread;
+    FLETriggeredActionThread: TLETriggeredActionThread;
 
-    procedure StartInitializationThread(ServerUrl, ServerKey, IdentityId: String; OnCompleted: TNotifyEvent);
-    procedure FreeInitializationThread;
+    procedure StartNPSIdentifyThread; //( aOnCompleted: TNotifyEvent );
+    procedure FreeNPSIdentifyThread;
+    procedure StartNPSSurveyThread; //( aOnCompleted: TNotifyEvent );
+    procedure FreeNPSSurveyThread;
+    procedure StartTriggerFeedbackThread; //( aOnCompleted: TNotifyEvent );
+    procedure FreeTriggerFeedbackThread;
+
+  protected
+    procedure InitNPSIdentityAsync(aOnCompleted: TNotifyEvent = nil);
+    procedure InitNPSSurveyAsync(aOnCompleted: TNotifyEvent = nil);
+    procedure InitTriggerFeedbackAsync(aOnCompleted: TNotifyEvent = nil);
+
+    function GetHasSurvey : boolean;
+    procedure SetIdentityId( aValue : string );
   public
-    constructor Create;
+    constructor Create(aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion : string);
     destructor Destroy; override;
 
-    procedure InitializeAsync(ServerUrl, ServerKey, IdentityId: String; OnCompleted: TNotifyEvent = nil);
+    procedure TriggerIdentifyAsync( aOnCompleted: TNotifyEvent = nil );
+    procedure TriggerSurveyAsync( aOnCompleted: TNotifyEvent = nil );
+    procedure TriggerFeedbackAsync(aTriggerActionType : TTriggerActionType;
+      aMessageContent: String; aOnCompleted: TNotifyEvent = nil);
 
-    procedure GetSurveys(Surveys: TNPSSurveys);
-    function GetHasSurvey : boolean;
+    function GetSurveys: TNPSSurveys;
 
+    property IdentityId: String read FIdentityId write SetIdentityId;
+
+    property HasSurvey: boolean read GetHasSurvey;
     property StaffID: string read FStaffID write FStaffID;
     property Country: String read FCountry write FCountry;
     property CompanyName: String read FCompanyName write FCompanyName;
-    property ParentCompanyName: String read FParentCompanyName write FParentCompanyName;
     property ModuleId: String read FModuleId write FModuleId;
     property ModuleVersion: String read FModuleVersion write FModuleVersion;
-    property DbVersion: String read FDBVersion write FDBVersion;
-    property SqlVersion: String read FSqlVersion write FSqlVersion;
-    property HasSurvey: boolean read GetHasSurvey;
+    property Surveys: TNPSSurveys read GetSurveys;
   end;
 
 implementation
 uses
   SysUtils,
   idCoder,
-  IdCoderMIME;
+  IdCoderMIME,
+  uHttpLib;
 
 { TNPSLeanEngage }
 
-constructor TNPSLeanEngage.Create;
+constructor TNPSLeanEngage.Create(aIdentityID, aServerUrl, aServerKey, aCompanyName,
+              aCountry, aStaffID, aModuleId, aModuleVersion : string);
 begin
-  FInitializationThread := nil;
+  FLENPSIdentityThread := nil;
+  FLENPSSurveyThread:= nil;
+  FLETriggeredActionThread := nil;
+  IdentityID     := aIdentityID; // Force through the SetIdentity write method for MIME encoding
+  fServerUrl     := aServerUrl;
+  fServerKey     := aServerKey;
+  fCompanyName   := aCompanyName;
+  fCountry       := aCountry;
+  fStaffID       := aStaffID;
+  fModuleId      := aModuleId;
+  fModuleVersion := aModuleVersion;
 end;
 
 destructor TNPSLeanEngage.Destroy;
 begin
-  FreeInitializationThread;
-  
+  FreeTriggerFeedbackThread;
+  FreeNPSIdentifyThread;
+
   inherited;
 end;
 
-procedure TNPSLeanEngage.FreeInitializationThread;
+procedure TNPSLeanEngage.FreeNPSIdentifyThread;
 begin
-  if FInitializationThread <> nil then
+  if FLENPSIdentityThread <> nil then
   begin
-    FInitializationThread.Terminate;
+    FLENPSIdentityThread.Terminate;
 
-    if FInitializationThread.Suspended then
+    if FLENPSIdentityThread.Suspended then
     begin
-      FInitializationThread.Resume;
+      FLENPSIdentityThread.Resume;
     end;
 
-    FInitializationThread.WaitFor;
+    FLENPSIdentityThread.WaitFor;
 
-    FInitializationThread.Free;
+    FLENPSIdentityThread.Free;
 
-    FInitializationThread := nil;
+    FLENPSIdentityThread:= nil;
+  end;
+end;
+
+procedure TNPSLeanEngage.FreeNPSSurveyThread;
+begin
+  if FLENPSSurveyThread <> nil then
+  begin
+    FLENPSSurveyThread.Terminate;
+
+    if FLENPSSurveyThread.Suspended then
+    begin
+      FLENPSSurveyThread.Resume;
+    end;
+
+    FLENPSSurveyThread.WaitFor;
+
+    FLENPSSurveyThread.Free;
+
+    FLENPSSurveyThread:= nil;
+  end;
+end;
+
+procedure TNPSLeanEngage.FreeTriggerFeedbackThread;
+begin
+  if FLETriggeredActionThread <> nil then
+  begin
+    FLETriggeredActionThread.Terminate;
+
+    if FLETriggeredActionThread.Suspended then
+    begin
+      FLETriggeredActionThread.Resume;
+    end;
+
+    FLETriggeredActionThread.WaitFor;
+
+    FLETriggeredActionThread.Free;
+
+    FLETriggeredActionThread:= nil;
   end;
 end;
 
 function TNPSLeanEngage.GetHasSurvey: boolean;
 begin
-  result := FInitializationThread.HasSurvey;
+    if FLENPSIdentityThread <> nil then
+    result := FLENPSSurveyThread.FHasSurvey; 
 end;
 
-procedure TNPSLeanEngage.GetSurveys(Surveys: TNPSSurveys);
+function TNPSLeanEngage.GetSurveys: TNPSSurveys;
 begin
-  if FInitializationThread <> nil then
+  if assigned( FLENPSSurveyThread ) then
+    result := FLENPSSurveyThread.fSurveys;
+end;
+
+
+
+
+procedure TNPSLeanEngage.InitNPSIdentityAsync; //(aOnCompleted: TNotifyEvent = nil);
+begin
+  FreeNPSIdentifyThread;
+
+  StartNPSIdentifyThread; //( aOnCompleted );
+end;
+
+procedure TNPSLeanEngage.InitNPSSurveyAsync(aOnCompleted: TNotifyEvent);
+begin
+  FreeNPSSurveyThread;
+
+  StartNPSSurveyThread; //( aOnCompleted );
+end;
+
+procedure TNPSLeanEngage.InitTriggerFeedbackAsync(aOnCompleted: TNotifyEvent = nil);
+begin
+  FreeTriggerFeedbackThread;
+
+  StartTriggerFeedbackThread; //( aOnCompleted );
+end;
+
+procedure TNPSLeanEngage.TriggerIdentifyAsync(aOnCompleted: TNotifyEvent);
+begin
+  FreeNPSIdentifyThread;
+
+  StartNPSIdentifyThread; //( aOnCompleted );
+
+  FLENPSIdentityThread.FireAndForget( aOnCompleted );
+end;
+
+procedure TNPSLeanEngage.TriggerSurveyAsync(aOnCompleted: TNotifyEvent);
+begin
+  FreeNPSSurveyThread;
+
+  StartNPSSurveyThread;
+
+  FLENPSSurveyThread.FireAndForget( aOnCompleted );
+end;
+
+procedure TNPSLeanEngage.TriggerFeedbackAsync(aTriggerActionType : TTriggerActionType;
+      aMessageContent: String; aOnCompleted: TNotifyEvent = nil);
+begin
+  FreeTriggerFeedbackThread;
+
+  StartTriggerFeedbackThread; // ( aOnCompleted );
+
+  FLETriggeredActionThread.FireAndForget( aTriggerActionType, aMessageContent );
+end;
+
+procedure TNPSLeanEngage.SetIdentityId(aValue: string);
+begin
+  if trim( aValue ) <> '' then
+    FIdentityID := EncodeString( TIdEncoderMIME, aValue)
+  else
+    FIdentityID := '';
+end;
+
+procedure TNPSLeanEngage.StartNPSIdentifyThread; //( aOnCompleted: TNotifyEvent );
+begin
+  if FLENPSIdentityThread = nil then
   begin
-    FInitializationThread.GetSurveys(Surveys);
+    FLENPSIdentityThread := TLENPSIdentifyThread.Create( fIdentityId,
+      fServerURL, fServerKey, fCompanyName, fCountry, fStaffID, fModuleId,
+      fModuleVersion );
   end;
 end;
 
-procedure TNPSLeanEngage.InitializeAsync(ServerUrl, ServerKey, IdentityId: String; OnCompleted: TNotifyEvent = nil);
+procedure TNPSLeanEngage.StartNPSSurveyThread;
 begin
-  FreeInitializationThread;
+  if FLENPSSurveyThread = nil then
+    FLENPSSurveyThread := TLENPSSurveyThread.Create( fIdentityId,
+      fServerURL, fServerKey, fCompanyName, fCountry, fStaffID, fModuleId,
+      fModuleVersion );
 
-  StartInitializationThread(ServerUrl, ServerKey, IdentityId, OnCompleted);
 end;
 
-procedure TNPSLeanEngage.StartInitializationThread(ServerUrl, ServerKey, IdentityId: String; OnCompleted: TNotifyEvent);
+procedure TNPSLeanEngage.StartTriggerFeedbackThread; //( aOnCompleted: TNotifyEvent );
 begin
-  if FInitializationThread = nil then
+  if FLETriggeredActionThread = nil then
   begin
-    FInitializationThread := TLEInitializationThread.Create;
-
-    FInitializationThread.IdentityId := IdentityId;
-    FInitializationThread.StaffID := StaffID;
-    FInitializationThread.Country := Country;
-    FInitializationThread.CompanyName := CompanyName;
-    FInitializationThread.ParentCompanyName := ParentCompanyName;
-    FInitializationThread.ModuleId := ModuleId;
-    FInitializationThread.ModuleVersion := ModuleVersion;
-    FInitializationThread.SqlVersion := FSqlVersion;
-    FInitializationThread.DbVersion := DbVersion;
-    FInitializationThread.ServerKey := ServerKey;
-    FInitializationThread.ServerUrl := ServerUrl;
-
-    FInitializationThread.OnCompleted := OnCompleted;
-
-    FInitializationThread.Resume;
+    FLETriggeredActionThread := TLETriggeredActionThread.Create( fIdentityID, fServerUrl,
+      fServerKey );
   end;
 end;
 
-{ TLEInitializationThread }
-
-constructor TLEInitializationThread.Create;
+(* 03/07/2015 **** procedure TLENPSBaseIdentifySurveyThread.Execute;
 begin
-  inherited Create(True);
-
-  FSurvey := TLESurvey.Create;
-
-  FHasSurvey := False;
-end;
-
-destructor TLEInitializationThread.Destroy;
-begin
-  FSurvey.Free;
-
-  inherited;
-end;
-
-procedure TLEInitializationThread.Execute;
-var
-  Identity: TLEIdentity;
-  Server: TNPSServer;
-begin
-  FHasSurvey := False;
 
   if not Terminated then
   begin
@@ -228,16 +350,17 @@ begin
       Identity := TLEIdentity.Create;
 
       try
-        Identity.Id :=  EncodeString( TIdEncoderMIME, FStaffID + FCompanyName);
+        Identity.Id :=  fIdentityID; // Moved responsibility to using code //EncodeString( TIdEncoderMIME, FStaffID + FCompanyName);
 
-        Identity.StaffId := Identity.Id (*FStaffId*); { TODO : Check whether BA agrees that StaffID must be Encoded (MIME) }
+        Identity.StaffId := FStaffId; { TODO : Check whether BA agrees that StaffID must be Encoded (MIME) }
         Identity.Country := FCountry;
         Identity.Company.Name := FCompanyName;
-        Identity.Company.ParentName := FParentCompanyName;
+//DN - Unsure if available in Practice        Identity.Company.ParentName := FParentCompanyName;
         Identity.Module.Id := FModuleId;
         Identity.Module.Version := FModuleVersion;
 
-        Server := TNPSServer.Create(ServerKey, ServerUrl, FCompanyName);
+        Server := TNPSServer.Create(ServerKey, ServerUrl
+                    {//DN - Probably Redundant code  , FCompanyName});
 
         try
           Server.SetNPSIdentity(Identity);
@@ -267,35 +390,40 @@ begin
       end;
     end;
   end;
-end;
+end;   *****************)
 
-procedure TLEInitializationThread.GetSurveys(Surveys: TNPSSurveys);
+
+(*procedure TLENPSBaseIdentifySurveyThread.GetSurveys(Surveys: TNPSSurveys);
 var
   Survey: TNPSSurvey;
 begin
   WaitFor;
-       
+
   Surveys.Clear;
 
   if FHasSurvey then
   begin
     Survey := TNPSSurvey.Create;
-
     try
-      Survey.Id := FSurvey.Id;
-      Survey.Name := FSurvey.Name;
-      Survey.Url := FSurvey.Url;
+      while fHasSurvey do
+      try
+        Survey.Id := FSurvey.Id;
+        Survey.Name := FSurvey.Name;
+        Survey.Url := FSurvey.Url;
 
-      Surveys.Add(Survey);
+        Surveys.Add(Survey);
+      finally
+        FireAndForget();
+      end;
     except
       Survey.Free;
     end;
   end;
 end;
-
+*)
 { TNPSSurveys }
 
-procedure TNPSSurveys.Add(Survey: TNPSSurvey);
+procedure TNPSSurveys.Add(Survey: TLESurvey);
 begin
   FItems.Add(Survey);
 end;
@@ -322,27 +450,249 @@ begin
   Result := FItems.Count;
 end;
 
-function TNPSSurveys.GetSurvey(Index: Integer): TNPSSurvey;
+function TNPSSurveys.GetSurvey(Index: Integer): TLESurvey;
 begin
-  Result := FItems[Index] as TNPSSurvey;
+  Result := FItems[Index] as TLESurvey;
 end;
 
-function TNPSSurveys.SurveyByName(SurveyName: String): TNPSSurvey;
+function TNPSSurveys.SurveyByName(SurveyName: String): TLESurvey;
 var
   Index: Integer;
-  Survey: TNPSSurvey;
+  Survey: TLESurvey;
 begin
   Result := nil;
 
   for Index := 0 to FItems.Count - 1 do
   begin
-    Survey := FItems[Index] as TNPSSurvey;
+    Survey := FItems[Index] as TLESurvey;
 
     if Survey.Name = SurveyName then
     begin
       Result := Survey;
 
       Exit;
+    end;
+  end;
+end;
+
+{ TLENPSBaseThread }
+
+constructor TLENPSBaseThread.Create(aIdentityID, aServerUrl, aServerKey : string);
+begin
+  inherited Create(True);
+
+//  FreeOnTerminate    := true; // Drop this Thread when done.
+
+  fIdentity:= TLEIdentity.Create;
+  fIdentity.ID := aIdentityID;
+
+  fServer:= TNPSServer.Create(aServerKey, aServerUrl);
+
+  Priority           := tpLowest;
+end;
+
+destructor TLENPSBaseThread.Destroy;
+begin
+  freeAndNil( fServer );
+
+  freeAndNil( fIdentity );
+
+  inherited;
+end;
+
+procedure TLENPSBaseThread.FireAndForget(aOnCompleted: TNotifyEvent);
+begin
+  fOnCompleted := aOnCompleted;
+
+  Resume;
+end;
+
+{ TLENPSBaseIdentifySurveyThread }
+
+constructor TLENPSBaseIdentifySurveyThread.Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion : string );
+begin
+  inherited Create( aIdentityID, aServerUrl, aServerKey);
+
+  fIdentity.Company.Name := aCompanyName;
+  fIdentity.Country := aCountry;
+  fIdentity.StaffId := aStaffId; { TODO : Check whether BA agrees that StaffID must be Encoded (MIME) }
+  fIdentity.Module.Id := aModuleId;
+  fIdentity.Module.Version := aModuleVersion;
+
+  Priority           := tpLowest;
+
+//  FreeOnTerminate := true; // Drop this Thread when done.
+end;
+
+{ TLENPSIdentifyThread }
+
+procedure TLENPSIdentifyThread.Execute;
+begin
+  inherited;
+
+  if not Terminated then
+  begin
+    try
+      fServer.SetNPSIdentity(fIdentity);
+
+      if not Terminated then
+      begin
+        if Assigned(FOnCompleted) then
+        begin
+          FOnCompleted(Self);
+        end;
+      end;
+    except
+      on E: Exception do begin
+        raise Exception.Create(E.Message);
+      //Raise the error don't Suppress error;
+      end;
+    end;
+  end;
+end;
+
+{ TLETriggeredActionThread }
+
+procedure TLETriggeredActionThread.Execute;
+var
+  JSONObject: TJsonObject;
+  Server: TNPSServer;
+begin
+  if not Terminated then
+  begin
+    try
+      try
+        JSONObject := TLETriggerActionJSON.Create( FTriggerActionType, fIdentity.Id, FMessageContent );
+        try
+//          Server := TNPSServer.Create(Server.AuthenticationKey, Server.ServerBaseUrl
+                      (*//DN - Probably Redundant code  , FCompanyName*));
+          try
+            case FTriggerActionType of
+              taEventTrack       : Server.setEventTrack( fIdentity.Id, JSONObject );
+              taFeedbackResponse : Server.setFeedBackResponse( fIdentity.Id, JSONObject );
+            end;
+
+            if not Terminated then
+            begin
+              if Assigned(FOnCompleted) then
+              begin
+                FOnCompleted(Self);
+              end;
+            end;
+          finally
+//            Server.Free;
+          end;
+        finally
+          JSONObject.Free;
+        end;
+      except
+        on E: Exception do begin
+          raise Exception.Create(E.Message);
+        //Raise the error don't Suppress error;
+        end;
+      end;
+    finally
+      Terminate;
+    end;
+  end;
+end;
+
+
+procedure TLETriggeredActionThread.FireAndForget(
+  aTriggerActionType: TTriggerActionType; aMessageContent: string;
+    aOnCompleted: TNotifyEvent = nil );
+begin
+  fMessageContent    := aMessageContent;
+  fTriggerActionType := aTriggerActionType;
+
+  inherited FireAndForget( aOnCompleted );
+end;
+
+{ TLENPSSurveyThread }
+
+constructor TLENPSSurveyThread.Create(aIdentityID, aServerUrl, aServerKey,
+  aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion: string);
+begin
+  inherited;
+
+  FSurveys:= TNPSSurveys.Create;
+
+  fHasSurvey := false;
+end;
+
+destructor TLENPSSurveyThread.Destroy;
+begin
+  freeAndNil( fSurveys );
+
+  inherited;
+end;
+
+procedure TLENPSSurveyThread.Execute;
+var
+  FSurveyJSON : TLESurvey;
+
+  function CheckAndAddedToSurveys( aSurveyJSON : TLESurvey ) : boolean;
+  begin
+    try
+      FHasSurvey := False; //Make sure the default is false
+
+      fServer.GetNPSSurvey( fIdentity.Id, aSurveyJSON);
+
+      FHasSurvey := trim( aSurveyJSON.Url ) <> '';
+      if FHasSurvey then
+        fSurveys.Add( aSurveyJSON );
+    finally
+      result := FHasSurvey;
+    end;
+  end;
+begin
+  inherited;
+
+  FHasSurvey := False;
+
+  if not Terminated then
+  begin
+    try
+      FSurveyJSON := TLESurvey.Create;
+      try
+        CheckAndAddedToSurveys( FSurveyJSON )
+      except
+      // We need to destroy the JSON object
+        freeAndNil( FSurveyJSON );
+      end;
+
+//      if not CheckAndAddedToSurveys( FSurveyJSON ) then // We need to destroy the JSON object
+//        freeAndNil( FSurveyJSON );
+
+
+      while FHasSurvey and (not Terminated) do begin
+
+        FSurveyJSON := TLESurvey.Create;
+        try
+          CheckAndAddedToSurveys( FSurveyJSON )
+        except
+        // We need to destroy the JSON object
+          freeAndNil( FSurveyJSON );
+        end;
+
+//        if not CheckAndAddedToSurveys( FSurveyJSON ) then // We need to destroy the JSON object
+//          freeAndNil( FSurveyJSON );
+      end;
+      
+      if not Terminated then
+      begin
+        if Assigned(FOnCompleted) then
+        begin
+          FOnCompleted(Self);
+        end;
+      end;
+    except
+      on E: Exception do begin
+        FHasSurvey := False;
+        raise Exception.Create(E.Message);
+      //Raise the error don't Suppress error;
+      end;
     end;
   end;
 end;
