@@ -637,6 +637,7 @@ begin
     FAuditNamesArray[160,247] := 'Core_Transaction_ID_High';
     FAuditNamesArray[160,248] := 'IsOnline_Transaction';
     FAuditNamesArray[160,249] := 'Suggested_Mem_State';
+    FAuditNamesArray[160,250] := 'Suggested_Mem_Count';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';

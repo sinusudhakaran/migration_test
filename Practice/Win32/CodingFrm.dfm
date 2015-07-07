@@ -226,9 +226,6 @@ object frmCoding: TfrmCoding
         Caption = 'Tab1'
       end>
     OnTabClick = tcWindowsTabClick
-    ExplicitLeft = 135
-    ExplicitTop = 416
-    ExplicitWidth = 728
     FixedDimension = 19
   end
   object pnlLine: TPanel
@@ -247,10 +244,6 @@ object frmCoding: TfrmCoding
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitLeft = 190
-    ExplicitTop = 152
-    ExplicitWidth = 443
-    ExplicitHeight = 283
     object barCodingStatus: TStatusBar
       Left = 0
       Top = 502
@@ -291,8 +284,6 @@ object frmCoding: TfrmCoding
       UseSystemFont = False
       OnClick = barCodingStatusClick
       OnMouseUp = barCodingStatusMouseUp
-      ExplicitTop = 258
-      ExplicitWidth = 441
     end
     object pnlLayout2: TPanel
       Left = 0
@@ -302,10 +293,6 @@ object frmCoding: TfrmCoding
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitLeft = 1
-      ExplicitTop = -5
-      ExplicitWidth = 441
-      ExplicitHeight = 257
       object RzSizePanel1: TRzSizePanel
         Left = 0
         Top = 422
@@ -320,9 +307,6 @@ object frmCoding: TfrmCoding
         TabOrder = 0
         VisualStyle = vsGradient
         OnResize = RzSizePanel1Resize
-        ExplicitLeft = 1
-        ExplicitTop = 176
-        ExplicitWidth = 439
         object pnlNotes: TPanel
           Left = 0
           Top = 10
@@ -333,9 +317,6 @@ object frmCoding: TfrmCoding
           TabOrder = 0
           OnEnter = pnlNotesEnter
           OnExit = pnlNotesExit
-          ExplicitTop = 0
-          ExplicitWidth = 718
-          ExplicitHeight = 90
           object Panel2: TPanel
             Left = 21
             Top = 0
@@ -345,8 +326,6 @@ object frmCoding: TfrmCoding
             BevelOuter = bvNone
             Caption = 'Panel2'
             TabOrder = 0
-            ExplicitWidth = 697
-            ExplicitHeight = 90
             object memImportNotes: TMemo
               Left = 0
               Top = 0
@@ -361,7 +340,6 @@ object frmCoding: TfrmCoding
               ScrollBars = ssVertical
               TabOrder = 0
               OnKeyUp = memImportNotesKeyUp
-              ExplicitWidth = 697
             end
             object memNotes: TMemo
               Left = 0
@@ -379,8 +357,6 @@ object frmCoding: TfrmCoding
               OnChange = memNotesChange
               OnExit = memNotesExit
               OnKeyUp = memImportNotesKeyUp
-              ExplicitWidth = 697
-              ExplicitHeight = 214
             end
           end
           object pnlNotesTitle: TPanel
@@ -393,7 +369,6 @@ object frmCoding: TfrmCoding
             Ctl3D = False
             ParentCtl3D = False
             TabOrder = 1
-            ExplicitHeight = 255
             object rzPinBtn: TRzBmpButton
               Left = 1
               Top = 3
@@ -577,10 +552,6 @@ object frmCoding: TfrmCoding
         OnMouseUp = tblCodingMouseUp
         OnMouseWheel = BkMouseWheelHandler
         OnTopLeftCellChanged = tblCodingTopLeftCellChanged
-        ExplicitLeft = -287
-        ExplicitTop = -115
-        ExplicitWidth = 728
-        ExplicitHeight = 372
         CellData = (
           'frmCoding.hdrColumnHeadings')
         RowData = (
@@ -663,6 +634,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -681,6 +653,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     OnChange = celGstAmtChange
@@ -700,6 +673,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     OnChange = celQuantityChange
@@ -747,7 +721,6 @@ object frmCoding: TfrmCoding
     Headings.Strings = (
       'S')
     ShowLetters = False
-    OnClick = hdrColumnHeadingsClick
     Left = 64
     Top = 162
   end
@@ -1057,7 +1030,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Left = 624
     Top = 48
@@ -1072,7 +1044,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit
@@ -1182,5 +1153,24 @@ object frmCoding: TfrmCoding
     ShowHint = True
     Left = 336
     Top = 313
+  end
+  object CelSuggestedMemCount: TOvcTCPictureField
+    DataType = pftDate
+    PictureMask = 'dd/mm/yy'
+    MaxLength = 8
+    CaretOvr.Shape = csBlock
+    EFColors.Disabled.BackColor = clWindow
+    EFColors.Disabled.TextColor = clGrayText
+    EFColors.Error.BackColor = clRed
+    EFColors.Error.TextColor = clBlack
+    EFColors.Highlight.BackColor = clHighlight
+    EFColors.Highlight.TextColor = clHighlightText
+    Epoch = 1970
+    Options = [efoForceOvertype]
+    OnOwnerDraw = CelSuggestedMemCountOwnerDraw
+    Left = 152
+    Top = 264
+    RangeHigh = {25600D00000000000000}
+    RangeLow = {00000000000000000000}
   end
 end

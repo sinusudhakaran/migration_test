@@ -655,6 +655,13 @@ Begin
                            LongToKey( txDate_Effective ) +
                            LongToKey ( txSequence_No )
             end;
+         csSuggestedMemCount    :
+            begin
+              Result :=    LongToKey( txSuggested_Mem_Count ) +
+                           LongToKey( txBank_Seq ) +
+                           LongToKey( txDate_Effective ) +
+                           LongToKey ( txSequence_No )
+            end;
 
       else
          begin

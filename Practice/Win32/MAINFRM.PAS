@@ -3078,6 +3078,7 @@ begin
       csByjobName     : DoCodingTBarCommand(ecSortJobName);
       csByTransId      : DoCodingTBarCommand(ecSortTransId);
       csBySentToAndAcc : DoCodingTBarCommand(ecSortSentToAndAcc);
+      csSuggestedMemCount : DoCodingTBarCommand(ecSuggestedMemCount);
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

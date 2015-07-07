@@ -908,6 +908,7 @@ F|Transfered To Online|Y
 F|Core Transaction ID High|L
 F|IsOnline_Transaction|Y
 F|Suggested Mem State|B
+F|Suggested Mem Count|L
 E
 
 N|Dissection|ds|180

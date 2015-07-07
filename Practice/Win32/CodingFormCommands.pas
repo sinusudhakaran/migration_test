@@ -88,7 +88,8 @@ type
                   ecSortTransId,
                   ecSortSentToAndAcc,
 
-                  ecRecommendedMems
+                  ecRecommendedMems,
+                  ecSuggestedMemCount
                   );
 
 implementation

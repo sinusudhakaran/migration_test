@@ -2154,6 +2154,7 @@ begin
 	SetIntAttr(Result, 'CoreTransactionIDHigh', txCore_Transaction_ID_High);
 	SetBoolAttr(Result, 'IsOnlineTransaction', txIsOnline_Transaction);
 	SetIntAttr(Result, 'SuggestedMemState', txSuggested_Mem_State);
+	SetIntAttr(Result, 'SuggestedMemCount', txSuggested_Mem_Count);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2256,6 +2257,7 @@ begin
 	txCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
 	txIsOnline_Transaction := GetBoolAttr(Result, 'IsOnlineTransaction');
 	txSuggested_Mem_State := GetIntAttr(Result, 'SuggestedMemState');
+	txSuggested_Mem_Count := GetIntAttr(Result, 'SuggestedMemCount');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
 	end;

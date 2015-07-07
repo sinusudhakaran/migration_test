@@ -48,10 +48,11 @@ const
    ceAltChartCode  = 29;
    ceCoreTransactionId = 30;
    ceTransferedToOnline = 31;
+   ceSuggestedMemCount = 32;
 
-   ceMax = 31;
+   ceMax = 32;
 
-   MaxNZColumns = 30;
+   MaxNZColumns = 31;
 
    DefaultColumnOrderNZ : array[ 1..MaxNZColumns] of byte =
              (
@@ -60,6 +61,7 @@ const
              ceReference,
              ceAnalysis,
              ceAccount,
+             ceSuggestedMemCount,
              ceDescription,
              ceForexAmount,
              ceForexRate,
@@ -90,13 +92,14 @@ const
 
 
 {$IFDEF SmartLink}
-    MaxOZColumns = 27;
+    MaxOZColumns = 28;
    DefaultColumnOrderOZ : array[ 1..MaxOZColumns] of byte =
              (
              ceStatus,
              ceEffDate,
              ceReference,
              ceAccount,
+             ceSuggestedMemCount,
              ceDescription,
              ceForexAmount,
              ceForexRate,
@@ -122,13 +125,14 @@ const
              ceTransferedToOnline
              );
 {$ELSE}
-   MaxOZColumns = 28;
+   MaxOZColumns = 29;
    DefaultColumnOrderOZ : array[ 1..MaxOZColumns] of byte =
              (
              ceStatus,
              ceEffDate,
              ceReference,
              ceAccount,
+             ceSuggestedMemCount,
              ceDescription,
              ceForexAmount,
              ceForexRate,
@@ -301,6 +305,11 @@ const
   CE_AltChartCode_DEF_WIDTH = 100;
   CE_AltChartCode_DEF_VISIBLE = False;
   CE_AltChartCode_DEF_EDITABLE = False;
+
+  // ceSuggestedMemCount
+  CE_SUGGMEMCOUNT_DEF_WIDTH = 40;
+  CE_SUGGMEMCOUNT_DEF_VISIBLE = True;
+  CE_SUGGMEMCOUNT_DEF_EDITABLE = False;
 
 implementation
 

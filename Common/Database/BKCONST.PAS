@@ -373,8 +373,9 @@ CONST
    csByAltChartCode = 26;
    csByTransId      = 27;
    csBySentToAndAcc = 28;
+   csSuggestedMemCount = 29;
 
-   csMax = 28;
+   csMax = 29;
 
    csNames : Array[ csMin..csMax ] of String[20]=
       (  'Date Effective',
@@ -405,8 +406,9 @@ CONST
          'Exchange Rate',
          'Alternative Code',
          'Transaction ID',
-         'Sent to ' + BRAND_SHORT_NAME
-          );
+         'Sent to ' + BRAND_SHORT_NAME,
+         'test 3'
+         );
 
   //use this array to pick out items in the order the should appear in picklists
   //alphabetical
@@ -414,6 +416,7 @@ CONST
   (
     csByAction,
     csAccountCode,
+    csSuggestedMemCount,
     csByAccountDesc,
     csByValue,
     csByAnalysis,

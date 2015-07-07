@@ -2,30 +2,66 @@ unit CodingFrm;
 
 {.$DEFINE PLAYSOUNDS} // Uncomment this to include the sound code.
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  OvcBase, OvcTCmmn, OvcTable, OvcTCHdr, OvcTCPic, OvcTCBEF, OvcTCNum,
-  OvcTCStr, OvcTCEdt, OvcTCell, OvcTCBmp, ComCtrls, ExtCtrls, StdCtrls, Inifiles,
-
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  OvcBase,
+  OvcTCmmn,
+  OvcTable,
+  OvcTCHdr,
+  OvcTCPic,
+  OvcTCBEF,
+  OvcTCNum,
+  OvcTCStr,
+  OvcTCEdt,
+  OvcTCell,
+  OvcTCBmp,
+  ComCtrls,
+  ExtCtrls,
+  StdCtrls,
+  Inifiles,
   baObj32,
   bkDefs,
   CodingFormCommands,
-  MaintainGroupsFrm, ovctcgly, ovctcbox, StdActns, ActnList, Menus, RzPanel,
-  RzBmpBtn, RzSplit, ovcef, ovcpb, ovcpf,ovcDate,
+  MaintainGroupsFrm,
+  ovctcgly,
+  ovctcbox,
+  StdActns,
+  ActnList,
+  Menus,
+  RzPanel,
+  RzBmpBtn,
+  RzSplit,
+  ovcef,
+  ovcpb,
+  ovcpf,
+  ovcDate,
   txsl,
   ueList32,
   ColFmtListObj,
-
-  jpeg, ExtDlgs, ovctccbx,osfont, RzButton, RzTabs;
+  jpeg,
+  ExtDlgs,
+  ovctccbx,
+  osfont,
+  RzButton,
+  RzTabs;
 
 const
-   WM_DoNewJournal = WM_User + 601;
+  WM_DoNewJournal = WM_User + 601;
+
 type
-   TCodingCommands = (CC_RestrictedEditMode, CC_FullEditMode, CC_GotoFirstUncoded);
-   TCodingOptions = set of TCodingCommands;
+  TCodingCommands = (CC_RestrictedEditMode, CC_FullEditMode, CC_GotoFirstUncoded);
+
+  TCodingOptions = set of TCodingCommands;
 
   TfrmCoding = class(TForm)
     cntController: TOvcController;
@@ -123,6 +159,7 @@ type
     rzPinBtn: TRzBmpButton;
     rzXBtn: TRzBmpButton;
     tblCoding: TOvcTable;
+    CelSuggestedMemCount: TOvcTCPictureField;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -134,7 +171,6 @@ type
     procedure WMVScroll(var Msg : TWMScroll); message WM_VSCROLL;
 
     procedure WMDoNewJournal (var message: TMessage); message WM_DoNewJournal;
-    procedure hdrColumnHeadingsClick(Sender: TObject);
     procedure tblCodingGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
     procedure tblCodingColumnsChanged(Sender: TObject; ColNum1,
@@ -312,6 +348,9 @@ type
     procedure celAnalysisChange(Sender: TObject);
     procedure lblRecommendedMemorisationsClick(Sender: TObject);
     procedure tcWindowsTabClick(Sender: TObject);
+    procedure CelSuggestedMemCountOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 
   private
     { Private declarations }
@@ -537,185 +576,195 @@ type
   procedure CodeTheseEntries(DateFrom, DateTo : TStDate; BA: TBank_Account = nil;
                              CodingOptions: TCodingOptions = []; DoUpdateRecMemCandidates: boolean = True);
   procedure GetCodingDateRange(var dateFrom,dateTo : TStDate);
-//******************************************************************************
+
+//------------------------------------------------------------------------------
 implementation
 {$R *.DFM}
+
 uses
-   selectJournalDlg,
-   AutoSaveUtils,
-   OvcConst,
-   OvcTbCls,
-   OvcNF,       //for TOvcNumericField
-   StDateSt,
-   bkBranding,
-   BKConst,
-   bkhelp,
-   bkdsio,
-   bktxio,
-   bkUtil32,
-   bkdateutils,
-   //Journals,
-   JNLUTILS32,
-   JournalDlg,
-   bkXPThemes,
-   CodingFormConst,
-   DecimalRounding_JH1,
-   GenUtils,
-   glConst,
-   globals,
-   GSTCalc32,
-   ImagesFrm,
-   updatemf,
-   winUtils,
-   MoneyDef,
-   trxList32,
-   Files,
-   ForexHelpers,
-   AccountLookupFrm,
-   bkMaskUtils,
-   PayeeLookupFrm,
-   DissectionDlg,
-   MemoriseDlg,
-   AutoCode32,
-   GSTLookupFrm,
-   GSTUtil32,
-   InfoMoreFrm,
-   ErrorMoreFrm,
-   WarningMoreFrm,
-   AccsDlg,
-   ContraDlg,
-   Math,
-   Matches,
-   FindDlg,
-   Finalise32,
-   Outstand,
-   MatchDlg,
-   YesNoDlg,
-   NewAmountDlg,
-   MoneyUtils,
-   EnterPwdDlg,
-   bkdbexcept,
-   bk5Except,
-   DelChequeDlg,
-   DelUnCheqDlg,
-   CodeDateDlg,
-   ColOrderFrm,
-   ConfigColumnsFrm,
-   NewHints,
-   StStrS,
-   Progress,
-   Software,
-   //ColRestrictedFrm,
-   ReversingEntryDetailsFrm,
-   LogUtil,
-   SuperFieldsUtils,
-   TransactionUtils,
-   mxUtils,
-   ClientHomePagefrm,
-   RecombineEntriesFrm,
-   PayeeRecodeDlg,
+  selectJournalDlg,
+  AutoSaveUtils,
+  OvcConst,
+  OvcTbCls,
+  OvcNF,       //for TOvcNumericField
+  StDateSt,
+  bkBranding,
+  BKConst,
+  bkhelp,
+  bkdsio,
+  bktxio,
+  bkUtil32,
+  bkdateutils,
+  JNLUTILS32,
+  JournalDlg,
+  bkXPThemes,
+  CodingFormConst,
+  DecimalRounding_JH1,
+  GenUtils,
+  glConst,
+  globals,
+  GSTCalc32,
+  ImagesFrm,
+  updatemf,
+  winUtils,
+  MoneyDef,
+  trxList32,
+  Files,
+  ForexHelpers,
+  AccountLookupFrm,
+  bkMaskUtils,
+  PayeeLookupFrm,
+  DissectionDlg,
+  MemoriseDlg,
+  AutoCode32,
+  GSTLookupFrm,
+  GSTUtil32,
+  InfoMoreFrm,
+  ErrorMoreFrm,
+  WarningMoreFrm,
+  AccsDlg,
+  ContraDlg,
+  Math,
+  Matches,
+  FindDlg,
+  Finalise32,
+  Outstand,
+  MatchDlg,
+  YesNoDlg,
+  NewAmountDlg,
+  MoneyUtils,
+  EnterPwdDlg,
+  bkdbexcept,
+  bk5Except,
+  DelChequeDlg,
+  DelUnCheqDlg,
+  CodeDateDlg,
+  ColOrderFrm,
+  ConfigColumnsFrm,
+  NewHints,
+  StStrS,
+  Progress,
+  Software,
+  ReversingEntryDetailsFrm,
+  LogUtil,
+  SuperFieldsUtils,
+  TransactionUtils,
+  mxUtils,
+  ClientHomePagefrm,
+  RecombineEntriesFrm,
+  PayeeRecodeDlg,
 {$IFDEF SmartLink}
-   FingerTipsInterface,
+  FingerTipsInterface,
 {$ENDIF}
 {$IFDEF PLAYSOUNDS}
-   sounds,
+  sounds,
 {$ENDIF PLAYSOUNDS}
-   SwapUtils, clObj32, pyList32, ECollect, mainfrm,
-   PayeeObj, UsageUtils, QueryTx, NewReportUtils,
-   CountryUtils, SetClearTransferFlags, ExchangeRateList, AuditMgr,
-   BankLinkOnlineServices,
-   dxList32,
-   CAUtils,
-   bkProduct,
-   RecommendedMems,
-   RecommendedMemorisationsFrm,
-   MemorisationsObj,
-   BudgetFrm,
-   SuggestedMems,
-   mxFiles32;
+  SwapUtils,
+  clObj32,
+  pyList32,
+  ECollect,
+  mainfrm,
+  PayeeObj,
+  UsageUtils,
+  QueryTx,
+  NewReportUtils,
+  CountryUtils,
+  SetClearTransferFlags,
+  ExchangeRateList,
+  AuditMgr,
+  BankLinkOnlineServices,
+  dxList32,
+  CAUtils,
+  bkProduct,
+  RecommendedMems,
+  RecommendedMemorisationsFrm,
+  MemorisationsObj,
+  BudgetFrm,
+  SuggestedMems,
+  mxFiles32;
 
 const
-   UnitName = 'CODINGFRM';
+  UnitName = 'CODINGFRM';
 
-   {status panel constants}
-   PANELMODE = 0;
-   PANELLINE = 1;
-   PANELCODEDCOUNT = 2;
-   PANELTEXT = 3;
-   GSTTEXT   = 4;
-   PANELBAL = 5;
+  {status panel constants}
+  PANELMODE = 0;
+  PANELLINE = 1;
+  PANELCODEDCOUNT = 2;
+  PANELTEXT = 3;
+  GSTTEXT   = 4;
+  PANELBAL = 5;
 
-   {table command const}
-   tcLookup            = ccUserFirst + 1;
-   tcEditAll           = ccUserFirst + 2;
-   tcNextUncoded       = ccUserFirst + 3;
-   tcSort              = ccUserFirst + 4;
-   tcView              = ccUserFirst + 5;
-   tcMore              = ccUserFirst + 6;
-   tcMemorise          = ccUserFirst + 7;
-   tcAcctLookup        = ccUserFirst + 8;
-   tcPayeeLookup       = ccUserFirst + 9;
-   tcDissect           = ccUserFirst + 10;
-   tcFind              = ccUserFirst + 11;
-   tcDitto             = ccUserFirst + 12;
-   tcAmount            = ccUserFirst + 13;
-   tcMatch             = ccUserFirst + 14;
-   tcDeleteTrans       = ccUserFirst + 15;
-   tcInsertUPC         = ccUserFirst + 16;
-   tcDeleteCell        = ccUserFirst + 17;
-   tcUnpresentedItems  = ccUserFirst + 18;
-   tcSetFlags          = ccUserFirst + 19;
-   tcRecalc            = ccUserFirst + 20;
-   tcGSTLookup         = ccUserFirst + 21;
-   tcRecombine         = ccUserFirst + 22;
-   tcGotoNotes         = ccUserFirst + 23;
-   tcCopySDToNarration = ccUserFirst + 24;
-   tcCopyNotesToNarration = ccUserFirst + 25;
-   tcAppendNotesToNarr = ccUserFirst + 26;
-   tcAppendSDToNarr    = ccUserFirst + 27;
-   tcEditSuperFields   = ccUserFirst + 28;
+  {table command const}
+  tcLookup            = ccUserFirst + 1;
+  tcEditAll           = ccUserFirst + 2;
+  tcNextUncoded       = ccUserFirst + 3;
+  tcSort              = ccUserFirst + 4;
+  tcView              = ccUserFirst + 5;
+  tcMore              = ccUserFirst + 6;
+  tcMemorise          = ccUserFirst + 7;
+  tcAcctLookup        = ccUserFirst + 8;
+  tcPayeeLookup       = ccUserFirst + 9;
+  tcDissect           = ccUserFirst + 10;
+  tcFind              = ccUserFirst + 11;
+  tcDitto             = ccUserFirst + 12;
+  tcAmount            = ccUserFirst + 13;
+  tcMatch             = ccUserFirst + 14;
+  tcDeleteTrans       = ccUserFirst + 15;
+  tcInsertUPC         = ccUserFirst + 16;
+  tcDeleteCell        = ccUserFirst + 17;
+  tcUnpresentedItems  = ccUserFirst + 18;
+  tcSetFlags          = ccUserFirst + 19;
+  tcRecalc            = ccUserFirst + 20;
+  tcGSTLookup         = ccUserFirst + 21;
+  tcRecombine         = ccUserFirst + 22;
+  tcGotoNotes         = ccUserFirst + 23;
+  tcCopySDToNarration = ccUserFirst + 24;
+  tcCopyNotesToNarration = ccUserFirst + 25;
+  tcAppendNotesToNarr = ccUserFirst + 26;
+  tcAppendSDToNarr    = ccUserFirst + 27;
+  tcEditSuperFields   = ccUserFirst + 28;
 {$IFDEF SmartLink}
-   tcLaunchFingertips  = ccUserFirst + 29;
+  tcLaunchFingertips  = ccUserFirst + 29;
 {$ENDIF}
-   tcNextNote       = ccUserFirst + 30;
-   tcMarkNote       = ccUserFirst + 31;
-   tcMarkAllNotes   = ccUserFirst + 32;
-   tcDeleteNote     = ccUserFirst + 33;
-   tcQueryUncoded   = ccUserFirst + 34;
-   tcJobs           = ccUserFirst + 35;
-   tcInsertTrans    = ccUserFirst + 36;
-   tcRateLookup     = ccUserFirst + 37;
+  tcNextNote       = ccUserFirst + 30;
+  tcMarkNote       = ccUserFirst + 31;
+  tcMarkAllNotes   = ccUserFirst + 32;
+  tcDeleteNote     = ccUserFirst + 33;
+  tcQueryUncoded   = ccUserFirst + 34;
+  tcJobs           = ccUserFirst + 35;
+  tcInsertTrans    = ccUserFirst + 36;
+  tcRateLookup     = ccUserFirst + 37;
 
 
-   SectionNameTemplate = 'Coding Layout - Bank %s';
-   DefaultBankPrefix   = '00';
-   //NewZealand
-   ANZPrefix           = '01';
-   BNZPrefix           = '02';
-   WPCPrefix           = '03';
-   NATPrefix           = '06';
-   ASBPrefix           = '12';
-   //Australia - EldersPrefix moved to BKConst
+  SectionNameTemplate = 'Coding Layout - Bank %s';
+  DefaultBankPrefix   = '00';
+  //NewZealand
+  ANZPrefix           = '01';
+  BNZPrefix           = '02';
+  WPCPrefix           = '03';
+  NATPrefix           = '06';
+  ASBPrefix           = '12';
+  //Australia - EldersPrefix moved to BKConst
 
-   // Menu names, so they can be found..
-   mniDelDissection  = 'mniDelDissection';
-   mniEJCaption      = 'Edit Journal                                           /';
-   mniVJCaption      = 'View Journal                                           /';
-   mniEditJournal    = 'mniEditJournal';
+  // Menu names, so they can be found..
+  mniDelDissection  = 'mniDelDissection';
+  mniEJCaption      = 'Edit Journal                                           /';
+  mniVJCaption      = 'View Journal                                           /';
+  mniEditJournal    = 'mniEditJournal';
 
-   mniSuperClear     = 'mniSuperClear';
-   mniSuper          = 'mniSuper';
-   mniFingertips     = 'mniFingertips';
-   mniSep1           = 'Sep1';
-   mniEditUPCAmount  = 'mniEditUPCAmount';
-   mniSep3           = 'Sep3';
+  mniSuperClear     = 'mniSuperClear';
+  mniSuper          = 'mniSuper';
+  mniFingertips     = 'mniFingertips';
+  mniSep1           = 'Sep1';
+  mniEditUPCAmount  = 'mniEditUPCAmount';
+  mniSep3           = 'Sep3';
 
 var
-   DefaultPositions : array[0..ceMax] of integer;
-   DebugMe       : boolean = false;
-
+  DefaultPositions : array[0..ceMax] of integer;
+  DebugMe       : boolean = false;
 
 // Redraw main form on minimize
+//------------------------------------------------------------------------------
 procedure TfrmCoding.WMSysCommand(var msg: TWMSyscommand);
 begin
   case (msg.CmdType and $FFF0) of
@@ -737,13 +786,15 @@ begin
       inherited;
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.SetUpHelp;
 begin
    Self.ShowHint    := INI_ShowFormHints;
    Self.HelpContext := 0;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.CreateCodingPopup(Journal: Boolean);
 // This routine fills the Popup with the appropriate MenuItems
 const
@@ -1106,9 +1157,7 @@ begin
 
 end;
 
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmCoding.FormCreate(Sender: TObject);
 
 begin
@@ -1166,7 +1215,8 @@ begin
   FSuperTop := -999;
   FSuperLeft := -999;  
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.ProcessExternalCmd(Command : TExternalCmd);
 begin
    AutoSaveUtils.DisableAutoSave;
@@ -1297,23 +1347,26 @@ begin
           LoadWTLNewSort( csByDocumentTitle);
         ecLookupJobs:DoLookupJob;
         ecSortJobs:
-           LoadWTLNewSort( csByJob);
+          LoadWTLNewSort( csByJob);
         ecSortJobName:
-           LoadWTLNewSort( csByJobName);
+          LoadWTLNewSort( csByJobName);
         ecNewJournal:
-           DoNewJournal;
+          DoNewJournal;
         ecSortTransId:
-           LoadWTLNewSort( csByTransId);
+          LoadWTLNewSort( csByTransId);
         ecSortSentToAndAcc:
-           LoadWTLNewSort( csBySentToAndAcc);
+          LoadWTLNewSort( csBySentToAndAcc);
         ecRecommendedMems:
           DoRecommendedMems;
+        ecSuggestedMemCount:
+          LoadWTLNewSort( csSuggestedMemCount);
      end;
    finally
      EnableAutoSave;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.tblCodingUserCommand(Sender: TObject;
   Command: Word);
 var
@@ -1407,7 +1460,8 @@ begin
      EnableAutoSave;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAccountLookup;
 {
 Assists the user in coding by allowing selection of Account Codes from
@@ -1470,7 +1524,8 @@ begin
       end;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoGSTLookup;
 //can be called from F7 Key
 //if we can edit gst class col then move to that col and do lookup
@@ -1551,6 +1606,8 @@ begin
       end;
    end;
 end;
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoLookupJob;
 var
    pT                : pTransaction_Rec;
@@ -1632,7 +1689,8 @@ begin
       end;
    end;
 end; //DoPayeeLookup;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoPayeeLookup;
 {
 Assists the user in coding by allowing selection of Payee Codes from
@@ -1747,7 +1805,7 @@ begin
    end;
 end; //DoPayeeLookup;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoDissection(JA: Integer = -1);
 //cannot dissect an entry that is dissected or transferred and not already dissected
 var
@@ -1789,7 +1847,8 @@ begin
       end;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoMemorise;
 var
    pT                 : pTransaction_Rec;
@@ -1851,7 +1910,6 @@ begin
       end;
    end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (* Removed
 procedure TfrmCoding.DoFind;
@@ -1918,19 +1976,21 @@ begin
 end;
 *)
 
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoFind(Find: Boolean = False);
 begin
    SearchVisible := (not SearchVisible)
                  or (Find)
 
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//------------------------------------------------------------------------------
 procedure TfrmCoding.WMDoNewJournal(var message: TMessage);
 begin
    DoNewJournal;
 end;
 
+//------------------------------------------------------------------------------
 Procedure TfrmCoding.WMGetMinMaxInfo(Var msg: TWMGetMinMaxInfo);
 Begin
    inherited;
@@ -1942,9 +2002,7 @@ Begin
    }
 End;
 
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoZoom;
 
 Const
@@ -1976,6 +2034,7 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DrawNotesIcon(RowNum: Integer; R: TRect; TableCanvas: TCanvas);
 
 //custom draw allows us to add the notes icon to the
@@ -2049,7 +2108,7 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoMatchUPC;
 //Attempts to match current transaction with an entry in the UEList
 var
@@ -2318,8 +2377,8 @@ begin
     end;
   end;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoRecombineEntries;
 var
   pT          : pTransaction_Rec;
@@ -2367,7 +2426,7 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmCoding.SetOrClearTransferDate(SetDate : boolean);
 //Sets or clears the Transfer Date according to the SetDate parameter.
 //A non-zero Transfer Date indicates the transaction has been transfered.
@@ -2410,7 +2469,8 @@ begin
    If not SetDate then AutoCodeEntries( MyClient, BankAccount, AllEntries, TranDateFrom, TranDateTo );
    tblCoding.Refresh;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 Procedure TfrmCoding.DoClearTransferDate;
 //Clears Transfer flags
 begin
@@ -2422,7 +2482,8 @@ begin
    ApplyDefaultGST( false);
    LogUtil.LogMsg(lmInfo,UnitName,'Transfer Flags Cleared');
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 Procedure TfrmCoding.DoSetTransferDate;
 //Sets the transfer flags
 begin
@@ -2433,13 +2494,13 @@ begin
    LogUtil.LogMsg(lmInfo,UnitName,'Transfer Flags Set to ' + bkDate2Str( CurrentDate));
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoSuggestedMemsDoneProcessing;
 begin
   UpdateSuggestedMemLabel;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAddOutstandingCheques;
 //Adds Outstanding Cheques
 begin
@@ -2456,7 +2517,8 @@ begin
     RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAddOutstandingDeposits;
 //Adds Outstanding Deposits
 begin
@@ -2473,7 +2535,8 @@ begin
     RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAddOutstandingWithdrawals;
 //Adds Outstanding Withdrawals
 begin
@@ -2490,7 +2553,8 @@ begin
     RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAddInitialCheques;
 //Adds Initial Cheques
 begin
@@ -2512,7 +2576,8 @@ begin
     RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
   end;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAddInitialDeposits;
 //Adds Initial Cheques
 begin
@@ -4086,11 +4151,6 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCoding.hdrColumnHeadingsClick(Sender: TObject);
-begin
-
-end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SearchTimerTimer(Sender: TObject);
 begin
    SearchTimer.Enabled := False;
@@ -4290,6 +4350,8 @@ begin
 
       if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
         InsColDefnRec('Sent to ' + bkBranding.ProductOnlineName, ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, csBySentToAndAcc);
+
+      InsColDefnRec('', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount);
 
       EditMode := emGeneral; //Never changed here
    end;
@@ -5029,6 +5091,11 @@ begin
         ceTransferedToOnline :
         begin
           data := @pT^.txTransfered_To_Online;
+        end;
+
+        ceSuggestedMemCount :
+        begin
+          data := @pT^.txSuggested_Mem_Count;
         end
 
       else
@@ -9165,7 +9232,8 @@ begin
                              ceGSTAmount,
                              ceAltChartCode,
                              ceCoreTransactionId,
-                             ceTransferedToOnline ];
+                             ceTransferedToOnline,
+                             ceSuggestedMemCount ];
       DefaultEditColumn := ceReference;
    end else begin
       NeverEditableCols := [ ceStatus,
@@ -9185,7 +9253,8 @@ begin
                              ceAction,
                              ceAltChartCode,
                              ceCoreTransactionId,
-                             ceTransferedToOnline ];
+                             ceTransferedToOnline,
+                             ceSuggestedMemCount ];
      DefaultEditColumn := ceAccount;
 
      if fIsForex then
@@ -9879,6 +9948,19 @@ begin
 
   if IsJournal then
      DrawNotesIcon(RowNum, CellRect, TableCanvas);
+
+  DoneIt := True;
+end;
+
+procedure TfrmCoding.CelSuggestedMemCountOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  If ( data = nil ) then exit;
+
+  TableCanvas.Font             := CellAttr.caFont;
+  TableCanvas.Font.Color       := CellAttr.caFontColor;
+  TableCanvas.Brush.Color      := CellAttr.caColor;
 
   DoneIt := True;
 end;
