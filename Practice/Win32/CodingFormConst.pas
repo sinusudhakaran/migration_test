@@ -309,7 +309,7 @@ const
   // ceSuggestedMemCount
   CE_SUGGMEMCOUNT_DEF_WIDTH = 40;
   CE_SUGGMEMCOUNT_DEF_VISIBLE = True;
-  CE_SUGGMEMCOUNT_DEF_EDITABLE = False;
+  CE_SUGGMEMCOUNT_DEF_EDITABLE = true;
 
 implementation
 

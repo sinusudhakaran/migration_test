@@ -537,6 +537,7 @@ object frmCoding: TfrmCoding
         GridPenSet.CellWhenUnfocused.NormalColor = clWindowText
         GridPenSet.CellWhenUnfocused.Style = psSolid
         GridPenSet.CellWhenUnfocused.Effect = geBoth
+        LockedRowsCell = hdrColumnHeadings
         Options = [otoTabToArrow, otoEnterToArrow, otoNoSelection]
         ParentCtl3D = False
         ParentShowHint = False
@@ -721,6 +722,7 @@ object frmCoding: TfrmCoding
     Headings.Strings = (
       'S')
     ShowLetters = False
+    Table = tblCoding
     Left = 64
     Top = 162
   end

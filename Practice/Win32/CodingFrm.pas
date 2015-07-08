@@ -9955,12 +9955,55 @@ end;
 procedure TfrmCoding.CelSuggestedMemCountOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+const
+  DTOpts = DT_CENTER or DT_VCENTER or DT_SINGLELINE;
+  CIRCLE_MARGIN = 6;
+  WORD_MARGIN = 14;
+  HIGHLIGHT_COLOR = $009A5B00;
+var
+  SuggStr : string;
+  SuggStrLen : integer;
+  SuggPixelLen : integer;
+  Rect : TRect;
+
+  CircleHalfHeight : integer;
+  CircleHalfWidth : integer;
+  MidCircleX, MidCircleY : integer;
 begin
   If ( data = nil ) then exit;
 
   TableCanvas.Font             := CellAttr.caFont;
   TableCanvas.Font.Color       := CellAttr.caFontColor;
   TableCanvas.Brush.Color      := CellAttr.caColor;
+
+  TableCanvas.FillRect( CellRect );
+
+  if CellAttr.caColor = clHighlight then
+    TableCanvas.Brush.Color := HIGHLIGHT_COLOR
+  else
+    TableCanvas.Brush.Color := clGray;
+
+  TableCanvas.Font.Color  := clWhite;
+
+  SuggStr := inttoStr(integer( Data^ ));
+  SuggStrLen := StrLen( PChar( SuggStr ) );
+  SuggPixelLen := TableCanvas.TextWidth(SuggStr);
+
+  CircleHalfHeight := (CellRect.Bottom - CellRect.Top - CIRCLE_MARGIN) div 2;
+  if (SuggPixelLen > ((CircleHalfHeight * 2) - WORD_MARGIN)) then
+    CircleHalfWidth := (SuggPixelLen + WORD_MARGIN) div 2
+  else
+    CircleHalfWidth := CircleHalfHeight;
+
+  MidCircleX := CellRect.Left + ((CellRect.Right - CellRect.Left) div 2);
+  MidCircleY := CellRect.Top + ((CellRect.Bottom - CellRect.Top) div 2);
+
+  TableCanvas.RoundRect(MidCircleX - CircleHalfWidth, MidCircleY - CircleHalfHeight,
+                        MidCircleX + CircleHalfWidth, MidCircleY + CircleHalfHeight,
+                        (CircleHalfHeight * 2)-2, (CircleHalfHeight * 2)-2 );
+
+  Rect := CellRect;
+  DrawText( TableCanvas.Handle, PChar( SuggStr ), StrLen( PChar( SuggStr ) ), Rect, DTOpts );
 
   DoneIt := True;
 end;
