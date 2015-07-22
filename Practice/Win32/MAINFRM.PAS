@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont, Progress, BudgetImportExport, RzTabs;
+  OSFont, Progress, BudgetImportExport, RzTabs, uNPS;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -440,6 +440,7 @@ type
     mniExportCharttoMYOBCashBooks1: TMenuItem;
     mniAssert: TMenuItem;
     mniListManual: TMenuItem;
+    mniHelpProvideFeedback: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -728,8 +729,9 @@ type
     procedure mniExportCharttoMYOBCashBooks1Click(Sender: TObject);
     procedure mniAssertClick(Sender: TObject);
     procedure mniListManualClick(Sender: TObject);
-
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
+    procedure mniHelpProvideFeedbackClick(Sender: TObject);
+
   private
     FClientInstance,
     FPrevClientProc : TFarProc;
@@ -749,6 +751,11 @@ type
     FAdminSystemFound: boolean;
     fMDIChildSortedList : TStringList;
     fMDIChildSortedIndex : integer;
+
+  //LeanEngage NPS service
+    NPSLeanEngage : TNPSLeanEngage;
+    procedure InitialiseLeanEngage;
+
 
     procedure SetExportdatatoBanklinkOnlineVisiblility();
 
@@ -821,6 +828,8 @@ type
     procedure DoRebranding();
 
     //procedure ThreadMessage(var Message: TMessage);	message THREAD_MESSAGE;
+    procedure DisplayAvailableNPSSurveys(Sender: TObject);
+
   protected
     procedure UpdateActions; override;
     function GetMDIChildSortedList : TStringList;
@@ -1115,7 +1124,11 @@ uses
   RecommendedMemorisationsFrm,
   JournalDlg,
   SuggestedMems,
-  ChartExportToMYOBCashbook;
+  ChartExportToMYOBCashbook,
+  WebUtils,
+  frmNPSWebHost,
+  uLeanEngageLib,
+  formLEFeedback;
   //StockBalancesDlg;
 
 const
@@ -1494,6 +1507,8 @@ var
 {$IFDEF SmartLink}
   ShowSmartLinkHelp : boolean;
 {$ENDIF}
+  ClientManagerFormPointer : TfrmClientManager;
+
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug,unitname,'Form Shown Started');
@@ -1538,7 +1553,7 @@ begin
 
     bkBranding.StyleBooksBackgroundLogo(imgLogo);
     bkBranding.StyleBooksBackgroundImage(Image1);
-    bkBranding.StyleBooksClientName(lblClientName); 
+    bkBranding.StyleBooksClientName(lblClientName);
 
     if TProduct.ProductBrand = btMYOBBankLink then
     begin
@@ -1580,7 +1595,7 @@ begin
   try
     // Make sure there are no Parameter actions set and the bconnect password has been set
     if (Globals.StartupParam_Action = 0) and
-       (Assigned(AdminSystem)) and 
+       (Assigned(AdminSystem)) and
        (AdminSystem.fdFields.fdBankLink_Connect_Password <> '') then
     begin
       if DebugMe then
@@ -1603,6 +1618,38 @@ begin
 
        if Assigned(AdminSystem) then
        begin
+
+        {$ifdef DEBUG}
+          if DebugMe then
+            LogUtil.LogMsg(lmDebug,unitname,
+              format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+              [ StartupParam_Action, CurrUser.Code ] ) );
+
+        {$endif} {ifdef DEBUG}
+
+        InitialiseLeanEngage;
+        if not assigned( frmLEFeedback ) then begin
+          ClientManagerFormPointer := GetClientManagerFormPointer;
+
+          frmLEFeedback := TfrmLEFeedback.Create( frmMain );
+
+          frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
+            frmMain.ClientWidth);
+
+          frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
+
+          ClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
+        end;
+
+        {$ifdef DEBUG}
+          if DebugMe then
+            LogUtil.LogMsg(lmDebug,unitname,
+              format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+              [ StartupParam_Action, CurrUser.Code ] ) );
+
+        {$endif} {ifdef DEBUG}
+
+
          if AdminSystem.fdFields.fdUse_BankLink_Online then
          begin
            if not Assigned(ProductConfigService.Practice) then
@@ -1625,7 +1672,7 @@ begin
                    if TBlopiServiceAgreement.SignServiceAgreement then
                    begin
                      ProductConfigService.ResumeService;
-                     
+
                      LogUtil.LogMsg(lmInfo, 'ServiceAgreementDlg', 'The ' + bkBranding.ProductOnlineName + ' service has been resumed.', 0);
                    end
                    else
@@ -1916,6 +1963,8 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormResize(Sender: TObject);
+var
+  ClientManagerFormPointer : TfrmClientManager;
 begin
   inherited;
  if not ApplicationIsStarting then
@@ -1950,6 +1999,10 @@ begin
   MainStatus.Panels[PANELMSG].Width := Width - (MainStatus.Panels[PANELF1].width +
                                        MainStatus.Panels[PANELTIME].width +
                                        MainStatus.Panels[PANELBAR].width );
+  if assigned( frmLEFeedback ) then begin
+    ClientManagerFormPointer := GetClientManagerFormPointer;
+    frmLEFeedback.FloatForm( (*ClientManagerFormPointer.*)frmMain.ClientHeight, (*ClientManagerFormPointer.*)frmMain.ClientWidth );
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -2000,6 +2053,10 @@ begin
   //remove redirect of messge handler to ClientWndProc
   SetWindowLong(ClientHandle, GWL_WNDPROC, LongInt(FPrevClientProc));
   Classes.FreeObjectInstance(FClientInstance);
+{$ifdef DEBUG}
+    freeAndNil( NPSLeanEngage ); 
+{$else} {ifdef DEBUG}
+{$endif} {ifdef DEBUG}
 end;
 procedure TfrmMain.FormMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
@@ -2252,6 +2309,34 @@ begin
    finally
       lParams.Free;
    end;
+end;
+
+procedure TfrmMain.DisplayAvailableNPSSurveys(Sender: TObject);
+var
+  i : integer;
+/////////////////////  WebForm: TfrmNPSWebHost;
+begin
+/////////////////////  WebForm := TfrmNPSWebHost.Create(nil);
+
+/////////////////////  try
+/////////////////////    WebForm.Url := 'www.microsoft.com';
+
+/////////////////////    WebForm.ShowModal;
+/////////////////////  finally
+/////////////////////    WebForm.Free;
+/////////////////////  end;
+
+
+
+
+/////////////////////(*
+/////////////////////   TfrmNPSWebHost.Show( 'www.microsoft.com', Self );
+  if assigned( NPSLeanEngage ) and
+       assigned( Application ) and
+       assigned( Application.MainForm ) then
+    if NPSLeanEngage.HasSurvey then
+      for I := 0 to NPSLeanEngage.Surveys.Count - 1 do
+        TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url, Application.MainForm);
 end;
 
 procedure TfrmMain.DisplayHint(Sender: TObject);
@@ -2509,6 +2594,14 @@ begin
     frmAbout.ShowModal;
     frmAbout.Free;
 end;
+procedure TfrmMain.mniHelpProvideFeedbackClick(Sender: TObject);
+begin
+  if assigned( NPSLeanEngage ) then begin
+    if NPSLeanEngage.HasFeedbackURL then
+      TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL, Self );
+  end;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniFileNewClick(Sender: TObject);
 begin
@@ -3841,6 +3934,43 @@ begin
             end;
 end;
 
+procedure TfrmMain.InitialiseLeanEngage;
+var
+  sIdentityID : string;
+begin
+  sIdentityID := '';
+  if assigned( AdminSystem ) then begin
+// Setup the key for different environments
+    if PRACINI_LeanEngage_System_Switch = cLeanEngage_TestSwitch then
+      LeanEngageApp_Key := cLeanEngage_TestAPIKey
+    else
+      LeanEngageApp_Key := cLeanEngage_ProdAPIKey;
+    sIdentityID := CurrUser.Code + AdminSystem.fdFields.fdPractice_Name_for_Reports;
+  end;
+    NPSLeanEngage := TNPSLeanEngage.Create( sIdentityID,
+      PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key, AdminSystem.fdFields.fdPractice_Name_for_Reports,
+      CountryText( AdminSystem.fdFields.fdCountry ), (*CurrUser.Code*)sIdentityID,
+      BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr );
+  if not (StartupParam_Action in System_Actions) and
+     ((CurrUser.Code <> 'BANKLNK5') and (CurrUser.Code <> 'SUPERVIS' )) then begin
+{$ifdef DEBUG}
+   LogUtil.LogMsg(lmDebug,unitname,
+      'InitialiseLeanEngage TriggerIdentifyAsync' );
+    NPSLeanEngage.TriggerIdentifyAsync( );
+    NPSLeanEngage.TriggerSurveyAsync( DisplayAvailableNPSSurveys );
+{$else}{ifdef DEBUG}
+{$endif}{ifdef DEBUG}
+  end;
+  if assigned( NPSLeanEngage ) then begin
+    NPSLeanEngage.TriggerFeedbackAsync( taFeedbackResponse );
+ {$ifdef DEBUG}
+   LogUtil.LogMsg(lmDebug,unitname,
+      'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
+{$else}{ifdef DEBUG}
+{$endif}{ifdef DEBUG}
+   end;
+end;
+
 procedure TfrmMain.mniTestAdminLockingClick(Sender: TObject);
 begin
 {$IFDEF BK5_TESTLOCKING}
@@ -4609,8 +4739,10 @@ begin
     if (obj is TfrmBudget) then
       TfrmBudget(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
 
-    if (obj is TfrmClientHomePage) then
+    if (obj is TfrmClientHomePage) then begin
       TfrmClientHomePage(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
+      frmLEFeedback.Show;
+    end;
   end;
 end;
 
@@ -4875,6 +5007,8 @@ begin
 
   FormResize(Self);
   RefreshHomepage([HRP_Init]);
+
+  TfrmClientHomePage(ClientHomePage).LEFeedbackForm := TForm( frmLEFeedback );
 
   //Enable Report Run timer for books.
   //Is enabled for Practice when they start up

@@ -697,6 +697,28 @@ var
     PRACINI_IPClientLocking_ProcessMessageDelay : integer;
     PRACINI_IPClientLocking_GROUP_ID : string;
 
+
+  {$ifdef DEBUG}
+    PRACINI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
+    PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_TESTING';
+    PRACINI_LeanEngage_API_KEY : string = '';
+  {$else}{ifdef DEBUG}
+    PRACINI_LeanEngage_System_URL : string = 'https://www.leanengage.com';
+    PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_TESTING';
+    PRACINI_LeanEngage_API_KEY : string = '';
+//Production URL for the moment    PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_PRODUCTION';
+  {$endif}{ifdef DEBUG}
+
+const
+    //LeanEngage
+    cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';
+    cLeanEngage_TestAPIKey = 'axcUDK7vH2HhUZfLvMXgcA';
+    cLeanEngage_ProdAPIKey = 'GEKPKtJyWzmMPxYaKYubWA';
+    cLeanEngage_TestSwitch = 'PRACTICE_TESTING';
+    cLeanEngage_ProdSwitch = 'PRACTICE_PRODUCTION';
+    LeanEngageApp_Key : string = cLeanEngage_TestAPIKey;
+
+
 Type
     TMemsSupportOptions = (meiFullfunctionality,
                            meiResetMems,

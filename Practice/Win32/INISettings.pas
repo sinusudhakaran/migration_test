@@ -97,6 +97,7 @@ const
    GrpPracFingerTips = 'Fingertips';
    GrpPracLinks  = 'Links';
    GrpPracBankLinkOnline = 'BankLinkOnline';
+   GrpPracLeanEngage = 'LeanEngage';
 
    //Mems Ini groups
    GrpMemsSupport = 'Support';
@@ -117,6 +118,7 @@ const
    DefInstListLinkNZ = 'http://www.banklink.co.nz/about_institutions.html';
    DefInstListLinkAU = 'http://www.banklink.com.au/about_institutions.html';
    DefInstListLinkUK = 'http://www.banklink.co.uk/institutions.html';
+   DefLeanEngageLink = 'https://www.leanengage.com';
 
    UnitName      = 'INISettings';
 
@@ -774,6 +776,19 @@ begin
         StrGuid := TrimedGuid(Guid);
         PRACINI_IPClientLocking_GROUP_ID := ReadString( GrpLocking, 'IPClientLockingGroupID', StrGuid);
 
+      {$ifdef DEBUG}
+        PRACINI_LeanEngage_BASE_URL    := ReadString( GrpPracLeanEngage,
+          'LeanEngage_System_URL', DefLeanEngageLink );
+        PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
+          'LeanEngage_System_Switch', 'PRACTICE_TESTING');
+      {$else} {ifdef DEBUG}
+        PRACINI_LeanEngage_BASE_URL    := ReadString( GrpPracLeanEngage,
+          'LeanEngage_System_URL', DefLeanEngageLink );
+        PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
+          'LeanEngage_System_Switch', 'PRACTICE_PRODUCTION');
+      {$endif} {ifdef DEBUG}
+
+
         InitLocking(PRACINI_IPClientLocking_SwitchedOn,
                     PRACINI_IPClientLocking_UDP_Client_Port,
                     PRACINI_IPClientLocking_UDP_BuffInitSize,
@@ -937,6 +952,21 @@ begin
            WriteInteger(GrpLocking, 'IPClientLockingTCPTimeOut', PRACINI_IPClientLocking_TCPTimeOut);
            WriteInteger(GrpLocking, 'IPClientLockingProcessMessageDelay', PRACINI_IPClientLocking_ProcessMessageDelay);
            WriteString(GrpLocking,  'IPClientLockingGroupID', PRACINI_IPClientLocking_GROUP_ID);
+
+      {$ifdef DEBUG}
+        WriteString( GrpPracLeanEngage,
+          'PRACINI_LeanEngage_BASE_URL', PRACINI_LeanEngage_BASE_URL );
+
+        WriteString( GrpPracLeanEngage,
+          'LeanEngage_System_Switch', PRACINI_LeanEngage_System_Switch );
+      {$else} {ifdef DEBUG}
+        WriteString( GrpPracLeanEngage,
+          'PRACINI_LeanEngage_BASE_URL', PRACINI_LeanEngage_BASE_URL );
+
+        WriteString( GrpPracLeanEngage,
+          'LeanEngage_System_Switch', PRACINI_LeanEngage_System_Switch );
+      {$endif} {ifdef DEBUG}
+
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
          end;
