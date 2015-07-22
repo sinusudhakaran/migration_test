@@ -37,6 +37,8 @@ type
   public
     constructor Create; virtual;
 
+    destructor Destroy; override;
+
     procedure Deserialize(Json: String); override;
     function Serialize: String; override;
 
@@ -92,10 +94,6 @@ type
     constructor Create( aTriggerActionType : TTriggerActionType;
                   aIdentityId: String; aMessageContent: String ); reintroduce;
     function Serialize: String; override;
-
-(*    property IdentityId: String read FIdentityId write FIdentityId;
-    property MessageContent: String read FMessageContent write FMessageContent;
-    property TriggerActionType : TTriggerActionType read FTriggerActionType write FTriggerActionType; *)
   end;
 
   TFeedbackJSON = class(TJsonObject)
@@ -104,7 +102,6 @@ type
     fHasUrl : boolean;
   public
     procedure Deserialize(Json: String); override;
-//    function Serialize: String; override;
 
     property Url: String read FUrl write FUrl;
     property HasUrl : boolean read fHasURL;
@@ -161,7 +158,7 @@ function TLEIdentity.Serialize: String;
     end;
 
     JsonObject.Add('traits', Traits);
-    
+
     Companies := TlkJSONlist.Create;
 
     Companies.Add(JsonObject);
@@ -189,6 +186,14 @@ end;
 procedure TLEIdentity.Deserialize(Json: String);
 begin
 
+end;
+
+destructor TLEIdentity.Destroy;
+begin
+  freeAndNil( FCompany );
+  freeAndNil( FModule );
+
+  inherited;
 end;
 
 { TLESurveys }
@@ -247,7 +252,6 @@ begin
     for Index := 0 to JsonList.Count - 1 do
     begin
       Survey := TLESurvey.Create;
-
       try
         Survey.Id := JsonList.Child[Index].Field['id'].Value;
         Survey.Name := JsonList.Child[Index].Field['name'].Value;

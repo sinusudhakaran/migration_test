@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OleCtrls, SHDocVw, ExtCtrls;
+  Dialogs, OleCtrls, SHDocVw, ExtCtrls, OSFont;
 
 const
   WM_SHOWING = WM_USER + 1;

@@ -20,19 +20,13 @@ type
 
     fFeedbackURL: string;
     fHasFeedbackURL : boolean;
-//    fServerBaseUrl: string;
-//DN - Probably Redundant code      FCompanyName: String;
-//DN - Probably Redundant code      FDbVersion: String;
-//DN - Probably Redundant code      FStaffName: String;
-//DN - Probably Redundant code      FSqlVersion: String;
   protected
     procedure AddHeaders(Http: TipsHTTPS; EndPoint: String);override;
     procedure AddAuthenticationHeader(Http: TipsHTTPS; EndPoint: String);
     function Base64Encode( aString : string ) : string;
     function Base64Decode( aString : string ) : string;
   public
-    constructor Create(AuthenticationKey, ServerBaseUrl
-      (*//DN - Probably Redundant code  , CompanyName*): String); virtual;
+    constructor Create(AuthenticationKey, ServerBaseUrl: String); virtual;
 
     procedure SetNPSIdentity(Identity: TJsonObject);
     procedure GetNPSSurvey(UserId: String; Survey: TJsonObject);
@@ -40,9 +34,6 @@ type
     procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject; Feedback : TJsonObject);
 
     property AuthenticationKey : string read fAuthenticationKey;
-//DN - Probably Redundant code      property DbVersion: String read FDbVersion write FDbVersion;
-//DN - Probably Redundant code      property SqlVersion: String read FSqlVersion write FSqlVersion;
-//DN - Probably Redundant code      property StaffName: String read FStaffName write FStaffName;
   end;
 
 implementation
@@ -80,14 +71,12 @@ begin
   result := IdCoder.EncodeString(TIdEncoderMIME, aString);
 end;
 
-constructor TNPSServer.Create(AuthenticationKey, ServerBaseUrl
-              (*DN - Probably Redundant code  , CompanyName *): String);
+constructor TNPSServer.Create(AuthenticationKey, ServerBaseUrl: String);
 begin
   fAuthenticationKey := AuthenticationKey;
   fServerBaseUrl := ServerBaseUrl;
   fHasFeedbackURL := false;
-  
-//DN - Probably Redundant code    FCompanyName := CompanyName;
+
 end;
 
 procedure TNPSServer.GetNPSSurvey(UserId: String; Survey: TJsonObject);
@@ -116,10 +105,6 @@ var
   URLParams : TURLParams;
 
 begin
-//  Post(ENDPOINT_FEEDBACK_RESPONSE, MessageContent);
-/////////;//
-///
-///
   URLParams := TURLParams.Create;
   try
     URLParams.Add('user_id', UserID);
