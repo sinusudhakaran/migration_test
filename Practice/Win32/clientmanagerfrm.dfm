@@ -40,6 +40,8 @@ object frmClientManager: TfrmClientManager
     Color = clBtnShadow
     ParentColor = False
     TabOrder = 2
+    ExplicitLeft = -2
+    ExplicitTop = 36
     object rzgFileTasks: TRzGroup
       CaptionColorStart = 16773337
       CaptionColorStop = 10115840

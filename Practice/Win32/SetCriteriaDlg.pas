@@ -86,7 +86,7 @@ uses
   errorMoreFrm,
   warningMorefrm,
   CountryUtils,
-  BKDefs;
+  BKDefs, bkBranding;
 
 const
    tcDitto   = ccUserFirst + 1;
@@ -121,6 +121,9 @@ begin
     for i := 0 to Headings.Count - 1 do
       Headings[ i ] := Localise( FCountry, Headings[ i ] );
   End;
+
+  bkBranding.StyleOvcTableGrid(tbData);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
 
   //Load Data
   with MyClient.clChart do begin

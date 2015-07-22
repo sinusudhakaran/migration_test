@@ -268,6 +268,12 @@ object dlgInitCheq: TdlgInitCheq
       Top = 19
       ActivePage = fmeCheques.tbsAll
       ExplicitTop = 19
+      inherited tbsAll: TTabSheet
+        ExplicitLeft = 4
+        ExplicitTop = 24
+        ExplicitWidth = 569
+        ExplicitHeight = 117
+      end
       inherited tbsUnpresented: TTabSheet
         inherited lbUnpresented: TListBox
           Top = 6
@@ -300,6 +306,7 @@ object dlgInitCheq: TdlgInitCheq
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '99999999'
     Table = tblCheques
     Left = 608

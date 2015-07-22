@@ -58,7 +58,6 @@ object dlgGraphNames: TdlgGraphNames
       ModalResult = 1
       TabOrder = 2
       OnClick = btnOkClick
-      ExplicitTop = 24
     end
     object btnCancel: TButton
       Left = 520
@@ -70,7 +69,6 @@ object dlgGraphNames: TdlgGraphNames
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 3
-      ExplicitTop = 24
     end
     object btnRestore: TButton
       Left = 8
@@ -81,7 +79,6 @@ object dlgGraphNames: TdlgGraphNames
       Caption = '&Restore Defaults'
       TabOrder = 0
       OnClick = btnRestoreClick
-      ExplicitTop = 24
     end
     object btnCopy: TButton
       Left = 135
@@ -92,7 +89,6 @@ object dlgGraphNames: TdlgGraphNames
       Caption = '&Copy From...'
       TabOrder = 1
       OnClick = btnCopyClick
-      ExplicitTop = 24
     end
   end
   object tbNames: TOvcTable

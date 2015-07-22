@@ -68,7 +68,7 @@ uses
   clObj32,
   files,
   WarningMorefrm,
-  bkConst;
+  bkConst, bkBranding;
 
 {$R *.DFM}
 
@@ -146,6 +146,10 @@ begin
     AddCommand('Grid',VK_DELETE,0,0,0,tcDeleteCell);
   end;
   SetUpHelp;
+
+  bkBranding.StyleOvcTableGrid(tbNames);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
+
   LastRow := tbNames.ActiveRow;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

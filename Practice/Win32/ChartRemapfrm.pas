@@ -228,7 +228,7 @@ uses
    bkXPThemes,
    AuditMgr,
    SuggestedMems,
-   MainFrm;
+   MainFrm, bkBranding;
 
 {$R *.dfm}
 
@@ -744,6 +744,9 @@ begin
    GSTGrid.Header.Font := Self.Font;
    GSTGrid.Header.Height := ChartGrid.Header.Height;
    GSTGrid.DefaultNodeHeight := ChartGrid.DefaultNodeHeight;
+
+   bkbranding.StyleSelectionColor(ChartGrid);
+   bkbranding.StyleSelectionColor(GSTGrid);
 
    // Grid DataSize
    ChartGrid.NodeDataSize := SizeOf(Pointer);

@@ -542,7 +542,7 @@ procedure TCHPBaseItem.DrawCell(FillColor, PenColor: Integer; Canvas: TCanvas;
   Rect: TRect; Selected: Boolean; BoxType: tBoxType);
 begin
   if Selected then  // Fill the Whole box...
-     DrawBox(clHighLight,clHighLight,Canvas,Rect,False);
+     DrawBox(bkBranding.SelectionColor, bkBranding.SelectionColor, Canvas, Rect, False);
 
   InflateRect(Rect,-HLEDGap,- VLEDGap); // Apply margins
   case BoxType of
@@ -1037,29 +1037,25 @@ procedure TCHAccountItem.AfterPaintCell(const Tag: integer; Canvas: TCanvas;
   CellRect: TRect);
 var
   Period: Integer;
+  PeriodPenColor : integer;
 begin
-  if (tag = CHPT_Processing)
-  and assigned(FCodingStats) then begin
-               (*
-       //if FCodingStats.NoOfEntries(0) > 0 then begin
-         DrawCell(0,FCodingStats.GetPeriodFillColor(0),
-                           GetPeriodPenColor(0),Canvas, CellRect,NodeSelected)
-       //end;
-        ;
-              *)
-       for Period := 1 to 12 do begin
-           DrawCell(Period,FCodingStats.GetPeriodFillColor(Period),
-                           GetPeriodPenColor(Period),Canvas, CellRect,NodeSelected)
-       end;
+  if (tag = CHPT_Processing) and assigned(FCodingStats) then
+  begin
+    for Period := 1 to 12 do
+    begin
+      if (FCodingStats.GetPeriodFillColor(Period) = bkBranding.ColorNoData) then
+        PeriodPenColor := GetPeriodPenColor(Period)
+      else
+        PeriodPenColor := FCodingStats.GetPeriodFillColor(Period);
 
-          (*
-       //if FCodingStats.NoOfEntries(13) > 0 then begin
-         DrawCell(13,FCodingStats.GetPeriodFillColor(13),
-                           GetPeriodPenColor(13),Canvas, CellRect,NodeSelected)
-       //end;
-          *)
-
+      DrawCell(Period,
+               FCodingStats.GetPeriodFillColor(Period),
+               PeriodPenColor,
+               Canvas,
+               CellRect,NodeSelected)
+    end;
   end;
+
   inherited;
 end;
 

@@ -769,8 +769,9 @@ begin
   ReportTree.Header.Height := Abs(ReportTree.Header.Font.height) * 10 div 6;
   ReportTree.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
 
-  GBGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-  GBGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+  bkbranding.StyleSelectionColor(ReportTree);
+  bkBranding.StyleGroupBar(GBGroupBar);
+
   if UserINI_CD_GroupWidth > 0 then
      GBGroupBar.Width := UserINI_CD_GroupWidth;
   //Load reports

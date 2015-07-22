@@ -62,10 +62,10 @@ var
   PRACINI_IPClientLocking_GROUP_ID : string;
 
 type
-  TBrandType = (btBankLink, btBankstream);
+  TBrandType = (btBankLink, btMYOBBankLink);
 
 var
-  ProductBrand: TBrandType = btBankLink;
+  ProductBrand: TBrandType = btMYOBBankLink;
   
 implementation
 
@@ -764,4 +764,5 @@ initialization
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 end.
+
 

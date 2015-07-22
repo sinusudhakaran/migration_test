@@ -205,6 +205,7 @@ type
     procedure btnSaveTemplateClick(Sender: TObject);
   private
     { Private declarations }
+    AltLineColor       : integer;
     fContext           : TEditGSTContext;
 
     okPressed          : boolean;
@@ -559,6 +560,10 @@ begin
     lblPaymentsOn.Caption := ReplaceStr( lblPaymentsOn.Caption, 'GST', TaxName );
     Label6.Caption := ReplaceStr( Label6.Caption, 'GST', TaxName );
   End;
+
+  bkBranding.StyleOvcTableGrid(tblRates);
+  bkBranding.StyleTableHeading(colHeader);
+  bkBranding.StyleAltRowColor(AltLineColor);
 
   lblPAYG.Visible             := ( Country = whAustralia);
   cmbPAYGWithheld.Visible     := ( Country = whAustralia);
@@ -1412,7 +1417,7 @@ begin
       if Odd(RowNum) then
          CellAttr.caColor := StdLineLightColor
       else
-         CellAttr.caColor := StdLineDarkColor;
+         CellAttr.caColor := AltLineColor;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

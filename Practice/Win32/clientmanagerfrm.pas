@@ -553,9 +553,7 @@ begin
 
   fDoNotRefreshLookup := false;
 
-  GBClientmanager.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-  GBClientmanager.GradientColorStart := bkBranding.GroupBackGroundStartColor;
-
+  bkBranding.StyleGroupBar(GBClientmanager);
   bkBranding.StyleMainBannerLogo(imgLogo);
   bkBranding.StyleMainBannerCustomLogo(imgRight);
   bkBranding.StyleMainBannerPanel(PnlLogo);
@@ -3415,7 +3413,7 @@ end;
 procedure TfrmClientManager.sgLegendDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
 
-  procedure DrawCellImgLED( Const LEDColor : Integer );
+  procedure DrawCellImgLED( Const LEDColor : Integer; aShowOutLine : boolean = false );
   Var
     R : TRect;
   Begin
@@ -3425,7 +3423,12 @@ procedure TfrmClientManager.sgLegendDrawCell(Sender: TObject; ACol,
     R.Bottom := R.Top + 14;
     R.Right := R.Left + 8;
     sgLegend.Canvas.Brush.Color := LEDColor;
-    sgLegend.Canvas.Pen.Color := clBtnShadow;
+
+    if aShowOutLine then
+      sgLegend.Canvas.Pen.Color := DATA_LED_OUTLINE
+    else
+      sgLegend.Canvas.Pen.Color := LEDColor;
+
     sgLegend.Canvas.RoundRect(R.Left, R.Top, R.Right, R.Bottom, 4, 4);
   end;
 
@@ -3436,7 +3439,7 @@ procedure TfrmClientManager.sgLegendDrawCell(Sender: TObject; ACol,
 
 begin
   case ACol of
-    0: DrawCellImgLED(ColorNoData );
+    0: DrawCellImgLED(ColorNoData, true );
     1: DrawCentreText('No Data');
     2: DrawCellImgLED(ColorDownloaded );
     3: DrawCentreText('Available');

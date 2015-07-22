@@ -25,10 +25,6 @@ object dlgEditPracGST: TdlgEditPracGST
     TabOrder = 0
     object tsGST: TTabSheet
       Caption = 'GST Rates'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label1: TLabel
         Left = 8
         Top = 4
@@ -114,7 +110,14 @@ object dlgEditPracGST: TdlgEditPracGST
           OnGetCellAttributes = tblRatesGetCellAttributes
           OnUserCommand = tblRatesUserCommand
           CellData = (
-            'dlgEditPracGST.OvcTCColHead1')
+            'dlgEditPracGST.OvcTCColHead1'
+            'dlgEditPracGST.ColID'
+            'dlgEditPracGST.colDesc'
+            'dlgEditPracGST.celGSTType'
+            'dlgEditPracGST.colRate1'
+            'dlgEditPracGST.colRate2'
+            'dlgEditPracGST.colRate3'
+            'dlgEditPracGST.colAccount')
           RowData = (
             22)
           ColData = (

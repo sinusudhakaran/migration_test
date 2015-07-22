@@ -67,7 +67,7 @@ uses
   files,
   globals,
   progress,
-  WarningMorefrm;
+  WarningMorefrm, bkBranding;
 
 {$R *.DFM}
 
@@ -118,6 +118,10 @@ begin
     AddCommand('Grid',VK_F6,0,0,0,ccTableEdit);
     AddCommand('Grid',VK_DELETE,0,0,0,tcDeleteCell);
   end;
+
+  bkBranding.StyleOvcTableGrid(tbNames);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
+
   SetUpHelp;
   LastRow := tbNames.ActiveRow;
 end;

@@ -1249,10 +1249,7 @@ begin
     try
       CountryStr := IniFile.ReadString('Installer', 'Country', '');
 
-      if CountryStr = 'UK' then
-      begin
-        TProduct.ProductBrand := btBankstream;
-      end;
+      TProduct.ProductBrand := btMYOBBankLink;
     finally
       IniFile.Free;
     end;
@@ -1398,3 +1395,4 @@ begin
 end;
 
 end.
+

@@ -92,6 +92,7 @@ type
     procedure btnLoadTemplateClick(Sender: TObject);
     procedure btnSaveTemplateClick(Sender: TObject);
   private
+    AltLineColor : integer;
     okPressed : boolean;
     editMode  : boolean;
     StdLineLightColor  : integer;
@@ -206,6 +207,9 @@ begin
 
   lh10.Font.Name := Font.name;
 
+  bkBranding.StyleOvcTableGrid(tblRates);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
+  bkBranding.StyleAltRowColor(AltLineColor);
 
   //set colors for alternate lines
   StdLineLightColor := clWindow;
@@ -709,7 +713,7 @@ begin
       if Odd(RowNum) then
          CellAttr.caColor := StdLineLightColor
       else
-         CellAttr.caColor := StdLineDarkColor;
+         CellAttr.caColor := AltLineColor;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

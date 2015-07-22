@@ -320,7 +320,7 @@ uses
   AuditMgr,
   BKtxIO,
   PayeeObj,
-  PayeeRecodeDlg;
+  PayeeRecodeDlg, bkBranding;
 
 {$R *.DFM}
 
@@ -368,11 +368,14 @@ begin
   CalledFromRecommendedMems := False;
   PayeeUsed := False;
   bkXPThemes.ThemeForm(Self);
-  AltLineColor := BKCOLOR_CREAM;
 
   for i := Low(SplitData) to High(SplitData) do begin
      ClearWorkRecDetails(@SplitData[i]);
   end;
+
+  bkBranding.StyleOvcTableGrid(tblSplit);
+  bkBranding.StyleTableHeading(header);
+  bkBranding.StyleAltRowColor(AltLineColor);
 
   SourceBankAccount := nil;
 

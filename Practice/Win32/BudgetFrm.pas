@@ -436,6 +436,8 @@ begin
    bkBranding.StyleBudgetStartText(lblStart);
    bkBranding.StyleBudgetAllExclusiveText(lblAllExclude);
    bkBranding.StyleBudgetReminderNote(lblReminderNote);
+   bkBranding.StyleOvcTableGrid(tblBudget);
+   bkBranding.StyleTableHeading(tblHeader);
 
    bkXPThemes.ThemeForm( Self);
    DataAssigned := false;
@@ -799,10 +801,11 @@ begin
      AddCommand('Grid',$2E,$04,0,0,tcDeleteLine); {ctrl+delete}
   end;
 
-   tblBudget.RowLimit := 5;
-   tblBudget.CommandOnEnter := ccRight;
+  tblBudget.RowLimit := 5;
+  tblBudget.CommandOnEnter := ccRight;
 
-   AltLineColor := BKCOLOR_CREAM;
+  bkBranding.StyleAltRowColor(AltLineColor);
+
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 

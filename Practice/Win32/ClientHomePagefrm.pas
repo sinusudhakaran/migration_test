@@ -260,6 +260,7 @@ uses
   ExchangeGainLossWiz,
   LockUtils,
   JournalDlg,
+  bkProduct,
   RecommendedMems;
 {$R *.dfm}
 
@@ -911,6 +912,9 @@ begin
    bkBranding.StyleMainBannerPanel(PnlTitle);
    bkBranding.StyleMainBannerLogo(imgLeft);
    bkbranding.StyleMainBannerCustomLogo(imgRight);
+   bkbranding.StyleSelectionColor(ClientTree);
+
+   bkBranding.StyleGroupBar(gbGroupBar);
 
    if frmMain.UsingCustomPracticeLogo then begin
       imgRight.AutoSize := False;
@@ -924,9 +928,6 @@ begin
    lblClientName.Font.Name := Self.Font.Name;
    lw := (LLEDWidth * 12) + (BtnWidth * 2) + 4;
    ClientTree.Header.Columns.Items[1].Width := lw;
-   //GBGroupBar.GradientColorStop := MainFormBackgroundColor;
-   GBGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-   GBGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
 
    ClientTree.Header.Font := self.Font;
    ClientTree.Header.Height := MonthHeight * 2 + 4;
@@ -1540,14 +1541,19 @@ end;
 procedure TfrmClientHomePage.sgLegendDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
 
-  procedure DrawCellImgLED( const LEDColor : Integer );
+  procedure DrawCellImgLED( const LEDColor : Integer; aShowOutLine : boolean = false );
   var R : TRect;
   begin
     R := sgLegend.CellRect(ACol, ARow);
     //R.Right := R.Left + ( R.Bottom - R.Top ) ; { Square at LH End }
     InflateRect( R, -6, -4 ) ; { Make it Smaller }
     sgLegend.Canvas.Brush.Color := LEDColor;
-    sgLegend.Canvas.Pen.Color := clBtnShadow;
+
+    if aShowOutLine then
+      sgLegend.Canvas.Pen.Color := clBtnShadow
+    else
+      sgLegend.Canvas.Pen.Color := LEDColor;
+
     sgLegend.Canvas.RoundRect(R.Left, R.Top, R.Right, R.Bottom, ProcessCornerRadius, ProcessCornerRadius);
   end;
 
@@ -1560,7 +1566,7 @@ begin //TfrmClientHomePage.sgLegendDrawCell
  case ACol of
     //0: DrawCellFill(ColorCodingPeriod,'Coding Period' );
     //1: DrawCellFill(ColorFinancialYear,'Financial Year');
-    2: DrawCellImgLED(ColorNoData );
+    2: DrawCellImgLED(ColorNoData, true);
     3: DrawCentreText('No Data');
     4: DrawCellImgLED(ColorDownloaded );
     5: DrawCentreText('Available');

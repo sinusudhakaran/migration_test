@@ -61,9 +61,9 @@ procedure TfrmSplash.FormCreate(Sender: TObject);
 begin
    Label1.Font.Name := Font.Name;
 
-   if TProduct.ProductBrand = btBankstream then
+   if TProduct.ProductBrand = btMYOBBankLink then
    begin
-     Self.imgBankLinkSplash.Visible := False;
+     Self.imgBankLinkSplash.Visible := false;
    end
    else
    begin
@@ -74,3 +74,4 @@ begin
 end;
 
 end.
+

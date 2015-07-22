@@ -628,9 +628,11 @@ begin
    ReportTree.Header.Height := Abs(ReportTree.Header.Font.height) * 10 div 6;
    ReportTree.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
 
+   bkbranding.StyleSelectionColor(ReportTree);
+
    RunMode := Off;
-   GBGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-   GBGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+
+   bkBranding.StyleGroupBar(GBGroupBar);
 
    ReportList := TTreeBaseList.Create(ReportTree);
    ReportList.OwnsObjects := False; // ReportTree Owns them...

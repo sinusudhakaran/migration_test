@@ -243,7 +243,7 @@ begin
 {$ENDIF}
   lblForSupport.Font.Style := lblForSupport.Font.Style + [fsBold];
 
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     btnEULA2.Visible := True;
     pnlGraphic.Visible := False;
@@ -331,3 +331,4 @@ begin
 end;
 
 end.
+

@@ -276,6 +276,7 @@ type
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
   private
     { Private declarations }
+    AltLineColor                  : integer;
     BankAccount                   : TBank_Account;
     RemovingMask                  : boolean;
     TranSortOrder                 : integer;
@@ -781,7 +782,9 @@ procedure TdlgHistorical.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
   FCountry := MyClient.clFields.clCountry;
- 
+
+  bkBranding.StyleAltRowColor(AltLineColor);
+
   lblAcctDetails.Font.Name := Font.Name;
   lblTransRange.Font.Name := Font.Name;
   SetLength( tmpBuffer, MaxNarrationEditLength + 1);
@@ -1707,7 +1710,7 @@ begin
       if Odd(RowNum) then
          CellAttr.caColor := clStdLineLight
       else
-         CellAttr.caColor := clStdLineDark;
+         CellAttr.caColor := AltLineColor;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

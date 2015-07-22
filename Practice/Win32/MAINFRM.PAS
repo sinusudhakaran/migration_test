@@ -1540,7 +1540,7 @@ begin
     bkBranding.StyleBooksBackgroundImage(Image1);
     bkBranding.StyleBooksClientName(lblClientName); 
 
-    if TProduct.ProductBrand = btBankstream then
+    if TProduct.ProductBrand = btMYOBBankLink then
     begin
       Color := clWhite;
     end;
@@ -1813,7 +1813,7 @@ begin
   {$else}
     Top := 16;
   {$endif}
-    if TProduct.ProductBrand = btBankstream then
+    if TProduct.ProductBrand = btMYOBBankLink then
     begin
       Top := rzToolbars.Height + 2;
       Left := 10;
@@ -1829,7 +1829,7 @@ begin
     //position practice logo
     with imgPracticeLogo do
     begin
-      if TProduct.ProductBrand = btBankstream then
+      if TProduct.ProductBrand = btMYOBBankLink then
       begin
         Top := imgLogo.Top;
       end
@@ -1853,7 +1853,7 @@ begin
 
   with lblClientName do
   begin
-    Top := (imgLogo.Top + MaxLogoHeight + 8);
+    Top := (imgLogo.Top + MaxLogoHeight + 20);
     Left := 0;
     Width := TForm(Sender).Width;
   end;
@@ -1865,7 +1865,7 @@ begin
 {$else}
     Top := imgLogo.Top - (lblVersion.Height + 2);
 {$endif}
-   if TProduct.ProductBrand = btBankstream then
+   if TProduct.ProductBrand = btMYOBBankLink then
    begin
      if imgPracticeLogo.Visible then
      begin
@@ -1890,7 +1890,7 @@ begin
     begin
       with Image1 do
       begin
-        Image1Top := lblClientName.Top + lblClientName.Height + 8 + ((AreaHeight - Image1.Height) div 2);
+        Image1Top := lblClientName.Top + lblClientName.Height + 8 + trunc(((AreaHeight - Image1.Height) / 3));
         Image1Left := ((TForm(Sender).ClientWidth - Image1.Width) div 2);
         Image1Width := Image1.Width;
         Image1Height := Image1.Height;
@@ -6026,3 +6026,4 @@ initialization
    DebugAutoSave := DebugUnit(AutoSaveUnit);
 
 end.
+

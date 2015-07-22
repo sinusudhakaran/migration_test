@@ -135,7 +135,7 @@ uses
   Math,
   WarningMoreFrm,
   bkdefs,
-  yesnodlg, trxList32;
+  yesnodlg, trxList32, bkBranding;
 
 {$R *.DFM}
 
@@ -156,6 +156,9 @@ begin
   tblFromTo.CommandOnEnter := ccright;
 
   SetUpHelp;
+
+  bkBranding.StyleOvcTableGrid(tblFromTo);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
 
   ColFrom.PictureMask := ChequeNoMask;
   Col2.PictureMask    := ChequeNoMask;

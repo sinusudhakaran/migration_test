@@ -18,7 +18,8 @@ unit bkBranding;
 interface
 uses
   Windows, Graphics, StrUtils, SysUtils, ExtCtrls, RzPanel, RzCommon,
-  Controls, StdCtrls, Globals, RzButton, Menus, bkProduct;
+  Controls, StdCtrls, Globals, RzButton, Menus, bkProduct, ovctable,
+  ovctchdr, VirtualTrees, RzGroupBar;
 
 type
   TImageSet = ( imPractice, imBooks, imOther, imDLL);
@@ -50,6 +51,7 @@ var
   function TextFinalised: string;
   function ColorCodingPeriod: Integer;
   function ColorFinancialYear: Integer;
+  function SelectionColor: integer;
 
   function GroupBackGroundStartColor: Integer;
   function GroupBackGroundStopColor: Integer;
@@ -59,6 +61,8 @@ var
   function TobBarStartColor: Integer;
   function TopBarStopColor: Integer;
   function TopTitleColor: Integer;
+  function BankLinkColor: Integer;
+  function BankLinkHighlightColor: Integer;
 
   procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 
@@ -95,6 +99,12 @@ var
   procedure StyleBudgetStartText(StartText: TLabel);
   procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
   procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
+  procedure StyleAltRowColor(var aLineColor : integer);
+  procedure StyleTableHeading(aTableHeader: TOvcTCColHead);
+  procedure StyleGroupBar(aGroupBar : TRzGroupBar);
+
+  procedure StyleSelectionColor(aStringTree : TVirtualStringTree);
+  procedure StyleOvcTableGrid(aOVCTable: TOvcTable);
 
   function AddAltKeySymbol(aInString : string; aPos : integer) : string;
 
@@ -118,6 +128,7 @@ const
   BKCOLOR_LOGOBLUE    = $00800000;  //banklink LOGO Blue
 
   BKSIMPLEUI_FRAME_COLOR = $00464646;
+  DATA_LED_OUTLINE       = $00D6D6D6;
 
   ProcessCornerRadius = 5;
 
@@ -143,6 +154,17 @@ const
 
   BKCOLOR_FINANCIAL   = $00FBF2A0;
   BKHICOLOR_FINANCIAL = $00FBF2A0;
+
+  SELECTED_CELL        = $00995A00;
+  BUDGET_COLOR_ROW     = $00F8F8F8;
+  BUDGET_HEADER        = $00F5F5F5;
+
+  DATA_LED_NODATA      = $00FFFFFF;
+  DATA_LED_AVAILABLE   = $0053D1D1;
+  DATA_LED_UNCODED     = $002644CE;
+  DATA_LED_CODED       = $004CA258;
+  DATA_LED_FINALIZED   = $00A28E4C;
+  DATA_LED_TRANSFERRED = $0088396C;
 
 procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 begin
@@ -295,7 +317,6 @@ begin
     Result := clGreen
   else
     Result :=  clWebLawnGreen;
-
 end;
 
 function TextCoded: string;
@@ -305,7 +326,14 @@ end;
 
 function ColorTransferred: Integer;
 begin
-  Result := clWebPurple;
+  if TProduct.ProductBrand = btMYOBBankLink then
+  begin
+    Result := DATA_LED_TRANSFERRED;
+  end
+  else
+  begin
+    Result := clWebPurple;
+  end;
 end;
 
 function TextTransferred: string;
@@ -340,9 +368,17 @@ begin
     Result := BKHICOLOR_FINANCIAL;
 end;
 
+function SelectionColor: integer;
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+    Result := SELECTED_CELL
+  else
+    Result := clHighLight;
+end;
+
 function BannerColor: Integer;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := RGB(255, 255, 255);
   end
@@ -354,7 +390,7 @@ end;
 
 function BannerTextColor: Integer;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := RGB(0, 55, 122);
   end
@@ -366,7 +402,7 @@ end;
 
 function TobBarStartColor: Integer;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := BannerColor;
   end
@@ -381,7 +417,7 @@ end;
 
 function TopBarStopColor: Integer;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := BannerColor;
   end
@@ -393,7 +429,7 @@ end;
 
 function TopTitleColor: Integer;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := BannerTextColor;
   end
@@ -404,6 +440,16 @@ begin
    else
       Result :=  BKCOLOR_LOGOBLUE {BKHICOLOR_LOGOBLUE};
   end;
+end;
+
+function BankLinkColor: Integer;
+begin
+  Result := $009A5B00;
+end;
+
+function BankLinkHighlightColor: Integer;
+begin
+  Result := $00CA8B00;
 end;
 
 function GroupBackGroundStartColor: Integer;
@@ -425,7 +471,7 @@ end;
 
 function LoginScreenBanner: TPicture;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := AppImages.imgBankstreamLogin.Picture;
   end
@@ -437,7 +483,7 @@ end;
 
 function SplashScreenBanner: TPicture;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := AppImages.imgBankstreamLogin.Picture;
   end
@@ -449,7 +495,7 @@ end;
 
 function TopBannerImage: TPicture;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := AppImages.imgClientHomePageLogo.Picture;
   end
@@ -461,7 +507,7 @@ end;
 
 function DownloadDiskImageBanner: TPicture;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     if Is256Color then
     begin
@@ -487,7 +533,7 @@ end;
 
 function ProductIcon32x32: TPicture;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := AppImages.imgBankstreamIcon.Picture;
   end
@@ -504,7 +550,7 @@ end;
 
 function ReportLogo: TPicture;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Result := AppImages.imgReports.Picture;
   end
@@ -516,7 +562,7 @@ end;
 
 procedure StyleMainBannerLogo(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Image.Visible := True;
     Image.Margins.Top := 0;
@@ -534,7 +580,7 @@ end;
 
 procedure StyleMainBannerCustomLogo(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Image.Visible := True;
     Image.Align := alLeft;
@@ -552,7 +598,7 @@ end;
 
 procedure StyleTopBannerRightImage(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     StyleMainBannerLogo(Image);
   end
@@ -579,10 +625,11 @@ end;
 
 procedure StyleMainBannerPanel(Panel: TRzPanel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Panel.Color := BannerColor;
     Panel.VisualStyle := vsClassic;
+    Panel.Height := 40;
   end
   else
   begin
@@ -594,7 +641,7 @@ end;
 
 procedure StyleLoginImage(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Image.AutoSize := True;
     Image.Align := alLeft;
@@ -605,7 +652,7 @@ end;
 
 procedure StyleLoginBannerPanel(Panel: TPanel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Panel.ParentBackground := False;
     Panel.Color := BannerColor;
@@ -614,7 +661,7 @@ end;
 
 procedure StyleLoginVersionText(VersionLabel: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     VersionLabel.Font.Color := BannerTextColor;
   end;
@@ -622,7 +669,7 @@ end;
 
 procedure StyleBConnectBannerPanel(Panel: TPanel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     StyleLoginBannerPanel(Panel);
   end;
@@ -630,7 +677,7 @@ end;
 
 procedure StyleBannerText(Text: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Text.Font.Color := BannerTextColor;
   end;  
@@ -638,7 +685,7 @@ end;
 
 procedure StyleBConnectBannerImage(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Image.Margins.Top := 0;
     Image.Margins.Bottom := 0;
@@ -653,9 +700,9 @@ end;
 
 procedure StyleBooksBackgroundLogo(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Image.Picture := AppImages.imgMainBackgroundLogo.Picture;
+    Image.visible := false;
   end
   else
   begin
@@ -668,9 +715,9 @@ end;
 
 procedure StyleBooksBackgroundImage(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Image.Visible := False;
+    Image.Picture := AppImages.imgMainBackground.Picture;
   end
   else
   begin
@@ -683,15 +730,16 @@ end;
 
 procedure StyleBooksClientName(ClientName: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    ClientName.Font.Color := BannerTextColor;
+    ClientName.Font.Color := BankLinkColor;
+    ClientName.Font.Size  := 15;
   end;
 end;
 
 procedure StyleBooksVersionLabel(VersionLabel: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     VersionLabel.Font.Color := BannerTextColor;
   end;
@@ -699,7 +747,7 @@ end;
 
 procedure StyleSimpleUIBannerPanel(Panel: TRzPanel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     StyleMainBannerPanel(Panel);
   end
@@ -717,7 +765,7 @@ end;
 
 procedure StyleSimpleUIRightBannerImage(Image: TImage);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Image.Visible := False;
   end
@@ -732,7 +780,7 @@ procedure StyleBankLinkButton(Button: TRzToolButton);
 begin
   Button.Caption := ProductOnlineName;
 
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     Button.ImageIndex := 34;
   end;
@@ -740,7 +788,7 @@ end;
 
 procedure StyleECFHOnlineMenuItem(MenuItem: TMenuItem);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     MenuItem.ImageIndex := 34;
   end;
@@ -750,8 +798,9 @@ procedure StyleNewClientWizardLogo(Image: TImage);
 begin
   Image.Picture := ProductIcon32x32;
 
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
+    Image.Visible := false;
     Image.Width := 32;
     Image.Height := 32;
   end;
@@ -759,7 +808,7 @@ end;
 
 procedure StyleTransRangeText(TransRangeLabel: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     TransRangeLabel.Font.Color := BannerTextColor;
   end
@@ -771,7 +820,7 @@ end;
 
 procedure StyleFinalizedText(FinalizedText: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     FinalizedText.Font.Color := BannerTextColor;
   end
@@ -783,7 +832,7 @@ end;
 
 procedure StyleBudgetStartText(StartText: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     StartText.Font.Color := BannerTextColor;
   end
@@ -795,7 +844,7 @@ end;
 
 procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     AllExclusiveText.Font.Color := BannerTextColor;
   end
@@ -807,13 +856,71 @@ end;
 
 procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
     ReminderNoteText.Font.Color := BannerTextColor;
   end
   else
   begin
     ReminderNoteText.Font.Color := clWhite;
+  end;
+end;
+
+procedure StyleOvcTableGrid(aOVCTable: TOvcTable);
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+  begin
+    aOVCTable.Colors.ActiveFocused := SELECTED_CELL;
+  end;
+end;
+
+procedure StyleTableHeading(aTableHeader: TOvcTCColHead);
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+  begin
+    aTableHeader.Color := BUDGET_HEADER;
+  end;
+end;
+
+
+procedure StyleGroupBar(aGroupBar : TRzGroupBar);
+var
+  GroupIndex : integer;
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+  begin
+    aGroupBar.GradientColorStart := BankLinkColor;
+    aGroupBar.GradientColorStop  := BankLinkColor;
+
+    for GroupIndex := 0 to aGroupBar.GroupCount - 1 do
+    begin
+      aGroupBar.Groups[GroupIndex].CaptionFont.Color := BankLinkColor;
+      aGroupBar.Groups[GroupIndex].CaptionHotColor := BankLinkHighlightColor;
+    end;
+  end
+  else
+  begin
+    aGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
+    aGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+  end;
+end;
+
+procedure StyleAltRowColor(var aLineColor : integer);
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+    aLineColor := BUDGET_COLOR_ROW
+  else
+    aLineColor := BKCOLOR_CREAM;
+end;
+
+procedure StyleSelectionColor(aStringTree : TVirtualStringTree);
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+  begin
+    aStringTree.Colors.SelectionRectangleBlendColor  := SELECTED_CELL;
+    aStringTree.Colors.SelectionRectangleBorderColor := SELECTED_CELL;
+    aStringTree.Colors.FocusedSelectionColor         := SELECTED_CELL;
+    aStringTree.Colors.FocusedSelectionBorderColor   := SELECTED_CELL;
   end;
 end;
 
@@ -853,3 +960,4 @@ initialization
   //look for branding dll
 
 end.
+

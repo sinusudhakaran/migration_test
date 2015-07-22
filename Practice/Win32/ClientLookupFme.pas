@@ -699,6 +699,8 @@ begin
   vtClients.Clear;
   vtClients.Header.Columns.Clear;
   vtClients.NodeDataSize := SizeOf( TTreeData);
+  StyleSelectionColor(vtClients);
+
 
   FColumns := TCluColumnList.Create;
   FSelectedColumn        := cluCode;
@@ -725,6 +727,8 @@ begin
   VTClients.Header.Font := appimages.Font;
   CurrentSearchKey := '';
   LastSearchTime := 0;
+
+  bkbranding.StyleSelectionColor(VTclients);
 
   FClientStatusList := TClientStatusList.Create;
 end;
@@ -3399,8 +3403,9 @@ var
   LEDColor : TColor;
   Dots: Boolean;
   NodeData : pTreeData;
+  ShowOutLine : boolean;
 
-  procedure DrawCellImgLED( Const Period, LEDColor : Integer; YearStart: Boolean );
+  procedure DrawCellImgLED( Const Period, LEDColor : Integer; YearStart: Boolean; aShowOutLine : boolean);
   Var
     R : TRect;
     XOffset : Integer;
@@ -3444,7 +3449,12 @@ var
     else if Dots then
     begin
       TargetCanvas.Brush.Color := LEDColor;
-      TargetCanvas.Pen.Color := clBtnShadow;
+
+      if aShowOutLine then
+        TargetCanvas.Pen.Color := clBtnShadow
+      else
+        TargetCanvas.Pen.Color := LEDColor;
+
       if YearStart then
         TargetCanvas.Pen.Width := 2
       else
@@ -3498,7 +3508,7 @@ begin
              If Transferred[Period] =  rtFully  then
                 LEDColor := ColorTransferred;
           end;
-        DrawCellImgLED( Period, LEDColor, False );
+        DrawCellImgLED( Period, LEDColor, False, (LEDColor = ColorNoData) );
       end;
   end;
 end;

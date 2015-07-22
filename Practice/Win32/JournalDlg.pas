@@ -261,6 +261,7 @@ type
     procedure eDateUntilDblClick(Sender: TObject);
     procedure BtnCalClick(Sender: TObject);
   private
+    AltLineColor : integer;
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
     FDefAction         : Integer;
@@ -505,6 +506,10 @@ begin
   ImagesFrm.AppImages.Coding.GetBitmap(18,btnJob.Glyph);
   eDateUntil.Epoch       := BKDATEEPOCH;
   eDateuntil.PictureMask := BKDATEFORMAT;
+
+  bkBranding.StyleOvcTableGrid(tblJournal);
+  bkBranding.StyleTableHeading(hdrColumnHeadings);
+  bkBranding.StyleAltRowColor(AltLineColor);
 
 {$IFDEF SmartBooks}
   btnChart.Caption := 'Code';
@@ -1176,7 +1181,7 @@ begin
       if Odd(RowNum) then
          CellAttr.caColor := clStdLineLight
       else
-         CellAttr.caColor := clStdLineDark;
+         CellAttr.caColor := AltLineColor;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

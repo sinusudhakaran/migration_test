@@ -59,7 +59,7 @@ implementation
 
 uses
   admin32, bkXPThemes,
-  syDefs, ErrorMoreFrm, OvcConst;
+  syDefs, ErrorMoreFrm, OvcConst, bkBranding;
 
 const
   tcDeleteCell     = ccUserFirst + 1;
@@ -68,6 +68,9 @@ const
 procedure TdlgTransTypes.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm( Self);
+
+  bkBranding.StyleOvcTableGrid(tblTrans);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
 
   with tblTrans.Controller.EntryCommands do begin
     {remove F2 functionallity}

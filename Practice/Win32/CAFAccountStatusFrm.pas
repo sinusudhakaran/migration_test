@@ -219,7 +219,9 @@ begin
   lvAccountStatus.Header.Height := Abs(lvAccountStatus.Header.Font.Height) * 10 DIV 6;
 
   lvAccountStatus.NodeDataSize := SizeOf(TNodeData);
-  
+
+  bkbranding.StyleSelectionColor(lvAccountStatus);
+
   cmbAccountFilter.ItemIndex := 0;
 
   DoRebranding();

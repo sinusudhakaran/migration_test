@@ -55,7 +55,9 @@ type
       ColNum: Integer; var CellAttr: TOvcCellAttributes);
     procedure colCashBookGSTDropDownChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
+    AltLineColor : integer;
     fDirty : boolean;
     fGSTMapCol : TGSTMapCol;
     fOkPressed : boolean;
@@ -256,7 +258,7 @@ begin
         if Odd(RowNum) then
            CellAttr.caColor := clWindow
         else
-           CellAttr.caColor := bkBranding.GSTAlternateLineColor;
+           CellAttr.caColor := AltLineColor;
       end;
     end;
   end;
@@ -351,9 +353,17 @@ begin
   end;
 end;
 
+procedure TFrmChartExportMapGSTClass.FormCreate(Sender: TObject);
+begin
+  bkBranding.StyleAltRowColor(AltLineColor);
+end;
+
 //------------------------------------------------------------------------------
 procedure TFrmChartExportMapGSTClass.FormShow(Sender: TObject);
 begin
+  bkBranding.StyleOvcTableGrid(tblGSTRemap);
+  bkBranding.StyleTableHeading(colHeader);
+
   if GSTMapCol.Count > 0 then
   begin
     tblGSTReMap.SetActiveCell(1, MYOBCashBookCol);

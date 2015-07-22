@@ -83,7 +83,7 @@ uses
   BKCONST,
   BKHelp,
   InfoMoreFrm,
-  updateMF, bkXPThemes;
+  updateMF, bkXPThemes, bkBranding;
 
 {$R *.DFM}
 
@@ -95,6 +95,9 @@ begin
    lblChequesDate.Font.Style := [FSBold];
    tblFromTo.RowLimit := MaxUnChq+1;  {+1 for header}
    tblFromTo.CommandOnEnter := ccright;
+
+   bkBranding.StyleOvcTableGrid(tblFromTo);
+   bkBranding.StyleTableHeading(OvcTCColHead1);
 
    Editmode := false;
 

@@ -282,8 +282,10 @@ begin
    vtStyles.Header.Height := Abs(vtStyles.Header.Font.height) * 10 div 6;
    vtStyles.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
 
-   RSGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-   RSGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+   bkbranding.StyleSelectionColor(vtStyles);
+
+   bkBranding.StyleGroupBar(RSGroupBar);
+   
    if UserINI_RS_GroupWidth > 0 then
       RSGroupBar.Width := UserINI_RS_GroupWidth;
 

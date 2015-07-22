@@ -131,6 +131,7 @@ uses
   AuditMgr,
   ClientHomePageFrm,
   bkUrls,
+  bkProduct,
   bkContactInformation;
 
 //------------------------------------------------------------------------------
@@ -143,8 +144,7 @@ begin
   SysAccounts.AccountTree.OnDblClick := SysAccountsAccountTreeDblClick;// set it back..
   SysAccounts.AccountTree.HintMode := hmHint;
 
-  GBMain.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-  GBMain.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+  bkBranding.StyleGroupBar(GBMain);
 
   actRemove.Visible := GLOBALS.SuperUserLoggedIn;
   acCurrencies.Visible := (AdminSystem.fdFields.fdCountry = whUK);

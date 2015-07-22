@@ -354,6 +354,7 @@ type
 
   private
     { Private declarations }
+    AltLineColor : integer;
     Temp_Column_Order             : Array[ 0..32 ] of Byte;
     Temp_Column_Width             : Array[ 0..32 ] of Integer;
     Temp_Column_is_Hidden         : Array[ 0..32 ] of Boolean;
@@ -1181,6 +1182,13 @@ begin
   pnlExtraTitleBar.GradientColorStop  := bkBranding.TopBarStopColor;
 
   bkBranding.StyleTopBannerRightImage(imgRight);
+  bkBranding.StyleOvcTableGrid(tblCoding);
+  bkBranding.StyleTableHeading(hdrColumnHeadings);
+  bkBranding.StyleAltRowColor(AltLineColor);
+
+  tblCoding.Colors.Locked := SelectionColor;
+  tblCoding.Colors.LockedText := clBlack;
+
 
   pnlExtraTitleBar.Height := imgRight.Picture.Height;
   
@@ -4383,6 +4391,7 @@ begin
         end;
       //Unlock table update
       AllowRedraw := true;
+      bkBranding.StyleTableHeading(hdrColumnHeadings);
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -5638,7 +5647,7 @@ begin
          if Odd(RowNum) then
             CellAttr.caColor := clStdLineLight
          else
-            CellAttr.caColor := clStdLineDark;
+            CellAttr.caColor := AltLineColor;
       end;
    end;
 end;
@@ -6237,7 +6246,7 @@ begin
 
   S := ShortString( Data^ );
   If not ( ( S='' ) or ( S= BKCONST.DISSECT_DESC ) or MyClient.clChart.CanCodeTo( S, IsActive ) or
-    ( CellAttr.CaColor = clHighLight ) ) then
+    ( CellAttr.CaColor = bkBranding.SelectionColor ) ) then
   Begin
     TableCanvas.Brush.Color := clRed;
     TableCanvas.Font.Color  := clWhite;
@@ -6314,7 +6323,7 @@ begin
    C.FillRect(R);
    //draw data
    InflateRect( R, -2, -2 );
-   if CellAttr.caColor <> clHighLight then
+   if CellAttr.caColor <> bkBranding.SelectionColor then
      C.Font.Color := clGrayText
    else
      C.Font.Color := CellAttr.caFontColor;
@@ -6414,7 +6423,7 @@ var
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
-  if CellAttr.caColor = clHighlight then exit;
+  if CellAttr.caColor = bkBranding.SelectionColor then exit;
   //check is a data row
   if ValidDataRow(RowNum) then begin
      pT   := WorkTranList.Transaction_At(RowNum-1);
@@ -6545,7 +6554,7 @@ begin
    C.Brush.Color := CellAttr.caColor;
    C.FillRect(R);
    //draw data
-   if CellAttr.caColor <> clHighLight then
+   if CellAttr.caColor <> bkBranding.SelectionColor then
       C.Font.Color := clGrayText
    else
       C.Font.Color := CellAttr.caFontColor;
@@ -6568,7 +6577,7 @@ var
   pT  : pTransaction_Rec;
 begin
   If ( data = nil ) then exit;
-  if CellAttr.caColor = clHighlight then exit;
+  if CellAttr.caColor = bkBranding.SelectionColor then exit;
 
   if ValidDataRow(RowNum) then begin
      pT   := WorkTranList.Transaction_At(RowNum-1);
@@ -9848,7 +9857,7 @@ begin
    C.FillRect(R);
    //draw data
    InflateRect( R, -2, -2 );
-   if CellAttr.caColor <> clHighLight then
+   if CellAttr.caColor <> bkBranding.SelectionColor then
      C.Font.Color := clGrayText
    else
      C.Font.Color := CellAttr.caFontColor;
@@ -9959,7 +9968,6 @@ const
   DTOpts = DT_CENTER or DT_VCENTER or DT_SINGLELINE;
   CIRCLE_MARGIN = 6;
   WORD_MARGIN = 14;
-  HIGHLIGHT_COLOR = $009A5B00;
 var
   SuggStr : string;
   SuggStrLen : integer;
@@ -9978,8 +9986,8 @@ begin
 
   TableCanvas.FillRect( CellRect );
 
-  if CellAttr.caColor = clHighlight then
-    TableCanvas.Brush.Color := HIGHLIGHT_COLOR
+  if CellAttr.caColor = bkBranding.SelectionColor then
+    TableCanvas.Brush.Color := BankLinkColor
   else
     TableCanvas.Brush.Color := clGray;
 

@@ -109,7 +109,7 @@ uses
   stDatest,
   globals,
   YesNoDlg,
-  MonitorUtils;
+  MonitorUtils, bkBranding;
 
 const
    {column constants}
@@ -142,6 +142,11 @@ begin
   Left        := WorkArea.Left + Margin;
   Width       := WorkArea.Right - WorkArea.Left - ( Margin * 2);
   Height      := WorkArea.Bottom - WorkArea.Top - ( Margin * 2);
+
+  bkBranding.StyleOvcTableGrid(tblClient);
+  bkBranding.StyleOvcTableGrid(tblAdmin);
+  bkBranding.StyleTableHeading(ClientColHeader);
+  bkBranding.StyleTableHeading(AdminColHeader);
 
   DoingLineUp := false;
 end;

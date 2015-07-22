@@ -319,6 +319,7 @@ type
     procedure celPercentKeyPress(Sender: TObject; var Key: Char);
     procedure ConvertAmount1Click(Sender: TObject);
   private
+    AltLineColor       : integer;
     FHint              : tHintWindow;
     FStartedEdit       : boolean;
     HintShowing        : boolean;
@@ -717,6 +718,11 @@ begin
 {$IFDEF SmartBooks}
   btnChart.Caption := 'Code';
 {$ENDIF}
+
+  bkBranding.StyleOvcTableGrid(tblDissect);
+  bkBranding.StyleTableHeading(hdrColumnHeadings);
+  bkBranding.StyleAltRowColor(AltLineColor);
+
   SetupHelp;
   FHint := THintWindow.Create( Self );
   if Assigned(AdminSystem) and (AdminSystem.fdFields.fdCoding_Font <> '') then
@@ -814,7 +820,7 @@ begin
       if Odd(RowNum) then
          CellAttr.caColor := clStdLineLight
       else
-         CellAttr.caColor := clStdLineDark;
+         CellAttr.caColor := AltLineColor;
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

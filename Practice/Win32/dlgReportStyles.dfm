@@ -81,8 +81,6 @@ object ReportStylesDlg: TReportStylesDlg
     Align = alClient
     Caption = 'pnlLists'
     TabOrder = 1
-    ExplicitLeft = 304
-    ExplicitWidth = 262
     object vtStyles: TVirtualStringTree
       Left = 1
       Top = 1
@@ -106,12 +104,11 @@ object ReportStylesDlg: TReportStylesDlg
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
       OnHeaderClick = vtStylesHeaderClick
       OnNewText = vtStylesNewText
-      ExplicitWidth = 404
       Columns = <
         item
           Position = 0
           Tag = 1
-          Width = 397
+          Width = 401
           WideText = 'Style Name'
         end>
     end

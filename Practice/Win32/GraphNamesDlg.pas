@@ -64,7 +64,7 @@ uses
   clObj32,
   files,
   WarningMorefrm,
-  bkConst;
+  bkConst, bkBranding;
 
 {$R *.DFM}
 
@@ -109,6 +109,9 @@ begin
   OvcTCColHead1.Font.Style := [fsBold];
   tbNames.RowLimit := chdMax + 2;
   EditMode := false;
+
+  bkBranding.StyleOvcTableGrid(tbNames);
+  bkBranding.StyleTableHeading(OvcTCColHead1);
 
   with tbNames.Controller.EntryCommands do begin
     {remove F2 functionallity}

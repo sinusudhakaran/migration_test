@@ -236,7 +236,7 @@ uses
   warningMorefrm,
   Clipbrd,
   bautils,
-  countryutils;
+  countryutils, bkBranding;
 
 {$R *.DFM}
 
@@ -292,6 +292,10 @@ begin
   for i := Low(SplitData) to High(SplitData) do begin
      ClearWorkRecDetails(@SplitData[i]);
   end;
+
+  bkBranding.StyleOvcTableGrid(tblSplit);
+  bkBranding.StyleTableHeading(header);
+  bkBranding.StyleAltRowColor(AltLineColor);
 
   //Resize for
   Width := Max( 630, Round( Application.MainForm.Monitor.Width * 0.8));
@@ -1655,7 +1659,6 @@ begin
    GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
 
    {show form}
-   AltLineColor := BKCOLOR_CREAM;
 
    chkContractorPayee.Visible := (MyClient.clFields.clCountry = whAustralia);
    tsContractorDetails.Visible := (MyClient.clFields.clCountry = whAustralia);

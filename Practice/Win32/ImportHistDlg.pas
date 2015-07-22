@@ -264,7 +264,7 @@ uses
   stDate,
   ComBoUtils,
   UsageUtils,
-  stDatest, bkProduct;
+  stDatest, bkProduct, bkBranding;
 
 const
   tNone = ' ';
@@ -1077,6 +1077,9 @@ begin
   finally
     vsout.EndUpdate;
   end;
+
+  bkbranding.StyleSelectionColor(vsFile);
+  bkbranding.StyleSelectionColor(vsOut);
 
   vsFile.SyncView := vsOut;
   vsOut.SyncView := vsFile;

@@ -873,6 +873,9 @@ begin
      AddColumn(-1, cot_LRN, 0);
      AddColumn(-1, cot_TLRN, 0);
   end;
+
+  bkbranding.StyleSelectionColor(AccountTree);
+
   DefaultSort;
 end;
 

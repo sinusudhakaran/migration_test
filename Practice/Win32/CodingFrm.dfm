@@ -553,6 +553,7 @@ object frmCoding: TfrmCoding
         OnMouseUp = tblCodingMouseUp
         OnMouseWheel = BkMouseWheelHandler
         OnTopLeftCellChanged = tblCodingTopLeftCellChanged
+        ExplicitLeft = 1
         CellData = (
           'frmCoding.hdrColumnHeadings')
         RowData = (

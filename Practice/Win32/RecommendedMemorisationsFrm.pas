@@ -104,7 +104,7 @@ uses
   GenUtils,
   bkhelp,
   BKConst,
-  Math;
+  Math, bkBranding;
 
 const
   ICON_BUTTON = 0;
@@ -176,6 +176,8 @@ begin
 
   PopulateTree;
   vstTree.Header.SortColumn := ccEntryType;
+
+  bkbranding.StyleSelectionColor(vstTree);
 
   pNode := vstTree.GetFirstVisible;
   if Assigned(pNode) then

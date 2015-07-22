@@ -335,6 +335,8 @@ begin
 
   FPreviousPage := 0;
 
+  bkbranding.StyleSelectionColor(vtProducts);
+
   FEnablingBankLinkOnline := False;
 
   DoRebranding();

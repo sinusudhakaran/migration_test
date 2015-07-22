@@ -74,7 +74,7 @@ uses
   OvcConst,
   bkConst,
   BKHelp,
-  ErrorMorefrm;
+  ErrorMorefrm, bkBranding;
 
 {$R *.DFM}
 
@@ -134,6 +134,8 @@ end;
 procedure TdlgInitCheq.FormCreate(Sender: TObject);
 begin
   bkXPThemes.ThemeForm(Self);
+
+  bkBranding.StyleOvcTableGrid(tblCheques);
 
   lblChequesDate.Font.Style := [fsBold];
   fmeCheques.lblDates.Font.Style := [fsBold];
