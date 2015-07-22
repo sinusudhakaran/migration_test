@@ -703,7 +703,7 @@ var
     PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_TESTING';
     PRACINI_LeanEngage_API_KEY : string = '';
   {$else}{ifdef DEBUG}
-    PRACINI_LeanEngage_System_URL : string = 'https://www.leanengage.com';
+    PRACINI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
     PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_TESTING';
     PRACINI_LeanEngage_API_KEY : string = '';
 //Production URL for the moment    PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_PRODUCTION';
