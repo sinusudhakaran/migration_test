@@ -60,6 +60,7 @@ var
   PRACINI_IPClientLocking_TCPTimeOut : integer;
   PRACINI_IPClientLocking_ProcessMessageDelay : integer;
   PRACINI_IPClientLocking_GROUP_ID : string;
+  BKCOLOR_CREAM       = $00F0FBFF;  //budgets, mems, payees
 
 type
   TBrandType = (btBankLink, btMYOBBankLink);
