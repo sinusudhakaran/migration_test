@@ -42,6 +42,7 @@ const
 
   INI_CustomColors = '';
   INI_MAX_EXTRACT_NARRATION_LENGTH = 200;
+  BKCOLOR_CREAM       = $00F0FBFF;  //budgets, mems, payees
 
 var
   DataDir : string;
@@ -60,7 +61,6 @@ var
   PRACINI_IPClientLocking_TCPTimeOut : integer;
   PRACINI_IPClientLocking_ProcessMessageDelay : integer;
   PRACINI_IPClientLocking_GROUP_ID : string;
-  BKCOLOR_CREAM       = $00F0FBFF;  //budgets, mems, payees
 
 type
   TBrandType = (btBankLink, btMYOBBankLink);
