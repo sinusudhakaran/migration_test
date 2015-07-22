@@ -14,6 +14,7 @@ object frmClientHomePage: TfrmClientHomePage
   Visible = True
   WindowState = wsMaximized
   OnActivate = FormActivate
+  OnDeactivate = FormDeactivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate

@@ -344,11 +344,13 @@ type
     procedure CreateCustomerAuthorityForms(Sender: ISingleProgressForm; CallbackParams: Pointer);
     procedure DoRebranding();
   protected
+    fLEFeedbackForm : TForm;
     procedure UpdateActions; override;
   public
     property IsGlobal: Boolean read FIsGlobal write FIsGlobal;
     property UserSet: Boolean read FUserSet write SetUserSet;
     property BlopiClientNew: TBloClientCreate read GetBlopiClientNew write SetBlopiClientNew;
+    property LEFeedbackForm: TForm read FLEFeedbackForm write FLEFeedbackForm;
     { Public declarations }
   end;
 
@@ -370,6 +372,7 @@ procedure SetDownloadAvailability(Status: Byte);
 procedure UpdateClientManagerCaption(Title: string);
 function CheckOutEnabled: Boolean;
 function SendFilesEnabled: Boolean;
+function GetClientManagerFormPointer : TfrmClientManager;
 
 //------------------------------------------------------------------------------
 implementation
@@ -490,6 +493,12 @@ var
   DebugMeVerbose : boolean = false;
   GlfrmClientManagerUp : Boolean;
 
+
+function GetClientManagerFormPointer : TfrmClientManager;
+begin
+  result := GLClientManager;
+end;
+
 //------------------------------------------------------------------------------
 procedure TfrmClientManager.FormActivate(Sender: TObject);
    procedure UpdateActions(CanDo: Boolean);
@@ -523,6 +532,9 @@ begin
   UpdateActions(Assigned(AdminSystem)
                 and Assigned(CurrUser)
                 and CurrUser.CanAccessAdmin);
+
+  if assigned(FLEFeedbackForm) then
+    FLEFeedbackForm.Show;
 end;
 
 //------------------------------------------------------------------------------
@@ -593,6 +605,9 @@ procedure TfrmClientManager.FormDeactivate(Sender: TObject);
 begin
   //ActiveControl := nil;
   tmrUpdateClientDetails.Enabled := False;
+
+  if assigned(FLEFeedbackForm) then
+    FLEFeedbackForm.Hide;
 end;
 
 //------------------------------------------------------------------------------
@@ -1851,6 +1866,8 @@ begin
   end;
 
   RefreshHomepage([HRP_Init]);
+  TfrmClientHomePage(ClientHomePage).LEFeedbackForm := LEFeedbackForm;
+  LEFeedbackForm.Show;
   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');
 end;
 

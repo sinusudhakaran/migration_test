@@ -140,6 +140,7 @@ type
       Column: TVirtualTreeColumn; R: TRect; Hover, Pressed: Boolean;
       DropMark: TVTDropMarkMode);
     procedure FormActivate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
     procedure sgLegendDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
     procedure sgLegendSelectCell(Sender: TObject; ACol, ARow: Integer;
@@ -196,6 +197,8 @@ type
     procedure wmsyscommand( var msg: TWMSyscommand ); message wm_syscommand;
     procedure UMRefreshExchangeGainLoss(var Msg: TMessage); message UM_REFRESH_EXCHANGE_GAIN_LOSS;
   protected
+    FLEFeedbackForm: TForm;
+    
     function GetGlobalRedrawForeign: boolean; override;
     procedure SetGlobalRedrawForeign(Value: boolean); override;
     procedure UpdateActions; override;
@@ -217,6 +220,7 @@ type
     procedure ProcessExternalCmd(Command : TExternalCmd); override;
     property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
     { Public declarations }
+    property LEFeedbackForm: TForm read FLEFeedbackForm write FLEFeedbackForm;
   end;
 
 function ClientHomePage: TBaseClientHomepage;
@@ -831,6 +835,15 @@ begin
   if (MDIChildSortedIndex > -1) and
      (tcWindows.Visible) then
     ActivateCurrentTabUsingMDI(MDIChildSortedIndex);
+
+  if assigned(FLEFeedbackForm) then
+    FLEFeedbackForm.Show; 
+end;
+
+procedure TfrmClientHomePage.FormDeactivate(Sender: TObject);
+begin
+  if assigned(FLEFeedbackForm) then
+    FLEFeedbackForm.Hide; 
 end;
 
 procedure TfrmClientHomePage.FormClose(Sender: TObject;
