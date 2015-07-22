@@ -33,9 +33,9 @@ var
 
 class function TContactInformation.GetClientServicesEmail(Index: Integer): String;
 begin
-  if TProduct.ProductBrand = btbankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := BankstreamClientServicesEmail[Index];
+    Result := whClientServicesEmail[Index];
   end
   else
   begin
@@ -45,9 +45,9 @@ end;
 
 class function TContactInformation.GetSupportEmail(Index: Integer): String;
 begin
-  if TProduct.ProductBrand = btbankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := BankstreamSupportEmail[Index];
+    Result := whSupportEmail[Index];
   end
   else
   begin
@@ -57,9 +57,9 @@ end;
 
 class function TContactInformation.GetSupportPhoneNo(Index: Integer): String;
 begin
-  if TProduct.ProductBrand = btbankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := BankstreamSupportPhoneNo[Index];
+    Result := whSupportPhoneNo[Index];
   end
   else
   begin
@@ -68,3 +68,4 @@ begin
 end;
 
 end.
+

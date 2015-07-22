@@ -216,10 +216,6 @@ object ImportExchange: TImportExchange
       OnChange = PCFormatChange
       object TSDate: TTabSheet
         Caption = '&Date'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object Label2: TLabel
           Left = 10
           Top = 15
@@ -249,7 +245,7 @@ object ImportExchange: TImportExchange
           Width = 300
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = cbDateChange
         end
@@ -268,11 +264,12 @@ object ImportExchange: TImportExchange
     object lbFile: TLabel
       Left = 1
       Top = 1
-      Width = 3
+      Width = 988
       Height = 13
       Align = alTop
       Constraints.MaxHeight = 100
       WordWrap = True
+      ExplicitWidth = 3
     end
     object vsFile: TVirtualStringTree
       Left = 1

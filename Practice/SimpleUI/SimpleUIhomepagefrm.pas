@@ -709,7 +709,7 @@ begin
    pnlNavigator.Color := clGray;                   //bkBranding.TopBarStopColor;
    lblClientName.Font.Color := $00494949;          //bkBranding.TopTitleColor;
 
-   if TProduct.ProductBrand = btBankstream then
+   if TProduct.ProductBrand = btMYOBBankLink then
    begin
      pnlExtraTitleBar.Height := imgLeft.Picture.Height;
    end
@@ -721,7 +721,7 @@ begin
    StyleBooksClientName(lblClientname);
    StyleBooksClientName(lblCurrentPeriod);
 
-   if TProduct.ProductBrand = btBankstream then
+   if TProduct.ProductBrand = btMYOBBankLink then
    begin
      lblClientName.Left := 10;
      lblCurrentPeriod.Left := 10;
@@ -744,7 +744,7 @@ begin
       imgRight.Picture := bkBranding.ClientBanner;
    end;
 
-   if TProduct.ProductBrand = btBankstream then
+   if TProduct.ProductBrand = btMYOBBankLink then
    begin
      pnlExtraTitlebar.Height := Max( 45, imgRight.Height);
    end;
@@ -1171,3 +1171,4 @@ end;
 initialization
   DebugMe := DebugUnit(UnitName);
 end.
+

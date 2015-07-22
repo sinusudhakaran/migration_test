@@ -810,9 +810,9 @@ end;
 
 function TVersionInfo.GetLegalCopyright: string;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := Chr(169) + ' '  + TProduct.BrandName + ' Limited 2013';
+    Result := FLegalCopyright;
   end
   else
   begin
@@ -909,3 +909,4 @@ initialization
 finalization
   FreeAndNil(_VersionInfo);
 end.
+

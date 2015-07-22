@@ -6,7 +6,7 @@ uses
   StrUtils;
   
 type
-  TBrandType = (btBankLink, btBankstream);
+  TBrandType = (btBankLink, btMYOBBankLink);
 
   TProduct = class
   private
@@ -26,9 +26,9 @@ implementation
 
 class function TProduct.BrandName: String;
 begin
-  if FProductBrand = btBankstream then
+  if FProductBrand = btMYOBBankLink then
   begin
-    Result := 'Bankstream';
+    Result := 'MYOB BankLink';
   end
   else
   begin
@@ -46,6 +46,7 @@ begin
 end;
 
 initialization
-  TProduct.ProductBrand := btBankLink;
+  TProduct.ProductBrand := btMYOBBankLink;
 
 end.
+

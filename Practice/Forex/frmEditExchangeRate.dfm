@@ -127,7 +127,7 @@ object EditExchangeRateForm: TEditExchangeRateForm
       item
         Position = 1
         Tag = 1
-        Width = 125
+        Width = 121
         WideText = 'Rate'
       end>
   end

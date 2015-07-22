@@ -49,7 +49,8 @@ type
 implementation
 
 uses
-  ImagesFrm, StDate, Math, GenUtils, bkXPThemes, ErrorMoreFrm, DateUtils;
+  ImagesFrm, StDate, Math, GenUtils, bkXPThemes, ErrorMoreFrm, DateUtils,
+  bkBranding;
 
 {$R *.dfm}
 
@@ -238,6 +239,8 @@ begin
   vtRates.Header.Height := Abs(vtRates.Header.Font.height) * 10 div 6;
   //So the editor fits
   vtRates.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8);
+
+  bkbranding.StyleSelectionColor(vtRates);
 
   FTreeList := TTreeBaseList.Create(vtRates);
 

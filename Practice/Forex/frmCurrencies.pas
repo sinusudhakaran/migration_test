@@ -286,8 +286,8 @@ begin
    vtCurrencies.Header.Font := Font;
    vtCurrencies.Header.Height := Abs(vtCurrencies.Header.Font.height) * 10 div 6;
    vtCurrencies.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
-   RSGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-   RSGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+
+   bkbranding.StyleSelectionColor(vtCurrencies);
 
    grpDetails.Items[0].Caption := format('Base currency: %s', [AdminSystem.CurrencyCode]);
 
@@ -296,6 +296,8 @@ begin
    vtCurrencies.SortTree(0, sdAscending);
 
    FChangesMade := False;
+
+   bkBranding.StyleGroupBar(RSGroupBar);
 
 //   BKHelpSetUp(Self, BKH_Maintain_Currencies);
 end;

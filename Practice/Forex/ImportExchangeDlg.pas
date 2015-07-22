@@ -191,7 +191,7 @@ uses
   ComBoUtils,
   UsageUtils,
   stDatest,
-  WarningMoreFrm;
+  WarningMoreFrm, bkBranding;
 
 const
   tNone = ' ';
@@ -533,6 +533,10 @@ begin
    fFileList := TobjectList.Create(True);
    fOutList := TobjectList.Create(True);
    FReloading := False;
+
+   bkbranding.StyleSelectionColor(vsOut);
+   bkbranding.StyleSelectionColor(vsFile);
+
    pcFormat.ActivePageIndex := 0;//Not the design time one..
    lbFile.Height := 0;
    vsFile.SyncView := vsOut;

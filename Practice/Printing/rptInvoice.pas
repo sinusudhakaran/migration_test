@@ -245,14 +245,15 @@ begin
       Job.bkHtmlVersion := 1;
       Job.bkHtmlSubVersion := 1;  //1.1
 
-      if TProduct.ProductBrand <> btBankstream then
+      if TProduct.ProductBrand = btMYOBBankLink then
       begin
         NzFooter := 'MYOB BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
         AuFooter := 'MYOB BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
       end
       else
       begin
-        UKFooter := TProduct.BrandName + ' United Kingdom 9 Devonshire Square, London EC2M 4YF. Freephone 0800 500 3084 ' + TUrls.WebSites[whUK];
+        NzFooter := 'MYOB BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
+        AuFooter := 'MYOB BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
       end;
 
       i := 0;
@@ -304,7 +305,7 @@ begin
       //add billing header, clear the autolineSize setting so that the text
       //is rendered as if no image was expected, otherwise the first line
       //on the report will be positioned too far down the page
-      AddJobHeader(Job, jtLeft, 1, '<IMG banklink_logo>', False).AutoLineSize := False;
+      AddJobHeader(Job, jtRight, 1, '<IMG banklink_logo>', False).AutoLineSize := False;
       //add billing footer
       AddJobFooter( Job, jtCenter, 0.8,  AuFooter, true);
       AddJobFooter( Job, jtCenter, 0.8,  NzFooter, true);
@@ -338,3 +339,4 @@ begin
 end;
 
 end.
+

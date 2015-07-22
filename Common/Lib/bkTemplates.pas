@@ -27,9 +27,9 @@ const
 
 class function TTemplates.GetUKCafTemplate(Index: Integer): String;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := istBankstreamUKTemplateFileNames[Index];
+    Result := istUKTemplateFileNames[Index];
   end
   else
   begin
@@ -38,3 +38,4 @@ begin
 end;
 
 end.
+

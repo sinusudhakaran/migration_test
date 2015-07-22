@@ -143,7 +143,7 @@ begin
    bkBranding.StyleMainBannerLogo(imgLeft);
    bkBranding.StyleSimpleUIRightBannerImage(imgRight);
 
-   if TProduct.ProductBrand = btBankstream then
+   if TProduct.ProductBrand = btMYOBBankLink then
    begin
      pnlExtraTitleBar.Height := imgLeft.Picture.Height;
    end
@@ -215,3 +215,4 @@ initialization
    FormIsLoading := false;
    SimpleUIOpenPage := nil;
 end.
+

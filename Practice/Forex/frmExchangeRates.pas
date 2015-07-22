@@ -498,8 +498,8 @@ begin
   vtRates.Header.Height := Abs(vtRates.Header.Font.height) * 10 div 6;
   vtRates.DefaultNodeHeight := Abs(Self.Font.Height * 15 div 8); //So the editor fits
 
-  RSGroupBar.GradientColorStop := bkBranding.GroupBackGroundStopColor;
-  RSGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
+  bkbranding.StyleSelectionColor(vtRates);
+  bkBranding.StyleGroupBar(RSGroupBar);
 
   FTreeList := TTreeBaseList.Create(vtRates);
 

@@ -68,13 +68,11 @@ end;
 
 class function TUrls.DefaultAUCatalogServer: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'www.bankstream.com.au';
+    Result := 'www.banklink.com.au';
   end
   else
-  }
   begin
     Result := 'www.banklink.com.au';
   end;
@@ -82,13 +80,11 @@ end;
 
 class function TUrls.DefaultBConnectPrimaryHost: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'secure1.bankstream.co.nz';
+    Result := 'secure1.banklink.co.nz'
   end
   else
-  }
   begin
     Result := 'secure1.banklink.co.nz'
   end;
@@ -96,13 +92,11 @@ end;
 
 class function TUrls.DefaultBConnectSecondaryHost: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'secure2.bankstream.co.nz';
+    Result := 'secure2.banklink.co.nz'
   end
   else
-  }
   begin
     Result := 'secure2.banklink.co.nz'
   end;
@@ -110,13 +104,11 @@ end;
 
 class function TUrls.DefaultDownloaderURL: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'https://secure2.bankstream.co.nz/DownloaderService/DownloaderService.svc';
+    Result := 'https://secure2.banklink.co.nz/DownloaderService/DownloaderService.svc';
   end
   else
-  }
   begin
     Result := 'https://secure2.banklink.co.nz/DownloaderService/DownloaderService.svc';
   end;
@@ -124,13 +116,11 @@ end;
 
 class function TUrls.DefaultDownloaderURL2: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'https://secure1.bankstream.co.nz/DownloaderService/DownloaderService.svc';
+    Result := 'https://secure1.banklink.co.nz/DownloaderService/DownloaderService.svc';
   end
   else
-  }
   begin
     Result := 'https://secure1.banklink.co.nz/DownloaderService/DownloaderService.svc';
   end;
@@ -193,27 +183,23 @@ end;
 
 class function TUrls.DefaultNZCatalogServer: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'www.bankstream.co.nz'
+    Result := 'www.banklink.co.nz';
   end
   else
-  }
   begin
-    Result := 'www.banklink.co.nz'
+    Result := 'www.banklink.co.nz';
   end;
 end;
 
 class function TUrls.DefaultUKCatalogServer: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'www.bankstream.co.uk';
+    Result := 'www.banklink.co.uk';
   end
   else
-  }
   begin
     Result := 'www.banklink.co.uk';
   end;
@@ -221,13 +207,11 @@ end;
 
 class function TUrls.DefaultWebNotesMethodURI: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'http://Bankstream.WebNotes.Interfaces/IPracticeIntegrationFacade';
+    Result := 'http://BankLink.WebNotes.Interfaces/IPracticeIntegrationFacade';
   end
   else
-  }
   begin
     Result := 'http://BankLink.WebNotes.Interfaces/IPracticeIntegrationFacade';
   end;
@@ -235,13 +219,11 @@ end;
 
 class function TUrls.DefaultWebNotesURL: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'https://www.bankstreamonline.com/services/practiceintegrationfacade.svc';
+    Result := 'https://www.banklinkonline.com/services/practiceintegrationfacade.svc';
   end
   else
-  }
   begin
     Result := 'https://www.banklinkonline.com/services/practiceintegrationfacade.svc';
   end;
@@ -249,13 +231,11 @@ end;
 
 class function TUrls.DefInstListLinkAU: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'http://www.bankstream.com.au/about_institutions.html';
+    Result := 'http://www.banklink.com.au/about_institutions.html';
   end
   else
-  }
   begin
     Result := 'http://www.banklink.com.au/about_institutions.html';
   end;
@@ -263,13 +243,11 @@ end;
 
 class function TUrls.DefInstListLinkNZ: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'http://www.bankstream.co.nz/about_institutions.html';
+    Result := 'http://www.banklink.co.nz/about_institutions.html';
   end
   else
-  }
   begin
     Result := 'http://www.banklink.co.nz/about_institutions.html';
   end;
@@ -277,13 +255,11 @@ end;
 
 class function TUrls.DefInstListLinkUK: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'http://www.bankstream.co.uk/about_institutions.html';
+    Result := 'http://www.banklink.co.uk/about_institutions.html';
   end
   else
-  }
   begin
     Result := 'http://www.banklink.co.uk/about_institutions.html';
   end;
@@ -291,9 +267,9 @@ end;
 
 class function TUrls.GetWebSites(Index: Integer): String;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := BankstreamWebSites[Index];
+    Result := whBankLinkWebSites[Index];
   end
   else
   begin
@@ -303,9 +279,9 @@ end;
 
 class function TUrls.GetWebSiteURLs(Index: Integer): String;
 begin
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := BankstreamWebSiteURLs[Index];
+    Result := whBankLinkWebSiteURLs[Index];
   end
   else
   begin
@@ -315,13 +291,11 @@ end;
 
 class function TUrls.OnlineServicesDefaultUrl: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'https://www.bankstreamonline.com';
+    Result := 'https://www.banklinkonline.com';
   end
   else
-   }
   begin
     Result := 'https://www.banklinkonline.com';
   end;
@@ -329,13 +303,11 @@ end;
 
 class function TUrls.ProvisionalAccountUrl: String;
 begin
-  {
-  if TProduct.ProductBrand = btBankstream then
+  if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := 'http://www.bankstream.co.nz';
+    Result := 'http://www.banklink.co.nz';
   end
   else
-  }
   begin
     Result := 'http://www.banklink.co.nz';
   end;
@@ -362,3 +334,4 @@ begin
 end;
 
 end.
+
