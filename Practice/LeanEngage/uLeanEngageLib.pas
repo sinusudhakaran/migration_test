@@ -6,27 +6,25 @@ uses
   Classes, uHttpLib, StrUtils, uLKJSON, Contnrs;
 
 type
-  TLEIdentity = class(TJsonObject)
+  TCompany = class
   private
-    type
-      TCompany = class
-      private
-        FName: String;
-        FParentName: String;
-      public
-        property Name: String read FName write FName;
-        property ParentName: String read FParentName write FParentName;
-      end;
+    FName: String;
+    FParentName: String;
+  public
+    property Name: String read FName write FName;
+    property ParentName: String read FParentName write FParentName;
+  end;
 
-      TModule = class
-      private
-        FVersion: String;
-        FModule: String;
-      public
-        property Id: String read FModule write FModule;
-        property Version: String read FVersion write FVersion;
-      end;
+  TModule = class
+  private
+    FVersion: String;
+    FModule: String;
+  public
+    property Id: String read FModule write FModule;
+    property Version: String read FVersion write FVersion;
+  end;
 
+  TLEIdentity = class(TJsonObject)
   private
     FStaffId: String;
     FIndustry: String;
@@ -177,13 +175,13 @@ begin
     AddTraits(User);
     AddCompany(User);
 
-    Result := TlkJSON.GenerateText(User);
+    Result := TlkJSON.GenerateText( User );
   finally
-    User.Free;
+    freeAndNil( User );
   end;
 end;
 
-procedure TLEIdentity.Deserialize(Json: String);
+procedure TLEIdentity.Deserialize( Json: String );
 begin
 
 end;
@@ -210,7 +208,7 @@ end;
 
 destructor TLESurveys.Destroy;
 begin
-  FItems.Free;
+  freeAndNil( FItems );
   
   inherited;
 end;
@@ -259,7 +257,7 @@ begin
 
         FItems.Add(Survey);
       except
-        Survey.Free;
+        freeAndNil(Survey);
       end;
     end;
   finally

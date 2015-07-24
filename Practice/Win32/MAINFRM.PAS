@@ -1126,7 +1126,7 @@ uses
   SuggestedMems,
   ChartExportToMYOBCashbook,
   WebUtils,
-  frmNPSWebHost,
+  formNPSWebHost,
   uLeanEngageLib,
   formLEFeedback;
   //StockBalancesDlg;
@@ -1471,6 +1471,8 @@ begin
    tbBudgetHelp.Visible := bkHelp.BKHelpFileExists;
 
    N4.Visible := not( mniTutorialsTOC.Visible and mniHelpAbout.Visible);
+
+   mniHelpProvideFeedback.Visible := FAdminSystemFound; // Books users do not get any LeanEngage functionality
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormShow(Sender: TObject);
@@ -1507,7 +1509,7 @@ var
 {$IFDEF SmartLink}
   ShowSmartLinkHelp : boolean;
 {$ENDIF}
-  ClientManagerFormPointer : TfrmClientManager;
+(*  ClientManagerFormPointer : TfrmClientManager; *)
 
 begin
   if DebugMe then
@@ -1517,6 +1519,7 @@ begin
   SetupHelp;
 
   mniChangePassword.Visible := FAdminSystemFound;
+
 
   if FAdminSystemFound then
   begin
@@ -1619,27 +1622,29 @@ begin
        if Assigned(AdminSystem) then
        begin
 
-        {$ifdef DEBUG}
-          if DebugMe then
-            LogUtil.LogMsg(lmDebug,unitname,
-              format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-              [ StartupParam_Action, CurrUser.Code ] ) );
+         {$ifdef DEBUG}
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
 
-        {$endif} {ifdef DEBUG}
+         {$endif} {ifdef DEBUG}
 
-        InitialiseLeanEngage;
-        if not assigned( frmLEFeedback ) then begin
-          ClientManagerFormPointer := GetClientManagerFormPointer;
+         // Add LeanEngage functionality
+         InitialiseLeanEngage;
+         if not assigned( frmLEFeedback ) then begin
 
-          frmLEFeedback := TfrmLEFeedback.Create( frmMain );
+           frmLEFeedback := TfrmLEFeedback.Create( frmMain );
 
-          frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
-            frmMain.ClientWidth);
+           frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
+             frmMain.ClientWidth);
 
-          frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
+           frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
 
-          ClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
-        end;
+  (*          ClientManagerFormPointer := GetClientManagerFormPointer; *)
+           if GetClientManagerFormPointer <> nil then
+             GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
+         end;
 
         {$ifdef DEBUG}
           if DebugMe then
@@ -1963,8 +1968,9 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.FormResize(Sender: TObject);
+(*
 var
-  ClientManagerFormPointer : TfrmClientManager;
+  ClientManagerFormPointer : TfrmClientManager; *)
 begin
   inherited;
  if not ApplicationIsStarting then
@@ -2000,7 +2006,7 @@ begin
                                        MainStatus.Panels[PANELTIME].width +
                                        MainStatus.Panels[PANELBAR].width );
   if assigned( frmLEFeedback ) then begin
-    ClientManagerFormPointer := GetClientManagerFormPointer;
+(*    ClientManagerFormPointer := GetClientManagerFormPointer; *)
     frmLEFeedback.FloatForm( (*ClientManagerFormPointer.*)frmMain.ClientHeight, (*ClientManagerFormPointer.*)frmMain.ClientWidth );
   end;
 end;
@@ -2314,23 +2320,7 @@ end;
 procedure TfrmMain.DisplayAvailableNPSSurveys(Sender: TObject);
 var
   i : integer;
-/////////////////////  WebForm: TfrmNPSWebHost;
 begin
-/////////////////////  WebForm := TfrmNPSWebHost.Create(nil);
-
-/////////////////////  try
-/////////////////////    WebForm.Url := 'www.microsoft.com';
-
-/////////////////////    WebForm.ShowModal;
-/////////////////////  finally
-/////////////////////    WebForm.Free;
-/////////////////////  end;
-
-
-
-
-/////////////////////(*
-/////////////////////   TfrmNPSWebHost.Show( 'www.microsoft.com', Self );
   if assigned( NPSLeanEngage ) and
        assigned( Application ) and
        assigned( Application.MainForm ) then
@@ -3939,36 +3929,50 @@ var
   sIdentityID : string;
 begin
   sIdentityID := '';
-  if assigned( AdminSystem ) then begin
+//  if (*assigned( AdminSystem )*) FAdminSystemFound then begin
 // Setup the key for different environments
     if PRACINI_LeanEngage_System_Switch = cLeanEngage_TestSwitch then
       LeanEngageApp_Key := cLeanEngage_TestAPIKey
     else
       LeanEngageApp_Key := cLeanEngage_ProdAPIKey;
     sIdentityID := CurrUser.Code + AdminSystem.fdFields.fdPractice_Name_for_Reports;
-  end;
-    NPSLeanEngage := TNPSLeanEngage.Create( sIdentityID,
-      PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key, AdminSystem.fdFields.fdPractice_Name_for_Reports,
-      CountryText( AdminSystem.fdFields.fdCountry ), (*CurrUser.Code*)sIdentityID,
-      BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr );
   if not (StartupParam_Action in System_Actions) and
-     ((CurrUser.Code <> 'BANKLNK5') and (CurrUser.Code <> 'SUPERVIS' )) then begin
-{$ifdef DEBUG}
-   LogUtil.LogMsg(lmDebug,unitname,
-      'InitialiseLeanEngage TriggerIdentifyAsync' );
-    NPSLeanEngage.TriggerIdentifyAsync( );
-    NPSLeanEngage.TriggerSurveyAsync( DisplayAvailableNPSSurveys );
-{$else}{ifdef DEBUG}
-{$endif}{ifdef DEBUG}
-  end;
-  if assigned( NPSLeanEngage ) then begin
-    NPSLeanEngage.TriggerFeedbackAsync( taFeedbackResponse );
- {$ifdef DEBUG}
-   LogUtil.LogMsg(lmDebug,unitname,
-      'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
-{$else}{ifdef DEBUG}
-{$endif}{ifdef DEBUG}
+     ((CurrUser.Code <> 'BANKLNK5') and
+     (CurrUser.Code <> 'SUPERVIS' )) then begin
+  {$ifdef DEBUG}
+    LogUtil.LogMsg(lmDebug,unitname,
+       'InitialiseLeanEngage NPSLeanEngage := TNPSLeanEngage.Create' );
+  {$endif}{ifdef DEBUG}
+    NPSLeanEngage := TNPSLeanEngage.Create( sIdentityID,         // Create LeanEngage Object
+      PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key,
+      AdminSystem.fdFields.fdPractice_Name_for_Reports,
+      CountryText( AdminSystem.fdFields.fdCountry ), sIdentityID,
+      BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr );
+
+    if assigned( NPSLeanEngage ) then begin
+    {$ifdef DEBUG}
+      LogUtil.LogMsg(lmDebug,unitname,
+        'InitialiseLeanEngage TriggerIdentifyAsync' );
+    {$endif}{ifdef DEBUG}
+
+      NPSLeanEngage.TriggerIdentifyAsync( ); // Initialise the Identity EndPoint to log the session
+
+    {$ifdef DEBUG}
+      LogUtil.LogMsg(lmDebug,unitname,
+        'InitialiseLeanEngage TriggerSurveyAsync' );
+    {$endif}{ifdef DEBUG}
+
+      NPSLeanEngage.TriggerSurveyAsync( DisplayAvailableNPSSurveys ); // Initialise and display surveys
+
+    {$ifdef DEBUG}
+      LogUtil.LogMsg(lmDebug,unitname,
+        'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
+    {$endif}{ifdef DEBUG}
+
+      NPSLeanEngage.TriggerFeedbackAsync( taFeedbackResponse ); // Initialise for Feedback
+    end;
    end;
+//  end;
 end;
 
 procedure TfrmMain.mniTestAdminLockingClick(Sender: TObject);
@@ -5008,7 +5012,8 @@ begin
   FormResize(Self);
   RefreshHomepage([HRP_Init]);
 
-  TfrmClientHomePage(ClientHomePage).LEFeedbackForm := TForm( frmLEFeedback );
+  if ClientHomePage <> nil then
+    TfrmClientHomePage(ClientHomePage).LEFeedbackForm := TForm( frmLEFeedback );
 
   //Enable Report Run timer for books.
   //Is enabled for Practice when they start up
