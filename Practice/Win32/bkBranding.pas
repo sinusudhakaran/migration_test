@@ -52,6 +52,7 @@ var
   function ColorCodingPeriod: Integer;
   function ColorFinancialYear: Integer;
   function SelectionColor: integer;
+  function GridHEADER : integer;
 
   function GroupBackGroundStartColor: Integer;
   function GroupBackGroundStopColor: Integer;
@@ -157,7 +158,7 @@ const
 
   SELECTED_CELL        = $00995A00;
   BUDGET_COLOR_ROW     = $00F8F8F8;
-  BUDGET_HEADER        = $00F5F5F5;
+  Grid_HEADER          = $00F5F5F5;
 
   DATA_LED_NODATA      = $00FFFFFF;
   DATA_LED_AVAILABLE   = $0053D1D1;
@@ -374,6 +375,12 @@ begin
     Result := SELECTED_CELL
   else
     Result := clHighLight;
+end;
+
+function GridHEADER : integer;
+begin
+  if TProduct.ProductBrand = btMYOBBankLink then
+    Result := Grid_HEADER;
 end;
 
 function BannerColor: Integer;
@@ -796,13 +803,18 @@ end;
 
 procedure StyleNewClientWizardLogo(Image: TImage);
 begin
-  Image.Picture := ProductIcon32x32;
-
   if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Image.Visible := false;
-    Image.Width := 32;
-    Image.Height := 32;
+    Image.Left := 13;
+    Image.Top := 54;
+    Image.Width := 180;
+    Image.Height := 35;
+    Image.Stretch := false;
+    Image.Picture := AppImages.ImgLogoMedium.Picture;
+  end
+  else
+  begin
+    Image.Picture := ProductIcon32x32;
   end;
 end;
 
@@ -878,7 +890,7 @@ procedure StyleTableHeading(aTableHeader: TOvcTCColHead);
 begin
   if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    aTableHeader.Color := BUDGET_HEADER;
+    aTableHeader.Color := clgreen;//Grid_HEADER;
   end;
 end;
 

@@ -699,8 +699,6 @@ begin
   vtClients.Clear;
   vtClients.Header.Columns.Clear;
   vtClients.NodeDataSize := SizeOf( TTreeData);
-  StyleSelectionColor(vtClients);
-
 
   FColumns := TCluColumnList.Create;
   FSelectedColumn        := cluCode;
@@ -2296,7 +2294,7 @@ begin
       if Assigned( sysClientRec) then
       begin
         if ( sysClientRec^.cfNext_ToDo_Rem_Date < stDate.CurrentDate) and
-           ( TargetCanvas.Brush.Color <> clHighlight) then
+           ( TargetCanvas.Brush.Color <> BkBranding.SelectionColor) then
           TargetCanvas.Font.Color := clRed;
       end;
     end
@@ -2311,7 +2309,7 @@ begin
       if Assigned( pIDRec) and Assigned( MyClient) then
       begin
         if ( pIDRec^.imCode = MyClient.clFields.clCode) and
-           ( TargetCanvas.Brush.Color <> clHighlight) then
+           ( TargetCanvas.Brush.Color <> BkBranding.SelectionColor) then
           TargetCanvas.Font.Color := clBlue;
       end;
     end;
@@ -3333,7 +3331,7 @@ begin
     LRect.Top      := ItemRect.Bottom - 5;
     LRect.Bottom   := LRect.Top + 1;
     LRect.Right    := 200;
-    RzGrafx.PaintGradient( TargetCanvas, LRect, gdVerticalCenter, clBtnFace, clHighlight);
+    RzGrafx.PaintGradient( TargetCanvas, LRect, gdVerticalCenter, clBtnFace, BkBranding.SelectionColor);
   end;
 end;
 

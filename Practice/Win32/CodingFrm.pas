@@ -1183,10 +1183,10 @@ begin
 
   bkBranding.StyleTopBannerRightImage(imgRight);
   bkBranding.StyleOvcTableGrid(tblCoding);
-  bkBranding.StyleTableHeading(hdrColumnHeadings);
+  //bkBranding.StyleTableHeading(hdrColumnHeadings);
   bkBranding.StyleAltRowColor(AltLineColor);
 
-  tblCoding.Colors.Locked := SelectionColor;
+  tblCoding.Colors.Locked := GridHEADER;
   tblCoding.Colors.LockedText := clBlack;
 
 
@@ -4311,6 +4311,7 @@ begin
          InsColDefnRec( 'Payee Name', cePayeeName, celPayeeName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, CE_PAYEENAME_DEF_EDITABLE, csByPayeeName);
          InsColDefnRec( 'Job', ceJob, celJob, CE_JOB_DEF_WIDTH, CE_JOB_DEF_VISIBLE, false, CE_JOB_DEF_EDITABLE, csByJob );
          InsColDefnRec( 'Job Name', ceJobName, celJobName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, False, csByJobName);
+         InsColDefnRec('', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount);
 
          AllowGSTClassEditing := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
          case MyClient.clFields.clCountry of
@@ -4359,8 +4360,6 @@ begin
       if (ProductConfigService.OnLine and ProductConfigService.IsPracticeProductEnabled(ProductConfigService.GetExportDataId, False)) then
         InsColDefnRec('Sent to ' + bkBranding.ProductOnlineName, ceTransferedToOnline, celTransferedToOnline, 142, false, true, false, csBySentToAndAcc);
 
-      InsColDefnRec('', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount);
-
       EditMode := emGeneral; //Never changed here
    end;
 end;
@@ -4391,7 +4390,6 @@ begin
         end;
       //Unlock table update
       AllowRedraw := true;
-      bkBranding.StyleTableHeading(hdrColumnHeadings);
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7402,6 +7400,7 @@ procedure TfrmCoding.GSTLookupClick(Sender: TObject);
 begin
    DoGSTLookup;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.GotoNextClick(Sender: TObject);
@@ -9162,14 +9161,14 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingEnter(Sender: TObject);
 begin
-   tblCoding.Colors.Locked := clGray;
-   tblCoding.Colors.LockedText := clWhite;
+  tblCoding.Colors.Locked := GridHEADER;
+  tblCoding.Colors.LockedText := clBlack;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingExit(Sender: TObject);
 begin
-  tblCoding.Colors.Locked := clBtnFace;
-  tblCoding.Colors.LockedText := clBtnShadow;
+  //tblCoding.Colors.Locked := clBtnFace;
+  //tblCoding.Colors.LockedText := clBtnShadow;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingDblClick(Sender: TObject);

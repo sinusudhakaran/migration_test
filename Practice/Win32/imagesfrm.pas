@@ -76,6 +76,7 @@ type
     imgBankstreamIcon16x16: TImage;
     imgMainBackground: TImage;
     imgSmallLogo: TImage;
+    ImgLogoMedium: TImage;
     procedure FormCreate(Sender: TObject);
   private
 

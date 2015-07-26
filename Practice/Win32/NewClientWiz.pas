@@ -28,7 +28,7 @@ type
 type
   TwizNewClient = class(TForm)
     btnQuit: TButton;
-    Image1: TImage;
+    imgMYOBLogo: TImage;
     lblTop: TLabel;
     lblNotes: TLabel;
     lblTitle: TLabel;
@@ -801,7 +801,7 @@ end;
 
 procedure TwizNewClient.FormShow(Sender: TObject);
 begin
-  StyleNewClientWizardLogo(Image1);
+  StyleNewClientWizardLogo(imgMYOBLogo);
 end;
 
 procedure TwizNewClient.FormCloseQuery(Sender: TObject;
