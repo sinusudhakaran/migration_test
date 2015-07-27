@@ -890,7 +890,9 @@ procedure StyleTableHeading(aTableHeader: TOvcTCColHead);
 begin
   if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    aTableHeader.Color := clgreen;//Grid_HEADER;
+    aTableHeader.Color := Grid_HEADER;
+    aTableHeader.SortArrowColor := clblack;
+    aTableHeader.SortArrowFillColor := clblack;
   end;
 end;
 

@@ -1183,7 +1183,7 @@ begin
 
   bkBranding.StyleTopBannerRightImage(imgRight);
   bkBranding.StyleOvcTableGrid(tblCoding);
-  //bkBranding.StyleTableHeading(hdrColumnHeadings);
+  bkBranding.StyleTableHeading(hdrColumnHeadings);
   bkBranding.StyleAltRowColor(AltLineColor);
 
   tblCoding.Colors.Locked := GridHEADER;
@@ -9161,8 +9161,8 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingEnter(Sender: TObject);
 begin
-  tblCoding.Colors.Locked := GridHEADER;
-  tblCoding.Colors.LockedText := clBlack;
+  //tblCoding.Colors.Locked := GridHEADER;
+  //tblCoding.Colors.LockedText := clBlack;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingExit(Sender: TObject);
