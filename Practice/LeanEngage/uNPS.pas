@@ -151,11 +151,21 @@ type
 
 implementation
 uses
+  LogUtil,
   SysUtils,
   idCoder,
   IdCoderMIME,
   uHttpLib,
-  strUtils;
+  strUtils,
+  bkConst;
+
+const
+  unitname = 'uNPS';
+  DebugAutoSave: Boolean = False;
+  AutoSaveUnit = 'AutoSave';
+
+var
+  DebugMe : boolean = false;
 
 { TNPSLeanEngage }
 
@@ -457,6 +467,14 @@ begin
   fIdentity.Module.Id := aModuleId;
   fIdentity.Module.Version := aModuleVersion;
 
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,unitname,
+      format( 'TLENPSBaseIdentifySurveyThread.Create( aIdentityID = %s, ' +
+        'aServerUrl = %s, aServerKey = %s, aCompanyName = %s, aCountry = %s, ' +
+        'aStaffID = %s, aModuleId = %s, aModuleVersion = %s )',
+      [ aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion ] ) );
+
   Priority           := tpLowest;
 end;
 
@@ -470,6 +488,10 @@ begin
   begin
     try
       try
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug,unitname,
+            format( 'TLENPSIdentifyThread.Execute, JSON= %s )',
+            [ fIdentity.Serialize ] ) );
         fServer.SetNPSIdentity(fIdentity);
       except
         on E: Exception do ;
@@ -499,17 +521,22 @@ var
 
   function ReplaceLEParams( aURL : string ) : string;
   const
-    cLEFeedback = '&user_id=%s&widget_title=%s&textarea_placeholder=%s&background_color=%231abc9c&one_way=true';
-    cLEFeedbackTitle = 'Where the hell are we?';
-    cLEFeedbackBreadCrum = 'What what....';
+//    cLEFeedback = '&user_id=%s&widget_title=%s&textarea_placeholder=%s&background_color=%231abc9c&one_way=true';
+    cLEFeedbackTitle = 'Give us your ideas and feedback for ' + BRAND_PRACTICE + '.';
+    cLEFeedbackBreadCrum = 'Enter feedback here...';
   var
     i : integer;
 
   begin
+    result := '';
     i := pos('&', aUrl);
     if i > 0 then begin
-      delete(aURL, i, length( aUrl ) - i );
-      aUrl := aUrl + format( cLEFeedback, [ fIdentity.Id, cLEFeedbackTitle, cLEFeedbackBreadCrum ] );
+      delete(aURL, i, length( aUrl ) );
+
+//      result := Format( cLEFeedback, [ fIdentity.Id, cLEFeedbackTitle, cLEFeedbackBreadCrum ] );
+      result := aUrl + '&user_id=' + fIdentity.Id + '&widget_title=' +
+        cLEFeedbackTitle + '&textarea_placeholder=' + cLEFeedbackBreadCrum +
+        '&background_color=%231abc9c&one_way=true';
     end;
   end;
 
@@ -597,6 +624,10 @@ var
     result := False; //Make sure the default is false
 
     try
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,unitname,
+          'TLENPSSurveyThread.Execute.CheckAndAddedToSurveys about to ' +
+          'execute fServer.GetNPSSurvey' );
       fServer.GetNPSSurvey( fIdentity.Id, aSurveyJSON);
     except
       on E: Exception do ; // Swallow the event
@@ -645,4 +676,7 @@ begin
   end;
 end;
 
+initialization
+   DebugMe := DebugUnit(UnitName);
+   DebugAutoSave := DebugUnit(AutoSaveUnit);
 end.

@@ -776,19 +776,11 @@ begin
         StrGuid := TrimedGuid(Guid);
         PRACINI_IPClientLocking_GROUP_ID := ReadString( GrpLocking, 'IPClientLockingGroupID', StrGuid);
 
-      {$ifdef DEBUG}
         PRACINI_LeanEngage_BASE_URL    := ReadString( GrpPracLeanEngage,
-          'LeanEngage_System_URL', DefLeanEngageLink );
+          'LeanEngage_BASE_URL', DefLeanEngageLink );
         PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
-          'LeanEngage_System_Switch', 'PRACTICE_TESTING');
-      {$else} {ifdef DEBUG}
-        PRACINI_LeanEngage_BASE_URL    := ReadString( GrpPracLeanEngage,
-          'LeanEngage_System_URL', DefLeanEngageLink );
-        PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
-          'LeanEngage_System_Switch', 'PRACTICE_PRODUCTION');
-      {$endif} {ifdef DEBUG}
-
-
+          'LeanEngage_System_Switch', cLeanEngage_ProdSwitch);
+ 
         InitLocking(PRACINI_IPClientLocking_SwitchedOn,
                     PRACINI_IPClientLocking_UDP_Client_Port,
                     PRACINI_IPClientLocking_UDP_BuffInitSize,
@@ -953,20 +945,8 @@ begin
            WriteInteger(GrpLocking, 'IPClientLockingProcessMessageDelay', PRACINI_IPClientLocking_ProcessMessageDelay);
            WriteString(GrpLocking,  'IPClientLockingGroupID', PRACINI_IPClientLocking_GROUP_ID);
 
-      {$ifdef DEBUG}
-        WriteString( GrpPracLeanEngage,
-          'PRACINI_LeanEngage_BASE_URL', PRACINI_LeanEngage_BASE_URL );
-
-        WriteString( GrpPracLeanEngage,
-          'LeanEngage_System_Switch', PRACINI_LeanEngage_System_Switch );
-      {$else} {ifdef DEBUG}
-        WriteString( GrpPracLeanEngage,
-          'PRACINI_LeanEngage_BASE_URL', PRACINI_LeanEngage_BASE_URL );
-
-        WriteString( GrpPracLeanEngage,
-          'LeanEngage_System_Switch', PRACINI_LeanEngage_System_Switch );
-      {$endif} {ifdef DEBUG}
-
+            WriteString( GrpPracLeanEngage,
+              'LeanEngage_BASE_URL', PRACINI_LeanEngage_BASE_URL );
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
          end;

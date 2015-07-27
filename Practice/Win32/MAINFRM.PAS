@@ -1622,13 +1622,10 @@ begin
        if Assigned(AdminSystem) then
        begin
 
-         {$ifdef DEBUG}
-           if DebugMe then
-             LogUtil.LogMsg(lmDebug,unitname,
-               format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-               [ StartupParam_Action, CurrUser.Code ] ) );
-
-         {$endif} {ifdef DEBUG}
+         if DebugMe then
+           LogUtil.LogMsg(lmDebug,unitname,
+             format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+             [ StartupParam_Action, CurrUser.Code ] ) );
 
          // Add LeanEngage functionality
          InitialiseLeanEngage;
@@ -1641,18 +1638,14 @@ begin
 
            frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
 
-  (*          ClientManagerFormPointer := GetClientManagerFormPointer; *)
            if GetClientManagerFormPointer <> nil then
              GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
          end;
 
-        {$ifdef DEBUG}
-          if DebugMe then
-            LogUtil.LogMsg(lmDebug,unitname,
-              format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-              [ StartupParam_Action, CurrUser.Code ] ) );
-
-        {$endif} {ifdef DEBUG}
+         if DebugMe then
+           LogUtil.LogMsg(lmDebug,unitname,
+             format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+             [ StartupParam_Action, CurrUser.Code ] ) );
 
 
          if AdminSystem.fdFields.fdUse_BankLink_Online then
@@ -2059,10 +2052,8 @@ begin
   //remove redirect of messge handler to ClientWndProc
   SetWindowLong(ClientHandle, GWL_WNDPROC, LongInt(FPrevClientProc));
   Classes.FreeObjectInstance(FClientInstance);
-{$ifdef DEBUG}
-    freeAndNil( NPSLeanEngage ); 
-{$else} {ifdef DEBUG}
-{$endif} {ifdef DEBUG}
+
+  freeAndNil( NPSLeanEngage );
 end;
 procedure TfrmMain.FormMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
@@ -2325,8 +2316,13 @@ begin
        assigned( Application ) and
        assigned( Application.MainForm ) then
     if NPSLeanEngage.HasSurvey then
-      for I := 0 to NPSLeanEngage.Surveys.Count - 1 do
+      for I := 0 to NPSLeanEngage.Surveys.Count - 1 do begin
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug,unitname,
+            format( 'TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url = %s, Application.MainForm)',
+            [ NPSLeanEngage.Surveys[ i ].Url ] ) );
         TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url, Application.MainForm);
+      end;
 end;
 
 procedure TfrmMain.DisplayHint(Sender: TObject);
@@ -2587,8 +2583,13 @@ end;
 procedure TfrmMain.mniHelpProvideFeedbackClick(Sender: TObject);
 begin
   if assigned( NPSLeanEngage ) then begin
-    if NPSLeanEngage.HasFeedbackURL then
+    if NPSLeanEngage.HasFeedbackURL then begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,unitname,
+          format( 'TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL = %s, Self)',
+          [ NPSLeanEngage.FeedbackURL ] ) );
       TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL, Self );
+    end;
   end;
 end;
 
@@ -3929,7 +3930,6 @@ var
   sIdentityID : string;
 begin
   sIdentityID := '';
-//  if (*assigned( AdminSystem )*) FAdminSystemFound then begin
 // Setup the key for different environments
     if PRACINI_LeanEngage_System_Switch = cLeanEngage_TestSwitch then
       LeanEngageApp_Key := cLeanEngage_TestAPIKey
@@ -3939,10 +3939,18 @@ begin
   if not (StartupParam_Action in System_Actions) and
      ((CurrUser.Code <> 'BANKLNK5') and
      (CurrUser.Code <> 'SUPERVIS' )) then begin
-  {$ifdef DEBUG}
-    LogUtil.LogMsg(lmDebug,unitname,
-       'InitialiseLeanEngage NPSLeanEngage := TNPSLeanEngage.Create' );
-  {$endif}{ifdef DEBUG}
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+         Format( 'InitialiseLeanEngage NPSLeanEngage := TNPSLeanEngage.Create( ' +
+           'sIdentityID = %s, PRACINI_LeanEngage_BASE_URL = %s, ' +
+           'LeanEngageApp_Key = %s, AdminSystem.fdFields.fdPractice_Name_for_Reports = %s, ' +
+           'CountryText( AdminSystem.fdFields.fdCountry ) = %s, sIdentityID = %s, ' +
+           'BRAND_FULL_PRACTICE = %s, VersionInfo.GetAppVersionStr = %s ',
+           [ sIdentityID, PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key,
+             AdminSystem.fdFields.fdPractice_Name_for_Reports,
+             CountryText( AdminSystem.fdFields.fdCountry ), sIdentityID,
+             BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr ] ) );
+
     NPSLeanEngage := TNPSLeanEngage.Create( sIdentityID,         // Create LeanEngage Object
       PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key,
       AdminSystem.fdFields.fdPractice_Name_for_Reports,
@@ -3950,29 +3958,25 @@ begin
       BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr );
 
     if assigned( NPSLeanEngage ) then begin
-    {$ifdef DEBUG}
+    if DebugMe then
       LogUtil.LogMsg(lmDebug,unitname,
         'InitialiseLeanEngage TriggerIdentifyAsync' );
-    {$endif}{ifdef DEBUG}
 
       NPSLeanEngage.TriggerIdentifyAsync( ); // Initialise the Identity EndPoint to log the session
 
-    {$ifdef DEBUG}
+    if DebugMe then
       LogUtil.LogMsg(lmDebug,unitname,
         'InitialiseLeanEngage TriggerSurveyAsync' );
-    {$endif}{ifdef DEBUG}
 
       NPSLeanEngage.TriggerSurveyAsync( DisplayAvailableNPSSurveys ); // Initialise and display surveys
 
-    {$ifdef DEBUG}
+    if DebugMe then
       LogUtil.LogMsg(lmDebug,unitname,
         'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
-    {$endif}{ifdef DEBUG}
 
       NPSLeanEngage.TriggerFeedbackAsync( taFeedbackResponse ); // Initialise for Feedback
     end;
-   end;
-//  end;
+  end;
 end;
 
 procedure TfrmMain.mniTestAdminLockingClick(Sender: TObject);

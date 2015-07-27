@@ -37,6 +37,16 @@ type
   end;
 
 implementation
+uses
+  LogUtil;                                     
+  
+const
+  unitname = 'uNPSServer';
+  DebugAutoSave: Boolean = False;
+  AutoSaveUnit = 'AutoSave';
+
+var
+  DebugMe : boolean = false;
 
 type
   TJSONStringList = class(TlkJSONobject)
@@ -87,8 +97,16 @@ begin
 
   try
     JsonObject.Add('user_id', UserId);
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        format( 'Before Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
+        [ UserId, Survey.Serialize ] ) );
 
     Post(ENDPOINT_NPS_GETSURVEY, JsonObject, Survey);
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        format( 'After Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
+        [ UserId, Survey.Serialize ] ) );
   finally
     JsonObject.Free;
   end;
@@ -96,6 +114,11 @@ end;
 
 procedure TNPSServer.setEventTrack(UserId: string; MessageContent: TJsonObject);
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,unitname,
+      format( 'TNPSServer.setEventTrack(UserId= $s; MessageContent: TJsonObject = %s)',
+      [ UserID, MessageContent.Serialize ] ) );
+
   Post(ENDPOINT_EVENT_TRACK, MessageContent);
 end;
 
@@ -109,7 +132,15 @@ begin
   try
     URLParams.Add('user_id', UserID);
 
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s )',
+        [ UserID ] ) );
     Get( ENDPOINT_CONVERSATION_RESPONSE, URLParams, FeedBack );
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s; Feedback: TJsonObject = %s)',
+        [ UserID, Feedback.Serialize ] ) );
 
   finally
     freeAndNil( URLParams );
@@ -118,6 +149,10 @@ end;
 
 procedure TNPSServer.SetNPSIdentity(Identity: TJsonObject);
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug,unitname,
+      format( 'Before Http Post in TNPSServer.SetNPSIdentity(Identity: TJsonObject = %s)',
+      [ Identity.Serialize ] ) );
   Post(ENDPOINT_NPS_IDENTIFY, Identity);
 end;
 
@@ -133,4 +168,7 @@ begin
   end;
 end;
 
+initialization
+   DebugMe := DebugUnit(UnitName);
+   DebugAutoSave := DebugUnit(AutoSaveUnit);
 end.
