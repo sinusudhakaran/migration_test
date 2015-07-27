@@ -33,13 +33,15 @@ type
     destructor Destroy; override;
     
     procedure Add(Name, Value: String);
+    procedure Clear;
 
     function FillParams(EndPoint: String): String;
   end;
-  
+
   THttpLib = class
   public
     class function MakeUrl(BaseUrl, EndPoint: String; Params: TUrlParams = nil): String;
+//    class function ParseUrlParams(const aUrl : string; Params: TUrlParams): String;
   end;
 
 implementation
@@ -49,6 +51,11 @@ implementation
 procedure TUrlParams.Add(Name, Value: String);
 begin
   FParams.Add('{' + Name + '}' + ':' + Value);
+end;
+
+procedure TUrlParams.Clear;
+begin
+  FParams.Clear;
 end;
 
 constructor TUrlParams.Create;
@@ -113,6 +120,21 @@ begin
   Result := BaseUrl + EndPoint;
 end;
 
+
+(*
+class function THttpLib.ParseUrlParams(const aUrl : string; Params: TUrlParams): String;
+var
+  i : integer;
+  TempS : string;
+begin
+  i := pos( '&', aUrl);
+  if i > 0 then begin
+    Params.Clear;
+
+    Params
+  end;
+end;
+*)
 
 { TDynamicJsonObject }
 

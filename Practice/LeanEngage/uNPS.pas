@@ -154,7 +154,8 @@ uses
   SysUtils,
   idCoder,
   IdCoderMIME,
-  uHttpLib;
+  uHttpLib,
+  strUtils;
 
 { TNPSLeanEngage }
 
@@ -495,6 +496,23 @@ procedure TLETriggeredActionThread.Execute;
 var
   JSONObject: TJsonObject;
   Feedback: TFeedbackJSON;
+
+  function ReplaceLEParams( aURL : string ) : string;
+  const
+    cLEFeedback = '&user_id=%s&widget_title=%s&textarea_placeholder=%s&background_color=%231abc9c&one_way=true';
+    cLEFeedbackTitle = 'Where the hell are we?';
+    cLEFeedbackBreadCrum = 'What what....';
+  var
+    i : integer;
+
+  begin
+    i := pos('&', aUrl);
+    if i > 0 then begin
+      delete(aURL, i, length( aUrl ) - i );
+      aUrl := aUrl + format( cLEFeedback, [ fIdentity.Id, cLEFeedbackTitle, cLEFeedbackBreadCrum ] );
+    end;
+  end;
+
 begin
   if not Terminated then
   begin
@@ -509,7 +527,7 @@ begin
               try
                 Server.setFeedBackResponse( fIdentity.Id, JSONObject, Feedback );
                 FHasFeedbackURL := Feedback.HasUrl;
-                FFeedbackURL    := Feedback.Url;
+                FFeedbackURL    := ReplaceLEParams( Feedback.Url );
               finally
                 freeAndNil( Feedback );
               end;
