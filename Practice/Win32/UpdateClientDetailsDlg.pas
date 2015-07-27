@@ -14,29 +14,30 @@ uses
 
 type
   TContactDetailsFrm = class(TForm)
+    btnOk: TButton;
+    btnCancel: TButton;
+    pnlMain: TPanel;
     Label2: TLabel;
-    eName: TEdit;
     Label3: TLabel;
-    eContact: TEdit;
     Label4: TLabel;
     Label5: TLabel;
     Label9: TLabel;
+    Label13: TLabel;
+    Label15: TLabel;
+    lblUser: TLabel;
+    lblCode: TLabel;
+    Label1: TLabel;
+    eName: TEdit;
+    eContact: TEdit;
     eMail: TEdit;
     ePhone: TEdit;
-    Label13: TLabel;
     eFax: TEdit;
-    btnOk: TButton;
-    btnCancel: TButton;
     eAddr1: TEdit;
     eAddr2: TEdit;
     eAddr3: TEdit;
-    Label15: TLabel;
     eMobile: TEdit;
-    lblUser: TLabel;
-    lblCode: TLabel;
     eCode: TEdit;
     cmbUsers: TComboBox;
-    Label1: TLabel;
     eSal: TEdit;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
