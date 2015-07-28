@@ -630,7 +630,11 @@ var
           'execute fServer.GetNPSSurvey' );
       fServer.GetNPSSurvey( fIdentity.Id, aSurveyJSON);
     except
-      on E: Exception do ; // Swallow the event
+      on E: Exception do begin
+        freeAndNil( aSurveyJSON ); // If there is an exception, we need to destroy
+          // the created object and exit the function else a memory leak will occur
+        exit;  
+      end; // Swallow the event
     end;
     result := trim( aSurveyJSON.Url ) <> '';
     if trim( aSurveyJSON.Url ) <> '' then
@@ -654,8 +658,8 @@ begin
           if bHasNewSurvey then
             FHasSurvey := true;
         except
-        // We need to destroy the JSON object
-          freeAndNil( FSurveyJSON );
+        // We DO NEED need to destroy the JSON object as it is Added to a ObjectList
+//          freeAndNil( FSurveyJSON );
         end;
       end;
 

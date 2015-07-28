@@ -21,6 +21,7 @@ type
   private
     FUrl: String;
     FOleInPlaceActiveObject: IOleInPlaceActiveObject;
+    FSaveMessageHandler: TMessageEvent;
 
     procedure WMShowing(var Message: TMessage); message WM_SHOWING;
     procedure WMNCHitTest(var Msg: TWMNCHitTest) ; message WM_NCHitTest;
@@ -39,12 +40,14 @@ implementation
 
 procedure TfrmNPSWebHost.FormCreate(Sender: TObject);
 begin
+  FSaveMessageHandler := Forms.Application.OnMessage;
   Application.OnMessage := MsgHandler;
 end;
 
 procedure TfrmNPSWebHost.FormDestroy(Sender: TObject);
 begin
   FOleInPlaceActiveObject := nil;
+  Application.OnMessage := FSaveMessageHandler;
 end;
 
 procedure TfrmNPSWebHost.FormShow(Sender: TObject);
@@ -94,7 +97,7 @@ begin
 
     WebForm.ShowModal;
   finally
-    WebForm.Free;
+    freeAndNil( WebForm );
   end;
 end;
 

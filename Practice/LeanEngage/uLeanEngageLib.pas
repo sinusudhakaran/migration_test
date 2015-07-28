@@ -202,7 +202,7 @@ begin
 end;
 
 function TLESurveys.Serialize: String;
-begin
+begin                                       
 
 end;
 
@@ -257,7 +257,7 @@ begin
 
         FItems.Add(Survey);
       except
-        freeAndNil(Survey);
+//        freeAndNil(Survey); Do NOT free the Survey instance, FItems is ObjectList
       end;
     end;
   finally
