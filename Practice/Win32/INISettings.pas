@@ -778,9 +778,13 @@ begin
 
         PRACINI_LeanEngage_BASE_URL    := ReadString( GrpPracLeanEngage,
           'LeanEngage_BASE_URL', DefLeanEngageLink );
+      {$ifdef Debug}
+        PRACINI_LeanEngage_System_Switch := cLeanEngage_TestSwitch; // Ensure that Practice only uses test system
+      {$else}{ifdef Debug}
         PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
           'LeanEngage_System_Switch', cLeanEngage_ProdSwitch);
- 
+      {$ifdef Debug}
+
         InitLocking(PRACINI_IPClientLocking_SwitchedOn,
                     PRACINI_IPClientLocking_UDP_Client_Port,
                     PRACINI_IPClientLocking_UDP_BuffInitSize,
