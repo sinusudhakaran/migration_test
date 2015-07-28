@@ -783,7 +783,7 @@ begin
       {$else}{ifdef Debug}
         PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
           'LeanEngage_System_Switch', cLeanEngage_ProdSwitch);
-      {$ifdef Debug}
+      {$endif}{ifdef Debug}
 
         InitLocking(PRACINI_IPClientLocking_SwitchedOn,
                     PRACINI_IPClientLocking_UDP_Client_Port,
