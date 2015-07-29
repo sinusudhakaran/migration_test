@@ -58,11 +58,9 @@ end;
 procedure TfrmNPSWebHost.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   WebBrowser.Stop;
-  WebBrowser.LoadFromStream( nil );
-//  WebBrowser.NavigateToURL('about:blank');
-
-//  WebBrowser.LoadFromFile('WDDX_License.html');
-//  WebBrowser.Quit;
+// !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
+  WebBrowser.LoadFromStream( nil ); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
   Action := caFree;
 end;
 
