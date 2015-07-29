@@ -4,20 +4,24 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OleCtrls, SHDocVw, ExtCtrls, OSFont, ActiveX;
+  Dialogs, OleCtrls, (*SHDocVw,(**)BKWebBrowser, ExtCtrls, OSFont, ActiveX,
+  SHDocVw;
 
 const
   WM_SHOWING = WM_USER + 1;
   
 type
   TfrmNPSWebHost = class(TForm)
-    WebBrowser: TWebBrowser;
+    WebBrowser: TBKWebBrowser;
     procedure FormShow(Sender: TObject);
     procedure WebBrowserQuit(Sender: TObject);
     procedure WebBrowserWindowClosing(ASender: TObject; IsChildWindow: WordBool;
       var Cancel: WordBool);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+
   private
     FUrl: String;
     FOleInPlaceActiveObject: IOleInPlaceActiveObject;
@@ -48,6 +52,18 @@ procedure TfrmNPSWebHost.FormDestroy(Sender: TObject);
 begin
   FOleInPlaceActiveObject := nil;
   Application.OnMessage := FSaveMessageHandler;
+end;
+
+
+procedure TfrmNPSWebHost.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  WebBrowser.Stop;
+  WebBrowser.LoadFromStream( nil );
+//  WebBrowser.NavigateToURL('about:blank');
+
+//  WebBrowser.LoadFromFile('WDDX_License.html');
+//  WebBrowser.Quit;
+  Action := caFree;
 end;
 
 procedure TfrmNPSWebHost.FormShow(Sender: TObject);
@@ -90,7 +106,7 @@ class procedure TfrmNPSWebHost.Show(Url: String; Owner: TComponent = nil);
 var
   WebForm: TfrmNPSWebHost;
 begin
-  WebForm := TfrmNPSWebHost.Create(Owner);
+  WebForm := TfrmNPSWebHost.Create((*Owner*) Nil);
 
   try
     WebForm.Url := Url;
@@ -103,6 +119,7 @@ end;
 
 procedure TfrmNPSWebHost.WebBrowserQuit(Sender: TObject);
 begin
+  WebBrowser.Stop;
   Close;
 end;
 
@@ -111,6 +128,7 @@ procedure TfrmNPSWebHost.WebBrowserWindowClosing(ASender: TObject;
 begin
   Cancel := True;
   
+  WebBrowser.Stop;
   PostMessage(Handle, WM_CLOSE, 0, 0);
 end;
 

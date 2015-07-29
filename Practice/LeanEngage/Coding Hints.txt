@@ -1,0 +1,17 @@
+unit ApplicationStartupAndShutDown; // The autologon that need to be ignored
+ln 108 - 120
+    begin
+      //Action specified
+      p := Copy( S, Pos( ActionSwitch, S) + Length(ActionSwitch), 255);
+      if p <> '' then begin
+         if p = 'BULKEXPORT' then begin
+            StartupParam_Action := sa_BulkExport;
+         end else  if p = 'DOWNLOAD' then begin
+            StartupParam_Action := sa_Connect;
+         end
+         else if p = 'EXPORTACCOUNTS' then
+           StartupParam_Action := sa_ExportTransactions;
+      end;
+
+	  
+	

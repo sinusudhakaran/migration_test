@@ -12,18 +12,20 @@ object frmNPSWebHost: TfrmNPSWebHost
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object WebBrowser: TWebBrowser
+  object WebBrowser: TBKWebBrowser
     Left = 0
     Top = 0
     Width = 572
     Height = 440
     Align = alClient
     TabOrder = 0
+    OnQuit = WebBrowserQuit
     OnWindowClosing = WebBrowserWindowClosing
     ExplicitLeft = 5
     ExplicitTop = 4
