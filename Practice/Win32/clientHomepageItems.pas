@@ -1616,10 +1616,16 @@ begin
 
          offsetRect(R,(BtnWidth - LEDWidth),0);
 
-         if GSTInfo.HasAction then
-            PenColor := ActionBorderColor
+         if GSTInfo.GetFillColor = ColorNoData then
+         begin
+           if GSTInfo.HasAction then
+             PenColor := ActionBorderColor
+           else
+             PenColor := BlankBorderColor;
+         end
          else
-            PenColor := BlankBorderColor;
+           PenColor := GSTInfo.GetFillColor;
+
          DrawCell(GSTInfo.GetFillColor,PenColor,Canvas,R,NodeSelected and Lselected,BoxType);
       end;
   end;
