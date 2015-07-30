@@ -68,6 +68,7 @@ object frmCoding: TfrmCoding
     ParentFont = False
     TabOrder = 1
     VisualStyle = vsGradient
+    ExplicitTop = -1
     object lblAcctDetails: TLabel
       Left = 3
       Top = 1
@@ -170,7 +171,8 @@ object frmCoding: TfrmCoding
       Align = alLeft
       Caption = 'Show Legend'
       OnClick = tbtnCloseClick
-      ExplicitHeight = 19
+      ExplicitLeft = -1
+      ExplicitTop = -2
     end
     object lblRecommendedMemorisations: TLabel
       Left = 480
@@ -635,7 +637,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -654,7 +655,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     OnChange = celGstAmtChange
@@ -674,7 +674,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     OnChange = celQuantityChange
@@ -1032,6 +1031,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Left = 624
     Top = 48
@@ -1046,6 +1046,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit

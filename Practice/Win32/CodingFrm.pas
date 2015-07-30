@@ -359,7 +359,7 @@ type
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 
   private
-    { Private declarations }
+    fSearchVisible : boolean;
     AltLineColor : integer;
     Temp_Column_Order             : Array[ 0..32 ] of Byte;
     Temp_Column_Width             : Array[ 0..32 ] of Integer;
@@ -1182,7 +1182,7 @@ begin
   lblTransRange.Font.Name := Font.Name;
   lblFinalised.Font.Name := Font.Name;
 
-  pnlSearch.Height := Abs(Self.Font.Height * 15 div 8) + 4;
+  fSearchVisible := false;
   SetHyperLinkFont(lblRecommendedMemorisations.Font);
 
   pnlExtraTitleBar.GradientColorStart := bkBranding.TobBarStartColor;
@@ -7256,19 +7256,24 @@ end;
 
 procedure TfrmCoding.SetSearchVisible(const Value: Boolean);
 begin
-   pnlSearch.Visible := Value;
-   miSearch.Checked :=  Value;
+  fSearchVisible := Value;
 
-   UserINI_CES_Show_Find := Value;
+  if fSearchVisible then
+    pnlSearch.Height := Abs(Self.Font.Height * 15 div 8) + 4
+  else
+    pnlSearch.Height := 2;
 
-   if Value
-   and EBFind.Visible then
-      EBFind.SetFocus
-   else
-      if tblCoding.Visible then
-         tblCoding.SetFocus;
+  miSearch.Checked  := Value;
 
-   UpdateSortByMenu;
+  UserINI_CES_Show_Find := Value;
+
+  if (Value) and (EBFind.Visible) then
+    EBFind.SetFocus
+  else
+    if tblCoding.Visible then
+      tblCoding.SetFocus;
+
+  UpdateSortByMenu;
 end;
 
 procedure TfrmCoding.SetShowNoNotesOnly;
@@ -7977,7 +7982,7 @@ end;
 
 function TfrmCoding.GetSearchVisible: Boolean;
 begin
-   result := PnlSearch.Visible;
+  result := fSearchVisible;
 end;
 
 procedure TfrmCoding.UpdateSuggestedMemLabel;
