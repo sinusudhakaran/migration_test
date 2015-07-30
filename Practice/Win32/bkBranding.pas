@@ -883,6 +883,7 @@ begin
   if TProduct.ProductBrand = btMYOBBankLink then
   begin
     aOVCTable.Colors.ActiveFocused := SELECTED_CELL;
+    aOVCTable.Colors.ActiveFocusedText := clWhite;
   end;
 end;
 

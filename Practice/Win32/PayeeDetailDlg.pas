@@ -236,7 +236,8 @@ uses
   warningMorefrm,
   Clipbrd,
   bautils,
-  countryutils, bkBranding;
+  countryutils,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -1422,7 +1423,7 @@ var
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
-  if CellAttr.caColor = clHighlight then exit;
+  if CellAttr.caColor = bkBranding.SelectionColor then exit;
   //check is a data row
   if not( (RowNum > 0) and (RowNum <= GLCONST.Max_py_Lines)) then exit;
   //see if edited
@@ -1823,29 +1824,34 @@ begin
 
    R := CellRect;
 
-   if CellAttr.caColor <> clHighlight then begin
-      if (S = '')
-      or (S = BKCONST.DISSECT_DESC)
-      or MyClient.clChart.CanCodeTo(S, IsActive) then begin
-         // Ok.
-         if IsActive then         
-           TableCanvas.Brush.Color := CellAttr.caColor
-         else
-           TableCanvas.Brush.Color := clYellow;
-         TableCanvas.FillRect(R);
-         TableCanvas.Font.Color := clWindowtext;
-      end else begin
-         TableCanvas.Brush.Color := clRed;
-         TableCanvas.Font.Color := clWhite;
-         TableCanvas.FillRect(R);
-         //paint border
-         TableCanvas.Pen.Color := CellAttr.caColor;
-         TableCanvas.Polyline( [ Point( R.Left, R.Bottom-1), Point( R.Right, R.Bottom-1) ]);
+   if CellAttr.caColor <> bkBranding.SelectionColor then
+   begin
+     if (S = '')
+     or (S = BKCONST.DISSECT_DESC)
+     or MyClient.clChart.CanCodeTo(S, IsActive) then
+     begin
+       if IsActive then
+         TableCanvas.Brush.Color := CellAttr.caColor
+       else
+         TableCanvas.Brush.Color := clYellow;
 
-      end;
-   end else begin
-     TableCanvas.Brush.Color := clHighlight;
-     TableCanvas.Font.Color := clHighlightText;
+       TableCanvas.FillRect(R);
+       TableCanvas.Font.Color := clWindowtext;
+     end
+     else
+     begin
+       TableCanvas.Brush.Color := clRed;
+       TableCanvas.Font.Color := clWhite;
+       TableCanvas.FillRect(R);
+       //paint border
+       TableCanvas.Pen.Color := CellAttr.caColor;
+       TableCanvas.Polyline( [ Point( R.Left, R.Bottom-1), Point( R.Right, R.Bottom-1) ]);
+     end;
+   end
+   else
+   begin
+     TableCanvas.Brush.Color := bkBranding.SelectionColor;
+     TableCanvas.Font.Color := clWhite;
      TableCanvas.FillRect(R);
    end;
    //paint background

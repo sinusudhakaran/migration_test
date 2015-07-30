@@ -1956,7 +1956,7 @@ var
 begin
   If ( data = nil ) then exit;
   //if selected dont do anything
-  if CellAttr.caColor = clHighlight then exit;
+  if CellAttr.caColor = bkBranding.SelectionColor then exit;
   //check is a data row
   if not( (RowNum > 0) and (RowNum <= GLCONST.Max_mx_Lines)) then exit;
   //see if edited
@@ -2774,7 +2774,7 @@ begin
 
    R := CellRect;
 
-   if CellAttr.caColor <> clHighlight then begin
+   if CellAttr.caColor <> bkBranding.SelectionColor then begin
       if (S = '')
       or (S = BKCONST.DISSECT_DESC)
       or MyClient.clChart.CanCodeTo(S,CodeIsActive,HasAlternativeChartCode (MyClient.clFields.clCountry,MyClient.clFields.clAccounting_System_Used)) then begin
@@ -2795,8 +2795,8 @@ begin
 
       end;
    end else begin
-     TableCanvas.Brush.Color := clHighlight;
-     TableCanvas.Font.Color := clHighlightText;
+     TableCanvas.Brush.Color := bkBranding.SelectionColor;
+     TableCanvas.Font.Color := clWhite;
      TableCanvas.FillRect(R);
    end;
 
@@ -3446,7 +3446,7 @@ begin
    {draw data}
    InflateRect( R, -2, -2 );
    C.Font.Color := clWhite;
-   if (CellAttr.caColor <> clHighlight) then
+   if (CellAttr.caColor <> bkBranding.SelectionColor) then
      DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    DoneIt := True;
 end;
