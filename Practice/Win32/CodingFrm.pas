@@ -63,6 +63,12 @@ type
 
   TCodingOptions = set of TCodingCommands;
 
+  TSuggestionCount = record
+    SuggestionId : integer;
+    CodedCount : integer;
+    Highlighted : boolean;
+  end;
+
   TfrmCoding = class(TForm)
     cntController: TOvcController;
     celStatus: TOvcTCBitMap;
@@ -397,6 +403,7 @@ type
     tmpPaintShortStr              : ShortString;
     tmpPaintDouble                : double;
     tmpPaintInteger               : Integer;
+    tmpPaintSuggestionCount       : TSuggestionCount;
 
     FIsClosing, FIsReloading, StartFocus, Undo: boolean;
     FsuperTop, FSuperLeft: Integer;
@@ -5102,7 +5109,11 @@ begin
 
         ceSuggestedMemCount :
         begin
-          data := @pT^.txSuggested_Mem_Count;
+          tmpPaintSuggestionCount.SuggestionId := 0;
+          tmpPaintSuggestionCount.CodedCount := 0;
+          tmpPaintSuggestionCount.Highlighted := false;
+
+          data := @tmpPaintSuggestionCount;
         end
 
       else
@@ -9976,6 +9987,8 @@ var
   CircleHalfHeight : integer;
   CircleHalfWidth : integer;
   MidCircleX, MidCircleY : integer;
+
+  PaintSuggestionCount : TSuggestionCount;
 begin
   If ( data = nil ) then exit;
 
@@ -9985,14 +9998,20 @@ begin
 
   TableCanvas.FillRect( CellRect );
 
-  if CellAttr.caColor = bkBranding.SelectionColor then
+  PaintSuggestionCount := TSuggestionCount( Data^ );
+  if PaintSuggestionCount.CodedCount = 0 then
+  begin
+    DoneIt := True;
+    Exit;
+  end;
+
+  if PaintSuggestionCount.Highlighted then
     TableCanvas.Brush.Color := BankLinkColor
   else
     TableCanvas.Brush.Color := clGray;
 
   TableCanvas.Font.Color  := clWhite;
 
-  SuggStr := inttoStr(integer( Data^ ));
   SuggStrLen := StrLen( PChar( SuggStr ) );
   SuggPixelLen := TableCanvas.TextWidth(SuggStr);
 

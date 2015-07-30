@@ -380,7 +380,9 @@ end;
 function GridHEADER : integer;
 begin
   if TProduct.ProductBrand = btMYOBBankLink then
-    Result := Grid_HEADER;
+    Result := Grid_HEADER
+  else
+    Result := clGray;
 end;
 
 function BannerColor: Integer;
