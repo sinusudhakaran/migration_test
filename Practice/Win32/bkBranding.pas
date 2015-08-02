@@ -64,6 +64,7 @@ var
   function TopTitleColor: Integer;
   function BankLinkColor: Integer;
   function BankLinkHighlightColor: Integer;
+  function BankLinkNearWhiteColor: Integer;
 
   procedure InitialiseGraphicsAndColors( CanvasHandleToTest : hDC);
 
@@ -459,6 +460,11 @@ end;
 function BankLinkHighlightColor: Integer;
 begin
   Result := $00CA8B00;
+end;
+
+function BankLinkNearWhiteColor: Integer;
+begin
+  Result := $00E9D8C0;
 end;
 
 function GroupBackGroundStartColor: Integer;
@@ -911,8 +917,10 @@ begin
 
     for GroupIndex := 0 to aGroupBar.GroupCount - 1 do
     begin
+      aGroupBar.Groups[GroupIndex].CaptionColorStart := BankLinkNearWhiteColor;
+      aGroupBar.Groups[GroupIndex].CaptionColorStop  := BankLinkNearWhiteColor;
       aGroupBar.Groups[GroupIndex].CaptionFont.Color := BankLinkColor;
-      aGroupBar.Groups[GroupIndex].CaptionHotColor := BankLinkHighlightColor;
+      aGroupBar.Groups[GroupIndex].CaptionHotColor   := BankLinkColor;
 
       aGroupBar.Groups[GroupIndex].Font.Color     := BankLinkColor;
       aGroupBar.Groups[GroupIndex].SelectionColor := BankLinkColor;
