@@ -913,6 +913,10 @@ begin
     begin
       aGroupBar.Groups[GroupIndex].CaptionFont.Color := BankLinkColor;
       aGroupBar.Groups[GroupIndex].CaptionHotColor := BankLinkHighlightColor;
+
+      aGroupBar.Groups[GroupIndex].Font.Color     := BankLinkColor;
+      aGroupBar.Groups[GroupIndex].SelectionColor := BankLinkColor;
+      aGroupBar.Groups[GroupIndex].ItemHotColor   := BankLinkColor;
     end;
   end
   else

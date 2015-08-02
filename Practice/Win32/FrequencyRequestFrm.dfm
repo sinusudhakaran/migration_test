@@ -3,7 +3,7 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Send Frequency Change Request'
-  ClientHeight = 484
+  ClientHeight = 485
   ClientWidth = 594
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,19 +20,27 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   TextHeight = 13
   object pBottom: TPanel
     Left = 0
-    Top = 443
+    Top = 444
     Width = 594
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 0
+    ExplicitTop = 443
     DesignSize = (
       594
       41)
     object lblInstitutionListLink: TLabel
       Left = 16
-      Top = 2
+      Top = 0
       Width = 309
-      Height = 33
+      Height = 35
       AutoSize = False
       Caption = 
         'Please check the available frequency options per institution bef' +
@@ -69,6 +77,12 @@ object frmFrequencyRequest: TfrmFrequencyRequest
     Width = 594
     Height = 104
     BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 1
     Visible = False
     DesignSize = (
@@ -87,15 +101,15 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       object Label2: TLabel
         Left = 8
         Top = 17
-        Width = 38
-        Height = 13
+        Width = 44
+        Height = 16
         Caption = 'Monthly'
       end
       object Label4: TLabel
         Left = 68
         Top = 17
-        Width = 10
-        Height = 13
+        Width = 11
+        Height = 16
         Caption = 'to'
       end
       object rbMonthToWeek: TRadioButton
@@ -136,6 +150,12 @@ object frmFrequencyRequest: TfrmFrequencyRequest
     Width = 594
     Height = 104
     BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 3
     Visible = False
     DesignSize = (
@@ -154,15 +174,15 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       object Label1: TLabel
         Left = 8
         Top = 19
-        Width = 23
-        Height = 13
+        Width = 27
+        Height = 16
         Caption = 'Daily'
       end
       object Label6: TLabel
         Left = 68
         Top = 19
-        Width = 10
-        Height = 13
+        Width = 11
+        Height = 16
         Caption = 'to'
       end
       object rbDayToMonth: TRadioButton
@@ -203,6 +223,12 @@ object frmFrequencyRequest: TfrmFrequencyRequest
     Width = 594
     Height = 104
     BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 2
     Visible = False
     DesignSize = (
@@ -221,15 +247,15 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       object Label3: TLabel
         Left = 8
         Top = 17
-        Width = 35
-        Height = 13
+        Width = 41
+        Height = 16
         Caption = 'Weekly'
       end
       object Label5: TLabel
         Left = 68
         Top = 17
-        Width = 10
-        Height = 13
+        Width = 11
+        Height = 16
         Caption = 'to'
       end
       object rbWeekToMonth: TRadioButton
@@ -271,6 +297,12 @@ object frmFrequencyRequest: TfrmFrequencyRequest
     Height = 30
     Align = alTop
     BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 4
     Visible = False
     object cbNotifyEmail: TCheckBox

@@ -35,7 +35,9 @@ implementation
 
 uses
   Windows,
-  uxtheme;
+  uxtheme,
+  bkBranding,
+  bkProduct;
 
 //------------------------------------------------------------------------------
 constructor TForm.Create(AOwner: tComponent);
@@ -75,10 +77,17 @@ end;
 //------------------------------------------------------------------------------
 function HyperLinkColor: TColor;
 begin
-  if GetSysColorBrush(COLOR_HOTLIGHT) = 0 then
-     Result := clBlue
+  if TProduct.ProductBrand = btMYOBBankLink then
+  begin
+    Result := BKBranding.BankLinkColor;
+  end
   else
-     Result := GetSysColor(COLOR_HOTLIGHT);
+  begin
+    if GetSysColorBrush(COLOR_HOTLIGHT) = 0 then
+      Result := clBlue
+    else
+      Result := GetSysColor(COLOR_HOTLIGHT);
+  end;
 end;
 
 //------------------------------------------------------------------------------
