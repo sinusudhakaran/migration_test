@@ -247,14 +247,11 @@ end;
 
 {  -----------------------------------------------------------------------  }
 function GetTransCoreID( P : pTransaction_Rec ) : Int64;
-var
-  High : int64;
-  Low  : int64;
 begin
-  Low  := P^.txCore_Transaction_ID;
-  High := P^.txCore_Transaction_ID_High;
-
-  Result := (High shr 15) or Low;
+  if assigned( P ) then
+    Result := CombineInt32ToInt64( P^.txCore_Transaction_ID_High, P^.txCore_Transaction_ID )
+  else
+    Result := 0;
 end;
 
 {  -----------------------------------------------------------------------  }

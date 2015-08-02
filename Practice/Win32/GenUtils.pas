@@ -168,6 +168,9 @@ function RemoveNonNumericData(aInString : string; KeepSpaces: boolean = true) : 
 function FixJsonString(inString : string) : string;
 function TrimLeadZ( const S : ShortString ) : ShortString;
 
+function CombineInt32ToInt64( aHigh, aLow : integer ) : Int64;
+
+
 //******************************************************************************
 Implementation
 
@@ -1413,6 +1416,18 @@ begin
 
     Result := Result + inString[Index];
   end;
+end;
+
+{  -----------------------------------------------------------------------  }
+function CombineInt32ToInt64( aHigh, aLow : integer ) : Int64;
+var
+  High : int64;
+  Low  : int64;
+begin
+  Low  := aLow;
+  High := aHigh;
+
+  result := (High shl (sizeof( High ) * 8) ) or Low;
 end;
 
 End.
