@@ -37,9 +37,9 @@ uses
 type
   TfrmSplash = class(TForm)
     Panel1: TPanel;
-    Label1: TLabel;
-    imgBankstreamSplash: TImage;
     imgBankLinkSplash: TImage;
+    imgBankstreamSplash: TImage;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
