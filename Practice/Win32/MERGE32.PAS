@@ -357,39 +357,42 @@ Begin
                              end
                              else
                              Begin
-                                Transaction := baTransaction_List.New_Transaction;
-                                With Transaction^ do
-                                Begin
-                                   txType               := aType;
-                                   txSource             := aSource;
-                                   txDate_Presented     := aDate_Presented;
-                                   txDate_Effective     := aDate_Presented;
-                                   txDate_Transferred   := 0;
 
-                                   txAmount             := aAmount;
+                               if not baTransaction_List.TransactionCoreIDExists( aCoreTransactionID, aCoreTransactionIDHigh ) then begin
+                                 Transaction := baTransaction_List.New_Transaction;
+                                 With Transaction^ do
+                                 Begin
+                                    txType               := aType;
+                                    txSource             := aSource;
+                                    txDate_Presented     := aDate_Presented;
+                                    txDate_Effective     := aDate_Presented;
+                                    txDate_Transferred   := 0;
 
-                                   txQuantity           := ForceSignToMatchAmount( aQuantity, aAmount);
-                                   txCheque_Number      := aCheque_Number;
-                                   txReference          := aReference;
-                                   txParticulars        := aParticulars;
-                                   txAnalysis           := aAnalysis;
-                                   txOrigBB             := aOrigBB;
-                                   txOther_Party        := aOther_Party;
-                                   txGL_Narration       := aStatement_Details;
-                                   txStatement_Details  := aStatement_Details;
-                                   txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
+                                    txAmount             := aAmount;
 
-                                   txCore_Transaction_ID      := aCoreTransactionID;
-                                   txCore_Transaction_ID_High := aCoreTransactionIDHigh;
+                                    txQuantity           := ForceSignToMatchAmount( aQuantity, aAmount);
+                                    txCheque_Number      := aCheque_Number;
+                                    txReference          := aReference;
+                                    txParticulars        := aParticulars;
+                                    txAnalysis           := aAnalysis;
+                                    txOrigBB             := aOrigBB;
+                                    txOther_Party        := aOther_Party;
+                                    txGL_Narration       := aStatement_Details;
+                                    txStatement_Details  := aStatement_Details;
+                                    txBank_Seq           := baFields.baNumber;  //setbank account sequence no to current bank index
 
-                                   //Get extra info for Provisional transactions
-                                   if (txSource = orProvisional) then
-                                     SetProvisionalInfo(aLRN, txTemp_Prov_Entered_By, txTemp_Prov_Date_Time);
-                                end;
-                                baTransaction_List.Insert_Transaction_Rec( Transaction );
+                                    txCore_Transaction_ID      := aCoreTransactionID;
+                                    txCore_Transaction_ID_High := aCoreTransactionIDHigh;
 
-                                //Flag Audit for bank account
-                                aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
+                                    //Get extra info for Provisional transactions
+                                    if (txSource = orProvisional) then
+                                      SetProvisionalInfo(aLRN, txTemp_Prov_Entered_By, txTemp_Prov_Date_Time);
+                                 end;
+                                 baTransaction_List.Insert_Transaction_Rec( Transaction );
+
+                                 //Flag Audit for bank account
+                                 aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
+                               end;
                              end;
 
                              If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;

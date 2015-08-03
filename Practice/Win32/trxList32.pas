@@ -25,8 +25,20 @@ type
     tiStatement_Details   : AnsiString;
   end;
 
+(* DN  pTran_Transaction_Code_Index_Rec = ^TTran_Transaction_Code_Index_Rec;
+  TTran_Transaction_Code_Index_Rec = Packed Record
+    tiCoreTransactionID     : Integer;
+    tiCoreTransactionIDHigh : Integer;
+  end; *)
+
+  pTran_Transaction_Code_Index_Rec = ^TTran_Transaction_Code_Index_Rec;
+  TTran_Transaction_Code_Index_Rec = Record
+    tiCoreTransactionID     : Int64;
+  end;
+
 const
   Tran_Suggested_Index_Rec_Size = Sizeof(TTran_Suggested_Index_Rec);
+  Tran_Transaction_Code_Index_Rec_Size = Sizeof(TTran_Transaction_Code_Index_Rec);
 
 type
   //----------------------------------------------------------------------------
@@ -46,6 +58,19 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  TTran_Transaction_Code_Index = class(TExtdSortedCollection)
+  private
+  protected
+    function NewItem() : Pointer;
+    procedure FreeItem(Item: Pointer); override;
+  public
+    constructor Create; override;
+    function  Compare(Item1, Item2: Pointer) : integer; override;
+
+    procedure FreeTheItem(Item: Pointer);
+  end;
+
+  //----------------------------------------------------------------------------
   TTransaction_List = class(TExtdSortedCollection)
   private
     FLastSeq      : integer;
@@ -55,6 +80,7 @@ type
     FLoading      : boolean;
 
     fTran_Suggested_Index : TTran_Suggested_Index;
+    fTran_Transaction_Code_Index : TTran_Transaction_Code_Index;
 
     function FindRecordID(ARecordID: integer):  pTransaction_Rec;
     function FindDissectionRecordID(ATransaction: pTransaction_Rec;
@@ -79,6 +105,10 @@ type
     function FindTransactionFromMatchId(UID: integer): pTransaction_Rec;
     function SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
     function SearchUsingTypeDateandTranSeqNo(aType : Byte; aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
+    function SearchByTransactionCoreID(aCore_Transaction_ID, aCore_Transaction_ID_High: integer; var aIndex: integer): Boolean;
+    function TransactionCoreIDExists(aCore_Transaction_ID, aCore_Transaction_ID_High: integer): Boolean;
+
+
     function New_Transaction : pTransaction_Rec;
 
     // Effective date
@@ -141,7 +171,8 @@ uses
 const
   DebugMe : boolean = false;
   UnitName = 'TRXLIST32';
-  SInsufficientMemory = UnitName + ' Error: Out of memory in TTran_Suggested_Index.NewItem';
+//  SInsufficientMemory = UnitName + ' Error: Out of memory in TTran_Suggested_Index.NewItem';
+  SInsufficientMemory = UnitName + ' Error: Out of memory in %s.NewItem';
 
 { TTran_Suggested_Index }
 //------------------------------------------------------------------------------
@@ -154,7 +185,7 @@ Begin
   If Assigned( P ) then
     FillChar( P^, Tran_Suggested_Index_Rec_Size, 0 )
   else
-    Raise EInsufficientMemory.Create( SInsufficientMemory );
+    Raise EInsufficientMemory.CreateFmt( SInsufficientMemory, [ 'TTran_Suggested_Index' ] );
 
   Result := P;
 end;
@@ -348,6 +379,8 @@ const
   ThisMethodName = 'TTransaction_List.Insert_Transaction_Rec';
 var
   NewTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
+  NewTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
+
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   If BKTXIO.IsATransaction_Rec( P ) then
@@ -357,6 +390,8 @@ Begin
     P^.txBank_Account := fBank_Account;
     P^.txClient       := fClient;
 
+
+    // Build suggested Mems Index
     if (fBank_Account is TBank_Account) and
        (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
     begin
@@ -375,6 +410,22 @@ Begin
 
       fTran_Suggested_Index.Insert(NewTran_Suggested_Index_Rec);
     end;
+
+    // Build Transaction Core ID Index
+    if (fBank_Account is TBank_Account) and
+       (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
+    begin
+      NewTran_Transaction_Code_Index_Rec := fTran_Transaction_Code_Index.NewItem;
+(*DN      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionID := P^.txCore_Transaction_ID;
+      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := P^.txCore_Transaction_ID_High; *)
+      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionID :=
+        CombineInt32ToInt64(
+          P^.txCore_Transaction_ID, P^.txCore_Transaction_ID_High );
+
+      FTran_Transaction_Code_Index.Insert( NewTran_Transaction_Code_Index_Rec );
+    end;
+
+
 
     //Get next audit ID for new transactions
     if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
@@ -397,6 +448,7 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    FLoading := True;
    fTran_Suggested_Index.SortingOn := false;
+   fTran_Transaction_Code_Index.SortingOn := false;
    try
      if (fBank_Account is TBank_Account) then
        TBank_Account(fBank_Account).baFields.baSuggested_UnProcessed_Count := 0;
@@ -433,6 +485,9 @@ Begin
      FLoading := False;
      fTran_Suggested_Index.SortingOn := true;
      fTran_Suggested_Index.Sort();
+
+     fTran_Transaction_Code_Index.SortingOn := true;
+     fTran_Transaction_Code_Index.Sort();
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
@@ -476,6 +531,8 @@ Begin
    begin
      fTran_Suggested_Index.SortForSave := true;
      fTran_Suggested_Index.Sort();
+     
+     fTran_Transaction_Code_Index.Sort();
    end;
 
    S.WriteToken( tkBeginEntries );
@@ -506,6 +563,8 @@ Begin
    begin
      fTran_Suggested_Index.SortForSave := false;
      fTran_Suggested_Index.Sort();
+
+     fTran_Transaction_Code_Index.Sort();
    end;
 
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -594,6 +653,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TTransaction_List.TransactionCoreIDExists(aCore_Transaction_ID,
+  aCore_Transaction_ID_High: integer): Boolean;
+var
+  aIndex : integer;
+begin
+  result := SearchByTransactionCoreID(aCore_Transaction_ID, aCore_Transaction_ID_High, aIndex);
+end;
+
 function TTransaction_List.Transaction_At(Index : longint) : pTransaction_Rec;
 const
   ThisMethodName = 'TTransaction_List.Transaction_At';
@@ -727,6 +794,7 @@ begin
   inherited Create;
 
   fTran_Suggested_Index := TTran_Suggested_Index.Create;
+  fTran_Transaction_Code_Index := TTran_Transaction_Code_Index.Create;
   FLoading := False;
   Duplicates := false;
   FLastSeq := 0;
@@ -737,6 +805,7 @@ end;
 
 destructor TTransaction_List.Destroy;
 begin
+  FreeAndNil(fTran_Transaction_Code_Index);
   FreeAndNil(fTran_Suggested_Index);
   inherited;
 end;
@@ -930,6 +999,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TTransaction_List.SearchByTransactionCoreID(aCore_Transaction_ID,
+  aCore_Transaction_ID_High: integer; var aIndex: integer): Boolean;
+var
+  SearchTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
+
+begin
+  SearchTran_Transaction_Code_Index_Rec := fTran_Transaction_Code_Index.NewItem;
+  try
+(* DN    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionID     := aCore_Transaction_ID;
+    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := aCore_Transaction_ID_High; *)
+    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionID     :=
+      CombineInt32ToInt64( aCore_Transaction_ID, aCore_Transaction_ID);
+    Result := fTran_Transaction_Code_Index.Search(SearchTran_Transaction_Code_Index_Rec, aIndex);
+  finally
+    freeAndNil( SearchTran_Transaction_Code_Index_Rec );
+  end;
+end;
+
 function TTransaction_List.SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
 var
   Top, Bottom, Index, CompRes : Integer;
@@ -977,6 +1064,72 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+{ TTran_Transaction_Code_Index }
+
+function TTran_Transaction_Code_Index.Compare(Item1, Item2: Pointer): integer;
+(* DN
+function TTran_Transaction_Code_Index.Compare(Item1, Item2: Pointer): integer;
+  function CombineIntegerToInt64( aHigh, aLow : integer ) : Int64;
+  var
+    High : int64;
+    Low  : int64;
+  begin
+    Low  := aLow;
+    High := aHigh;
+
+    Result := (High shr 32) or Low;
+  end;
+begin
+  Result := CompareValue(
+    CombineIntegerToInt64( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
+      pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionID ),
+    CombineIntegerToInt64( pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh,
+      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionID ));
+end;
+*)   // No point in this manipulation, serves no real gain for search....
+
+begin
+(* DN  Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
+      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh );
+  if result = 0 then
+     Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
+      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh )); *)
+  Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionID,
+      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionID );
+end;
+
+constructor TTran_Transaction_Code_Index.Create;
+begin
+  inherited;
+end;
+
+procedure TTran_Transaction_Code_Index.FreeItem(Item: Pointer);
+begin
+  fillchar( pTran_Transaction_Code_Index_Rec(Item)^, Tran_Transaction_Code_Index_Rec_Size, #0);
+
+  SafeFreeMem(Item, Tran_Transaction_Code_Index_Rec_Size);
+end;
+
+procedure TTran_Transaction_Code_Index.FreeTheItem(Item: Pointer);
+begin
+  DelFreeItem(Item);
+end;
+
+function TTran_Transaction_Code_Index.NewItem: Pointer;
+var
+  P : pTran_Transaction_Code_Index_Rec;
+Begin
+  SafeGetMem( P, Tran_Transaction_Code_Index_Rec_Size );
+
+  If Assigned( P ) then
+    FillChar( P^, Tran_Transaction_Code_Index_Rec_Size, 0 )
+  else
+    Raise EInsufficientMemory.CreateFmt( SInsufficientMemory, [ 'TTran_Transaction_Code_Index' ] );
+
+  Result := P;
+
+end;
+
 initialization
    DebugMe := DebugUnit(UnitName);
 
