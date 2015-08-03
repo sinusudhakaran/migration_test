@@ -325,7 +325,7 @@ begin
 
   StartTriggerFeedbackThread;
 
-  FLETriggeredActionThread.FireAndForget( aTriggerActionType, aMessageContent );
+  FLETriggeredActionThread.FireAndForget( aTriggerActionType, aMessageContent, aOnCompleted );
 end;
 
 procedure TNPSLeanEngage.SetIdentityId(aValue: string);

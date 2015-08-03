@@ -71,7 +71,7 @@ end;
 
 procedure TfrmNPSWebHost.MsgHandler(var Msg: TMsg; var Handled: Boolean);
 const
-  StdKeys = [VK_BACK, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT];
+  StdKeys = [VK_BACK, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_ESCAPE];
 var IOIPAO: IOleInPlaceActiveObject;
   Dispatch: IDispatch;
 begin
@@ -96,6 +96,8 @@ begin
       if ((Msg.message = WM_KEYDOWN) or (Msg.message = WM_KEYUP)) and
         (Msg.wParam in StdKeys) then
         //nothing  -  do not pass on Backspace, Left, Right, Up, Down arrows
+        if Msg.wParam = VK_ESCAPE then     //Close the form
+          Close                         //Close the form
       else FOleInPlaceActiveObject.TranslateAccelerator(Msg);
   end;
 end;
