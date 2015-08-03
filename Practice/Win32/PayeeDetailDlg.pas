@@ -1370,8 +1370,16 @@ end;
 procedure TdlgPayeeDetail.tblSplitGetCellAttributes(Sender: TObject; RowNum,
   ColNum: Integer; var CellAttr: TOvcCellAttributes);
 begin
+  if (RowNum = tblSplit.LockedRows) then
+    Exit;
+
   if (CellAttr.caColor = tblSplit.Color) then
-    if (RowNum >= tblSplit.LockedRows) and (Odd(Rownum)) then CellAttr.caColor := AltLineColor;
+  begin
+    if Odd(RowNum) then
+      CellAttr.caColor := clwhite
+    else
+      CellAttr.caColor := AltLineColor;
+  end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

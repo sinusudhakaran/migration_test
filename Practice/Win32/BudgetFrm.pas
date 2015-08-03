@@ -767,11 +767,19 @@ begin
     CellAttr.caColor := tblBudget.Color;
   end;
 
-  if (CellAttr.caColor = tblBudget.Color) then
-    if (RowNum >= tblBudget.LockedRows) and (Odd(Rownum)) then CellAttr.caColor := AltLineColor;
-
   if DataAssigned and RowNumOK(RowNum) and (not (FData[RowNum-1].bIsPosting)) then
      CellAttr.caFont.Style := [fsBold];
+
+  if (RowNum = tblBudget.LockedRows) then
+    Exit;
+
+  if (CellAttr.caColor = tblBudget.Color) then
+  begin
+    if Odd(RowNum) then
+      CellAttr.caColor := clwhite
+    else
+      CellAttr.caColor := AltLineColor;
+  end;
 end;
 
 //------------------------------------------------------------------------------

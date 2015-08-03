@@ -1823,9 +1823,16 @@ end;
 procedure TdlgMemorise.tblSplitGetCellAttributes(Sender: TObject; RowNum,
   ColNum: Integer; var CellAttr: TOvcCellAttributes);
 begin
-  if (CellAttr.caColor = tblSplit.Color) then
-    if (RowNum >= tblSplit.LockedRows) and (Odd(Rownum)) then CellAttr.caColor := AltLineColor;
+  if (RowNum = tblSplit.LockedRows) then
+    Exit;
 
+  if (CellAttr.caColor = tblSplit.Color) then
+  begin
+    if Odd(RowNum) then
+      CellAttr.caColor := clwhite
+    else
+      CellAttr.caColor := AltLineColor;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitActiveCellChanged(Sender: TObject; RowNum,
