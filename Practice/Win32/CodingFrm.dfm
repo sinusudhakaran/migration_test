@@ -68,7 +68,6 @@ object frmCoding: TfrmCoding
     ParentFont = False
     TabOrder = 1
     VisualStyle = vsGradient
-    ExplicitTop = -1
     object lblAcctDetails: TLabel
       Left = 3
       Top = 1
@@ -518,7 +517,6 @@ object frmCoding: TfrmCoding
         LeftCol = 0
         ActiveCol = 0
         Align = alClient
-        BorderStyle = bsNone
         Color = clWindow
         Colors.ActiveUnfocused = clBtnFace
         Colors.ActiveUnfocusedText = clWindowText
@@ -528,6 +526,7 @@ object frmCoding: TfrmCoding
         Controller = cntController
         Ctl3D = False
         GridPenSet.NormalGrid.NormalColor = clSilver
+        GridPenSet.NormalGrid.SecondColor = clWhite
         GridPenSet.NormalGrid.Style = psSolid
         GridPenSet.NormalGrid.Effect = geVertical
         GridPenSet.LockedGrid.NormalColor = clBtnShadow

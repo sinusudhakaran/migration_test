@@ -892,6 +892,8 @@ begin
   begin
     aOVCTable.Colors.ActiveFocused := SELECTED_CELL;
     aOVCTable.Colors.ActiveFocusedText := clWhite;
+    aOVCTable.Colors.Locked := GridHEADER;
+    aOVCTable.Colors.LockedText := clBlack;
   end;
 end;
 

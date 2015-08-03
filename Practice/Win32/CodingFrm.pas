@@ -19,7 +19,7 @@ uses
   OvcTable,
   OvcTCHdr,
   OvcTCPic,
-  OvcTCBEF,
+  OvcTCBEF,                   
   OvcTCNum,
   OvcTCStr,
   OvcTCEdt,
@@ -1192,10 +1192,6 @@ begin
   bkBranding.StyleOvcTableGrid(tblCoding);
   bkBranding.StyleTableHeading(hdrColumnHeadings);
   bkBranding.StyleAltRowColor(AltLineColor);
-
-  tblCoding.Colors.Locked := GridHEADER;
-  tblCoding.Colors.LockedText := clBlack;
-
 
   pnlExtraTitleBar.Height := imgRight.Picture.Height;
   

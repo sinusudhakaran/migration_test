@@ -4429,14 +4429,10 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgDissection.tblDissectEnter(Sender: TObject);
 begin
-   tblDissect.Colors.Locked     := clGray;
-   tblDissect.Colors.LockedText := clWhite;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgDissection.tblDissectExit(Sender: TObject);
 begin
-   tblDissect.Colors.Locked     := clBtnFace;
-   tblDissect.Colors.LockedText := clBtnShadow;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgDissection.tblDissectDblClick(Sender: TObject);
