@@ -418,9 +418,10 @@ Begin
       NewTran_Transaction_Code_Index_Rec := fTran_Transaction_Code_Index.NewItem;
 (*DN      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionID := P^.txCore_Transaction_ID;
       NewTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := P^.txCore_Transaction_ID_High; *)
-      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionID :=
-        CombineInt32ToInt64(
-          P^.txCore_Transaction_ID, P^.txCore_Transaction_ID_High );
+      if assigned( NewTran_Transaction_Code_Index_Rec ) then
+        NewTran_Transaction_Code_Index_Rec^.tiCoreTransactionID :=
+          CombineInt32ToInt64(
+            P^.txCore_Transaction_ID, P^.txCore_Transaction_ID_High );
 
       FTran_Transaction_Code_Index.Insert( NewTran_Transaction_Code_Index_Rec );
     end;
@@ -1009,11 +1010,12 @@ begin
   try
 (* DN    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionID     := aCore_Transaction_ID;
     SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := aCore_Transaction_ID_High; *)
-    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionID     :=
-      CombineInt32ToInt64( aCore_Transaction_ID, aCore_Transaction_ID);
+    if assigned( SearchTran_Transaction_Code_Index_Rec ) then
+      SearchTran_Transaction_Code_Index_Rec^.tiCoreTransactionID     :=
+        CombineInt32ToInt64( aCore_Transaction_ID, aCore_Transaction_ID);
     Result := fTran_Transaction_Code_Index.Search(SearchTran_Transaction_Code_Index_Rec, aIndex);
   finally
-    freeAndNil( SearchTran_Transaction_Code_Index_Rec );
+    fTran_Transaction_Code_Index.FreeItem( SearchTran_Transaction_Code_Index_Rec );
   end;
 end;
 
@@ -1094,13 +1096,20 @@ begin
   if result = 0 then
      Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
       pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh )); *)
-  Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionID,
-      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionID );
+  result := 0;
+  if assigned( Item1 ) then begin // Then assume for the moment Item2 is not assigned
+    result := 1;
+    if assigned( Item2 ) then     // Ok Item2 is assigned, safe to compare
+      Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionID,
+          pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionID );
+  end;
 end;
 
 constructor TTran_Transaction_Code_Index.Create;
 begin
   inherited;
+
+  Duplicates := true;
 end;
 
 procedure TTran_Transaction_Code_Index.FreeItem(Item: Pointer);
