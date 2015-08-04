@@ -1012,7 +1012,7 @@ begin
     SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := aCore_Transaction_ID_High; *)
     if assigned( SearchTran_Transaction_Code_Index_Rec ) then
       SearchTran_Transaction_Code_Index_Rec^.tiCoreTransactionID     :=
-        CombineInt32ToInt64( aCore_Transaction_ID, aCore_Transaction_ID);
+        CombineInt32ToInt64( aCore_Transaction_ID_High, aCore_Transaction_ID);
     Result := fTran_Transaction_Code_Index.Search(SearchTran_Transaction_Code_Index_Rec, aIndex);
   finally
     fTran_Transaction_Code_Index.FreeItem( SearchTran_Transaction_Code_Index_Rec );
