@@ -1117,6 +1117,7 @@ begin
   fillchar( pTran_Transaction_Code_Index_Rec(Item)^, Tran_Transaction_Code_Index_Rec_Size, #0);
 
   SafeFreeMem(Item, Tran_Transaction_Code_Index_Rec_Size);
+  Item := nil;
 end;
 
 procedure TTran_Transaction_Code_Index.FreeTheItem(Item: Pointer);
@@ -1125,7 +1126,7 @@ begin
 end;
 
 function TTran_Transaction_Code_Index.NewItem: Pointer;
-var
+var                                  
   P : pTran_Transaction_Code_Index_Rec;
 Begin
   SafeGetMem( P, Tran_Transaction_Code_Index_Rec_Size );
