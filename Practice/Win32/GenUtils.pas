@@ -1427,7 +1427,7 @@ begin
   Low  := aLow;
   High := aHigh;
 
-  result := (High shl (sizeof( High ) * 8) ) or Low;
+  result := (High shl (sizeof( aHigh ) * 8) ) or Low;
 end;
 
 End.
