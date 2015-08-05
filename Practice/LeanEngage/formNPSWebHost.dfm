@@ -1,8 +1,8 @@
 object frmNPSWebHost: TfrmNPSWebHost
   Left = 0
   Top = 0
-  BorderStyle = bsToolWindow
-  ClientHeight = 440
+  BorderStyle = bsDialog
+  ClientHeight = 436
   ClientWidth = 572
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -22,7 +22,7 @@ object frmNPSWebHost: TfrmNPSWebHost
     Left = 0
     Top = 0
     Width = 572
-    Height = 440
+    Height = 436
     Align = alClient
     TabOrder = 0
     OnQuit = WebBrowserQuit
@@ -32,7 +32,7 @@ object frmNPSWebHost: TfrmNPSWebHost
     ExplicitWidth = 642
     ExplicitHeight = 329
     ControlData = {
-      4C0000001E3B00007A2D00000000000000000000000000000000000000000000
+      4C0000001E3B0000102D00000000000000000000000000000000000000000000
       000000004C000000000000000000000001000000E0D057007335CF11AE690800
       2B2E12620C000000000000004C0000000114020000000000C000000000000046
       8000000000000000000000000000000000000000000000000000000000000000

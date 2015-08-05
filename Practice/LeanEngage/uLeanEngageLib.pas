@@ -128,10 +128,9 @@ function TLEIdentity.Serialize: String;
     JsonObject := TlkJSONobject.Create();
 
     JsonObject.Add('name', FStaffId);
-    JsonObject.Add('industry', FIndustry);
     JsonObject.Add('country', FCountry);
     JsonObject.Add('module_id', FModule.Id);
-    JsonObject.Add('module_vesion', FModule.Version);
+    JsonObject.Add('module_version', FModule.Version);
 
     User.Add('traits', JsonObject);
   end;

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, OleCtrls, (*SHDocVw,(**)BKWebBrowser, ExtCtrls, OSFont, ActiveX,
+  Dialogs, OleCtrls, BKWebBrowser, ExtCtrls, OSFont, ActiveX,
   SHDocVw;
 
 const
@@ -31,7 +31,7 @@ type
     procedure WMNCHitTest(var Msg: TWMNCHitTest) ; message WM_NCHitTest;
     procedure MsgHandler(var Msg: TMsg; var Handled: Boolean);
   public
-    class procedure Show(Url: String; Owner: TComponent = nil); static;
+    class procedure Show(Url: String ); static;
 
     property Url: String read FUrl write FUrl;
   end;
@@ -58,9 +58,9 @@ end;
 procedure TfrmNPSWebHost.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   WebBrowser.Stop;
-// !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
+// DN !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
   WebBrowser.LoadFromStream( nil ); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
+// DN !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
   Action := caFree;
 end;
 
@@ -96,17 +96,17 @@ begin
       if ((Msg.message = WM_KEYDOWN) or (Msg.message = WM_KEYUP)) and
         (Msg.wParam in StdKeys) then
         //nothing  -  do not pass on Backspace, Left, Right, Up, Down arrows
-        if Msg.wParam = VK_ESCAPE then     //Close the form
-          Close                         //Close the form
+        if Msg.wParam = VK_ESCAPE then  //#89359 Lean Engage: ESC to close form and update button
+          Close                         //#89359 Lean Engage: ESC to close form and update button
       else FOleInPlaceActiveObject.TranslateAccelerator(Msg);
   end;
 end;
 
-class procedure TfrmNPSWebHost.Show(Url: String; Owner: TComponent = nil);
+class procedure TfrmNPSWebHost.Show(Url: String);
 var
   WebForm: TfrmNPSWebHost;
 begin
-  WebForm := TfrmNPSWebHost.Create((*Owner*) Nil);
+  WebForm := TfrmNPSWebHost.Create(nil);
 
   try
     WebForm.Url := Url;
