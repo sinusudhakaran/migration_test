@@ -4,7 +4,8 @@ interface
 
 uses
   Classes, SysUtils, uLKJSON, IdCoder, IdCoderMIME, StrUtils, uHttplib,
-  uBaseNPSServer, ipshttps;
+  uBaseNPSServer, ipshttps,
+  uLeanEngageLib;
 
 const
   ENDPOINT_NPS_IDENTIFY = '/api/v1/identify';
@@ -20,26 +21,31 @@ type
 
     fFeedbackURL: string;
     fHasFeedbackURL : boolean;
+    fSynchroniseLogMessage : string;
+    fOwner : TThread;
   protected
     procedure AddHeaders(Http: TipsHTTPS; EndPoint: String);override;
     procedure AddAuthenticationHeader(Http: TipsHTTPS; EndPoint: String);
     function Base64Encode( aString : string ) : string;
     function Base64Decode( aString : string ) : string;
   public
-    constructor Create(AuthenticationKey, ServerBaseUrl: String); virtual;
+    constructor Create(Owner : TThread; AuthenticationKey, ServerBaseUrl: String); virtual;
+
+    procedure SetAndSynchroniseLogMessage( aLogMessage : string );
+    procedure SynchroniseLogMessage;
 
     procedure SetNPSIdentity(Identity: TJsonObject);
     procedure GetNPSSurvey(UserId: String; Survey: TJsonObject);
     procedure setEventTrack( UserId: string; MessageContent : TJsonObject);
-    procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject; Feedback : TJsonObject);
+    procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject; Feedback : (*TJsonObject*)TFeedbackJSON);
 
     property AuthenticationKey : string read fAuthenticationKey;
   end;
 
 implementation
 uses
-  LogUtil;                                     
-  
+  LogUtil;
+
 const
   unitname = 'uNPSServer';
   DebugAutoSave: Boolean = False;
@@ -81,12 +87,13 @@ begin
   result := IdCoder.EncodeString(TIdEncoderMIME, aString);
 end;
 
-constructor TNPSServer.Create(AuthenticationKey, ServerBaseUrl: String);
+constructor TNPSServer.Create(Owner : TThread; AuthenticationKey, ServerBaseUrl: String);
 begin
   fAuthenticationKey := AuthenticationKey;
   fServerBaseUrl := ServerBaseUrl;
   fHasFeedbackURL := false;
 
+  fOwner := Owner;
 end;
 
 procedure TNPSServer.GetNPSSurvey(UserId: String; Survey: TJsonObject);
@@ -98,32 +105,43 @@ begin
   try
     JsonObject.Add('user_id', UserId);
     if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        format( 'Before Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
+      SetAndSynchroniseLogMessage( format( 'Before Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
         [ UserId, Survey.Serialize ] ) );
 
     Post(ENDPOINT_NPS_GETSURVEY, JsonObject, Survey);
     if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        format( 'After Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
+      SetAndSynchroniseLogMessage( format( 'After Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
         [ UserId, Survey.Serialize ] ) );
   finally
     JsonObject.Free;
   end;
 end;
 
+procedure TNPSServer.SetAndSynchroniseLogMessage(aLogMessage: string);
+begin
+  if DebugMe then begin
+    fSynchroniseLogMessage := aLogMessage;
+    fOwner.Synchronize( fOwner, SynchroniseLogMessage );
+  end;
+end;
+
+procedure TNPSServer.SynchroniseLogMessage;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, unitname, fSynchroniseLogMessage );
+end;
+
 procedure TNPSServer.setEventTrack(UserId: string; MessageContent: TJsonObject);
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmDebug,unitname,
-      format( 'TNPSServer.setEventTrack(UserId= $s; MessageContent: TJsonObject = %s)',
-      [ UserID, MessageContent.Serialize ] ) );
+    SetAndSynchroniseLogMessage( format( 'TNPSServer.setEventTrack(UserId= $s; MessageContent: TJsonObject = %s)',
+        [ UserID, MessageContent.Serialize ] ) );
 
   Post(ENDPOINT_EVENT_TRACK, MessageContent);
 end;
 
 procedure TNPSServer.setFeedBackResponse(UserId: string;
-  MessageContent: TJsonObject; Feedback : TJsonObject);
+  MessageContent: TJsonObject; Feedback : (*TJsonObject*)TFeedbackJSON);
 var
   URLParams : TURLParams;
 
@@ -133,14 +151,12 @@ begin
     URLParams.Add('user_id', UserID);
 
     if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s )',
+      SetAndSynchroniseLogMessage( format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s )',
         [ UserID ] ) );
     Get( ENDPOINT_CONVERSATION_RESPONSE, URLParams, FeedBack );
     if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s; Feedback: TJsonObject = %s)',
-        [ UserID, Feedback.Serialize ] ) );
+      SetAndSynchroniseLogMessage( format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s; Feedback.URL=$)',
+        [ UserID, Feedback.Url ] ) );
 
   finally
     freeAndNil( URLParams );
@@ -150,8 +166,7 @@ end;
 procedure TNPSServer.SetNPSIdentity(Identity: TJsonObject);
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmDebug,unitname,
-      format( 'Before Http Post in TNPSServer.SetNPSIdentity(Identity: TJsonObject = %s)',
+    SetAndSynchroniseLogMessage( format( 'Before Http Post in TNPSServer.SetNPSIdentity(Identity: TJsonObject = %s)',
       [ Identity.Serialize ] ) );
   Post(ENDPOINT_NPS_IDENTIFY, Identity);
 end;

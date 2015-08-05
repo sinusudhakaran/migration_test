@@ -26,14 +26,18 @@ type
     property Count: Integer read GetCount;
   end;
 
-  TLENPSBaseThread = class(TThread)
+  TLENPSBaseThread = class( TThread )
   private
     fIdentity: TLEIdentity;
     fServer: TNPSServer;
     fOnCompleted: TNotifyEvent;
+    fSynchroniseLogMessage : string;
+
   protected
     property Identity: TLEIdentity read FIdentity;
     property Server: TNPSServer read fServer;
+    procedure SetAndSynchroniseLogMessage( aLogMessage : string );
+    procedure SynchroniseLogMessage;
   public
     constructor Create( aIdentityID, aServerUrl, aServerKey : string ); reintroduce;
     destructor Destroy; override;
@@ -108,11 +112,11 @@ type
     FLENPSSurveyThread: TLENPSSurveyThread;
     FLETriggeredActionThread: TLETriggeredActionThread;
 
-    procedure StartNPSIdentifyThread; //( aOnCompleted: TNotifyEvent );
+    procedure StartNPSIdentifyThread;
     procedure FreeNPSIdentifyThread;
-    procedure StartNPSSurveyThread; //( aOnCompleted: TNotifyEvent );
+    procedure StartNPSSurveyThread;
     procedure FreeNPSSurveyThread;
-    procedure StartTriggerFeedbackThread; //( aOnCompleted: TNotifyEvent );
+    procedure StartTriggerFeedbackThread; 
     procedure FreeTriggerFeedbackThread;
 
   protected
@@ -433,7 +437,7 @@ begin
   fIdentity:= TLEIdentity.Create;
   fIdentity.ID := aIdentityID;
 
-  fServer:= TNPSServer.Create(aServerKey, aServerUrl);
+  fServer:= TNPSServer.Create(Self, aServerKey, aServerUrl);
 
   Priority     := tpLowest;
 end;
@@ -454,6 +458,20 @@ begin
   Resume;
 end;
 
+procedure TLENPSBaseThread.SetAndSynchroniseLogMessage(aLogMessage: string);
+begin
+  if DebugMe then begin
+    fSynchroniseLogMessage := aLogMessage;
+    self.Synchronize( self, SynchroniseLogMessage );
+  end;
+end;
+
+procedure TLENPSBaseThread.SynchroniseLogMessage;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, unitname, fSynchroniseLogMessage );
+end;
+
 { TLENPSBaseIdentifySurveyThread }
 
 constructor TLENPSBaseIdentifySurveyThread.Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
@@ -468,7 +486,7 @@ begin
   fIdentity.Module.Version := aModuleVersion;
 
   if DebugMe then
-    LogUtil.LogMsg(lmDebug,unitname,
+    SetAndSynchroniseLogMessage(
       format( 'TLENPSBaseIdentifySurveyThread.Create( aIdentityID = %s, ' +
         'aServerUrl = %s, aServerKey = %s, aCompanyName = %s, aCountry = %s, ' +
         'aStaffID = %s, aModuleId = %s, aModuleVersion = %s )',
@@ -489,7 +507,7 @@ begin
     try
       try
         if DebugMe then
-          LogUtil.LogMsg(lmDebug,unitname,
+          SetAndSynchroniseLogMessage(
             format( 'TLENPSIdentifyThread.Execute, JSON= %s )',
             [ fIdentity.Serialize ] ) );
         fServer.SetNPSIdentity(fIdentity);
@@ -625,7 +643,7 @@ var
 
     try
       if DebugMe then
-        LogUtil.LogMsg(lmDebug,unitname,
+        SetAndSynchroniseLogMessage(
           'TLENPSSurveyThread.Execute.CheckAndAddedToSurveys about to ' +
           'execute fServer.GetNPSSurvey' );
       fServer.GetNPSSurvey( fIdentity.Id, aSurveyJSON);
@@ -633,7 +651,7 @@ var
       on E: Exception do begin
         freeAndNil( aSurveyJSON ); // If there is an exception, we need to destroy
           // the created object and exit the function else a memory leak will occur
-        exit;  
+        exit;
       end; // Swallow the event
     end;
     result := trim( aSurveyJSON.Url ) <> '';

@@ -1513,7 +1513,7 @@ var
 
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Started');
+    LogUtil.LogMsg(lmDebug,unitname,'Form Show Started');
 
   FAdminSystemFound := Assigned( AdminSystem) or AdminExists;
   SetupHelp;
@@ -1591,7 +1591,7 @@ begin
                   //rather than main form
 
   if DebugMe then
-    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Step 1 - before Disbale mainform');
+    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Step 1 - before Disable mainform');
 
   ApplicationUtils.DisableMainForm;
 //  HelpfulInfoMsg('This version is for internal use only & is not to be distributed to clients under any circumstances.', 0);
@@ -1843,7 +1843,7 @@ begin
   ApplicationIsStarting := false;
 
   if DebugMe then
-    LogUtil.LogMsg(lmDebug,unitname,'Form Shown Finnished');
+    LogUtil.LogMsg(lmDebug,unitname,'Form Show Finished');
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.RepositionLogos( Sender : TObject);
@@ -2321,7 +2321,7 @@ begin
           LogUtil.LogMsg(lmDebug,unitname,
             format( 'TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url = %s, Application.MainForm)',
             [ NPSLeanEngage.Surveys[ i ].Url ] ) );
-        TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url, Application.MainForm);
+        TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url );
       end;
 end;
 
@@ -2588,7 +2588,7 @@ begin
         LogUtil.LogMsg(lmDebug,unitname,
           format( 'TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL = %s, Self)',
           [ NPSLeanEngage.FeedbackURL ] ) );
-      TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL, Self );
+      TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL );
     end;
   end;
 end;
