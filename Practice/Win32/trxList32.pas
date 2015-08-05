@@ -410,8 +410,6 @@ Begin
        (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
     begin
       NewTran_Transaction_Code_Index_Rec := fTran_Transaction_Code_Index.NewItem;
-(*DN      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionID := P^.txCore_Transaction_ID;
-      NewTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := P^.txCore_Transaction_ID_High; *)
       if assigned( NewTran_Transaction_Code_Index_Rec ) then
         NewTran_Transaction_Code_Index_Rec^.tiCoreTransactionID :=
           CombineInt32ToInt64(
