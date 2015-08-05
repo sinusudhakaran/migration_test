@@ -25,12 +25,6 @@ type
     tiStatement_Details   : AnsiString;
   end;
 
-(* DN  pTran_Transaction_Code_Index_Rec = ^TTran_Transaction_Code_Index_Rec;
-  TTran_Transaction_Code_Index_Rec = Packed Record
-    tiCoreTransactionID     : Integer;
-    tiCoreTransactionIDHigh : Integer;
-  end; *)
-
   pTran_Transaction_Code_Index_Rec = ^TTran_Transaction_Code_Index_Rec;
   TTran_Transaction_Code_Index_Rec = Record
     tiCoreTransactionID     : Int64;
@@ -1008,8 +1002,6 @@ var
 begin
   SearchTran_Transaction_Code_Index_Rec := fTran_Transaction_Code_Index.NewItem;
   try
-(* DN    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionID     := aCore_Transaction_ID;
-    SearchTran_Transaction_Code_Index_Rec.tiCoreTransactionIDHigh := aCore_Transaction_ID_High; *)
     if assigned( SearchTran_Transaction_Code_Index_Rec ) then
       SearchTran_Transaction_Code_Index_Rec^.tiCoreTransactionID     :=
         CombineInt32ToInt64( aCore_Transaction_ID_High, aCore_Transaction_ID);
@@ -1069,33 +1061,7 @@ end;
 { TTran_Transaction_Code_Index }
 
 function TTran_Transaction_Code_Index.Compare(Item1, Item2: Pointer): integer;
-(* DN
-function TTran_Transaction_Code_Index.Compare(Item1, Item2: Pointer): integer;
-  function CombineIntegerToInt64( aHigh, aLow : integer ) : Int64;
-  var
-    High : int64;
-    Low  : int64;
-  begin
-    Low  := aLow;
-    High := aHigh;
-
-    Result := (High shr 32) or Low;
-  end;
 begin
-  Result := CompareValue(
-    CombineIntegerToInt64( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
-      pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionID ),
-    CombineIntegerToInt64( pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh,
-      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionID ));
-end;
-*)   // No point in this manipulation, serves no real gain for search....
-
-begin
-(* DN  Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
-      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh );
-  if result = 0 then
-     Result := CompareValue( pTran_Transaction_Code_Index_Rec( Item1 )^.tiCoreTransactionIDHigh,
-      pTran_Transaction_Code_Index_Rec( Item2 )^.tiCoreTransactionIDHigh )); *)
   result := 0;
   if assigned( Item1 ) then begin // Then assume for the moment Item2 is not assigned
     result := 1;
