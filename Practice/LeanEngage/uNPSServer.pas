@@ -144,16 +144,17 @@ procedure TNPSServer.setFeedBackResponse(UserId: string;
   MessageContent: TJsonObject; Feedback : (*TJsonObject*)TFeedbackJSON);
 var
   URLParams : TURLParams;
-
+  Retries : integer;
 begin
   URLParams := TURLParams.Create;
   try
+    Retries := 0;
     URLParams.Add('user_id', UserID);
 
     if DebugMe then
       SetAndSynchroniseLogMessage( format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s )',
         [ UserID ] ) );
-    Get( ENDPOINT_CONVERSATION_RESPONSE, URLParams, FeedBack );
+    Get( ENDPOINT_CONVERSATION_RESPONSE, URLParams, FeedBack, 3, Retries );
     if DebugMe then
       SetAndSynchroniseLogMessage( format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s; Feedback.URL=$)',
         [ UserID, Feedback.Url ] ) );

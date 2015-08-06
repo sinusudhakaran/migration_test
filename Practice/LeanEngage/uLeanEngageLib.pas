@@ -9,9 +9,11 @@ type
   TCompany = class
   private
     FName: String;
+    FCode: string;
     FParentName: String;
   public
     property Name: String read FName write FName;
+    property Code: String read FCode write FCode;
     property ParentName: String read FParentName write FParentName;
   end;
 
@@ -143,7 +145,7 @@ function TLEIdentity.Serialize: String;
   begin
     JsonObject := TlkJSONobject.Create();
 
-    JsonObject.Add('company_id', ReplaceStr(FCompany.Name, ' ', '_'));
+    JsonObject.Add('company_id', ReplaceStr(FCompany.Code, ' ', '_'));
 
     Traits := TlkJSONobject.Create();
 

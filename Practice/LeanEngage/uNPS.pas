@@ -50,7 +50,7 @@ type
   private
   protected
   public
-    constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
+    constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyCode, aCompanyName,
       aCountry, aStaffID, aModuleId, aModuleVersion : string ); reintroduce;
 
     property OnCompleted: TNotifyEvent read FOnCompleted write FOnCompleted;
@@ -73,8 +73,8 @@ type
   protected
     procedure Execute; override;
   public
-    constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
-      aCountry, aStaffID, aModuleId, aModuleVersion : string );
+    constructor Create(*( aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion : string )*); reintroduce;
 
     destructor Destroy; override;
   end;
@@ -102,6 +102,7 @@ type
     FIdentityId    : string;
     FServerUrl     : string;
     FServerKey     : string;
+    FCompanyCode: String;
     FCompanyName: String;
     FCountry: String;
     FStaffID: string;
@@ -116,7 +117,7 @@ type
     procedure FreeNPSIdentifyThread;
     procedure StartNPSSurveyThread;
     procedure FreeNPSSurveyThread;
-    procedure StartTriggerFeedbackThread; 
+    procedure StartTriggerFeedbackThread;
     procedure FreeTriggerFeedbackThread;
 
   protected
@@ -129,8 +130,8 @@ type
     function GetFeedbackURL : string;
     procedure SetIdentityId( aValue : string );
   public
-    constructor Create(aIdentityID, aServerUrl, aServerKey, aCompanyName,
-      aCountry, aStaffID, aModuleId, aModuleVersion : string);
+    constructor Create(aIdentityID, aServerUrl, aServerKey, aCompanyCode,
+      aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion : string);
     destructor Destroy; override;
 
     procedure TriggerIdentifyAsync( aOnCompleted: TNotifyEvent = nil );
@@ -147,6 +148,7 @@ type
     property FeedbackURL : string read GetFeedbackURL;
     property StaffID: string read FStaffID write FStaffID;
     property Country: String read FCountry write FCountry;
+    property CompanyCode: String read FCompanyCode write FCompanyCode;
     property CompanyName: String read FCompanyName write FCompanyName;
     property ModuleId: String read FModuleId write FModuleId;
     property ModuleVersion: String read FModuleVersion write FModuleVersion;
@@ -173,8 +175,8 @@ var
 
 { TNPSLeanEngage }
 
-constructor TNPSLeanEngage.Create(aIdentityID, aServerUrl, aServerKey, aCompanyName,
-              aCountry, aStaffID, aModuleId, aModuleVersion : string);
+constructor TNPSLeanEngage.Create(aIdentityID, aServerUrl, aServerKey, aCompanyCode,
+      aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion : string);
 begin
   FLENPSIdentityThread := nil;
   FLENPSSurveyThread:= nil;
@@ -182,6 +184,7 @@ begin
   IdentityID     := aIdentityID; // Force through the SetIdentity write method for MIME encoding
   fServerUrl     := aServerUrl;
   fServerKey     := aServerKey;
+  fCompanyCode   := aCompanyCode;
   fCompanyName   := aCompanyName;
   fCountry       := aCountry;
   fStaffID       := IdentityID; //aStaffID;
@@ -345,7 +348,7 @@ begin
   if FLENPSIdentityThread = nil then
   begin
     FLENPSIdentityThread := TLENPSIdentifyThread.Create( fIdentityId,
-      fServerURL, fServerKey, fCompanyName, fCountry, fStaffID, fModuleId,
+      fServerURL, fServerKey, fCompanyCode, fCompanyName, fCountry, fStaffID, fModuleId,
       fModuleVersion );
   end;
 end;
@@ -353,9 +356,9 @@ end;
 procedure TNPSLeanEngage.StartNPSSurveyThread;
 begin
   if FLENPSSurveyThread = nil then
-    FLENPSSurveyThread := TLENPSSurveyThread.Create( fIdentityId,
+    FLENPSSurveyThread := TLENPSSurveyThread.Create(*( fIdentityId,
       fServerURL, fServerKey, fCompanyName, fCountry, fStaffID, fModuleId,
-      fModuleVersion );
+      fModuleVersion )*);
 
 end;
 
@@ -474,12 +477,13 @@ end;
 
 { TLENPSBaseIdentifySurveyThread }
 
-constructor TLENPSBaseIdentifySurveyThread.Create( aIdentityID, aServerUrl, aServerKey, aCompanyName,
+constructor TLENPSBaseIdentifySurveyThread.Create( aIdentityID, aServerUrl, aServerKey, aCompanyCode, aCompanyName,
       aCountry, aStaffID, aModuleId, aModuleVersion : string );
 begin
   inherited Create( aIdentityID, aServerUrl, aServerKey);
 
   fIdentity.Company.Name := aCompanyName;
+  fIdentity.Company.Code := aCompanyCode;
   fIdentity.Country := aCountry;
   fIdentity.StaffId := aStaffId; { TODO : Check whether BA agrees that StaffID must be Encoded (MIME) }
   fIdentity.Module.Id := aModuleId;
@@ -488,9 +492,9 @@ begin
   if DebugMe then
     SetAndSynchroniseLogMessage(
       format( 'TLENPSBaseIdentifySurveyThread.Create( aIdentityID = %s, ' +
-        'aServerUrl = %s, aServerKey = %s, aCompanyName = %s, aCountry = %s, ' +
+        'aServerUrl = %s, aServerKey = %s, aCompanyCode = %s, aCompanyName = %s, aCountry = %s, ' +
         'aStaffID = %s, aModuleId = %s, aModuleVersion = %s )',
-      [ aIdentityID, aServerUrl, aServerKey, aCompanyName,
+      [ aIdentityID, aServerUrl, aServerKey, aCompanyCode, aCompanyName,
       aCountry, aStaffID, aModuleId, aModuleVersion ] ) );
 
   Priority           := tpLowest;
@@ -512,7 +516,7 @@ begin
             [ fIdentity.Serialize ] ) );
         fServer.SetNPSIdentity(fIdentity);
       except
-        on E: Exception do ;
+        on E: Exception do ; //Do Nothing, suppress the error
       end;
       if not Terminated then
       begin
@@ -523,8 +527,10 @@ begin
       end;
     except
       on E: Exception do begin
-        raise Exception.Create(E.Message);
-      //Raise the error don't Suppress error;
+(*        raise Exception.Create(E.Message);
+      //Raise the error don't Suppress error; *)
+
+        //Do Nothing, suppress the error
       end;
     end;
   end;
@@ -588,11 +594,13 @@ begin
           end;
         finally
           JSONObject.Free;
-        end;
+        end;                                                       
       except
         on E: Exception do begin
-          raise Exception.Create(E.Message);
-        //Raise the error don't Suppress error;
+(*DN          raise Exception.Create(E.Message);
+        //Raise the error don't Suppress error; *)
+
+          // Do Nothing, suppress the error
         end;
       end;
     finally
@@ -615,10 +623,10 @@ end;
 
 { TLENPSSurveyThread }
 
-constructor TLENPSSurveyThread.Create(aIdentityID, aServerUrl, aServerKey,
-  aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion: string);
+constructor TLENPSSurveyThread.Create(*(aIdentityID, aServerUrl, aServerKey,
+  aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion: string)*);
 begin
-  inherited;
+  inherited Create('','','','','','','','','');
 
   FSurveys:= TNPSSurveys.Create;
 
@@ -691,8 +699,10 @@ begin
     except
       on E: Exception do begin
         FHasSurvey := False;
-        raise Exception.Create(E.Message);
-      //Raise the error don't Suppress error;
+(*DN        raise Exception.Create(E.Message);
+      //Raise the error don't Suppress error; *)
+      
+        // Do nothing else, suppress the error
       end;
     end;
   end;
