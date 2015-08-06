@@ -16,7 +16,7 @@ type
     procedure AddCustomHeader(Http: TipsHTTPS; HeaderName, HeaderValue: String);
     procedure PostFormData(EndPoint: String; FormFields: TStrings; ResponseContent: TStream = nil);
     procedure Post(Endpoint: String; RequestObject: TJsonObject; ResponseObject: TJsonObject = nil);
-    procedure Get(EndPoint: String; UrlParams: TUrlParams; ResponseContent: TJsonObject);overload;
+    procedure Get(EndPoint: String; UrlParams: TUrlParams; ResponseContent: TJsonObject; RetryCount : integer; var Retries : integer);overload;
     function Get(EndPoint: String; UrlParams: TUrlParams): TlkJSONobject;overload;
   public
     property ServerBaseUrl: string read fServerBaseUrl;
@@ -89,7 +89,7 @@ begin
 end;
 
 procedure TBaseNPSServer.Get(EndPoint: String; UrlParams: TUrlParams;
-  ResponseContent: TJsonObject);
+  ResponseContent: TJsonObject; RetryCount : integer; var Retries : integer);
 var
   HttpRequester: TipsHTTPS;
   aResponse: String;
@@ -108,7 +108,14 @@ begin
       HttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, EndPoint, UrlParams));
       aResponse := HttpRequester.TransferredData;
       ResponseContent.Deserialize(aResponse);
-    finally
+    except
+      on E: Exception do begin
+        // Do Nothing, suppress the error
+        aResponse := E.Message;
+        inc( Retries );
+        if Retries < RetryCount then
+          Get( EndPoint, UrlParams, ResponseContent, RetryCount, Retries );
+      end;
     end;
   finally
     HttpRequester.Free;
