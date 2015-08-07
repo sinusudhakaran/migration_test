@@ -674,7 +674,7 @@ var
 
   AccountsNotTheSame : boolean;
 begin
-  AccountsNotTheSame := not (aScanTrans^.tiAccount = aMatchedTrans^.tiAccount);
+  AccountsNotTheSame := (CompareText(aScanTrans^.tiAccount,aMatchedTrans^.tiAccount) <> 0);
 
   // Phrase
   PhraseCreated := (FindPhraseOrCreate(aBankAccount, aMatchedPhrase, PhraseId) = fcCreated);
@@ -746,7 +746,7 @@ begin
     MemStatementDetails := trim(DropWildCards(MemStatementDetails));
 
     if (aType = aMemorisations.Memorisation_At(MemIndex).mdFields.mdType) and
-       (aMatchPhrase = MemStatementDetails) then
+       (CompareText(aMatchPhrase, MemStatementDetails) = 0) then
     begin
       result := true;
       exit;

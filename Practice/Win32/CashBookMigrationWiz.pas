@@ -990,6 +990,11 @@ begin
     btnNext.Default := true;
     btnSignIn.Default := false;
   end;
+
+  BKOverviewWebBrowser.Height := 227;
+  BKOverviewWebBrowser.Width  := 723;
+  BKChecklistWebBrowser.Height := 347;
+  BKChecklistWebBrowser.Width  := 723;
 end;
 
 //------------------------------------------------------------------------------
