@@ -1621,32 +1621,36 @@ begin
 
        if Assigned(AdminSystem) then
        begin
+         // Start LeanEngage code
+         if ( AdminSystem.fdFields.fdBankLink_Code <>
+                cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
+         then begin
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
 
-         if DebugMe then
-           LogUtil.LogMsg(lmDebug,unitname,
-             format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-             [ StartupParam_Action, CurrUser.Code ] ) );
+           // Add LeanEngage functionality
+           InitialiseLeanEngage;
+           if not assigned( frmLEFeedback ) then begin
 
-         // Add LeanEngage functionality
-         InitialiseLeanEngage;
-         if not assigned( frmLEFeedback ) then begin
+             frmLEFeedback := TfrmLEFeedback.Create( frmMain );
 
-           frmLEFeedback := TfrmLEFeedback.Create( frmMain );
+             frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
+               frmMain.ClientWidth);
 
-           frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
-             frmMain.ClientWidth);
+             frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
 
-           frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
+             if GetClientManagerFormPointer <> nil then
+               GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
+           end;
 
-           if GetClientManagerFormPointer <> nil then
-             GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
-         end;
-
-         if DebugMe then
-           LogUtil.LogMsg(lmDebug,unitname,
-             format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-             [ StartupParam_Action, CurrUser.Code ] ) );
-
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
+         end;  // End LeanEngage code
+         // End LeanEngage code
 
          if AdminSystem.fdFields.fdUse_BankLink_Online then
          begin
@@ -3934,10 +3938,10 @@ var
 begin
   sIdentityID := '';
 // Setup the key for different environments
-    if PRACINI_LeanEngage_System_Switch = cLeanEngage_TestSwitch then
-      LeanEngageApp_Key := cLeanEngage_TestAPIKey
+    if INI_LeanEngage_System_Switch = cLeanEngage_TestSwitch then
+      cLeanEngageApp_Key := cLeanEngage_TestAPIKey
     else
-      LeanEngageApp_Key := cLeanEngage_ProdAPIKey;
+      cLeanEngageApp_Key := cLeanEngage_ProdAPIKey;
     sIdentityID := CurrUser.Code + AdminSystem.fdFields.fdPractice_Name_for_Reports;
   if not (StartupParam_Action in System_Actions) and
      ((CurrUser.Code <> 'BANKLNK5') and
@@ -3949,13 +3953,13 @@ begin
            'LeanEngageApp_Key = %s, AdminSystem.fdFields.fdPractice_Name_for_Reports = %s, ' +
            'CountryText( AdminSystem.fdFields.fdCountry ) = %s, sIdentityID = %s, ' +
            'BRAND_FULL_PRACTICE = %s, VersionInfo.GetAppVersionStr = %s ',
-           [ sIdentityID, PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key,
+           [ sIdentityID, INI_LeanEngage_BASE_URL, cLeanEngageApp_Key,
              AdminSystem.fdFields.fdPractice_Name_for_Reports,
              CountryText( AdminSystem.fdFields.fdCountry ), sIdentityID,
              BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr ] ) );
 
     NPSLeanEngage := TNPSLeanEngage.Create( sIdentityID,         // Create LeanEngage Object
-      PRACINI_LeanEngage_BASE_URL, LeanEngageApp_Key,
+      INI_LeanEngage_BASE_URL, cLeanEngageApp_Key,
       AdminSystem.fdFields.fdBankLink_Code,
       AdminSystem.fdFields.fdPractice_Name_for_Reports,
       CountryText( AdminSystem.fdFields.fdCountry ), sIdentityID,

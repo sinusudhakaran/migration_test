@@ -703,17 +703,20 @@ const
     cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';
     cLeanEngage_TestAPIKey = 'axcUDK7vH2HhUZfLvMXgcA';
     cLeanEngage_ProdAPIKey = 'GEKPKtJyWzmMPxYaKYubWA';
-    cLeanEngage_TestSwitch = 'PRACTICE_TESTING';
-    cLeanEngage_ProdSwitch = 'PRACTICE_PRODUCTION';
+    cLeanEngage_TestSwitch = 'TEST';
+    cLeanEngage_ProdSwitch = 'PRODUCTION';
+    cLeanEngage_Support_Practice_Code = 'BSUPPORT';
 
-    LeanEngageApp_Key : string = cLeanEngage_TestAPIKey;
-    PRACINI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
-    PRACINI_LeanEngage_API_KEY : string = '';
+
+    cLeanEngageApp_Key : string = cLeanEngage_TestAPIKey;
+    INI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
+    INI_LeanEngage_API_KEY : string = '';
+
 
   {$ifdef DEBUG}
-    PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_TESTING';
+    INI_LeanEngage_System_Switch : string = cLeanEngage_TestSwitch;
   {$else}{ifdef DEBUG}
-    PRACINI_LeanEngage_System_Switch : string = 'PRACTICE_PRODUCTION';
+    INI_LeanEngage_System_Switch : string = cLeanEngage_ProdSwitch;
   {$endif}{ifdef DEBUG}
 
 

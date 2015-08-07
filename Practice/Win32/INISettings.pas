@@ -86,6 +86,13 @@ const
    GrpReportSettings = 'ReportSettings';
    GrpExchangeRates  = 'ExchangeRates';
 
+   //Lean Engage Section
+   GrpLeanEngage = 'LeanEngage';
+
+   //Lean Engage Keys
+   ikLeanEngage_BASE_URL        = 'LeanEngageBaseUrl';
+   ikLeanEngage_System_Switch   = 'LeanEngageSystemSwitch';
+
    //Practice INI groups
    GrpPracEnv    = 'Environment';
    GrpPracPrint  = 'Printing';
@@ -97,7 +104,6 @@ const
    GrpPracFingerTips = 'Fingertips';
    GrpPracLinks  = 'Links';
    GrpPracBankLinkOnline = 'BankLinkOnline';
-   GrpPracLeanEngage = 'LeanEngage';
 
    //Mems Ini groups
    GrpMemsSupport = 'Support';
@@ -378,6 +384,18 @@ begin
       INI_CustomColors := IniFile.ReadString(GrpOptions,'CustomColours',
       'ColorA=0,ColorB=0,ColorC=0,ColorD=0,ColorE=0,ColorF=0,ColorG=0,ColorH=0,ColorI=0,ColorJ=0,ColorK=0,ColorL=0,ColorM=0,ColorN=0,ColorO=0,ColorP=0');
 
+      INI_LeanEngage_BASE_URL    := IniFile.ReadString( GrpLeanEngage,
+        ikLeanEngage_BASE_URL, DefLeanEngageLink );
+    {$ifdef Debug}
+      INI_LeanEngage_System_Switch := cLeanEngage_TestSwitch; // Ensure that Practice only uses test system
+    {$else}{ifdef Debug}
+      INI_LeanEngage_System_Switch := Uppercase( IniFile.ReadString(
+        GrpLeanEngage, ikLeanEngage_System_Switch, cLeanEngage_ProdSwitch ) );
+    {$endif}{ifdef Debug}
+
+
+
+
       Orig_Version                := IniFile.ReadInteger( GrpInfo, 'INIVersion', BK5_INI_VERSION);
       if Orig_Version < BK5_INI_VERSION then
       begin
@@ -544,6 +562,10 @@ begin
      IniFile.WriteString( GrpOptions, 'BackupDir', INI_BackupDir);
      IniFile.WriteInteger( GrpOptions, 'BackupLevel', INI_BackupLevel);
      IniFile.WriteBool( GrpOptions, 'BackupOverwrite', INI_BackupOverwrite);
+
+     // LeanEngage
+     IniFile.WriteString( GrpLeanEngage, ikLeanEngage_BASE_URL,
+       INI_LeanEngage_BASE_URL );
 
      If not Assigned(AdminSystem) then
        IniFile.WriteInteger( GrpOptions, 'MaxNarrationLength', INI_MAX_EXTRACT_NARRATION_LENGTH);
@@ -776,15 +798,6 @@ begin
         StrGuid := TrimedGuid(Guid);
         PRACINI_IPClientLocking_GROUP_ID := ReadString( GrpLocking, 'IPClientLockingGroupID', StrGuid);
 
-        PRACINI_LeanEngage_BASE_URL    := ReadString( GrpPracLeanEngage,
-          'LeanEngage_BASE_URL', DefLeanEngageLink );
-      {$ifdef Debug}
-        PRACINI_LeanEngage_System_Switch := cLeanEngage_TestSwitch; // Ensure that Practice only uses test system
-      {$else}{ifdef Debug}
-        PRACINI_LeanEngage_System_Switch := ReadString( GrpPracLeanEngage,
-          'LeanEngage_System_Switch', cLeanEngage_ProdSwitch);
-      {$endif}{ifdef Debug}
-
         InitLocking(PRACINI_IPClientLocking_SwitchedOn,
                     PRACINI_IPClientLocking_UDP_Client_Port,
                     PRACINI_IPClientLocking_UDP_BuffInitSize,
@@ -948,9 +961,6 @@ begin
            WriteInteger(GrpLocking, 'IPClientLockingTCPTimeOut', PRACINI_IPClientLocking_TCPTimeOut);
            WriteInteger(GrpLocking, 'IPClientLockingProcessMessageDelay', PRACINI_IPClientLocking_ProcessMessageDelay);
            WriteString(GrpLocking,  'IPClientLockingGroupID', PRACINI_IPClientLocking_GROUP_ID);
-
-            WriteString( GrpPracLeanEngage,
-              'LeanEngage_BASE_URL', PRACINI_LeanEngage_BASE_URL );
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
          end;
