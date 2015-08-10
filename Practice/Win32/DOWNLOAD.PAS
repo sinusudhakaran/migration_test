@@ -4,7 +4,7 @@ unit Download;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 
-{!! no longer used !!}
+!! no longer used !!
 
 procedure DownloadFromFloppy;
 procedure DownloadFromBConnect;
