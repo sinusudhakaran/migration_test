@@ -1249,6 +1249,7 @@ var
   EntriesBefore, TotalDeleted: integer;
   sMsg: string; }
   Snapshot: ITransactionSnapshot;
+  ErrorCode : TOpenClientError;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   try
@@ -1273,7 +1274,11 @@ begin
 
     //OpenAClient handles the admin system
     if CloseClient then
-      OpenAClient(OpenCode,MyClient,false, True, False, IsDDE);  //allow read only
+    begin
+      //allow read only
+      if not OpenAClientReturnErrors(OpenCode,MyClient,false, ErrorCode, True, False, IsDDE) then
+        Exit;
+    end;
 
     if Assigned(MyClient) then
     begin

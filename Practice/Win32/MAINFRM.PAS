@@ -1625,30 +1625,30 @@ begin
          if ( AdminSystem.fdFields.fdBankLink_Code <>
                 cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
          then begin
-           if DebugMe then
-             LogUtil.LogMsg(lmDebug,unitname,
-               format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-               [ StartupParam_Action, CurrUser.Code ] ) );
+         if DebugMe then
+           LogUtil.LogMsg(lmDebug,unitname,
+             format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+             [ StartupParam_Action, CurrUser.Code ] ) );
 
-           // Add LeanEngage functionality
-           InitialiseLeanEngage;
-           if not assigned( frmLEFeedback ) then begin
+         // Add LeanEngage functionality
+         InitialiseLeanEngage;
+         if not assigned( frmLEFeedback ) then begin
 
-             frmLEFeedback := TfrmLEFeedback.Create( frmMain );
+           frmLEFeedback := TfrmLEFeedback.Create( frmMain );
 
-             frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
-               frmMain.ClientWidth);
+           frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
+             frmMain.ClientWidth);
 
-             frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
+           frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
 
-             if GetClientManagerFormPointer <> nil then
-               GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
-           end;
+           if GetClientManagerFormPointer <> nil then
+             GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
+         end;
 
-           if DebugMe then
-             LogUtil.LogMsg(lmDebug,unitname,
-               format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-               [ StartupParam_Action, CurrUser.Code ] ) );
+         if DebugMe then
+           LogUtil.LogMsg(lmDebug,unitname,
+             format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+             [ StartupParam_Action, CurrUser.Code ] ) );
          end;  // End LeanEngage code
          // End LeanEngage code
 
@@ -2593,10 +2593,10 @@ begin
           format( 'TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL = %s, Self)',
           [ NPSLeanEngage.FeedbackURL ] ) );
       TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL );
-    end
+        end
     else begin // Try again, something went wrong
       TfrmNPSWebHost.Show( 'http://localhost/' );
-    end;
+	end;
   end;
 end;
 
@@ -3966,21 +3966,21 @@ begin
       BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr );
 
     if assigned( NPSLeanEngage ) then begin
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug,unitname,
-          'InitialiseLeanEngage TriggerIdentifyAsync' );
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        'InitialiseLeanEngage TriggerIdentifyAsync' );
 
       NPSLeanEngage.TriggerIdentifyAsync( ); // Initialise the Identity EndPoint to log the session
 
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug,unitname,
-          'InitialiseLeanEngage TriggerSurveyAsync' );
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        'InitialiseLeanEngage TriggerSurveyAsync' );
 
       NPSLeanEngage.TriggerSurveyAsync( DisplayAvailableNPSSurveys ); // Initialise and display surveys
 
-      if DebugMe then
-        LogUtil.LogMsg(lmDebug,unitname,
-          'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,unitname,
+        'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
 
       NPSLeanEngage.TriggerFeedbackAsync( taFeedbackResponse ); // Initialise for Feedback
     end;
@@ -5018,21 +5018,22 @@ procedure TfrmMain.DoFileOpen;
 begin
   OpenClient('');
   if Assigned( MyClient ) then
+  begin
     MyClient.clFields.clLast_Auto_Save_CRC := MyClient.clFields.clCurrent_CRC;
 
 
-  FormResize(Self);
-  RefreshHomepage([HRP_Init]);
+    FormResize(Self);
+    RefreshHomepage([HRP_Init]);
 
-  if ClientHomePage <> nil then
-    TfrmClientHomePage(ClientHomePage).LEFeedbackForm := TForm( frmLEFeedback );
+    if ClientHomePage <> nil then
+      TfrmClientHomePage(ClientHomePage).LEFeedbackForm := TForm( frmLEFeedback );
 
-  //Enable Report Run timer for books.
-  //Is enabled for Practice when they start up
-  if (not Assigned(AdminSystem))
-  and (Assigned(MyClient)) then
-    if (MyClient.clFields.clDownload_From = dlBankLinkConnect) then
-       tmrReportRun.Enabled := True;
+    //Enable Report Run timer for books.
+    //Is enabled for Practice when they start up
+    if (not Assigned(AdminSystem)) then
+      if (MyClient.clFields.clDownload_From = dlBankLinkConnect) then
+         tmrReportRun.Enabled := True;
+  end;
 end;
 
 procedure TfrmMain.DoOpenFromMRU( Sender : TObject);
