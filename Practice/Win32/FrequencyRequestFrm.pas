@@ -26,17 +26,13 @@ type
     btnCancel: TButton;
     btnOK: TButton;
     gbDaily: TGroupBox;
-    gbMonthly: TGroupBox;
     gbWeekly: TGroupBox;
     Label1: TLabel;
-    Label2: TLabel;
     Label3: TLabel;
-    Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     lblInstitutionListLink: TLabel;
     memoDaily: TMemo;
-    memoMonthly: TMemo;
     memoWeekly: TMemo;
     pBottom: TPanel;
     pnlDaily: TPanel;
@@ -44,12 +40,17 @@ type
     pnlWeekly: TPanel;
     rbDayToMonth: TRadioButton;
     rbDayToWeek: TRadioButton;
-    rbMonthToDay: TRadioButton;
-    rbMonthToWeek: TRadioButton;
     rbWeekToDay: TRadioButton;
     rbWeekToMonth: TRadioButton;
     pnlNotify: TPanel;
     cbNotifyEmail: TCheckBox;
+    gbMonthly: TGroupBox;
+    Label2: TLabel;
+    Label4: TLabel;
+    rbMonthToWeek: TRadioButton;
+    rbMonthToDay: TRadioButton;
+    memoMonthly: TMemo;
+    Label7: TLabel;
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -180,6 +181,8 @@ begin
   Label2.Font.Style := [fsBold];
   Label3.Font.Style := [fsBold];
   Label1.Font.Style := [fsBold];
+  gbMonthly.Font.Style := [fsBold];
+  gbDaily.Font.Style := [fsBold];
 
   OSFont.SetHyperlinkFont(lblInstitutionListLink.Font);
   lblInstitutionListLink.Font.Style := [];
@@ -304,7 +307,7 @@ end;
 
 function TfrmFrequencyRequest.GetHasWeekly: boolean;
 begin
-  Result := (memoWeekly.Lines.Count > 0);
+  Result := (memoWeekly.Lines.Count > 0); 
 end;
 
 procedure TfrmFrequencyRequest.lblInstitutionListLinkClick(Sender: TObject);

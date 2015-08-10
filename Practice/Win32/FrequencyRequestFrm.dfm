@@ -3,12 +3,12 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Send Frequency Change Request'
-  ClientHeight = 485
-  ClientWidth = 594
+  ClientHeight = 634
+  ClientWidth = 777
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -16,31 +16,40 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 17
+  object Label7: TLabel
+    Left = 80
+    Top = 189
+    Width = 441
+    Height = 17
+    Caption = 
+      'Components are not deleted just hidden by memos ticket num is 89' +
+      '280'
+    Visible = False
+  end
   object pBottom: TPanel
     Left = 0
-    Top = 444
-    Width = 594
-    Height = 41
+    Top = 581
+    Width = 777
+    Height = 53
     Align = alBottom
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -17
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
     TabOrder = 0
-    ExplicitTop = 443
     DesignSize = (
-      594
-      41)
+      777
+      53)
     object lblInstitutionListLink: TLabel
-      Left = 16
+      Left = 21
       Top = 0
-      Width = 309
-      Height = 35
+      Width = 404
+      Height = 46
       AutoSize = False
       Caption = 
         'Please check the available frequency options per institution bef' +
@@ -51,20 +60,20 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       OnMouseLeave = lblInstitutionListLinkMouseLeave
     end
     object btnOK: TButton
-      Left = 427
-      Top = 8
-      Width = 75
-      Height = 25
+      Left = 558
+      Top = 10
+      Width = 98
+      Height = 33
       Anchors = [akRight, akBottom]
       Caption = 'OK'
       TabOrder = 0
       OnClick = btnOKClick
     end
     object btnCancel: TButton
-      Left = 508
-      Top = 8
-      Width = 75
-      Height = 25
+      Left = 664
+      Top = 10
+      Width = 98
+      Height = 33
       Anchors = [akRight, akBottom]
       Caption = 'Cancel'
       ModalResult = 2
@@ -73,71 +82,88 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   end
   object pnlMonthly: TPanel
     Left = 0
-    Top = 36
-    Width = 594
-    Height = 104
+    Top = 47
+    Width = 777
+    Height = 136
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -17
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
     TabOrder = 1
     Visible = False
     DesignSize = (
-      594
-      104)
+      777
+      136)
     object gbMonthly: TGroupBox
-      Left = 8
-      Top = 4
-      Width = 578
-      Height = 93
+      Left = 10
+      Top = -2
+      Width = 756
+      Height = 122
       Anchors = [akLeft, akTop, akRight, akBottom]
+      Caption = 'Monthly to Daily'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
       DesignSize = (
-        578
-        93)
+        756
+        122)
       object Label2: TLabel
-        Left = 8
-        Top = 17
-        Width = 44
-        Height = 16
+        Left = 10
+        Top = 22
+        Width = 58
+        Height = 21
         Caption = 'Monthly'
+        Visible = False
       end
       object Label4: TLabel
-        Left = 68
-        Top = 17
-        Width = 11
-        Height = 16
+        Left = 89
+        Top = 22
+        Width = 15
+        Height = 21
         Caption = 'to'
+        Visible = False
       end
       object rbMonthToWeek: TRadioButton
-        Left = 100
-        Top = 17
-        Width = 89
-        Height = 17
+        Left = 262
+        Top = 21
+        Width = 116
+        Height = 22
         Caption = 'Weekly'
         TabOrder = 0
+        Visible = False
         OnClick = rbDailyClick
       end
       object rbMonthToDay: TRadioButton
-        Left = 200
-        Top = 17
-        Width = 71
-        Height = 17
+        Left = 131
+        Top = 21
+        Width = 92
+        Height = 22
         Caption = 'Daily'
         TabOrder = 1
+        Visible = False
         OnClick = rbDailyClick
       end
       object memoMonthly: TMemo
-        Left = 8
-        Top = 40
-        Width = 560
-        Height = 44
+        Left = 11
+        Top = 21
+        Width = 732
+        Height = 95
         Anchors = [akLeft, akTop, akRight, akBottom]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -17
+        Font.Name = 'Tahoma'
+        Font.Style = []
         Lines.Strings = (
           'memoMonthly')
+        ParentFont = False
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 2
@@ -146,71 +172,88 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   end
   object pnlDaily: TPanel
     Left = 0
-    Top = 302
-    Width = 594
-    Height = 104
+    Top = 395
+    Width = 777
+    Height = 136
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -17
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
     TabOrder = 3
     Visible = False
     DesignSize = (
-      594
-      104)
+      777
+      136)
     object gbDaily: TGroupBox
-      Left = 8
-      Top = 4
-      Width = 578
-      Height = 93
+      Left = 10
+      Top = 5
+      Width = 756
+      Height = 122
       Anchors = [akLeft, akTop, akRight, akBottom]
+      Caption = 'Daily to Monthly'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -17
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
       DesignSize = (
-        578
-        93)
+        756
+        122)
       object Label1: TLabel
-        Left = 8
-        Top = 19
-        Width = 27
-        Height = 16
+        Left = 10
+        Top = 25
+        Width = 37
+        Height = 21
         Caption = 'Daily'
+        Visible = False
       end
       object Label6: TLabel
-        Left = 68
-        Top = 19
-        Width = 11
-        Height = 16
+        Left = 89
+        Top = 25
+        Width = 15
+        Height = 21
         Caption = 'to'
+        Visible = False
       end
       object rbDayToMonth: TRadioButton
-        Left = 100
-        Top = 19
-        Width = 89
-        Height = 17
+        Left = 131
+        Top = 25
+        Width = 116
+        Height = 22
         Caption = 'Monthly'
         TabOrder = 0
+        Visible = False
         OnClick = rbDailyClick
       end
       object rbDayToWeek: TRadioButton
-        Left = 200
-        Top = 19
-        Width = 71
-        Height = 17
+        Left = 262
+        Top = 24
+        Width = 92
+        Height = 22
         Caption = 'Weekly'
         TabOrder = 1
+        Visible = False
         OnClick = rbDailyClick
       end
       object memoDaily: TMemo
-        Left = 8
-        Top = 40
-        Width = 560
-        Height = 44
+        Left = 10
+        Top = 23
+        Width = 733
+        Height = 94
         Anchors = [akLeft, akTop, akRight, akBottom]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -17
+        Font.Name = 'Tahoma'
+        Font.Style = []
         Lines.Strings = (
           'memoDaily')
+        ParentFont = False
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 2
@@ -219,68 +262,68 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   end
   object pnlWeekly: TPanel
     Left = 0
-    Top = 171
-    Width = 594
-    Height = 104
+    Top = 224
+    Width = 777
+    Height = 136
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -17
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
     TabOrder = 2
     Visible = False
     DesignSize = (
-      594
-      104)
+      777
+      136)
     object gbWeekly: TGroupBox
-      Left = 8
-      Top = 4
-      Width = 578
-      Height = 93
+      Left = 10
+      Top = 5
+      Width = 756
+      Height = 122
       Anchors = [akLeft, akTop, akRight, akBottom]
       TabOrder = 0
       DesignSize = (
-        578
-        93)
+        756
+        122)
       object Label3: TLabel
-        Left = 8
-        Top = 17
-        Width = 41
-        Height = 16
+        Left = 10
+        Top = 22
+        Width = 53
+        Height = 21
         Caption = 'Weekly'
       end
       object Label5: TLabel
-        Left = 68
-        Top = 17
-        Width = 11
-        Height = 16
+        Left = 89
+        Top = 22
+        Width = 15
+        Height = 21
         Caption = 'to'
       end
       object rbWeekToMonth: TRadioButton
-        Left = 100
-        Top = 17
-        Width = 89
-        Height = 17
+        Left = 131
+        Top = 22
+        Width = 116
+        Height = 22
         Caption = 'Monthly'
         TabOrder = 0
         OnClick = rbDailyClick
       end
       object rbWeekToDay: TRadioButton
-        Left = 200
-        Top = 17
-        Width = 71
-        Height = 17
+        Left = 262
+        Top = 22
+        Width = 92
+        Height = 22
         Caption = 'Daily'
         TabOrder = 1
         OnClick = rbDailyClick
       end
       object memoWeekly: TMemo
-        Left = 8
-        Top = 40
-        Width = 560
-        Height = 44
+        Left = 10
+        Top = 52
+        Width = 733
+        Height = 58
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoWeekly')
@@ -293,23 +336,23 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   object pnlNotify: TPanel
     Left = 0
     Top = 0
-    Width = 594
-    Height = 30
+    Width = 777
+    Height = 39
     Align = alTop
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -17
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
     TabOrder = 4
     Visible = False
     object cbNotifyEmail: TCheckBox
-      Left = 16
-      Top = 8
-      Width = 330
-      Height = 17
+      Left = 21
+      Top = 10
+      Width = 431
+      Height = 23
       Caption = 'Notify practice by email when Daily Data is available'
       Enabled = False
       TabOrder = 0
