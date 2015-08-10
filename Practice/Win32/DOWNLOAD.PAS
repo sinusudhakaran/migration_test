@@ -4,7 +4,7 @@ unit Download;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 interface
 
-!! no longer used !!
+{!! no longer used !!}
 
 procedure DownloadFromFloppy;
 procedure DownloadFromBConnect;
@@ -45,8 +45,14 @@ uses
   ArchiveCheck,
   AbUtils, SysObj32, ECollect;
 
+
 const
    UnitName = 'DOWNLOAD';
+
+resourcestring
+  rsHelpErrorMsg = 'Incorrect PIN Number Entered.  Please Email %s '+
+                   ' Support requesting your Practice PIN number.  Note: You MUST email the request from a Practice email address.';
+   
 var
    DebugMe  : boolean = false;
 
@@ -137,7 +143,7 @@ begin
          {check for PIN}
          GetFileHeader(LocalFileName,ID,Sizeof(ID));
          if not EnterPIN(FileName,ID.idClientName, fdPIN_Number) then begin
-            HelpfulErrorMsg('Incorrect PIN Number Entered.  Please Fax '+SHORTAPPNAME+ ' Support requesting your Practice PIN number.  Note: You MUST fax the request on Practice Letterhead.',0);
+            HelpfulErrorMsg(Format(rsHelpErrorMsg, [SHORTAPPNAME]), 0);
             Exit;
          end;
 
@@ -777,7 +783,7 @@ begin
           {check for PIN}
           GetFileHeader(LocalFileName,ID,Sizeof(ID));
           if not EnterPIN(FileName,ID.idClientName, fdPIN_Number) then begin
-             HelpfulErrorMsg('Incorrect PIN Number Entered.  Please Fax '+SHORTAPPNAME+ ' Support requesting your Practice PIN number.  Note: You MUST fax the request on Practice Letterhead.',0);
+             HelpfulErrorMsg(Format(rsHelpErrorMsg, [SHORTAPPNAME]), 0);
              Exit;
           end;
 

@@ -70,6 +70,10 @@ uses
   WarningMoreFrm,
   MainFrm;
 
+resourcestring
+  rsHelpErrorMsg = 'Incorrect PIN Number Entered.  Please Email %s '+
+                   ' Support requesting your Practice PIN number.  Note: You MUST email the request from a Practice email address.';
+
 const
   UnitName = 'DownloadEx';
   S_VALIDATE_ERROR = 'Validate Error: Image name = %s but Disk File name = %s';
@@ -508,7 +512,7 @@ begin //ProcessDiskImages
         if not EnterPIN( DiskImage.dhFields.dhTrue_File_Name,
                          NameForPin, AdminSystem.fdFields.fdPIN_Number) then
         begin
-          HelpfulErrorMsg('Incorrect PIN Number Entered.  Please Fax '+SHORTAPPNAME+ ' Support requesting your Practice PIN number.  Note: You MUST fax the request on Practice Letterhead.',0);
+          HelpfulErrorMsg(Format(rsHelpErrorMsg, [SHORTAPPNAME]), 0);
           Exit;
         end;
         //store new pin number so can save to admin system after it is reloaded
