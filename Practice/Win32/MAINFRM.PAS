@@ -3972,21 +3972,21 @@ begin
       BRAND_FULL_PRACTICE, VersionInfo.GetAppVersionStr );
 
     if assigned( NPSLeanEngage ) then begin
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        'InitialiseLeanEngage TriggerIdentifyAsync' );
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,unitname,
+          'InitialiseLeanEngage TriggerIdentifyAsync' );
 
       NPSLeanEngage.TriggerIdentifyAsync( ); // Initialise the Identity EndPoint to log the session
 
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        'InitialiseLeanEngage TriggerSurveyAsync' );
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,unitname,
+          'InitialiseLeanEngage TriggerSurveyAsync' );
 
       NPSLeanEngage.TriggerSurveyAsync( DisplayAvailableNPSSurveys ); // Initialise and display surveys
 
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,unitname,
-        'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,unitname,
+          'InitialiseLeanEngage TriggerFeedbackAsync( taFeedbackResponse )' );
 
       NPSLeanEngage.TriggerFeedbackAsync( taFeedbackResponse ); // Initialise for Feedback
     end;
