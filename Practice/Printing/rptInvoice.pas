@@ -17,26 +17,35 @@ unit rptInvoice;
    Revisions:
 
 }
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+//NOTE : Any changes made here should be checked with Core Statements, we both print the same doc
+//------------------------------------------------------------------------------
 interface
+
 uses
   ReportDefs,
   ReportTypes,
-  bkUrls;
-
-function DoInvoiceReport( Dest : TReportDest; Doc: string; SourceFilename : string; DestFilename : string = '') : boolean;
-//convert a reports.000 file into a document
-
-
-//******************************************************************************
-implementation
-uses
   RptParams,
-  SysUtils, Classes, htmlUtils, NewReportObj, Globals, Graphics, NewReportUtils,
-  repcols, reportImages, imagesfrm, bkConst,  jsFastHTMLParser, ErrorMoreFrm,
+  SysUtils,
+  Classes,
+  htmlUtils,
+  NewReportObj,
+  Globals,
+  Graphics,
+  NewReportUtils,
+  ReportToCanvas,
+  repcols,
+  reportImages,
+  imagesfrm,
+  bkConst,
+  jsFastHTMLParser,
+  ErrorMoreFrm,
   bkProduct,
-  bkBranding;
+  Windows,
+  bkBranding,
+  bkUrls,
+  GenUtils;
 
 type
   TLineStyle = ( lsNone, lsNormal, lsFixedWidth, lsCode, lsNewPage, lsBig, lsBold, lsSmall);
@@ -51,17 +60,45 @@ type
     bkHtmlVersion : byte;
     bkHtmlSubVersion : byte;
     fNewPage: boolean;
-    procedure WantNewpage;   
+
+    fCurrYPos : integer;
+    fCurrLineSize : int64;
+
+    procedure ReplaceSpecialChars( var original : string);
+    procedure UpdateCurrentLineSize();
+    procedure NextLine();
+
+    procedure RenderText(textValue: string; textRect: TRect; Justify: TJustifyType);
+
+    procedure WantNewpage;
+    function GetCanvasRE: TRenderToCanvasEng;
   protected
     procedure BillingReportTagFound(Sender: TObject; Tag: string);
     procedure BillingReportTextFound(Sender: TObject; Text: string);
 
     procedure SetStyle( aStyle : TLineStyle);
+
+    property CanvasRenderEng : TRenderToCanvasEng read GetCanvasRE;
+
+  public
+    property CurrYPos : integer read fCurrYPos write fCurrYPos;
+    property CurrLineSize : int64 read fCurrLineSize write fCurrLineSize;
   end;
 
+  function DoInvoiceReport( Dest : TReportDest; Doc: string; SourceFilename : string; DestFilename : string = '') : boolean;
 
-procedure ReplaceSpecialChars( var original : string);
+//------------------------------------------------------------------------------
+//NOTE : Any changes made here should be checked with Core Statements, we both print the same doc
+//------------------------------------------------------------------------------
+implementation
+
+const
+  PAGE_TEXT_START = 200;
+
+//------------------------------------------------------------------------------
+{ TBillingReport }
 //replace special strings in the html with their original characters
+procedure TBillingReport.ReplaceSpecialChars( var original : string);
 var
   s : string;
 begin
@@ -70,40 +107,118 @@ begin
   s := StringReplace( s, '&amp;', '&', [ rfReplaceAll]);
   s := StringReplace( s, '&lt;', '<', [ rfReplaceAll]);
   s := StringReplace( s, '&gt;', '>', [ rfReplaceAll]);
- Original := s;
+  Original := s;
 end;
 
-{ TBillingReport }
+//------------------------------------------------------------------------------
 procedure TBillingReport.SetStyle(aStyle: TLineStyle);
 begin
-  (*
   case aStyle of
-    lsNormal : UseCustomFont( 'Times New Roman', 10, [], 42);
-    lsFixedWidth : UseCustomFont( 'Courier New', 10, [], 40);
-    lsBig : UseCustomFont( 'Times New Roman', 15, [ fsBold], 70);
-    lsBold : UseCustomFont( 'Times New Roman', 10, [ fsBold], 46);
-    lscode : UseCustomFont( 'Lucida Console', 8, [], 31);
-    lsSmall : UseCustomFont( 'Courier New', 8, [], 35);
+    lsNormal     : UseCustomFont( 'Times New Roman', 10, [], 0);
+    lsFixedWidth : UseCustomFont( 'Courier New',     10,  [], 34);
+    lsBig        : UseCustomFont( 'Times New Roman', 15, [fsBold], 0);
+    lsBold       : UseCustomFont( 'Times New Roman', 10, [fsBold], 0);
+    lscode       : UseCustomFont( 'Lucida Console',  7,  [], 0);
+    lsSmall      : UseCustomFont( 'Courier New',     8,  [], 0);
   end;
-  *)
-  case aStyle of
-    lsNormal : UseCustomFont( 'Times New Roman', 8, [], 0);
-    lsFixedWidth : UseCustomFont( 'Courier New', 8, [], 34);
-    lsBig : UseCustomFont( 'Times New Roman', 13, [ fsBold], 0);
-    lsBold : UseCustomFont( 'Times New Roman', 8, [ fsBold], 0);
-    lscode : UseCustomFont( 'Lucida Console',6, [], 0);
-    lsSmall : UseCustomFont( 'Courier New', 6, [], 0);
-  end;
-
+  UpdateCurrentLineSize();
 end;
 
+//------------------------------------------------------------------------------
+procedure TBillingReport.UpdateCurrentLineSize();
+begin
+  fCurrLineSize := Round(CanvasRenderEng.OutputBuilder.HeightOfText('A'));
+end;
+
+//------------------------------------------------------------------------------
+procedure TBillingReport.NextLine();
+begin
+  fCurrYPos := fCurrYPos + fCurrLineSize;
+end;
+
+//------------------------------------------------------------------------------
+procedure TBillingReport.RenderText(textValue: string; textRect: TRect; Justify: TJustifyType);
+//Canvas Font should be set before rendering text
+//Canvas color will be changed to render sytle and then reset
+var
+   RenderRect : TRect;
+   TextWidth, TextHeight : longint;
+   wasColor   : TColor;
+   wasFColor  : TColor;
+begin
+   //process the text value looking for special markers
+   if TextValue = SKIPFIELD then exit;
+
+   with CanvasRenderEng.OutputBuilder do
+   begin
+       TextWidth := Canvas.TextWidth(textValue);
+       TextHeight := Canvas.TextHeight(textValue) * 12 div 10;
+
+       //convert from 0.1mm to pixels
+       with TextRect do begin
+          TopLeft     := ConvertToDC( TopLeft);
+          BottomRight := ConvertToDC( BottomRight);
+       end;        // with
+
+       //first sort out top and bottom
+       if TextHeight >= (textRect.Bottom - textRect.Top) then begin
+          //Height of text is bigger than box so use top
+          RenderRect.Top := textRect.Top;
+          RenderRect.Bottom := textRect.Bottom;
+       end
+       else begin
+          RenderRect.Top := textRect.Top + ((textRect.Bottom - textRect.top) - TextHeight);
+          RenderRect.Bottom := textRect.Bottom;
+       end;
+
+       //now sortout left right
+       if TextWidth >= (textRect.Right - textRect.Left) then  begin
+          //width is greater than box so use left
+          RenderRect.Left := textRect.Left;
+          RenderRect.Right  := textRect.Right;
+       end
+       else begin
+          case Ord(Justify) of
+             Ord(jtLeft): begin
+                RenderRect.left := textRect.Left;
+                RenderRect.Right := RenderRect.Left + textwidth;
+             end;
+             ord(jtCenter): begin
+                RenderRect.Left := textRect.Left + (textRect.Right - textRect.Left) div 2 - textwidth div 2;
+                RenderRect.Right := RenderRect.Left + textwidth;
+             end;
+             ord(jtRight): begin
+                RenderRect.Right := textRect.Right;
+                RenderRect.Left := RenderRect.Right - textWidth;
+             end;
+          end;        // case
+       end;             //begin
+
+       //Store Current Brush Color
+       wasColor := Canvas.Brush.Color;
+       wasFColor := Canvas.Font.Color;
+
+       Canvas.TextRect(RenderRect,RenderRect.Left, RenderRect.top, textValue);
+       Canvas.Brush.Color := wasColor;
+       Canvas.Font.Color  := wasFColor;
+   end;        // with
+end;
+
+//------------------------------------------------------------------------------
 procedure TBillingReport.WantNewpage;
 begin
-   fNewPage := true;
+  fNewPage := true;
+  fCurrYPos := PAGE_TEXT_START;
 end;
 
-procedure TBillingReport.BillingReportTagFound(Sender: TObject;
-  Tag: string);
+//------------------------------------------------------------------------------
+function TBillingReport.GetCanvasRE: TRenderToCanvasEng;
+begin
+  result := TRenderToCanvasEng( RenderEngine);
+end;
+
+//------------------------------------------------------------------------------
+procedure TBillingReport.BillingReportTagFound(Sender: TObject; Tag: string);
 begin
   if Tag = '<body>' then
   begin
@@ -124,7 +239,20 @@ begin
          fNewPage := false;
       end;
       SetStyle(currentStyle);
-      RenderTextLine(OutputText);
+
+      if Length(trim(OutputText)) > 0 then
+      begin
+        if (CurrentStyle = lsBig) then
+        begin
+          RenderText(' ' + TrimNonCharValues(OutputText) + ' ', Rect(CanvasRenderEng.OutputBuilder.OutputAreaLeft + 50, CurrYPos, CanvasRenderEng.OutputBuilder.OutputAreaWidth, CurrYPos + CurrLineSize), jtCenter)
+        end
+        else
+          RenderText(OutputText + ' ', Rect(300, CurrYPos, CanvasRenderEng.OutputBuilder.OutputAreaWidth, CurrYPos + CurrLineSize), jtLeft);
+      end;
+
+      NextLine();
+
+      //RenderTextLine(OutputText);
       OutputText := '';
     end
     else
@@ -155,6 +283,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TBillingReport.BillingReportTextFound(Sender: TObject;
   Text: string);
 var
@@ -168,16 +297,24 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure GenerateReportDetail(Sender : TObject);
 var
   BillingReport : TBillingReport;
   Parser : tjsFastHTMLParser;
+  footerIndex : integer;
 begin
   //parse lines and show on report
   BillingReport := TBillingReport( Sender);
   BillingReport.BodyFound := false;
   BillingReport.OutputText := '';
   BillingReport.CurrentStyle := lsNormal;
+
+  for footerIndex := 0 to BillingReport.Footer.ItemCount-1 do
+  begin
+    BillingReport.Footer.HFLine_At(footerIndex).Font.Color := BkBranding.BankLinkColor;
+    BillingReport.Footer.HFLine_At(footerIndex).Font.Size  := 7;
+  end;
 
   Parser := tjsFastHTMLParser.Create(Pchar( BillingReport.ReportDetail.Text));
   try
@@ -189,6 +326,7 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 function DoInvoiceReport( Dest : TReportDest; Doc: string; SourceFilename : string; DestFilename : string = '') : boolean;
 //convert a reports.000 file into a document
 var
@@ -235,6 +373,7 @@ begin
     lParams:= TRptParameters.Create(ord(Report_Billing),MyClient,nil);
     try
       //load report lines from html stream
+      Job.CurrYPos := PAGE_TEXT_START;
       Job.ReportStyle.Name := '';
       Job.ReportStyle.Load;
       htmlStream.Position := 0;
@@ -247,8 +386,8 @@ begin
 
       if TProduct.ProductBrand = btMYOBBankLink then
       begin
-        NzFooter := 'MYOB BankLink New Zealand PO Box 56-354 Dominion Rd Auckland NZ. Freephone 0800 226 554 Fax 09 630 2759 www.banklink.co.nz';
-        AuFooter := 'MYOB BankLink Australia GPO Box 4608 Sydney NSW 2001 Australia. Freephone 1800 123 242 Freefax 1800 123 807 www.banklink.com.au';
+        NzFooter := 'MYOB BankLink New Zealand   PO Box 56-354 Dominion Rd Auckland 1446 NZ   Freephone 0800 226 554   Fax 09 623 4051   www.banklink.co.nz | www.myob.co.nz';
+        AuFooter := 'MYOB BankLink Australia   GPO Box 4608 Sydney NSW 2001 Australia   Freephone 1800 123 242   Freefax 1800 123 807   www.banklink.com.au | www.myob.com.au';
       end
       else
       begin
@@ -295,7 +434,8 @@ begin
 
       Logo.Assign(bkBranding.ReportLogo);
 
-      AddPictureToReportImageList( Logo, 'banklink_logo', 56, 15);
+      //AddPictureToReportImageList( Logo, 'banklink_logo', 56, 15);
+      AddPictureToReportImageList( Logo, 'banklink_logo', 70, 17);
 
       //set up report
       Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_Billing]);
@@ -305,7 +445,7 @@ begin
       //add billing header, clear the autolineSize setting so that the text
       //is rendered as if no image was expected, otherwise the first line
       //on the report will be positioned too far down the page
-      AddJobHeader(Job, jtRight, 1, '<IMG banklink_logo>', False).AutoLineSize := False;
+      AddJobHeader(Job, jtLeft, 1, '<IMG banklink_logo>', False).AutoLineSize := False;
       //add billing footer
       AddJobFooter( Job, jtCenter, 0.8,  AuFooter, true);
       AddJobFooter( Job, jtCenter, 0.8,  NzFooter, true);

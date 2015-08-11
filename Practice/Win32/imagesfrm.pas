@@ -77,6 +77,7 @@ type
     imgMainBackground: TImage;
     imgSmallLogo: TImage;
     ImgLogoMedium: TImage;
+    imgStatementDetails: TImage;
     procedure FormCreate(Sender: TObject);
   private
 

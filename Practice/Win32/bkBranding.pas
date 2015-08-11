@@ -567,11 +567,11 @@ function ReportLogo: TPicture;
 begin
   if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := AppImages.imgReports.Picture;
+    Result := AppImages.imgStatementDetails.Picture;
   end
   else
   begin
-    Result := AppImages.imgBankLinkLogoWhiteBkgnd.Picture;
+    Result := AppImages.imgStatementDetails.Picture;
   end;
 end;
 
@@ -927,6 +927,9 @@ begin
       aGroupBar.Groups[GroupIndex].Font.Color     := BankLinkColor;
       aGroupBar.Groups[GroupIndex].SelectionColor := BankLinkColor;
       aGroupBar.Groups[GroupIndex].ItemHotColor   := BankLinkColor;
+
+      aGroupBar.Groups[GroupIndex].DividerColor := BankLinkColor;
+      aGroupBar.Groups[GroupIndex].DividerVisible := false;
     end;
   end
   else

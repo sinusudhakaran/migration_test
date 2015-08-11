@@ -158,6 +158,7 @@ function ReplaceIllegalFileChars(aInstr : string; aReplaceChar : char) : string;
 function TrimedGuid(AGuid: TGuid): String;
 
 function RemoveInvalidCharacters(aInString : string) : string;
+function TrimNonCharValues(aInString : string) : string;
 
 function RoundNumberExt(number, base: extended): extended;
 
@@ -1323,6 +1324,38 @@ begin
   for Index := 1 to length(aInString) do
     if not (aInString[Index] in ['/',':','\','/','*','"','<','>','|','~','?',',']) then
       Result := Result + aInString[Index];
+end;
+
+//-----------------------------------------------------------------
+function TrimNonCharValues(aInString : string) : string;
+var
+  Index : integer;
+  Start : boolean;
+  TempStr : string;
+begin
+  Start := false;
+  TempStr := '';
+  for Index := 1 to length(aInString) do
+  begin
+    if (not start) and
+       (aInString[Index] in ['A'..'Z','a'..'z','0'..'9']) then
+      Start := true;
+
+    if Start then
+      TempStr := TempStr + aInString[Index];
+  end;
+
+  Start := false;
+  Result := '';
+  for Index := length(TempStr) downto 1 do
+  begin
+    if (not start) and
+       (TempStr[Index] in ['A'..'Z','a'..'z','0'..'9']) then
+      Start := true;
+
+    if Start then
+      Result := TempStr[Index] + Result;
+  end;
 end;
 
 // Thanks to Piotr for this one
