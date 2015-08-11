@@ -1866,8 +1866,12 @@ begin
   end;
 
   RefreshHomepage([HRP_Init]);
-  TfrmClientHomePage(ClientHomePage).LEFeedbackForm := LEFeedbackForm;
-  LEFeedbackForm.Show;
+  if assigned( LEFeedbackForm )then begin
+    TfrmClientHomePage(ClientHomePage).LEFeedbackForm := LEFeedbackForm;
+    LEFeedbackForm.Show;
+  end
+  else
+    TfrmClientHomePage(ClientHomePage).LEFeedbackForm := nil; 
   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');
 end;
 
