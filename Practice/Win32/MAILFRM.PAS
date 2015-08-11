@@ -137,6 +137,8 @@ Type
     procedure HideClientFiles;
 
   protected
+    procedure AddBitmap(aImageList: TImageList; aBmp: TBitmap; aBkColor: TColor);
+
     function IsEmailAddressSupport(aEmail : string) : boolean;
 
   Public
@@ -208,14 +210,18 @@ Uses
   ToDoHandler,
   files,
   Merge32,
-
   ChkProgressFrm,
   clObj32,
   bkconst,
   LogUtil,
   WinUtils,
-  BKDEFS, StDate, bkDateUtils, ClientHomePageFrm, ThirdPartyHelper,
-  bkBranding, bkProduct,
+  BKDEFS,
+  StDate,
+  bkDateUtils,
+  ClientHomePageFrm,
+  ThirdPartyHelper,
+  bkBranding,
+  bkProduct,
   bkContactInformation;
 
 {$R *.DFM}
@@ -422,7 +428,7 @@ begin
   end
   else
   begin
-    ImageList1.Add(bkBranding.ProductIcon16x16.Bitmap, nil);
+    AddBitmap(ImageList1, bkBranding.ProductIcon16x16.Bitmap, clWhite);
   end;
 
   SetUpHelp;
@@ -2368,6 +2374,22 @@ begin
   lvAttach.Top := lvClientFiles.Top;
   lblAttachments.Top := lblClientFiles.Top;
   btnAttach.Top := btnAttachClient.Top;
+end;
+
+procedure TfrmMail.AddBitmap(aImageList: TImageList; aBmp: TBitmap; aBkColor: TColor);
+var
+  mask : TBitmap;
+begin
+  mask := TBitmap.Create;
+  try
+    mask.Assign(aBmp);
+    mask.Canvas.Brush.Color := aBkColor;
+    mask.Monochrome := true;
+
+    aImageList.Add(aBmp, mask);
+  finally
+    mask.Free;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
