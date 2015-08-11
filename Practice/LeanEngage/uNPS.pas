@@ -51,7 +51,7 @@ type
   protected
   public
     constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyCode, aCompanyName,
-      aCountry, aStaffID, aModuleId, aModuleVersion : string ); reintroduce;
+      aCountry, aStaffID, aModuleId, aModuleVersion : string ); reintroduce; virtual;
 
     property OnCompleted: TNotifyEvent read FOnCompleted write FOnCompleted;
 
@@ -73,8 +73,8 @@ type
   protected
     procedure Execute; override;
   public
-    constructor Create(*( aIdentityID, aServerUrl, aServerKey, aCompanyName,
-      aCountry, aStaffID, aModuleId, aModuleVersion : string )*); reintroduce;
+    constructor Create( aIdentityID, aServerUrl, aServerKey, aCompanyCode, aCompanyName,
+      aCountry, aStaffID, aModuleId, aModuleVersion : string ); override;
 
     destructor Destroy; override;
   end;
@@ -356,9 +356,9 @@ end;
 procedure TNPSLeanEngage.StartNPSSurveyThread;
 begin
   if FLENPSSurveyThread = nil then
-    FLENPSSurveyThread := TLENPSSurveyThread.Create(*( fIdentityId,
-      fServerURL, fServerKey, fCompanyName, fCountry, fStaffID, fModuleId,
-      fModuleVersion )*);
+    FLENPSSurveyThread := TLENPSSurveyThread.Create( fIdentityId,
+      fServerURL, fServerKey, fCompanyCode, fCompanyName, fCountry, fStaffID, fModuleId,
+      fModuleVersion );
 
 end;
 
@@ -623,10 +623,11 @@ end;
 
 { TLENPSSurveyThread }
 
-constructor TLENPSSurveyThread.Create(*(aIdentityID, aServerUrl, aServerKey,
-  aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion: string)*);
+constructor TLENPSSurveyThread.Create(aIdentityID, aServerUrl, aServerKey,
+  aCompanyCode, aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion: string);
 begin
-  inherited Create('','','','','','','','','');
+  inherited Create( aIdentityID, aServerUrl, aServerKey,
+    aCompanyCode, aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion );
 
   FSurveys:= TNPSSurveys.Create;
 

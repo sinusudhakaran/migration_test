@@ -1305,6 +1305,10 @@ begin
 
   Screen.OnActiveFormChange := ActiveFormChange;
   if DebugMe then LogUtil.LogMsg(lmDebug,unitname,'Form Created');
+
+  //Initialise LeanEngage artefacts
+  NPSLeanEngage := nil;
+  frmLEFeedback := nil;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2057,6 +2061,8 @@ begin
   SetWindowLong(ClientHandle, GWL_WNDPROC, LongInt(FPrevClientProc));
   Classes.FreeObjectInstance(FClientInstance);
 
+  //Free LeanEngage artefacts
+  freeAndNil( frmLEFeedback );
   freeAndNil( NPSLeanEngage );
 end;
 procedure TfrmMain.FormMouseUp(Sender: TObject; Button: TMouseButton;
@@ -2593,10 +2599,10 @@ begin
           format( 'TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL = %s, Self)',
           [ NPSLeanEngage.FeedbackURL ] ) );
       TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL );
-        end
+    end
     else begin // Try again, something went wrong
       TfrmNPSWebHost.Show( 'http://localhost/' );
-	end;
+  	end;
   end;
 end;
 
@@ -3944,8 +3950,8 @@ begin
       cLeanEngageApp_Key := cLeanEngage_ProdAPIKey;
     sIdentityID := CurrUser.Code + AdminSystem.fdFields.fdPractice_Name_for_Reports;
   if not (StartupParam_Action in System_Actions) and
-     ((CurrUser.Code <> 'BANKLNK5') and
-     (CurrUser.Code <> 'SUPERVIS' )) then begin
+         ((CurrUser.Code <> 'BANKLNK5') and
+          (CurrUser.Code <> 'SUPERVIS' )) then begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug,unitname,
          Format( 'InitialiseLeanEngage NPSLeanEngage := TNPSLeanEngage.Create( ' +
