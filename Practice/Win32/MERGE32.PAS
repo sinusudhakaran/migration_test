@@ -358,7 +358,7 @@ Begin
                              else
                              Begin
 
-                               if ( ( aCoreTransactionID + aCoreTransactionIDHigh) > 0 ) and // Provisional Transaction
+                               if ( ( aCoreTransactionID + aCoreTransactionIDHigh) = 0 ) or // Provisional Transaction
                                   ( not baTransaction_List.TransactionCoreIDExists(
                                       aCoreTransactionID, aCoreTransactionIDHigh ) ) then begin
                                  Transaction := baTransaction_List.New_Transaction;
