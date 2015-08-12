@@ -1460,7 +1460,9 @@ begin
   Low  := aLow;
   High := aHigh;
 
-  result := (High shl (sizeof( aHigh ) * 8) ) or Low;
+//The CORE dump uses a 62bit Integer (2 most significant bits are lost) split
+//into two 31bit integers
+  result := (High shl 31 ) or Low;
 end;
 
 End.
