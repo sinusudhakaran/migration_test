@@ -412,8 +412,8 @@ Begin
       NewTran_Transaction_Code_Index_Rec := fTran_Transaction_Code_Index.NewItem;
       if assigned( NewTran_Transaction_Code_Index_Rec ) then
         NewTran_Transaction_Code_Index_Rec^.tiCoreTransactionID :=
-          CombineInt32ToInt64(
-            P^.txCore_Transaction_ID, P^.txCore_Transaction_ID_High );
+          CombineInt32ToInt64( P^.txCore_Transaction_ID_High,
+            P^.txCore_Transaction_ID );
 
       FTran_Transaction_Code_Index.Insert( NewTran_Transaction_Code_Index_Rec );
     end;
