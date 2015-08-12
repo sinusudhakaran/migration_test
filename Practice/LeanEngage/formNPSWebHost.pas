@@ -98,6 +98,7 @@ begin
         //nothing  -  do not pass on Backspace, Left, Right, Up, Down arrows
         if Msg.wParam = VK_ESCAPE then  //#89359 Lean Engage: ESC to close form and update button
           Close                         //#89359 Lean Engage: ESC to close form and update button
+        else //if Msg.wParam = VK_ESCAPE then
       else FOleInPlaceActiveObject.TranslateAccelerator(Msg);
   end;
 end;
