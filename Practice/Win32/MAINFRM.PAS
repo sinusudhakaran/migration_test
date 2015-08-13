@@ -1629,32 +1629,35 @@ begin
          if ( AdminSystem.fdFields.fdBankLink_Code <>
                 cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
          then begin
-         if DebugMe then
-           LogUtil.LogMsg(lmDebug,unitname,
-             format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-             [ StartupParam_Action, CurrUser.Code ] ) );
+           mniHelpProvideFeedback.Visible := true; //User is notSupport and should be subscribed to LeanEngage
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
 
-         // Add LeanEngage functionality
-         InitialiseLeanEngage;
-         if not assigned( frmLEFeedback ) then begin
+           // Add LeanEngage functionality
+           InitialiseLeanEngage;
+           if not assigned( frmLEFeedback ) then begin
 
-           frmLEFeedback := TfrmLEFeedback.Create( frmMain );
+             frmLEFeedback := TfrmLEFeedback.Create( frmMain );
 
-           frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
-             frmMain.ClientWidth);
+             frmLEFeedback.InitialiseAndShowForm( frmMain, frmMain.ClientHeight,
+               frmMain.ClientWidth);
 
-           frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
+             frmLEFeedback.imgIcon.OnClick := mniHelpProvideFeedbackClick;
 
-           if GetClientManagerFormPointer <> nil then
-             GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
-         end;
+             if GetClientManagerFormPointer <> nil then
+               GetClientManagerFormPointer.LEFeedbackForm := TForm(frmLEFeedback);
+           end;
 
-         if DebugMe then
-           LogUtil.LogMsg(lmDebug,unitname,
-             format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
-             [ StartupParam_Action, CurrUser.Code ] ) );
-         end;  // End LeanEngage code
-         // End LeanEngage code
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
+         end  // End LeanEngage active
+         else begin
+           mniHelpProvideFeedback.Visible := false; //User is Support and should not be subscribed to LeanEngage
+         end; // End LeanEngage code
 
          if AdminSystem.fdFields.fdUse_BankLink_Online then
          begin
