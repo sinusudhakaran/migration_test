@@ -26,7 +26,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,Contnrs,
   BKDateUtils,
   Dialogs, ExtCtrls, VirtualTrees, StdCtrls, baObj32, txul, HistoricalDlg, OsFont,
-  ComCtrls, moneyDef, Mask, RzEdit, RzSpnEdt,ImportHistClass;
+  ComCtrls, moneyDef, Mask, RzEdit, RzSpnEdt,ImportHistClass, DateUtils;
 
 type
   ControlList =  array of TControl;
@@ -2406,6 +2406,8 @@ procedure TImportHist.vsOutPaintText(Sender: TBaseVirtualTree;
      end;
   end;
 
+var
+  iCurrentValue : Integer;
 begin
   if not Assigned(Node) then
      Exit;
@@ -2413,12 +2415,17 @@ begin
   if PaintMatch then
      Exit;
 
-  if (Column = SubDate) then begin
-     if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate )
-     or (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate ) then
-        TargetCanvas.Font.Color := clRed
+  if (Column = SubDate) then
+  begin
+     iCurrentValue := Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]);
+
+     if (iCurrentValue > FValidDateRange.ToDate) or
+        (iCurrentValue < FValidDateRange.FromDate) or
+        not CheckEffectiveDate(iCurrentValue)
+     then
+       TargetCanvas.Font.Color := clRed
      else
-        SetHighLight(PCFormat.ActivePageIndex = piDate);
+       SetHighLight(PCFormat.ActivePageIndex = piDate);
 
   end else
 

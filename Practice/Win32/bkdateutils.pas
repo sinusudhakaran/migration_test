@@ -40,6 +40,7 @@ Function  ELastMth : Integer;
 Function  CompareDates( CONST aDate, aPeriodStartDate, aPeriodEndDate : Integer ) : DateCompareType;
 Function  GetMonthName( CONST ADate: Integer) : string;
 Function  GetMonthNumber( CONST ADate: Integer) : Integer;
+function  GetYear(CONST ADate : Integer) : Integer;
 Function  Date2Str( CONST ADate: Integer; CONST APicture : ShortString) : ShortString;
 Function  Str2Date( CONST ADateStr: String; CONST APicture : ShortString) : Integer;
 Function  BKNull2St( CONST ADate : Integer ) : Integer;
@@ -59,6 +60,9 @@ function GetPeriodsBetween(FromDate, ToDate: Integer; ReturnLastDay: Boolean = F
 function BkDate2XSDate(ADate: Integer): String;
 function GetLastDayOfLastMonth(Date: TStDate): TStDate;
 function TryConvertStrMonthToInt(aStrMonth : string; var aMonth : integer) : boolean;
+
+function CheckEffectiveDate(const aEffectiveDate : TDatetime) : Boolean;overload;
+function CheckEffectiveDate(const aEffectiveDate : integer) : Boolean; overload;
 
 // -----------------------------------------------------------------------------
 Implementation
@@ -343,6 +347,17 @@ Begin
   Result := Month;
 end;
 
+Function GetYear( CONST ADate: Integer) : Integer;
+Var
+  Day   : Integer;
+  Month : Integer;
+  Year  : Integer;
+Begin
+  StDatetoDMY(ADate, Day, Month, Year);
+  Result := Year;
+end;
+
+
 // -----------------------------------------------------------------------------
 
 Function Date2Str( CONST ADate: Integer; Const APicture : ShortString) : ShortString;
@@ -624,6 +639,53 @@ begin
     end;
   end;
 end;
+
+function CheckEffectiveDate(const aEffectiveDate : TDatetime) : Boolean;
+var
+  wYear : Word;
+  wMonth : Word;
+  wDay : Word;
+  wEffYear : Word;
+  wEffMonth : Word;
+  wEffDay : Word;
+begin
+  Result := False;
+
+  DecodeDate(Now, wYear, wMonth, wDay);
+  DecodeDate(aEffectiveDate, wEffYear, wEffMonth, wEffDay);
+
+  if (wEffYear < wYear) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  Result := (wEffMonth <= wMonth) and (wEffYear = wYear);
+end;
+
+function CheckEffectiveDate(const aEffectiveDate : integer) : Boolean; overload;
+var
+  wYear : Word;
+  wMonth : Word;
+  wDay : Word;
+begin
+  Result := False;
+
+  if aEffectiveDate = 0 then
+   Exit;
+
+  DecodeDate(Now, wYear, wMonth, wDay);
+
+  if (GetYear(aEffectiveDate) < wYear) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  Result := (GetMonthNumber(aEffectiveDate) <= wMonth) and (GetYear(aEffectiveDate) = wYear);
+  
+end;
+
 
 {$IFDEF DATE_UTILS_TEST}
 Var

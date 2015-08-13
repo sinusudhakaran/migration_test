@@ -56,7 +56,7 @@ uses
   Menus, OvcTCCBx, OvcPF, ActnList, CheqCollectionObj,
   jpeg, RzPanel, RzButton, MoneyDef, ovctcbmp, ovctcgly, ovctcbox,
   OsFont,
-  BankLinkOnlineServices;
+  BankLinkOnlineServices, DateUtils;
 
 const
     //Entry type indentifiers
@@ -539,6 +539,10 @@ const
 const
   NoEntriesBeforeReminder = 100;
   MinSize = 350;
+
+resourcestring
+  rsMsgWrongAffectiveDate = 'Entered date %s is not a valid date.'#13#10+
+                            'Please enter a date on or before %s.';
 
 type
   TMyPanel = class( TPanel)
@@ -2517,24 +2521,29 @@ begin
 
    case FieldID of
       ceAccount, ceReference,
-      ceAnalysis, ceJob, ceGSTClass : begin
-         data := @tmpShortStr;
+      ceAnalysis, ceJob, ceGSTClass :
+      begin
+        data := @tmpShortStr;
       end;
 
-      ceGSTAmount, ceQuantity, ceAmount, ceForexRate, ceLocalAmount : begin
-         data := @tmpDouble;
+      ceGSTAmount, ceQuantity, ceAmount, ceForexRate, ceLocalAmount :
+      begin
+        data := @tmpDouble;
       end;
 
-      ceEffDate, ceEntryType, cePayee : begin
-         data := @tmpInteger;
+      ceEffDate, ceEntryType, cePayee :
+      begin
+        data := @tmpInteger;
       end;
 
-      ceTaxInvoice : begin
-         data := @tmpBool;
+      ceTaxInvoice :
+      begin
+        data := @tmpBool;
       end;
 
-      ceNarration : begin
-         data := tmpBuffer;
+      ceNarration :
+      begin
+        data := tmpBuffer;
       end;
    end;
 end;
@@ -2550,6 +2559,7 @@ var
    GSTAmt   : double;
    Payee    : integer;
    IsActive : boolean;
+   dtEffectiveDate : TDateTime;
 //   ChequeNo : longint;
 //   S        : string;
 //   l        : integer;
@@ -2574,6 +2584,18 @@ begin
 {$ENDIF}
                end;
             end;
+         end;
+
+         ceEffDate :
+         begin
+           dtEffectiveDate := TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsDateTime;
+           if not CheckEffectiveDate(dtEffectiveDate) then
+           begin
+             ErrorSound;
+             HelpfulWarningMsg(Format(rsMsgWrongAffectiveDate, [FormatDateTime('DD/MM/YY',dtEffectiveDate), FormatDateTime('MM/YY',Now)]), 0);
+             TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).ClearContents;
+             TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).SetFocus;
+           end;
          end;
 
          ceGSTClass : begin
@@ -3414,7 +3436,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.celDateExit(Sender: TObject);
 begin
-   cntController.EntryOptions := cntController.EntryOptions + [efoAutoSelect];
+  cntController.EntryOptions := cntController.EntryOptions + [efoAutoSelect];
 end;
 procedure TdlgHistorical.celForexAmountOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
@@ -5311,6 +5333,7 @@ begin
         end;
     end;
 end;
+
 
 function TdlgHistorical.GetCellRect(const RowNum, ColNum: Integer): TRect;
 begin
