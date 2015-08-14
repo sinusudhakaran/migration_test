@@ -190,6 +190,7 @@ Var
 
    NoForAccount,
    NoOfEntries,
+   NoSkipped,
    FirstDate,
    LastDate    : integer;
 
@@ -205,6 +206,7 @@ Begin
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   NoOfEntries := 0;
+  NoSkipped   := 0;
   FirstDate   := 0;
   LastDate    := 0;
 
@@ -394,7 +396,12 @@ Begin
 
                                  //Flag Audit for bank account
                                  aClient.ClientAuditMgr.FlagAudit(arClientBankAccounts);
-                               end;
+
+                                 Inc( NoOfEntries );
+                                 Inc( NoForAccount);
+                               end
+                               else
+                                 Inc( NoSkipped );
                              end;
 
                              If baCurrent_Balance <> Unknown then baCurrent_Balance := baCurrent_Balance + aAmount;
@@ -402,8 +409,18 @@ Begin
                              //- - - - VERY IMPORTANT - - - - - -
                              baHighest_LRN := aLRN;
 
-                             Inc( NoOfEntries );
-                             Inc( NoForAccount);
+(*
+//DN moved into "else" of the above selection statement
+("if ( ( aCoreTransactionID + aCoreTransactionIDHigh) = 0 ) or // Provisional Transaction
+                                  ( not baTransaction_List.TransactionCoreIDExists(
+                                      aCoreTransactionID, aCoreTransactionIDHigh ) ) then begin")
+                               Inc( NoOfEntries );
+                               Inc( NoForAccount);
+//DN moved into "else" of the above selection statement
+("if ( ( aCoreTransactionID + aCoreTransactionIDHigh) = 0 ) or // Provisional Transaction
+                                  ( not baTransaction_List.TransactionCoreIDExists(
+                                      aCoreTransactionID, aCoreTransactionIDHigh ) ) then begin")
+*)
 
                              //update transaction date range for all accounts
                              If ( FirstDate = 0 ) or ( ( FirstDate > 0 ) and ( aDate_Presented < FirstDate ) ) then
@@ -466,6 +483,22 @@ Begin
     begin
       Msg := Format('Imported %d transactions dated from %s to %s',
                     [ NoOfEntries, bkDate2Str( FirstDate ), bkDate2Str( LastDate ) ] );
+      LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
+      if not IsScheduledReports then
+        HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
+    end;
+  end;
+
+  if NoSkipped > 0 then
+  begin
+    if (not Silent) or (IsScheduledReports) then
+    begin
+      if NoSkipped > 1 then
+        Msg := Format('%d transactions weren''t imported as pre-existing (duplicate Transaction ID)',
+                      [ NoSkipped ] )
+      else
+        Msg := '1 transaction wasn''t imported as pre-existing (duplicate Transaction ID)';
+        
       LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg);
       if not IsScheduledReports then
         HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
