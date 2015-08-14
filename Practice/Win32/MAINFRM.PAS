@@ -1629,7 +1629,7 @@ begin
          if ( AdminSystem.fdFields.fdBankLink_Code <>
                 cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
          then begin
-           mniHelpProvideFeedback.Visible := true; //User is notSupport and should be subscribed to LeanEngage
+           mniHelpProvideFeedback.Enabled := true; //User is notSupport and should be subscribed to LeanEngage
            if DebugMe then
              LogUtil.LogMsg(lmDebug,unitname,
                format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
@@ -1656,7 +1656,7 @@ begin
                [ StartupParam_Action, CurrUser.Code ] ) );
          end  // End LeanEngage active
          else begin
-           mniHelpProvideFeedback.Visible := false; //User is Support and should not be subscribed to LeanEngage
+           mniHelpProvideFeedback.Enabled := false; //User is Support and should not be subscribed to LeanEngage
          end; // End LeanEngage code
 
          if AdminSystem.fdFields.fdUse_BankLink_Online then
