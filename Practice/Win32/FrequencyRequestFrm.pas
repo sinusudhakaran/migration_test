@@ -181,8 +181,6 @@ begin
   Label2.Font.Style := [fsBold];
   Label3.Font.Style := [fsBold];
   Label1.Font.Style := [fsBold];
-  gbMonthly.Font.Style := [fsBold];
-  gbDaily.Font.Style := [fsBold];
 
   OSFont.SetHyperlinkFont(lblInstitutionListLink.Font);
   lblInstitutionListLink.Font.Style := [];

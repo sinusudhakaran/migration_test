@@ -99,11 +99,10 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       136)
     object gbMonthly: TGroupBox
       Left = 10
-      Top = -2
+      Top = 3
       Width = 756
       Height = 122
       Anchors = [akLeft, akTop, akRight, akBottom]
-      Caption = 'Monthly to Daily'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -17
@@ -116,11 +115,10 @@ object frmFrequencyRequest: TfrmFrequencyRequest
         122)
       object Label2: TLabel
         Left = 10
-        Top = 22
-        Width = 58
+        Top = 10
+        Width = 120
         Height = 21
-        Caption = 'Monthly'
-        Visible = False
+        Caption = 'Monthly to Daily'
       end
       object Label4: TLabel
         Left = 89
@@ -152,9 +150,9 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       end
       object memoMonthly: TMemo
         Left = 11
-        Top = 21
+        Top = 40
         Width = 732
-        Height = 95
+        Height = 67
         Anchors = [akLeft, akTop, akRight, akBottom]
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -193,7 +191,6 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       Width = 756
       Height = 122
       Anchors = [akLeft, akTop, akRight, akBottom]
-      Caption = 'Daily to Monthly'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -17
@@ -206,11 +203,10 @@ object frmFrequencyRequest: TfrmFrequencyRequest
         122)
       object Label1: TLabel
         Left = 10
-        Top = 25
-        Width = 37
+        Top = 10
+        Width = 120
         Height = 21
-        Caption = 'Daily'
-        Visible = False
+        Caption = 'Daily to Monthly'
       end
       object Label6: TLabel
         Left = 89
@@ -242,9 +238,9 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       end
       object memoDaily: TMemo
         Left = 10
-        Top = 23
-        Width = 733
-        Height = 94
+        Top = 40
+        Width = 732
+        Height = 61
         Anchors = [akLeft, akTop, akRight, akBottom]
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -262,7 +258,7 @@ object frmFrequencyRequest: TfrmFrequencyRequest
   end
   object pnlWeekly: TPanel
     Left = 0
-    Top = 224
+    Top = 223
     Width = 777
     Height = 136
     BevelOuter = bvNone
@@ -289,21 +285,21 @@ object frmFrequencyRequest: TfrmFrequencyRequest
         122)
       object Label3: TLabel
         Left = 10
-        Top = 22
+        Top = 10
         Width = 53
         Height = 21
         Caption = 'Weekly'
       end
       object Label5: TLabel
         Left = 89
-        Top = 22
+        Top = 10
         Width = 15
         Height = 21
         Caption = 'to'
       end
       object rbWeekToMonth: TRadioButton
         Left = 131
-        Top = 22
+        Top = 10
         Width = 116
         Height = 22
         Caption = 'Monthly'
@@ -312,7 +308,7 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       end
       object rbWeekToDay: TRadioButton
         Left = 262
-        Top = 22
+        Top = 10
         Width = 92
         Height = 22
         Caption = 'Daily'
@@ -321,9 +317,9 @@ object frmFrequencyRequest: TfrmFrequencyRequest
       end
       object memoWeekly: TMemo
         Left = 10
-        Top = 52
-        Width = 733
-        Height = 58
+        Top = 40
+        Width = 732
+        Height = 61
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoWeekly')
@@ -337,7 +333,7 @@ object frmFrequencyRequest: TfrmFrequencyRequest
     Left = 0
     Top = 0
     Width = 777
-    Height = 39
+    Height = 41
     Align = alTop
     BevelOuter = bvNone
     Font.Charset = DEFAULT_CHARSET
@@ -350,7 +346,7 @@ object frmFrequencyRequest: TfrmFrequencyRequest
     Visible = False
     object cbNotifyEmail: TCheckBox
       Left = 21
-      Top = 10
+      Top = 11
       Width = 431
       Height = 23
       Caption = 'Notify practice by email when Daily Data is available'
