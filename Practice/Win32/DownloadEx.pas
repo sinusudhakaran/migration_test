@@ -71,8 +71,8 @@ uses
   MainFrm;
 
 resourcestring
-  rsHelpErrorMsg = 'Incorrect PIN Number Entered.  Please Email %s '+
-                   ' Support requesting your Practice PIN number.  Note: You MUST email the request from a Practice email address.';
+  rsHelpErrorMsg = 'Incorrect PIN number entered. Please email %s '+
+                   'Support requesting your Practice PIN number.  Note: You MUST email the request from a Practice email address.';
 
 const
   UnitName = 'DownloadEx';
