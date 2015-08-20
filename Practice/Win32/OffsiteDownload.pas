@@ -508,54 +508,68 @@ begin
                 else
                 begin
                   //no unpresented item to match with, this is a NEW TRANSACTION
-                  pT := ClientAccount.baTransaction_List.New_Transaction;
+                  if ( ( DiskTxn.dtBankLink_ID + DiskTxn.dtBankLink_ID_H) = 0 ) or // Provisional Transaction
+                     ( not ClientAccount.baTransaction_List.TransactionCoreIDExists(
+                       DiskTxn.dtBankLink_ID, DiskTxn.dtBankLink_ID_H ) ) then begin
 
-                  pT^.txType               := TrxType;
-                  pT^.txSource             := BKCONST.orBank;
-                  pT^.txDate_Presented     := TrxDate;
-                  pT^.txDate_Effective     := TrxDate;
-                  pT^.txDate_Transferred   := 0;
-                  pT^.txAmount             := TrxAmount;
-                  pT^.txCheque_Number      := TrxChequeNo;
-                  pT^.txReference          := TrxReference;
-                  pT^.txStatement_Details  := Copy( DiskTxn.dtNarration, 1, 200);
-                  pT^.txSF_Member_Account_ID:= -1;
-                  pT^.txSF_Fund_ID          := -1;
+                    pT := ClientAccount.baTransaction_List.New_Transaction;
 
-                  if DiskTxn.dtQuantity <> Unknown then
-                    pT^.txQuantity := ForceSignToMatchAmount( DiskTxn.dtQuantity * 10, pT^.txAmount)
-                  else
-                    pT^.txQuantity := 0;
+                    pT^.txType               := TrxType;
+                    pT^.txSource             := BKCONST.orBank;
+                    pT^.txDate_Presented     := TrxDate;
+                    pT^.txDate_Effective     := TrxDate;
+                    pT^.txDate_Transferred   := 0;
+                    pT^.txAmount             := TrxAmount;
+                    pT^.txCheque_Number      := TrxChequeNo;
+                    pT^.txReference          := TrxReference;
+                    pT^.txStatement_Details  := Copy( DiskTxn.dtNarration, 1, 200);
+                    pT^.txSF_Member_Account_ID:= -1;
+                    pT^.txSF_Fund_ID          := -1;
 
-                  //set country specific fields
-                  case MyClient.clFields.clCountry of
-                    whAustralia, whUK : begin
-                      pT^.txParticulars := DiskTxn.dtBank_Type_Code_OZ_Only;
-                    end;
-                    whNewZealand : begin
-                      pT^.txParticulars := DiskTxn.dtParticulars_NZ_Only;
-                      pT^.txOther_Party := DiskTxn.dtOther_Party_NZ_Only;
-                      //the analysis column is padded to 12 char to maintain
-                      //compatibility
-                      pT^.txAnalysis    := GenUtils.PadStr( DiskTxn.dtAnalysis_Code_NZ_Only, 12, ' ');
-                      pT^.txOrigBB      := DiskTxn.dtOrig_BB;
-                      //statement details may need to be constructed for NZ
-                      //clients because there is no corresponding field in the
-                      //old disk image
-                      if ( pT^.txStatement_Details = '') and
-                         (( pT^.txOther_Party <> '') or ( pT^.txParticulars <> '')) then
-                      begin
-                        pT^.txStatement_Details := MakeStatementDetails( ClientAccount.baFields.baBank_Account_Number,
-                                                                         pT^.txOther_Party, pT^.txParticulars);
+                    if DiskTxn.dtQuantity <> Unknown then
+                      pT^.txQuantity := ForceSignToMatchAmount( DiskTxn.dtQuantity * 10, pT^.txAmount)
+                    else
+                      pT^.txQuantity := 0;
+
+                    //set country specific fields
+                    case MyClient.clFields.clCountry of
+                      whAustralia, whUK : begin
+                        pT^.txParticulars := DiskTxn.dtBank_Type_Code_OZ_Only;
+                      end;
+                      whNewZealand : begin
+                        pT^.txParticulars := DiskTxn.dtParticulars_NZ_Only;
+                        pT^.txOther_Party := DiskTxn.dtOther_Party_NZ_Only;
+                        //the analysis column is padded to 12 char to maintain
+                        //compatibility
+                        pT^.txAnalysis    := GenUtils.PadStr( DiskTxn.dtAnalysis_Code_NZ_Only, 12, ' ');
+                        pT^.txOrigBB      := DiskTxn.dtOrig_BB;
+                        //statement details may need to be constructed for NZ
+                        //clients because there is no corresponding field in the
+                        //old disk image
+                        if ( pT^.txStatement_Details = '') and
+                           (( pT^.txOther_Party <> '') or ( pT^.txParticulars <> '')) then
+                        begin
+                          pT^.txStatement_Details := MakeStatementDetails( ClientAccount.baFields.baBank_Account_Number,
+                                                                           pT^.txOther_Party, pT^.txParticulars);
+                        end;
                       end;
                     end;
+
+                    pT^.txGL_Narration := pT^.txStatement_Details;
+                    pT^.txBank_Seq     := ClientAccount.baFields.baNumber;
+
+  //////// DN ////////////////////////////////////////////////////////////////////
+  //////// DN ////////////////////////////////////////////////////////////////////
+
+                    pT^.txCore_Transaction_ID      := DiskTxn.dtBankLink_ID;
+                    pT^.txCore_Transaction_ID_High := DiskTxn.dtBankLink_ID_H;
+
+  //////// DN ////////////////////////////////////////////////////////////////////
+  //////// DN ////////////////////////////////////////////////////////////////////
+
+                    //fields populated, add transaction to list
+                    ClientAccount.baTransaction_List.Insert_Transaction_Rec( pT);
                   end;
-
-                  pT^.txGL_Narration := pT^.txStatement_Details;
-                  pT^.txBank_Seq     := ClientAccount.baFields.baNumber;
-
-                  //fields populated, add transaction to list
-                  ClientAccount.baTransaction_List.Insert_Transaction_Rec( pT);
                 end;
 
                 //add transaction amount to current balance
