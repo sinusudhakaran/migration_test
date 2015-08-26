@@ -261,6 +261,7 @@ Const
    ThisMethodName = 'MakeSortKey';
 Var
    Code   : BK5CodeStr;
+   SortCode : BK5SortStr;
    Msg    : string;
    Payee  : PayeeObj.TPayee;
    AccountRec : pAccount_Rec;
@@ -358,10 +359,10 @@ Begin
 
          csByNarration :
             Begin
-               Code := Uppercase( Copy( txGL_Narration, 1, MaxBk5CodeLen ) );
-               While Length( Code ) < MaxBk5CodeLen Do Code := Code + ' ';
+               SortCode := Uppercase( Copy( txGL_Narration, 1, Length(txGL_Narration) ) );
+               While Length( SortCode ) < MaxSortLength Do SortCode := SortCode + #32;
                MakeSortKey :=    LongToKey( txBank_Seq ) +
-                                 Code +
+                                 SortCode +
                                  LongToKey( txDate_Effective ) +
                                  LongToKey( txSequence_No ); {32} {was 22}
             end;
@@ -387,10 +388,10 @@ Begin
          end;
 
          csByStatementDetails : begin
-               Code := Uppercase( Copy( txStatement_Details, 1, MaxBk5CodeLen ) );
-               While Length( Code ) < MaxBk5CodeLen Do Code := Code + ' ';
+               SortCode := Uppercase( Copy( txStatement_Details, 1, Length(txStatement_Details) ) );
+               While Length( SortCode ) < MaxSortLength Do SortCode := SortCode + ' ';
                MakeSortKey :=    LongToKey( txBank_Seq ) +
-                                 Code +
+                                 SortCode +
                                  LongToKey( txDate_Effective ) +
                                  LongToKey( txSequence_No ); {32} {was 22}
          end;

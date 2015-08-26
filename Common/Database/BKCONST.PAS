@@ -39,6 +39,7 @@ CONST
   MaxBankPrefixLen = 3;
 
   MaxNarrationEditLength = 200;   //cannot be more than 255
+  MaxSortLength = 200;
 
   WebXDisplayName = 'CCH Web Manager';
 
@@ -51,6 +52,7 @@ CONST
 
 TYPE
    BK5CodeStr    = String[ MaxBK5CodeLen ];
+   BK5SortStr    = String[ MaxSortLength ];
    BankPrefixStr = String[ MaxBankPrefixLen];
    SetOfBytes    = Set Of Byte;
    TViewMode     = ( vmMyFiles, vmAllFiles);
