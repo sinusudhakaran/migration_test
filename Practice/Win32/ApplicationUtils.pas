@@ -18,6 +18,7 @@ procedure DisableMainForm;
 function EnableMainForm: Boolean;
 procedure MakeMainFormForeground;
 function CanProcessCommands : boolean;
+function IsWoW64 : Boolean;
 
 //******************************************************************************
 implementation
@@ -35,6 +36,21 @@ begin
     WindowList := DisableTaskWindows(0);
   end;
   Inc( FDisableMainFormCount);
+end;
+
+function IsWoW64 : Boolean;
+var
+  IsWow64Process: function(hProcess: THandle; out Wow64Process: Bool): Bool; stdcall;
+  Wow64Proc : Bool;
+begin
+  Result := False;
+  IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
+
+  Wow64Proc := False;
+  if Assigned(IsWow64Process) then
+    Wow64Proc := IsWow64Process(GetCurrentProcess, Wow64Proc) and Wow64Proc;
+
+  Result := Wow64Proc;
 end;
 
 function EnableMainForm: Boolean;

@@ -20,7 +20,7 @@ Uses
     Admin32,
     SYDEFS,
   WPRTEDefs, WPCTRMemo, WPCTRRich, WPRuler, WPTbar,
-   OsFont, RTFEditFme;
+   OsFont, RTFEditFme, ApplicationUtils;
 
 Type
   TfrmMail = Class (Tform)
@@ -178,6 +178,11 @@ function EditSignature: Boolean;
 function SendSceduledEmail(EmailList: tList; srOptions : TSchReportOptions): Boolean;
 
 function GetSupportEmailAddress : string;
+
+resourcestring
+  rsMAPI_X64EXE_NOT_FOUND = 'You are running x32 Practice application on x64 version of MS Windows'#13#10 +
+                            'In order to use MS Outlook the mapi64bit.exe application required.'#13#10 +
+                            'mapi64bit.exe application is not found in the current installation directory';
 
 //******************************************************************************
 Implementation
@@ -854,6 +859,7 @@ end;
 function TfrmMail.PracticeSendMail( BK5Files, OtherAttachments : TStringList; CheckoutClientFiles : boolean; WasOpenCode: string) : boolean;
 const
   ThisMethodName = 'PracticeSendMail';
+  MAPI64BIT = 'mapi64bit.exe';
 var
   ProgressFrm : TFrmChkProgress;
   EncodedLogoString : string;
@@ -865,6 +871,15 @@ var
   i : integer;
   SkippedCount : integer;
   aMsg : string;
+
+  //create process variables
+  Rlst: LongBool;
+  StartUpInfo: TStartUpInfo;
+  ProcessInfo: TProcessInformation;
+  Error: integer;
+  CmdString : string;
+  AttachmentsStr : string;
+  ExitCode : Cardinal;
 begin
   //before send mail
   result := false;
@@ -970,8 +985,73 @@ begin
         Attachments.Add( OtherAttachments[i]);
 
       //send mail
-      MailSentOK := CreateMailObjectAndSend( txtRecipient.Text, txtCC.Text, eReturnAddr.text, txtSubject.text,
-                              Editor.ERTF.Text, Attachments, UpdateStatus);
+      if not IsWoW64 then
+        MailSentOK := CreateMailObjectAndSend( txtRecipient.Text, txtCC.Text, eReturnAddr.text, txtSubject.text,
+                                Editor.ERTF.Text, Attachments, UpdateStatus)
+      else
+      begin
+        //run 64bit exe file here!!!
+{
+  PARAM_TO      = '-to';
+  PARAM_CC      = '-cc';
+  PARAM_BCC     = '-bcc';
+  PARAM_ATT     = '-att';
+  PARAM_SUBJECT = '-subject';
+  PARAM_BODY    = '-body';
+  PARAM_IS_RTF  = '-rtf';
+  PARAM_IS_HTML = '-html';
+}
+        if FileExists(MAPI64BIT) then
+        begin
+          FillChar(StartUpInfo, SizeOf(TStartUpInfo), #0);
+          with StartUpInfo do
+          begin
+            cb := SizeOf(TStartUpInfo);
+            dwFlags := STARTF_USESHOWWINDOW or STARTF_FORCEONFEEDBACK;
+            wShowWindow := SW_HIDE;
+          end;
+          CmdString := PChar(ExtractFileDir(Application.ExeName)+'\'+MAPI64BIT);
+
+          if Trim(txtRecipient.Text) <> '' then
+            CmdString := CmdString + ' -to '+ txtRecipient.Text;
+          if Trim(txtCC.Text) <> '' then
+            CmdString := CmdString + ' -cc '+ txtCC.Text;
+          if Trim(txtSubject.text) <> '' then
+            CmdString := CmdString + ' -subject ' + txtSubject.text;
+          if Trim(Editor.ERTF.Text) <> '' then
+            CmdString := CmdString + ' -body '+ Editor.ERTF.Text;
+
+          AttachmentsStr := '';
+          if Attachments.Count > 0 then
+          begin
+            for i := 0 to Attachments.Count - 1 do
+               AttachmentsStr := AttachmentsStr + Attachments.Strings[i] + ';';
+          end;
+          if AttachmentsStr <> '' then
+            CmdString := CmdString + ' -att '+ AttachmentsStr;
+
+          Rlst := CreateProcess(nil, PChar(CmdString), nil, nil, false, REALTIME_PRIORITY_CLASS, nil, nil, StartUpInfo, ProcessInfo);
+          if Rlst then
+          with ProcessInfo do
+          begin
+            if WaitForSingleObject(hProcess, INFINITE) <> WAIT_TIMEOUT then
+            begin
+              GetExitCodeProcess(ProcessInfo.hProcess, ExitCode);
+              CloseHandle(hThread);
+              CloseHandle(hProcess);
+            end else
+            begin
+              Win32Check(Windows.TerminateProcess(hProcess,0));
+              OpenProcess(PROCESS_TERMINATE, False, ProcessInfo.dwProcessId);
+            end;
+           end;
+        MailSentOK := ExitCode = 0;   
+        end else
+        begin
+          MessageDlg(rsMAPI_X64EXE_NOT_FOUND, mtError, [mbOk], 0);
+          MailSentOK := False;
+        end;
+      end;
     finally
       Attachments.Free;
     end;
@@ -1130,12 +1210,12 @@ begin
 
      DisableForm;
      try
-        if Assigned( AdminSystem) then
-           MailSentOK := PracticeSendMail( BK5Attachments, OtherAttachments, chkCheckout.Checked, ClientWasOpen)
-        else
-           MailSentOK := OffsiteSendMail( BK5Attachments, OtherAttachments, chkCheckout.Checked, ClientWasOpen);
+       if Assigned( AdminSystem) then
+         MailSentOK := PracticeSendMail( BK5Attachments, OtherAttachments, chkCheckout.Checked, ClientWasOpen)
+       else
+         MailSentOK := OffsiteSendMail( BK5Attachments, OtherAttachments, chkCheckout.Checked, ClientWasOpen);
      finally
-        EnableForm;
+       EnableForm;
      end;
 
   finally
@@ -1399,7 +1479,6 @@ Var
    ContactName, ContactPhone, ContactEmail, WebsiteAddress : string;
    CodeList    : TStringList;
    i: Integer;
-   par: TParagraph;
 begin
    SendDlg := TfrmMail.Create(Application.MainForm);
    CodeList := TStringList.Create;
