@@ -101,6 +101,9 @@ type
     actRestoreColumns: TAction;
     pnlFilter: TPanel;
     pnlFind: TPanel;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
     procedure AccountTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
       Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure AccountTreeGetImageIndex(Sender: TBaseVirtualTree;

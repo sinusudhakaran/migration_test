@@ -193,6 +193,21 @@ type
     Bevel4: TBevel;
     CelAltChartCode: TOvcTCString;
     ConvertAmount1: TMenuItem;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
+    Shape5: TShape;
+    Shape6: TShape;
+    Shape7: TShape;
+    Shape8: TShape;
+    Shape9: TShape;
+    Shape10: TShape;
+    Shape11: TShape;
+    Shape12: TShape;
+    Shape13: TShape;
+    Shape14: TShape;
+    Shape15: TShape;
+    Shape16: TShape;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tblDissectGetCellData(Sender: TObject; RowNum,
@@ -4858,8 +4873,8 @@ begin
   if (ColWidth < tblDissect.ClientWidth) then
     tblDissect.Columns.Width[LastColNum] := tblDissect.Columns.Width[LastColNum] +
       (tblDissect.ClientWidth - ColWidth);
-  btnOK.Left := Width - 177;
-  btnCancel.Left := Width - 96;    
+  btnOK.Left := Width - 180;
+  btnCancel.Left := Width - 99 ;    
 end;
 
 procedure TdlgDissection.FormShow(Sender: TObject);

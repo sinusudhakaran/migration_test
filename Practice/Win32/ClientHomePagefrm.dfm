@@ -14,11 +14,11 @@ object frmClientHomePage: TfrmClientHomePage
   Visible = True
   WindowState = wsMaximized
   OnActivate = FormActivate
-  OnDeactivate = FormDeactivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -164,26 +164,75 @@ object frmClientHomePage: TfrmClientHomePage
     end
   end
   object Panel1: TPanel
-    Left = 185
-    Top = 31
-    Width = 1024
-    Height = 492
+    AlignWithMargins = True
+    Left = 188
+    Top = 34
+    Width = 1018
+    Height = 486
     Align = alClient
+    BevelOuter = bvNone
     TabOrder = 0
     object PnlClient: TRzPanel
-      Left = 1
-      Top = 28
-      Width = 1022
-      Height = 438
+      Left = 0
+      Top = 27
+      Width = 1018
+      Height = 434
       Align = alClient
+      BorderOuter = fsNone
       TabOrder = 0
-      object ClientTree: TVirtualStringTree
-        Left = 2
-        Top = 2
+      object Shape1: TShape
+        Left = 0
+        Top = 0
         Width = 1018
-        Height = 434
+        Height = 1
+        Align = alTop
+        Pen.Color = clSilver
+        ExplicitLeft = 504
+        ExplicitTop = 6
+        ExplicitWidth = 400
+      end
+      object Shape4: TShape
+        Left = 0
+        Top = 433
+        Width = 1018
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitTop = 0
+        ExplicitWidth = 1001
+      end
+      object Shape6: TShape
+        Left = 0
+        Top = 1
+        Width = 1
+        Height = 432
+        Align = alLeft
+        Pen.Color = clSilver
+        ExplicitLeft = 2
+        ExplicitTop = 24
+        ExplicitHeight = 461
+      end
+      object Shape5: TShape
+        Left = 1017
+        Top = 1
+        Width = 1
+        Height = 432
+        Align = alRight
+        Pen.Color = clSilver
+        ExplicitLeft = 1022
+        ExplicitHeight = 438
+      end
+      object ClientTree: TVirtualStringTree
+        Left = 1
+        Top = 1
+        Width = 1016
+        Height = 432
         Hint = ' '
         Align = alClient
+        BevelEdges = []
+        BevelInner = bvNone
+        BevelOuter = bvNone
+        BorderStyle = bsNone
         Header.AutoSizeIndex = 4
         Header.Font.Charset = DEFAULT_CHARSET
         Header.Font.Color = clWindowText
@@ -207,6 +256,8 @@ object frmClientHomePage: TfrmClientHomePage
         OnHeaderClick = ClientTreeHeaderClick
         OnHeaderDraw = ClientTreeHeaderDraw
         OnKeyDown = ClientTreeKeyDown
+        ExplicitLeft = -2
+        ExplicitTop = -2
         Columns = <
           item
             MinWidth = 100
@@ -244,7 +295,7 @@ object frmClientHomePage: TfrmClientHomePage
             Options = [coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible]
             Position = 4
             Tag = 8
-            Width = 228
+            Width = 230
             WideText = 'Currency'
           end>
       end
@@ -290,27 +341,29 @@ object frmClientHomePage: TfrmClientHomePage
       end
     end
     object pnlLegend: TPanel
-      Left = 1
-      Top = 1
-      Width = 1022
+      Left = 0
+      Top = 0
+      Width = 1018
       Height = 27
       Align = alTop
-      BevelInner = bvLowered
+      BevelEdges = []
+      BevelOuter = bvNone
       TabOrder = 1
       object pnlLegendA: TPanel
-        Left = 2
-        Top = 2
+        Left = 0
+        Top = 0
         Width = 1018
-        Height = 23
+        Height = 27
         Align = alClient
+        BevelEdges = []
         BevelOuter = bvNone
         TabOrder = 0
         object lblLegend: TLabel
           AlignWithMargins = True
-          Left = 28
-          Top = 0
+          Left = 29
+          Top = 1
           Width = 39
-          Height = 23
+          Height = 26
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
@@ -319,9 +372,9 @@ object frmClientHomePage: TfrmClientHomePage
           ExplicitHeight = 13
         end
         object tbtnClose: TRzToolButton
-          Left = 0
-          Top = 0
-          Height = 23
+          Left = 1
+          Top = 1
+          Height = 26
           GradientColorStyle = gcsCustom
           ImageIndex = 0
           Images = AppImages.ToolBtn
@@ -335,12 +388,42 @@ object frmClientHomePage: TfrmClientHomePage
           ExplicitTop = 2
           ExplicitHeight = 18
         end
+        object Shape2: TShape
+          Left = 0
+          Top = 0
+          Width = 1018
+          Height = 1
+          Align = alTop
+          Pen.Color = clSilver
+          ExplicitLeft = 504
+          ExplicitTop = 6
+          ExplicitWidth = 400
+        end
+        object Shape7: TShape
+          Left = 1017
+          Top = 1
+          Width = 1
+          Height = 26
+          Align = alRight
+          Pen.Color = clSilver
+          ExplicitLeft = 999
+          ExplicitHeight = 21
+        end
+        object Shape8: TShape
+          Left = 0
+          Top = 1
+          Width = 1
+          Height = 26
+          Align = alLeft
+          Pen.Color = clSilver
+          ExplicitHeight = 21
+        end
         object sgLegend: TStringGrid
           AlignWithMargins = True
-          Left = 73
-          Top = 0
+          Left = 74
+          Top = 1
           Width = 681
-          Height = 23
+          Height = 26
           HelpType = htKeyword
           Margins.Top = 0
           Margins.Bottom = 0
@@ -364,9 +447,9 @@ object frmClientHomePage: TfrmClientHomePage
       end
     end
     object pnlTabs: TPanel
-      Left = 1
-      Top = 466
-      Width = 1022
+      Left = 0
+      Top = 461
+      Width = 1018
       Height = 25
       Align = alBottom
       BevelInner = bvLowered
@@ -374,7 +457,7 @@ object frmClientHomePage: TfrmClientHomePage
       object tcWindows: TRzTabControl
         Left = 2
         Top = 2
-        Width = 1018
+        Width = 1014
         Height = 21
         Align = alClient
         TabIndex = 0
@@ -404,9 +487,9 @@ object frmClientHomePage: TfrmClientHomePage
     object ImgLeft: TImage
       AlignWithMargins = True
       Left = 8
-      Top = 8
+      Top = 9
       Width = 123
-      Height = 15
+      Height = 14
       Margins.Left = 8
       Margins.Top = 8
       Margins.Bottom = 8
@@ -421,9 +504,9 @@ object frmClientHomePage: TfrmClientHomePage
     end
     object lblClientName: TLabel
       Left = 134
-      Top = 0
+      Top = 1
       Width = 995
-      Height = 31
+      Height = 30
       Margins.Left = 0
       Margins.Top = 0
       Margins.Right = 0
@@ -448,21 +531,31 @@ object frmClientHomePage: TfrmClientHomePage
     end
     object imgRight: TImage
       Left = 1129
-      Top = 0
+      Top = 1
       Width = 80
-      Height = 31
+      Height = 30
       Align = alRight
       Anchors = [akTop, akRight]
       AutoSize = True
       Transparent = True
       ExplicitLeft = 1126
       ExplicitTop = 8
+      ExplicitHeight = 31
+    end
+    object Shape10: TShape
+      Left = 0
+      Top = 0
+      Width = 1209
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 1001
     end
   end
   object ActionList1: TActionList
     Images = AppImages.ilFileActions_ClientMgr
-    Left = 288
-    Top = 64
+    Left = 304
+    Top = 80
     object acRunCoding: TAction
       Caption = 'Coding'
       ImageIndex = 16
@@ -548,13 +641,13 @@ object frmClientHomePage: TfrmClientHomePage
   end
   object pmNodes: TPopupMenu
     Left = 456
-    Top = 48
+    Top = 64
   end
   object NotesTimer: TTimer
     Enabled = False
     Interval = 200
     OnTimer = NotesTimerTimer
-    Left = 248
-    Top = 16
+    Left = 240
+    Top = 80
   end
 end

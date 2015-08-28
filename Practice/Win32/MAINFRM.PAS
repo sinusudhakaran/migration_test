@@ -466,6 +466,7 @@ type
     procedure mniListBankAccountsClick(Sender: TObject);
     procedure mniListPayeesClick(Sender: TObject);
     procedure mniListLedgerClick(Sender: TObject);
+    procedure mniBatchReportsClick(Sender: TObject);
     procedure mniCodingReportClick(Sender: TObject);
     procedure mniCFRActualClick(Sender: TObject);
     procedure mniCFRActualandBudgetClick(Sender: TObject);
@@ -876,7 +877,6 @@ type
     procedure TryAutoSave;
     procedure ActiveFormChange(Sender: TObject);
     procedure ActivateApplication(Sender: TObject);
-    procedure mniBatchReportsClick(Sender: TObject);
     procedure RefreshUserControls;
     procedure UpdateWindowsAfterChartRefresh();
 

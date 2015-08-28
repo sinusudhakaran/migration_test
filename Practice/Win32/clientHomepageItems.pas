@@ -2225,7 +2225,7 @@ var
         R.Top  := R.Bottom  -  MonthHeight;
 
     if period < 12 then
-       FillHeaderRect (R);
+       FillHeaderRect  (R);
 
     R.Top  := R.Bottom  -  MonthHeight;
     DrawText(Canvas.Handle, PChar(mt), -1, R, DT_SINGLELINE or DT_VCENTER or DT_CENTER);

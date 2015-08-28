@@ -20,50 +20,67 @@ object dlgHistorical: TdlgHistorical
   OnResize = FormResize
   OnShortCut = FormShortCut
   OnShow = FormShow
-  DesignSize = (
-    910
-    531)
   PixelsPerInch = 96
   TextHeight = 13
-  object bvlFooter: TBevel
-    Left = 0
-    Top = 435
-    Width = 910
-    Height = 75
-    Align = alBottom
-    ExplicitWidth = 723
+  object Shape3: TShape
+    Left = 906
+    Top = 81
+    Width = 1
+    Height = 333
+    Align = alRight
+    Pen.Color = clSilver
+    ExplicitLeft = 908
+    ExplicitTop = 161
+    ExplicitHeight = 274
   end
-  object lblOpen: TLabel
-    Left = 8
-    Top = 461
-    Width = 158
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = '&Opening Balance from Statement'
-    FocusControl = nfOpeningBal
+  object Shape4: TShape
+    AlignWithMargins = True
+    Left = 3
+    Top = 81
+    Width = 0
+    Height = 333
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
+    Align = alLeft
+    Pen.Color = clSilver
+    ExplicitTop = 83
+    ExplicitHeight = 352
   end
-  object lblClose: TLabel
-    Left = 8
-    Top = 489
-    Width = 127
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'Calculated Closing Balance'
+  object Shape7: TShape
+    Left = 3
+    Top = 81
+    Width = 1
+    Height = 333
+    Align = alLeft
+    Pen.Color = clSilver
+    ExplicitLeft = 0
+    ExplicitTop = 1
+    ExplicitHeight = 37
   end
-  object Label1: TLabel
-    Left = 8
-    Top = 439
-    Width = 97
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'Check Transactions:'
-    FocusControl = nfOpeningBal
+  object Shape8: TShape
+    AlignWithMargins = True
+    Left = 907
+    Top = 81
+    Width = 0
+    Height = 333
+    Margins.Left = 0
+    Margins.Top = 0
+    Margins.Bottom = 0
+    Align = alRight
+    Pen.Color = clSilver
+    ExplicitLeft = 891
+    ExplicitTop = 83
+    ExplicitHeight = 352
   end
   object stbHistorical: TStatusBar
-    Left = 0
+    AlignWithMargins = True
+    Left = 3
     Top = 510
-    Width = 910
+    Width = 904
     Height = 21
+    Margins.Top = 0
+    Margins.Bottom = 0
     Panels = <
       item
         Alignment = taCenter
@@ -89,14 +106,17 @@ object dlgHistorical: TdlgHistorical
     UseSystemFont = False
   end
   object tblHist: TBKOvcTable
-    Left = 0
-    Top = 78
-    Width = 910
-    Height = 357
+    Left = 4
+    Top = 81
+    Width = 902
+    Height = 333
+    Margins.Top = 0
+    Margins.Bottom = 0
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 0
     Align = alClient
+    BorderStyle = bsNone
     Color = clWindow
     Colors.ActiveUnfocused = clWindow
     Colors.LockedText = clBtnText
@@ -131,81 +151,6 @@ object dlgHistorical: TdlgHistorical
       False
       False)
   end
-  object nfOpeningBal: TOvcNumericField
-    Left = 232
-    Top = 455
-    Width = 130
-    Height = 24
-    Cursor = crIBeam
-    DataType = nftDouble
-    Anchors = [akLeft, akBottom]
-    AutoSize = False
-    CaretOvr.Shape = csBlock
-    Controller = cntController
-    EFColors.Disabled.BackColor = clWindow
-    EFColors.Disabled.TextColor = clGrayText
-    EFColors.Error.BackColor = clRed
-    EFColors.Error.TextColor = clBlack
-    EFColors.Highlight.BackColor = clHighlight
-    EFColors.Highlight.TextColor = clHighlightText
-    Options = []
-    PictureMask = '#########.##'
-    TabOrder = 1
-    OnChange = nfOpeningBalChange
-    OnKeyDown = nfOpeningBalKeyDown
-    RangeHigh = {73B2DBB9838916F2FE43}
-    RangeLow = {73B2DBB9838916F2FEC3}
-  end
-  object cmbSign: TComboBox
-    Left = 367
-    Top = 456
-    Width = 51
-    Height = 21
-    Style = csDropDownList
-    Anchors = [akLeft, akBottom]
-    ItemHeight = 13
-    TabOrder = 2
-    OnChange = cmbSignChange
-    Items.Strings = (
-      'IF'
-      'OD')
-  end
-  object stClosingBal: TStaticText
-    Left = 232
-    Top = 484
-    Width = 129
-    Height = 22
-    Alignment = taRightJustify
-    Anchors = [akLeft, akBottom]
-    AutoSize = False
-    BorderStyle = sbsSunken
-    Caption = '$0.00'
-    TabOrder = 3
-    Transparent = False
-  end
-  object btnOK: TButton
-    Left = 747
-    Top = 480
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Post'
-    Default = True
-    ModalResult = 1
-    TabOrder = 4
-    OnClick = btnOKClick
-  end
-  object btnCancel: TButton
-    Left = 827
-    Top = 480
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 5
-  end
   object pfHiddenAmount: TOvcPictureField
     Left = 504
     Top = 288
@@ -228,24 +173,64 @@ object dlgHistorical: TdlgHistorical
     MaxLength = 12
     Options = []
     PictureMask = '#########.##'
-    TabOrder = 7
+    TabOrder = 2
     Visible = False
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
   object pnlToolbar: TPanel
-    Left = 0
+    AlignWithMargins = True
+    Left = 3
     Top = 44
-    Width = 910
-    Height = 34
+    Width = 904
+    Height = 37
+    Margins.Top = 0
+    Margins.Bottom = 0
     Align = alTop
-    BevelInner = bvLowered
     BevelOuter = bvNone
-    TabOrder = 8
-    object rztHistorical: TRzToolbar
+    TabOrder = 3
+    object Shape1: TShape
+      Left = 903
+      Top = 1
+      Width = 1
+      Height = 35
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 908
+      ExplicitHeight = 37
+    end
+    object Shape2: TShape
       Left = 0
+      Top = 1
+      Width = 1
+      Height = 35
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitHeight = 37
+    end
+    object Shape5: TShape
+      Left = 0
+      Top = 0
+      Width = 904
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 910
+    end
+    object Shape6: TShape
+      Left = 0
+      Top = 36
+      Width = 904
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitTop = 40
+      ExplicitWidth = 910
+    end
+    object rztHistorical: TRzToolbar
+      Left = 23
       Top = 4
-      Width = 881
+      Width = 849
       Align = alNone
       AutoResize = False
       AutoStyle = False
@@ -393,7 +378,7 @@ object dlgHistorical: TdlgHistorical
     BorderSides = []
     GradientColorStyle = gcsCustom
     GradientColorStop = 10459904
-    TabOrder = 9
+    TabOrder = 4
     VisualStyle = vsGradient
     object lblAcctDetails: TLabel
       Left = 6
@@ -437,10 +422,154 @@ object dlgHistorical: TdlgHistorical
       Anchors = [akTop, akRight]
       AutoSize = True
       Center = True
-      Transparent = True
       ExplicitLeft = 489
       ExplicitTop = 1
       ExplicitHeight = 42
+    end
+  end
+  object pnlBottom: TPanel
+    AlignWithMargins = True
+    Left = 3
+    Top = 414
+    Width = 904
+    Height = 96
+    Margins.Top = 0
+    Margins.Bottom = 0
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    TabOrder = 5
+    DesignSize = (
+      904
+      96)
+    object Shape9: TShape
+      Left = 903
+      Top = 1
+      Width = 1
+      Height = 95
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 899
+      ExplicitTop = 5
+      ExplicitHeight = 86
+    end
+    object Label2: TLabel
+      Left = 12
+      Top = 6
+      Width = 97
+      Height = 13
+      Anchors = [akLeft, akBottom]
+      Caption = 'Check Transactions:'
+      ExplicitTop = 90
+    end
+    object lblOpen: TLabel
+      Left = 12
+      Top = 35
+      Width = 158
+      Height = 13
+      Anchors = [akLeft, akBottom]
+      Caption = '&Opening Balance from Statement'
+    end
+    object lblClose: TLabel
+      Left = 12
+      Top = 65
+      Width = 127
+      Height = 13
+      Anchors = [akLeft, akBottom]
+      Caption = 'Calculated Closing Balance'
+    end
+    object Shape11: TShape
+      Left = 0
+      Top = 1
+      Width = 1
+      Height = 95
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitTop = 5
+      ExplicitHeight = 86
+    end
+    object Shape12: TShape
+      Left = 0
+      Top = 0
+      Width = 904
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnOK: TButton
+      Left = 728
+      Top = 57
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&Post'
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 809
+      Top = 57
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+    object nfOpeningBal: TOvcNumericField
+      Left = 260
+      Top = 30
+      Width = 130
+      Height = 24
+      Cursor = crIBeam
+      DataType = nftDouble
+      Anchors = [akLeft, akBottom]
+      AutoSize = False
+      CaretOvr.Shape = csBlock
+      Controller = cntController
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#########.##'
+      TabOrder = 2
+      OnChange = nfOpeningBalChange
+      OnKeyDown = nfOpeningBalKeyDown
+      RangeHigh = {73B2DBB9838916F2FE43}
+      RangeLow = {73B2DBB9838916F2FEC3}
+    end
+    object stClosingBal: TStaticText
+      Left = 260
+      Top = 63
+      Width = 129
+      Height = 22
+      Alignment = taRightJustify
+      Anchors = [akLeft, akBottom]
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Caption = '$0.00'
+      TabOrder = 3
+      Transparent = False
+    end
+    object cmbSign: TComboBox
+      Left = 396
+      Top = 32
+      Width = 51
+      Height = 21
+      Style = csDropDownList
+      Anchors = [akLeft, akBottom]
+      ItemHeight = 13
+      TabOrder = 4
+      OnChange = cmbSignChange
+      Items.Strings = (
+        'IF'
+        'OD')
     end
   end
   object cntController: TOvcController
@@ -474,6 +603,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblHist
@@ -493,6 +623,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblHist
@@ -512,6 +643,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblHist
@@ -651,6 +783,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     ShowHint = True
     Table = tblHist
@@ -885,6 +1018,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblHist
     OnOwnerDraw = celForexAmountOwnerDraw
@@ -901,6 +1035,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblHist
     Left = 336
@@ -916,7 +1051,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblHist
     OnOwnerDraw = celLocalAmountOwnerDraw

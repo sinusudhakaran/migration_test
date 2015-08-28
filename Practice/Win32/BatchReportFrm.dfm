@@ -124,26 +124,74 @@ object frmBatchReports: TfrmBatchReports
     end
   end
   object RzPanel2: TRzPanel
-    Left = 167
-    Top = 0
-    Width = 668
-    Height = 439
+    AlignWithMargins = True
+    Left = 170
+    Top = 3
+    Width = 662
+    Height = 433
     Align = alClient
+    BorderOuter = fsNone
     TabOrder = 1
+    ExplicitLeft = 167
+    ExplicitTop = 0
+    ExplicitWidth = 668
+    ExplicitHeight = 439
+    object Shape3: TShape
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 324
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitHeight = 330
+    end
+    object Shape4: TShape
+      Left = 661
+      Top = 0
+      Width = 1
+      Height = 324
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 666
+      ExplicitHeight = 330
+    end
     object Listpanel: TRzPanel
-      Left = 2
-      Top = 2
-      Width = 664
-      Height = 326
+      Left = 1
+      Top = 0
+      Width = 660
+      Height = 324
       Align = alClient
       BorderSides = []
       TabOrder = 0
-      object ReportTree: TVirtualStringTree
+      ExplicitLeft = 2
+      ExplicitTop = 2
+      ExplicitWidth = 664
+      ExplicitHeight = 326
+      object Shape6: TShape
+        Left = 0
+        Top = 323
+        Width = 660
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitTop = 107
+        ExplicitWidth = 662
+      end
+      object Shape7: TShape
         Left = 0
         Top = 0
-        Width = 664
-        Height = 326
+        Width = 660
+        Height = 1
+        Align = alTop
+        Pen.Color = clSilver
+      end
+      object ReportTree: TVirtualStringTree
+        Left = 0
+        Top = 1
+        Width = 660
+        Height = 322
         Align = alClient
+        BorderStyle = bsNone
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET
         Header.Font.Color = clWindowText
@@ -168,6 +216,8 @@ object frmBatchReports: TfrmBatchReports
         OnKeyAction = ReportTreeKeyAction
         OnKeyDown = ReportTreeKeyDown
         OnNewText = ReportTreeNewText
+        ExplicitLeft = 2
+        ExplicitHeight = 324
         Columns = <
           item
             Position = 0
@@ -183,27 +233,60 @@ object frmBatchReports: TfrmBatchReports
       end
     end
     object Runpanel: TRzPanel
-      Left = 2
-      Top = 328
-      Width = 664
+      Left = 0
+      Top = 324
+      Width = 662
       Height = 109
       Align = alBottom
+      BorderOuter = fsNone
       TabOrder = 1
       OnResize = RunpanelResize
+      ExplicitLeft = 2
+      ExplicitTop = 328
+      ExplicitWidth = 664
       DesignSize = (
-        664
+        662
         109)
+      object Shape1: TShape
+        Left = 0
+        Top = 0
+        Width = 2
+        Height = 108
+        Align = alLeft
+        Pen.Color = clSilver
+        ExplicitHeight = 109
+      end
+      object Shape2: TShape
+        Left = 660
+        Top = 0
+        Width = 2
+        Height = 108
+        Align = alRight
+        Pen.Color = clSilver
+        ExplicitLeft = 665
+        ExplicitHeight = 109
+      end
+      object Shape5: TShape
+        Left = 0
+        Top = 108
+        Width = 662
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitTop = 107
+      end
       object LBstatus: TListBox
-        Left = 93
+        Left = 92
         Top = 7
         Width = 480
         Height = 62
         Anchors = []
         ItemHeight = 13
         TabOrder = 0
+        ExplicitLeft = 93
       end
       object RunButton: TButton
-        Left = 580
+        Left = 578
         Top = 80
         Width = 75
         Height = 25
@@ -211,6 +294,7 @@ object frmBatchReports: TfrmBatchReports
         Caption = '&OK'
         TabOrder = 1
         OnClick = RunButtonClick
+        ExplicitLeft = 580
       end
     end
   end
@@ -302,7 +386,7 @@ object frmBatchReports: TfrmBatchReports
     Left = 360
     Top = 24
     Bitmap = {
-      494C010103000400140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103000400180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

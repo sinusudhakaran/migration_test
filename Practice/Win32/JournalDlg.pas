@@ -144,6 +144,15 @@ type
     BtnCal: TButton;
     CelAltChartCode: TOvcTCString;
     pnlLine: TPanel;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
+    Shape5: TShape;
+    Shape6: TShape;
+    Shape7: TShape;
+    Shape8: TShape;
+    Shape9: TShape;
+    Shape10: TShape;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tblJournalGetCellData(Sender: TObject; RowNum,

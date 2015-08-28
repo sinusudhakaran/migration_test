@@ -166,6 +166,18 @@ type
     rzXBtn: TRzBmpButton;
     tblCoding: TOvcTable;
     CelSuggestedMemCount: TOvcTCPictureField;
+    ShapeTop: TShape;
+    Shape1: TShape;
+    Shape7: TShape;
+    Shape8: TShape;
+    Shape6: TShape;
+    Shape5: TShape;
+    Shape4: TShape;
+    Shape3: TShape;
+    Shape9: TShape;
+    Shape10: TShape;
+    Shape11: TShape;
+    Shape2: TShape;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -7257,7 +7269,7 @@ begin
   if fSearchVisible then
     pnlSearch.Height := Abs(Self.Font.Height * 15 div 8) + 4
   else
-    pnlSearch.Height := 2;
+    pnlSearch.Height := 0;
 
   miSearch.Checked  := Value;
 
@@ -7270,6 +7282,7 @@ begin
       tblCoding.SetFocus;
 
   UpdateSortByMenu;
+  ShapeTop.Visible := fSearchVisible;
 end;
 
 procedure TfrmCoding.SetShowNoNotesOnly;

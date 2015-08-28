@@ -119,34 +119,35 @@ object frmMain: TfrmMain
     Left = 0
     Top = 0
     Width = 965
-    Height = 131
+    Height = 129
     Align = alTop
     AutoSize = True
-    BevelInner = bvLowered
+    BevelEdges = []
     BevelOuter = bvNone
     UseDockManager = False
     ParentBackground = False
     TabOrder = 1
     OnResize = rzToolbarsResize
     object rztFile: TRzToolbar
-      Left = 3
-      Top = 1
+      Left = 4
+      Top = 0
       Width = 814
       Align = alNone
       AutoResize = False
       AutoStyle = False
       Images = AppImages.Client
-      Margin = 1
-      TopMargin = 4
+      Margin = 0
+      TopMargin = 0
       ButtonWidth = 60
       ShowButtonCaptions = True
       TextOptions = ttoCustom
       WrapControls = False
       OnVisibleChanged = tbarVisibleChanged
-      BorderInner = fsPopup
-      BorderOuter = fsNone
-      BorderSides = [sdLeft, sdTop, sdRight, sdBottom]
+      BorderInner = fsNone
+      BorderOuter = fsGroove
+      BorderSides = []
       BorderWidth = 0
+      FlatColor = clBtnFace
       TabOrder = 0
       VisualStyle = vsClassic
       ToolbarControls = (
@@ -160,8 +161,8 @@ object frmMain: TfrmMain
         tbClose
         RzSpacer1)
       object tbOpen: TRzToolButton
-        Left = 1
-        Top = 4
+        Left = 0
+        Top = 0
         Width = 74
         Hint = 'Open Clients (Shift+F12)'
         DropDownMenu = popOpen
@@ -171,15 +172,15 @@ object frmMain: TfrmMain
         OnClick = mniFileOpenClick
       end
       object tbSave: TRzToolButton
-        Left = 135
-        Top = 4
+        Left = 134
+        Top = 0
         ImageIndex = 2
         Caption = 'Save'
         OnClick = mniFileSaveClick
       end
       object tbGetClientFiles: TRzToolButton
-        Left = 195
-        Top = 4
+        Left = 194
+        Top = 0
         Width = 97
         DropDownMenu = PopGetClients
         ImageIndex = 9
@@ -187,8 +188,8 @@ object frmMain: TfrmMain
         Caption = 'Get Client Files'
       end
       object tbSendClientFiles: TRzToolButton
-        Left = 292
-        Top = 4
+        Left = 291
+        Top = 0
         Width = 104
         DropDownMenu = PopSendClients
         ImageIndex = 10
@@ -196,17 +197,17 @@ object frmMain: TfrmMain
         Caption = 'Send Client Files'
       end
       object tbHome: TRzToolButton
-        Left = 75
-        Top = 4
+        Left = 74
+        Top = 0
         Action = ActHomePage
       end
       object RzSpacer1: TRzSpacer
-        Left = 686
-        Top = 4
+        Left = 685
+        Top = 0
       end
       object tbOnline: TRzToolButton
-        Left = 396
-        Top = 4
+        Left = 395
+        Top = 0
         Width = 170
         ImageIndex = 20
         Caption = 'MYOB Banklink Online'
@@ -220,15 +221,15 @@ object frmMain: TfrmMain
         OnClick = tbOnlineClick
       end
       object tbAbout: TRzToolButton
-        Left = 566
-        Top = 4
+        Left = 565
+        Top = 0
         Caption = 'About'
         Visible = False
         OnClick = mniHelpAboutClick
       end
       object tbClose: TRzToolButton
-        Left = 626
-        Top = 4
+        Left = 625
+        Top = 0
         ImageIndex = 2
         Images = AppImages.Maintain
         Caption = 'Close'
@@ -238,7 +239,7 @@ object frmMain: TfrmMain
     end
     object rztClient: TRzToolbar
       Left = 2
-      Top = 35
+      Top = 34
       Width = 536
       Align = alNone
       AutoResize = False
@@ -253,7 +254,7 @@ object frmMain: TfrmMain
       OnVisibleChanged = tbarVisibleChanged
       BorderInner = fsPopup
       BorderOuter = fsNone
-      BorderSides = [sdLeft, sdTop, sdRight, sdBottom]
+      BorderSides = [sdLeft, sdRight]
       BorderWidth = 0
       TabOrder = 1
       VisualStyle = vsClassic
@@ -319,7 +320,7 @@ object frmMain: TfrmMain
     end
     object rztCoding: TRzToolbar
       Left = 18
-      Top = 98
+      Top = 97
       Width = 919
       Align = alNone
       AutoResize = False
@@ -333,7 +334,7 @@ object frmMain: TfrmMain
       OnVisibleChanged = tbarVisibleChanged
       BorderInner = fsPopup
       BorderOuter = fsNone
-      BorderSides = [sdLeft, sdTop, sdRight, sdBottom]
+      BorderSides = [sdLeft, sdRight]
       BorderWidth = 0
       TabOrder = 2
       VisualStyle = vsClassic
@@ -497,7 +498,7 @@ object frmMain: TfrmMain
     end
     object rztBudget: TRzToolbar
       Left = 3
-      Top = 70
+      Top = 69
       Width = 955
       Align = alNone
       AutoResize = False
@@ -512,7 +513,7 @@ object frmMain: TfrmMain
       OnVisibleChanged = tbarVisibleChanged
       BorderInner = fsPopup
       BorderOuter = fsNone
-      BorderSides = [sdLeft, sdTop, sdRight, sdBottom]
+      BorderSides = [sdLeft, sdRight]
       BorderWidth = 0
       TabOrder = 3
       VisualStyle = vsClassic
@@ -876,6 +877,7 @@ object frmMain: TfrmMain
       object mniBatchReports: TMenuItem
         Caption = '&Favourite Reports'
         ImageIndex = 25
+        OnClick = mniBatchReportsClick
       end
       object N6: TMenuItem
         Caption = '-'

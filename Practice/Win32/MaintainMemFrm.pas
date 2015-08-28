@@ -37,10 +37,17 @@ type
     tbtnClose: TRzToolButton;
     EBFind: TEdit;
     btnFind: TButton;
-    stTitle: TStaticText;
     SearchTimer: TTimer;
     tbFind: TToolButton;
     ToolButton3: TToolButton;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
+    Panel3: TPanel;
+    stTitle: TStaticText;
+    Shape6: TShape;
+    Shape5: TShape;
     procedure tbEditClick(Sender: TObject);
     procedure tbDeleteClick(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);

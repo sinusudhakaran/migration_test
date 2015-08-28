@@ -112,6 +112,14 @@ type
     acForexRatesMissing: TAction;
     pnlLegendA: TPanel;
     acExchangeGainLoss: TAction;
+    Shape1: TShape;
+    Shape4: TShape;
+    Shape2: TShape;
+    Shape7: TShape;
+    Shape8: TShape;
+    Shape6: TShape;
+    Shape5: TShape;
+    Shape10: TShape;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -527,6 +535,7 @@ var
       else begin
          TreeList.AddNodeItem(CurParentNode,TCHBASPeriodItem.Create(FTheClient,False));
       end;
+
    end;
 
    procedure Reselect;
@@ -712,7 +721,7 @@ begin //RefreshCoding
                TreeList.AddNodeItem(nil, TCHPBaseItem.Create(FTheClient,'Financial Year',grp_Financials));
          end;
 
-         // Foreign Exchange          
+         // Foreign Exchange
          if (FTheClient.clFields.clCountry = whUK) then
          begin
            Lr := TreeList.TransferMonths;

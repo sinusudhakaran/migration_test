@@ -121,33 +121,45 @@ object frmCoding: TfrmCoding
     end
     object imgRight: TImage
       Left = 611
-      Top = 0
+      Top = 1
       Width = 233
-      Height = 41
+      Height = 40
       Align = alRight
       Anchors = [akTop, akRight]
       AutoSize = True
       Center = True
       Transparent = True
       ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitHeight = 43
+    end
+    object Shape2: TShape
+      Left = 0
+      Top = 0
+      Width = 844
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 1001
     end
   end
   object pnlSearch: TPanel
-    Left = 0
-    Top = 41
-    Width = 844
+    AlignWithMargins = True
+    Left = 3
+    Top = 44
+    Width = 838
     Height = 22
+    Margins.Bottom = 0
     Align = alTop
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelEdges = []
+    BevelOuter = bvNone
     TabOrder = 2
     object Label1: TLabel
       AlignWithMargins = True
-      Left = 31
-      Top = 2
+      Left = 30
+      Top = 1
       Width = 20
-      Height = 18
+      Height = 21
       Margins.Left = 9
       Margins.Top = 0
       Margins.Bottom = 0
@@ -157,10 +169,10 @@ object frmCoding: TfrmCoding
       ExplicitHeight = 13
     end
     object tbtnClose: TRzToolButton
-      Left = 2
-      Top = 2
+      Left = 1
+      Top = 1
       Width = 20
-      Height = 18
+      Height = 21
       GradientColorStyle = gcsCustom
       ImageIndex = 0
       Images = AppImages.ToolBtn
@@ -172,6 +184,7 @@ object frmCoding: TfrmCoding
       OnClick = tbtnCloseClick
       ExplicitLeft = -1
       ExplicitTop = -2
+      ExplicitHeight = 18
     end
     object lblRecommendedMemorisations: TLabel
       Left = 480
@@ -183,12 +196,40 @@ object frmCoding: TfrmCoding
       Visible = False
       OnClick = lblRecommendedMemorisationsClick
     end
+    object ShapeTop: TShape
+      Left = 0
+      Top = 0
+      Width = 838
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitLeft = 562
+      ExplicitTop = 2
+      ExplicitWidth = 400
+    end
+    object Shape7: TShape
+      Left = 837
+      Top = 1
+      Width = 1
+      Height = 21
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 999
+    end
+    object Shape8: TShape
+      Left = 0
+      Top = 1
+      Width = 1
+      Height = 21
+      Align = alLeft
+      Pen.Color = clSilver
+    end
     object EBFind: TEdit
       AlignWithMargins = True
-      Left = 57
-      Top = 2
+      Left = 56
+      Top = 1
       Width = 336
-      Height = 18
+      Height = 21
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
@@ -200,10 +241,10 @@ object frmCoding: TfrmCoding
     end
     object btnFind: TButton
       AlignWithMargins = True
-      Left = 399
-      Top = 2
+      Left = 398
+      Top = 1
       Width = 75
-      Height = 18
+      Height = 21
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
@@ -238,17 +279,19 @@ object frmCoding: TfrmCoding
     TabOrder = 4
   end
   object pnlLayout1: TPanel
-    Left = 0
-    Top = 63
-    Width = 844
-    Height = 526
+    AlignWithMargins = True
+    Left = 3
+    Top = 66
+    Width = 838
+    Height = 520
+    Margins.Top = 0
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
     object barCodingStatus: TStatusBar
       Left = 0
-      Top = 502
-      Width = 844
+      Top = 496
+      Width = 838
       Height = 24
       AutoHint = True
       Panels = <
@@ -289,15 +332,59 @@ object frmCoding: TfrmCoding
     object pnlLayout2: TPanel
       Left = 0
       Top = 0
-      Width = 844
-      Height = 502
+      Width = 838
+      Height = 496
+      Margins.Top = 0
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
+      object Shape1: TShape
+        Left = 0
+        Top = 0
+        Width = 838
+        Height = 1
+        Align = alTop
+        Pen.Color = clSilver
+        ExplicitLeft = 504
+        ExplicitTop = 6
+        ExplicitWidth = 400
+      end
+      object Shape6: TShape
+        Left = 0
+        Top = 1
+        Width = 1
+        Height = 414
+        Align = alLeft
+        Pen.Color = clSilver
+        ExplicitLeft = 2
+        ExplicitTop = 24
+        ExplicitHeight = 461
+      end
+      object Shape5: TShape
+        Left = 837
+        Top = 1
+        Width = 1
+        Height = 414
+        Align = alRight
+        Pen.Color = clSilver
+        ExplicitLeft = 1003
+        ExplicitTop = 24
+        ExplicitHeight = 461
+      end
+      object Shape4: TShape
+        Left = 0
+        Top = 415
+        Width = 838
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitTop = 0
+        ExplicitWidth = 1001
+      end
       object RzSizePanel1: TRzSizePanel
         Left = 0
-        Top = 422
-        Width = 844
+        Top = 416
+        Width = 838
         Height = 80
         Align = alBottom
         HotSpotSizePercent = 10
@@ -308,32 +395,83 @@ object frmCoding: TfrmCoding
         TabOrder = 0
         VisualStyle = vsGradient
         OnResize = RzSizePanel1Resize
-        object pnlNotes: TPanel
+        object Shape11: TShape
           Left = 0
           Top = 10
-          Width = 844
+          Width = 1
+          Height = 70
+          Align = alLeft
+          Pen.Color = clSilver
+          ExplicitLeft = 2
+          ExplicitTop = 24
+          ExplicitHeight = 461
+        end
+        object pnlNotes: TPanel
+          Left = 1
+          Top = 10
+          Width = 837
           Height = 70
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
           OnEnter = pnlNotesEnter
           OnExit = pnlNotesExit
+          ExplicitLeft = 0
+          ExplicitWidth = 838
+          object Shape3: TShape
+            Left = 0
+            Top = 0
+            Width = 837
+            Height = 1
+            Align = alTop
+            Pen.Color = clSilver
+            ExplicitLeft = 504
+            ExplicitTop = 6
+            ExplicitWidth = 400
+          end
+          object Shape9: TShape
+            Left = 0
+            Top = 69
+            Width = 837
+            Height = 1
+            Align = alBottom
+            Pen.Color = clSilver
+            ExplicitTop = 0
+            ExplicitWidth = 1001
+          end
+          object Shape10: TShape
+            Left = 836
+            Top = 1
+            Width = 1
+            Height = 68
+            Align = alRight
+            Pen.Color = clSilver
+            ExplicitLeft = 1003
+            ExplicitTop = 24
+            ExplicitHeight = 461
+          end
           object Panel2: TPanel
             Left = 21
-            Top = 0
-            Width = 823
-            Height = 70
+            Top = 1
+            Width = 815
+            Height = 68
             Align = alClient
             BevelOuter = bvNone
             Caption = 'Panel2'
             TabOrder = 0
+            ExplicitTop = 0
+            ExplicitWidth = 817
+            ExplicitHeight = 70
             object memImportNotes: TMemo
               Left = 0
               Top = 0
-              Width = 823
+              Width = 815
               Height = 41
               TabStop = False
               Align = alTop
+              BevelInner = bvSpace
+              BevelKind = bkFlat
+              BevelOuter = bvNone
               Ctl3D = False
               ParentCtl3D = False
               PopupMenu = popNotes
@@ -341,13 +479,17 @@ object frmCoding: TfrmCoding
               ScrollBars = ssVertical
               TabOrder = 0
               OnKeyUp = memImportNotesKeyUp
+              ExplicitWidth = 816
             end
             object memNotes: TMemo
               Left = 0
               Top = 41
-              Width = 823
-              Height = 29
+              Width = 815
+              Height = 27
               Align = alClient
+              BevelInner = bvSpace
+              BevelKind = bkFlat
+              BevelOuter = bvNone
               Ctl3D = False
               Lines.Strings = (
                 '')
@@ -358,18 +500,21 @@ object frmCoding: TfrmCoding
               OnChange = memNotesChange
               OnExit = memNotesExit
               OnKeyUp = memImportNotesKeyUp
+              ExplicitWidth = 816
             end
           end
           object pnlNotesTitle: TPanel
             Left = 0
-            Top = 0
+            Top = 1
             Width = 21
-            Height = 70
+            Height = 68
             Align = alLeft
             BevelOuter = bvNone
             Ctl3D = False
             ParentCtl3D = False
             TabOrder = 1
+            ExplicitTop = 0
+            ExplicitHeight = 70
             object rzPinBtn: TRzBmpButton
               Left = 1
               Top = 3
@@ -508,15 +653,17 @@ object frmCoding: TfrmCoding
         end
       end
       object tblCoding: TOvcTable
-        Left = 0
-        Top = 0
-        Width = 844
-        Height = 422
+        Left = 1
+        Top = 1
+        Width = 836
+        Height = 414
+        Margins.Top = 0
         RowLimit = 2
         LockedCols = 0
         LeftCol = 0
         ActiveCol = 0
         Align = alClient
+        BorderStyle = bsNone
         Color = clWindow
         Colors.ActiveUnfocused = clBtnFace
         Colors.ActiveUnfocusedText = clWindowText

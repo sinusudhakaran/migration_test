@@ -1,8 +1,11 @@
 object fmeSysAccounts: TfmeSysAccounts
+  AlignWithMargins = True
   Left = 0
   Top = 0
   Width = 795
   Height = 240
+  Margins.Left = 0
+  Margins.Bottom = 0
   TabOrder = 0
   object pTop: TPanel
     Left = 0
@@ -10,29 +13,30 @@ object fmeSysAccounts: TfmeSysAccounts
     Width = 795
     Height = 25
     Align = alTop
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 0
     object Label1: TLabel
       AlignWithMargins = True
-      Left = 344
-      Top = 2
+      Left = 356
+      Top = 1
       Width = 33
-      Height = 21
+      Height = 24
       Margins.Left = 9
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = 'Search'
       Layout = tlCenter
+      ExplicitLeft = 344
+      ExplicitTop = 2
       ExplicitHeight = 13
     end
     object lblCount: TLabel
       AlignWithMargins = True
-      Left = 555
-      Top = 2
+      Left = 567
+      Top = 1
       Width = 121
-      Height = 21
+      Height = 24
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
@@ -40,22 +44,50 @@ object fmeSysAccounts: TfmeSysAccounts
       Caption = '99999 accounts Listed'
       Layout = tlCenter
       ExplicitLeft = 560
-      ExplicitTop = 1
       ExplicitHeight = 23
     end
+    object Shape1: TShape
+      Left = 794
+      Top = 1
+      Width = 1
+      Height = 24
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 793
+      ExplicitHeight = 72
+    end
+    object Shape3: TShape
+      Left = 0
+      Top = 0
+      Width = 795
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object pnlFilter: TPanel
-      Left = 2
-      Top = 2
-      Width = 121
-      Height = 21
+      Left = 0
+      Top = 1
+      Width = 135
+      Height = 24
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
-      object cbFilter: TComboBox
+      object Shape2: TShape
         Left = 0
+        Top = 0
+        Width = 1
+        Height = 24
+        Align = alLeft
+        Pen.Color = clSilver
+        ExplicitHeight = 72
+      end
+      object cbFilter: TComboBox
+        Left = 2
         Top = 1
-        Width = 121
+        Width = 128
         Height = 21
+        BevelInner = bvNone
+        BevelOuter = bvNone
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 0
@@ -72,10 +104,10 @@ object fmeSysAccounts: TfmeSysAccounts
     end
     object btnFilter: TButton
       AlignWithMargins = True
-      Left = 126
-      Top = 2
+      Left = 138
+      Top = 1
       Width = 100
-      Height = 21
+      Height = 24
       Margins.Top = 0
       Margins.Bottom = 0
       Action = actFilter
@@ -83,13 +115,16 @@ object fmeSysAccounts: TfmeSysAccounts
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
+      ExplicitLeft = 126
+      ExplicitTop = 2
+      ExplicitHeight = 21
     end
     object btnResetFilter: TButton
       AlignWithMargins = True
-      Left = 232
-      Top = 2
+      Left = 244
+      Top = 1
       Width = 100
-      Height = 21
+      Height = 24
       Margins.Top = 0
       Margins.Bottom = 0
       Action = actReset
@@ -97,15 +132,21 @@ object fmeSysAccounts: TfmeSysAccounts
       ParentShowHint = False
       ShowHint = True
       TabOrder = 2
+      ExplicitLeft = 232
+      ExplicitTop = 2
+      ExplicitHeight = 21
     end
     object pnlFind: TPanel
-      Left = 380
-      Top = 2
+      Left = 392
+      Top = 1
       Width = 91
-      Height = 21
+      Height = 24
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 3
+      ExplicitLeft = 380
+      ExplicitTop = 2
+      ExplicitHeight = 21
       object EBFind: TEdit
         AlignWithMargins = True
         Left = 0
@@ -122,10 +163,10 @@ object fmeSysAccounts: TfmeSysAccounts
     end
     object btnSearchClear: TButton
       AlignWithMargins = True
-      Left = 474
-      Top = 2
+      Left = 486
+      Top = 1
       Width = 75
-      Height = 21
+      Height = 24
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
@@ -133,6 +174,9 @@ object fmeSysAccounts: TfmeSysAccounts
       Enabled = False
       TabOrder = 4
       OnClick = btnSearchClearClick
+      ExplicitLeft = 474
+      ExplicitTop = 2
+      ExplicitHeight = 21
     end
   end
   object AccountTree: TVirtualStringTree
@@ -161,6 +205,8 @@ object fmeSysAccounts: TfmeSysAccounts
     OnHeaderDragging = AccountTreeHeaderDragging
     OnKeyDown = AccountTreeKeyDown
     OnKeyPress = AccountTreeKeyPress
+    ExplicitTop = 76
+    ExplicitHeight = 167
     Columns = <
       item
         Position = 0

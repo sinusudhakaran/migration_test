@@ -26,11 +26,44 @@ object dlgJournal: TdlgJournal
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
+  object Shape7: TShape
+    AlignWithMargins = True
+    Left = 3
+    Top = 88
+    Width = 1
+    Height = 321
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
+    Align = alLeft
+    Pen.Color = clSilver
+    ExplicitLeft = 0
+    ExplicitTop = 98
+    ExplicitHeight = 311
+  end
+  object Shape8: TShape
+    AlignWithMargins = True
+    Left = 795
+    Top = 88
+    Width = 1
+    Height = 321
+    Margins.Left = 0
+    Margins.Top = 0
+    Margins.Bottom = 0
+    Align = alRight
+    Pen.Color = clSilver
+    ExplicitLeft = 734
+    ExplicitTop = 98
+    ExplicitHeight = 311
+  end
   object stbJournal: TStatusBar
-    Left = 0
+    AlignWithMargins = True
+    Left = 3
     Top = 489
-    Width = 799
+    Width = 793
     Height = 21
+    Margins.Top = 0
+    Margins.Bottom = 0
     Panels = <
       item
         Alignment = taCenter
@@ -52,16 +85,23 @@ object dlgJournal: TdlgJournal
     ParentFont = True
     UseSystemFont = False
     OnMouseUp = stbJournalMouseUp
+    ExplicitLeft = 0
+    ExplicitWidth = 799
   end
   object tblJournal: TOvcTable
-    Left = 0
-    Top = 80
-    Width = 799
-    Height = 329
+    Left = 4
+    Top = 88
+    Width = 791
+    Height = 321
+    Margins.Left = 0
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 0
     Align = alClient
+    BorderStyle = bsNone
     Color = clWindow
     Colors.ActiveUnfocused = clWindow
     Colors.ActiveUnfocusedText = clWindowText
@@ -86,6 +126,10 @@ object dlgJournal: TdlgJournal
     OnMouseDown = tblJournalMouseDown
     OnMouseUp = tblJournalMouseUp
     OnTopLeftCellChanging = tblJournalTopLeftCellChanging
+    ExplicitLeft = 0
+    ExplicitTop = 80
+    ExplicitWidth = 799
+    ExplicitHeight = 329
     CellData = (
       'dlgJournal.hdrColumnHeadings')
     RowData = (
@@ -96,20 +140,22 @@ object dlgJournal: TdlgJournal
       False)
   end
   object pnlTranDetails: TPanel
-    Left = 0
-    Top = 0
-    Width = 799
-    Height = 80
+    AlignWithMargins = True
+    Left = 3
+    Top = 3
+    Width = 793
+    Height = 85
+    Margins.Bottom = 0
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      799
-      80)
+      793
+      85)
     object Shape1: TShape
       Left = 3
       Top = 20
-      Width = 792
+      Width = 786
       Height = 30
       Anchors = [akLeft, akTop, akRight]
       Brush.Color = clWindow
@@ -217,14 +263,52 @@ object dlgJournal: TdlgJournal
       Flat = True
       OnClick = BtnJobClick
     end
+    object Shape2: TShape
+      Left = 0
+      Top = 84
+      Width = 793
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitWidth = 799
+    end
+    object Shape4: TShape
+      Left = 0
+      Top = 0
+      Width = 793
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 799
+    end
+    object Shape5: TShape
+      Left = 0
+      Top = 1
+      Width = 1
+      Height = 83
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitHeight = 93
+    end
+    object Shape6: TShape
+      Left = 792
+      Top = 1
+      Width = 1
+      Height = 83
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 728
+      ExplicitHeight = 93
+    end
     object Panel2: TPanel
-      Left = 593
+      Left = 587
       Top = 53
       Width = 202
       Height = 25
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitLeft = 593
       DesignSize = (
         202
         25)
@@ -301,15 +385,20 @@ object dlgJournal: TdlgJournal
     RangeLow = {73B2DBB9838916F2FEC3}
   end
   object pBottom: TPanel
-    Left = 0
+    AlignWithMargins = True
+    Left = 3
     Top = 409
-    Width = 799
+    Width = 793
     Height = 80
+    Margins.Top = 0
+    Margins.Bottom = 0
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
+    ExplicitLeft = 0
+    ExplicitWidth = 799
     DesignSize = (
-      799
+      793
       80)
     object lblTotalLabel: TLabel
       Left = 8
@@ -345,6 +434,43 @@ object dlgJournal: TdlgJournal
       Alignment = taRightJustify
       AutoSize = False
       Caption = '$0.00'
+    end
+    object Shape3: TShape
+      Left = 0
+      Top = 0
+      Width = 793
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 799
+    end
+    object Shape9: TShape
+      Left = 0
+      Top = 1
+      Width = 1
+      Height = 79
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitTop = 98
+      ExplicitHeight = 311
+    end
+    object Shape10: TShape
+      Left = 792
+      Top = 1
+      Width = 1
+      Height = 79
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 734
+      ExplicitTop = 98
+      ExplicitHeight = 311
     end
     object chkProcessOnExit: TCheckBox
       Left = 175
@@ -420,7 +546,7 @@ object dlgJournal: TdlgJournal
       OnClick = btnClearClick
     end
     object btnOK: TButton
-      Left = 636
+      Left = 630
       Top = 49
       Width = 75
       Height = 25
@@ -431,9 +557,10 @@ object dlgJournal: TdlgJournal
       ShowHint = True
       TabOrder = 5
       OnClick = btnOKClick
+      ExplicitLeft = 636
     end
     object btnCancel: TButton
-      Left = 717
+      Left = 711
       Top = 49
       Width = 75
       Height = 25
@@ -444,6 +571,7 @@ object dlgJournal: TdlgJournal
       ParentShowHint = False
       ShowHint = True
       TabOrder = 6
+      ExplicitLeft = 717
     end
     object BtnCal: TButton
       Left = 480
@@ -500,7 +628,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnKeyPress = celAmountKeyPress
@@ -519,7 +646,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblJournal
     OnChange = celGstAmtChange
@@ -539,7 +665,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblJournal
     OnChange = celQuantityChange
@@ -588,7 +713,6 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -610,7 +734,6 @@ object dlgJournal: TdlgJournal
     Font.Height = -13
     Font.Name = 'Tahoma'
     Font.Style = []
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     TableFont = False
     Left = 336
@@ -632,7 +755,6 @@ object dlgJournal: TdlgJournal
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Left = 448

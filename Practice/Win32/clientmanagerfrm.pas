@@ -170,6 +170,17 @@ type
     actAccountStatus: TAction;
     imgRight: TImage;
     actMigrate: TAction;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
+    Shape5: TShape;
+    Shape6: TShape;
+    Shape7: TShape;
+    Shape8: TShape;
+    Shape1: TShape;
+    Shape9: TShape;
+    Shape10: TShape;
+    Shape11: TShape;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
 

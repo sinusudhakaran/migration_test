@@ -311,10 +311,27 @@ object frmClientManager: TfrmClientManager
     BorderWidth = 2
     Color = clWindow
     TabOrder = 0
-    object pnlFrameHolder: TPanel
+    object Shape5: TShape
+      Left = 1002
+      Top = 24
+      Width = 1
+      Height = 461
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 1003
+    end
+    object Shape6: TShape
       Left = 2
       Top = 24
-      Width = 1001
+      Width = 1
+      Height = 461
+      Align = alLeft
+      Pen.Color = clSilver
+    end
+    object pnlFrameHolder: TPanel
+      Left = 3
+      Top = 24
+      Width = 999
       Height = 461
       Align = alClient
       BevelOuter = bvNone
@@ -322,39 +339,63 @@ object frmClientManager: TfrmClientManager
       Ctl3D = True
       ParentCtl3D = False
       TabOrder = 0
+      object Shape3: TShape
+        Left = 0
+        Top = 460
+        Width = 999
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitTop = 459
+        ExplicitWidth = 1001
+      end
+      object Shape1: TShape
+        Left = 0
+        Top = 27
+        Width = 999
+        Height = 1
+        Align = alTop
+        Pen.Color = clSilver
+        ExplicitLeft = 504
+        ExplicitTop = 6
+        ExplicitWidth = 400
+      end
       object pnlLegend: TPanel
         Left = 0
         Top = 0
-        Width = 1001
+        Width = 999
         Height = 27
         Align = alTop
-        BevelInner = bvLowered
+        BevelEdges = []
+        BevelOuter = bvNone
         TabOrder = 0
         object pnlLegendA: TPanel
-          Left = 2
-          Top = 2
-          Width = 997
-          Height = 23
+          Left = 0
+          Top = 0
+          Width = 999
+          Height = 27
           Align = alClient
+          BevelEdges = []
           BevelOuter = bvNone
           TabOrder = 0
           object Label6: TLabel
             AlignWithMargins = True
             Left = 23
-            Top = 0
+            Top = 1
             Width = 39
-            Height = 13
+            Height = 26
             Margins.Top = 0
             Margins.Bottom = 0
             Align = alLeft
             Caption = 'Legend:'
             Layout = tlCenter
+            ExplicitHeight = 13
           end
           object tbtnClose: TRzToolButton
             Left = 0
-            Top = 0
+            Top = 1
             Width = 20
-            Height = 23
+            Height = 26
             GradientColorStyle = gcsCustom
             ImageIndex = 0
             Images = AppImages.ToolBtn
@@ -368,12 +409,21 @@ object frmClientManager: TfrmClientManager
             ExplicitTop = 2
             ExplicitHeight = 19
           end
+          object Shape4: TShape
+            Left = 0
+            Top = 0
+            Width = 999
+            Height = 1
+            Align = alTop
+            Pen.Color = clSilver
+            ExplicitWidth = 1001
+          end
           object sgLegend: TStringGrid
             AlignWithMargins = True
             Left = 68
-            Top = 0
+            Top = 1
             Width = 501
-            Height = 23
+            Height = 26
             Margins.Top = 0
             Margins.Bottom = 0
             Align = alLeft
@@ -397,20 +447,22 @@ object frmClientManager: TfrmClientManager
       end
       inline ClientLookup: TfmeClientLookup
         Left = 0
-        Top = 27
-        Width = 1001
-        Height = 434
+        Top = 28
+        Width = 999
+        Height = 432
         Align = alClient
         TabOrder = 1
         TabStop = True
-        ExplicitTop = 27
-        ExplicitWidth = 1001
-        ExplicitHeight = 434
+        ExplicitTop = 28
+        ExplicitWidth = 999
+        ExplicitHeight = 432
         inherited vtClients: TVirtualStringTree
-          Width = 1001
-          Height = 434
-          ExplicitWidth = 1001
-          ExplicitHeight = 434
+          Width = 999
+          Height = 432
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          ExplicitWidth = 999
+          ExplicitHeight = 432
         end
       end
     end
@@ -420,49 +472,52 @@ object frmClientManager: TfrmClientManager
       Width = 1001
       Height = 22
       Align = alTop
-      BevelInner = bvRaised
-      BevelOuter = bvLowered
+      BevelEdges = []
+      BevelOuter = bvNone
       TabOrder = 1
       object pnlFilterA: TPanel
-        Left = 2
-        Top = 2
-        Width = 997
-        Height = 18
+        Left = 0
+        Top = 0
+        Width = 1001
+        Height = 22
         Align = alClient
+        BevelEdges = []
         BevelOuter = bvNone
         TabOrder = 0
         object lblCount: TLabel
           AlignWithMargins = True
-          Left = 630
-          Top = 0
+          Left = 631
+          Top = 1
           Width = 96
-          Height = 13
+          Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = '99999 Clients Listed'
           Layout = tlCenter
           Visible = False
+          ExplicitHeight = 13
         end
         object Label1: TLabel
           AlignWithMargins = True
-          Left = 343
-          Top = 0
+          Left = 344
+          Top = 1
           Width = 33
-          Height = 13
+          Height = 21
           Margins.Left = 9
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Search'
           Layout = tlCenter
+          ExplicitHeight = 13
         end
         object imgCannotConnect: TImage
           AlignWithMargins = True
-          Left = 732
-          Top = 4
+          Left = 733
+          Top = 5
           Width = 16
-          Height = 14
+          Height = 17
           Hint = 
             'BankLink Practice will not display any BankLink Online related s' +
             'ettings or functions'
@@ -470,29 +525,19 @@ object frmClientManager: TfrmClientManager
           Margins.Bottom = 0
           Align = alLeft
           ParentShowHint = False
-          Picture.Data = {
-            0B546478504E47496D61676589504E470D0A1A0A0000000D4948445200000010
-            0000001008060000001FF3FF61000000017352474200AECE1CE9000000046741
-            4D410000B18F0BFC6105000000097048597300000EBC00000EBC0195BC724900
-            00001874455874536F667477617265005061696E742E4E45542076332E313072
-            B22592000000A449444154384FA550DB11803008EB4ACED4B59CC995904729B4
-            4D4F4F3F221020A41622C2B82A75A07EC34AF2C2751E0B76420B11C3896EA223
-            6918893EC829C77A58F41AB9188A182ABAECD0F6C64514E9BA60119011E0A227
-            F9BAE0ACF60489CE2117964CD795E25A04109F5DE827C818945AED03DE448D80
-            D79F905DE0EB6D083D41915C98C03CC0906507EA3F0A08BF75D0FA9270F6F31F
-            1863226FE1CB21F019546E2AE8D9675187A8750000000049454E44AE426082}
           ShowHint = True
           Transparent = True
           Visible = False
           ExplicitLeft = 734
+          ExplicitTop = 4
           ExplicitHeight = 18
         end
         object lblCannotConnect: TLabel
           AlignWithMargins = True
-          Left = 754
-          Top = 0
+          Left = 755
+          Top = 1
           Width = 163
-          Height = 13
+          Height = 21
           Hint = 
             'BankLink Practice will not display any BankLink Online related s' +
             'ettings or functions'
@@ -504,27 +549,56 @@ object frmClientManager: TfrmClientManager
           ShowHint = True
           Layout = tlCenter
           Visible = False
+          ExplicitHeight = 13
+        end
+        object Shape2: TShape
+          Left = 0
+          Top = 0
+          Width = 1001
+          Height = 1
+          Align = alTop
+          Pen.Color = clSilver
+          ExplicitLeft = 562
+          ExplicitTop = 2
+          ExplicitWidth = 400
+        end
+        object Shape7: TShape
+          Left = 1000
+          Top = 1
+          Width = 1
+          Height = 21
+          Align = alRight
+          Pen.Color = clSilver
+          ExplicitLeft = 999
+        end
+        object Shape8: TShape
+          Left = 0
+          Top = 1
+          Width = 1
+          Height = 21
+          Align = alLeft
+          Pen.Color = clSilver
         end
         object cmbFilter: TComboBox
           AlignWithMargins = True
-          Left = 3
-          Top = 0
+          Left = 4
+          Top = 1
           Width = 116
           Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbFilterChange
         end
         object btnFilter: TButton
           AlignWithMargins = True
-          Left = 125
-          Top = 0
+          Left = 126
+          Top = 1
           Width = 100
-          Height = 18
+          Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
@@ -536,10 +610,10 @@ object frmClientManager: TfrmClientManager
         end
         object btnResetFilter: TButton
           AlignWithMargins = True
-          Left = 231
-          Top = 0
+          Left = 232
+          Top = 1
           Width = 100
-          Height = 18
+          Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
@@ -551,10 +625,10 @@ object frmClientManager: TfrmClientManager
         end
         object EBFind: TEdit
           AlignWithMargins = True
-          Left = 382
-          Top = 0
+          Left = 383
+          Top = 1
           Width = 161
-          Height = 18
+          Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
@@ -562,14 +636,13 @@ object frmClientManager: TfrmClientManager
           TabOrder = 3
           OnChange = EBFindChange
           OnKeyPress = EBFindKeyPress
-          ExplicitHeight = 21
         end
         object btnFind: TButton
           AlignWithMargins = True
-          Left = 549
-          Top = 0
+          Left = 550
+          Top = 1
           Width = 75
-          Height = 18
+          Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
@@ -594,10 +667,10 @@ object frmClientManager: TfrmClientManager
     VisualStyle = vsGradient
     object imgLogo: TImage
       AlignWithMargins = True
-      Left = 8
-      Top = 8
+      Left = 9
+      Top = 9
       Width = 125
-      Height = 17
+      Height = 16
       Margins.Left = 8
       Margins.Top = 8
       Margins.Bottom = 8
@@ -606,18 +679,52 @@ object frmClientManager: TfrmClientManager
       Center = True
       Proportional = True
       Transparent = True
+      ExplicitLeft = 8
       ExplicitTop = 0
       ExplicitHeight = 40
     end
     object imgRight: TImage
-      Left = 1080
-      Top = 0
+      Left = 1079
+      Top = 1
       Width = 125
-      Height = 33
+      Height = 32
       Align = alRight
       AutoSize = True
       Transparent = True
+      ExplicitLeft = 1080
+      ExplicitTop = 0
       ExplicitHeight = 40
+    end
+    object Shape9: TShape
+      Left = 0
+      Top = 1
+      Width = 1
+      Height = 32
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitLeft = 1
+      ExplicitTop = -6
+      ExplicitHeight = 33
+    end
+    object Shape10: TShape
+      Left = 0
+      Top = 0
+      Width = 1205
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 1001
+    end
+    object Shape11: TShape
+      Left = 1204
+      Top = 1
+      Width = 1
+      Height = 32
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 1003
+      ExplicitTop = 24
+      ExplicitHeight = 461
     end
   end
   object pnlClose: TPanel
@@ -1079,7 +1186,7 @@ object frmClientManager: TfrmClientManager
   object SearchTimer: TTimer
     Enabled = False
     OnTimer = SearchTimerTimer
-    Left = 600
-    Top = 32
+    Left = 568
+    Top = 240
   end
 end

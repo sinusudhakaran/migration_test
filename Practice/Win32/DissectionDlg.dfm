@@ -28,15 +28,73 @@ object dlgDissection: TdlgDissection
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 16
+  object Shape4: TShape
+    AlignWithMargins = True
+    Left = 953
+    Top = 142
+    Width = 0
+    Height = 432
+    Margins.Left = 0
+    Margins.Top = 0
+    Margins.Bottom = 0
+    Align = alRight
+    Pen.Color = clSilver
+    ExplicitLeft = 952
+    ExplicitTop = 140
+    ExplicitHeight = 434
+  end
+  object Shape9: TShape
+    Left = 3
+    Top = 142
+    Width = 1
+    Height = 432
+    Align = alLeft
+    Pen.Color = clSilver
+    ExplicitLeft = 0
+    ExplicitTop = 137
+    ExplicitHeight = 440
+  end
+  object Shape11: TShape
+    Left = 952
+    Top = 142
+    Width = 1
+    Height = 432
+    Align = alRight
+    Pen.Color = clSilver
+    ExplicitLeft = 891
+    ExplicitTop = 0
+    ExplicitHeight = 36
+  end
+  object Shape12: TShape
+    AlignWithMargins = True
+    Left = 3
+    Top = 142
+    Width = 0
+    Height = 432
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
+    Align = alLeft
+    Pen.Color = clSilver
+    ExplicitTop = 140
+    ExplicitHeight = 434
+  end
   object pnlTotals: TPanel
-    Left = 0
-    Top = 667
-    Width = 956
+    AlignWithMargins = True
+    Left = 3
+    Top = 664
+    Width = 950
     Height = 60
+    Margins.Top = 0
+    Margins.Bottom = 0
     Align = alBottom
+    BevelOuter = bvNone
     TabOrder = 5
+    ExplicitLeft = 0
+    ExplicitTop = 667
+    ExplicitWidth = 956
     DesignSize = (
-      956
+      950
       60)
     object lblForBSTotal: TLabel
       Left = 8
@@ -204,8 +262,30 @@ object dlgDissection: TdlgDissection
       Anchors = [akLeft, akBottom]
       Shape = bsLeftLine
     end
+    object Shape15: TShape
+      Left = 0
+      Top = 0
+      Width = 1
+      Height = 60
+      Margins.Left = 0
+      Margins.Bottom = 0
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitHeight = 57
+    end
+    object Shape16: TShape
+      Left = 949
+      Top = 0
+      Width = 1
+      Height = 60
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 891
+      ExplicitTop = 1
+      ExplicitHeight = 99
+    end
     object btnOK: TButton
-      Left = 795
+      Left = 782
       Top = 27
       Width = 75
       Height = 25
@@ -217,7 +297,7 @@ object dlgDissection: TdlgDissection
       OnClick = btnOKClick
     end
     object btnCancel: TButton
-      Left = 876
+      Left = 863
       Top = 27
       Width = 75
       Height = 25
@@ -231,10 +311,12 @@ object dlgDissection: TdlgDissection
     end
   end
   object stbDissect: TStatusBar
-    Left = 0
-    Top = 727
-    Width = 956
+    AlignWithMargins = True
+    Left = 3
+    Top = 724
+    Width = 950
     Height = 20
+    Margins.Top = 0
     Panels = <
       item
         Alignment = taCenter
@@ -252,16 +334,25 @@ object dlgDissection: TdlgDissection
     ParentFont = True
     UseSystemFont = False
     OnMouseUp = stbDissectMouseUp
+    ExplicitLeft = 0
+    ExplicitTop = 727
+    ExplicitWidth = 956
   end
   object tblDissect: TOvcTable
-    Left = 0
-    Top = 128
-    Width = 956
-    Height = 449
+    AlignWithMargins = True
+    Left = 4
+    Top = 142
+    Width = 948
+    Height = 432
+    Margins.Left = 0
+    Margins.Top = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 0
     Align = alClient
+    BorderStyle = bsNone
     Color = clWindow
     Colors.ActiveUnfocused = clBtnFace
     Colors.ActiveUnfocusedText = clWindowText
@@ -293,6 +384,7 @@ object dlgDissection: TdlgDissection
     OnMouseDown = tblDissectMouseDown
     OnMouseUp = tblDissectMouseUp
     OnTopLeftCellChanging = tblDissectTopLeftCellChanging
+    ExplicitLeft = 5
     CellData = (
       'dlgDissection.hdrColumnHeadings')
     RowData = (
@@ -303,21 +395,23 @@ object dlgDissection: TdlgDissection
       False)
   end
   object pnlTranDetails: TPanel
-    Left = 0
-    Top = 0
-    Width = 956
-    Height = 128
+    AlignWithMargins = True
+    Left = 3
+    Top = 3
+    Width = 950
+    Height = 139
+    Margins.Bottom = 0
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     OnResize = pnlTranDetailsResize
     DesignSize = (
-      956
-      128)
+      950
+      139)
     object Shape1: TShape
       Left = 3
       Top = 24
-      Width = 950
+      Width = 944
       Height = 32
       Anchors = [akLeft, akTop, akRight]
       Brush.Color = clWindow
@@ -365,7 +459,7 @@ object dlgDissection: TdlgDissection
       Caption = 'Narration'
     end
     object Label7: TLabel
-      Left = 910
+      Left = 904
       Top = 4
       Width = 34
       Height = 16
@@ -417,7 +511,7 @@ object dlgDissection: TdlgDissection
     object lblNarrationField: TLabel
       Left = 569
       Top = 32
-      Width = 301
+      Width = 295
       Height = 16
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
@@ -427,7 +521,7 @@ object dlgDissection: TdlgDissection
       ExplicitWidth = 552
     end
     object lblPayee: TLabel
-      Left = 901
+      Left = 895
       Top = 32
       Width = 48
       Height = 16
@@ -456,7 +550,7 @@ object dlgDissection: TdlgDissection
     object lbltxECodingNotes: TLabel
       Left = 8
       Top = 64
-      Width = 938
+      Width = 932
       Height = 16
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
@@ -467,9 +561,9 @@ object dlgDissection: TdlgDissection
       ExplicitWidth = 604
     end
     object lbltxNotes: TLabel
-      Left = 8
-      Top = 82
-      Width = 938
+      Left = 7
+      Top = 81
+      Width = 932
       Height = 16
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
@@ -477,7 +571,6 @@ object dlgDissection: TdlgDissection
       ParentShowHint = False
       ShowAccelChar = False
       ShowHint = True
-      ExplicitWidth = 604
     end
     object lblLocalCurrencyAmount: TLabel
       Left = 455
@@ -519,18 +612,47 @@ object dlgDissection: TdlgDissection
       Caption = 'Rate'
       Transparent = True
     end
+    object Shape3: TShape
+      Left = 0
+      Top = 0
+      Width = 950
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 956
+    end
+    object Shape5: TShape
+      Left = 949
+      Top = 1
+      Width = 1
+      Height = 110
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 891
+      ExplicitHeight = 99
+    end
+    object Shape7: TShape
+      Left = 0
+      Top = 1
+      Width = 1
+      Height = 110
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitHeight = 99
+    end
     object pnlHeaderButtons: TPanel
       Left = 0
-      Top = 101
-      Width = 956
-      Height = 27
+      Top = 111
+      Width = 950
+      Height = 28
       Align = alBottom
       Anchors = [akLeft, akTop, akRight]
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitTop = 109
       DesignSize = (
-        956
-        27)
+        950
+        28)
       object btnChart: TSpeedButton
         Left = 9
         Top = 3
@@ -551,7 +673,7 @@ object dlgDissection: TdlgDissection
       end
       object lblStatus: TLabel
         Left = 439
-        Top = 8
+        Top = 9
         Width = 68
         Height = 16
         Anchors = [akLeft, akBottom]
@@ -559,6 +681,7 @@ object dlgDissection: TdlgDissection
         Color = clActiveCaption
         ParentColor = False
         Visible = False
+        ExplicitTop = 8
       end
       object sbtnSuper: TSpeedButton
         Left = 353
@@ -591,6 +714,35 @@ object dlgDissection: TdlgDissection
         Caption = 'Job'
         Flat = True
         OnClick = btnJobClick
+      end
+      object Shape2: TShape
+        Left = 0
+        Top = 27
+        Width = 950
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitTop = 26
+        ExplicitWidth = 956
+      end
+      object Shape6: TShape
+        Left = 949
+        Top = 0
+        Width = 1
+        Height = 27
+        Align = alRight
+        Pen.Color = clSilver
+        ExplicitLeft = 891
+        ExplicitHeight = 36
+      end
+      object Shape8: TShape
+        Left = 0
+        Top = 0
+        Width = 1
+        Height = 27
+        Align = alLeft
+        Pen.Color = clSilver
+        ExplicitHeight = 36
       end
     end
   end
@@ -628,10 +780,13 @@ object dlgDissection: TdlgDissection
     RangeLow = {73B2DBB9838916F2FEC3}
   end
   object pNotes: TRzSizePanel
-    Left = 0
-    Top = 577
-    Width = 956
+    AlignWithMargins = True
+    Left = 3
+    Top = 574
+    Width = 950
     Height = 90
+    Margins.Top = 0
+    Margins.Bottom = 0
     Align = alBottom
     HotSpotSizePercent = 10
     HotSpotVisible = True
@@ -641,46 +796,92 @@ object dlgDissection: TdlgDissection
     TabOrder = 2
     VisualStyle = vsGradient
     OnResize = pNotesResize
-    object pnlNotes: TPanel
+    ExplicitLeft = 0
+    ExplicitTop = 577
+    ExplicitWidth = 956
+    object Shape10: TShape
+      Left = 0
+      Top = 89
+      Width = 950
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitTop = 26
+      ExplicitWidth = 956
+    end
+    object Shape13: TShape
       Left = 0
       Top = 10
-      Width = 956
-      Height = 80
+      Width = 1
+      Height = 79
+      Align = alLeft
+      Pen.Color = clSilver
+      ExplicitTop = 137
+      ExplicitHeight = 440
+    end
+    object Shape14: TShape
+      Left = 949
+      Top = 10
+      Width = 1
+      Height = 79
+      Align = alRight
+      Pen.Color = clSilver
+      ExplicitLeft = 891
+      ExplicitTop = 0
+      ExplicitHeight = 36
+    end
+    object pnlNotes: TPanel
+      Left = 1
+      Top = 10
+      Width = 948
+      Height = 79
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
       OnEnter = pnlNotesEnter
       OnExit = pnlNotesExit
+      ExplicitLeft = 0
+      ExplicitWidth = 956
+      ExplicitHeight = 80
       object Panel2: TPanel
         Left = 21
         Top = 0
-        Width = 935
-        Height = 80
+        Width = 927
+        Height = 79
         Align = alClient
         BevelOuter = bvNone
         Caption = 'Panel2'
         TabOrder = 0
+        ExplicitWidth = 935
+        ExplicitHeight = 80
         object memImportNotes: TMemo
           Left = 0
           Top = 0
-          Width = 935
+          Width = 927
           Height = 41
           TabStop = False
           Align = alTop
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
           Ctl3D = False
           ParentCtl3D = False
           PopupMenu = popNotes
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 0
+          ExplicitWidth = 935
         end
         object memNotes: TMemo
           Left = 0
           Top = 41
-          Width = 935
-          Height = 39
+          Width = 927
+          Height = 38
           TabStop = False
           Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
           Ctl3D = False
           Lines.Strings = (
             '')
@@ -689,18 +890,21 @@ object dlgDissection: TdlgDissection
           ScrollBars = ssVertical
           TabOrder = 1
           OnChange = memNotesChange
+          ExplicitWidth = 935
+          ExplicitHeight = 39
         end
       end
       object pnlNotesTitle: TPanel
         Left = 0
         Top = 0
         Width = 21
-        Height = 80
+        Height = 79
         Align = alLeft
         BevelOuter = bvNone
         Ctl3D = False
         ParentCtl3D = False
         TabOrder = 1
+        ExplicitHeight = 80
         object rzPinBtn: TRzBmpButton
           Left = 1
           Top = 3
@@ -876,6 +1080,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     OnChange = celAmountChange
@@ -895,6 +1100,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     OnChange = celGstAmtChange
@@ -914,6 +1120,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblDissect
     OnChange = celQuantityChange
@@ -946,6 +1153,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     Left = 336
@@ -962,6 +1170,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     Left = 336
@@ -984,6 +1193,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -1245,7 +1455,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblDissect
     OnKeyPress = celPercentKeyPress
@@ -1370,6 +1579,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblDissect
     Left = 336
@@ -1385,7 +1595,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblDissect
     OnChange = celAmountChange

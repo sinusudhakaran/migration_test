@@ -81,8 +81,9 @@ object frmCustomDocEditor: TfrmCustomDocEditor
     Top = 0
     Width = 774
     Height = 530
-    ActivePage = tsReportEdit
+    ActivePage = tsReportList
     Align = alClient
+    Style = tsFlatButtons
     TabOrder = 0
     object tsReportList: TTabSheet
       Caption = 'tsReportList'
@@ -91,7 +92,7 @@ object frmCustomDocEditor: TfrmCustomDocEditor
         Left = 218
         Top = 0
         Width = 4
-        Height = 502
+        Height = 499
         ExplicitLeft = 163
         ExplicitHeight = 449
       end
@@ -99,7 +100,7 @@ object frmCustomDocEditor: TfrmCustomDocEditor
         Left = 0
         Top = 0
         Width = 218
-        Height = 502
+        Height = 499
         GradientColorStyle = gcsCustom
         GradientColorStart = 15510150
         GradientColorStop = 14452580
@@ -153,8 +154,11 @@ object frmCustomDocEditor: TfrmCustomDocEditor
         Left = 222
         Top = 0
         Width = 544
-        Height = 502
+        Height = 499
         Align = alClient
+        BevelEdges = []
+        BevelInner = bvNone
+        BevelOuter = bvNone
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET
         Header.Font.Color = clWindowText
@@ -164,6 +168,7 @@ object frmCustomDocEditor: TfrmCustomDocEditor
         Header.Options = [hoColumnResize, hoDblClickResize, hoOwnerDraw, hoRestrictDrag, hoShowSortGlyphs, hoVisible]
         Header.ParentFont = True
         Header.Style = hsXPStyle
+        Margin = 0
         ParentBackground = False
         PopupMenu = ListPopup
         TabOrder = 0
@@ -202,31 +207,35 @@ object frmCustomDocEditor: TfrmCustomDocEditor
         Left = 0
         Top = 0
         Width = 766
-        Height = 502
+        Height = 499
         Align = alClient
+        BevelOuter = bvNone
         TabOrder = 0
         inline Editor: TfmeEditRTF
-          Left = 1
-          Top = 1
-          Width = 764
-          Height = 500
+          Left = 0
+          Top = 0
+          Width = 766
+          Height = 499
           Align = alClient
           TabOrder = 0
-          ExplicitLeft = 1
-          ExplicitTop = 1
-          ExplicitWidth = 764
-          ExplicitHeight = 500
+          ExplicitWidth = 766
+          ExplicitHeight = 499
           inherited Panel1: TPanel
-            Width = 764
-            Height = 500
-            ExplicitWidth = 764
-            ExplicitHeight = 500
+            Width = 766
+            Height = 499
+            BevelOuter = bvNone
+            ExplicitWidth = 766
+            ExplicitHeight = 499
             inherited WPToolPanel1: TWPToolPanel
-              Width = 762
-              ExplicitWidth = 762
+              Left = 0
+              Top = 0
+              Width = 766
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 766
               inherited TopToolbar: TRzToolbar
-                Width = 760
-                ExplicitWidth = 760
+                Width = 764
+                ExplicitWidth = 764
                 ToolbarControls = (
                   cbFont
                   cbSize
@@ -253,8 +262,10 @@ object frmCustomDocEditor: TfrmCustomDocEditor
               end
             end
             inherited ERTF: TWPRichText
-              Width = 736
-              Height = 438
+              Left = 26
+              Top = 60
+              Width = 740
+              Height = 439
               RTFText.Data = {
                 3C215750546F6F6C735F466F726D617420563D3531382F3E0D0A3C5374616E64
                 617264466F6E742077706373733D2243686172466F6E743A27417269616C273B
@@ -340,21 +351,31 @@ object frmCustomDocEditor: TfrmCustomDocEditor
                 3E3435363334353C2F6469763E0D0A}
               OnChange = EditorERTFChange
               OnKeyPress = EditorERTFKeyPress
-              ExplicitWidth = 736
-              ExplicitHeight = 438
+              ExplicitLeft = 26
+              ExplicitTop = 60
+              ExplicitWidth = 740
+              ExplicitHeight = 439
             end
             inherited LeftRuler: TWPVertRuler
-              Height = 438
-              ExplicitHeight = 438
+              Left = 0
+              Top = 60
+              Height = 439
+              ExplicitLeft = 0
+              ExplicitTop = 60
+              ExplicitHeight = 439
             end
             inherited TopRuler: TWPRuler
-              Width = 762
-              ExplicitWidth = 762
+              Left = 0
+              Top = 34
+              Width = 766
+              ExplicitLeft = 0
+              ExplicitTop = 34
+              ExplicitWidth = 766
             end
           end
           inherited ActImages: TImageList
             Bitmap = {
-              494C010111001400180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+              494C0101110014001C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
               0000000000003600000028000000400000005000000001002000000000000050
               0000000000000000000000000000000000000000000000000000000000000000
               0000000000000000000000000000000000000000000000000000000000000000
@@ -1052,7 +1073,7 @@ object frmCustomDocEditor: TfrmCustomDocEditor
     Left = 249
     Top = 2
     Bitmap = {
-      494C010103000400140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103000400180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
