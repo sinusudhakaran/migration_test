@@ -1638,7 +1638,7 @@ begin
     TargetCanvas.FillRect(ItemRect);
     //Paint text
     TargetCanvas.Font := appimages.Font;
-    TargetCanvas.Font.Color := clBlue;
+    TargetCanvas.Font.Color := $009F9B00;//clBlue;
     NodeCaption := bkBranding.ProductOnlineName + ' ' + NodeData.tdCaption;
     InflateRect(ItemRect, -6, -2);
     DrawText(TargetCanvas.Handle, PChar(NodeCaption), StrLen(PChar(NodeCaption)),
