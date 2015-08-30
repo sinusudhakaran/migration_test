@@ -35,8 +35,6 @@ object ContactDetailsFrm: TContactDetailsFrm
     ModalResult = 1
     ParentFont = False
     TabOrder = 0
-    ExplicitLeft = 405
-    ExplicitTop = 337
   end
   object btnCancel: TButton
     Left = 497
@@ -54,12 +52,10 @@ object ContactDetailsFrm: TContactDetailsFrm
     ModalResult = 2
     ParentFont = False
     TabOrder = 1
-    ExplicitLeft = 485
-    ExplicitTop = 337
   end
   object pnlMain: TPanel
-    Left = 8
-    Top = 8
+    Left = 6
+    Top = 10
     Width = 564
     Height = 375
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -209,25 +205,8 @@ object ContactDetailsFrm: TContactDetailsFrm
       ParentFont = False
     end
     object eName: TEdit
-      Left = 149
+      Left = 150
       Top = 39
-      Width = 401
-      Height = 24
-      BorderStyle = bsNone
-      Ctl3D = True
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      MaxLength = 60
-      ParentCtl3D = False
-      ParentFont = False
-      TabOrder = 0
-    end
-    object eContact: TEdit
-      Left = 149
-      Top = 182
       Width = 401
       Height = 24
       BorderStyle = bsNone
@@ -242,8 +221,25 @@ object ContactDetailsFrm: TContactDetailsFrm
       ParentFont = False
       TabOrder = 1
     end
+    object eContact: TEdit
+      Left = 150
+      Top = 182
+      Width = 401
+      Height = 24
+      BorderStyle = bsNone
+      Ctl3D = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      MaxLength = 60
+      ParentCtl3D = False
+      ParentFont = False
+      TabOrder = 6
+    end
     object eMail: TEdit
-      Left = 149
+      Left = 150
       Top = 279
       Width = 401
       Height = 24
@@ -255,10 +251,10 @@ object ContactDetailsFrm: TContactDetailsFrm
       Font.Style = []
       MaxLength = 80
       ParentFont = False
-      TabOrder = 2
+      TabOrder = 10
     end
     object ePhone: TEdit
-      Left = 152
+      Left = 150
       Top = 215
       Width = 161
       Height = 24
@@ -272,10 +268,10 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 60
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 3
+      TabOrder = 7
     end
     object eFax: TEdit
-      Left = 152
+      Left = 150
       Top = 244
       Width = 161
       Height = 24
@@ -287,10 +283,10 @@ object ContactDetailsFrm: TContactDetailsFrm
       Font.Style = []
       MaxLength = 60
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 8
     end
     object eAddr1: TEdit
-      Left = 149
+      Left = 150
       Top = 69
       Width = 401
       Height = 24
@@ -302,10 +298,10 @@ object ContactDetailsFrm: TContactDetailsFrm
       Font.Style = []
       MaxLength = 60
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 2
     end
     object eAddr2: TEdit
-      Left = 149
+      Left = 150
       Top = 96
       Width = 401
       Height = 24
@@ -317,10 +313,10 @@ object ContactDetailsFrm: TContactDetailsFrm
       Font.Style = []
       MaxLength = 60
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 3
     end
     object eAddr3: TEdit
-      Left = 149
+      Left = 150
       Top = 123
       Width = 401
       Height = 24
@@ -332,7 +328,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       Font.Style = []
       MaxLength = 60
       ParentFont = False
-      TabOrder = 7
+      TabOrder = 4
     end
     object eMobile: TEdit
       Left = 389
@@ -349,10 +345,10 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 60
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 8
+      TabOrder = 9
     end
     object eCode: TEdit
-      Left = 152
+      Left = 150
       Top = 5
       Width = 161
       Height = 24
@@ -367,7 +363,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 8
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 0
       Visible = False
     end
     object cmbUsers: TComboBox
@@ -383,11 +379,11 @@ object ContactDetailsFrm: TContactDetailsFrm
       Font.Style = []
       ItemHeight = 16
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 11
       Visible = False
     end
     object eSal: TEdit
-      Left = 152
+      Left = 150
       Top = 154
       Width = 161
       Height = 24
@@ -401,7 +397,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 60
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 11
+      TabOrder = 5
     end
   end
 end
