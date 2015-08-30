@@ -248,14 +248,13 @@ begin
     btnEULA2.Visible := True;
     pnlGraphic.Visible := False;
     Width := Width - pnlGraphic.Width;
-    pnlBankstream.Visible := True;
-    pnlBankLink.Visible := False;
+    pnlBankLink.Visible := True;
   end
   else
   begin
-    pnlBankstream.Visible := False;
-    pnlBankLink.Visible := True;
+    pnlBankLink.Visible := False;
   end;
+  pnlBankstream.Visible := (not pnlBankLink.Visible);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmAbout.btnCloseClick(Sender: TObject);

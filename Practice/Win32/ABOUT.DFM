@@ -126,18 +126,6 @@ object frmAbout: TfrmAbout
       Caption = 'Update Server:'
       ShowAccelChar = False
     end
-    object btnClose: TButton
-      Left = 292
-      Top = 417
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Close'
-      Default = True
-      TabOrder = 0
-      OnClick = btnCloseClick
-    end
     object pnlBankLink: TPanel
       Left = 16
       Top = 113
@@ -220,6 +208,18 @@ object frmAbout: TfrmAbout
         Caption = 'Email:'
       end
     end
+    object btnClose: TButton
+      Left = 292
+      Top = 417
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Close'
+      Default = True
+      TabOrder = 0
+      OnClick = btnCloseClick
+    end
     object btnEULA2: TButton
       Left = 184
       Top = 417
@@ -235,7 +235,7 @@ object frmAbout: TfrmAbout
       Left = 16
       Top = 113
       Width = 351
-      Height = 104
+      Height = 113
       BevelOuter = bvNone
       BorderWidth = 1
       BorderStyle = bsSingle
@@ -245,9 +245,15 @@ object frmAbout: TfrmAbout
       object Label1: TLabel
         Left = 13
         Top = 15
-        Width = 103
+        Width = 117
         Height = 13
         Caption = 'For support, contact:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
         ShowAccelChar = False
         Transparent = True
       end
