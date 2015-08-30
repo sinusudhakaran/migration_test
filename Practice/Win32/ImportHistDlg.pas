@@ -2356,7 +2356,8 @@ begin
 
      piNarration: SetHighLight(Column = fSubNar);
 
-     else SetHighLight(False);
+     else
+       SetHighLight(False);
   end;
 end;
 
@@ -2387,6 +2388,9 @@ procedure TImportHist.vsOutPaintText(Sender: TBaseVirtualTree;
         TargetCanvas.Font.Color := clWebOrangeRed
      else
         TargetCanvas.Font.Color := clWindowText;
+
+    if ((vsSelected in Node.States) and (TargetCanvas.Font.Color = clWindowText)) then
+      TargetCanvas.Font.Color := clHighlightText ;
   end;
 
   function PaintMatch: Boolean;
