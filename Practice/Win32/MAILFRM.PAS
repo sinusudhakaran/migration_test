@@ -985,12 +985,11 @@ begin
         Attachments.Add( OtherAttachments[i]);
 
       //send mail
-      if not IsWoW64 then
+      if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
         MailSentOK := CreateMailObjectAndSend( txtRecipient.Text, txtCC.Text, eReturnAddr.text, txtSubject.text,
                                 Editor.ERTF.Text, Attachments, UpdateStatus)
       else
       begin
-        //run 64bit exe file here!!!
 {
   PARAM_TO      = '-to';
   PARAM_CC      = '-cc';
@@ -1045,6 +1044,7 @@ begin
               OpenProcess(PROCESS_TERMINATE, False, ProcessInfo.dwProcessId);
             end;
            end;
+           
         MailSentOK := ExitCode = 0;   
         end else
         begin
