@@ -178,6 +178,7 @@ end;
 procedure tSystem_User_List.Insert(Item: Pointer);
 begin
   pUser_Rec(Item).usAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
+  pUser_Rec(Item).usAllow_Suggested_Mems_Popup := true;
   inherited Insert(Item);
 end;
 

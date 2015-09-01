@@ -887,6 +887,7 @@ begin
 	SetBoolAttr(Result, 'UsingSecureAuthentication', usUsing_Secure_Authentication);
 	SetArray(Result, 'UserDataBlocks', usUser_Data_Block);
 	SetTextAttr(Result, 'Salt', usSalt);
+	SetBoolAttr(Result, 'AllowSuggestedMemsPopup', usAllow_Suggested_Mems_Popup);
 
 	CNode := nil;
 	CCNode := nil;
@@ -933,6 +934,7 @@ begin
 	usUsing_Secure_Authentication := GetBoolAttr(Result, 'UsingSecureAuthentication');
 	GetArray(Result, 'UserDataBlocks', usUser_Data_Block);
 	usSalt := GetTextAttr(Result, 'Salt');
+	usAllow_Suggested_Mems_Popup := GetBoolAttr(Result, 'AllowSuggestedMemsPopup');
 	except
 		on E: Exception do ReRaise (E, 'Reading TUser_Rec');
 	end;

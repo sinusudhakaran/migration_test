@@ -53,6 +53,9 @@ CONST
    tksmEnd_Data                         = 176 ;
    tksmUpdate_Date                      = 177 ;
    tksmHas_Changed                      = 178 ;
+   tksmManual_Count                     = 179 ;
+   tksmHidden                           = 180 ;
+   tksmHiddenForSession                 = 181 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -85,6 +88,9 @@ Begin
       F.WriteBooleanValue( tksmEnd_Data , smEnd_Data );
       F.WriteDateValue( tksmUpdate_Date , smUpdate_Date );
       F.WriteBooleanValue( tksmHas_Changed , smHas_Changed );
+      F.WriteIntegerValue( tksmManual_Count , smManual_Count );
+      F.WriteBooleanValue( tksmHidden , smHidden );
+      F.WriteBooleanValue( tksmHiddenForSession , smHiddenForSession );
       F.WriteToken( tkEnd_Suggested_Mem );
    end;
 end; { of Write_Suggested_Mem_Rec }
@@ -114,6 +120,9 @@ Begin
          tksmEnd_Data                         : smEnd_Data := F.ReadBooleanValue;
          tksmUpdate_Date                      : smUpdate_Date := F.ReadDateValue;
          tksmHas_Changed                      : smHas_Changed := F.ReadBooleanValue;
+         tksmManual_Count                     : smManual_Count := F.ReadIntegerValue;
+         tksmHidden                           : smHidden := F.ReadBooleanValue;
+         tksmHiddenForSession                 : smHiddenForSession := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -160,7 +169,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tksmId to tksmHas_Changed do begin
+  for i := tksmId to tksmHiddenForSession do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -218,6 +227,21 @@ begin
   if (P1.smHas_Changed <> P2.smHas_Changed) then begin
     P3.smHas_Changed := P1.smHas_Changed;
     ChangedFields[i] := tksmHas_Changed;
+    Inc(i);
+  end;
+  if (P1.smManual_Count <> P2.smManual_Count) then begin
+    P3.smManual_Count := P1.smManual_Count;
+    ChangedFields[i] := tksmManual_Count;
+    Inc(i);
+  end;
+  if (P1.smHidden <> P2.smHidden) then begin
+    P3.smHidden := P1.smHidden;
+    ChangedFields[i] := tksmHidden;
+    Inc(i);
+  end;
+  if (P1.smHiddenForSession <> P2.smHiddenForSession) then begin
+    P3.smHiddenForSession := P1.smHiddenForSession;
+    ChangedFields[i] := tksmHiddenForSession;
     Inc(i);
   end;
 

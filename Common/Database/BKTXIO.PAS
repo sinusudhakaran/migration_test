@@ -134,7 +134,7 @@ CONST
    tktxCore_Transaction_ID_High         = 247 ;
    tktxIsOnline_Transaction             = 248 ;
    tktxSuggested_Mem_State              = 249 ;
-   tktxSuggested_Mem_Count              = 250 ;
+   tktxSuggested_Mem_Index              = 250 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -248,7 +248,7 @@ Begin
       F.WriteIntegerValue( tktxCore_Transaction_ID_High , txCore_Transaction_ID_High );
       F.WriteBooleanValue( tktxIsOnline_Transaction , txIsOnline_Transaction );
       F.WriteByteValue( tktxSuggested_Mem_State , txSuggested_Mem_State );
-      F.WriteIntegerValue( tktxSuggested_Mem_Count , txSuggested_Mem_Count );
+      F.WriteIntegerValue( tktxSuggested_Mem_Index , txSuggested_Mem_Index );
       F.WriteToken( tkEnd_Transaction );
    end;
 end; { of Write_Transaction_Rec }
@@ -359,7 +359,7 @@ Begin
          tktxCore_Transaction_ID_High         : txCore_Transaction_ID_High := F.ReadIntegerValue;
          tktxIsOnline_Transaction             : txIsOnline_Transaction := F.ReadBooleanValue;
          tktxSuggested_Mem_State              : txSuggested_Mem_State := F.ReadByteValue;
-         tktxSuggested_Mem_Count              : txSuggested_Mem_Count := F.ReadIntegerValue;
+         tktxSuggested_Mem_Index              : txSuggested_Mem_Index := F.ReadIntegerValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -415,7 +415,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tktxSequence_No to tktxSuggested_Mem_Count do begin
+  for i := tktxSequence_No to tktxSuggested_Mem_Index do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -880,9 +880,9 @@ begin
     ChangedFields[i] := tktxSuggested_Mem_State;
     Inc(i);
   end;
-  if (P1.txSuggested_Mem_Count <> P2.txSuggested_Mem_Count) then begin
-    P3.txSuggested_Mem_Count := P1.txSuggested_Mem_Count;
-    ChangedFields[i] := tktxSuggested_Mem_Count;
+  if (P1.txSuggested_Mem_Index <> P2.txSuggested_Mem_Index) then begin
+    P3.txSuggested_Mem_Index := P1.txSuggested_Mem_Index;
+    ChangedFields[i] := tktxSuggested_Mem_Index;
     Inc(i);
   end;
 

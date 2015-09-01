@@ -346,6 +346,7 @@ F|Using Mixed Case Password|Y
 F|Using Secure Authentication|Y
 F|User Data Block|BB|128
 F|Salt|S|64
+F|Allow Suggested Mems Popup|Y
 E
 
 N|System Bank Account|sb|50

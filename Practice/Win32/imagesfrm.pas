@@ -78,6 +78,8 @@ type
     imgSmallLogo: TImage;
     ImgLogoMedium: TImage;
     imgStatementDetails: TImage;
+    imgBlueSuggMemCircle: TImage;
+    imgGraySuggMemCircle: TImage;
     procedure FormCreate(Sender: TObject);
   private
 

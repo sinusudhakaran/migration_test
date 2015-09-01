@@ -705,10 +705,10 @@ namespace BankLink.Practice.BooksIO
 
 
 		/// <summary>
-		/// SuggestedMemCount property
+		/// SuggestedMemIndex property
 		/// </summary>
-		[XmlAttribute("SuggestedMemCount", DataType = "int")]
-		public Int32 SuggestedMemCount { get; set; }
+		[XmlAttribute("SuggestedMemIndex", DataType = "int")]
+		public Int32 SuggestedMemIndex { get; set; }
 
 
 		/// <summary>
@@ -811,7 +811,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteInt32Value(247, CoreTransactionIDHigh);
 			s.WriteBooleanValue(248, IsOnlineTransaction);
 			s.WriteByteValue(249, SuggestedMemState);
-			s.WriteInt32Value(250, SuggestedMemCount);
+			s.WriteInt32Value(250, SuggestedMemIndex);
 			s.WriteToken(161);
 		}
 
@@ -1089,7 +1089,7 @@ namespace BankLink.Practice.BooksIO
 				SuggestedMemState = s.ReadByteValue("SuggestedMemState");
 				break;
 			case 250 :
-				SuggestedMemCount = s.ReadInt32Value("SuggestedMemCount");
+				SuggestedMemIndex = s.ReadInt32Value("SuggestedMemIndex");
 				break;
 			case BeginToken :
 			case EndToken :

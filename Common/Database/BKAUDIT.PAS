@@ -637,7 +637,7 @@ begin
     FAuditNamesArray[160,247] := 'Core_Transaction_ID_High';
     FAuditNamesArray[160,248] := 'IsOnline_Transaction';
     FAuditNamesArray[160,249] := 'Suggested_Mem_State';
-    FAuditNamesArray[160,250] := 'Suggested_Mem_Count';
+    FAuditNamesArray[160,250] := 'Suggested_Mem_Index';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';
@@ -977,6 +977,9 @@ begin
     FAuditNamesArray[170,176] := 'End_Data';
     FAuditNamesArray[170,177] := 'Update_Date';
     FAuditNamesArray[170,178] := 'Has_Changed';
+    FAuditNamesArray[170,179] := 'Manual_Count';
+    FAuditNamesArray[170,180] := 'Hidden';
+    FAuditNamesArray[170,181] := 'HiddenForSession';
 
    FAuditTableArray[171] := 'Suggested_Account_Link';
     FAuditNamesArray[171,173] := 'SuggestedId';

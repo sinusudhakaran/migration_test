@@ -2154,7 +2154,7 @@ begin
 	SetIntAttr(Result, 'CoreTransactionIDHigh', txCore_Transaction_ID_High);
 	SetBoolAttr(Result, 'IsOnlineTransaction', txIsOnline_Transaction);
 	SetIntAttr(Result, 'SuggestedMemState', txSuggested_Mem_State);
-	SetIntAttr(Result, 'SuggestedMemCount', txSuggested_Mem_Count);
+	SetIntAttr(Result, 'SuggestedMemIndex', txSuggested_Mem_Index);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2257,7 +2257,7 @@ begin
 	txCore_Transaction_ID_High := GetIntAttr(Result, 'CoreTransactionIDHigh');
 	txIsOnline_Transaction := GetBoolAttr(Result, 'IsOnlineTransaction');
 	txSuggested_Mem_State := GetIntAttr(Result, 'SuggestedMemState');
-	txSuggested_Mem_Count := GetIntAttr(Result, 'SuggestedMemCount');
+	txSuggested_Mem_Index := GetIntAttr(Result, 'SuggestedMemIndex');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
 	end;
@@ -3810,6 +3810,9 @@ begin
 	SetBoolAttr(Result, 'EndData', smEnd_Data);
 	SetIntAttr(Result, 'UpdateDate', smUpdate_Date);
 	SetBoolAttr(Result, 'HasChanged', smHas_Changed);
+	SetIntAttr(Result, 'ManualCount', smManual_Count);
+	SetBoolAttr(Result, 'Hidden', smHidden);
+	SetBoolAttr(Result, 'HiddenForSession', smHiddenForSession);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3833,6 +3836,9 @@ begin
 	smEnd_Data := GetBoolAttr(Result, 'EndData');
 	smUpdate_Date := GetIntAttr(Result, 'UpdateDate');
 	smHas_Changed := GetBoolAttr(Result, 'HasChanged');
+	smManual_Count := GetIntAttr(Result, 'ManualCount');
+	smHidden := GetBoolAttr(Result, 'Hidden');
+	smHiddenForSession := GetBoolAttr(Result, 'HiddenForSession');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
 	end;

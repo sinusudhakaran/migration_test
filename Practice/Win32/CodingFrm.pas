@@ -53,6 +53,8 @@ uses
   ovctccbx,
   osfont,
   RzButton,
+  SuggestedMems,
+  SuggMemSortedList,
   RzTabs;
 
 const
@@ -62,12 +64,6 @@ type
   TCodingCommands = (CC_RestrictedEditMode, CC_FullEditMode, CC_GotoFirstUncoded);
 
   TCodingOptions = set of TCodingCommands;
-
-  TSuggestionCount = record
-    SuggestionId : integer;
-    CodedCount : integer;
-    Highlighted : boolean;
-  end;
 
   TfrmCoding = class(TForm)
     cntController: TOvcController;
@@ -415,7 +411,9 @@ type
     tmpPaintShortStr              : ShortString;
     tmpPaintDouble                : double;
     tmpPaintInteger               : Integer;
-    tmpPaintSuggestionCount       : TSuggestionCount;
+    tmpPaintSuggMemsData          : TSuggMemSortedListRec;
+
+    SelectedSuggestedMemId        : integer;
 
     FIsClosing, FIsReloading, StartFocus, Undo: boolean;
     FsuperTop, FSuperLeft: Integer;
@@ -560,6 +558,10 @@ type
     procedure DoSuggestedMemsDoneProcessing();
 
   protected
+    procedure btnHideClick(Sender: TObject);
+    procedure btnLaterClick(Sender: TObject);
+    procedure btnCreateClick(Sender: TObject);
+
     procedure SetMDIChildSortedIndex(aIndex : integer);
   public
     procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
@@ -700,7 +702,8 @@ uses
   RecommendedMemorisationsFrm,
   MemorisationsObj,
   BudgetFrm,
-  SuggestedMems,
+  SuggMemPopupFrm,
+  sydefs,
   mxFiles32;
 
 const
@@ -1236,7 +1239,12 @@ begin
   StartFocus := True;
   Undo := False;
   FSuperTop := -999;
-  FSuperLeft := -999;  
+  FSuperLeft := -999;
+  SelectedSuggestedMemId := TRAN_NO_SUGG;
+
+  SuggMemPopup(self).OnHideClick   := btnHideClick;
+  SuggMemPopup(self).OnLaterClick  := btnLaterClick;
+  SuggMemPopup(self).OnCreateClick := btnCreateClick;
 end;
 
 //------------------------------------------------------------------------------
@@ -2519,8 +2527,18 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCoding.DoSuggestedMemsDoneProcessing;
+var
+  WorkTranIndex : integer;
+  ActiveRow : integer;
 begin
   UpdateSuggestedMemLabel;
+
+  ActiveRow := tblCoding.ActiveRow;
+
+  LoadWorkTranList;
+  tblCoding.ActiveRow := ActiveRow;
+  tblCoding.Refresh;
+  RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
 end;
 
 //------------------------------------------------------------------------------
@@ -2902,6 +2920,9 @@ end;
 procedure TfrmCoding.DoRecommendedMems;
 begin
   ShowRecommendedMemorisations(self, BankAccount);
+
+  if SuggMemPopup(self).Showing then
+    SuggMemPopup(self).Close;
 
   DoSuggestedMemsDoneProcessing();
 end;
@@ -3920,7 +3941,10 @@ begin
               pT.txDate_Change := False; // make sure we trap the right one
 
               if IncludeTrans then
+              begin
+                pT.txSuggested_Mem_Index := TRAN_SUGG_NOT_FOUND;
                 WorkTranList.Insert(pT);
+              end;
            end;
         end;
      end;
@@ -4055,6 +4079,7 @@ begin
   ColumnFmtList.Free;
   UEList.Free;
   SetLength( tmpBuffer, 0);   //free memory associated with temp buffer of char
+  FreeSuggestedMemForm();
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.InitController;
@@ -5117,11 +5142,9 @@ begin
 
         ceSuggestedMemCount :
         begin
-          tmpPaintSuggestionCount.SuggestionId := 0;
-          tmpPaintSuggestionCount.CodedCount := 0;
-          tmpPaintSuggestionCount.Highlighted := false;
+          SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
 
-          data := @tmpPaintSuggestionCount;
+          data := @tmpPaintSuggMemsData;
         end
 
       else
@@ -5683,6 +5706,9 @@ begin
    with WorkTranList do begin
      pT   := Transaction_At(RowNum-1);
      FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
+
+     SelectedSuggestedMemId := pT^.txSuggested_Mem_Index;
+
      case FieldID of
         ceAccount : begin
            ShowHintForCell( RowNum, ColNum);
@@ -7643,10 +7669,34 @@ begin
        UPDATEMF.SelectPreviousMDI;
   end
 end;
+
 procedure TfrmCoding.btnFindClick(Sender: TObject);
 begin
    EBFind.Text := '';
    SearchTimerTimer(nil);
+end;
+
+procedure TfrmCoding.btnHideClick(Sender: TObject);
+begin
+  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
+  begin
+    SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, true, false);
+    SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
+  end;
+end;
+
+procedure TfrmCoding.btnLaterClick(Sender: TObject);
+begin
+  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
+  begin
+    SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, false, true);
+    SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
+  end
+end;
+
+procedure TfrmCoding.btnCreateClick(Sender: TObject);
+begin
+  DoRecommendedMems;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7967,8 +8017,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmCoding.GetCellRect(const RowNum, ColNum: Integer): TRect;
 begin
-  Result.Top    := tblCoding.Top  + tblCoding.RowOffset[ RowNum ];
-  Result.Bottom := tblCoding.Top  + tblCoding.RowOffset[ RowNum ] + tblCoding.Rows[ RowNum ].Height;
+  Result.Top    := pnlLayout1.Top + tblCoding.Top + tblCoding.RowOffset[ RowNum ];
+  Result.Bottom := pnlLayout1.Top + tblCoding.Top  + tblCoding.RowOffset[ RowNum ] + tblCoding.Rows[ RowNum ].Height;
   Result.Left   := tblCoding.Left + tblCoding.ColOffset[ ColNum ];
   Result.Right  := tblCoding.Left + tblCoding.ColOffset[ ColNum ] + tblCoding.Columns[ ColNum ].Width;
   Result.TopLeft := ClientToScreen( Result.TopLeft );
@@ -8059,7 +8109,9 @@ var
   pT         : pTransaction_Rec;
   FieldID    : integer;
   CustomHint : string;
-
+  CellRect   : TRect;
+  SuggColNum : integer;
+  UserRec    : PUser_Rec;
 begin
   if not ValidDataRow(RowNum) then
      exit;
@@ -8069,18 +8121,52 @@ begin
   FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
   CustomHint := '';
 
-  case FieldID of
-    ceAccount : CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
-    ceEffDate,
-    ceAction : if isjournal then
-                  CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
+  SuggColNum := ColumnFmtList.GetColNumOfField(ceSuggestedMemCount);
 
-    cePayee : CustomHint := GetPayeeHint(pT, INI_ShowCodeHints);
-    ceJob : CustomHint := GetJobHint(PT, INI_ShowCodeHints);
+  if not (( RowNum < tblCoding.TopRow) or
+          ( RowNum > ( tblCoding.TopRow + tblCoding.VisibleRows - tblCoding.LockedRows))) and
+     (pT^.txSuggested_Mem_Index > TRAN_SUGG_NOT_FOUND) and
+     (not ColumnFmtList.ColumnDefn_At(SuggColNum)^.cdHidden) then
+  begin
+    SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
+
+    CellRect := GetCellRect(RowNum, SuggColNum);
+
+    SuggMemPopup(self).Top  := ((CellRect.Top + CellRect.Bottom) div 2) - (SuggMemPopup(self).Height div 2);
+    SuggMemPopup(self).left := CellRect.Right - 5;
+    SuggMemPopup(self).lblLine1.Caption := inttostr(tmpPaintSuggMemsData.ManualCount) + ' matching codings';
+
+    if not SuggMemPopup(self).Showing then
+    begin
+      UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
+      if UserRec^.usAllow_Suggested_Mems_Popup then
+      begin
+        SuggMemPopup(self).show;
+        tblCoding.SetFocus;
+      end;
+    end;
+  end
+  else
+  begin
+    if SuggMemPopup(self).Showing then
+      SuggMemPopup(self).Close;
   end;
 
-  if CustomHint <> '' then
-    ShowCodingHint( RowNum, ColNum, CustomHint );
+  if not SuggMemPopup(self).Showing then
+  begin
+    case FieldID of
+      ceAccount : CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
+      ceEffDate,
+      ceAction : if isjournal then
+                    CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
+
+      cePayee : CustomHint := GetPayeeHint(pT, INI_ShowCodeHints);
+      ceJob : CustomHint := GetJobHint(PT, INI_ShowCodeHints);
+    end;
+
+    if CustomHint <> '' then
+      ShowCodingHint( RowNum, ColNum, CustomHint );
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.WMVScroll(var Msg: TWMScroll);
@@ -9947,7 +10033,9 @@ end;
 procedure TfrmCoding.celAccountExit(Sender: TObject);
 begin
   if not MyClient.clChart.CodeIsThere(TEdit(celAccount.CellEditor).Text) then
+  begin
     bkMaskUtils.CheckRemoveMaskChar(TEdit(celAccount.CellEditor),RemovingMask);
+  end;
 end;
 
 procedure TfrmCoding.celEditDateOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
@@ -9996,51 +10084,91 @@ var
   SuggStr : string;
   SuggStrLen : integer;
   SuggPixelLen : integer;
-  Rect : TRect;
-
   CircleHalfHeight : integer;
   CircleHalfWidth : integer;
   MidCircleX, MidCircleY : integer;
 
-  PaintSuggestionCount : TSuggestionCount;
-begin
-  If ( data = nil ) then exit;
+  SrcRect, DstRect : TRect;
+  Rect : TRect;
 
+  PaintSuggMemsData : TSuggMemSortedListRec;
+begin
+  If ( data = nil ) then
+    exit;
+
+  // Set Canvas to cell attributes
   TableCanvas.Font             := CellAttr.caFont;
   TableCanvas.Font.Color       := CellAttr.caFontColor;
   TableCanvas.Brush.Color      := CellAttr.caColor;
 
+  // Clear Cell
   TableCanvas.FillRect( CellRect );
 
-  PaintSuggestionCount := TSuggestionCount( Data^ );
-  if PaintSuggestionCount.CodedCount = 0 then
+  // if no data to show the exit
+  PaintSuggMemsData := TSuggMemSortedListRec( Data^ );
+  if PaintSuggMemsData.ManualCount < 3 then
   begin
     DoneIt := True;
     Exit;
   end;
 
-  if PaintSuggestionCount.Highlighted then
+  // Draw first section of Circle
+  SuggStr := inttostr(PaintSuggMemsData.ManualCount);
+  SuggStrLen := StrLen( PChar( SuggStr ) );
+  SuggPixelLen := TableCanvas.TextWidth(SuggStr);
+
+  if (SuggPixelLen > (26 - WORD_MARGIN)) then
+    CircleHalfWidth := (SuggPixelLen + WORD_MARGIN) div 2
+  else
+    CircleHalfWidth := 13;
+
+  SrcRect.Left   := 0;
+  SrcRect.Top    := 0;
+  SrcRect.Right  := 13;
+  SrcRect.Bottom := 26;
+
+  MidCircleX := CellRect.Left + ((CellRect.Right - CellRect.Left) div 2);
+  MidCircleY := CellRect.Top + ((CellRect.Bottom - CellRect.Top) div 2);
+
+  DstRect.Left   := MidCircleX - CircleHalfWidth;
+  DstRect.Top    := MidCircleY - 13;
+  DstRect.Right  := MidCircleX - CircleHalfWidth + 13;
+  DstRect.Bottom := MidCircleY + 13;
+
+  // Draw end section of Circle, includes middle
+  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+     (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
+    TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircle.Picture.Bitmap, SrcRect, clwhite)
+  else
+    TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircle.Picture.Bitmap, SrcRect, clwhite);
+
+  SrcRect.Left   := 103-((CircleHalfWidth*2)-13);
+  SrcRect.Top    := 0;
+  SrcRect.Right  := 104;
+  SrcRect.Bottom := 26;
+
+  DstRect.Left   := MidCircleX - CircleHalfWidth + 13;
+  DstRect.Top    := MidCircleY - 13;
+  DstRect.Right  := MidCircleX + CircleHalfWidth + 1;
+  DstRect.Bottom := MidCircleY + 13;
+
+  if DstRect.Right > CellRect.Right then
+    DstRect.Right := CellRect.Right;
+
+  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+     (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
+    TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircle.Picture.Bitmap, SrcRect, clwhite)
+  else
+    TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircle.Picture.Bitmap, SrcRect, clwhite);
+
+  // Draw Text
+  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+     (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
     TableCanvas.Brush.Color := BankLinkColor
   else
     TableCanvas.Brush.Color := clGray;
 
   TableCanvas.Font.Color  := clWhite;
-
-  SuggStrLen := StrLen( PChar( SuggStr ) );
-  SuggPixelLen := TableCanvas.TextWidth(SuggStr);
-
-  CircleHalfHeight := (CellRect.Bottom - CellRect.Top - CIRCLE_MARGIN) div 2;
-  if (SuggPixelLen > ((CircleHalfHeight * 2) - WORD_MARGIN)) then
-    CircleHalfWidth := (SuggPixelLen + WORD_MARGIN) div 2
-  else
-    CircleHalfWidth := CircleHalfHeight;
-
-  MidCircleX := CellRect.Left + ((CellRect.Right - CellRect.Left) div 2);
-  MidCircleY := CellRect.Top + ((CellRect.Bottom - CellRect.Top) div 2);
-
-  TableCanvas.RoundRect(MidCircleX - CircleHalfWidth, MidCircleY - CircleHalfHeight,
-                        MidCircleX + CircleHalfWidth, MidCircleY + CircleHalfHeight,
-                        (CircleHalfHeight * 2)-2, (CircleHalfHeight * 2)-2 );
 
   Rect := CellRect;
   DrawText( TableCanvas.Handle, PChar( SuggStr ), StrLen( PChar( SuggStr ) ), Rect, DTOpts );

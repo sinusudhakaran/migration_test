@@ -76,6 +76,7 @@ CONST
    tkusUsing_Secure_Authentication      = 89 ;
    tkusUser_Data_Block                  = 90 ;
    tkusSalt                             = 91 ;
+   tkusAllow_Suggested_Mems_Popup       = 92 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -134,6 +135,7 @@ Begin
       F.WriteBooleanValue( tkusUsing_Secure_Authentication , usUsing_Secure_Authentication );
       For i := 1 to 128 do F.WriteBByteValue( tkusUser_Data_Block , i, usUser_Data_Block[ i ] );
       F.WriteStringValue( tkusSalt , usSalt );
+      F.WriteBooleanValue( tkusAllow_Suggested_Mems_Popup , usAllow_Suggested_Mems_Popup );
       F.WriteToken( tkEnd_User );
    end;
 end; { of Write_User_Rec }
@@ -193,6 +195,7 @@ Begin
                usUser_Data_Block[ I ] := B;
             end;
          tkusSalt                             : usSalt := F.ReadStringValue;
+         tkusAllow_Suggested_Mems_Popup       : usAllow_Suggested_Mems_Popup := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -240,7 +243,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkusCode to tkusSalt do begin
+  for i := tkusCode to tkusAllow_Suggested_Mems_Popup do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -414,6 +417,11 @@ begin
   if (P1.usSalt <> P2.usSalt) then begin
     P3.usSalt := P1.usSalt;
     ChangedFields[i] := tkusSalt;
+    Inc(i);
+  end;
+  if (P1.usAllow_Suggested_Mems_Popup <> P2.usAllow_Suggested_Mems_Popup) then begin
+    P3.usAllow_Suggested_Mems_Popup := P1.usAllow_Suggested_Mems_Popup;
+    ChangedFields[i] := tkusAllow_Suggested_Mems_Popup;
     Inc(i);
   end;
 

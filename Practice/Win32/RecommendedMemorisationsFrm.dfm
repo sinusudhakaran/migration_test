@@ -2,14 +2,14 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Left = 0
   Top = 0
   Caption = 'Suggested Memorisations for '
-  ClientHeight = 481
-  ClientWidth = 667
+  ClientHeight = 448
+  ClientWidth = 704
   Color = clBtnFace
   Constraints.MinHeight = 400
-  Constraints.MinWidth = 500
+  Constraints.MinWidth = 534
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
@@ -18,37 +18,105 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
+  object pnlButtons: TPanel
+    Left = 0
+    Top = 407
+    Width = 704
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 0
+    DesignSize = (
+      704
+      41)
+    object btnClose: TButton
+      Left = 619
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Close'
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object btnCreate: TButton
+      Left = 538
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Create'
+      TabOrder = 1
+      OnClick = btnCreateClick
+    end
+    object chkAllowSuggMemPopup: TCheckBox
+      Left = 89
+      Top = 12
+      Width = 248
+      Height = 17
+      Caption = 'Allow Suggested Memorisation '#39'Pop-up'#39
+      TabOrder = 2
+    end
+    object btnHide: TButton
+      Left = 8
+      Top = 8
+      Width = 75
+      Height = 25
+      Caption = 'Hide'
+      TabOrder = 3
+      OnClick = btnHideClick
+    end
+  end
+  object pnlTop: TPanel
+    Left = 0
+    Top = 0
+    Width = 704
+    Height = 33
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 1
+    object lblBankAccount: TLabel
+      Left = 8
+      Top = 8
+      Width = 85
+      Height = 16
+      Caption = 'lblBankAccount'
+    end
+  end
   object vstTree: TVirtualStringTree
     Left = 0
     Top = 33
-    Width = 667
-    Height = 407
+    Width = 704
+    Height = 374
     Align = alClient
-    Header.AutoSizeIndex = -1
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    Header.AutoSizeIndex = 0
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
-    Header.Height = 21
-    Header.MainColumn = 1
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     LineStyle = lsSolid
     ParentBackground = False
-    TabOrder = 0
+    ParentFont = False
+    TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
     TreeOptions.PaintOptions = [toShowButtons, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
-    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
-    OnCompareNodes = vstTreeCompareNodes
+    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
     OnDblClick = vstTreeDblClick
-    OnFreeNode = vstTreeFreeNode
+    OnFocusChanged = vstTreeFocusChanged
     OnGetText = vstTreeGetText
-    OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnHeaderClick = vstTreeHeaderClick
-    OnMouseDown = vstTreeMouseDown
     Columns = <
       item
         Position = 0
@@ -68,71 +136,13 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       item
         Position = 3
         Width = 60
-        WideText = 'Total #'
+        WideText = 'Total'
       end>
   end
-  object pnlButtons: TPanel
-    Left = 0
-    Top = 440
-    Width = 667
-    Height = 41
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 1
-    DesignSize = (
-      667
-      41)
-    object lblStatus: TLabel
-      Left = 6
-      Top = 12
-      Width = 41
-      Height = 13
-      Caption = 'lblStatus'
-    end
-    object btnClose: TButton
-      Left = 582
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Close'
-      ModalResult = 1
-      TabOrder = 0
-    end
-    object btnCreate: TButton
-      Left = 501
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = 'Create'
-      Default = True
-      TabOrder = 1
-      OnClick = btnCreateClick
-    end
-  end
-  object Panel1: TPanel
-    Left = 0
-    Top = 0
-    Width = 667
-    Height = 33
-    Align = alTop
-    BevelOuter = bvNone
-    TabOrder = 2
-    object lblBankAccount: TLabel
-      Left = 8
-      Top = 8
-      Width = 72
-      Height = 13
-      Caption = 'lblBankAccount'
-    end
-  end
   object Images: TImageList
-    Left = 312
-    Top = 448
+    Left = 480
     Bitmap = {
-      494C010101000800980010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800C40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
