@@ -128,7 +128,6 @@ object frmCoding: TfrmCoding
       Anchors = [akTop, akRight]
       AutoSize = True
       Center = True
-      Transparent = True
       ExplicitLeft = 0
       ExplicitTop = 0
       ExplicitHeight = 43
@@ -416,8 +415,6 @@ object frmCoding: TfrmCoding
           TabOrder = 0
           OnEnter = pnlNotesEnter
           OnExit = pnlNotesExit
-          ExplicitLeft = 0
-          ExplicitWidth = 838
           object Shape3: TShape
             Left = 0
             Top = 0
@@ -459,9 +456,6 @@ object frmCoding: TfrmCoding
             BevelOuter = bvNone
             Caption = 'Panel2'
             TabOrder = 0
-            ExplicitTop = 0
-            ExplicitWidth = 817
-            ExplicitHeight = 70
             object memImportNotes: TMemo
               Left = 0
               Top = 0
@@ -479,7 +473,6 @@ object frmCoding: TfrmCoding
               ScrollBars = ssVertical
               TabOrder = 0
               OnKeyUp = memImportNotesKeyUp
-              ExplicitWidth = 816
             end
             object memNotes: TMemo
               Left = 0
@@ -500,7 +493,6 @@ object frmCoding: TfrmCoding
               OnChange = memNotesChange
               OnExit = memNotesExit
               OnKeyUp = memImportNotesKeyUp
-              ExplicitWidth = 816
             end
           end
           object pnlNotesTitle: TPanel
@@ -513,8 +505,6 @@ object frmCoding: TfrmCoding
             Ctl3D = False
             ParentCtl3D = False
             TabOrder = 1
-            ExplicitTop = 0
-            ExplicitHeight = 70
             object rzPinBtn: TRzBmpButton
               Left = 1
               Top = 3
@@ -783,6 +773,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -801,6 +792,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     OnChange = celGstAmtChange
@@ -820,6 +812,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     OnChange = celQuantityChange
@@ -1177,7 +1170,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Left = 624
     Top = 48
@@ -1192,7 +1184,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit
