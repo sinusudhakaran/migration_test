@@ -106,6 +106,10 @@ type
     lblAccount3: TLabel;
     mskAccountNumber2: TMaskValidateEdit;
     mskAccountNumber3: TMaskValidateEdit;
+    Bevel1: TBevel;
+    Bevel2: TBevel;
+    Bevel4: TBevel;
+    Bevel5: TBevel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -271,7 +275,8 @@ uses
   imagesfrm,
   AccountValidationErrorDlg,
   GenUtils,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  bkBranding;
 
 Const
   UNIT_NAME = 'TPAfrm';
@@ -301,6 +306,10 @@ begin
   fMaskHint := TMaskHint.create;
 
   RemovePanelBorders;
+
+  SetHyperlinkFont(lbliBizz.Font);
+  SetHyperlinkFont(lblBookSecureLink.Font);
+
   lblMaskErrorHint1.Caption := '';
   lblMaskErrorHint2.Caption := '';
   lblMaskErrorHint3.Caption := '';
@@ -370,6 +379,8 @@ begin
     cmbInstitution.Width := edtBranch.Width;
 
   cmbInstitution.SetFocus;
+  lblBookSecureLink.Font.Color := BankLinkHighlightColor;
+  lbliBizz.Font.Color := BankLinkHighlightColor;
 end;
 
 //------------------------------------------------------------------------------

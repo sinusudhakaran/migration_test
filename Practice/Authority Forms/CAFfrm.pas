@@ -104,6 +104,10 @@ type
     lblOrContactiBizz: TLabel;
     lbliBizz: TLabel;
     lblAdditionalFormRequired: TLabel;
+    Bevel1: TBevel;
+    Bevel2: TBevel;
+    Bevel3: TBevel;
+    Bevel4: TBevel;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -176,6 +180,7 @@ type
     procedure edtAccountNumber1Enter(Sender: TObject);
     procedure edtAccountNumber2Enter(Sender: TObject);
     procedure edtAccountNumber3Enter(Sender: TObject);
+    procedure pnlDataClick(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -260,7 +265,8 @@ uses
   BanklinkOnlineServices,
   imagesfrm,
   AccountValidationErrorDlg,
-  GenUtils;
+  GenUtils,
+  bkBranding;
 
 Const
   UNIT_NAME = 'TfrmCAF';
@@ -294,6 +300,10 @@ begin
   lblAccountHintLine1.Caption := '';
   lblAccountHintLine2.Caption := '';
   lblAccountHintLine3.Caption := '';
+
+  SetHyperlinkFont(lbliBizz.Font);
+  SetHyperlinkFont(lblBookSecureLink.Font);
+  SetHyperlinkFont(lblAdditionalFormRequired.Font);
 
   // Institution Names
   SortList := TStringList.Create;
@@ -362,6 +372,8 @@ begin
 
   cmbInstitution.SetFocus;
   ToggleAccountFields;
+  lblBookSecureLink.Font.Color := BankLinkHighlightColor;
+  lbliBizz.Font.Color := BankLinkHighlightColor;
 end;
 
 //------------------------------------------------------------------------------
@@ -970,6 +982,11 @@ end;
 procedure TfrmCAF.mskAccountNumber3ValidateError(var aRaiseError: Boolean);
 begin
   aRaiseError := false;
+end;
+
+procedure TfrmCAF.pnlDataClick(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------
