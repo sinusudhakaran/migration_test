@@ -4,7 +4,7 @@ object dlgInitCheq: TdlgInitCheq
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
   Caption = 'Add Initial Unpresented Cheques'
-  ClientHeight = 433
+  ClientHeight = 457
   ClientWidth = 632
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -17,7 +17,7 @@ object dlgInitCheq: TdlgInitCheq
   OnKeyPress = FormKeyPress
   DesignSize = (
     632
-    433)
+    457)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -142,17 +142,27 @@ object dlgInitCheq: TdlgInitCheq
     Height = 13
     Caption = '31/12/00'
   end
-  object Shape1: TShape
-    Left = 8
+  object ShapeBorder: TShape
+    Left = 0
     Top = 230
-    Width = 615
+    Width = 633
     Height = 1
+    Pen.Color = clSilver
+  end
+  object Shape2: TShape
+    Left = 0
+    Top = 180
+    Width = 632
+    Height = 1
+    Align = alTop
+    Pen.Color = clSilver
+    ExplicitTop = 8
   end
   object tblCheques: TOvcTable
-    Left = 7
-    Top = 19
-    Width = 623
-    Height = 163
+    Left = 0
+    Top = 0
+    Width = 632
+    Height = 180
     LockedRows = 0
     TopRow = 0
     ActiveRow = 0
@@ -160,6 +170,7 @@ object dlgInitCheq: TdlgInitCheq
     LockedCols = 0
     LeftCol = 0
     ActiveCol = 0
+    Align = alTop
     BorderStyle = bsNone
     Color = clWindow
     ColorUnused = clBtnFace
@@ -214,18 +225,29 @@ object dlgInitCheq: TdlgInitCheq
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 403
+    Top = 415
     Width = 632
-    Height = 30
+    Height = 42
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
     DesignSize = (
       632
-      30)
+      42)
+    object ShapeBottom: TShape
+      Left = 0
+      Top = 0
+      Width = 632
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitLeft = -1
+      ExplicitTop = 48
+      ExplicitWidth = 633
+    end
     object btnOK: TButton
       Left = 463
-      Top = 2
+      Top = 10
       Width = 77
       Height = 25
       Anchors = [akRight, akBottom]
@@ -236,7 +258,7 @@ object dlgInitCheq: TdlgInitCheq
     end
     object btnCancel: TButton
       Left = 546
-      Top = 2
+      Top = 10
       Width = 77
       Height = 25
       Anchors = [akRight, akBottom]
@@ -265,21 +287,73 @@ object dlgInitCheq: TdlgInitCheq
       ExplicitTop = -1
     end
     inherited pgCheques: TPageControl
-      Top = 19
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 586
+      Height = 158
       ActivePage = fmeCheques.tbsAll
-      ExplicitTop = 19
+      Align = alClient
+      ExplicitLeft = -1
+      ExplicitTop = -3
+      ExplicitWidth = 592
+      ExplicitHeight = 164
       inherited tbsAll: TTabSheet
         ExplicitLeft = 4
         ExplicitTop = 24
         ExplicitWidth = 569
         ExplicitHeight = 117
+        inherited lbAllCheques: TListBox
+          Left = 0
+          Top = 0
+          Width = 578
+          Height = 130
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 584
+          ExplicitHeight = 136
+        end
+      end
+      inherited tblPresented: TTabSheet
+        ExplicitLeft = 4
+        ExplicitTop = 24
+        ExplicitWidth = 569
+        ExplicitHeight = 117
+        inherited lbPresented: TListBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 578
+          Height = 130
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+        end
       end
       inherited tbsUnpresented: TTabSheet
+        ExplicitLeft = 4
+        ExplicitTop = 24
+        ExplicitWidth = 569
+        ExplicitHeight = 117
         inherited lbUnpresented: TListBox
-          Top = 6
-          Height = 103
-          ExplicitTop = 6
-          ExplicitHeight = 103
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 578
+          Height = 130
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 584
+          ExplicitHeight = 136
         end
       end
     end
@@ -306,7 +380,6 @@ object dlgInitCheq: TdlgInitCheq
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '99999999'
     Table = tblCheques
     Left = 608

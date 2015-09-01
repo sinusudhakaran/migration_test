@@ -156,8 +156,7 @@ object dlgEditSuperFields: TdlgEditSuperFields
     Width = 628
     Height = 73
     Align = alTop
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
       628
@@ -209,6 +208,17 @@ object dlgEditSuperFields: TdlgEditSuperFields
       Caption = 'lblNarration'
       ExplicitWidth = 407
     end
+    object Shape1: TShape
+      Left = 0
+      Top = 72
+      Width = 628
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitLeft = 2
+      ExplicitTop = 52
+      ExplicitWidth = 624
+    end
   end
   object Panel2: TPanel
     Left = 0
@@ -216,8 +226,7 @@ object dlgEditSuperFields: TdlgEditSuperFields
     Width = 628
     Height = 308
     Align = alClient
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 1
     object Label1: TLabel
       Left = 8
@@ -546,6 +555,17 @@ object dlgEditSuperFields: TdlgEditSuperFields
       Caption = '%'
       FocusControl = nfCapitalGainsOther
       Visible = False
+    end
+    object Shape2: TShape
+      Left = 0
+      Top = 307
+      Width = 628
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitLeft = 2
+      ExplicitTop = 52
+      ExplicitWidth = 624
     end
     object nfImputedCredit: TOvcNumericField
       Left = 139

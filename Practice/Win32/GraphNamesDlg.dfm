@@ -3,7 +3,7 @@ object dlgGraphNames: TdlgGraphNames
   Top = 171
   BorderIcons = [biSystemMenu]
   Caption = 'Set Up Graph Headings'
-  ClientHeight = 285
+  ClientHeight = 282
   ClientWidth = 602
   Color = clBtnFace
   Constraints.MaxWidth = 618
@@ -29,12 +29,13 @@ object dlgGraphNames: TdlgGraphNames
   end
   object Panel2: TPanel
     Left = 0
-    Top = 224
+    Top = 221
     Width = 602
     Height = 61
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitTop = 224
     DesignSize = (
       602
       61)
@@ -95,7 +96,7 @@ object dlgGraphNames: TdlgGraphNames
     Left = 0
     Top = 25
     Width = 602
-    Height = 199
+    Height = 196
     RowLimit = 9
     Align = alClient
     Color = clWindow
@@ -130,10 +131,11 @@ object dlgGraphNames: TdlgGraphNames
     OnGetCellData = tbNamesGetCellData
     OnLeavingRow = tbNamesLeavingRow
     OnUserCommand = tbNamesUserCommand
+    ExplicitHeight = 199
     CellData = (
       'dlgGraphNames.OvcTCColHead1'
-      'dlgGraphNames.tcDefault'
-      'dlgGraphNames.tcUser')
+      'dlgGraphNames.tcUser'
+      'dlgGraphNames.tcDefault')
     RowData = (
       22
       1
@@ -166,6 +168,8 @@ object dlgGraphNames: TdlgGraphNames
       False
       ())
     Epoch = 1900
+    Left = 256
+    Top = 96
   end
   object OvcTCColHead1: TOvcTCColHead
     Headings.Strings = (

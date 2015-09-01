@@ -45,6 +45,7 @@ type
     chkWrapNarration: TCheckBox;
     btnSave: TBitBtn;
     btnEmail: TButton;
+    ShapeBorder: TShape;
 
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);

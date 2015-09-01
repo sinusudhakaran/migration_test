@@ -17,7 +17,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, OvcPF, OvcBase, OvcEF, OvcPB, OvcNF, baobj32, Buttons, OvcABtn,
-  OSFont;
+  OSFont, ExtCtrls;
 
 type
   TUPType = (utDeposit, utWithdrawal);
@@ -28,13 +28,15 @@ type
     OvcController1: TOvcController;
     eAmount: TOvcNumericField;
     eDate: TOvcPictureField;
-    btnOK: TButton;
-    btnCancel: TButton;
     lblType: TLabel;
     Label4: TLabel;
     lblPeriod: TLabel;
     eReference: TEdit;
     lblUPDPrefix: TLabel;
+    Panel1: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
 
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);

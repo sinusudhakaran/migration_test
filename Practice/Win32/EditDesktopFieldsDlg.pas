@@ -125,6 +125,8 @@ type
     lp11: TLabel;
     cmbSelectedFund: TComboBox;
     cmbClassSuperFund: TComboBox;
+    Shape1: TShape;
+    Shape2: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);

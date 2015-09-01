@@ -50,6 +50,7 @@ type
     rgSortPayeesBy: TRadioGroup;
     rgReportFormat: TRadioGroup;
     btnEmail: TButton;
+    BevelBorder: TBevel;
 
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);

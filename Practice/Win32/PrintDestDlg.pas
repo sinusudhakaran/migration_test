@@ -19,6 +19,7 @@ type
     fmeAccountSelector1: TfmeAccountSelector;
     lDestination: TLabel;
     btnEmail: TButton;
+    ShapeBorder: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);

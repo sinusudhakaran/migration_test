@@ -17,11 +17,6 @@ uses
 
 type
   TdlgCodeDate = class(TForm)
-    btnOK: TButton;
-    btClose: TButton;
-    btnPreview: TButton;
-    btnFile: TButton;
-    btnSave: TBitBtn;
     PCOptions: TPageControl;
     tsOptions: TTabSheet;
     Label1: TLabel;
@@ -33,7 +28,13 @@ type
     tsAdvanced: TTabSheet;
     fmeAccountSelector1: TfmeAccountSelector;
     chkNonBaseCurrency: TCheckBox;
+    pnlControls: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
     btnEmail: TButton;
+    btnSave: TBitBtn;
+    btnOK: TButton;
+    btClose: TButton;
 
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);

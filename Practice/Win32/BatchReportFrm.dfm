@@ -4,7 +4,7 @@ object frmBatchReports: TfrmBatchReports
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Batch Reports'
   ClientHeight = 480
-  ClientWidth = 835
+  ClientWidth = 905
   Color = clBtnFace
   Constraints.MinHeight = 489
   Constraints.MinWidth = 850
@@ -18,17 +18,22 @@ object frmBatchReports: TfrmBatchReports
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 163
+    Left = 166
     Top = 0
     Width = 4
     Height = 439
+    ExplicitLeft = 163
     ExplicitHeight = 449
   end
   object GBGroupBar: TRzGroupBar
-    Left = 0
-    Top = 0
+    AlignWithMargins = True
+    Left = 3
+    Top = 6
     Width = 163
-    Height = 439
+    Height = 433
+    Margins.Top = 6
+    Margins.Right = 0
+    Margins.Bottom = 0
     GradientColorStyle = gcsCustom
     GradientColorStart = 15510150
     GradientColorStop = 14452580
@@ -44,6 +49,9 @@ object frmBatchReports: TfrmBatchReports
     ParentColor = False
     ParentFont = False
     TabOrder = 0
+    ExplicitLeft = 0
+    ExplicitTop = 0
+    ExplicitHeight = 439
     object ReportGroup: TRzGroup
       CaptionColorStart = 16773337
       CaptionColorStop = 10115840
@@ -126,16 +134,19 @@ object frmBatchReports: TfrmBatchReports
   object RzPanel2: TRzPanel
     AlignWithMargins = True
     Left = 170
-    Top = 3
-    Width = 662
+    Top = 6
+    Width = 729
     Height = 433
+    Margins.Left = 0
+    Margins.Top = 6
+    Margins.Right = 6
+    Margins.Bottom = 0
     Align = alClient
     BorderOuter = fsNone
+    BorderSides = []
     TabOrder = 1
-    ExplicitLeft = 167
-    ExplicitTop = 0
-    ExplicitWidth = 668
-    ExplicitHeight = 439
+    ExplicitTop = 3
+    ExplicitWidth = 662
     object Shape3: TShape
       Left = 0
       Top = 0
@@ -146,7 +157,7 @@ object frmBatchReports: TfrmBatchReports
       ExplicitHeight = 330
     end
     object Shape4: TShape
-      Left = 661
+      Left = 728
       Top = 0
       Width = 1
       Height = 324
@@ -158,19 +169,16 @@ object frmBatchReports: TfrmBatchReports
     object Listpanel: TRzPanel
       Left = 1
       Top = 0
-      Width = 660
+      Width = 727
       Height = 324
       Align = alClient
       BorderSides = []
       TabOrder = 0
-      ExplicitLeft = 2
-      ExplicitTop = 2
-      ExplicitWidth = 664
-      ExplicitHeight = 326
+      ExplicitWidth = 660
       object Shape6: TShape
         Left = 0
         Top = 323
-        Width = 660
+        Width = 727
         Height = 1
         Align = alBottom
         Pen.Color = clSilver
@@ -180,17 +188,21 @@ object frmBatchReports: TfrmBatchReports
       object Shape7: TShape
         Left = 0
         Top = 0
-        Width = 660
+        Width = 727
         Height = 1
         Align = alTop
         Pen.Color = clSilver
+        ExplicitWidth = 660
       end
       object ReportTree: TVirtualStringTree
         Left = 0
         Top = 1
-        Width = 660
+        Width = 727
         Height = 322
         Align = alClient
+        BevelEdges = [beLeft, beTop, beRight]
+        BevelInner = bvNone
+        BevelOuter = bvNone
         BorderStyle = bsNone
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET
@@ -216,8 +228,7 @@ object frmBatchReports: TfrmBatchReports
         OnKeyAction = ReportTreeKeyAction
         OnKeyDown = ReportTreeKeyDown
         OnNewText = ReportTreeNewText
-        ExplicitLeft = 2
-        ExplicitHeight = 324
+        ExplicitWidth = 660
         Columns = <
           item
             Position = 0
@@ -235,17 +246,16 @@ object frmBatchReports: TfrmBatchReports
     object Runpanel: TRzPanel
       Left = 0
       Top = 324
-      Width = 662
+      Width = 729
       Height = 109
       Align = alBottom
       BorderOuter = fsNone
+      BorderSides = []
       TabOrder = 1
       OnResize = RunpanelResize
-      ExplicitLeft = 2
-      ExplicitTop = 328
-      ExplicitWidth = 664
+      ExplicitWidth = 662
       DesignSize = (
-        662
+        729
         109)
       object Shape1: TShape
         Left = 0
@@ -257,7 +267,7 @@ object frmBatchReports: TfrmBatchReports
         ExplicitHeight = 109
       end
       object Shape2: TShape
-        Left = 660
+        Left = 727
         Top = 0
         Width = 2
         Height = 108
@@ -269,24 +279,25 @@ object frmBatchReports: TfrmBatchReports
       object Shape5: TShape
         Left = 0
         Top = 108
-        Width = 662
+        Width = 729
         Height = 1
         Align = alBottom
         Pen.Color = clSilver
         ExplicitTop = 107
+        ExplicitWidth = 662
       end
       object LBstatus: TListBox
-        Left = 92
+        Left = 126
         Top = 7
         Width = 480
         Height = 62
         Anchors = []
         ItemHeight = 13
         TabOrder = 0
-        ExplicitLeft = 93
+        ExplicitLeft = 92
       end
       object RunButton: TButton
-        Left = 578
+        Left = 640
         Top = 80
         Width = 75
         Height = 25
@@ -294,22 +305,26 @@ object frmBatchReports: TfrmBatchReports
         Caption = '&OK'
         TabOrder = 1
         OnClick = RunButtonClick
-        ExplicitLeft = 580
+        ExplicitLeft = 578
       end
     end
   end
   object pnlClose: TPanel
     Left = 0
     Top = 439
-    Width = 835
+    Width = 905
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
     TabOrder = 2
+    ExplicitLeft = 3
+    ExplicitTop = 441
+    ExplicitWidth = 835
     DesignSize = (
-      835
+      905
       41)
     object btnClose: TButton
-      Left = 749
+      Left = 819
       Top = 8
       Width = 75
       Height = 25
@@ -317,6 +332,7 @@ object frmBatchReports: TfrmBatchReports
       Caption = '&Close'
       ModalResult = 2
       TabOrder = 0
+      ExplicitLeft = 749
     end
   end
   object PopupMenu1: TPopupMenu
@@ -386,7 +402,7 @@ object frmBatchReports: TfrmBatchReports
     Left = 360
     Top = 24
     Bitmap = {
-      494C010103000400180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101030004001C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

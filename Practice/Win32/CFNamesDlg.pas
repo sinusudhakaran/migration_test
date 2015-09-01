@@ -24,6 +24,7 @@ type
     tcUser: TOvcTCString;
     btnCopy: TButton;
     Label1: TLabel;
+    ShapeBorder: TShape;
 
     procedure tbNamesGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);

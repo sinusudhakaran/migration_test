@@ -27,6 +27,7 @@ type
     DateSelector: TfmeDateSelector;
     btnSave: TBitBtn;
     btnEmail: TButton;
+    Bevel1: TBevel;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;

@@ -158,8 +158,7 @@ object dlgEditSupervisorFields: TdlgEditSupervisorFields
     Width = 628
     Height = 55
     Align = alTop
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       628
@@ -212,6 +211,17 @@ object dlgEditSupervisorFields: TdlgEditSupervisorFields
       Caption = 'NC JAME JAME'
       ExplicitWidth = 412
     end
+    object Shape1: TShape
+      Left = 0
+      Top = 54
+      Width = 628
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitLeft = 2
+      ExplicitTop = 33
+      ExplicitWidth = 624
+    end
   end
   object Panel2: TPanel
     Left = 0
@@ -219,8 +229,7 @@ object dlgEditSupervisorFields: TdlgEditSupervisorFields
     Width = 628
     Height = 391
     Align = alClient
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 2
     object Label15: TLabel
       Left = 19
@@ -308,6 +317,17 @@ object dlgEditSupervisorFields: TdlgEditSupervisorFields
       Width = 4
       Height = 13
       Caption = '-'
+    end
+    object Shape2: TShape
+      Left = 0
+      Top = 390
+      Width = 628
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitLeft = 2
+      ExplicitTop = 33
+      ExplicitWidth = 624
     end
     object gbTax: TGroupBox
       Left = 7

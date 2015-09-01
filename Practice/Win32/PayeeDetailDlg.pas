@@ -41,7 +41,7 @@ type
     lblTotalPerc: TLabel;
     lblFixed: TLabel;
     sBar: TStatusBar;
-    PageControl1: TPageControl;
+    pcPayee: TPageControl;
     tsPayeeDetails: TTabSheet;
     tsContractorDetails: TTabSheet;
     pnlMain: TPanel;
@@ -107,6 +107,13 @@ type
     edtBankBSB: TEdit;
     edtBankAccount: TEdit;
     chkInactive: TCheckBox;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
+    Shape5: TShape;
+    ShapeBottom: TShape;
+    Shape6: TShape;
 
     procedure tblSplitActiveCellMoving(Sender: TObject; Command: Word;
       var RowNum, ColNum: Integer);
@@ -164,7 +171,7 @@ type
     procedure radIndividualClick(Sender: TObject);
     procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
     procedure mskABNClick(Sender: TObject);
-    procedure PageControl1Change(Sender: TObject);
+    procedure pcPayeeChange(Sender: TObject);
   private
     { Private declarations }
     fLoading : boolean;
@@ -278,6 +285,7 @@ begin
   finally
     fLoading := false;
   end;
+  pcPayee.ActivePageIndex := 0;
 end;
 
 procedure TdlgPayeeDetail.FormCreate(Sender: TObject);
@@ -285,6 +293,7 @@ var
   w, i : integer;
   vsbWidth : integer;
 begin
+  pcPayee.ActivePageIndex := 0;
   bkXPThemes.ThemeForm( Self);
   okPressed := false;
   EditMode := false;
@@ -375,7 +384,6 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgPayeeDetail.FormShow(Sender: TObject);
 begin
-  
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1013,7 +1021,7 @@ begin
   if (cmbState.ItemIndex = MAX_STATE) and
     (Uppercase(edtSupplierCountry.Text) = Uppercase(whNames[whAustralia])) then
   begin
-    PageControl1.ActivePage := tsContractorDetails;
+    pcPayee.ActivePage := tsContractorDetails;
     aMsg := 'The Country cannot be set to ''Australia'' when the State is ''OTH''. Please select the appropriate State.';
     HelpfulWarningMsg( aMSg, 0);
     edtSupplierCountry.SetFocus;
@@ -1677,7 +1685,7 @@ begin
    if (MyClient.clFields.clCountry = whNewZealand) then
    begin
      // Don't stop if there is only one tab
-     PageControl1.TabStop := false;
+     pcPayee.TabStop := false;
 
      // Move the inactive checkbox
      chkInactive.Left := 443;
@@ -1690,7 +1698,7 @@ begin
    end;
 
    // Note: leave this here, moving it up causes tab order issues with page 2
-   PageControl1.ActivePageIndex := 0;
+   pcPayee.ActivePageIndex := 0;
 
    // Skip Focus on Payee Number
    ActiveControl := eName;
@@ -2236,9 +2244,9 @@ begin
   ApplyAmountShortcut('$');
 end;
 
-procedure TdlgPayeeDetail.PageControl1Change(Sender: TObject);
+procedure TdlgPayeeDetail.pcPayeeChange(Sender: TObject);
 begin
-  pnlTotalAmounts.Visible := (PageControl1.ActivePage = tsPayeeDetails);
+  pnlTotalAmounts.Visible := (pcPayee.ActivePage = tsPayeeDetails);
 end;
 
 procedure TdlgPayeeDetail.PercentageofTotal1Click(Sender: TObject);

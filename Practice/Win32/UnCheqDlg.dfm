@@ -3,7 +3,7 @@ object dlgUnCheque: TdlgUnCheque
   Top = 180
   BorderStyle = bsDialog
   Caption = 'Add Unpresented Cheques'
-  ClientHeight = 433
+  ClientHeight = 459
   ClientWidth = 595
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -14,9 +14,6 @@ object dlgUnCheque: TdlgUnCheque
   Scaled = False
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
-  DesignSize = (
-    595
-    433)
   PixelsPerInch = 96
   TextHeight = 13
   object label1: TLabel
@@ -36,11 +33,12 @@ object dlgUnCheque: TdlgUnCheque
     Height = 13
     Caption = '01/01/00 - 31/12/01'
   end
-  object Shape1: TShape
-    Left = 8
+  object ShapeBorder: TShape
+    Left = 0
     Top = 227
-    Width = 577
+    Width = 597
     Height = 1
+    Pen.Color = clSilver
   end
   object tblFromTo: TOvcTable
     Left = 236
@@ -80,9 +78,9 @@ object dlgUnCheque: TdlgUnCheque
     OnGetCellData = tblFromToGetCellData
     CellData = (
       'dlgUnCheque.OvcTCColHead1'
-      'dlgUnCheque.OvcTCRowHead1'
+      'dlgUnCheque.Col2'
       'dlgUnCheque.ColFrom'
-      'dlgUnCheque.Col2')
+      'dlgUnCheque.OvcTCRowHead1')
     RowData = (
       22
       2
@@ -105,60 +103,75 @@ object dlgUnCheque: TdlgUnCheque
       True
       'dlgUnCheque.Col2')
   end
-  object btnOK: TButton
-    Left = 432
-    Top = 404
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&OK'
-    Default = True
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 3
-    OnClick = btnOKClick
-  end
-  object btnCancel: TButton
-    Left = 512
-    Top = 404
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 4
-    OnClick = btnCancelClick
-  end
   inline fmeCheques: TfmeExistingCheques
     Left = 1
-    Top = 229
+    Top = 237
     Width = 592
     Height = 175
     TabOrder = 1
     TabStop = True
     ExplicitLeft = 1
-    ExplicitTop = 229
+    ExplicitTop = 237
     inherited pgCheques: TPageControl
-      ActivePage = fmeCheques.tbsAll
+      Left = 0
+      Top = 0
+      Width = 592
+      Height = 175
+      Align = alClient
       inherited tbsAll: TTabSheet
         ExplicitLeft = 4
         ExplicitTop = 24
         ExplicitWidth = 569
         ExplicitHeight = 117
+        inherited lbAllCheques: TListBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 578
+          Height = 141
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+        end
       end
       inherited tblPresented: TTabSheet
         ExplicitLeft = 4
         ExplicitTop = 24
         ExplicitWidth = 569
         ExplicitHeight = 117
+        inherited lbPresented: TListBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 578
+          Height = 141
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          ExplicitLeft = 3
+          ExplicitTop = 3
+          ExplicitWidth = 578
+          ExplicitHeight = 141
+        end
       end
       inherited tbsUnpresented: TTabSheet
         ExplicitLeft = 4
         ExplicitTop = 24
         ExplicitWidth = 569
         ExplicitHeight = 117
+        inherited lbUnpresented: TListBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 578
+          Height = 141
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+        end
       end
     end
   end
@@ -277,6 +290,59 @@ object dlgUnCheque: TdlgUnCheque
       Caption = '31/12/00'
     end
   end
+  object Panel1: TPanel
+    Left = 0
+    Top = 418
+    Width = 595
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    TabOrder = 3
+    ExplicitLeft = -6
+    ExplicitTop = 410
+    ExplicitWidth = 593
+    DesignSize = (
+      595
+      41)
+    object ShapeBottom: TShape
+      Left = 0
+      Top = 0
+      Width = 595
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitLeft = -2
+      ExplicitTop = 40
+      ExplicitWidth = 597
+    end
+    object btnOK: TButton
+      Left = 434
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      Default = True
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 514
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = btnCancelClick
+    end
+  end
   object OvcController1: TOvcController
     EntryCommands.TableList = (
       'Default'
@@ -311,7 +377,6 @@ object dlgUnCheque: TdlgUnCheque
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '99999999'
     Table = tblFromTo
     Left = 192
@@ -327,7 +392,6 @@ object dlgUnCheque: TdlgUnCheque
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '99999999'
     Table = tblFromTo
     Left = 192

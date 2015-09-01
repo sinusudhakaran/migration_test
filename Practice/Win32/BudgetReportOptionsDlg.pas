@@ -9,7 +9,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,
   budobj32, Buttons,
-  OSFont;
+  OSFont, ExtCtrls;
 
 type
   TdlgBudgetReportOptions = class(TForm)
@@ -17,17 +17,19 @@ type
     lblDivision: TLabel;
     chkChartCodes: TCheckBox;
     cmbDivision: TComboBox;
-    btnPreview: TButton;
-    btnPrint: TButton;
-    btnCancel: TButton;
     gbxBudget: TGroupBox;
     Label1: TLabel;
     cmbBudget: TComboBox;
-    btnFile: TButton;
     chkGST: TCheckBox;
-    BtnSave: TBitBtn;
     chkQuantities: TCheckBox;
+    Panel1: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
     btnEmail: TButton;
+    BtnSave: TBitBtn;
+    btnPrint: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);

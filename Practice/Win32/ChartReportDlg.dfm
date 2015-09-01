@@ -3,7 +3,7 @@ object DlgChartReport: TDlgChartReport
   Top = 313
   BorderStyle = bsDialog
   Caption = 'List Chart of Accounts'
-  ClientHeight = 149
+  ClientHeight = 195
   ClientWidth = 494
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -20,45 +20,6 @@ object DlgChartReport: TDlgChartReport
     Width = 181
     Height = 13
     Caption = 'Where do you want this report to go?'
-    FocusControl = btnCancel
-  end
-  object btnPreview: TButton
-    Left = 6
-    Top = 114
-    Width = 75
-    Height = 25
-    Caption = 'Previe&w'
-    Default = True
-    TabOrder = 2
-    OnClick = btnPreviewClick
-  end
-  object btnFile: TButton
-    Left = 87
-    Top = 114
-    Width = 75
-    Height = 25
-    Caption = 'Fil&e'
-    TabOrder = 3
-    OnClick = btnFileClick
-  end
-  object btnPrint: TButton
-    Left = 329
-    Top = 114
-    Width = 75
-    Height = 25
-    Caption = '&Print'
-    TabOrder = 6
-    OnClick = btnPrintClick
-  end
-  object btnCancel: TButton
-    Left = 410
-    Top = 114
-    Width = 75
-    Height = 25
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 7
-    OnClick = btnCancelClick
   end
   object rbFull: TRadioButton
     Left = 141
@@ -78,22 +39,78 @@ object DlgChartReport: TDlgChartReport
     Caption = 'Print &Basic Chart'
     TabOrder = 1
   end
-  object BtnSave: TBitBtn
-    Left = 248
-    Top = 114
-    Width = 75
-    Height = 25
-    Caption = 'Sa&ve'
-    TabOrder = 5
-    OnClick = BtnSaveClick
-  end
-  object btnEmail: TButton
-    Left = 167
-    Top = 114
-    Width = 75
-    Height = 25
-    Caption = 'E&mail'
-    TabOrder = 4
-    OnClick = btnEmailClick
+  object PanelBottom: TPanel
+    Left = 0
+    Top = 150
+    Width = 494
+    Height = 45
+    Align = alBottom
+    Caption = ' '
+    TabOrder = 2
+    ExplicitTop = 186
+    object Shape1: TShape
+      Left = 1
+      Top = 1
+      Width = 492
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnPreview: TButton
+      Left = 6
+      Top = 10
+      Width = 75
+      Height = 25
+      Caption = 'Previe&w'
+      Default = True
+      TabOrder = 0
+      OnClick = btnPreviewClick
+    end
+    object btnFile: TButton
+      Left = 87
+      Top = 10
+      Width = 75
+      Height = 25
+      Caption = 'Fil&e'
+      TabOrder = 1
+      OnClick = btnFileClick
+    end
+    object btnEmail: TButton
+      Left = 167
+      Top = 10
+      Width = 75
+      Height = 25
+      Caption = 'E&mail'
+      TabOrder = 2
+      OnClick = btnEmailClick
+    end
+    object BtnSave: TBitBtn
+      Left = 248
+      Top = 10
+      Width = 75
+      Height = 25
+      Caption = 'Sa&ve'
+      TabOrder = 3
+      OnClick = BtnSaveClick
+    end
+    object btnPrint: TButton
+      Left = 329
+      Top = 10
+      Width = 75
+      Height = 25
+      Caption = '&Print'
+      TabOrder = 4
+      OnClick = btnPrintClick
+    end
+    object btnCancel: TButton
+      Left = 410
+      Top = 10
+      Width = 75
+      Height = 25
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 5
+      OnClick = btnCancelClick
+    end
   end
 end

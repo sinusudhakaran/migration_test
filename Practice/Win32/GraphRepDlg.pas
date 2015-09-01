@@ -28,10 +28,7 @@ type
 
 type
   TdlgGraphRep = class(TForm)
-    btnOK: TButton;
     OvcController1: TOvcController;
-    btnCancel: TButton;
-    btnSave: TBitBtn;
     pcGraph: TPageControl;
     tsOptions: TTabSheet;
     tsAdvanced: TTabSheet;
@@ -59,6 +56,14 @@ type
     ckSales: TCheckBox;
     ckGrossProfit: TCheckBox;
     ckNettProfit: TCheckBox;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
+    Panel3: TPanel;
+    btnSave: TBitBtn;
+    btnOK: TButton;
+    btnCancel: TButton;
+    Shape4: TShape;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;

@@ -32,6 +32,11 @@ type
     ActionList1: TActionList;
     actAddNewPayee: TAction;
     chkIncludeInactivePayees: TCheckBox;
+    ShapeLeft: TShape;
+    ShapeRight: TShape;
+    ShapeTop: TShape;
+    ShapeBottom: TShape;
+    ShapePnl: TShape;
 
     procedure GridCellLoaded(Sender: TObject; DataCol, DataRow: Integer;
       var Value: Variant);

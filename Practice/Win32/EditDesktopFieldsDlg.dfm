@@ -151,8 +151,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
     Width = 621
     Height = 55
     Align = alTop
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
       621
@@ -205,6 +204,17 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
       Caption = 'NC JAME JAME'
       ShowAccelChar = False
     end
+    object Shape1: TShape
+      Left = 0
+      Top = 54
+      Width = 621
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitLeft = 2
+      ExplicitTop = -12
+      ExplicitWidth = 617
+    end
   end
   object Panel2: TPanel
     Left = 0
@@ -212,8 +222,7 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
     Width = 621
     Height = 449
     Align = alClient
-    BevelInner = bvRaised
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 1
     object Label15: TLabel
       Left = 21
@@ -338,6 +347,17 @@ object dlgEditDesktopFields: TdlgEditDesktopFields
         4242000000424242222222E6E6E6E6E6E6E6E6E6E6E6E6E6E6E6}
       NumGlyphs = 2
       OnClick = btnChartClick
+    end
+    object Shape2: TShape
+      Left = 0
+      Top = 448
+      Width = 621
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitLeft = 2
+      ExplicitTop = 382
+      ExplicitWidth = 617
     end
     object gbTax: TGroupBox
       Left = 9

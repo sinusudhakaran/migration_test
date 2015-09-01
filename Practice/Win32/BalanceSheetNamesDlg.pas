@@ -24,6 +24,7 @@ type
     btnCopy: TButton;
     tbNames: TOvcTable;
     Label1: TLabel;
+    Bevel1: TBevel;
     procedure tbNamesGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
     procedure FormCreate(Sender: TObject);

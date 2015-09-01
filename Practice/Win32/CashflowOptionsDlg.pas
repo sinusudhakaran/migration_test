@@ -42,7 +42,6 @@ type
     tbsAdvanced: TTabSheet;
     pnlReportStyle: TPanel;
     pnlCompare: TPanel;
-    pnlInclude: TPanel;
     pnlCashSummary: TPanel;
     Label6: TLabel;
     Label2: TLabel;
@@ -57,7 +56,6 @@ type
     chkIncludeVariance: TCheckBox;
     chkIncludeYTD: TCheckBox;
     chkIncludeCash: TCheckBox;
-    chkIncludeQuantity: TCheckBox;
     Label5: TLabel;
     rbDetailedFormat: TRadioButton;
     rbSummarisedFormat: TRadioButton;
@@ -69,9 +67,7 @@ type
     Label4: TLabel;
     cmbPeriod: TComboBox;
     lblLast: TLabel;
-    chkIncludeCodes: TCheckBox;
     pnlDivision: TPanel;
-    chkGSTInclusive: TCheckBox;
     pnlAdvAccounts: TPanel;
     fmeAccountSelector1: TfmeAccountSelector;
     pnlCustomDates: TPanel;
@@ -86,11 +82,22 @@ type
     tbsDivisions: TTabSheet;
     Panel1: TPanel;
     fmeDivisionSelector1: TfmeDivisionSelector;
+    btnEmail: TButton;
+    PnlContainer: TPanel;
+    pnlInclude: TPanel;
+    chkIncludeQuantity: TCheckBox;
+    chkIncludeCodes: TCheckBox;
+    chkGSTInclusive: TCheckBox;
     Panel3: TPanel;
     rbSummarisedNonPost: TRadioButton;
     rbDetailedNonPost: TRadioButton;
     chkPrintNonPostingChartCodeTitles: TCheckBox;
-    btnEmail: TButton;
+    Bevel1: TBevel;
+    Bevel2: TBevel;
+    Bevel3: TBevel;
+    Bevel4: TBevel;
+    Bevel5: TBevel;
+    Bevel6: TBevel;
 
     procedure ControlChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);

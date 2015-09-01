@@ -37,15 +37,17 @@ type
     Col2: TOvcTCNumericField;
     OvcTCRowHead1: TOvcTCRowHead;
     label1: TLabel;
-    btnOK: TButton;
-    btnCancel: TButton;
     lblCodingRange: TLabel;
-    Shape1: TShape;
+    ShapeBorder: TShape;
     fmeCheques: TfmeExistingCheques;
     pnlChequeDate: TPanel;
     InfoBmp: TImage;
     Label5: TLabel;
     lblChequesDate: TLabel;
+    Panel1: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    ShapeBottom: TShape;
 
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);

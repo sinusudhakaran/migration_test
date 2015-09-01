@@ -60,12 +60,11 @@ object dlgPayeeDetail: TdlgPayeeDetail
       OnClick = btnCancelClick
     end
     object pnlTotalAmounts: TPanel
-      Left = 7
-      Top = 3
+      Left = 4
+      Top = 2
       Width = 366
       Height = 46
-      BevelInner = bvRaised
-      BevelOuter = bvLowered
+      BevelOuter = bvNone
       TabOrder = 0
       object lblFixedHdr: TLabel
         Left = 12
@@ -128,7 +127,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     ParentFont = True
     UseSystemFont = False
   end
-  object PageControl1: TPageControl
+  object pcPayee: TPageControl
     Left = 0
     Top = 0
     Width = 1103
@@ -136,31 +135,65 @@ object dlgPayeeDetail: TdlgPayeeDetail
     ActivePage = tsContractorDetails
     Align = alClient
     TabOrder = 0
-    OnChange = PageControl1Change
+    OnChange = pcPayeeChange
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlMain: TPanel
         Left = 0
-        Top = 101
+        Top = 85
         Width = 1095
-        Height = 392
+        Height = 408
         Align = alClient
-        BevelOuter = bvLowered
+        BevelOuter = bvNone
         TabOrder = 1
+        object Shape1: TShape
+          AlignWithMargins = True
+          Left = 3
+          Top = 29
+          Width = 1
+          Height = 379
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alLeft
+          Pen.Color = clSilver
+          ExplicitLeft = 0
+          ExplicitTop = 397
+          ExplicitHeight = 1095
+        end
+        object Shape4: TShape
+          AlignWithMargins = True
+          Left = 1091
+          Top = 29
+          Width = 1
+          Height = 379
+          Margins.Top = 0
+          Margins.Bottom = 0
+          Align = alRight
+          Pen.Color = clSilver
+          ExplicitLeft = 0
+          ExplicitTop = 397
+          ExplicitHeight = 1095
+        end
+        object Shape5: TShape
+          Left = 0
+          Top = 408
+          Width = 1095
+          Height = 0
+          Align = alBottom
+          Pen.Color = clSilver
+          ExplicitTop = 404
+        end
         object tblSplit: TOvcTable
-          Left = 1
-          Top = 30
-          Width = 1093
-          Height = 361
+          Left = 7
+          Top = 29
+          Width = 1081
+          Height = 379
           RowLimit = 6
           LockedCols = 0
           LeftCol = 0
           ActiveCol = 0
           Align = alClient
+          BorderStyle = bsNone
           Color = clWindow
           ColorUnused = clBtnFace
           Colors.ActiveUnfocused = clWindow
@@ -196,6 +229,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnGetCellAttributes = tblSplitGetCellAttributes
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
+          ExplicitLeft = 4
           CellData = (
             'dlgPayeeDetail.Header'
             'dlgPayeeDetail.colLineType'
@@ -238,32 +272,33 @@ object dlgPayeeDetail: TdlgPayeeDetail
             'dlgPayeeDetail.colLineType')
         end
         object Panel2: TPanel
-          Left = 1
-          Top = 1
-          Width = 1093
+          Left = 0
+          Top = 0
+          Width = 1095
           Height = 29
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
           object sbtnChart: TSpeedButton
             AlignWithMargins = True
-            Left = 3
-            Top = 3
+            Left = 10
+            Top = 4
             Width = 65
-            Height = 23
+            Height = 21
             Align = alLeft
             Caption = 'Chart'
             Flat = True
             OnClick = sbtnChartClick
             ExplicitLeft = 8
+            ExplicitTop = 3
             ExplicitHeight = 22
           end
           object sbtnSuper: TSpeedButton
             AlignWithMargins = True
-            Left = 74
-            Top = 3
+            Left = 81
+            Top = 4
             Width = 65
-            Height = 23
+            Height = 21
             Align = alLeft
             Caption = 'Super'
             Flat = True
@@ -272,14 +307,70 @@ object dlgPayeeDetail: TdlgPayeeDetail
             ExplicitTop = 5
             ExplicitHeight = 22
           end
+          object Shape2: TShape
+            AlignWithMargins = True
+            Left = 3
+            Top = 1
+            Width = 1
+            Height = 27
+            Margins.Top = 0
+            Margins.Bottom = 0
+            Align = alLeft
+            Pen.Color = clSilver
+            ExplicitLeft = 0
+            ExplicitTop = 397
+            ExplicitHeight = 1095
+          end
+          object Shape3: TShape
+            AlignWithMargins = True
+            Left = 1091
+            Top = 1
+            Width = 1
+            Height = 27
+            Margins.Top = 0
+            Margins.Bottom = 0
+            Align = alRight
+            Pen.Color = clSilver
+            ExplicitLeft = 0
+            ExplicitTop = 397
+            ExplicitHeight = 1095
+          end
+          object ShapeBottom: TShape
+            AlignWithMargins = True
+            Left = 3
+            Top = 0
+            Width = 1089
+            Height = 1
+            Margins.Top = 0
+            Margins.Bottom = 0
+            Align = alTop
+            Pen.Color = clSilver
+            ExplicitLeft = 1087
+            ExplicitWidth = 29
+          end
+          object Shape6: TShape
+            AlignWithMargins = True
+            Left = 3
+            Top = 28
+            Width = 1089
+            Height = 1
+            Margins.Top = 0
+            Margins.Bottom = 0
+            Align = alBottom
+            Pen.Color = clSilver
+            ExplicitLeft = 1087
+            ExplicitTop = 0
+            ExplicitWidth = 29
+          end
         end
       end
       object pnlPayeeDetails: TPanel
         Left = 0
         Top = 0
         Width = 1095
-        Height = 101
+        Height = 85
         Align = alTop
+        BevelOuter = bvNone
         TabOrder = 0
         object Label2: TLabel
           Left = 16

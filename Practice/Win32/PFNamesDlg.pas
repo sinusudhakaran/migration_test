@@ -23,6 +23,7 @@ type
     btnCopy: TButton;
     tbNames: TOvcTable;
     Label1: TLabel;
+    Shape1: TShape;
 
     procedure tbNamesGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);

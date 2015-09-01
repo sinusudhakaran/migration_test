@@ -11,6 +11,7 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
   inherited PageControl1: TPageControl
     Width = 505
     Height = 402
+    ExplicitTop = 0
     ExplicitWidth = 505
     ExplicitHeight = 402
     inherited tbsOptions: TTabSheet
@@ -39,9 +40,9 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
         Caption = 'Details to show'
       end
       object Bevel1: TBevel [3]
-        Left = 7
+        Left = 0
         Top = 141
-        Width = 474
+        Width = 500
         Height = 9
         Anchors = [akLeft, akTop, akRight]
         Shape = bsTopLine
@@ -253,6 +254,9 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
     Width = 505
     ExplicitTop = 402
     ExplicitWidth = 505
+    inherited ShapeBorder: TShape
+      Width = 505
+    end
     inherited btnPreview: TButton
       ParentShowHint = False
       ShowHint = True
@@ -263,19 +267,11 @@ inherited dlgListEntriesAdvanced: TdlgListEntriesAdvanced
     end
     inherited btnOK: TButton
       Left = 345
-      TabOrder = 4
       ExplicitLeft = 345
     end
     inherited btClose: TButton
       Left = 425
-      TabOrder = 5
       ExplicitLeft = 425
-    end
-    inherited btnSave: TBitBtn
-      TabOrder = 3
-    end
-    inherited btnEmail: TButton
-      TabOrder = 2
     end
   end
 end

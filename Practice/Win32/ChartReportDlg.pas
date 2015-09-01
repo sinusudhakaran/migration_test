@@ -6,19 +6,21 @@ uses
   RptParams,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons,
-  OsFont;
+  OsFont, ExtCtrls;
 
 type
   TDlgChartReport = class(TForm)
     Label1: TLabel;
-    btnPreview: TButton;
-    btnFile: TButton;
-    btnPrint: TButton;
-    btnCancel: TButton;
     rbFull: TRadioButton;
     rbBasic: TRadioButton;
-    BtnSave: TBitBtn;
+    PanelBottom: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
     btnEmail: TButton;
+    BtnSave: TBitBtn;
+    btnPrint: TButton;
+    btnCancel: TButton;
+    Shape1: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

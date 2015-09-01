@@ -3,7 +3,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
   Top = 268
   BorderStyle = bsDialog
   Caption = 'Custom Profit and Loss Reports'
-  ClientHeight = 448
+  ClientHeight = 451
   ClientWidth = 633
   Color = clBtnFace
   ParentFont = True
@@ -18,16 +18,16 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     Left = 0
     Top = 413
     Width = 633
-    Height = 35
+    Height = 38
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       633
-      35)
+      38)
     object btnPrint: TButton
       Left = 472
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
@@ -37,7 +37,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     end
     object btnCancel: TButton
       Left = 552
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
@@ -49,7 +49,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     end
     object btnPreview: TButton
       Left = 10
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Caption = 'Previe&w'
@@ -59,7 +59,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     end
     object btnFile: TButton
       Left = 90
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Caption = 'Fil&e'
@@ -68,7 +68,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     end
     object btnSave: TBitBtn
       Left = 392
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
@@ -77,7 +77,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     end
     object btnEmail: TButton
       Left = 170
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Caption = 'E&mail'
@@ -98,10 +98,10 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       object pnlReportStyle: TPanel
         Left = 0
         Top = 0
-        Width = 623
-        Height = 145
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
+        Width = 625
+        Height = 152
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 0
         object Label6: TLabel
           Left = 8
@@ -130,6 +130,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 70
           Height = 13
           Caption = 'Report Format'
+        end
+        object Bevel1: TBevel
+          Left = 0
+          Top = 149
+          Width = 624
+          Height = 4
+          Shape = bsTopLine
         end
         object cmbDetail: TComboBox
           Left = 104
@@ -272,12 +279,22 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       end
       object pnlCompare: TPanel
         Left = 0
-        Top = 191
-        Width = 623
+        Top = 194
+        Width = 625
         Height = 85
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 2
+        ExplicitLeft = -1
+        ExplicitTop = 226
+        ExplicitWidth = 623
+        object Bevel3: TBevel
+          Left = -1
+          Top = 80
+          Width = 624
+          Height = 4
+          Shape = bsTopLine
+        end
         object chkCompare: TCheckBox
           Left = 8
           Top = 8
@@ -338,54 +355,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           OnChange = cmbBudgetChange
         end
       end
-      object pnlInclude: TPanel
-        Left = 0
-        Top = 279
-        Width = 352
-        Height = 55
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
-        TabOrder = 3
-        object chkIncludeCodes: TCheckBox
-          Left = 8
-          Top = 7
-          Width = 180
-          Height = 17
-          Caption = 'Include C&hart Codes'
-          TabOrder = 0
-        end
-        object chkIncludeQuantity: TCheckBox
-          Left = 8
-          Top = 30
-          Width = 180
-          Height = 17
-          Caption = 'Include &Quantities'
-          TabOrder = 1
-        end
-        object chkGSTInclusive: TCheckBox
-          Left = 194
-          Top = 7
-          Width = 150
-          Height = 17
-          Caption = '&GST Inclusive'
-          TabOrder = 2
-        end
-        object cbPercentage: TCheckBox
-          Left = 194
-          Top = 30
-          Width = 150
-          Height = 17
-          Caption = 'Show &% of Income'
-          TabOrder = 3
-        end
-      end
       object pnlDivision: TPanel
         Left = 0
-        Top = 148
-        Width = 623
-        Height = 40
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
+        Top = 152
+        Width = 625
+        Height = 42
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 1
         object Label8: TLabel
           Left = 8
@@ -393,6 +369,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 17
           Height = 13
           Caption = 'Job'
+        end
+        object Bevel2: TBevel
+          Left = 0
+          Top = 39
+          Width = 624
+          Height = 4
+          Shape = bsTopLine
         end
         object cbJobs: TComboBox
           Left = 104
@@ -416,15 +399,22 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       end
       object pnlAdvBudget: TPanel
         Left = 0
-        Top = 337
-        Width = 623
-        Height = 37
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
-        TabOrder = 5
+        Top = 351
+        Width = 625
+        Height = 50
+        Align = alTop
+        BevelOuter = bvNone
+        TabOrder = 3
+        object Bevel4: TBevel
+          Left = -1
+          Top = 45
+          Width = 624
+          Height = 4
+          Shape = bsTopLine
+        end
         object chkPromptToUseBudget: TCheckBox
-          Left = 7
-          Top = 8
+          Left = 8
+          Top = 9
           Width = 433
           Height = 17
           Caption = 
@@ -435,40 +425,96 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           TabOrder = 0
         end
       end
-      object pnlIncludeNonPost: TPanel
-        Left = 355
+      object Panel3: TPanel
+        Left = 0
         Top = 279
-        Width = 268
-        Height = 55
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
+        Width = 625
+        Height = 72
+        Align = alTop
+        BevelOuter = bvNone
+        Caption = ' '
         TabOrder = 4
-        object rbSummarisedNonPost: TRadioButton
-          Left = 133
-          Top = 30
-          Width = 113
-          Height = 17
-          Caption = 'Summarised'
-          TabOrder = 2
+        object Bevel5: TBevel
+          Left = 0
+          Top = 70
+          Width = 624
+          Height = 4
+          Shape = bsTopLine
         end
-        object rbDetailedNonPost: TRadioButton
-          Left = 25
-          Top = 30
-          Width = 94
-          Height = 17
-          Caption = 'Detailed'
-          Checked = True
-          TabOrder = 1
-          TabStop = True
-        end
-        object chkPrintNonPostingChartCodeTitles: TCheckBox
-          Left = 8
-          Top = 7
-          Width = 253
-          Height = 17
-          Caption = 'Include Non-Posting Chart Code Titles'
+        object pnlInclude: TPanel
+          Left = 0
+          Top = 10
+          Width = 352
+          Height = 55
+          BevelOuter = bvNone
           TabOrder = 0
-          OnClick = chkPrintNonPostingChartCodeTitlesClick
+          object chkIncludeCodes: TCheckBox
+            Left = 8
+            Top = 7
+            Width = 180
+            Height = 17
+            Caption = 'Include C&hart Codes'
+            TabOrder = 0
+          end
+          object chkIncludeQuantity: TCheckBox
+            Left = 8
+            Top = 30
+            Width = 180
+            Height = 17
+            Caption = 'Include &Quantities'
+            TabOrder = 1
+          end
+          object chkGSTInclusive: TCheckBox
+            Left = 194
+            Top = 7
+            Width = 150
+            Height = 17
+            Caption = '&GST Inclusive'
+            TabOrder = 2
+          end
+          object cbPercentage: TCheckBox
+            Left = 194
+            Top = 30
+            Width = 150
+            Height = 17
+            Caption = 'Show &% of Income'
+            TabOrder = 3
+          end
+        end
+        object pnlIncludeNonPost: TPanel
+          Left = 293
+          Top = 10
+          Width = 268
+          Height = 55
+          BevelOuter = bvNone
+          TabOrder = 1
+          object rbSummarisedNonPost: TRadioButton
+            Left = 133
+            Top = 30
+            Width = 113
+            Height = 17
+            Caption = 'Summarised'
+            TabOrder = 2
+          end
+          object rbDetailedNonPost: TRadioButton
+            Left = 25
+            Top = 30
+            Width = 94
+            Height = 17
+            Caption = 'Detailed'
+            Checked = True
+            TabOrder = 1
+            TabStop = True
+          end
+          object chkPrintNonPostingChartCodeTitles: TCheckBox
+            Left = 8
+            Top = 7
+            Width = 253
+            Height = 17
+            Caption = 'Include Non-Posting Chart Code Titles'
+            TabOrder = 0
+            OnClick = chkPrintNonPostingChartCodeTitlesClick
+          end
         end
       end
     end
@@ -480,8 +526,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Top = 4
         Width = 623
         Height = 333
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
+        BevelOuter = bvNone
         TabOrder = 0
         inline fmeAccountSelector1: TfmeAccountSelector
           Left = 24
@@ -511,8 +556,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Top = 4
         Width = 623
         Height = 333
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
+        BevelOuter = bvNone
         TabOrder = 0
         inline fmeDivisionSelector1: TfmeDivisionSelector
           Left = 24

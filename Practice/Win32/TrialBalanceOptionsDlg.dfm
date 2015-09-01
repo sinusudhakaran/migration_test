@@ -3,7 +3,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   Top = 239
   BorderStyle = bsDialog
   Caption = 'Trial Balance Report'
-  ClientHeight = 231
+  ClientHeight = 223
   ClientWidth = 504
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -13,6 +13,9 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   Scaled = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  DesignSize = (
+    504
+    223)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -36,6 +39,15 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     Height = 13
     Alignment = taRightJustify
     Caption = 'This last period of  CODED data is Dec 1998'
+  end
+  object BevelBorder: TBevel
+    Left = 0
+    Top = 182
+    Width = 510
+    Height = 5
+    Anchors = [akLeft, akBottom]
+    Shape = bsTopLine
+    ExplicitTop = 190
   end
   object cmbStartMonth: TComboBox
     Left = 156
@@ -84,12 +96,13 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 196
+    Top = 188
     Width = 504
     Height = 35
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
+    ExplicitTop = 196
     object btnPrint: TButton
       Left = 335
       Top = 4

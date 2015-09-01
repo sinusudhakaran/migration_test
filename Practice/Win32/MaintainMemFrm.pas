@@ -72,6 +72,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure SearchTimerTimer(Sender: TObject);
     procedure tbFindClick(Sender: TObject);
+    procedure stTitleClick(Sender: TObject);
   private
     { Private declarations }
     BankAccountCount      : integer;
@@ -305,6 +306,11 @@ begin
    tbDelete.Hint    :=
                     'Delete the selected Memorisation|' +
                     'Delete the selected Memorisation';
+end;
+
+procedure TfrmMaintainMem.stTitleClick(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------

@@ -94,6 +94,7 @@ type
     tbsColumns: TTabSheet;
     fmeCustomColumn1: TfmeCustomColumn;
     btnEmail: TButton;
+    Shape1: TShape;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;

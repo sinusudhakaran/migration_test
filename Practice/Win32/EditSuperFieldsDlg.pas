@@ -73,6 +73,8 @@ type
     lp12: TLabel;
     lp13: TLabel;
     lp14: TLabel;
+    Shape1: TShape;
+    Shape2: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);

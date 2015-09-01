@@ -75,20 +75,63 @@ object frmTasks: TfrmTasks
         BorderWidth = 6
         Caption = 'pnlTasks'
         TabOrder = 0
+        object Shape1: TShape
+          Left = 6
+          Top = 6
+          Width = 596
+          Height = 1
+          Align = alTop
+          Pen.Color = clSilver
+          ExplicitLeft = 288
+          ExplicitTop = 8
+          ExplicitWidth = 65
+        end
+        object Shape2: TShape
+          Left = 6
+          Top = 7
+          Width = 1
+          Height = 208
+          Align = alLeft
+          Pen.Color = clSilver
+          ExplicitTop = 6
+          ExplicitHeight = 596
+        end
+        object Shape3: TShape
+          Left = 601
+          Top = 7
+          Width = 1
+          Height = 208
+          Align = alRight
+          Pen.Color = clSilver
+          ExplicitLeft = 6
+          ExplicitTop = 6
+          ExplicitHeight = 596
+        end
         object pnlTasksFooter: TPanel
           Left = 6
-          Top = 224
+          Top = 215
           Width = 596
-          Height = 30
+          Height = 39
           Align = alBottom
           BevelOuter = bvNone
           TabOrder = 1
           DesignSize = (
             596
-            30)
+            39)
+          object ShapeControl: TShape
+            Left = 0
+            Top = 0
+            Width = 596
+            Height = 1
+            Align = alTop
+            Pen.Color = clSilver
+            ExplicitLeft = 288
+            ExplicitTop = 8
+            ExplicitWidth = 65
+          end
           object btnAdd: TButton
             Left = 4
-            Top = 5
+            Top = 12
             Width = 75
             Height = 25
             Caption = '&Add'
@@ -97,7 +140,7 @@ object frmTasks: TfrmTasks
           end
           object btnDelete: TButton
             Left = 89
-            Top = 5
+            Top = 12
             Width = 75
             Height = 25
             Caption = '&Delete'
@@ -106,17 +149,18 @@ object frmTasks: TfrmTasks
           end
           object chkShowClosed: TCheckBox
             Left = 446
-            Top = 6
+            Top = 15
             Width = 147
             Height = 17
             Anchors = [akRight, akBottom]
             Caption = 'Show Closed Tasks'
             TabOrder = 3
             OnClick = chkShowClosedClick
+            ExplicitTop = 6
           end
           object btnReport: TButton
             Left = 175
-            Top = 5
+            Top = 12
             Width = 75
             Height = 25
             Caption = '&Report'
@@ -125,11 +169,12 @@ object frmTasks: TfrmTasks
           end
         end
         object gdToDo: TtsGrid
-          Left = 6
-          Top = 6
-          Width = 596
-          Height = 218
+          Left = 7
+          Top = 7
+          Width = 594
+          Height = 208
           Align = alClient
+          BorderStyle = bsNone
           CellSelectMode = cmNone
           CheckBoxStyle = stCheck
           ColMoving = False
@@ -177,6 +222,10 @@ object frmTasks: TfrmTasks
           OnInvalidMaskValue = gdToDoInvalidMaskValue
           OnMouseDown = gdToDoMouseDown
           OnRowLoaded = gdToDoRowLoaded
+          ExplicitLeft = 6
+          ExplicitTop = 6
+          ExplicitWidth = 596
+          ExplicitHeight = 209
           ColProperties = <
             item
               DataCol = 1
@@ -218,10 +267,6 @@ object frmTasks: TfrmTasks
     object tsNotes: TTabSheet
       Caption = 'Comments'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlNotes: TPanel
         Left = 0
         Top = 0
@@ -268,12 +313,12 @@ object frmTasks: TfrmTasks
         Name = 'DateMask'
         Picture = '##/##/##[##]'
       end>
-    Left = 8
-    Top = 328
+    Left = 272
+    Top = 312
   end
   object popEditMenu: TPopupMenu
-    Left = 40
-    Top = 328
+    Left = 312
+    Top = 312
     object Cut1: TMenuItem
       Caption = 'Cut'
       ShortCut = 16472

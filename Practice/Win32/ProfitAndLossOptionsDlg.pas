@@ -36,7 +36,6 @@ type
     tbsOptions: TTabSheet;
     pnlReportStyle: TPanel;
     pnlCompare: TPanel;
-    pnlInclude: TPanel;
     Label6: TLabel;
     Label2: TLabel;
     cmbDetail: TComboBox;
@@ -53,7 +52,6 @@ type
     rbDetailedFormat: TRadioButton;
     rbSummarisedFormat: TRadioButton;
     cmbBudget: TComboBox;
-    chkIncludeCodes: TCheckBox;
     pnlDivision: TPanel;
     pnlAdvBudget: TPanel;
     chkPromptToUseBudget: TCheckBox;
@@ -62,10 +60,7 @@ type
     Label4: TLabel;
     lblLast: TLabel;
     cmbPeriod: TComboBox;
-    chkIncludeQuantity: TCheckBox;
-    chkGSTInclusive: TCheckBox;
     stReportStarts: TLabel;
-    cbPercentage: TCheckBox;
     btnSave: TBitBtn;
     cbJobs: TComboBox;
     ckAllJobs: TCheckBox;
@@ -76,11 +71,22 @@ type
     tbsAdvanced: TTabSheet;
     Panel2: TPanel;
     fmeAccountSelector1: TfmeAccountSelector;
+    btnEmail: TButton;
+    Bevel1: TBevel;
+    Bevel2: TBevel;
+    Bevel3: TBevel;
+    Bevel4: TBevel;
+    Panel3: TPanel;
+    pnlInclude: TPanel;
+    chkIncludeCodes: TCheckBox;
+    chkIncludeQuantity: TCheckBox;
+    chkGSTInclusive: TCheckBox;
+    cbPercentage: TCheckBox;
     pnlIncludeNonPost: TPanel;
     rbSummarisedNonPost: TRadioButton;
     rbDetailedNonPost: TRadioButton;
     chkPrintNonPostingChartCodeTitles: TCheckBox;
-    btnEmail: TButton;
+    Bevel5: TBevel;
 
     procedure chkCompareClick(Sender: TObject);
     procedure rbDetailedFormatClick(Sender: TObject);

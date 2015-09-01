@@ -3,9 +3,9 @@ object dlgGraphRep: TdlgGraphRep
   Top = 200
   BorderStyle = bsDialog
   Caption = 'Graph Options'
-  ClientHeight = 369
+  ClientHeight = 340
   ClientWidth = 446
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -14,58 +14,33 @@ object dlgGraphRep: TdlgGraphRep
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  DesignSize = (
-    446
-    369)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnOK: TButton
-    Left = 286
-    Top = 339
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Vie&w'
-    Default = True
-    TabOrder = 2
-    OnClick = btnOKClick
-  end
-  object btnCancel: TButton
-    Left = 366
-    Top = 339
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 3
-    OnClick = btnCancelClick
-  end
-  object btnSave: TBitBtn
-    Left = 205
-    Top = 339
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Sa&ve'
-    TabOrder = 1
-    OnClick = btnSaveClick
-  end
   object pcGraph: TPageControl
     Left = 0
-    Top = 1
-    Width = 441
-    Height = 325
+    Top = 0
+    Width = 446
+    Height = 304
     ActivePage = tsOptions
+    Align = alClient
+    Style = tsFlatButtons
     TabOrder = 0
+    ExplicitTop = 1
+    ExplicitWidth = 441
+    ExplicitHeight = 325
     object tsOptions: TTabSheet
       Caption = '&Options'
+      ExplicitWidth = 433
+      ExplicitHeight = 294
       object Panel1: TPanel
-        Left = 4
-        Top = 4
-        Width = 426
+        Left = 0
+        Top = 0
+        Width = 438
         Height = 97
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 0
+        ExplicitWidth = 433
         object Label3: TLabel
           Left = 8
           Top = 12
@@ -94,6 +69,17 @@ object dlgGraphRep: TdlgGraphRep
           Height = 13
           Caption = 'Report &Ending'
           FocusControl = cmbPeriod
+        end
+        object Shape1: TShape
+          Left = 0
+          Top = 96
+          Width = 438
+          Height = 1
+          Align = alBottom
+          Pen.Color = clSilver
+          ExplicitLeft = 1
+          ExplicitTop = 87
+          ExplicitWidth = 431
         end
         object cmbPeriod: TComboBox
           Left = 144
@@ -142,11 +128,14 @@ object dlgGraphRep: TdlgGraphRep
         end
       end
       object Panel2: TPanel
-        Left = 4
-        Top = 108
-        Width = 426
+        Left = 0
+        Top = 97
+        Width = 438
         Height = 101
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 1
+        ExplicitWidth = 433
         object lblBudget: TLabel
           Left = 8
           Top = 36
@@ -163,6 +152,17 @@ object dlgGraphRep: TdlgGraphRep
           Caption = '&Division'
           FocusControl = cmbDivision
         end
+        object Shape2: TShape
+          Left = 0
+          Top = 100
+          Width = 438
+          Height = 1
+          Align = alBottom
+          Pen.Color = clSilver
+          ExplicitLeft = 1
+          ExplicitTop = 91
+          ExplicitWidth = 431
+        end
         object chkGST: TCheckBox
           Left = 8
           Top = 8
@@ -170,6 +170,8 @@ object dlgGraphRep: TdlgGraphRep
           Height = 17
           Alignment = taLeftJustify
           Caption = 'Print &GST Inclusive'
+          Color = clWhite
+          ParentColor = False
           TabOrder = 0
         end
         object cmbBudget: TComboBox
@@ -195,10 +197,12 @@ object dlgGraphRep: TdlgGraphRep
         end
       end
       object plInclude: TPanel
-        Left = 4
-        Top = 215
-        Width = 426
-        Height = 34
+        Left = 0
+        Top = 198
+        Width = 438
+        Height = 40
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 2
         object Label2: TLabel
           Left = 9
@@ -206,6 +210,17 @@ object dlgGraphRep: TdlgGraphRep
           Width = 39
           Height = 13
           Caption = 'Include:'
+        end
+        object Shape3: TShape
+          Left = 0
+          Top = 39
+          Width = 438
+          Height = 1
+          Align = alBottom
+          Pen.Color = clSilver
+          ExplicitLeft = 1
+          ExplicitTop = 24
+          ExplicitWidth = 431
         end
         object cbLastYear: TCheckBox
           Left = 144
@@ -225,11 +240,14 @@ object dlgGraphRep: TdlgGraphRep
         end
       end
       object plTrading: TPanel
-        Left = 4
-        Top = 255
-        Width = 426
+        Left = 0
+        Top = 238
+        Width = 438
         Height = 34
+        Align = alTop
+        BevelOuter = bvNone
         TabOrder = 3
+        ExplicitTop = 237
         object Label4: TLabel
           Left = 9
           Top = 8
@@ -243,6 +261,8 @@ object dlgGraphRep: TdlgGraphRep
           Width = 97
           Height = 17
           Caption = 'Sales'
+          Color = clWhite
+          ParentColor = False
           TabOrder = 0
         end
         object ckGrossProfit: TCheckBox
@@ -251,6 +271,8 @@ object dlgGraphRep: TdlgGraphRep
           Width = 97
           Height = 17
           Caption = 'Gross Profit'
+          Color = clWhite
+          ParentColor = False
           TabOrder = 1
         end
         object ckNettProfit: TCheckBox
@@ -259,6 +281,8 @@ object dlgGraphRep: TdlgGraphRep
           Width = 109
           Height = 17
           Caption = 'Operating Profit'
+          Color = clWhite
+          ParentColor = False
           TabOrder = 2
         end
       end
@@ -266,6 +290,8 @@ object dlgGraphRep: TdlgGraphRep
     object tsAdvanced: TTabSheet
       Caption = 'A&dvanced'
       ImageIndex = 1
+      ExplicitWidth = 433
+      ExplicitHeight = 294
       inline fmeAccountSelector1: TfmeAccountSelector
         Left = -4
         Top = 16
@@ -316,6 +342,64 @@ object dlgGraphRep: TdlgGraphRep
       end
     end
   end
+  object Panel3: TPanel
+    Left = 0
+    Top = 304
+    Width = 446
+    Height = 36
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 1
+    ExplicitTop = 305
+    DesignSize = (
+      446
+      36)
+    object Shape4: TShape
+      Left = 0
+      Top = 0
+      Width = 446
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitLeft = 1
+      ExplicitTop = 24
+      ExplicitWidth = 431
+    end
+    object btnSave: TBitBtn
+      Left = 205
+      Top = 6
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Sa&ve'
+      TabOrder = 0
+      OnClick = btnSaveClick
+    end
+    object btnOK: TButton
+      Left = 286
+      Top = 6
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Vie&w'
+      Default = True
+      TabOrder = 1
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 366
+      Top = 6
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 2
+      OnClick = btnCancelClick
+    end
+  end
   object OvcController1: TOvcController
     EntryCommands.TableList = (
       'Default'
@@ -328,7 +412,7 @@ object dlgGraphRep: TdlgGraphRep
       False
       ())
     Epoch = 1900
-    Left = 12
-    Top = 336
+    Left = 236
+    Top = 216
   end
 end

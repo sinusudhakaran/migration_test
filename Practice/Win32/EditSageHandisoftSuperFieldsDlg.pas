@@ -49,6 +49,8 @@ type
     nfNumberIssued: TOvcNumericField;
     lp1: TLabel;
     lp2: TLabel;
+    Shape1: TShape;
+    Shape2: TShape;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);

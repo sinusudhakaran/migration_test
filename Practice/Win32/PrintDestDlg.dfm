@@ -3,7 +3,7 @@ object DlgPrintDest: TDlgPrintDest
   Top = 307
   BorderStyle = bsDialog
   Caption = 'Select Report Destination'
-  ClientHeight = 222
+  ClientHeight = 230
   ClientWidth = 546
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -26,18 +26,26 @@ object DlgPrintDest: TDlgPrintDest
   end
   object pBtn: TPanel
     Left = 0
-    Top = 190
+    Top = 192
     Width = 546
-    Height = 32
+    Height = 38
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       546
-      32)
+      38)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 546
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnPreview: TButton
       Left = 6
-      Top = 4
+      Top = 8
       Width = 76
       Height = 25
       Anchors = [akLeft, akBottom]
@@ -48,7 +56,7 @@ object DlgPrintDest: TDlgPrintDest
     end
     object btnPrint: TButton
       Left = 384
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -58,7 +66,7 @@ object DlgPrintDest: TDlgPrintDest
     end
     object btnCancel: TButton
       Left = 464
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -69,7 +77,7 @@ object DlgPrintDest: TDlgPrintDest
     end
     object btnFile: TButton
       Left = 88
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akLeft, akBottom]
@@ -79,7 +87,7 @@ object DlgPrintDest: TDlgPrintDest
     end
     object btnSave: TBitBtn
       Left = 304
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -89,7 +97,7 @@ object DlgPrintDest: TDlgPrintDest
     end
     object btnEmail: TButton
       Left = 169
-      Top = 4
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akLeft, akBottom]

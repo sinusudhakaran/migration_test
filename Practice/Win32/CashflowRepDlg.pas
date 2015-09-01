@@ -39,25 +39,32 @@ type
 
 
   TdlgCashFlowRep = class(TForm)
-
-    btnOK: TButton;
     OvcController1: TOvcController;
+    Panel1: TPanel;
     btnPreview: TButton;
-    btnCancel: TButton;
     btnFile: TButton;
+    btnEmail: TButton;
+    BtnSave: TBitBtn;
+    btnOK: TButton;
+    btnCancel: TButton;
+    pnlInner: TPanel;
     pnlDivision: TPanel;
     lblDivision: TLabel;
+    Shape5: TShape;
     cmbDivision: TComboBox;
+    PnlBudget: TPanel;
+    Label2: TLabel;
+    Shape6: TShape;
+    cmbBudget: TComboBox;
     pnlCheckboxes: TPanel;
+    Shape7: TShape;
     chkChartCodes: TCheckBox;
     chkGST: TCheckBox;
-    PnlBudget: TPanel;
-    cmbBudget: TComboBox;
-    Label2: TLabel;
     cbPercentage: TCheckBox;
-    BtnSave: TBitBtn;
     pnlDateSelection: TPanel;
     pnlPeriodSelection: TPanel;
+    Label4: TLabel;
+    cmbPeriodLength: TComboBox;
     Panel5: TPanel;
     Label1: TLabel;
     lblLast: TLabel;
@@ -66,9 +73,7 @@ type
     cmbPeriod: TComboBox;
     cmbStartMonth: TComboBox;
     spnStartYear: TRzSpinEdit;
-    Label4: TLabel;
-    cmbPeriodLength: TComboBox;
-    btnEmail: TButton;
+    Shape4: TShape;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;

@@ -55,6 +55,10 @@ type
     Delete1: TMenuItem;
     SelectAll1: TMenuItem;
     N1: TMenuItem;
+    ShapeControl: TShape;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
 
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);

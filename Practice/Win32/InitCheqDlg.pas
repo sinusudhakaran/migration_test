@@ -32,11 +32,13 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     Label1: TLabel;
-    Shape1: TShape;
+    ShapeBorder: TShape;
     fmeCheques: TfmeExistingCheques;
     InfoBmp: TImage;
     Label5: TLabel;
     lblChequesDate: TLabel;
+    ShapeBottom: TShape;
+    Shape2: TShape;
 
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
