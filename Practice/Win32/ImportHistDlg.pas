@@ -2389,7 +2389,7 @@ procedure TImportHist.vsOutPaintText(Sender: TBaseVirtualTree;
      else
         TargetCanvas.Font.Color := clWindowText;
 
-    if ((vsSelected in Node.States) and (TargetCanvas.Font.Color = clWindowText)) then
+    if ((vsSelected in Node.States) and (Sender.Focused) and (TargetCanvas.Font.Color = clWindowText)) then
       TargetCanvas.Font.Color := clHighlightText ;
   end;
 
@@ -2403,7 +2403,7 @@ procedure TImportHist.vsOutPaintText(Sender: TBaseVirtualTree;
      tmAnalysis :  if fSubAna > 0 then
                        SetMatch(Column <= fSubAna)
                    else
-                       SetMatch(Column <= SubRef);    
+                       SetMatch(Column <= SubRef);
 
      tmNarration :  SetMatch(Column <= fSubNar);
      else result := False;
