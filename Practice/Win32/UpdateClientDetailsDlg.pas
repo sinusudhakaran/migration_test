@@ -39,6 +39,7 @@ type
     eCode: TEdit;
     cmbUsers: TComboBox;
     eSal: TEdit;
+    Bevel1: TBevel;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
@@ -165,6 +166,10 @@ end;
 procedure TContactDetailsFrm.FormShow(Sender: TObject);
 begin
   CurrentCode := eCode.Text;
+  if FClientType = ctProspect then
+    eCode.SetFocus
+  else
+    eName.SetFocus;
 end;
 
 end.

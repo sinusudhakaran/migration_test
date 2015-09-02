@@ -3,7 +3,7 @@ object ContactDetailsFrm: TContactDetailsFrm
   Top = 291
   BorderStyle = bsDialog
   Caption = 'Edit Contact Details'
-  ClientHeight = 420
+  ClientHeight = 469
   ClientWidth = 578
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -16,12 +16,19 @@ object ContactDetailsFrm: TContactDetailsFrm
   OnShow = FormShow
   DesignSize = (
     578
-    420)
+    469)
   PixelsPerInch = 96
   TextHeight = 13
+  object Bevel1: TBevel
+    Left = 0
+    Top = 424
+    Width = 578
+    Height = 5
+    Shape = bsTopLine
+  end
   object btnOk: TButton
-    Left = 417
-    Top = 391
+    Left = 415
+    Top = 436
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -34,11 +41,11 @@ object ContactDetailsFrm: TContactDetailsFrm
     Font.Style = []
     ModalResult = 1
     ParentFont = False
-    TabOrder = 0
+    TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 497
-    Top = 391
+    Left = 495
+    Top = 436
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -51,17 +58,22 @@ object ContactDetailsFrm: TContactDetailsFrm
     Font.Style = []
     ModalResult = 2
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 2
   end
   object pnlMain: TPanel
-    Left = 6
-    Top = 10
-    Width = 564
-    Height = 375
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Left = 0
+    Top = 0
+    Width = 578
+    Height = 424
+    Align = alTop
+    BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
-    TabOrder = 2
+    TabOrder = 0
+    ExplicitLeft = 6
+    ExplicitTop = 10
+    ExplicitWidth = 564
+    ExplicitHeight = 375
     object Label2: TLabel
       Left = 16
       Top = 43
@@ -219,7 +231,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 60
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 1
+      TabOrder = 0
     end
     object eContact: TEdit
       Left = 150
@@ -363,7 +375,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 8
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 0
+      TabOrder = 1
       Visible = False
     end
     object cmbUsers: TComboBox
