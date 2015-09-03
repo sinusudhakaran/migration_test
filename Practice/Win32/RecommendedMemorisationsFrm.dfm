@@ -15,6 +15,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
@@ -32,43 +33,42 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     DesignSize = (
       704
       41)
-    object btnClose: TButton
-      Left = 619
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Close'
-      ModalResult = 1
-      TabOrder = 0
-    end
-    object btnCreate: TButton
-      Left = 538
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = 'Create'
-      TabOrder = 1
-      OnClick = btnCreateClick
-    end
     object chkAllowSuggMemPopup: TCheckBox
       Left = 89
       Top = 12
       Width = 248
       Height = 17
       Caption = 'Allow Suggested Memorisation '#39'Pop-up'#39
-      TabOrder = 2
+      TabOrder = 0
     end
-    object btnHide: TButton
+    object btnHide: TBitBtn
       Left = 8
       Top = 8
       Width = 75
       Height = 25
       Caption = 'Hide'
-      TabOrder = 3
+      TabOrder = 1
       OnClick = btnHideClick
+    end
+    object btnCreate: TButton
+      Left = 537
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Create'
+      TabOrder = 2
+      OnClick = btnCreateClick
+    end
+    object btnCancel: TButton
+      Left = 618
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 3
     end
   end
   object pnlTop: TPanel
@@ -116,7 +116,13 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     OnDblClick = vstTreeDblClick
     OnFocusChanged = vstTreeFocusChanged
     OnGetText = vstTreeGetText
+    OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnHeaderClick = vstTreeHeaderClick
+    OnMouseDown = vstTreeMouseDown
+    ExplicitLeft = 76
+    ExplicitTop = 80
+    ExplicitWidth = 536
+    ExplicitHeight = 255
     Columns = <
       item
         Position = 0
@@ -142,7 +148,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800C40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
