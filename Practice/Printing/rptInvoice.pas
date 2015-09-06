@@ -435,7 +435,8 @@ begin
       Logo.Assign(bkBranding.ReportLogo);
 
       //AddPictureToReportImageList( Logo, 'banklink_logo', 56, 15);
-      AddPictureToReportImageList( Logo, 'banklink_logo', 70, 17);
+      //AddPictureToReportImageList( Logo, 'banklink_logo', 70, 17);
+      AddPictureToReportImageList( Logo, 'banklink_logo', 70, 14);
 
       //set up report
       Job.LoadReportSettings(UserPrintSettings,Report_List_Names[Report_Billing]);

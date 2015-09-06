@@ -567,11 +567,11 @@ function ReportLogo: TPicture;
 begin
   if TProduct.ProductBrand = btMYOBBankLink then
   begin
-    Result := AppImages.imgStatementDetails.Picture;
+    Result := AppImages.imgMainBackground.Picture;
   end
   else
   begin
-    Result := AppImages.imgStatementDetails.Picture;
+    Result := AppImages.imgMainBackground.Picture;
   end;
 end;
 
