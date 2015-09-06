@@ -4,7 +4,7 @@ object frmTPA: TfrmTPA
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Third Party Authority'
-  ClientHeight = 740
+  ClientHeight = 746
   ClientWidth = 783
   Color = clBtnFace
   Constraints.MinWidth = 640
@@ -23,12 +23,12 @@ object frmTPA: TfrmTPA
   OnShow = FormShow
   DesignSize = (
     783
-    740)
+    746)
   PixelsPerInch = 96
   TextHeight = 17
   object btnPreview: TButton
     Left = 8
-    Top = 707
+    Top = 713
     Width = 85
     Height = 25
     Hint = 'Preview the Third Party Authority Form'
@@ -39,10 +39,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 0
     OnClick = btnPreviewClick
+    ExplicitTop = 707
   end
   object btnFile: TButton
     Left = 99
-    Top = 707
+    Top = 713
     Width = 85
     Height = 25
     Hint = 'Save the Third Party Authority Form to a file'
@@ -52,10 +53,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 1
     OnClick = btnFileClick
+    ExplicitTop = 707
   end
   object btnEmail: TButton
     Left = 189
-    Top = 707
+    Top = 713
     Width = 85
     Height = 25
     Hint = 'Email the Third Party Authority Form to the client'
@@ -65,10 +67,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 2
     OnClick = btnEmailClick
+    ExplicitTop = 707
   end
   object btnPrint: TButton
     Left = 281
-    Top = 707
+    Top = 713
     Width = 85
     Height = 25
     Hint = 'Print the Third Party Authority Form'
@@ -78,20 +81,22 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 3
     OnClick = btnPrintClick
+    ExplicitTop = 707
   end
   object btnImport: TButton
     Left = 523
-    Top = 707
+    Top = 713
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Import'
     TabOrder = 4
     OnClick = btnImportClick
+    ExplicitTop = 707
   end
   object btnClear: TButton
     Left = 604
-    Top = 707
+    Top = 713
     Width = 85
     Height = 25
     Hint = 'Clear the form'
@@ -101,10 +106,11 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 5
     OnClick = btnClearClick
+    ExplicitTop = 707
   end
   object btnCancel: TButton
     Left = 695
-    Top = 707
+    Top = 713
     Width = 80
     Height = 25
     Hint = 'Close the Third Party Authority Form'
@@ -115,6 +121,7 @@ object frmTPA: TfrmTPA
     ShowHint = True
     TabOrder = 6
     OnClick = btnCancelClick
+    ExplicitTop = 707
   end
   object pnlMain: TPanel
     Left = 8
@@ -135,13 +142,7 @@ object frmTPA: TfrmTPA
       BevelOuter = bvNone
       BevelWidth = 2
       Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
       ParentBackground = False
-      ParentFont = False
       TabOrder = 0
       DesignSize = (
         763
@@ -179,7 +180,6 @@ object frmTPA: TfrmTPA
         ItemHeight = 17
         TabOrder = 0
         OnChange = cmbInstitutionChange
-        ExplicitWidth = 318
       end
       object edtInstitutionName: TEdit
         Left = 263
@@ -193,7 +193,6 @@ object frmTPA: TfrmTPA
         TabOrder = 1
         Visible = False
         OnExit = edt1Exit
-        ExplicitWidth = 203
       end
       object edtBranch: TEdit
         Left = 148
@@ -206,7 +205,6 @@ object frmTPA: TfrmTPA
         ShowHint = True
         TabOrder = 2
         OnExit = edt1Exit
-        ExplicitWidth = 318
       end
     end
     object pnlInstitution: TPanel
@@ -216,12 +214,6 @@ object frmTPA: TfrmTPA
       Height = 379
       Align = alTop
       BevelOuter = bvNone
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = 11
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      ParentFont = False
       TabOrder = 1
       object Bevel2: TBevel
         Left = 0
@@ -252,13 +244,7 @@ object frmTPA: TfrmTPA
         BevelEdges = [beTop, beRight, beBottom]
         BevelOuter = bvNone
         Color = clWhite
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
         ParentBackground = False
-        ParentFont = False
         TabOrder = 0
         DesignSize = (
           615
@@ -278,11 +264,19 @@ object frmTPA: TfrmTPA
         end
         object lblMaskErrorHint1: TLabel
           Left = 6
-          Top = 91
+          Top = 96
           Width = 608
           Height = 20
           AutoSize = False
           Caption = '<Mask Error Hint>'
+          Color = clWhite
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
         end
         object lblClientCode1: TLabel
           Left = 375
@@ -310,7 +304,6 @@ object frmTPA: TfrmTPA
           TabOrder = 0
           OnChange = edtNameOfAccount1Change
           OnEnter = edt1Exit
-          ExplicitWidth = 276
         end
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
@@ -327,7 +320,6 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumber1MouseDown
           OnValidateError = mskAccountNumber1ValidateError
           OnValidateEdit = mskAccountNumber1ValidateEdit
-          ExplicitWidth = 276
         end
         object edtAccountNumber1: TEdit
           Left = 36
@@ -342,7 +334,6 @@ object frmTPA: TfrmTPA
           OnChange = edtAccountNumber1Change
           OnEnter = edtAccountNumber1Enter
           OnExit = edtAccountNumber1Exit
-          ExplicitWidth = 276
         end
         object edtClientCode1: TEdit
           Left = 464
@@ -357,7 +348,6 @@ object frmTPA: TfrmTPA
           OnChange = edtClientCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
-          ExplicitWidth = 63
         end
         object edtCostCode1: TEdit
           Left = 464
@@ -372,7 +362,6 @@ object frmTPA: TfrmTPA
           OnChange = edtCostCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
-          ExplicitWidth = 63
         end
       end
       object pnlInstData2: TPanel
@@ -382,12 +371,6 @@ object frmTPA: TfrmTPA
         Height = 120
         BevelEdges = [beTop, beRight, beBottom]
         BevelOuter = bvNone
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
         TabOrder = 1
         DesignSize = (
           615
@@ -421,11 +404,19 @@ object frmTPA: TfrmTPA
         end
         object lblMaskErrorHint2: TLabel
           Left = 5
-          Top = 90
+          Top = 96
           Width = 608
           Height = 22
           AutoSize = False
           Caption = '<Mask Error Hint>'
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
         end
         object edtNameOfAccount2: TEdit
           Left = 8
@@ -439,7 +430,6 @@ object frmTPA: TfrmTPA
           TabOrder = 0
           OnChange = edtNameOfAccount2Change
           OnEnter = edt2Exit
-          ExplicitWidth = 276
         end
         object edtClientCode2: TEdit
           Left = 464
@@ -454,7 +444,6 @@ object frmTPA: TfrmTPA
           OnChange = edtClientCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
-          ExplicitWidth = 63
         end
         object edtCostCode2: TEdit
           Left = 464
@@ -469,7 +458,6 @@ object frmTPA: TfrmTPA
           OnChange = edtCostCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
-          ExplicitWidth = 63
         end
         object mskAccountNumber2: TMaskValidateEdit
           Left = 9
@@ -486,7 +474,6 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumber2MouseDown
           OnValidateError = mskAccountNumber2ValidateError
           OnValidateEdit = mskAccountNumber2ValidateEdit
-          ExplicitWidth = 276
         end
         object edtAccountNumber2: TEdit
           Left = 36
@@ -501,7 +488,6 @@ object frmTPA: TfrmTPA
           OnChange = edtAccountNumber2Change
           OnEnter = edtAccountNumber2Enter
           OnExit = edtAccountNumber2Exit
-          ExplicitWidth = 276
         end
       end
       object pnlInstLabels2: TPanel
@@ -514,13 +500,7 @@ object frmTPA: TfrmTPA
         BevelWidth = 2
         BorderWidth = 1
         Color = clWhite
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
         ParentBackground = False
-        ParentFont = False
         TabOrder = 2
         object lblNameOfAccount2: TLabel
           Left = 23
@@ -547,13 +527,7 @@ object frmTPA: TfrmTPA
         BevelWidth = 2
         BorderWidth = 1
         Color = clWhite
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
         ParentBackground = False
-        ParentFont = False
         TabOrder = 3
         object lblNameOfAccount1: TLabel
           Left = 23
@@ -577,12 +551,6 @@ object frmTPA: TfrmTPA
         Height = 120
         BevelEdges = [beTop, beRight, beBottom]
         BevelOuter = bvNone
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
         TabOrder = 4
         DesignSize = (
           615
@@ -616,11 +584,19 @@ object frmTPA: TfrmTPA
         end
         object lblMaskErrorHint3: TLabel
           Left = 5
-          Top = 88
+          Top = 96
           Width = 608
           Height = 22
           AutoSize = False
           Caption = '<Mask Error Hint>'
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
         end
         object edtNameOfAccount3: TEdit
           Left = 8
@@ -634,7 +610,6 @@ object frmTPA: TfrmTPA
           TabOrder = 0
           OnChange = edtNameOfAccount3Change
           OnEnter = edt3Exit
-          ExplicitWidth = 276
         end
         object edtClientCode3: TEdit
           Left = 464
@@ -649,7 +624,6 @@ object frmTPA: TfrmTPA
           OnChange = edtClientCode3Change
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
-          ExplicitWidth = 63
         end
         object edtCostCode3: TEdit
           Left = 464
@@ -664,7 +638,6 @@ object frmTPA: TfrmTPA
           OnChange = edtCostCode3Change
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
-          ExplicitWidth = 63
         end
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
@@ -681,7 +654,6 @@ object frmTPA: TfrmTPA
           OnMouseDown = mskAccountNumber3MouseDown
           OnValidateError = mskAccountNumber3ValidateError
           OnValidateEdit = mskAccountNumber3ValidateEdit
-          ExplicitWidth = 276
         end
         object edtAccountNumber3: TEdit
           Left = 36
@@ -696,7 +668,6 @@ object frmTPA: TfrmTPA
           OnChange = edtAccountNumber3Change
           OnEnter = edtAccountNumber3Enter
           OnExit = edtAccountNumber3Exit
-          ExplicitWidth = 276
         end
       end
       object s: TPanel
@@ -709,13 +680,7 @@ object frmTPA: TfrmTPA
         BevelWidth = 2
         BorderWidth = 1
         Color = clWhite
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
         ParentBackground = False
-        ParentFont = False
         TabOrder = 5
         object lblNameOfAccount3: TLabel
           Left = 23
@@ -741,12 +706,6 @@ object frmTPA: TfrmTPA
       Align = alTop
       BevelEdges = [beLeft, beTop, beRight]
       BevelOuter = bvNone
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
       TabOrder = 2
       object pnlClientLabel: TPanel
         Left = 0
@@ -758,7 +717,7 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 0
         object lblStartDate: TLabel
-          Left = 24
+          Left = 23
           Top = 6
           Width = 58
           Height = 17
@@ -816,35 +775,23 @@ object frmTPA: TfrmTPA
       Left = 0
       Top = 495
       Width = 763
-      Height = 88
+      Height = 93
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
       Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
       ParentBackground = False
-      ParentFont = False
       TabOrder = 3
-      ExplicitTop = 502
+      OnClick = pnlDataClick
       DesignSize = (
         763
-        88)
+        93)
       object lblSecureCode: TLabel
-        Left = 282
-        Top = 61
-        Width = 79
-        Height = 16
+        Left = 299
+        Top = 62
+        Width = 74
+        Height = 17
         Caption = 'Secure Code'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
       end
       object lblNoteAddFormReq: TLabel
         Left = 46
@@ -852,12 +799,6 @@ object frmTPA: TfrmTPA
         Width = 201
         Height = 17
         Caption = 'An additional form is required for '
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
       end
       object lblBookSecureLink: TLabel
         Left = 248
@@ -891,7 +832,7 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object imgInfoAdditionalMsg: TImage
-        Left = 25
+        Left = 23
         Top = 36
         Width = 16
         Height = 16
@@ -915,40 +856,26 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lbliBizzMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
-        Left = 25
+        Left = 23
         Top = 61
-        Width = 358
+        Width = 253
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Data sent to existing secure client'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
         TabOrder = 1
         OnClick = chkDataSecureExistingClick
-        ExplicitWidth = 348
       end
       object chkDataSecureNew: TCheckBox
-        Left = 25
+        Left = 23
         Top = 10
         Width = 358
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Data sent direct to new secure client'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
         TabOrder = 0
         OnClick = chkDataSecureNewClick
-        ExplicitWidth = 348
       end
       object edtSecureCode: TEdit
         Left = 384
@@ -956,59 +883,40 @@ object frmTPA: TfrmTPA
         Width = 140
         Height = 25
         Anchors = [akLeft, akTop, akRight]
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Segoe UI'
-        Font.Style = []
         MaxLength = 8
-        ParentFont = False
         TabOrder = 2
-        ExplicitWidth = 130
       end
       object chkSupplyAsProvisional: TCheckBox
-        Left = 26
-        Top = 112
+        Left = 24
+        Top = 108
         Width = 512
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 
           'Supply as provisional if account(s) are not available from the B' +
           'ank'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -15
-        Font.Name = 'MS Sans Serif'
-        Font.Style = []
-        ParentFont = False
         TabOrder = 3
         OnClick = chkDataSecureNewClick
-        ExplicitWidth = 502
       end
     end
     object pnlRural: TPanel
       Left = 0
-      Top = 583
+      Top = 588
       Width = 763
       Height = 97
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
       Color = clWhite
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Segoe UI'
-      Font.Style = []
       ParentBackground = False
-      ParentFont = False
       TabOrder = 4
-      ExplicitTop = 590
+      ExplicitLeft = 464
+      ExplicitTop = 589
       DesignSize = (
         763
         97)
       object lblRuralInstitutions: TLabel
-        Left = 26
+        Left = 23
         Top = 13
         Width = 103
         Height = 17
@@ -1026,7 +934,6 @@ object frmTPA: TfrmTPA
         TabStop = True
         OnKeyDown = radReDateTransactionsKeyDown
         OnMouseDown = radReDateTransactionsMouseDown
-        ExplicitWidth = 634
       end
       object radDateShown: TRadioButton
         Left = 57
@@ -1038,7 +945,6 @@ object frmTPA: TfrmTPA
         TabOrder = 1
         OnKeyDown = radDateShownKeyDown
         OnMouseDown = radDateShownMouseDown
-        ExplicitWidth = 634
       end
     end
   end

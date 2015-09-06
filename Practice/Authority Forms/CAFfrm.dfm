@@ -32,8 +32,6 @@ object frmCAF: TfrmCAF
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 1
-    ExplicitLeft = 4
-    ExplicitTop = 665
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -165,7 +163,7 @@ object frmCAF: TfrmCAF
         Caption = 'Secure Code'
       end
       object imgInfoAdditionalMsg: TImage
-        Left = 24
+        Left = 23
         Top = 31
         Width = 16
         Height = 16
@@ -183,6 +181,12 @@ object frmCAF: TfrmCAF
         Width = 78
         Height = 17
         Caption = 'Books Secure'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentFont = False
         ParentShowHint = False
         ShowHint = True
         OnClick = lblBookSecureLinkClick
@@ -205,6 +209,12 @@ object frmCAF: TfrmCAF
         Width = 28
         Height = 17
         Caption = 'iBizz.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentFont = False
         ParentShowHint = False
         ShowHint = True
         OnClick = lbliBizzClick
@@ -212,7 +222,7 @@ object frmCAF: TfrmCAF
         OnMouseLeave = lbliBizzMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
-        Left = 24
+        Left = 23
         Top = 56
         Width = 259
         Height = 17
@@ -223,7 +233,7 @@ object frmCAF: TfrmCAF
         OnClick = chkDataSecureExistingClick
       end
       object chkDataSecureNew: TCheckBox
-        Left = 24
+        Left = 23
         Top = 4
         Width = 292
         Height = 17
@@ -243,7 +253,7 @@ object frmCAF: TfrmCAF
         TabOrder = 2
       end
       object chkSupplyAsProvisional: TCheckBox
-        Left = 24
+        Left = 23
         Top = 108
         Width = 445
         Height = 17
@@ -289,6 +299,12 @@ object frmCAF: TfrmCAF
         Width = 145
         Height = 17
         Caption = 'Additional form required'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsUnderline]
+        ParentFont = False
         ParentShowHint = False
         ShowHint = True
         Visible = False
@@ -306,7 +322,6 @@ object frmCAF: TfrmCAF
         ItemHeight = 17
         TabOrder = 0
         OnChange = cmbInstitutionChange
-        ExplicitWidth = 356
       end
       object edtInstitutionName: TEdit
         Left = 263
@@ -320,7 +335,6 @@ object frmCAF: TfrmCAF
         TabOrder = 1
         Visible = False
         OnChange = edtInstitutionNameChange
-        ExplicitWidth = 241
       end
       object edtBranch: TEdit
         Left = 148
@@ -333,7 +347,6 @@ object frmCAF: TfrmCAF
         ShowHint = True
         TabOrder = 2
         OnExit = edt1Exit
-        ExplicitWidth = 356
       end
     end
     object pnlInstitution: TPanel
@@ -344,7 +357,6 @@ object frmCAF: TfrmCAF
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitTop = 80
       object Bevel2: TBevel
         Left = -4
         Top = 123
@@ -402,11 +414,17 @@ object frmCAF: TfrmCAF
         end
         object lblMaskErrorHint1: TLabel
           Left = 8
-          Top = 91
+          Top = 96
           Width = 608
           Height = 20
           AutoSize = False
           Caption = '<Mask Error Hint>'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
         end
         object edtNameOfAccount1: TEdit
           Left = 8
@@ -420,7 +438,6 @@ object frmCAF: TfrmCAF
           TabOrder = 0
           OnChange = edtNameOfAccount1Change
           OnEnter = edt1Exit
-          ExplicitWidth = 290
         end
         object mskAccountNumber1: TMaskValidateEdit
           Left = 8
@@ -437,7 +454,6 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber1MouseDown
           OnValidateError = mskAccountNumber1ValidateError
           OnValidateEdit = mskAccountNumber1ValidateEdit
-          ExplicitWidth = 290
         end
         object edtAccountNumber1: TEdit
           Left = 30
@@ -452,7 +468,6 @@ object frmCAF: TfrmCAF
           OnChange = edtAccountNumber1Change
           OnEnter = edtAccountNumber1Enter
           OnExit = edtAccountNumber1Exit
-          ExplicitWidth = 290
         end
         object edtClientCode1: TEdit
           Left = 464
@@ -467,7 +482,6 @@ object frmCAF: TfrmCAF
           OnChange = edtClientCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
-          ExplicitWidth = 77
         end
         object edtCostCode1: TEdit
           Left = 464
@@ -482,7 +496,6 @@ object frmCAF: TfrmCAF
           OnChange = edtCostCode1Change
           OnExit = edt1Exit
           OnKeyPress = edt1KeyPress
-          ExplicitWidth = 77
         end
       end
       object pnlInstLabels1: TPanel
@@ -555,11 +568,17 @@ object frmCAF: TfrmCAF
         end
         object lblMaskErrorHint2: TLabel
           Left = 6
-          Top = 90
+          Top = 96
           Width = 608
           Height = 19
           AutoSize = False
           Caption = '<Mask Error Hint>'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
         end
         object edtNameOfAccount2: TEdit
           Left = 8
@@ -573,7 +592,6 @@ object frmCAF: TfrmCAF
           TabOrder = 0
           OnChange = edtNameOfAccount2Change
           OnEnter = edt2Exit
-          ExplicitWidth = 290
         end
         object mskAccountNumber2: TMaskValidateEdit
           Left = 8
@@ -590,7 +608,6 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber2MouseDown
           OnValidateError = mskAccountNumber2ValidateError
           OnValidateEdit = mskAccountNumber2ValidateEdit
-          ExplicitWidth = 290
         end
         object edtAccountNumber2: TEdit
           Left = 30
@@ -605,7 +622,6 @@ object frmCAF: TfrmCAF
           OnChange = edtAccountNumber2Change
           OnEnter = edtAccountNumber2Enter
           OnExit = edtAccountNumber2Exit
-          ExplicitWidth = 290
         end
         object edtClientCode2: TEdit
           Left = 464
@@ -620,7 +636,6 @@ object frmCAF: TfrmCAF
           OnChange = edtClientCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
-          ExplicitWidth = 77
         end
         object edtCostCode2: TEdit
           Left = 464
@@ -635,7 +650,6 @@ object frmCAF: TfrmCAF
           OnChange = edtCostCode2Change
           OnExit = edt2Exit
           OnKeyPress = edt2KeyPress
-          ExplicitWidth = 77
         end
       end
       object pnlInstLabels2: TPanel
@@ -707,11 +721,17 @@ object frmCAF: TfrmCAF
         end
         object lblMaskErrorHint3: TLabel
           Left = 6
-          Top = 89
+          Top = 96
           Width = 608
           Height = 20
           AutoSize = False
           Caption = '<Mask Error Hint>'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clRed
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
         end
         object edtNameOfAccount3: TEdit
           Left = 8
@@ -724,7 +744,6 @@ object frmCAF: TfrmCAF
           ShowHint = True
           TabOrder = 0
           OnEnter = edt3Exit
-          ExplicitWidth = 290
         end
         object mskAccountNumber3: TMaskValidateEdit
           Left = 8
@@ -741,7 +760,6 @@ object frmCAF: TfrmCAF
           OnMouseDown = mskAccountNumber3MouseDown
           OnValidateError = mskAccountNumber3ValidateError
           OnValidateEdit = mskAccountNumber3ValidateEdit
-          ExplicitWidth = 290
         end
         object edtAccountNumber3: TEdit
           Left = 30
@@ -756,7 +774,6 @@ object frmCAF: TfrmCAF
           OnChange = edtAccountNumber3Change
           OnEnter = edtAccountNumber3Enter
           OnExit = edtAccountNumber3Exit
-          ExplicitWidth = 290
         end
         object edtClientCode3: TEdit
           Left = 464
@@ -770,7 +787,6 @@ object frmCAF: TfrmCAF
           TabOrder = 3
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
-          ExplicitWidth = 77
         end
         object edtCostCode3: TEdit
           Left = 464
@@ -784,7 +800,6 @@ object frmCAF: TfrmCAF
           TabOrder = 4
           OnExit = edt3Exit
           OnKeyPress = edt3KeyPress
-          ExplicitWidth = 77
         end
       end
       object pnlInstLabels3: TPanel
@@ -886,8 +901,6 @@ object frmCAF: TfrmCAF
         Color = clWhite
         ParentBackground = False
         TabOrder = 2
-        ExplicitLeft = 409
-        ExplicitHeight = 33
       end
     end
   end

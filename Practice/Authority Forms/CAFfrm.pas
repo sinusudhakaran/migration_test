@@ -301,9 +301,9 @@ begin
   lblAccountHintLine2.Caption := '';
   lblAccountHintLine3.Caption := '';
 
-  SetHyperlinkFont(lbliBizz.Font);
-  SetHyperlinkFont(lblBookSecureLink.Font);
-  SetHyperlinkFont(lblAdditionalFormRequired.Font);
+  lbliBizz.Font.Color := HyperLinkColor;
+  lblBookSecureLink.Font.Color := HyperLinkColor;
+  lblAdditionalFormRequired.Font.Color := HyperLinkColor;
 
   // Institution Names
   SortList := TStringList.Create;
@@ -372,8 +372,6 @@ begin
 
   cmbInstitution.SetFocus;
   ToggleAccountFields;
-  lblBookSecureLink.Font.Color := BankLinkHighlightColor;
-  lbliBizz.Font.Color := BankLinkHighlightColor;
 end;
 
 //------------------------------------------------------------------------------

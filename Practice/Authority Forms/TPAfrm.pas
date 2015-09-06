@@ -189,6 +189,7 @@ type
     procedure edtAccountNumber1Enter(Sender: TObject);
     procedure edtAccountNumber2Enter(Sender: TObject);
     procedure edtAccountNumber3Enter(Sender: TObject);
+    procedure pnlDataClick(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -307,8 +308,8 @@ begin
 
   RemovePanelBorders;
 
-  SetHyperlinkFont(lbliBizz.Font);
-  SetHyperlinkFont(lblBookSecureLink.Font);
+  lblBookSecureLink.Font.Color := HyperLinkColor;
+  lbliBizz.Font.Color := HyperLinkColor;
 
   lblMaskErrorHint1.Caption := '';
   lblMaskErrorHint2.Caption := '';
@@ -379,8 +380,6 @@ begin
     cmbInstitution.Width := edtBranch.Width;
 
   cmbInstitution.SetFocus;
-  lblBookSecureLink.Font.Color := BankLinkHighlightColor;
-  lbliBizz.Font.Color := BankLinkHighlightColor;
 end;
 
 //------------------------------------------------------------------------------
@@ -943,6 +942,11 @@ end;
 procedure TfrmTPA.mskAccountNumber3ValidateError(var aRaiseError: Boolean);
 begin
   aRaiseError := false;
+end;
+
+procedure TfrmTPA.pnlDataClick(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------
