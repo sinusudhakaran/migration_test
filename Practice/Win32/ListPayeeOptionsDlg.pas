@@ -41,16 +41,17 @@ type
   end;
 
   TdlgListPayeeOptions = class(TForm)
+    ckbRuleLineBetweenPayees: TCheckBox;
+    rgSortPayeesBy: TRadioGroup;
+    rgReportFormat: TRadioGroup;
+    Panel1: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnOK: TButton;
     btnCancel: TButton;
     btnSave: TBitBtn;
-    ckbRuleLineBetweenPayees: TCheckBox;
-    rgSortPayeesBy: TRadioGroup;
-    rgReportFormat: TRadioGroup;
     btnEmail: TButton;
-    BevelBorder: TBevel;
+    ShapeBottom: TShape;
 
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);

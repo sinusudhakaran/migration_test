@@ -3,9 +3,9 @@ object dlgStatusReportRange: TdlgStatusReportRange
   Top = 335
   BorderStyle = bsDialog
   Caption = 'Range for Status Report'
-  ClientHeight = 277
+  ClientHeight = 332
   ClientWidth = 431
-  Color = clBtnFace
+  Color = clWindow
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -14,9 +14,6 @@ object dlgStatusReportRange: TdlgStatusReportRange
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShortCut = FormShortCut
-  DesignSize = (
-    431
-    277)
   PixelsPerInch = 96
   TextHeight = 13
   object lblFrom: TLabel
@@ -89,56 +86,12 @@ object dlgStatusReportRange: TdlgStatusReportRange
     TabOrder = 1
     OnClick = rbClientClick
   end
-  object btnCancel: TButton
-    Left = 350
-    Top = 248
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 7
-    OnClick = btnCancelClick
-    ExplicitLeft = 316
-  end
-  object btnPreview: TButton
-    Left = 8
-    Top = 248
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Previe&w'
-    Default = True
-    TabOrder = 4
-    OnClick = btnPreviewClick
-  end
-  object btnFile: TButton
-    Left = 88
-    Top = 248
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Fil&e'
-    TabOrder = 5
-    OnClick = btnFileClick
-  end
-  object btnPrint: TButton
-    Left = 266
-    Top = 248
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Print'
-    TabOrder = 6
-    OnClick = btnPrintClick
-    ExplicitLeft = 232
-  end
   inline DateSelector: TfmeDateSelector
     Left = 16
     Top = 35
     Width = 361
     Height = 70
-    TabOrder = 8
+    TabOrder = 4
     TabStop = True
     ExplicitLeft = 16
     ExplicitTop = 35
@@ -184,6 +137,74 @@ object dlgStatusReportRange: TdlgStatusReportRange
         False
         ())
       Left = 280
+    end
+  end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 282
+    Width = 431
+    Height = 50
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 5
+    DesignSize = (
+      431
+      50)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 431
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnPreview: TButton
+      Left = 3
+      Top = 15
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Previe&w'
+      Default = True
+      TabOrder = 0
+      OnClick = btnPreviewClick
+      ExplicitTop = 22
+    end
+    object btnFile: TButton
+      Left = 83
+      Top = 15
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Fil&e'
+      TabOrder = 1
+      OnClick = btnFileClick
+      ExplicitTop = 22
+    end
+    object btnPrint: TButton
+      Left = 268
+      Top = 15
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&Print'
+      TabOrder = 2
+      OnClick = btnPrintClick
+      ExplicitTop = 22
+    end
+    object btnCancel: TButton
+      Left = 351
+      Top = 15
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 3
+      OnClick = btnCancelClick
+      ExplicitTop = 22
     end
   end
 end

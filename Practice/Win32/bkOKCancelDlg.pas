@@ -5,12 +5,14 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,
-  OSFont;
+  OSFont, ExtCtrls;
 
 type
   TbkOKCancelDlgForm = class(TForm)
-    btnOK: TButton;
+    pnlBottomControls: TPanel;
+    ShapeBotBorder: TShape;
     btnCancel: TButton;
+    btnOK: TButton;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }

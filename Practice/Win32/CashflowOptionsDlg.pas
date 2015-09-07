@@ -98,6 +98,7 @@ type
     Bevel4: TBevel;
     Bevel5: TBevel;
     Bevel6: TBevel;
+    Bevel7: TBevel;
 
     procedure ControlChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);

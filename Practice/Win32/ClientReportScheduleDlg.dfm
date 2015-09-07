@@ -3,43 +3,52 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
   Top = 237
   Caption = 'Report Schedule'
   ClientHeight = 494
-  ClientWidth = 632
+  ClientWidth = 634
+  Color = clWhite
   OldCreateOrder = True
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
-  ExplicitWidth = 638
+  ExplicitWidth = 640
   ExplicitHeight = 522
-  DesignSize = (
-    632
-    494)
   PixelsPerInch = 96
   TextHeight = 13
-  inherited btnOK: TButton
-    Left = 472
-    Top = 464
-    Caption = 'OK'
+  inherited pnlBottomControls: TPanel
+    Top = 453
+    Width = 634
+    ParentBackground = False
     TabOrder = 1
-    ExplicitLeft = 472
-    ExplicitTop = 464
+    ExplicitTop = 408
+    ExplicitWidth = 632
+    inherited ShapeBotBorder: TShape
+      Width = 634
+      ExplicitWidth = 632
+    end
+    inherited btnCancel: TButton
+      Left = 555
+      Top = 7
+      ExplicitLeft = 555
+      ExplicitTop = 7
+    end
+    inherited btnOK: TButton
+      Left = 471
+      Top = 7
+      ExplicitLeft = 471
+      ExplicitTop = 7
+    end
   end
-  inherited btnCancel: TButton
-    Left = 552
-    Top = 464
-    TabOrder = 2
-    ExplicitLeft = 552
-    ExplicitTop = 464
-  end
-  object PageControl1: TPageControl
+  object pcReportSchedule: TPageControl
     Left = 0
     Top = 0
-    Width = 632
+    Width = 634
     Height = 449
     ActivePage = tbsOptions
     Align = alTop
     TabOrder = 0
-    OnChange = PageControl1Change
+    OnChange = pcReportScheduleChange
+    ExplicitWidth = 632
     object tbsOptions: TTabSheet
       Caption = '&Options'
+      ExplicitWidth = 624
       object Label1: TLabel
         Left = 5
         Top = 2
@@ -302,7 +311,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         object lblAddress: TLabel
           Left = 11
           Top = 52
-          Width = 28
+          Width = 24
           Height = 13
           Caption = 'Emai&l'
           FocusControl = eMail
@@ -377,32 +386,29 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsMessage: TTabSheet
       Caption = 'Messa&ge'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 624
       DesignSize = (
-        624
+        626
         421)
       object memMessage: TMemo
         Left = 4
         Top = 4
-        Width = 599
+        Width = 601
         Height = 409
         Anchors = [akLeft, akTop, akRight, akBottom]
+        BevelInner = bvNone
+        BevelOuter = bvNone
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitWidth = 599
       end
     end
     object tbsAttachments: TTabSheet
       Caption = 'A&ttachments'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 624
       DesignSize = (
-        624
+        626
         421)
       object lblAttach: TLabel
         Left = 8
@@ -422,9 +428,11 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
       object lvAttach: TListView
         Left = 3
         Top = 22
-        Width = 600
+        Width = 602
         Height = 365
         Anchors = [akLeft, akTop, akRight, akBottom]
+        BevelInner = bvNone
+        BevelOuter = bvNone
         Columns = <>
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -439,6 +447,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
         TabOrder = 0
         ViewStyle = vsList
         OnKeyUp = lvAttachKeyUp
+        ExplicitWidth = 600
       end
       object btnAttach: TButton
         Left = 3
@@ -455,6 +464,7 @@ inherited dlgClientReportSchedule: TdlgClientReportSchedule
     object tbsAdvanced: TTabSheet
       Caption = 'A&dvanced'
       ImageIndex = 2
+      ExplicitWidth = 624
       inline fmeAccountSelector1: TfmeAccountSelector
         Left = 4
         Top = 8

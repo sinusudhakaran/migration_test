@@ -3,9 +3,9 @@ object dlgOpeningBalances: TdlgOpeningBalances
   Top = 114
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Opening Balances'
-  ClientHeight = 495
+  ClientHeight = 544
   ClientWidth = 622
-  Color = clBtnFace
+  Color = clWindow
   Constraints.MinWidth = 630
   DefaultMonitor = dmMainForm
   ParentFont = True
@@ -19,16 +19,17 @@ object dlgOpeningBalances: TdlgOpeningBalances
   TextHeight = 13
   object pnlFooter: TPanel
     Left = 0
-    Top = 392
+    Top = 412
     Width = 622
-    Height = 103
+    Height = 90
     Align = alBottom
+    BevelOuter = bvNone
     Ctl3D = False
     ParentCtl3D = False
     TabOrder = 2
     DesignSize = (
       622
-      103)
+      90)
     object lblAmountRemText: TLabel
       Left = 8
       Top = 8
@@ -57,27 +58,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
       ParentFont = False
       Visible = False
     end
-    object btnOK: TButton
-      Left = 456
-      Top = 69
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = '&OK'
-      ModalResult = 1
-      TabOrder = 1
-    end
-    object btnCancel: TButton
-      Left = 536
-      Top = 69
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      TabOrder = 2
-    end
     object chkHideNonBS: TCheckBox
       Left = 387
       Top = 9
@@ -86,6 +66,8 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Anchors = [akTop, akRight]
       Caption = '&Hide Non-Balance Sheet Accounts'
       Checked = True
+      Color = clWindow
+      ParentColor = False
       State = cbChecked
       TabOrder = 0
       OnClick = chkHideNonBSClick
@@ -97,8 +79,10 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Height = 17
       Caption = 'Hide &Inactive Accounts'
       Checked = True
+      Color = clWindow
+      ParentColor = False
       State = cbChecked
-      TabOrder = 3
+      TabOrder = 1
       OnClick = chkHideInactiveClick
     end
   end
@@ -108,6 +92,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     Width = 622
     Height = 78
     Align = alTop
+    BevelOuter = bvNone
     TabOrder = 0
     object lSubTitle: TLabel
       Left = 8
@@ -137,7 +122,7 @@ object dlgOpeningBalances: TdlgOpeningBalances
     Left = 0
     Top = 78
     Width = 622
-    Height = 314
+    Height = 334
     Hint = 'Test hint'
     Align = alClient
     AlwaysShowScrollBar = ssVertical
@@ -180,6 +165,9 @@ object dlgOpeningBalances: TdlgOpeningBalances
     OnMouseMove = tgBalancesMouseMove
     OnPaintCell = tgBalancesPaintCell
     OnStartCellEdit = tgBalancesStartCellEdit
+    ExplicitLeft = -8
+    ExplicitTop = 204
+    ExplicitHeight = 229
     ColProperties = <
       item
         DataCol = 1
@@ -211,6 +199,52 @@ object dlgOpeningBalances: TdlgOpeningBalances
         Col.ReadOnly = True
         Col.Width = 162
       end>
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 502
+    Width = 622
+    Height = 42
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 3
+    ExplicitTop = 490
+    DesignSize = (
+      622
+      42)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 622
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnOK: TButton
+      Left = 456
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      ModalResult = 1
+      TabOrder = 0
+      ExplicitTop = 24
+    end
+    object btnCancel: TButton
+      Left = 536
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+      ExplicitTop = 24
+    end
   end
   object tsMaskDefs1: TtsMaskDefs
     Masks = <

@@ -2,14 +2,15 @@ inherited dlgTransferEntries: TdlgTransferEntries
   Left = 316
   Top = 344
   Caption = 'Combine Manual & System Bank Accounts'
-  ClientHeight = 460
+  ClientHeight = 466
   ClientWidth = 622
+  Color = clWindow
   OldCreateOrder = True
   OnCloseQuery = FormCloseQuery
   OnShortCut = FormShortCut
   OnShow = FormShow
   ExplicitWidth = 628
-  ExplicitHeight = 488
+  ExplicitHeight = 494
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel [0]
@@ -55,19 +56,31 @@ inherited dlgTransferEntries: TdlgTransferEntries
       'Any existing entries in the system bank account that fall within' +
       ' the date range will be DELETED.'
   end
-  inherited btnOK: TButton
-    Left = 463
-    Top = 429
+  inherited pnlBottomControls: TPanel
+    Top = 423
+    Width = 622
+    Height = 43
+    ParentBackground = False
     TabOrder = 2
-    ExplicitLeft = 463
-    ExplicitTop = 429
-  end
-  inherited btnCancel: TButton
-    Left = 543
-    Top = 429
-    TabOrder = 4
-    ExplicitLeft = 543
-    ExplicitTop = 429
+    ExplicitLeft = -5
+    ExplicitTop = 423
+    ExplicitWidth = 622
+    ExplicitHeight = 43
+    inherited ShapeBotBorder: TShape
+      Width = 622
+    end
+    inherited btnCancel: TButton
+      Left = 540
+      Top = 10
+      ExplicitLeft = 540
+      ExplicitTop = 10
+    end
+    inherited btnOK: TButton
+      Left = 456
+      Top = 10
+      ExplicitLeft = 456
+      ExplicitTop = 10
+    end
   end
   object cmbTempAccount: TComboBox
     Left = 152
@@ -235,7 +248,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Top = 128
     Width = 458
     Height = 73
-    TabOrder = 5
+    TabOrder = 4
     TabStop = True
     ExplicitLeft = 18
     ExplicitTop = 128

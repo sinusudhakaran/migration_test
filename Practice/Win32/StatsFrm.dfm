@@ -4,7 +4,7 @@ object frmStatistics: TfrmStatistics
   Caption = 'frmStatistics'
   ClientHeight = 354
   ClientWidth = 534
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -20,6 +20,7 @@ object frmStatistics: TfrmStatistics
     Height = 34
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 0
     DesignSize = (
       534
@@ -48,8 +49,6 @@ object frmStatistics: TfrmStatistics
     object tbsCalculated: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 1
-      ExplicitTop = 27
-      ExplicitHeight = 289
       object Label1: TLabel
         Left = 8
         Top = 56
@@ -123,8 +122,6 @@ object frmStatistics: TfrmStatistics
     end
     object tbsRaw: TTabSheet
       Caption = 'Raw File'
-      ExplicitTop = 27
-      ExplicitHeight = 289
       object memFile: TMemo
         Left = 0
         Top = 0
@@ -135,7 +132,6 @@ object frmStatistics: TfrmStatistics
           'memFile')
         ReadOnly = True
         TabOrder = 0
-        ExplicitHeight = 289
       end
     end
   end

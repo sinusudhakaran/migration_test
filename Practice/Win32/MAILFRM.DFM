@@ -89,13 +89,21 @@ object frmMail: TfrmMail
       inherited Panel1: TPanel
         Width = 797
         Height = 315
+        BevelOuter = bvNone
         ExplicitWidth = 797
         ExplicitHeight = 315
         inherited WPToolPanel1: TWPToolPanel
-          Width = 795
-          ExplicitWidth = 795
+          Left = 0
+          Top = 0
+          Width = 797
+          BevelOuter = bvNone
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 797
           inherited TopToolbar: TRzToolbar
-            Width = 793
+            Left = 0
+            Top = 0
+            Width = 797
             ExplicitWidth = 793
             ToolbarControls = (
               cbFont
@@ -123,8 +131,10 @@ object frmMail: TfrmMail
           end
         end
         inherited ERTF: TWPRichText
-          Width = 769
-          Height = 253
+          Left = 26
+          Top = 60
+          Width = 771
+          Height = 255
           RTFText.Data = {
             3C215750546F6F6C735F466F726D617420563D3531382F3E0D0A3C5374616E64
             617264466F6E742077706373733D2243686172466F6E743A27417269616C273B
@@ -213,17 +223,21 @@ object frmMail: TfrmMail
           ExplicitHeight = 253
         end
         inherited LeftRuler: TWPVertRuler
-          Height = 253
+          Left = 0
+          Top = 60
+          Height = 255
           ExplicitHeight = 253
         end
         inherited TopRuler: TWPRuler
-          Width = 795
+          Left = 0
+          Top = 34
+          Width = 797
           ExplicitWidth = 795
         end
       end
       inherited ActImages: TImageList
         Bitmap = {
-          494C010111001400B80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+          494C010111001400BC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
           0000000000003600000028000000400000005000000001002000000000000050
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
@@ -899,6 +913,7 @@ object frmMail: TfrmMail
     Height = 200
     ActivePage = TSEMail
     Align = alTop
+    Style = tsFlatButtons
     TabOrder = 3
     object TSEMail: TTabSheet
       Caption = 'TSEMail'
@@ -906,13 +921,13 @@ object frmMail: TfrmMail
         Left = 0
         Top = 0
         Width = 791
-        Height = 172
+        Height = 169
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           791
-          172)
+          169)
         object lblMailTo: TLabel
           Left = 8
           Top = 12
@@ -931,12 +946,13 @@ object frmMail: TfrmMail
         end
         object Label2: TLabel
           Left = 8
-          Top = 75
+          Top = 72
           Width = 36
           Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Su&bject'
           FocusControl = txtSubject
+          ExplicitTop = 75
         end
         object lblCC: TLabel
           Left = 8
@@ -1000,19 +1016,21 @@ object frmMail: TfrmMail
         end
         object lblAttachments: TLabel
           Left = 8
-          Top = 142
+          Top = 139
           Width = 61
           Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Attachments'
+          ExplicitTop = 142
         end
         object lblClientFiles: TLabel
           Left = 8
-          Top = 108
+          Top = 105
           Width = 51
           Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Client Files'
+          ExplicitTop = 108
         end
         object txtRecipient: TEdit
           Left = 88
@@ -1036,7 +1054,7 @@ object frmMail: TfrmMail
         end
         object txtSubject: TEdit
           Left = 88
-          Top = 72
+          Top = 69
           Width = 700
           Height = 21
           Anchors = [akLeft, akRight, akBottom]
@@ -1054,7 +1072,7 @@ object frmMail: TfrmMail
         end
         object btnAttach: TButton
           Left = 707
-          Top = 140
+          Top = 137
           Width = 75
           Height = 25
           Action = actAttach
@@ -1064,7 +1082,7 @@ object frmMail: TfrmMail
         end
         object btnAttachClient: TButton
           Left = 707
-          Top = 106
+          Top = 103
           Width = 75
           Height = 25
           Action = actClientFile
@@ -1093,7 +1111,7 @@ object frmMail: TfrmMail
         end
         object lvAttach: TListView
           Left = 88
-          Top = 137
+          Top = 134
           Width = 613
           Height = 30
           Anchors = [akLeft, akRight, akBottom]
@@ -1113,7 +1131,7 @@ object frmMail: TfrmMail
         end
         object lvClientFiles: TListView
           Left = 88
-          Top = 103
+          Top = 100
           Width = 613
           Height = 30
           Anchors = [akLeft, akRight, akBottom]
@@ -1135,10 +1153,6 @@ object frmMail: TfrmMail
     object TSEdit: TTabSheet
       Caption = 'TSEdit'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object ImageList1: TImageList

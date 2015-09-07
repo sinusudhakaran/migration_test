@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, sydefs, bkdefs,
-  OsFont;
+  OsFont, ExtCtrls;
 
 type
   TGroupType = (ftGroups, ftClientTypes, ftJobs);
@@ -15,11 +15,13 @@ type
   TdlgEditGroup = class(TForm)
     lblField: TLabel;
     eFullName: TEdit;
-    btnOK: TButton;
-    btnCancel: TButton;
     Lcode: TLabel;
     eCode: TEdit;
     cbCompleted: TCheckBox;
+    Panel1: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    Shape1: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);

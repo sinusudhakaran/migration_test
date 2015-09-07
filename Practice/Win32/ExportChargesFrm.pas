@@ -92,6 +92,8 @@ type
     pmGrid: TPopupMenu;
     FlagAccountasNoCharge1: TMenuItem;
     RemoveNoChargeFlag1: TMenuItem;
+    Shape1: TShape;
+    Shape2: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);

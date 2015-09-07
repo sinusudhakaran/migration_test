@@ -2,11 +2,12 @@ inherited DlgCombineAccounts: TDlgCombineAccounts
   Left = 393
   Top = 336
   Caption = 'Combine System Bank Accounts'
-  ClientHeight = 290
+  ClientHeight = 311
   ClientWidth = 622
+  Color = clWindow
   OnShow = FormShow
   ExplicitWidth = 628
-  ExplicitHeight = 318
+  ExplicitHeight = 339
   PixelsPerInch = 96
   TextHeight = 13
   object lblInstructions: TLabel [0]
@@ -37,24 +38,7 @@ inherited DlgCombineAccounts: TDlgCombineAccounts
     Caption = '&New Bank Account Number:'
     FocusControl = cmbCombine
   end
-  inherited btnOK: TButton
-    Left = 460
-    Top = 259
-    Caption = 'OK'
-    ModalResult = 0
-    TabOrder = 2
-    OnClick = btnOKClick
-    ExplicitLeft = 460
-    ExplicitTop = 259
-  end
-  inherited btnCancel: TButton
-    Left = 540
-    Top = 259
-    TabOrder = 3
-    ExplicitLeft = 540
-    ExplicitTop = 259
-  end
-  object cmbBankAccounts: TComboBox
+  object cmbBankAccounts: TComboBox [3]
     Left = 208
     Top = 77
     Width = 401
@@ -64,7 +48,7 @@ inherited DlgCombineAccounts: TDlgCombineAccounts
     TabOrder = 0
     OnSelect = cmbBankAccountsSelect
   end
-  object cmbCombine: TComboBox
+  object cmbCombine: TComboBox [4]
     Left = 208
     Top = 120
     Width = 402
@@ -74,14 +58,14 @@ inherited DlgCombineAccounts: TDlgCombineAccounts
     TabOrder = 1
     OnSelect = cmbCombineSelect
   end
-  object Panel1: TPanel
+  object Panel1: TPanel [5]
     Left = 7
     Top = 154
     Width = 609
     Height = 95
     BevelInner = bvRaised
     BevelOuter = bvLowered
-    TabOrder = 4
+    TabOrder = 2
     object Label8: TLabel
       Left = 8
       Top = 16
@@ -177,6 +161,29 @@ inherited DlgCombineAccounts: TDlgCombineAccounts
       Width = 551
       Height = 5
       Shape = bsBottomLine
+    end
+  end
+  inherited pnlBottomControls: TPanel
+    Top = 270
+    Width = 622
+    ParentBackground = False
+    TabOrder = 3
+    ExplicitTop = 270
+    ExplicitWidth = 622
+    inherited ShapeBotBorder: TShape
+      Width = 622
+    end
+    inherited btnCancel: TButton
+      Left = 540
+      Top = 7
+      ExplicitLeft = 540
+      ExplicitTop = 7
+    end
+    inherited btnOK: TButton
+      Left = 456
+      Top = 7
+      ExplicitLeft = 456
+      ExplicitTop = 7
     end
   end
 end

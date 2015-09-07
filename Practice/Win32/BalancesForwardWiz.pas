@@ -124,6 +124,10 @@ type
     lblFinishNote: TLabel;
     chkEditOpening: TCheckBox;
     Image6: TImage;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
     procedure btnNextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);

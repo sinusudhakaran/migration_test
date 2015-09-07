@@ -23,7 +23,6 @@ object dlgCashflowOptions: TdlgCashflowOptions
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 446
     DesignSize = (
       632
       39)
@@ -95,10 +94,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
     ActivePage = tbsOptions
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 447
     object tbsOptions: TTabSheet
       Caption = '&Options'
-      ExplicitHeight = 419
       object pnlReportStyle: TPanel
         Left = 0
         Top = 0
@@ -175,11 +172,11 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Caption = 'stReportStarts'
           end
           object lblLast: TLabel
-            Left = 375
-            Top = 39
-            Width = 209
+            Left = 307
+            Top = 37
+            Width = 310
             Height = 13
-            Caption = 'This last period of  CODED data is Dec 1998'
+            Caption = 'There is no perod which is completely CODED'
           end
           object cmbPeriod: TComboBox
             Left = 104
@@ -287,19 +284,19 @@ object dlgCashflowOptions: TdlgCashflowOptions
         object pnlCustomDates: TPanel
           Left = 0
           Top = 72
-          Width = 369
+          Width = 301
           Height = 67
           BevelOuter = bvNone
           TabOrder = 3
           inline ecDateSelector: TfmeDateSelector
             Left = 0
-            Top = -3
-            Width = 366
+            Top = -2
+            Width = 308
             Height = 62
             TabOrder = 0
             TabStop = True
-            ExplicitTop = -3
-            ExplicitWidth = 366
+            ExplicitTop = -2
+            ExplicitWidth = 308
             ExplicitHeight = 62
             inherited Label2: TLabel
               Left = 8
@@ -378,15 +375,15 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Left = 0
         Top = 195
         Width = 624
-        Height = 86
+        Height = 84
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
         object Bevel3: TBevel
           Left = 0
-          Top = 79
+          Top = 83
           Width = 623
-          Height = 10
+          Height = 5
           Shape = bsTopLine
         end
         object chkCompare: TCheckBox
@@ -454,12 +451,13 @@ object dlgCashflowOptions: TdlgCashflowOptions
       end
       object pnlCashSummary: TPanel
         Left = 0
-        Top = 338
+        Top = 336
         Width = 624
         Height = 36
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 3
+        ExplicitTop = 338
         object Bevel5: TBevel
           Left = 0
           Top = 33
@@ -544,12 +542,13 @@ object dlgCashflowOptions: TdlgCashflowOptions
       end
       object pnlAdvBudget: TPanel
         Left = 0
-        Top = 374
+        Top = 372
         Width = 624
         Height = 49
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 4
+        ExplicitTop = 374
         object Bevel6: TBevel
           Left = 0
           Top = 41
@@ -572,13 +571,14 @@ object dlgCashflowOptions: TdlgCashflowOptions
       end
       object PnlContainer: TPanel
         Left = 0
-        Top = 281
+        Top = 279
         Width = 624
         Height = 57
         Align = alTop
         BevelOuter = bvNone
         Caption = ' '
         TabOrder = 5
+        ExplicitTop = 281
         object Bevel4: TBevel
           Left = 0
           Top = 55
@@ -589,10 +589,22 @@ object dlgCashflowOptions: TdlgCashflowOptions
         object pnlInclude: TPanel
           Left = 0
           Top = 0
-          Width = 352
-          Height = 55
+          Width = 301
+          Height = 57
+          Align = alLeft
           BevelOuter = bvNone
           TabOrder = 0
+          ExplicitHeight = 59
+          object Bevel7: TBevel
+            Left = -322
+            Top = 0
+            Width = 623
+            Height = 57
+            Align = alRight
+            Shape = bsRightLine
+            ExplicitTop = 33
+            ExplicitHeight = 10
+          end
           object chkIncludeQuantity: TCheckBox
             Left = 8
             Top = 30
@@ -610,9 +622,9 @@ object dlgCashflowOptions: TdlgCashflowOptions
             TabOrder = 0
           end
           object chkGSTInclusive: TCheckBox
-            Left = 200
+            Left = 175
             Top = 7
-            Width = 150
+            Width = 121
             Height = 17
             Caption = '&GST Inclusive'
             TabOrder = 2
@@ -660,7 +672,6 @@ object dlgCashflowOptions: TdlgCashflowOptions
     object tbsAdvanced: TTabSheet
       Caption = '&Advanced'
       ImageIndex = 1
-      ExplicitHeight = 419
       object pnlAdvAccounts: TPanel
         Left = 0
         Top = 4
@@ -699,7 +710,6 @@ object dlgCashflowOptions: TdlgCashflowOptions
     object tbsDivisions: TTabSheet
       Caption = 'Divisions'
       ImageIndex = 2
-      ExplicitHeight = 419
       object Panel1: TPanel
         Left = 0
         Top = 4

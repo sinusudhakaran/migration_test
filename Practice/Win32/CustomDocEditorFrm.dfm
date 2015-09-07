@@ -21,16 +21,25 @@ object frmCustomDocEditor: TfrmCustomDocEditor
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Panel1: TPanel
+  object pnlControls: TPanel
     Left = 0
     Top = 530
     Width = 774
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       774
       41)
+    object Shape1: TShape
+      Left = 0
+      Top = 0
+      Width = 774
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnSave: TButton
       Left = 609
       Top = 8
@@ -375,7 +384,7 @@ object frmCustomDocEditor: TfrmCustomDocEditor
           end
           inherited ActImages: TImageList
             Bitmap = {
-              494C0101110014001C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+              494C010111001400200010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
               0000000000003600000028000000400000005000000001002000000000000050
               0000000000000000000000000000000000000000000000000000000000000000
               0000000000000000000000000000000000000000000000000000000000000000
@@ -1073,7 +1082,7 @@ object frmCustomDocEditor: TfrmCustomDocEditor
     Left = 249
     Top = 2
     Bitmap = {
-      494C010103000400180010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101030004001C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

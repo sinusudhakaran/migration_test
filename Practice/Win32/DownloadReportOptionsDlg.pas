@@ -19,10 +19,6 @@ const
 type
   TdlgDownloadReportOptions = class(TForm)
     Label2: TLabel;
-    btnPreview: TButton;
-    btnFile: TButton;
-    btnCancel: TButton;
-    btnPrint: TButton;
     chkHideDeleted: TCheckBox;
     Panel1: TPanel;
     chkActive: TCheckBox;
@@ -33,6 +29,13 @@ type
     btnAll: TButton;
     btnClear: TButton;
     chkAll: TCheckBox;
+    Panel2: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
+    btnCancel: TButton;
+    btnPrint: TButton;
+    ShapeBorder: TShape;
+    ShapeBottom: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

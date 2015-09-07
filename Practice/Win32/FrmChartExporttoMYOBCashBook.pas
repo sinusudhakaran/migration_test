@@ -64,8 +64,6 @@ type
 
   //------------------------------------------------------------------------------
   TFrmChartExportToMYOBCashBook = class(TForm)
-    btnOk: TButton;
-    btnCancel: TButton;
     SaveDialog: TSaveDialog;
     pnlMain: TPanel;
     lblExportText: TLabel;
@@ -78,6 +76,10 @@ type
     btnToFolder: TSpeedButton;
     OvcController: TOvcController;
     dteClosingBalanceDate: TOvcPictureField;
+    pnlControls: TPanel;
+    btnCancel: TButton;
+    btnOk: TButton;
+    ShapeBorder: TShape;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure chkIncludeClosingBalancesClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);

@@ -12,13 +12,15 @@ type
   TdlgEnterPwd = class(TForm)
     lblPassword: TLabel;
     ePassword: TEdit;
-    btnOK: TButton;
-    btnCancel: TButton;
     Label2: TLabel;
     lblSupportMsg: TLabel;
     stCode: TStaticText;
     Panel1: TPanel;
     lblCaption: TLabel;
+    pnlControls: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure ePasswordKeyPress(Sender: TObject; var Key: Char);
     procedure ePasswordKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);

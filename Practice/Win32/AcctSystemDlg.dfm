@@ -3,9 +3,9 @@ object dlgAcctSystem: TdlgAcctSystem
   Top = 83
   BorderStyle = bsDialog
   Caption = 'Maintain Accounting System'
-  ClientHeight = 540
+  ClientHeight = 550
   ClientWidth = 520
-  Color = clBtnFace
+  Color = clWindow
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -15,33 +15,8 @@ object dlgAcctSystem: TdlgAcctSystem
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
-  DesignSize = (
-    520
-    540)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnOk: TButton
-    Left = 356
-    Top = 510
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&OK'
-    Default = True
-    TabOrder = 6
-    OnClick = btnOkClick
-  end
-  object btnCancel: TButton
-    Left = 437
-    Top = 510
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 7
-    OnClick = btnCancelClick
-  end
   object gbType: TGroupBox
     AlignWithMargins = True
     Left = 8
@@ -397,14 +372,63 @@ object dlgAcctSystem: TdlgAcctSystem
       OnChange = cmbWebFormatsChange
     end
   end
-  object btndefault: TButton
-    Left = 8
-    Top = 510
-    Width = 108
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = '&Load Default'
+  object pnlControls: TPanel
+    Left = 0
+    Top = 509
+    Width = 520
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
     TabOrder = 5
-    OnClick = btndefaultClick
+    ExplicitLeft = 8
+    ExplicitTop = 512
+    ExplicitWidth = 513
+    DesignSize = (
+      520
+      41)
+    object Shape1: TShape
+      Left = 0
+      Top = 0
+      Width = 520
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btndefault: TButton
+      Left = 0
+      Top = 8
+      Width = 108
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = '&Load Default'
+      TabOrder = 0
+      OnClick = btndefaultClick
+    end
+    object btnOk: TButton
+      Left = 355
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      Default = True
+      TabOrder = 1
+      OnClick = btnOkClick
+      ExplicitLeft = 348
+    end
+    object btnCancel: TButton
+      Left = 436
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 2
+      OnClick = btnCancelClick
+      ExplicitLeft = 429
+    end
   end
 end

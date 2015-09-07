@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,
-  OsFont;
+  OsFont, ExtCtrls;
 
 type
   TlaReportOptions = record
@@ -15,15 +15,16 @@ type
 
 type
   TdlgAdminAccountOptions = class(TForm)
-    btnPreview: TButton;
-    btnFile: TButton;
-    btnCancel: TButton;
-    btnPrint: TButton;
-    GroupBox1: TGroupBox;
+    gbOptions: TGroupBox;
     chkIncludeDeleted: TCheckBox;
     GBInactive: TGroupBox;
     CBdates: TComboBox;
     Label1: TLabel;
+    Panel1: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
+    btnPrint: TButton;
+    btnCancel: TButton;
 
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);

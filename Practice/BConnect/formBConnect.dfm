@@ -37,8 +37,7 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
       Align = alRight
       BackColor = clBtnFace
       BarStyle = bsLED
-      BorderInner = fsStatus
-      BorderOuter = fsNone
+      BorderOuter = fsGroove
       BorderWidth = 1
       InteriorOffset = 1
       ParentShowHint = False
@@ -48,6 +47,7 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
       ShowPercent = False
       ThemeAware = False
       TotalParts = 0
+      ExplicitHeight = 20
     end
     object lblStatus: TRzStatusPane
       Left = 0
@@ -124,16 +124,23 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
       Width = 418
       Height = 240
       Align = alClient
-      BevelInner = bvLowered
+      BevelOuter = bvNone
       Color = clWindow
       ParentBackground = False
       TabOrder = 0
-      ExplicitTop = 184
-      ExplicitHeight = 159
+      object ShapeRight: TShape
+        Left = 417
+        Top = 138
+        Width = 1
+        Height = 102
+        Align = alRight
+        Pen.Color = clSilver
+        ExplicitLeft = 416
+      end
       object pnlInformation: TPanel
-        Left = 2
-        Top = 2
-        Width = 414
+        Left = 0
+        Top = 0
+        Width = 418
         Height = 138
         Align = alTop
         BevelOuter = bvNone
@@ -141,17 +148,21 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
         Ctl3D = False
         ParentCtl3D = False
         TabOrder = 0
+        ExplicitLeft = 2
+        ExplicitTop = 2
+        ExplicitWidth = 414
         DesignSize = (
-          414
+          418
           138)
         object Shape1: TShape
           Left = 9
           Top = 11
-          Width = 397
+          Width = 401
           Height = 118
           Anchors = [akLeft, akTop, akRight]
           Brush.Color = clBtnFace
           Pen.Color = clBtnShadow
+          ExplicitWidth = 397
         end
         object lblTransferredText: TLabel
           Left = 45
@@ -201,12 +212,32 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
           Caption = '0:00:00'
           Transparent = True
         end
+        object Shape2: TShape
+          Left = 417
+          Top = 1
+          Width = 1
+          Height = 137
+          Align = alRight
+          Pen.Color = clSilver
+          ExplicitLeft = 416
+          ExplicitTop = 0
+          ExplicitHeight = 138
+        end
+        object Shape3: TShape
+          Left = 0
+          Top = 0
+          Width = 418
+          Height = 1
+          Align = alTop
+          Pen.Color = clSilver
+          ExplicitWidth = 582
+        end
       end
       object pnlError: TPanel
-        Left = 2
-        Top = 140
-        Width = 414
-        Height = 98
+        Left = 0
+        Top = 138
+        Width = 417
+        Height = 102
         Align = alClient
         BevelOuter = bvNone
         Color = clWindow
@@ -214,11 +245,15 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
         ParentCtl3D = False
         TabOrder = 1
         Visible = False
+        ExplicitLeft = 2
+        ExplicitTop = 140
+        ExplicitWidth = 414
+        ExplicitHeight = 98
         object imgError: TImage
           Left = 0
           Top = 0
           Width = 40
-          Height = 98
+          Height = 102
           Align = alLeft
           AutoSize = True
           Picture.Data = {
@@ -308,35 +343,41 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
             0707070707070707070707070707070707070707070707070707070707070707
             0707}
           Transparent = True
+          ExplicitHeight = 98
         end
         object pnlError2: TPanel
           Left = 40
           Top = 0
-          Width = 374
-          Height = 98
+          Width = 377
+          Height = 102
           Align = alClient
           BevelOuter = bvNone
           Color = clWindow
           TabOrder = 0
+          ExplicitWidth = 374
+          ExplicitHeight = 98
           object lblError: TLabel
             Left = 0
             Top = 0
-            Width = 374
+            Width = 377
             Height = 17
             Align = alTop
             AutoSize = False
             Caption = ' Error(s)'
+            ExplicitWidth = 374
           end
           object lbErrors: TRzListBox
             Left = 0
             Top = 17
-            Width = 374
-            Height = 81
+            Width = 377
+            Height = 85
             Align = alClient
             BorderStyle = bsNone
             ItemHeight = 13
             TabOrder = 0
             OnDblClick = lbErrorsDblClick
+            ExplicitWidth = 374
+            ExplicitHeight = 81
           end
         end
       end
@@ -347,14 +388,12 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
       Width = 164
       Height = 240
       Align = alRight
-      BevelInner = bvLowered
+      BevelOuter = bvNone
       Color = clWindow
       Ctl3D = False
       ParentBackground = False
       ParentCtl3D = False
       TabOrder = 1
-      ExplicitTop = 184
-      ExplicitHeight = 159
       object lblStep1: TLabel
         Left = 34
         Top = 16
@@ -394,6 +433,15 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
         Height = 13
         Caption = 'Complete'
         Transparent = True
+      end
+      object Shape4: TShape
+        Left = 0
+        Top = 0
+        Width = 164
+        Height = 1
+        Align = alTop
+        Pen.Color = clSilver
+        ExplicitWidth = 582
       end
       object imgStep1: TRzAnimator
         Left = 10
@@ -464,9 +512,18 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
     Align = alBottom
     BorderOuter = fsNone
     TabOrder = 2
+    ExplicitTop = 337
     DesignSize = (
       582
       41)
+    object ShapeBottomBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 582
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnSettings: TButton
       Left = 8
       Top = 8
@@ -553,7 +610,7 @@ object frmBConnectHTTPS: TfrmBConnectHTTPS
     Left = 240
     Top = 98
     Bitmap = {
-      494C010103000400080010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101030004000C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

@@ -16,7 +16,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, ExtCtrls;
 
 const
   asAdoptClient = 1;
@@ -25,9 +25,11 @@ const
 type
   TAdoptOrSyncFrm = class(TForm)
     Label1: TLabel;
+    Panel1: TPanel;
     btnAdopt: TButton;
     btnSync: TButton;
     btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure btnCancelClick(Sender: TObject);
     procedure btnAdoptClick(Sender: TObject);
     procedure btnSyncClick(Sender: TObject);

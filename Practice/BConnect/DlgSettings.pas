@@ -72,6 +72,7 @@ type
     lblTimeout: TLabel;
     rnTimeout: TRzNumericEdit;
     chkUseCustomConfiguration: TCheckBox;
+    ShapeBottom: TShape;
     procedure dbtnButtonsClickOk(Sender: TObject);
     procedure dbtnButtonsClickCancel(Sender: TObject);
     procedure chkUseProxyClick(Sender: TObject);

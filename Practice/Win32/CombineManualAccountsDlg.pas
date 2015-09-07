@@ -9,8 +9,6 @@ uses
 
 type
   TDlgCombineManualAccounts = class(TForm)
-    btnOK: TButton;
-    btnCancel: TButton;
     lblInstructions: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -29,6 +27,10 @@ type
     lblDFrom: TLabel;
     lblDateTo: TLabel;
     lblDTo: TLabel;
+    pnlControls: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure cmbBankAccountsSelect(Sender: TObject);

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ClientSelectFme, DateSelectorFme, StdCtrls, ReportDefs,
-  OSFont;
+  OSFont, ExtCtrls;
 
 type
   TCodingOptimisationOptions = class(TObject)
@@ -31,12 +31,14 @@ type
   end;
 
   TdlgCodingOptimisationReportRange = class(TForm)
+    DateSelector: TfmeDateSelector;
+    ClientSelect: TFmeClientSelect;
+    pnlControls: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnPrint: TButton;
     btnCancel: TButton;
-    DateSelector: TfmeDateSelector;
-    ClientSelect: TFmeClientSelect;
+    ShapeBorder: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

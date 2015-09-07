@@ -6,9 +6,9 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   Caption = 
     'Export {ClientCode}'#39's Chart of Accounts to MYOB Essentials Cashb' +
     'ook'
-  ClientHeight = 316
+  ClientHeight = 334
   ClientWidth = 652
-  Color = clBtnFace
+  Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -21,55 +21,21 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
   OnCreate = FormCreate
   DesignSize = (
     652
-    316)
+    334)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnOk: TButton
-    Left = 488
-    Top = 283
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&OK'
-    Default = True
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ModalResult = 1
-    ParentFont = False
-    TabOrder = 0
-    OnClick = btnOkClick
-  end
-  object btnCancel: TButton
-    Left = 569
-    Top = 283
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ModalResult = 2
-    ParentFont = False
-    TabOrder = 1
-  end
   object pnlMain: TPanel
     Left = 8
     Top = 8
     Width = 636
-    Height = 269
+    Height = 271
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
-    TabOrder = 2
+    TabOrder = 0
+    ExplicitHeight = 291
     object lblExportText: TLabel
       Left = 20
       Top = 16
@@ -177,7 +143,7 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       Left = 112
       Top = 214
       Width = 467
-      Height = 19
+      Height = 22
       Ctl3D = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -225,12 +191,74 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       RangeLow = {00000000000000000000}
     end
   end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 290
+    Width = 652
+    Height = 44
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 1
+    ExplicitTop = 368
+    DesignSize = (
+      652
+      44)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 652
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnCancel: TButton
+      Left = 569
+      Top = 11
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ModalResult = 2
+      ParentFont = False
+      TabOrder = 0
+      ExplicitLeft = 538
+      ExplicitTop = 8
+    end
+    object btnOk: TButton
+      Left = 488
+      Top = 11
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      Default = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ModalResult = 1
+      ParentFont = False
+      TabOrder = 1
+      OnClick = btnOkClick
+      ExplicitLeft = 457
+      ExplicitTop = 8
+    end
+  end
   object SaveDialog: TSaveDialog
     DefaultExt = 'csv'
     Filter = 'Comma Separated (CSV)|*.CSV'
     Title = 'Save Entries to'
     Left = 456
-    Top = 280
+    Top = 144
   end
   object OvcController: TOvcController
     EntryCommands.TableList = (
@@ -245,6 +273,6 @@ object FrmChartExporttoMYOBCashBook: TFrmChartExporttoMYOBCashBook
       ())
     Epoch = 1900
     Left = 424
-    Top = 280
+    Top = 144
   end
 end

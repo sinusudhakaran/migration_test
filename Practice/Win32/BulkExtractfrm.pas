@@ -30,6 +30,7 @@ type
     btnSetup: TButton;
     DateSelector: TfmeDateSelector;
     ClientSelect: TFmeClientSelect;
+    ShapeBorder: TShape;
     procedure btnOKClick(Sender: TObject);
     procedure btnSetupClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);

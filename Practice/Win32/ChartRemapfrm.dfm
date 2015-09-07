@@ -1,12 +1,12 @@
 object frmRemapChart: TfrmRemapChart
   Left = 0
   Top = 0
-  ActiveControl = EGstFile
+  ActiveControl = eChartFile
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'frmRemapChart'
   ClientHeight = 467
   ClientWidth = 791
-  Color = clBtnFace
+  Color = clWindow
   Constraints.MinHeight = 200
   Constraints.MinWidth = 400
   DefaultMonitor = dmMainForm
@@ -28,10 +28,20 @@ object frmRemapChart: TfrmRemapChart
     Width = 791
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 0
     DesignSize = (
       791
       41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 791
+      Height = 0
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnCancel: TButton
       Left = 710
       Top = 8
@@ -58,22 +68,19 @@ object frmRemapChart: TfrmRemapChart
     Top = 0
     Width = 791
     Height = 426
-    ActivePage = tsGST
+    ActivePage = tsChart
     Align = alClient
     TabOrder = 1
     object tsChart: TTabSheet
       Caption = 'Chart'
       OnShow = tsChartShow
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ChartGrid: TVirtualStringTree
         Left = 0
         Top = 65
         Width = 783
         Height = 333
         Align = alClient
+        BorderStyle = bsNone
         EditDelay = 300
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET
@@ -140,6 +147,15 @@ object frmRemapChart: TfrmRemapChart
           Width = 77
           Height = 13
           Caption = 'Chart remap file'
+        end
+        object Shape1: TShape
+          Left = 0
+          Top = 64
+          Width = 783
+          Height = 1
+          Align = alBottom
+          Pen.Color = clSilver
+          ExplicitTop = 63
         end
         object eChartFile: TEdit
           Left = 112
@@ -223,6 +239,7 @@ object frmRemapChart: TfrmRemapChart
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
+        ExplicitTop = -6
         DesignSize = (
           783
           65)
@@ -232,6 +249,15 @@ object frmRemapChart: TfrmRemapChart
           Width = 72
           Height = 13
           Caption = 'Gst renmap file'
+        end
+        object ShapeBottom: TShape
+          Left = 0
+          Top = 64
+          Width = 783
+          Height = 1
+          Align = alBottom
+          Pen.Color = clSilver
+          ExplicitTop = 63
         end
         object btnGSTChart: TBitBtn
           Left = 664
@@ -308,6 +334,7 @@ object frmRemapChart: TfrmRemapChart
         Width = 783
         Height = 333
         Align = alClient
+        BorderStyle = bsNone
         EditDelay = 300
         Header.AutoSizeIndex = 0
         Header.Font.Charset = DEFAULT_CHARSET

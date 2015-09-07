@@ -91,6 +91,9 @@ type
     btnGSTSave: TButton;
     btnGSTSaveAs: TButton;
     SaveDlg: TSaveDialog;
+    ShapeBorder: TShape;
+    ShapeBottom: TShape;
+    Shape1: TShape;
     procedure btnChartBrowseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnChartClick(Sender: TObject);

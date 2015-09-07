@@ -48,6 +48,7 @@ type
     Bevel2: TBevel;
     lh1: TLabel;
     ChkHFEnabled: TCheckBox;
+    ShapeBorder: TShape;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
@@ -58,6 +59,7 @@ type
     procedure btnStyleClick(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure TcSectionChange(Sender: TObject);
+    procedure lh1Click(Sender: TObject);
   private
 
     FReportType: TReportType;
@@ -524,6 +526,11 @@ begin //hf_HeaderFirst, hf_HeaderAll, hf_FooterAll, hf_FooterLast
    2 : Result := hf_HeaderFirst;
    else Result := hf_FooterLast;
    end;
+end;
+
+procedure TReportOptionDlg.lh1Click(Sender: TObject);
+begin
+
 end;
 
 (*

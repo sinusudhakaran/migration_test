@@ -55,6 +55,10 @@ type
     btnSave: TBitBtn;
     Button1: TButton;
     btnEmail: TButton;
+    ShapeTop: TShape;
+    ShapeMiddle: TShape;
+    ShapeBottom: TShape;
+    ShapeBorder: TShape;
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -77,6 +81,7 @@ type
     procedure eDateSelectoreDateFromChange(Sender: TObject);
     procedure eDateSelectoreDateToChange(Sender: TObject);
     procedure btnEmailClick(Sender: TObject);
+    procedure pnldatesClick(Sender: TObject);
   private
     { Private declarations }
     FDateFrom,
@@ -184,6 +189,11 @@ begin
    eDateSelector.eDateTo.asStDate   := BkNull2St(gCodingDateTo);
    UpdateRange;
 end;
+procedure TdlgCodeDateCheque.pnldatesClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 {dialog routines}
 procedure TdlgCodeDateCheque.btnOKClick(Sender: TObject);

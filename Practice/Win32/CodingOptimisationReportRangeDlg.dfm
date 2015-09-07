@@ -3,60 +3,15 @@ object dlgCodingOptimisationReportRange: TdlgCodingOptimisationReportRange
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Coding Optimisation Report'
-  ClientHeight = 259
-  ClientWidth = 644
-  Color = clBtnFace
+  ClientHeight = 262
+  ClientWidth = 634
+  Color = clWindow
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
-  DesignSize = (
-    644
-    259)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnPreview: TButton
-    Left = 12
-    Top = 226
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Previe&w'
-    Default = True
-    TabOrder = 2
-    OnClick = btnPreviewClick
-  end
-  object btnFile: TButton
-    Left = 92
-    Top = 226
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Fil&e'
-    TabOrder = 3
-    OnClick = btnFileClick
-  end
-  object btnPrint: TButton
-    Left = 477
-    Top = 229
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Print'
-    TabOrder = 4
-    OnClick = btnPrintClick
-  end
-  object btnCancel: TButton
-    Left = 561
-    Top = 229
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 5
-    OnClick = btnCancelClick
-  end
   inline DateSelector: TfmeDateSelector
     Left = 19
     Top = 8
@@ -101,6 +56,76 @@ object dlgCodingOptimisationReportRange: TdlgCodingOptimisationReportRange
       inherited btnFromLookup: TSpeedButton
         OnClick = ClientSelectbtnFromLookupClick
       end
+    end
+  end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 221
+    Width = 634
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 2
+    ExplicitLeft = 16
+    ExplicitTop = 216
+    ExplicitWidth = 620
+    DesignSize = (
+      634
+      41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 634
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 644
+    end
+    object btnPreview: TButton
+      Left = 8
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Previe&w'
+      Default = True
+      TabOrder = 0
+      OnClick = btnPreviewClick
+    end
+    object btnFile: TButton
+      Left = 88
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Fil&e'
+      TabOrder = 1
+      OnClick = btnFileClick
+    end
+    object btnPrint: TButton
+      Left = 472
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&Print'
+      TabOrder = 2
+      OnClick = btnPrintClick
+      ExplicitLeft = 482
+    end
+    object btnCancel: TButton
+      Left = 553
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 3
+      OnClick = btnCancelClick
+      ExplicitLeft = 563
     end
   end
 end

@@ -13,6 +13,7 @@ type
     Memo1: TMemo;
     btnCancel: TButton;
     btnLog: TButton;
+    ShapeBorder: TShape;
     procedure btnLogClick(Sender: TObject);
   private
     { Private declarations }

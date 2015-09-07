@@ -5,7 +5,7 @@ object AdoptOrSyncFrm: TAdoptOrSyncFrm
   Caption = 'Adopt or Synchronise?'
   ClientHeight = 224
   ClientWidth = 497
-  Color = clBtnFace
+  Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
@@ -14,9 +14,6 @@ object AdoptOrSyncFrm: TAdoptOrSyncFrm
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
-  DesignSize = (
-    497
-    224)
   PixelsPerInch = 96
   TextHeight = 16
   object Label1: TLabel
@@ -34,37 +31,65 @@ object AdoptOrSyncFrm: TAdoptOrSyncFrm
       'your practice.'
     WordWrap = True
   end
-  object btnAdopt: TButton
-    Left = 140
-    Top = 191
-    Width = 121
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Adopt'
-    ModalResult = 1
+  object Panel1: TPanel
+    Left = 0
+    Top = 183
+    Width = 497
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
     TabOrder = 0
-    OnClick = btnAdoptClick
-  end
-  object btnSync: TButton
-    Left = 276
-    Top = 191
-    Width = 121
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Synchronise'
-    TabOrder = 1
-    OnClick = btnSyncClick
-  end
-  object btnCancel: TButton
-    Left = 414
-    Top = 191
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 2
-    OnClick = btnCancelClick
+    ExplicitLeft = 8
+    ExplicitTop = 175
+    ExplicitWidth = 489
+    DesignSize = (
+      497
+      41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 497
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnAdopt: TButton
+      Left = 140
+      Top = 8
+      Width = 121
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Adopt'
+      ModalResult = 1
+      TabOrder = 0
+      OnClick = btnAdoptClick
+      ExplicitLeft = 132
+    end
+    object btnSync: TButton
+      Left = 276
+      Top = 8
+      Width = 121
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Synchronise'
+      TabOrder = 1
+      OnClick = btnSyncClick
+      ExplicitLeft = 268
+    end
+    object btnCancel: TButton
+      Left = 414
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 2
+      OnClick = btnCancelClick
+      ExplicitLeft = 406
+    end
   end
 end

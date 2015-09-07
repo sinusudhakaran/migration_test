@@ -3,9 +3,9 @@ object dlgExtract: TdlgExtract
   Top = 200
   BorderStyle = bsDialog
   Caption = 'Extract Data'
-  ClientHeight = 329
+  ClientHeight = 368
   ClientWidth = 538
-  Color = clBtnFace
+  Color = clWindow
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -14,9 +14,6 @@ object dlgExtract: TdlgExtract
   OnCreate = FormCreate
   OnShortCut = FormShortCut
   OnShow = FormShow
-  DesignSize = (
-    538
-    329)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMessage: TLabel
@@ -47,28 +44,6 @@ object dlgExtract: TdlgExtract
     AutoSize = False
     Caption = 'lblData'
     WordWrap = True
-  end
-  object btnOk: TButton
-    Left = 377
-    Top = 298
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&OK'
-    Default = True
-    TabOrder = 3
-    OnClick = btnOkClick
-  end
-  object btnCancel: TButton
-    Left = 457
-    Top = 298
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 4
-    OnClick = btnCancelClick
   end
   object chkNewFormat: TCheckBox
     Left = 26
@@ -192,6 +167,52 @@ object dlgExtract: TdlgExtract
         Caption = 'lblLedgerCodeToUse'
         ShowAccelChar = False
       end
+    end
+  end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 327
+    Width = 538
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 3
+    ExplicitTop = 328
+    ExplicitWidth = 371
+    DesignSize = (
+      538
+      41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 538
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnOk: TButton
+      Left = 378
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      Default = True
+      TabOrder = 0
+      OnClick = btnOkClick
+    end
+    object btnCancel: TButton
+      Left = 459
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 1
+      OnClick = btnCancelClick
     end
   end
   object SaveDialog1: TSaveDialog

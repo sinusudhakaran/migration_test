@@ -4,9 +4,9 @@ object dlgExportToECoding: TdlgExportToECoding
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Export Entries to eCoding File'
-  ClientHeight = 546
+  ClientHeight = 559
   ClientWidth = 546
-  Color = clBtnFace
+  Color = clWindow
   DefaultMonitor = dmMainForm
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,41 +20,15 @@ object dlgExportToECoding: TdlgExportToECoding
   OnCreate = FormCreate
   OnShortCut = FormShortCut
   OnShow = FormShow
-  DesignSize = (
-    546
-    546)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnOk: TButton
-    Left = 382
-    Top = 516
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&OK'
-    Default = True
-    TabOrder = 0
-    OnClick = btnOkClick
-  end
-  object btnCancel: TButton
-    Left = 462
-    Top = 516
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 1
-    OnClick = btnCancelClick
-  end
   object pcMain: TPageControl
     Left = 0
     Top = 0
     Width = 537
     Height = 510
     ActivePage = tsOptions
-    TabOrder = 2
+    TabOrder = 0
     object tsOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 1
@@ -70,7 +44,7 @@ object dlgExportToECoding: TdlgExportToECoding
         TabOrder = 1
         inline ecExportOptions: TfmeECodingExport
           Left = 2
-          Top = 5
+          Top = 6
           Width = 508
           Height = 329
           Margins.Left = 0
@@ -80,7 +54,7 @@ object dlgExportToECoding: TdlgExportToECoding
           TabOrder = 0
           TabStop = True
           ExplicitLeft = 2
-          ExplicitTop = 5
+          ExplicitTop = 6
           ExplicitWidth = 508
           ExplicitHeight = 329
           inherited edtPassword: TEdit
@@ -170,6 +144,7 @@ object dlgExportToECoding: TdlgExportToECoding
         Width = 512
         Height = 50
         TabOrder = 2
+        OnClick = GbFilenameClick
         object Label6: TLabel
           Left = 12
           Top = 20
@@ -249,10 +224,55 @@ object dlgExportToECoding: TdlgExportToECoding
       end
     end
   end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 518
+    Width = 546
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 1
+    DesignSize = (
+      546
+      41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 546
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnOk: TButton
+      Left = 381
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      Default = True
+      TabOrder = 0
+      OnClick = btnOkClick
+    end
+    object btnCancel: TButton
+      Left = 462
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+      OnClick = btnCancelClick
+    end
+  end
   object SaveDialog1: TSaveDialog
     Filter = 'All Files (*.*)|*.*'
     Title = 'Save Entries To'
-    Left = 368
-    Top = 392
+    Left = 416
+    Top = 272
   end
 end

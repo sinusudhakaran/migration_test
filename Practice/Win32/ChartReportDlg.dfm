@@ -5,7 +5,7 @@ object DlgChartReport: TDlgChartReport
   Caption = 'List Chart of Accounts'
   ClientHeight = 195
   ClientWidth = 494
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -45,16 +45,20 @@ object DlgChartReport: TDlgChartReport
     Width = 494
     Height = 45
     Align = alBottom
+    BevelOuter = bvNone
     Caption = ' '
+    ParentBackground = False
     TabOrder = 2
-    ExplicitTop = 186
     object Shape1: TShape
-      Left = 1
-      Top = 1
-      Width = 492
+      Left = 0
+      Top = 0
+      Width = 494
       Height = 1
       Align = alTop
       Pen.Color = clSilver
+      ExplicitLeft = 1
+      ExplicitTop = 1
+      ExplicitWidth = 492
     end
     object btnPreview: TButton
       Left = 6

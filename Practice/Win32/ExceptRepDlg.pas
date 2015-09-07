@@ -39,10 +39,6 @@ const
 
 type
   TdlgExceptRpt = class(TForm)
-    btnOK: TButton;
-    btnCancel: TButton;
-    btnPreview: TButton;
-    btnFile: TButton;
     Panel1: TPanel;
     chkGST: TCheckBox;
     Panel2: TPanel;
@@ -62,8 +58,17 @@ type
     cmbBudget: TComboBox;
     Label2: TLabel;
     Label4: TLabel;
-    btnSave: TBitBtn;
+    pnlBottomControls: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
     btnEmail: TButton;
+    btnSave: TBitBtn;
+    btnOK: TButton;
+    btnCancel: TButton;
+    Shapebottom: TShape;
+    ShapeBorderTop: TShape;
+    Shape1: TShape;
+    Shape2: TShape;
 
     procedure edtFinancialYearStartDateChange(Sender: TObject);
     procedure edtFinancialYearStartDateKeyDown(Sender: TObject; var Key: Word;

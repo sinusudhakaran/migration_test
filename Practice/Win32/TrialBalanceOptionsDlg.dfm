@@ -5,7 +5,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   Caption = 'Trial Balance Report'
   ClientHeight = 223
   ClientWidth = 504
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -13,9 +13,6 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   Scaled = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  DesignSize = (
-    504
-    223)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -39,15 +36,6 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     Height = 13
     Alignment = taRightJustify
     Caption = 'This last period of  CODED data is Dec 1998'
-  end
-  object BevelBorder: TBevel
-    Left = 0
-    Top = 182
-    Width = 510
-    Height = 5
-    Anchors = [akLeft, akBottom]
-    Shape = bsTopLine
-    ExplicitTop = 190
   end
   object cmbStartMonth: TComboBox
     Left = 156
@@ -96,16 +84,28 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 188
+    Top = 180
     Width = 504
-    Height = 35
+    Height = 43
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 5
-    ExplicitTop = 196
+    DesignSize = (
+      504
+      43)
+    object BevelBorder: TBevel
+      Left = -6
+      Top = 1
+      Width = 510
+      Height = 5
+      Anchors = [akLeft, akBottom]
+      Shape = bsTopLine
+      ExplicitTop = 3
+    end
     object btnPrint: TButton
       Left = 335
-      Top = 4
+      Top = 10
       Width = 75
       Height = 25
       Caption = '&Print'
@@ -115,7 +115,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     end
     object btnCancel: TButton
       Left = 416
-      Top = 4
+      Top = 10
       Width = 75
       Height = 25
       Cancel = True
@@ -126,7 +126,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     end
     object btnPreview: TButton
       Left = 12
-      Top = 4
+      Top = 10
       Width = 75
       Height = 25
       Caption = 'Pre&view'
@@ -136,7 +136,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     end
     object btnFile: TButton
       Left = 92
-      Top = 4
+      Top = 10
       Width = 75
       Height = 25
       Caption = 'Fil&e'
@@ -145,7 +145,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     end
     object btnSave: TBitBtn
       Left = 254
-      Top = 4
+      Top = 10
       Width = 75
       Height = 25
       Caption = 'Sa&ve'
@@ -154,7 +154,7 @@ object dlgTrialBalanceOptions: TdlgTrialBalanceOptions
     end
     object btnEmail: TButton
       Left = 173
-      Top = 4
+      Top = 10
       Width = 75
       Height = 25
       Caption = 'E&mail'

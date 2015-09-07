@@ -6,7 +6,7 @@ object dlgAdminOptions: TdlgAdminOptions
   Caption = 'System Options'
   ClientHeight = 471
   ClientWidth = 618
-  Color = clBtnFace
+  Color = clWhite
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
@@ -19,15 +19,24 @@ object dlgAdminOptions: TdlgAdminOptions
   TextHeight = 13
   object pnlButtons: TPanel
     Left = 0
-    Top = 437
+    Top = 431
     Width = 618
-    Height = 34
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 0
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 618
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnOK: TButton
       Left = 456
-      Top = 4
+      Top = 9
       Width = 75
       Height = 25
       Caption = 'OK'
@@ -37,7 +46,7 @@ object dlgAdminOptions: TdlgAdminOptions
     end
     object btnCancel: TButton
       Left = 536
-      Top = 4
+      Top = 9
       Width = 75
       Height = 25
       Cancel = True

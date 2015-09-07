@@ -17,7 +17,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, DateSelectorFme, Menus,
-  OSFont;
+  OSFont, ExtCtrls;
 
 type
    TStatusRepOptions = record
@@ -37,12 +37,14 @@ type
     rbClient: TRadioButton;
     rbStaffMember: TRadioButton;
     Label1: TLabel;
-    btnCancel: TButton;
+    Label2: TLabel;
+    DateSelector: TfmeDateSelector;
+    pnlControls: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnPrint: TButton;
-    Label2: TLabel;
-    DateSelector: TfmeDateSelector;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
 
     procedure rbClientClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);

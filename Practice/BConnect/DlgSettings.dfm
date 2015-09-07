@@ -6,7 +6,7 @@ object dlgSettings: TdlgSettings
   Caption = 'Settings'
   ClientHeight = 421
   ClientWidth = 442
-  Color = clBtnFace
+  Color = clWhite
   Constraints.MaxWidth = 450
   Constraints.MinWidth = 448
   DefaultMonitor = dmMainForm
@@ -34,6 +34,14 @@ object dlgSettings: TdlgSettings
     ParentShowHint = False
     ShowHint = False
     TabOrder = 2
+    object ShapeBottom: TShape
+      Left = 0
+      Top = 0
+      Width = 442
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
   end
   object pnlAdvanced: TRzPanel
     Left = 0
@@ -42,7 +50,9 @@ object dlgSettings: TdlgSettings
     Height = 260
     Align = alClient
     BorderOuter = fsNone
+    BorderColor = clWhite
     BorderWidth = 3
+    ParentColor = True
     TabOrder = 1
     Visible = False
     object gbAdvancedSettings: TGroupBox
@@ -60,6 +70,7 @@ object dlgSettings: TdlgSettings
         Height = 22
         Align = alTop
         BorderOuter = fsNone
+        ParentColor = True
         TabOrder = 0
         object chkUseWinINet: TCheckBox
           Left = 8
@@ -67,6 +78,8 @@ object dlgSettings: TdlgSettings
           Width = 393
           Height = 17
           Caption = 'Use Microsoft Windows Internet Settings'
+          Color = clWhite
+          ParentColor = False
           TabOrder = 0
           OnClick = chkUseWinINetClick
         end
@@ -336,7 +349,9 @@ object dlgSettings: TdlgSettings
     Height = 125
     Align = alTop
     BorderOuter = fsNone
+    BorderColor = clWhite
     BorderWidth = 3
+    ParentColor = True
     TabOrder = 0
     object gbPrimaryServer: TGroupBox
       Left = 3
@@ -345,6 +360,9 @@ object dlgSettings: TdlgSettings
       Height = 119
       Align = alClient
       Caption = ' Settings '
+      Color = clWhite
+      ParentBackground = False
+      ParentColor = False
       TabOrder = 0
       DesignSize = (
         436

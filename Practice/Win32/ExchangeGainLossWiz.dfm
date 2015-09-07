@@ -5,7 +5,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   Caption = 'Calculate Exchange Gain/Loss Wizard'
   ClientHeight = 488
   ClientWidth = 744
-  Color = clBtnFace
+  Color = clWindow
   Constraints.MinHeight = 526
   Constraints.MinWidth = 760
   ParentFont = True
@@ -20,15 +20,16 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
   TextHeight = 13
   object pnlButtons: TPanel
     Left = 0
-    Top = 446
+    Top = 450
     Width = 744
-    Height = 42
+    Height = 38
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 2
     DesignSize = (
       744
-      42)
+      38)
     object Bevel1: TBevel
       Left = 0
       Top = 0
@@ -39,8 +40,8 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       ExplicitWidth = 622
     end
     object btnBack: TButton
-      Left = 490
-      Top = 12
+      Left = 499
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -48,10 +49,11 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Enabled = False
       TabOrder = 0
       OnClick = btnBackClick
+      ExplicitTop = 12
     end
     object btnNext: TButton
-      Left = 570
-      Top = 12
+      Left = 579
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -59,10 +61,11 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Default = True
       TabOrder = 1
       OnClick = btnNextClick
+      ExplicitTop = 12
     end
     object btnCancel: TButton
       Left = 658
-      Top = 12
+      Top = 8
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -70,20 +73,22 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
+      ExplicitTop = 12
     end
   end
   object pnlWelcome: TPanel
     Left = 0
     Top = 0
     Width = 744
-    Height = 446
+    Height = 450
     Align = alClient
     BevelOuter = bvNone
     Color = clWindow
     TabOrder = 0
+    ExplicitHeight = 446
     DesignSize = (
       744
-      446)
+      450)
     object Label1: TLabel
       Left = 168
       Top = 16
@@ -168,14 +173,15 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Left = 0
       Top = 0
       Width = 144
-      Height = 446
+      Height = 450
       Align = alLeft
       BevelOuter = bvNone
       Color = 4065024
       TabOrder = 0
+      ExplicitHeight = 446
       DesignSize = (
         144
-        446)
+        450)
       object Image2: TImage
         Left = 73
         Top = 28
@@ -298,12 +304,13 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Left = 152
       Top = 166
       Width = 479
-      Height = 224
+      Height = 228
       Anchors = [akLeft, akTop, akRight, akBottom]
       TabOrder = 1
+      ExplicitHeight = 224
       DesignSize = (
         479
-        224)
+        228)
       object WarningBmp: TImage
         Left = 8
         Top = 4
@@ -408,7 +415,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         Left = 8
         Top = 46
         Width = 455
-        Height = 152
+        Height = 156
         TabStop = False
         Anchors = [akLeft, akTop, akRight, akBottom]
         BorderStyle = bsNone
@@ -416,6 +423,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitHeight = 152
       end
     end
   end
@@ -423,12 +431,14 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
     Left = 0
     Top = 0
     Width = 744
-    Height = 446
+    Height = 450
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlWizard'
+    Color = clWindow
     TabOrder = 1
     Visible = False
+    ExplicitHeight = 446
     object Bevel2: TBevel
       Left = 0
       Top = 69
@@ -442,7 +452,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       Left = 0
       Top = 72
       Width = 744
-      Height = 374
+      Height = 378
       ActivePage = tbsPost
       Align = alClient
       Style = tsButtons
@@ -450,9 +460,11 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       TabOrder = 2
       TabStop = False
       TabWidth = 5
+      ExplicitHeight = 374
       object tbsMonth: TTabSheet
         Caption = 'Page1 -'
         ImageIndex = 4
+        ExplicitHeight = 359
         object lblMonthLine1: TLabel
           Left = 8
           Top = 64
@@ -509,9 +521,10 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
       object tbsPost: TTabSheet
         Caption = 'Page2 - Post'
         ImageIndex = 1
+        ExplicitHeight = 359
         DesignSize = (
           736
-          359)
+          363)
         object lblPostCalculated: TLabel
           Left = 8
           Top = 85
@@ -542,11 +555,12 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         end
         object lblAmountRemText: TLabel
           Left = 8
-          Top = 302
+          Top = 306
           Width = 309
           Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Click Finish to post the amounts shown and complete the wizard.'
+          ExplicitTop = 302
         end
         object lblPrefixMonthEnding: TLabel
           Left = 8
@@ -566,7 +580,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           Left = 32
           Top = 115
           Width = 576
-          Height = 125
+          Height = 129
           AlwaysShowScrollBar = ssVertical
           Anchors = [akLeft, akTop, akRight, akBottom]
           CellSelectMode = cmNone
@@ -597,6 +611,7 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
           XMLExport.Version = '1.0'
           XMLExport.DataPacketVersion = '2.0'
           OnCellLoaded = tgGainLossCellLoaded
+          ExplicitHeight = 125
           ColProperties = <
             item
               DataCol = 1
@@ -663,22 +678,24 @@ object wizExchangeGainLoss: TwizExchangeGainLoss
         end
         object btnPrintForeignCurrencyReport: TButton
           Left = 32
-          Top = 248
+          Top = 252
           Width = 193
           Height = 25
           Anchors = [akLeft, akBottom]
           Caption = '&Print Foreign Exchange Report'
           TabOrder = 1
           OnClick = btnPrintForeignCurrencyReportClick
+          ExplicitTop = 248
         end
         object chkShowGainLossesScreen: TCheckBox
           Left = 8
-          Top = 340
+          Top = 344
           Width = 449
           Height = 17
           Anchors = [akLeft, akBottom]
           Caption = '&Show the Exchange Gains/Losses screen after clicking Finish.'
           TabOrder = 2
+          ExplicitTop = 340
         end
       end
     end

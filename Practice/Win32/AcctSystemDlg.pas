@@ -20,8 +20,6 @@ uses
 
 type
   TdlgAcctSystem = class(TForm)
-    btnOk: TButton;
-    btnCancel: TButton;
     gbxAccounting: TGroupBox;
     lblFrom: TLabel;                     
     eFrom: TEdit;                                                                               
@@ -55,11 +53,15 @@ type
     lblLoadDefaults: TLabel;
     rbAccounting: TRadioButton;
     rbSuper: TRadioButton;
-    btndefault: TButton;
     GBExtract: TGroupBox;
     cbExtract: TComboBox;
     ckExtract: TCheckBox;
     Label3: TLabel;
+    pnlControls: TPanel;
+    btndefault: TButton;
+    btnOk: TButton;
+    btnCancel: TButton;
+    Shape1: TShape;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);

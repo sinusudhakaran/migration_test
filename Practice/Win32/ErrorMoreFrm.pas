@@ -10,10 +10,12 @@ uses
 type
   TfrmErrorMore = class(TForm)
     lblText: TLabel;
-    btnOK: TButton;
     Image1: TImage;
     memDetails: TMemo;
     lblDetails: TLabel;
+    pnlControls: TPanel;
+    btnOK: TButton;
+    ShapeBorder: TShape;
     procedure btnOKClick(Sender: TObject);
     procedure btnMoreClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);

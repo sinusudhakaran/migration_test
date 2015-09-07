@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms,
   StdCtrls, reportdefs,
-  OsFont;
+  OsFont, ExtCtrls;
 
 type
   TReportImage = class
@@ -40,11 +40,13 @@ type
 
 type
   TfrmBillingDocReader = class(TForm)
-    btnPDF: TButton;
-    btnCancel: TButton;
     Label1: TLabel;
     cmbImages: TComboBox;
     cbIncludeInterimReports: TCheckBox;
+    pnlControls: TPanel;
+    btnPDF: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnPDFClick(Sender: TObject);

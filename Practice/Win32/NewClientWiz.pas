@@ -27,13 +27,15 @@ type
 
 type
   TwizNewClient = class(TForm)
-    btnQuit: TButton;
     imgMYOBLogo: TImage;
     lblTop: TLabel;
     lblNotes: TLabel;
     lblTitle: TLabel;
     pnlStep: TPanel;
+    PanelBorder: TPanel;
     btnAccept: TButton;
+    btnQuit: TButton;
+    ShapeBorder: TShape;
 
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);

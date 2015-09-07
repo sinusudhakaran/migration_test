@@ -4,7 +4,7 @@ object FindReplaceDlg: TFindReplaceDlg
   Caption = 'Find and Replace'
   ClientHeight = 314
   ClientWidth = 490
-  Color = clBtnFace
+  Color = clWhite
   ParentFont = True
   KeyPreview = True
   OldCreateOrder = False
@@ -21,6 +21,8 @@ object FindReplaceDlg: TFindReplaceDlg
     Width = 490
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 1
     DesignSize = (
       490

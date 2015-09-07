@@ -285,12 +285,10 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
-        ExplicitLeft = -1
-        ExplicitTop = 226
-        ExplicitWidth = 623
+        ExplicitTop = 195
         object Bevel3: TBevel
           Left = -1
-          Top = 80
+          Top = 84
           Width = 624
           Height = 4
           Shape = bsTopLine
@@ -399,12 +397,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       end
       object pnlAdvBudget: TPanel
         Left = 0
-        Top = 351
+        Top = 345
         Width = 625
         Height = 50
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 3
+        ExplicitTop = 351
         object Bevel4: TBevel
           Left = -1
           Top = 45
@@ -429,28 +428,39 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Left = 0
         Top = 279
         Width = 625
-        Height = 72
+        Height = 66
         Align = alTop
         BevelOuter = bvNone
         Caption = ' '
         TabOrder = 4
         object Bevel5: TBevel
           Left = 0
-          Top = 70
+          Top = 65
           Width = 624
           Height = 4
           Shape = bsTopLine
         end
         object pnlInclude: TPanel
           Left = 0
-          Top = 10
-          Width = 352
-          Height = 55
+          Top = 0
+          Width = 295
+          Height = 66
+          Align = alLeft
           BevelOuter = bvNone
           TabOrder = 0
+          ExplicitHeight = 72
+          object Bevel6: TBevel
+            Left = 276
+            Top = 0
+            Width = 19
+            Height = 66
+            Align = alRight
+            Shape = bsRightLine
+            ExplicitHeight = 71
+          end
           object chkIncludeCodes: TCheckBox
             Left = 8
-            Top = 7
+            Top = 13
             Width = 180
             Height = 17
             Caption = 'Include C&hart Codes'
@@ -458,39 +468,44 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           end
           object chkIncludeQuantity: TCheckBox
             Left = 8
-            Top = 30
+            Top = 36
             Width = 180
             Height = 17
             Caption = 'Include &Quantities'
             TabOrder = 1
           end
           object chkGSTInclusive: TCheckBox
-            Left = 194
-            Top = 7
-            Width = 150
+            Left = 157
+            Top = 13
+            Width = 132
             Height = 17
             Caption = '&GST Inclusive'
             TabOrder = 2
           end
           object cbPercentage: TCheckBox
-            Left = 194
-            Top = 30
-            Width = 150
+            Left = 157
+            Top = 36
+            Width = 132
             Height = 17
             Caption = 'Show &% of Income'
             TabOrder = 3
           end
         end
         object pnlIncludeNonPost: TPanel
-          Left = 293
-          Top = 10
-          Width = 268
-          Height = 55
+          Left = 295
+          Top = 0
+          Width = 330
+          Height = 66
+          Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
+          ExplicitLeft = 296
+          ExplicitTop = 11
+          ExplicitWidth = 268
+          ExplicitHeight = 55
           object rbSummarisedNonPost: TRadioButton
             Left = 133
-            Top = 30
+            Top = 36
             Width = 113
             Height = 17
             Caption = 'Summarised'
@@ -498,7 +513,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           end
           object rbDetailedNonPost: TRadioButton
             Left = 25
-            Top = 30
+            Top = 36
             Width = 94
             Height = 17
             Caption = 'Detailed'
@@ -508,7 +523,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           end
           object chkPrintNonPostingChartCodeTitles: TCheckBox
             Left = 8
-            Top = 7
+            Top = 13
             Width = 253
             Height = 17
             Caption = 'Include Non-Posting Chart Code Titles'

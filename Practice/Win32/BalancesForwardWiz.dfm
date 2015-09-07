@@ -5,7 +5,7 @@ object wizBalancesForward: TwizBalancesForward
   Caption = 'Year End Balances Wizard'
   ClientHeight = 426
   ClientWidth = 622
-  Color = clBtnFace
+  Color = clWindow
   Constraints.MinHeight = 460
   Constraints.MinWidth = 630
   ParentFont = True
@@ -257,6 +257,7 @@ object wizBalancesForward: TwizBalancesForward
       Top = 160
       Width = 457
       Height = 215
+      BevelOuter = bvNone
       TabOrder = 1
       object WarningBmp: TImage
         Left = 8
@@ -367,6 +368,48 @@ object wizBalancesForward: TwizBalancesForward
         Caption = 'lblWarnings'
         WordWrap = True
       end
+      object Shape1: TShape
+        Left = 0
+        Top = 1
+        Width = 1
+        Height = 213
+        Align = alLeft
+        Pen.Color = clSilver
+        ExplicitLeft = 449
+      end
+      object Shape2: TShape
+        Left = 0
+        Top = 0
+        Width = 457
+        Height = 1
+        Align = alTop
+        Pen.Color = clSilver
+        ExplicitLeft = 1
+        ExplicitTop = 1
+        ExplicitWidth = 455
+      end
+      object Shape3: TShape
+        Left = 0
+        Top = 214
+        Width = 457
+        Height = 1
+        Align = alBottom
+        Pen.Color = clSilver
+        ExplicitLeft = 1
+        ExplicitTop = 149
+        ExplicitWidth = 455
+      end
+      object Shape4: TShape
+        Left = 456
+        Top = 1
+        Width = 1
+        Height = 213
+        Align = alRight
+        Pen.Color = clSilver
+        ExplicitLeft = 391
+        ExplicitTop = 2
+        ExplicitHeight = 211
+      end
     end
   end
   object pnlWizard: TPanel
@@ -376,6 +419,7 @@ object wizBalancesForward: TwizBalancesForward
     Height = 384
     BevelOuter = bvNone
     Caption = 'pnlWizard'
+    Color = clWindow
     TabOrder = 1
     Visible = False
     object Bevel2: TBevel
@@ -556,10 +600,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsAdjustments: TTabSheet
         Caption = 'Page1'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object tgBalances: TtsGrid
           Left = 0
           Top = 43
@@ -719,10 +759,6 @@ object wizBalancesForward: TwizBalancesForward
         Tag = 1
         Caption = 'Page2'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object tgEarnings: TtsGrid
           Left = 0
           Top = 35
@@ -854,10 +890,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsReports: TTabSheet
         Caption = 'tbsReports'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblReportYearStart: TLabel
           Left = 4
           Top = 9
@@ -898,10 +930,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsOpeningBalancesFound: TTabSheet
         Caption = 'tbsOpeningBalancesFound'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblOpeningBalancesFound: TLabel
           Left = 3
           Top = 13
@@ -1052,10 +1080,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsFinshed: TTabSheet
         Caption = 'tbsFinshed'
         ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         DesignSize = (
           585
           297)
@@ -1090,10 +1114,6 @@ object wizBalancesForward: TwizBalancesForward
       object tbsCreateOpening: TTabSheet
         Caption = 'tbsCreateOpening'
         ImageIndex = 5
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblAddOpeningBalances: TLabel
           Left = 7
           Top = 33
@@ -1134,15 +1154,16 @@ object wizBalancesForward: TwizBalancesForward
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 384
+    Top = 390
     Width = 622
-    Height = 42
+    Height = 36
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 2
     DesignSize = (
       622
-      42)
+      36)
     object Bevel1: TBevel
       Left = 0
       Top = 0
@@ -1152,8 +1173,8 @@ object wizBalancesForward: TwizBalancesForward
       Shape = bsTopLine
     end
     object btnBack: TButton
-      Left = 368
-      Top = 12
+      Left = 376
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -1163,8 +1184,8 @@ object wizBalancesForward: TwizBalancesForward
       OnClick = btnBackClick
     end
     object btnNext: TButton
-      Left = 448
-      Top = 12
+      Left = 456
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -1175,7 +1196,7 @@ object wizBalancesForward: TwizBalancesForward
     end
     object btnCancel: TButton
       Left = 536
-      Top = 12
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -1183,6 +1204,7 @@ object wizBalancesForward: TwizBalancesForward
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
+      ExplicitTop = 12
     end
   end
   object tsMaskDefs1: TtsMaskDefs

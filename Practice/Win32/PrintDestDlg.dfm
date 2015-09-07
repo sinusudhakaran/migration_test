@@ -5,7 +5,7 @@ object DlgPrintDest: TDlgPrintDest
   Caption = 'Select Report Destination'
   ClientHeight = 230
   ClientWidth = 546
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -31,6 +31,7 @@ object DlgPrintDest: TDlgPrintDest
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 1
     DesignSize = (
       546

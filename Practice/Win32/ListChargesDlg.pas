@@ -15,7 +15,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, OsFont;
+  Dialogs, StdCtrls, OsFont, ExtCtrls;
 
 const
   // These columns match the fields in csv file
@@ -51,12 +51,14 @@ type
   end;
 
   TdlgListCharges = class(TForm)
-    btnCancel: TButton;
-    btnFile: TButton;
-    btnPreview: TButton;
-    btnPrint: TButton;
     cmbMonths: TComboBox;
     lblShowCharges: TLabel;
+    pnlControls: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
+    btnPrint: TButton;
+    btnCancel: TButton;
+    Shape1: TShape;
     procedure btnCancelClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPreviewClick(Sender: TObject);

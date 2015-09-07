@@ -129,6 +129,7 @@ type
     lblAutoSaveTime: TLabel;
     Label18: TLabel;
     Label31: TLabel;
+    ShapeBorder: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);

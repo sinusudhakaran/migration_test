@@ -25,8 +25,6 @@ uses
 type
   TdlgOpeningBalances = class(TForm)
     pnlFooter: TPanel;
-    btnOK: TButton;
-    btnCancel: TButton;
     pnlHeader: TPanel;
     lSubTitle: TLabel;
     lblFinYear: TLabel;
@@ -42,6 +40,10 @@ type
     acForeignCurrency: TAction;
     Enterforeigncurrencybalance1: TMenuItem;
     chkHideInactive: TCheckBox;
+    Panel1: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure tgBalancesCellLoaded(Sender: TObject; DataCol,
       DataRow: Integer; var Value: Variant);
     procedure FormCreate(Sender: TObject);

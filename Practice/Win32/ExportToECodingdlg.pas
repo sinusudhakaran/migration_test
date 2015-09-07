@@ -23,8 +23,6 @@ uses
 
 type
   TdlgExportToECoding = class(TForm)
-    btnOk: TButton;
-    btnCancel: TButton;
     pcMain: TPageControl;
     tsAdvanced: TTabSheet;
     tsOptions: TTabSheet;
@@ -39,6 +37,10 @@ type
     btnToFolder: TSpeedButton;
     eTo: TEdit;
     ecExportOptions: TfmeECodingExport;
+    pnlControls: TPanel;
+    btnOk: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure btnCancelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -47,6 +49,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
     procedure btnOkClick(Sender: TObject);
+    procedure GbFilenameClick(Sender: TObject);
   private
     { Private declarations }
     ForClient : TClientObj;
@@ -454,6 +457,11 @@ begin
   //load lists - dont do this in create as per other dialogs, because ForClient isnt set til later on
   fmeAccountSelector1.LoadAccounts( ForClient, BKCONST.SchedRepSet);
   fmeAccountSelector1.btnSelectAllAccounts.Click;
+end;
+
+procedure TdlgExportToECoding.GbFilenameClick(Sender: TObject);
+begin
+
 end;
 
 // Set up UI as required

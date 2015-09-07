@@ -12,8 +12,6 @@ uses
 
 type
   TdlgExtract = class(TForm)
-    btnOk: TButton;
-    btnCancel: TButton;
     chkNewFormat: TCheckBox;
     lblMessage: TLabel;
     lblFormat: TLabel;
@@ -27,6 +25,10 @@ type
     pnlMASLedgerCode: TPanel;
     Label3: TLabel;
     lblLedgerCodeToUse: TLabel;
+    pnlControls: TPanel;
+    btnOk: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
 
     procedure btnToFolderClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);

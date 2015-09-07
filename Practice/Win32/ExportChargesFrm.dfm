@@ -3,9 +3,9 @@ object frmExportCharges: TfrmExportCharges
   Top = 274
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Export Charges'
-  ClientHeight = 446
+  ClientHeight = 456
   ClientWidth = 653
-  Color = clBtnFace
+  Color = clWhite
   Constraints.MinHeight = 200
   Constraints.MinWidth = 425
   DefaultMonitor = dmMainForm
@@ -24,9 +24,10 @@ object frmExportCharges: TfrmExportCharges
     Left = 0
     Top = 76
     Width = 653
-    Height = 330
+    Height = 340
     Align = alClient
     TabOrder = 4
+    ExplicitHeight = 330
     object lblView: TLabel
       Left = 130
       Top = 258
@@ -209,28 +210,31 @@ object frmExportCharges: TfrmExportCharges
     Left = 0
     Top = 76
     Width = 653
-    Height = 330
+    Height = 340
     Align = alClient
     TabOrder = 2
+    ExplicitHeight = 330
     object pnlProgress: TPanel
       Left = 1
       Top = 1
       Width = 651
-      Height = 298
+      Height = 308
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 2
+      ExplicitHeight = 298
       DesignSize = (
         651
-        298)
+        308)
       object pnlCentre: TPanel
         Left = 220
-        Top = 125
+        Top = 130
         Width = 209
         Height = 50
         Anchors = []
         BevelOuter = bvNone
         TabOrder = 0
+        ExplicitTop = 125
         DesignSize = (
           209
           50)
@@ -256,7 +260,7 @@ object frmExportCharges: TfrmExportCharges
       Left = 1
       Top = 1
       Width = 651
-      Height = 298
+      Height = 308
       Align = alClient
       BorderStyle = bsNone
       CheckBoxStyle = stCheck
@@ -299,6 +303,7 @@ object frmExportCharges: TfrmExportCharges
       OnKeyDown = tgChargesKeyDown
       OnMouseUp = tgChargesMouseUp
       OnRowChanged = tgChargesRowChanged
+      ExplicitHeight = 298
       ColProperties = <
         item
           DataCol = 1
@@ -439,12 +444,13 @@ object frmExportCharges: TfrmExportCharges
     end
     object pnlHide: TPanel
       Left = 1
-      Top = 299
+      Top = 309
       Width = 651
       Height = 30
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitTop = 299
       DesignSize = (
         651
         30)
@@ -588,11 +594,14 @@ object frmExportCharges: TfrmExportCharges
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 406
+    Top = 416
     Width = 653
     Height = 40
     Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 3
+    ExplicitTop = 406
     DesignSize = (
       653
       40)
@@ -656,6 +665,7 @@ object frmExportCharges: TfrmExportCharges
     Width = 653
     Height = 76
     Align = alTop
+    BevelOuter = bvNone
     TabOrder = 1
     object lblTitle: TLabel
       Left = 7
@@ -679,14 +689,25 @@ object frmExportCharges: TfrmExportCharges
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Shape1: TShape
+      Left = 0
+      Top = 75
+      Width = 653
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitTop = 74
+    end
   end
   object pnlOptions: TPanel
     Left = 0
     Top = 76
     Width = 653
-    Height = 330
+    Height = 340
     Align = alClient
+    BevelOuter = bvNone
     TabOrder = 0
+    ExplicitHeight = 330
     object lblSaveTo: TLabel
       Left = 26
       Top = 103
@@ -727,6 +748,15 @@ object frmExportCharges: TfrmExportCharges
       Caption = '&Remarks'
       FocusControl = eRemarks
     end
+    object Shape2: TShape
+      Left = 0
+      Top = 339
+      Width = 653
+      Height = 1
+      Align = alBottom
+      Pen.Color = clSilver
+      ExplicitTop = 328
+    end
     object eTo: TEdit
       Left = 146
       Top = 99
@@ -743,7 +773,7 @@ object frmExportCharges: TfrmExportCharges
       Height = 21
       Hint = 'Choose the charges month to export'
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 0
       OnChange = cmbMonthsChange
     end

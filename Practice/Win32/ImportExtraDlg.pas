@@ -75,14 +75,15 @@ uses
 
 type
   TdlgImportUpdate = class(TForm)
-    Bevel1: TBevel;
-    btnOK: TButton;
-    btnCancel: TButton;
-    Label1: TLabel;
-    ePath: TEdit;
     lvFiles: TListView;
     OvcController1: TOvcController;
+    pnlControls: TPanel;
+    Label1: TLabel;
     btnFolder: TSpeedButton;
+    ePath: TEdit;
+    btnOK: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure btnCancelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnFolderClick(Sender: TObject);

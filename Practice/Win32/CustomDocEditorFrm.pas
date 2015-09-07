@@ -34,7 +34,7 @@ const
 type
 
   TfrmCustomDocEditor = class(TForm)
-    Panel1: TPanel;
+    pnlControls: TPanel;
     btnSave: TButton;
     btnCancel: TButton;
     btnPreview: TButton;
@@ -59,6 +59,7 @@ type
     DeleteDocument1: TMenuItem;
     Editor: TfmeEditRTF;
     btnsaveAs: TButton;
+    Shape1: TShape;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure acAddReportExecute(Sender: TObject);

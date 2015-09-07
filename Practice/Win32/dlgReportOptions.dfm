@@ -5,7 +5,7 @@ object ReportOptionDlg: TReportOptionDlg
   Caption = 'Report And Graph Options'
   ClientHeight = 526
   ClientWidth = 784
-  Color = clBtnFace
+  Color = clWhite
   Constraints.MinHeight = 400
   Constraints.MinWidth = 700
   DefaultMonitor = dmMainForm
@@ -25,10 +25,20 @@ object ReportOptionDlg: TReportOptionDlg
     Width = 784
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 4
     DesignSize = (
       784
       41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 784
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnCancel: TButton
       Left = 699
       Top = 8
@@ -94,11 +104,13 @@ object ReportOptionDlg: TReportOptionDlg
       ExplicitWidth = 687
     end
     object cbRptClientCode: TCheckBox
-      Left = 41
+      Left = 40
       Top = 20
       Width = 97
       Height = 17
       Caption = 'Cli&ent Code'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 0
     end
     object cbRptPageNo: TCheckBox
@@ -107,6 +119,8 @@ object ReportOptionDlg: TReportOptionDlg
       Width = 105
       Height = 17
       Caption = 'Page &numbers'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 1
     end
     object cbRptPrinted: TCheckBox
@@ -116,6 +130,8 @@ object ReportOptionDlg: TReportOptionDlg
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Printed &date'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 2
     end
     object cbRptTime: TCheckBox
@@ -125,6 +141,8 @@ object ReportOptionDlg: TReportOptionDlg
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Ti&me'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 3
     end
     object cbRptUser: TCheckBox
@@ -134,6 +152,8 @@ object ReportOptionDlg: TReportOptionDlg
       Height = 17
       Anchors = [akTop, akRight]
       Caption = '&User'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 4
     end
   end
@@ -186,6 +206,8 @@ object ReportOptionDlg: TReportOptionDlg
       Width = 508
       Height = 25
       Caption = '&Start a new page for each bank account '
+      Color = clWhite
+      ParentColor = False
       TabOrder = 2
       WordWrap = True
     end
@@ -281,13 +303,23 @@ object ReportOptionDlg: TReportOptionDlg
       inherited Panel1: TPanel
         Width = 784
         Height = 239
+        BevelOuter = bvNone
         ExplicitWidth = 784
         ExplicitHeight = 239
         inherited WPToolPanel1: TWPToolPanel
-          Width = 782
-          ExplicitWidth = 782
+          Left = 0
+          Top = 0
+          Width = 784
+          BevelOuter = bvNone
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 784
           inherited TopToolbar: TRzToolbar
-            Width = 780
+            Left = 0
+            Top = 0
+            Width = 784
+            AutoStyle = False
+            BorderOuter = fsNone
             ExplicitWidth = 780
             ToolbarControls = (
               cbFont
@@ -321,8 +353,10 @@ object ReportOptionDlg: TReportOptionDlg
           end
         end
         inherited ERTF: TWPRichText
-          Width = 756
-          Height = 177
+          Left = 26
+          Top = 60
+          Width = 758
+          Height = 179
           RTFText.Data = {
             3C215750546F6F6C735F466F726D617420563D3531382F3E0D0A3C5374616E64
             617264466F6E742077706373733D2243686172466F6E743A27417269616C273B
@@ -413,17 +447,23 @@ object ReportOptionDlg: TReportOptionDlg
           ExplicitHeight = 177
         end
         inherited LeftRuler: TWPVertRuler
-          Height = 177
+          Left = 0
+          Top = 60
+          Height = 179
           ExplicitHeight = 177
         end
         inherited TopRuler: TWPRuler
-          Width = 782
-          ExplicitWidth = 782
+          Left = 0
+          Top = 34
+          Width = 784
+          ExplicitLeft = -4
+          ExplicitTop = 18
+          ExplicitWidth = 784
         end
       end
       inherited ActImages: TImageList
         Bitmap = {
-          494C0101110014000C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+          494C010111001400140010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
           0000000000003600000028000000400000005000000001002000000000000050
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
@@ -1123,6 +1163,7 @@ object ReportOptionDlg: TReportOptionDlg
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
+        OnClick = lh1Click
       end
       object ChkHFEnabled: TCheckBox
         Left = 41
@@ -1130,6 +1171,8 @@ object ReportOptionDlg: TReportOptionDlg
         Width = 122
         Height = 17
         Caption = 'Use by default'
+        Color = clWhite
+        ParentColor = False
         TabOrder = 0
       end
     end

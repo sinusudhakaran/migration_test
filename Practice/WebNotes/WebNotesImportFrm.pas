@@ -36,6 +36,7 @@ type
     DateSelector: TfmeDateSelector;
     lAvailable: TLabel;
     lblClientSave: TLabel;
+    ShapeBorder: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
 

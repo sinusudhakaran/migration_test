@@ -3,9 +3,9 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Combine Manual Bank Accounts'
-  ClientHeight = 248
+  ClientHeight = 266
   ClientWidth = 463
-  Color = clBtnFace
+  Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -10
@@ -16,9 +16,6 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
   Scaled = False
   OnCreate = FormCreate
   OnShow = FormShow
-  DesignSize = (
-    463
-    248)
   PixelsPerInch = 96
   TextHeight = 12
   object lblInstructions: TLabel
@@ -46,28 +43,6 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
     Caption = '&New Bank Account Number:'
     FocusControl = cmbCombine
   end
-  object btnOK: TButton
-    Left = 299
-    Top = 217
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'OK'
-    Default = True
-    TabOrder = 0
-    OnClick = btnOKClick
-  end
-  object btnCancel: TButton
-    Left = 380
-    Top = 217
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 1
-  end
   object cmbBankAccounts: TComboBox
     Left = 192
     Top = 59
@@ -75,7 +50,7 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
     Height = 20
     Style = csDropDownList
     ItemHeight = 12
-    TabOrder = 2
+    TabOrder = 0
     OnSelect = cmbBankAccountsSelect
   end
   object cmbCombine: TComboBox
@@ -85,7 +60,7 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
     Height = 20
     Style = csDropDownList
     ItemHeight = 12
-    TabOrder = 3
+    TabOrder = 1
     OnSelect = cmbCombineSelect
   end
   object Panel1: TPanel
@@ -95,7 +70,7 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
     Height = 76
     BevelInner = bvRaised
     BevelOuter = bvLowered
-    TabOrder = 4
+    TabOrder = 2
     object Label8: TLabel
       Left = 8
       Top = 15
@@ -184,6 +159,53 @@ object DlgCombineManualAccounts: TDlgCombineManualAccounts
       Width = 29
       Height = 12
       Caption = 'lblDTo'
+    end
+  end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 225
+    Width = 463
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 3
+    ExplicitLeft = 8
+    ExplicitTop = 232
+    ExplicitWidth = 285
+    DesignSize = (
+      463
+      41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 463
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnOK: TButton
+      Left = 300
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'OK'
+      Default = True
+      TabOrder = 0
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 381
+      Top = 9
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
     end
   end
 end

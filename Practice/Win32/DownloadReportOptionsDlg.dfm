@@ -5,7 +5,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
   Caption = 'Download Report'
   ClientHeight = 345
   ClientWidth = 519
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -13,9 +13,6 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
   Scaled = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  DesignSize = (
-    519
-    345)
   PixelsPerInch = 96
   TextHeight = 13
   object Label2: TLabel
@@ -25,48 +22,12 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Height = 13
     Caption = 'Please select the detail you want to see on this report.'
   end
-  object btnPreview: TButton
-    Left = 8
-    Top = 311
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Previe&w'
-    Default = True
-    DragCursor = crDefault
-    TabOrder = 4
-    OnClick = btnPreviewClick
-  end
-  object btnFile: TButton
-    Left = 88
-    Top = 311
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Fil&e'
-    TabOrder = 5
-    OnClick = btnFileClick
-  end
-  object btnCancel: TButton
-    Left = 434
-    Top = 311
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 7
-    OnClick = btnCancelClick
-  end
-  object btnPrint: TButton
-    Left = 354
-    Top = 311
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Print'
-    TabOrder = 6
-    OnClick = btnPrintClick
+  object ShapeBorder: TShape
+    Left = 15
+    Top = 29
+    Width = 404
+    Height = 221
+    Pen.Color = clSilver
   end
   object chkHideDeleted: TCheckBox
     Left = 16
@@ -83,6 +44,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Top = 32
     Width = 400
     Height = 217
+    BevelOuter = bvNone
     TabOrder = 0
     object chkActive: TCheckBox
       Left = 17
@@ -90,6 +52,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Width = 360
       Height = 17
       Caption = 'Active Accounts (received entries in the last download)'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 1
     end
     object chkInactive: TCheckBox
@@ -98,6 +62,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Width = 360
       Height = 17
       Caption = 'Inactive Accounts (no entries in the last download)'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 2
     end
     object chkNew: TCheckBox
@@ -106,6 +72,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Width = 360
       Height = 17
       Caption = 'New Accounts '
+      Color = clWhite
+      ParentColor = False
       TabOrder = 3
     end
     object chkMissing: TCheckBox
@@ -114,6 +82,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Width = 360
       Height = 17
       Caption = 'Deleted Accounts (accounts not received in last download)'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 4
     end
     object chkNotAllocated: TCheckBox
@@ -122,6 +92,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Width = 360
       Height = 17
       Caption = 'Accounts that have not been allocated to a client'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 5
     end
     object chkAll: TCheckBox
@@ -130,6 +102,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Width = 360
       Height = 17
       Caption = 'Complete list of accounts'
+      Color = clWhite
+      ParentColor = False
       TabOrder = 0
     end
   end
@@ -150,5 +124,74 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Caption = 'Clear All'
     TabOrder = 2
     OnClick = btnClearClick
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 304
+    Width = 519
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 4
+    ExplicitLeft = 24
+    ExplicitTop = 280
+    ExplicitWidth = 487
+    DesignSize = (
+      519
+      41)
+    object ShapeBottom: TShape
+      Left = 0
+      Top = 0
+      Width = 519
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
+    object btnPreview: TButton
+      Left = 4
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Previe&w'
+      Default = True
+      DragCursor = crDefault
+      TabOrder = 0
+      OnClick = btnPreviewClick
+    end
+    object btnFile: TButton
+      Left = 84
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Fil&e'
+      TabOrder = 1
+      OnClick = btnFileClick
+    end
+    object btnCancel: TButton
+      Left = 440
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 2
+      OnClick = btnCancelClick
+      ExplicitLeft = 408
+    end
+    object btnPrint: TButton
+      Left = 360
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&Print'
+      TabOrder = 3
+      OnClick = btnPrintClick
+    end
   end
 end

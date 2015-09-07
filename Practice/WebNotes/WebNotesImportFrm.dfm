@@ -5,7 +5,7 @@ object WebNotesImportForm: TWebNotesImportForm
   Caption = 'WebNotesImportForm'
   ClientHeight = 234
   ClientWidth = 393
-  Color = clBtnFace
+  Color = clWindow
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
@@ -20,13 +20,23 @@ object WebNotesImportForm: TWebNotesImportForm
     Width = 393
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 0
     DesignSize = (
       393
       41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 393
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnCancel: TButton
       Left = 304
-      Top = 6
+      Top = 9
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -36,7 +46,7 @@ object WebNotesImportForm: TWebNotesImportForm
     end
     object btnOK: TButton
       Left = 215
-      Top = 6
+      Top = 9
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -52,6 +62,7 @@ object WebNotesImportForm: TWebNotesImportForm
     Width = 393
     Height = 193
     Align = alClient
+    BevelOuter = bvNone
     TabOrder = 1
     object lAvailable: TLabel
       Left = 32

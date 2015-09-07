@@ -246,7 +246,7 @@ object frmMain: TfrmMain
       AutoStyle = False
       Images = AppImages.Client
       Margin = 1
-      TopMargin = 4
+      TopMargin = 0
       ButtonWidth = 60
       ShowButtonCaptions = True
       TextOptions = ttoCustom
@@ -268,7 +268,7 @@ object frmMain: TfrmMain
         RzSpacer2)
       object tbCoding: TRzToolButton
         Left = 1
-        Top = 4
+        Top = 0
         Width = 61
         ImageIndex = 11
         Caption = 'Coding'
@@ -276,7 +276,7 @@ object frmMain: TfrmMain
       end
       object tbBudget: TRzToolButton
         Left = 62
-        Top = 4
+        Top = 0
         Width = 62
         ImageIndex = 12
         Caption = 'Budget'
@@ -284,7 +284,7 @@ object frmMain: TfrmMain
       end
       object tbReport: TRzToolButton
         Left = 124
-        Top = 4
+        Top = 0
         Width = 80
         DropDownMenu = popReport
         ImageIndex = 13
@@ -293,7 +293,7 @@ object frmMain: TfrmMain
       end
       object tbGraph: TRzToolButton
         Left = 204
-        Top = 4
+        Top = 0
         Width = 76
         DropDownMenu = popGraph
         ImageIndex = 14
@@ -302,7 +302,7 @@ object frmMain: TfrmMain
       end
       object tbGST: TRzToolButton
         Left = 280
-        Top = 4
+        Top = 0
         Width = 74
         DropDownMenu = popGST
         ImageIndex = 15
@@ -311,13 +311,13 @@ object frmMain: TfrmMain
       end
       object RzToolButton13: TRzToolButton
         Left = 354
-        Top = 4
+        Top = 0
         Action = actTasks
         Caption = 'Tasks'
       end
       object RzSpacer2: TRzSpacer
         Left = 414
-        Top = 4
+        Top = 0
       end
     end
     object rztCoding: TRzToolbar

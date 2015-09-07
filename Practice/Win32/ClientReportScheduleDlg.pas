@@ -32,7 +32,7 @@ type
 
 type
   TdlgClientReportSchedule = class(TbkOKCancelDlgForm)
-    PageControl1: TPageControl;
+    pcReportSchedule: TPageControl;
     tbsOptions: TTabSheet;
     Label1: TLabel;
     Label2: TLabel;
@@ -93,7 +93,7 @@ type
     procedure btnECodingSetupClick(Sender: TObject);
     procedure rbToPrinterClick(Sender: TObject);
     procedure rbCSVExportClick(Sender: TObject);
-    procedure PageControl1Change(Sender: TObject);
+    procedure pcReportScheduleChange(Sender: TObject);
     procedure btnWebXSetupClick(Sender: TObject);
     procedure btnAttachClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -653,7 +653,7 @@ var
   i : integer;
 begin
   inherited;
-  PageControl1.ActivePage := tbsOptions;
+  pcReportSchedule.ActivePage := tbsOptions;
   //load combo boxes
   cmbStarts.Clear;     //start with jan, skip the N/A option
   for i := moMin+1 to moMax do cmbstarts.items.add(moNames[i]);
@@ -921,7 +921,7 @@ begin
        and (Trim( eMail.Text) = '') then begin
          HelpfulErrorMsg( 'You must specify an Email address.', 0);
          CanClose := false;
-         PageControl1.ActivePage := tbsOptions;
+         pcReportSchedule.ActivePage := tbsOptions;
          eMail.SetFocus;
          exit;
        end;
@@ -929,7 +929,7 @@ begin
        if ( rbToFax.Checked) and ( Trim( eFaxNo.Text) = '') then begin
          HelpfulErrorMsg( 'You must specify a fax number.', 0);
          CanClose := false;
-         PageControl1.ActivePage := tbsOptions;
+         pcReportSchedule.ActivePage := tbsOptions;
          eFaxNo.SetFocus;
          exit;
        end;
@@ -951,7 +951,7 @@ begin
            begin
              HelpfulErrorMsg('No accounts have been selected.',0);
              CanClose := false;
-             PageControl1.ActivePage := tbsAdvanced;
+             pcReportSchedule.ActivePage := tbsAdvanced;
              chkAccounts.SetFocus;
              Exit;
            end;
@@ -1112,7 +1112,7 @@ begin
   FOptions := Value;
 end;
 
-procedure TdlgClientReportSchedule.PageControl1Change(Sender: TObject);
+procedure TdlgClientReportSchedule.pcReportScheduleChange(Sender: TObject);
 begin
   if (TPageControl(Sender).ActivePage = tbsMessage) then
     memMessage.SetFocus;

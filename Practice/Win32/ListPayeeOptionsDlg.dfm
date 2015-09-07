@@ -3,84 +3,17 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
   Top = 315
   BorderStyle = bsDialog
   Caption = 'List Payees'
-  ClientHeight = 164
-  ClientWidth = 494
-  Color = clBtnFace
+  ClientHeight = 165
+  ClientWidth = 483
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
   OnCreate = FormCreate
-  DesignSize = (
-    494
-    164)
   PixelsPerInch = 96
   TextHeight = 13
-  object BevelBorder: TBevel
-    Left = 0
-    Top = 121
-    Width = 500
-    Height = 12
-    Shape = bsTopLine
-  end
-  object btnPreview: TButton
-    Left = 8
-    Top = 132
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Previe&w'
-    Default = True
-    TabOrder = 3
-    OnClick = btnPreviewClick
-    ExplicitTop = 125
-  end
-  object btnFile: TButton
-    Left = 88
-    Top = 132
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Fil&e'
-    TabOrder = 4
-    OnClick = btnFileClick
-    ExplicitTop = 125
-  end
-  object btnOK: TButton
-    Left = 330
-    Top = 132
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = '&Print'
-    TabOrder = 7
-    OnClick = btnOKClick
-    ExplicitTop = 125
-  end
-  object btnCancel: TButton
-    Left = 411
-    Top = 132
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 8
-    OnClick = btnCancelClick
-    ExplicitTop = 125
-  end
-  object btnSave: TBitBtn
-    Left = 249
-    Top = 132
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Sa&ve'
-    TabOrder = 6
-    OnClick = BtnSaveClick
-    ExplicitTop = 125
-  end
   object ckbRuleLineBetweenPayees: TCheckBox
     Left = 8
     Top = 98
@@ -113,15 +46,92 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       '&Detailed')
     TabOrder = 0
   end
-  object btnEmail: TButton
-    Left = 169
-    Top = 132
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'E&mail'
-    TabOrder = 5
-    OnClick = btnEmailClick
-    ExplicitTop = 125
+  object Panel1: TPanel
+    Left = 0
+    Top = 124
+    Width = 483
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 3
+    ExplicitLeft = 8
+    ExplicitTop = 208
+    ExplicitWidth = 478
+    DesignSize = (
+      483
+      41)
+    object ShapeBottom: TShape
+      Left = 0
+      Top = 0
+      Width = 483
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 494
+    end
+    object btnPreview: TButton
+      Left = 4
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Previe&w'
+      Default = True
+      TabOrder = 0
+      OnClick = btnPreviewClick
+    end
+    object btnFile: TButton
+      Left = 84
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Fil&e'
+      TabOrder = 1
+      OnClick = btnFileClick
+    end
+    object btnOK: TButton
+      Left = 325
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&Print'
+      TabOrder = 2
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 405
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 3
+      OnClick = btnCancelClick
+    end
+    object btnSave: TBitBtn
+      Left = 245
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Sa&ve'
+      TabOrder = 4
+      OnClick = BtnSaveClick
+    end
+    object btnEmail: TButton
+      Left = 165
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'E&mail'
+      TabOrder = 5
+      OnClick = btnEmailClick
+    end
   end
 end

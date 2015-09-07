@@ -129,6 +129,11 @@ type
     lbErrors: TRzListBox;
     pnlBanner: TPanel;
     imgHeader: TImage;
+    ShapeBottomBorder: TShape;
+    ShapeRight: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
 
     procedure actConnectExecute(Sender: TObject);
     procedure actCloseExecute(Sender: TObject);

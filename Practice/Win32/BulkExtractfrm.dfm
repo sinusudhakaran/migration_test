@@ -5,7 +5,7 @@ object frmBulkExtract: TfrmBulkExtract
   Caption = 'Extract Bulk Data'
   ClientHeight = 316
   ClientWidth = 640
-  Color = clBtnFace
+  Color = clWhite
   ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -19,10 +19,20 @@ object frmBulkExtract: TfrmBulkExtract
     Width = 640
     Height = 41
     Align = alBottom
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 0
     DesignSize = (
       640
       41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 640
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnCancel: TButton
       Left = 554
       Top = 8
@@ -59,6 +69,38 @@ object frmBulkExtract: TfrmBulkExtract
       Height = 142
       TabOrder = 0
       ExplicitLeft = 5
+      inherited grpSettings: TGroupBox
+        inherited rbSelectAll: TRadioButton
+          Color = clWhite
+          ParentColor = False
+        end
+        inherited rbRange: TRadioButton
+          Color = clWhite
+          ParentColor = False
+        end
+        inherited rbSelection: TRadioButton
+          Color = clWhite
+          ParentColor = False
+        end
+        inherited Panel1: TPanel
+          inherited rbClient: TRadioButton
+            Color = clWhite
+            ParentColor = False
+          end
+          inherited rbStaffMember: TRadioButton
+            Color = clWhite
+            ParentColor = False
+          end
+          inherited rbGroup: TRadioButton
+            Color = clWhite
+            ParentColor = False
+          end
+          inherited rbClientType: TRadioButton
+            Color = clWhite
+            ParentColor = False
+          end
+        end
+      end
     end
   end
   object pnlBulkExtract: TPanel

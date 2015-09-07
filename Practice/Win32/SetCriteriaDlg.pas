@@ -13,8 +13,6 @@ uses
 
 type
   TdlgSetCriteria = class(TForm)
-    Bevel1: TBevel;
-    btnCancel: TButton;
     OvcController1: TOvcController;
     tbData: TOvcTable;
     OvcTCColHead1: TOvcTCColHead;
@@ -24,14 +22,19 @@ type
     colDollarminus: TOvcTCNumericField;
     colPercPlus: TOvcTCNumericField;
     colPercMinus: TOvcTCNumericField;
+    Panel1: TPanel;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    btnOK: TButton;
-    btnRepeat: TButton;
     lblCodeName: TStaticText;
     lblMoneyVar: TStaticText;
     lblPercentVar: TStaticText;
+    Shape1: TShape;
+    pnlControls: TPanel;
+    ShapeBorder: TShape;
+    btnRepeat: TButton;
+    btnOK: TButton;
+    btnCancel: TButton;
     procedure tbDataGetCellData(Sender: TObject; RowNum,
       ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
     procedure tbDataGetCellAttributes(Sender: TObject; RowNum,
@@ -56,6 +59,7 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure tbDataEnter(Sender: TObject);
+    procedure Panel1Click(Sender: TObject);
   private
     { Private declarations }
     EditMode : boolean;
@@ -200,6 +204,11 @@ end;
 procedure TdlgSetCriteria.FormDestroy(Sender: TObject);
 begin
    DataArray := nil;
+end;
+
+procedure TdlgSetCriteria.Panel1Click(Sender: TObject);
+begin
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -3,77 +3,31 @@ object dlgAdminAccountOptions: TdlgAdminAccountOptions
   Top = 192
   BorderIcons = [biSystemMenu]
   Caption = 'Download Report'
-  ClientHeight = 151
+  ClientHeight = 158
   ClientWidth = 513
-  Color = clBtnFace
+  Color = clWhite
   DefaultMonitor = dmMainForm
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
   OnCreate = FormCreate
-  DesignSize = (
-    513
-    151)
   PixelsPerInch = 96
   TextHeight = 13
-  object btnPreview: TButton
-    Left = 8
-    Top = 118
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Previe&w'
-    Default = True
-    DragCursor = crDefault
-    TabOrder = 0
-    OnClick = btnPreviewClick
-  end
-  object btnFile: TButton
-    Left = 88
-    Top = 118
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Fil&e'
-    TabOrder = 1
-    OnClick = btnFileClick
-  end
-  object btnCancel: TButton
-    Left = 428
-    Top = 119
-    Width = 75
-    Height = 23
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    TabOrder = 3
-    OnClick = btnCancelClick
-  end
-  object btnPrint: TButton
-    Left = 348
-    Top = 119
-    Width = 75
-    Height = 23
-    Anchors = [akRight, akBottom]
-    Caption = '&Print'
-    TabOrder = 2
-    OnClick = btnPrintClick
-  end
-  object GroupBox1: TGroupBox
-    Left = 8
-    Top = 8
-    Width = 496
-    Height = 102
-    Anchors = [akLeft, akTop, akRight, akBottom]
+  object gbOptions: TGroupBox
+    Left = 0
+    Top = 0
+    Width = 513
+    Height = 117
+    Align = alClient
     Caption = 'Report Options'
-    TabOrder = 4
+    TabOrder = 0
     DesignSize = (
-      496
-      102)
+      513
+      117)
     object chkIncludeDeleted: TCheckBox
       Left = 8
-      Top = 79
+      Top = 94
       Width = 297
       Height = 17
       Anchors = [akLeft, akBottom]
@@ -82,7 +36,7 @@ object dlgAdminAccountOptions: TdlgAdminAccountOptions
     end
     object GBInactive: TGroupBox
       Left = 8
-      Top = 16
+      Top = 30
       Width = 481
       Height = 41
       TabOrder = 1
@@ -102,6 +56,63 @@ object dlgAdminAccountOptions: TdlgAdminAccountOptions
         ItemHeight = 13
         TabOrder = 0
       end
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 117
+    Width = 513
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 1
+    DesignSize = (
+      513
+      41)
+    object btnPreview: TButton
+      Left = 8
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Previe&w'
+      Default = True
+      DragCursor = crDefault
+      TabOrder = 0
+      OnClick = btnPreviewClick
+    end
+    object btnFile: TButton
+      Left = 88
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Fil&e'
+      TabOrder = 1
+      OnClick = btnFileClick
+    end
+    object btnPrint: TButton
+      Left = 352
+      Top = 10
+      Width = 75
+      Height = 23
+      Anchors = [akRight, akBottom]
+      Caption = '&Print'
+      TabOrder = 2
+      OnClick = btnPrintClick
+    end
+    object btnCancel: TButton
+      Left = 432
+      Top = 10
+      Width = 75
+      Height = 23
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      TabOrder = 3
+      OnClick = btnCancelClick
     end
   end
 end

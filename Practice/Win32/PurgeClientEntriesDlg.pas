@@ -31,8 +31,6 @@ uses
 
 type
   TdlgPurgeClientEntries = class(TForm)
-    btnPurge: TButton;
-    btnCancel: TButton;
     chkTransOnly: TCheckBox;
     nfMths: TOvcNumericField;
     OvcController1: TOvcController;
@@ -49,6 +47,10 @@ type
     eDateFrom: TRzDateTimeEdit;
     Label2: TLabel;
     Label3: TLabel;
+    pnlControls: TPanel;
+    btnPurge: TButton;
+    btnCancel: TButton;
+    Shape1: TShape;
 
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure nfMthsChange(Sender: TObject);

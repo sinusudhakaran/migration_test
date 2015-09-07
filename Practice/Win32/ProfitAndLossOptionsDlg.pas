@@ -87,6 +87,7 @@ type
     rbDetailedNonPost: TRadioButton;
     chkPrintNonPostingChartCodeTitles: TCheckBox;
     Bevel5: TBevel;
+    Bevel6: TBevel;
 
     procedure chkCompareClick(Sender: TObject);
     procedure rbDetailedFormatClick(Sender: TObject);
