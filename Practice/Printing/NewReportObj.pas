@@ -1206,7 +1206,7 @@ begin
        NewAmount := ReportCol.GrandTotal;
        if DefaultSign in [Credit, Debit] then begin
          NewAmount := Abs( ReportCol.GrandTotal );
-         If SignOf( ReportCol.GrandTotal) <> DefaultSign then
+         If SignOf_Curr( ReportCol.GrandTotal) <> DefaultSign then
             NewAmount := -NewAmount;
        end;
        ReportCol.GrandTotal := NewAmount;
@@ -1248,7 +1248,7 @@ begin
        NewAmount := ReportCol.SubSectionTotal;
        if DefaultSign in [Credit, Debit] then begin
          NewAmount := Abs( ReportCol.SubSectionTotal );
-         If SignOf( ReportCol.SubSectionTotal) <> DefaultSign then
+         If SignOf_Curr( ReportCol.SubSectionTotal) <> DefaultSign then
             NewAmount := -NewAmount;
        end;
        ReportCol.SubSectionTotal := NewAmount;
@@ -1602,7 +1602,7 @@ begin
          NewAmount := ReportCol.RunningTotal;
          if DefaultSign in [Credit, Debit] then begin
            NewAmount := Abs( ReportCol.RunningTotal );
-           If SignOf( ReportCol.RunningTotal) <> DefaultSign then begin
+           If SignOf_Curr( ReportCol.RunningTotal) <> DefaultSign then begin
               NewAmount := -NewAmount;
            end;
          end;
