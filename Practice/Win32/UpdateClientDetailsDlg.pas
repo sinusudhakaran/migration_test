@@ -166,10 +166,6 @@ end;
 procedure TContactDetailsFrm.FormShow(Sender: TObject);
 begin
   CurrentCode := eCode.Text;
-  if FClientType = ctProspect then
-    eCode.SetFocus
-  else
-    eName.SetFocus;
 end;
 
 end.

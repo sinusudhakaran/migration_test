@@ -70,13 +70,9 @@ object ContactDetailsFrm: TContactDetailsFrm
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
-    ExplicitLeft = 6
-    ExplicitTop = 10
-    ExplicitWidth = 564
-    ExplicitHeight = 375
     object Label2: TLabel
       Left = 16
-      Top = 43
+      Top = 42
       Width = 69
       Height = 16
       Caption = 'Client &Name'
@@ -90,7 +86,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label3: TLabel
       Left = 16
-      Top = 69
+      Top = 72
       Width = 46
       Height = 16
       Caption = 'A&ddress'
@@ -104,7 +100,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label4: TLabel
       Left = 16
-      Top = 186
+      Top = 185
       Width = 80
       Height = 16
       Caption = 'Con&tact Name'
@@ -118,7 +114,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label5: TLabel
       Left = 16
-      Top = 219
+      Top = 218
       Width = 35
       Height = 16
       Caption = '&Phone'
@@ -132,7 +128,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label9: TLabel
       Left = 16
-      Top = 283
+      Top = 282
       Width = 31
       Height = 16
       Caption = 'E&mail'
@@ -146,7 +142,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label13: TLabel
       Left = 16
-      Top = 248
+      Top = 247
       Width = 20
       Height = 16
       Caption = 'Fa&x'
@@ -160,7 +156,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label15: TLabel
       Left = 328
-      Top = 234
+      Top = 233
       Width = 37
       Height = 16
       Caption = 'Mo&bile'
@@ -174,7 +170,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object lblUser: TLabel
       Left = 16
-      Top = 313
+      Top = 312
       Width = 70
       Height = 16
       Caption = '&Assigned To'
@@ -189,7 +185,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object lblCode: TLabel
       Left = 16
-      Top = 9
+      Top = 8
       Width = 65
       Height = 16
       Caption = 'Client &Code'
@@ -204,7 +200,7 @@ object ContactDetailsFrm: TContactDetailsFrm
     end
     object Label1: TLabel
       Left = 16
-      Top = 158
+      Top = 157
       Width = 57
       Height = 16
       Caption = '&Salutation'
@@ -231,7 +227,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 60
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 0
+      TabOrder = 1
     end
     object eContact: TEdit
       Left = 150
@@ -375,7 +371,7 @@ object ContactDetailsFrm: TContactDetailsFrm
       MaxLength = 8
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 1
+      TabOrder = 0
       Visible = False
     end
     object cmbUsers: TComboBox
