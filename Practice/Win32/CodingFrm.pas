@@ -3942,7 +3942,11 @@ begin
 
               if IncludeTrans then
               begin
-                pT.txSuggested_Mem_Index := TRAN_SUGG_NOT_FOUND;
+                pT^.txSuggested_Mem_Index := TRAN_SUGG_NOT_FOUND;
+
+                SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
+                pT^.txSuggested_Manual_Count := tmpPaintSuggMemsData.ManualCount;
+
                 WorkTranList.Insert(pT);
               end;
            end;
@@ -4351,7 +4355,7 @@ begin
          InsColDefnRec( 'Payee Name', cePayeeName, celPayeeName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, CE_PAYEENAME_DEF_EDITABLE, csByPayeeName);
          InsColDefnRec( 'Job', ceJob, celJob, CE_JOB_DEF_WIDTH, CE_JOB_DEF_VISIBLE, false, CE_JOB_DEF_EDITABLE, csByJob );
          InsColDefnRec( 'Job Name', ceJobName, celJobName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, False, csByJobName);
-         InsColDefnRec('', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount);
+         InsColDefnRec('', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount, 'Suggested Memorisation');
 
          AllowGSTClassEditing := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
          case MyClient.clFields.clCountry of
@@ -5143,6 +5147,7 @@ begin
         ceSuggestedMemCount :
         begin
           SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
+          pT^.txSuggested_Manual_Count := tmpPaintSuggMemsData.ManualCount;
 
           data := @tmpPaintSuggMemsData;
         end

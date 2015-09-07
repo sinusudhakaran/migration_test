@@ -412,6 +412,7 @@ var
 begin
   Result := false;
 
+  BestSuggMemsData.ManualCount := 0;
   aTrans^.txSuggested_Mem_Index := TRAN_NO_SUGG;
 
   if not aBankAccount.baTransaction_List.SearchUsingTypeDateandTranSeqNo(aTrans^.txType, aTrans^.txDate_Effective, aTrans^.txSequence_No, TranTypeIndex) then
@@ -471,6 +472,7 @@ begin
       end;
     end;
   end;
+  aSuggMemItem := BestSuggMemsData;
 end;
 
 //------------------------------------------------------------------------------

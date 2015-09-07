@@ -110,19 +110,15 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     ParentFont = False
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-    TreeOptions.PaintOptions = [toShowButtons, toThemeAware, toUseBlendedImages, toUseBlendedSelection]
-    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+    TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
+    TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect]
     OnDblClick = vstTreeDblClick
     OnFocusChanged = vstTreeFocusChanged
     OnGetText = vstTreeGetText
     OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnHeaderClick = vstTreeHeaderClick
     OnMouseDown = vstTreeMouseDown
-    ExplicitLeft = 76
-    ExplicitTop = 80
-    ExplicitWidth = 536
-    ExplicitHeight = 255
+    ExplicitTop = 35
     Columns = <
       item
         Position = 0

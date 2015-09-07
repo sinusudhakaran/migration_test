@@ -651,14 +651,14 @@ Begin
                Result :=   LongToKey( i ) +
                            LongToKey( txBank_Seq ) +
                            LongToKey( txDate_Effective ) +
-                           LongToKey ( txSequence_No )
+                           LongToKey ( txSequence_No );
             end;
          csSuggestedMemCount    :
             begin
-              Result :=    LongToKey( txSuggested_Mem_Index ) +
-                           LongToKey( txBank_Seq ) +
+              Result :=    LongToKey( -txSuggested_Manual_Count ) +
                            LongToKey( txDate_Effective ) +
-                           LongToKey ( txSequence_No )
+                           LongToKey( txBank_Seq ) +
+                           LongToKey( txSequence_No );
             end;
 
       else
