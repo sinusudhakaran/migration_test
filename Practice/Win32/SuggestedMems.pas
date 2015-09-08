@@ -313,6 +313,7 @@ begin
   SearchAccountId := -1;
   TotalCount := 0;
 
+  // Search for transactions linked to Suggestion
   if aBankAccount.baTran_Suggested_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex)  then
   begin
     for TranLinkIndex := LowAccountIndex to HighAccountIndex do
@@ -412,12 +413,23 @@ var
 begin
   Result := false;
 
+  BestSuggMemsData.Id := 0;
   BestSuggMemsData.ManualCount := 0;
+  BestSuggMemsData.MatchedPhrase := '';
+  BestSuggMemsData.Account := '';
+  BestSuggMemsData.TotalCount := 0;
+  BestSuggMemsData.ManualAcountCount := 0;
+  BestSuggMemsData.IsExactMatch := false;
+  BestSuggMemsData.IsHidden := false;
+  BestSuggMemsData.IsHiddenForSession := false;
+
   aTrans^.txSuggested_Mem_Index := TRAN_NO_SUGG;
 
+  // find Transaction links using current Transaction
   if not aBankAccount.baTransaction_List.SearchUsingTypeDateandTranSeqNo(aTrans^.txType, aTrans^.txDate_Effective, aTrans^.txSequence_No, TranTypeIndex) then
     Exit;
 
+  // Check that the transaction is in the right state
   if not aBankAccount.baTransaction_List.GetIndexPRec(TranTypeIndex)^.tiSuggested_Mem_State in [tssCreateSuggestion, tssForCount] then
     Exit;
 

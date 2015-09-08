@@ -8,7 +8,7 @@ uses
   eCollect;
 
 type
-  TColSortOrder = (csType, csPhrase, csAccount, csTotal);
+  TColSortOrder = (csType, csPhrase, csAccount, csManual, csTotal);
 
   //----------------------------------------------------------------------------
   pSuggMemSortedListRec = ^TSuggMemSortedListRec;
@@ -143,6 +143,7 @@ begin
       csType    : Result := CompareValue(SuggItem1.AccType, SuggItem2.AccType);
       csPhrase  : Result := CompareText(SuggItem1.MatchedPhrase, SuggItem2.MatchedPhrase);
       csAccount : Result := CompareText(SuggItem1.Account, SuggItem2.Account);
+      csManual  : Result := CompareValue(SuggItem1.ManualCount, SuggItem2.ManualCount);
       csTotal   : Result := CompareValue(SuggItem1.TotalCount, SuggItem2.TotalCount);
     end;
   end;

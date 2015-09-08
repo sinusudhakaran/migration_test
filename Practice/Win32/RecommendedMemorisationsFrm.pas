@@ -18,7 +18,8 @@ uses
   Graphics,
   SuggestedMems,
   SuggMemSortedList,
-  VirtualTrees, Buttons;
+  VirtualTrees,
+  Buttons;
 
 type
   //----------------------------------------------------------------------------
@@ -87,13 +88,18 @@ uses
   SYDefs,
   bkXPThemes,
   bkhelp,
+  MemorisationsObj,
+  BKDEFS,
+  BKMLIO,
+  MemoriseDlg,
   bkBranding;
 
 const
   ccEntryType        = 0;
   ccStatementDetails = 1;
   ccCode             = 2;
-  ccTotal            = 3;
+  ccManual           = 3;
+  ccTotal            = 4;
 
   DT_OPTIONS_STR = DT_LEFT or DT_VCENTER or DT_SINGLELINE;
   DT_OPTIONS_INT = DT_RIGHT or DT_VCENTER or DT_SINGLELINE;
@@ -205,7 +211,7 @@ procedure TRecommendedMemorisationsFrm.vstTreeGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 var
   pData: pSuggMemSortedListRec;
-  iTotal: integer;
+  Value : integer;
 begin
   CellText := '';
 
@@ -230,11 +236,18 @@ begin
     // Code
     2: CellText := pData^.Account;
 
-    // Total #
+    // Manual #
     3:
     begin
-      iTotal := pData^.TotalCount;
-      CellText := IntToStr(iTotal);
+      Value := pData^.ManualCount;
+      CellText := IntToStr(Value);
+    end;
+
+    // Total #
+    4:
+    begin
+      Value := pData^.TotalCount;
+      CellText := IntToStr(Value);
     end;
   end;
 
@@ -259,6 +272,7 @@ begin
     ccEntryType        : fSuggMemSortedList.ColSortOrder := csType;
     ccStatementDetails : fSuggMemSortedList.ColSortOrder := csPhrase;
     ccCode             : fSuggMemSortedList.ColSortOrder := csAccount;
+    ccManual           : fSuggMemSortedList.ColSortOrder := csManual;
     ccTotal            : fSuggMemSortedList.ColSortOrder := csTotal;
   end;
   Refresh();
@@ -328,6 +342,16 @@ var
 begin
   if fLoading then
     Exit;
+
+  if not assigned(aNode) then
+  begin
+    btnHide.Enabled := false;
+    btnCreate.Enabled := false;
+
+    btnHide.Caption := 'Hide';
+    btnCreate.Default := false;
+    Exit;
+  end;
 
   pData := pSuggMemSortedListRec(vstTree.GetNodeData(aNode)^);
 
@@ -503,13 +527,14 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.btnCreateClick(Sender: TObject);
-{var
+var
   SelNode : PVirtualNode;
   NextNode : PVirtualNode;
-  NextAccount : string;
-  NextStatement : string;}
+  //NextAccount : string;
+  //NextStatement : string;
+  SuggId : integer;
 begin
-  {SelNode := vstTree.GetFirstSelected();
+  SelNode := vstTree.GetFirstSelected();
 
   if not assigned(SelNode) then
     Exit;
@@ -519,7 +544,7 @@ begin
     NextNode := vstTree.GetPreviousVisible(SelNode);
 
   if Assigned(NextNode) then
-    GetAccAndStatFromNode(NextNode, NextAccount, NextStatement);
+    SuggId := GetSuggIdFromNode(NextNode);
 
   DoCreateNewMemorisation(SelNode);
 
@@ -528,7 +553,7 @@ begin
     SelNode := vstTree.GetFirst;
     while Assigned(SelNode) do
     begin
-      if IsAccAndStatEqualtoNode(SelNode, NextAccount, NextStatement) then
+      if SuggId = GetSuggIdFromNode(SelNode) then
       begin
         vstTree.Selected[SelNode] := true;
         vstTree.FocusedNode := SelNode;
@@ -537,7 +562,7 @@ begin
 
       SelNode := SelNode.NextSibling;
     end;
-  end; }
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -571,17 +596,14 @@ end; }
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.DoCreateNewMemorisation(const aNode: PVirtualNode);
-{var
-  pData: PTreeData;
-
+var
+  pData: pSuggMemSortedListRec;
   Mems: TMemorisations_List;
   Mem: TMemorisation;
   MemLine: pMemorisation_Line_Rec;
-
   i: integer;
-  Recommended: TRecommended_Mem_List;}
 begin
-  {pData := PTreeData(vstTree.GetNodeData(aNode));
+  pData := pSuggMemSortedListRec(vstTree.GetNodeData(aNode)^);
 
   // Create memorisation
   Mems := fBankAccount.baMemorisations_List;
@@ -589,36 +611,33 @@ begin
 
   try
     Mem.mdFields.mdMatch_On_Statement_Details := true;
-    Mem.mdFields.mdStatement_Details := pData.SuggestedMem.smMatchedPhrase;
-    Mem.mdFields.mdType := pData.SuggestedMem.smType;
+    Mem.mdFields.mdStatement_Details := pData^.MatchedPhrase;
+    Mem.mdFields.mdType := pData^.AccType;
 
     // Create memorisation line
     MemLine := New_Memorisation_Line_Rec;
-    MemLine.mlAccount := pData.SuggestedMem.smAccount;
+    MemLine.mlAccount := pData^.Account;
     MemLine.mlGST_Class := MyClient.clChart.GSTClass(
-      pData.SuggestedMem.smAccount);
+      pData^.Account);
     MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
     Mem.mdLines.Insert(MemLine);
 
     // OK pressed, and insert mem?
     if CreateMemorisation(fBankAccount, Mems, Mem) then
     begin
-      BuildData;
+      Refresh();
 
-      // Repopulate the recommended mems list from scratch (just the rec mems,
-      // not the unscanned transactions or candidate mems)
-      // Note: RepopulateRecommendedMems removed, see note in PopulateTree
-      RedrawTree; // if we don't do this, the recommendation we just accepted will still be in the list
-      fAdded := true;
+      RefreshMemControls(vstTree.GetFirstSelected);
+      vstTree.SetFocus;
     end
     else
     begin
-      // Note: RepopulateRecommendedMems removed, see note in PopulateTree
-      RedrawTree;
+      RefreshMemControls(vstTree.GetFirstSelected);
+      vstTree.SetFocus;
     end;
   finally
     FreeAndNil(Mem);
-  end;  }
+  end;
 end;
 
 end.

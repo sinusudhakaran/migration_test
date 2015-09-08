@@ -35,9 +35,10 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       41)
     object chkAllowSuggMemPopup: TCheckBox
       Left = 89
-      Top = 12
-      Width = 248
+      Top = 14
+      Width = 442
       Height = 17
+      Anchors = [akLeft, akTop, akRight]
       Caption = 'Allow Suggested Memorisation '#39'Pop-up'#39
       TabOrder = 0
     end
@@ -66,7 +67,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
-      Caption = 'Cancel'
+      Caption = 'Close'
       ModalResult = 2
       TabOrder = 3
     end
@@ -118,7 +119,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     OnGetNodeDataSize = vstTreeGetNodeDataSize
     OnHeaderClick = vstTreeHeaderClick
     OnMouseDown = vstTreeMouseDown
-    ExplicitTop = 35
+    ExplicitTop = 30
     Columns = <
       item
         Position = 0
@@ -137,14 +138,19 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       end
       item
         Position = 3
-        Width = 60
+        Width = 75
+        WideText = 'Manual'
+      end
+      item
+        Position = 4
+        Width = 75
         WideText = 'Total'
       end>
   end
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800DC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
