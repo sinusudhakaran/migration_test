@@ -108,6 +108,7 @@ type
     Bevel2: TBevel;
     Bevel3: TBevel;
     Bevel4: TBevel;
+    ShapeBorder: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

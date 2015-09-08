@@ -31,13 +31,6 @@ type
 
   TfrmTPA = class(TForm)
     Opendlg: TOpenDialog;
-    btnPreview: TButton;
-    btnFile: TButton;
-    btnEmail: TButton;
-    btnPrint: TButton;
-    btnImport: TButton;
-    btnClear: TButton;
-    btnCancel: TButton;
     pnlMain: TPanel;
     pnlInstTop: TPanel;
     lblInstitution: TLabel;
@@ -110,6 +103,15 @@ type
     Bevel2: TBevel;
     Bevel4: TBevel;
     Bevel5: TBevel;
+    pnlControls: TPanel;
+    btnPreview: TButton;
+    btnFile: TButton;
+    btnEmail: TButton;
+    btnPrint: TButton;
+    btnImport: TButton;
+    btnClear: TButton;
+    btnCancel: TButton;
+    ShapeBorder: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);

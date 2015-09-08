@@ -4,9 +4,9 @@ object frmTPA: TfrmTPA
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Third Party Authority'
-  ClientHeight = 746
-  ClientWidth = 783
-  Color = clBtnFace
+  ClientHeight = 750
+  ClientWidth = 782
+  Color = clWindow
   Constraints.MinWidth = 640
   DefaultMonitor = dmMainForm
   Font.Charset = DEFAULT_CHARSET
@@ -21,108 +21,8 @@ object frmTPA: TfrmTPA
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  DesignSize = (
-    783
-    746)
   PixelsPerInch = 96
   TextHeight = 17
-  object btnPreview: TButton
-    Left = 8
-    Top = 713
-    Width = 85
-    Height = 25
-    Hint = 'Preview the Third Party Authority Form'
-    Anchors = [akLeft, akBottom]
-    Caption = 'Previe&w'
-    Default = True
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 0
-    OnClick = btnPreviewClick
-    ExplicitTop = 707
-  end
-  object btnFile: TButton
-    Left = 99
-    Top = 713
-    Width = 85
-    Height = 25
-    Hint = 'Save the Third Party Authority Form to a file'
-    Anchors = [akLeft, akBottom]
-    Caption = 'Fil&e'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 1
-    OnClick = btnFileClick
-    ExplicitTop = 707
-  end
-  object btnEmail: TButton
-    Left = 189
-    Top = 713
-    Width = 85
-    Height = 25
-    Hint = 'Email the Third Party Authority Form to the client'
-    Anchors = [akLeft, akBottom]
-    Caption = 'E&mail'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 2
-    OnClick = btnEmailClick
-    ExplicitTop = 707
-  end
-  object btnPrint: TButton
-    Left = 281
-    Top = 713
-    Width = 85
-    Height = 25
-    Hint = 'Print the Third Party Authority Form'
-    Anchors = [akLeft, akBottom]
-    Caption = '&Print'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 3
-    OnClick = btnPrintClick
-    ExplicitTop = 707
-  end
-  object btnImport: TButton
-    Left = 523
-    Top = 713
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Import'
-    TabOrder = 4
-    OnClick = btnImportClick
-    ExplicitTop = 707
-  end
-  object btnClear: TButton
-    Left = 604
-    Top = 713
-    Width = 85
-    Height = 25
-    Hint = 'Clear the form'
-    Anchors = [akLeft, akBottom]
-    Caption = 'Clear'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 5
-    OnClick = btnClearClick
-    ExplicitTop = 707
-  end
-  object btnCancel: TButton
-    Left = 695
-    Top = 713
-    Width = 80
-    Height = 25
-    Hint = 'Close the Third Party Authority Form'
-    Anchors = [akLeft, akBottom]
-    Cancel = True
-    Caption = 'Close'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 6
-    OnClick = btnCancelClick
-    ExplicitTop = 707
-  end
   object pnlMain: TPanel
     Left = 8
     Top = 8
@@ -132,7 +32,7 @@ object frmTPA: TfrmTPA
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
-    TabOrder = 7
+    TabOrder = 0
     object pnlInstTop: TPanel
       Left = 0
       Top = 0
@@ -148,15 +48,15 @@ object frmTPA: TfrmTPA
         763
         80)
       object lblInstitution: TLabel
-        Left = 23
+        Left = 28
         Top = 13
         Width = 56
         Height = 17
         Caption = 'Institution'
       end
       object lblBranch: TLabel
-        Left = 23
-        Top = 48
+        Left = 28
+        Top = 49
         Width = 39
         Height = 17
         Caption = 'Branch'
@@ -171,7 +71,7 @@ object frmTPA: TfrmTPA
         ExplicitTop = 74
       end
       object cmbInstitution: TComboBox
-        Left = 148
+        Left = 153
         Top = 10
         Width = 328
         Height = 25
@@ -195,9 +95,9 @@ object frmTPA: TfrmTPA
         OnExit = edt1Exit
       end
       object edtBranch: TEdit
-        Left = 148
+        Left = 153
         Top = 46
-        Width = 328
+        Width = 323
         Height = 25
         Anchors = [akLeft, akTop, akRight]
         MaxLength = 100
@@ -403,7 +303,7 @@ object frmTPA: TfrmTPA
           ExplicitWidth = 604
         end
         object lblMaskErrorHint2: TLabel
-          Left = 5
+          Left = 6
           Top = 96
           Width = 608
           Height = 22
@@ -460,7 +360,7 @@ object frmTPA: TfrmTPA
           OnKeyPress = edt2KeyPress
         end
         object mskAccountNumber2: TMaskValidateEdit
-          Left = 9
+          Left = 8
           Top = 65
           Width = 278
           Height = 25
@@ -503,14 +403,14 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 2
         object lblNameOfAccount2: TLabel
-          Left = 23
+          Left = 24
           Top = 13
           Width = 101
           Height = 17
           Caption = 'Name of Account'
         end
         object lblAccount2: TLabel
-          Left = 23
+          Left = 24
           Top = 68
           Width = 98
           Height = 17
@@ -530,14 +430,14 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 3
         object lblNameOfAccount1: TLabel
-          Left = 23
+          Left = 24
           Top = 13
           Width = 101
           Height = 17
           Caption = 'Name of Account'
         end
         object lblAccount1: TLabel
-          Left = 23
+          Left = 24
           Top = 68
           Width = 98
           Height = 17
@@ -583,7 +483,7 @@ object frmTPA: TfrmTPA
           ExplicitWidth = 604
         end
         object lblMaskErrorHint3: TLabel
-          Left = 5
+          Left = 6
           Top = 96
           Width = 608
           Height = 22
@@ -683,14 +583,14 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 5
         object lblNameOfAccount3: TLabel
-          Left = 23
+          Left = 24
           Top = 13
           Width = 101
           Height = 17
           Caption = 'Name of Account'
         end
         object lblAccount3: TLabel
-          Left = 23
+          Left = 24
           Top = 68
           Width = 98
           Height = 17
@@ -717,8 +617,8 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 0
         object lblStartDate: TLabel
-          Left = 23
-          Top = 6
+          Left = 28
+          Top = 7
           Width = 58
           Height = 17
           Caption = 'Start Date'
@@ -734,7 +634,7 @@ object frmTPA: TfrmTPA
         ParentBackground = False
         TabOrder = 1
         object edtClientStartDte: TOvcPictureField
-          Left = 3
+          Left = 8
           Top = 3
           Width = 85
           Height = 24
@@ -801,7 +701,7 @@ object frmTPA: TfrmTPA
         Caption = 'An additional form is required for '
       end
       object lblBookSecureLink: TLabel
-        Left = 248
+        Left = 249
         Top = 36
         Width = 78
         Height = 17
@@ -819,7 +719,7 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lblBookSecureLinkMouseLeave
       end
       object lblOrContactiBizz: TLabel
-        Left = 328
+        Left = 329
         Top = 36
         Width = 13
         Height = 17
@@ -832,13 +732,13 @@ object frmTPA: TfrmTPA
         ParentFont = False
       end
       object imgInfoAdditionalMsg: TImage
-        Left = 23
+        Left = 28
         Top = 36
         Width = 16
         Height = 16
       end
       object lbliBizz: TLabel
-        Left = 345
+        Left = 346
         Top = 36
         Width = 28
         Height = 17
@@ -856,9 +756,9 @@ object frmTPA: TfrmTPA
         OnMouseLeave = lbliBizzMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
-        Left = 23
-        Top = 61
-        Width = 253
+        Left = 28
+        Top = 62
+        Width = 251
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -867,7 +767,7 @@ object frmTPA: TfrmTPA
         OnClick = chkDataSecureExistingClick
       end
       object chkDataSecureNew: TCheckBox
-        Left = 23
+        Left = 28
         Top = 10
         Width = 358
         Height = 17
@@ -910,13 +810,11 @@ object frmTPA: TfrmTPA
       Color = clWhite
       ParentBackground = False
       TabOrder = 4
-      ExplicitLeft = 464
-      ExplicitTop = 589
       DesignSize = (
         763
         97)
       object lblRuralInstitutions: TLabel
-        Left = 23
+        Left = 28
         Top = 13
         Width = 103
         Height = 17
@@ -946,6 +844,119 @@ object frmTPA: TfrmTPA
         OnKeyDown = radDateShownKeyDown
         OnMouseDown = radDateShownMouseDown
       end
+    end
+  end
+  object pnlControls: TPanel
+    Left = 0
+    Top = 709
+    Width = 782
+    Height = 41
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = ' '
+    ParentBackground = False
+    TabOrder = 1
+    DesignSize = (
+      782
+      41)
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 782
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 780
+    end
+    object btnPreview: TButton
+      Left = 3
+      Top = 7
+      Width = 85
+      Height = 25
+      Hint = 'Preview the Third Party Authority Form'
+      Anchors = [akLeft, akBottom]
+      Caption = 'Previe&w'
+      Default = True
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = btnPreviewClick
+    end
+    object btnFile: TButton
+      Left = 94
+      Top = 7
+      Width = 85
+      Height = 25
+      Hint = 'Save the Third Party Authority Form to a file'
+      Anchors = [akLeft, akBottom]
+      Caption = 'Fil&e'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = btnFileClick
+    end
+    object btnEmail: TButton
+      Left = 184
+      Top = 7
+      Width = 85
+      Height = 25
+      Hint = 'Email the Third Party Authority Form to the client'
+      Anchors = [akLeft, akBottom]
+      Caption = 'E&mail'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      OnClick = btnEmailClick
+    end
+    object btnPrint: TButton
+      Left = 276
+      Top = 7
+      Width = 85
+      Height = 25
+      Hint = 'Print the Third Party Authority Form'
+      Anchors = [akLeft, akBottom]
+      Caption = '&Print'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = btnPrintClick
+    end
+    object btnImport: TButton
+      Left = 518
+      Top = 7
+      Width = 75
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Import'
+      TabOrder = 4
+      OnClick = btnImportClick
+    end
+    object btnClear: TButton
+      Left = 600
+      Top = 7
+      Width = 85
+      Height = 25
+      Hint = 'Clear the form'
+      Anchors = [akLeft, akBottom]
+      Caption = 'Clear'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+      OnClick = btnClearClick
+    end
+    object btnCancel: TButton
+      Left = 693
+      Top = 7
+      Width = 80
+      Height = 25
+      Hint = 'Close the Third Party Authority Form'
+      Anchors = [akLeft, akBottom]
+      Cancel = True
+      Caption = 'Close'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 6
+      OnClick = btnCancelClick
     end
   end
   object Opendlg: TOpenDialog

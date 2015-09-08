@@ -5,9 +5,9 @@ object frmCAF: TfrmCAF
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Client Authority Form'
-  ClientHeight = 690
+  ClientHeight = 691
   ClientWidth = 783
-  Color = clBtnFace
+  Color = clWindow
   Constraints.MinWidth = 350
   DefaultMonitor = dmMainForm
   Font.Charset = DEFAULT_CHARSET
@@ -26,12 +26,21 @@ object frmCAF: TfrmCAF
   TextHeight = 17
   object Panel6: TPanel
     Left = 0
-    Top = 649
+    Top = 650
     Width = 783
     Height = 41
     Align = alBottom
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 1
+    object ShapeBorder: TShape
+      Left = 0
+      Top = 0
+      Width = 783
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+    end
     object btnPreview: TButton
       Left = 8
       Top = 8
@@ -156,27 +165,27 @@ object frmCAF: TfrmCAF
         763
         134)
       object lblSecureCode: TLabel
-        Left = 283
+        Left = 288
         Top = 56
         Width = 74
         Height = 17
         Caption = 'Secure Code'
       end
       object imgInfoAdditionalMsg: TImage
-        Left = 23
+        Left = 28
         Top = 31
         Width = 16
         Height = 16
       end
       object lblNoteAddFormReq: TLabel
-        Left = 44
+        Left = 47
         Top = 31
         Width = 201
         Height = 17
         Caption = 'An additional form is required for '
       end
       object lblBookSecureLink: TLabel
-        Left = 246
+        Left = 248
         Top = 31
         Width = 78
         Height = 17
@@ -194,7 +203,7 @@ object frmCAF: TfrmCAF
         OnMouseLeave = lblBookSecureLinkMouseLeave
       end
       object lblOrContactiBizz: TLabel
-        Left = 327
+        Left = 330
         Top = 31
         Width = 13
         Height = 17
@@ -204,7 +213,7 @@ object frmCAF: TfrmCAF
         Transparent = True
       end
       object lbliBizz: TLabel
-        Left = 345
+        Left = 347
         Top = 31
         Width = 28
         Height = 17
@@ -222,9 +231,9 @@ object frmCAF: TfrmCAF
         OnMouseLeave = lbliBizzMouseLeave
       end
       object chkDataSecureExisting: TCheckBox
-        Left = 23
+        Left = 28
         Top = 56
-        Width = 259
+        Width = 253
         Height = 17
         Hint = 'For BankLink Books Secure or BankLink Online Secure clients'
         Anchors = [akLeft, akTop, akRight]
@@ -233,7 +242,7 @@ object frmCAF: TfrmCAF
         OnClick = chkDataSecureExistingClick
       end
       object chkDataSecureNew: TCheckBox
-        Left = 23
+        Left = 28
         Top = 4
         Width = 292
         Height = 17
@@ -253,7 +262,7 @@ object frmCAF: TfrmCAF
         TabOrder = 2
       end
       object chkSupplyAsProvisional: TCheckBox
-        Left = 23
+        Left = 28
         Top = 108
         Width = 445
         Height = 17
@@ -280,14 +289,14 @@ object frmCAF: TfrmCAF
         763
         83)
       object lblInstitution: TLabel
-        Left = 23
+        Left = 29
         Top = 13
         Width = 56
         Height = 17
         Caption = 'Institution'
       end
       object lblBranch: TLabel
-        Left = 23
+        Left = 28
         Top = 48
         Width = 39
         Height = 17
@@ -303,7 +312,7 @@ object frmCAF: TfrmCAF
         Font.Color = clWindowText
         Font.Height = -13
         Font.Name = 'Segoe UI'
-        Font.Style = [fsUnderline]
+        Font.Style = []
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
@@ -313,7 +322,7 @@ object frmCAF: TfrmCAF
         OnMouseLeave = lblAdditionalFormRequiredMouseLeave
       end
       object cmbInstitution: TComboBox
-        Left = 148
+        Left = 153
         Top = 10
         Width = 366
         Height = 25
@@ -337,9 +346,9 @@ object frmCAF: TfrmCAF
         OnChange = edtInstitutionNameChange
       end
       object edtBranch: TEdit
-        Left = 148
+        Left = 153
         Top = 45
-        Width = 366
+        Width = 361
         Height = 25
         Anchors = [akLeft, akTop, akRight]
         MaxLength = 100
@@ -413,7 +422,7 @@ object frmCAF: TfrmCAF
           Caption = 'Cost Code'
         end
         object lblMaskErrorHint1: TLabel
-          Left = 8
+          Left = 6
           Top = 96
           Width = 608
           Height = 20
@@ -511,14 +520,14 @@ object frmCAF: TfrmCAF
         ParentBackground = False
         TabOrder = 4
         object lblAccount1: TLabel
-          Left = 23
+          Left = 24
           Top = 68
           Width = 98
           Height = 17
           Caption = 'Account Number'
         end
         object lblNameOfAccount1: TLabel
-          Left = 23
+          Left = 24
           Top = 13
           Width = 101
           Height = 17
@@ -664,14 +673,14 @@ object frmCAF: TfrmCAF
         ParentBackground = False
         TabOrder = 0
         object lblAccount2: TLabel
-          Left = 23
+          Left = 24
           Top = 68
           Width = 98
           Height = 17
           Caption = 'Account Number'
         end
         object lblNameOfAccount2: TLabel
-          Left = 23
+          Left = 24
           Top = 13
           Width = 101
           Height = 17
@@ -814,14 +823,14 @@ object frmCAF: TfrmCAF
         ParentBackground = False
         TabOrder = 5
         object lblAccount3: TLabel
-          Left = 23
+          Left = 24
           Top = 68
           Width = 98
           Height = 17
           Caption = 'Account Number'
         end
         object lblNameOfAccount3: TLabel
-          Left = 23
+          Left = 24
           Top = 13
           Width = 101
           Height = 17
@@ -848,7 +857,7 @@ object frmCAF: TfrmCAF
         ParentBackground = False
         TabOrder = 0
         object lblStartDate: TLabel
-          Left = 23
+          Left = 28
           Top = 3
           Width = 58
           Height = 17
@@ -865,7 +874,7 @@ object frmCAF: TfrmCAF
         ParentBackground = False
         TabOrder = 1
         object edtClientStartDte: TOvcPictureField
-          Left = 3
+          Left = 8
           Top = 0
           Width = 85
           Height = 24
