@@ -124,6 +124,7 @@ type
     procedure fmeDivisionSelector1btnSelectAllDivisionsClick(Sender: TObject);
     procedure fmeDivisionSelector1btnClearAllDivisionsClick(Sender: TObject);
     procedure btnEmailClick(Sender: TObject);
+    procedure pnlReportStyleClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -410,6 +411,11 @@ begin
    //fill the ending combo box with valid months no that have set
    RecalcDates;
 end;
+procedure TdlgCashflowOptions.pnlReportStyleClick(Sender: TObject);
+begin
+
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgCashflowOptions.SaveBatchSettings;
 var

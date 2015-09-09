@@ -76,7 +76,7 @@ type
     Bevel2: TBevel;
     Bevel3: TBevel;
     Bevel4: TBevel;
-    Panel3: TPanel;
+    pnlCheckBoxes: TPanel;
     pnlInclude: TPanel;
     chkIncludeCodes: TCheckBox;
     chkIncludeQuantity: TCheckBox;

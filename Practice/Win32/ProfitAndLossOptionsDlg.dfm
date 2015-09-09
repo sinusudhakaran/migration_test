@@ -5,7 +5,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
   Caption = 'Custom Profit and Loss Reports'
   ClientHeight = 451
   ClientWidth = 633
-  Color = clBtnFace
+  Color = clWindow
   ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -21,12 +21,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 1
     DesignSize = (
       633
       38)
     object btnPrint: TButton
-      Left = 472
+      Left = 469
       Top = 8
       Width = 75
       Height = 25
@@ -36,7 +37,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
-      Left = 552
+      Left = 549
       Top = 8
       Width = 75
       Height = 25
@@ -67,7 +68,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
       OnClick = btnFileClick
     end
     object btnSave: TBitBtn
-      Left = 392
+      Left = 389
       Top = 8
       Width = 75
       Height = 25
@@ -201,6 +202,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Height = 17
           Caption = '&Detailed'
           Checked = True
+          ParentColor = False
           TabOrder = 4
           TabStop = True
           OnClick = rbDetailedFormatClick
@@ -211,6 +213,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 98
           Height = 17
           Caption = '&Summarised'
+          ParentColor = False
           TabOrder = 5
           OnClick = rbDetailedFormatClick
         end
@@ -285,7 +288,6 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 2
-        ExplicitTop = 195
         object Bevel3: TBevel
           Left = -1
           Top = 84
@@ -299,6 +301,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 185
           Height = 17
           Caption = 'Compare Actual Values &To'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 0
           OnClick = chkCompareClick
         end
@@ -309,6 +313,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Height = 17
           Caption = '&Budget'
           Enabled = False
+          ParentColor = False
           TabOrder = 2
           OnClick = rbToBudgetClick
         end
@@ -320,6 +325,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Caption = '&Last Year'
           Checked = True
           Enabled = False
+          ParentColor = False
           TabOrder = 1
           TabStop = True
           OnClick = rbToBudgetClick
@@ -330,7 +336,9 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 225
           Height = 17
           Caption = 'Include V&ariance'
+          Color = clWindow
           Enabled = False
+          ParentColor = False
           TabOrder = 4
         end
         object chkIncludeYTD: TCheckBox
@@ -339,6 +347,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 257
           Height = 17
           Caption = 'In&clude Year-to-Date'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 5
         end
         object cmbBudget: TComboBox
@@ -391,6 +401,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Width = 145
           Height = 17
           Caption = 'Include C&ompleted'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 1
           OnClick = ckAllJobsClick
         end
@@ -402,8 +414,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Height = 50
         Align = alTop
         BevelOuter = bvNone
-        TabOrder = 3
-        ExplicitTop = 351
+        TabOrder = 4
         object Bevel4: TBevel
           Left = -1
           Top = 45
@@ -420,11 +431,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             'Pro&mpt to use budgeted figures when no actual figures are avail' +
             'able.'
           Checked = True
+          Color = clWindow
+          ParentColor = False
           State = cbChecked
           TabOrder = 0
         end
       end
-      object Panel3: TPanel
+      object pnlCheckBoxes: TPanel
         Left = 0
         Top = 279
         Width = 625
@@ -432,7 +445,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
         Align = alTop
         BevelOuter = bvNone
         Caption = ' '
-        TabOrder = 4
+        TabOrder = 3
         object Bevel5: TBevel
           Left = 0
           Top = 65
@@ -448,7 +461,6 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Align = alLeft
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitHeight = 72
           object Bevel6: TBevel
             Left = 276
             Top = 0
@@ -464,6 +476,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             Width = 180
             Height = 17
             Caption = 'Include C&hart Codes'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 0
           end
           object chkIncludeQuantity: TCheckBox
@@ -472,6 +486,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             Width = 180
             Height = 17
             Caption = 'Include &Quantities'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 1
           end
           object chkGSTInclusive: TCheckBox
@@ -480,6 +496,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             Width = 132
             Height = 17
             Caption = '&GST Inclusive'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 2
           end
           object cbPercentage: TCheckBox
@@ -488,6 +506,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             Width = 132
             Height = 17
             Caption = 'Show &% of Income'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 3
           end
         end
@@ -499,16 +519,13 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
-          ExplicitLeft = 296
-          ExplicitTop = 11
-          ExplicitWidth = 268
-          ExplicitHeight = 55
           object rbSummarisedNonPost: TRadioButton
             Left = 133
             Top = 36
             Width = 113
             Height = 17
             Caption = 'Summarised'
+            ParentColor = False
             TabOrder = 2
           end
           object rbDetailedNonPost: TRadioButton
@@ -518,6 +535,7 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             Height = 17
             Caption = 'Detailed'
             Checked = True
+            ParentColor = False
             TabOrder = 1
             TabStop = True
           end
@@ -527,6 +545,8 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
             Width = 253
             Height = 17
             Caption = 'Include Non-Posting Chart Code Titles'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 0
             OnClick = chkPrintNonPostingChartCodeTitlesClick
           end
@@ -581,6 +601,10 @@ object dlgProfitAndLossOptions: TdlgProfitAndLossOptions
           TabOrder = 0
           ExplicitLeft = 24
           ExplicitTop = 12
+          inherited chkSplitByDivision: TCheckBox
+            Color = clWindow
+            ParentColor = False
+          end
         end
       end
     end

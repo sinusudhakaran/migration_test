@@ -5,7 +5,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
   Caption = 'Custom Cash Flow Reports'
   ClientHeight = 482
   ClientWidth = 632
-  Color = clBtnFace
+  Color = clWindow
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
@@ -22,12 +22,13 @@ object dlgCashflowOptions: TdlgCashflowOptions
     Height = 39
     Align = alBottom
     BevelOuter = bvNone
+    ParentBackground = False
     TabOrder = 1
     DesignSize = (
       632
       39)
     object btnPrint: TButton
-      Left = 471
+      Left = 468
       Top = 8
       Width = 75
       Height = 25
@@ -37,7 +38,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
       OnClick = btnPrintClick
     end
     object btnCancel: TButton
-      Left = 551
+      Left = 548
       Top = 8
       Width = 75
       Height = 25
@@ -68,7 +69,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
       OnClick = btnFileClick
     end
     object BtnSave: TBitBtn
-      Left = 391
+      Left = 388
       Top = 8
       Width = 75
       Height = 25
@@ -104,6 +105,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
+        OnClick = pnlReportStyleClick
         object Label6: TLabel
           Left = 8
           Top = 11
@@ -173,7 +175,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           end
           object lblLast: TLabel
             Left = 307
-            Top = 37
+            Top = 34
             Width = 310
             Height = 13
             Caption = 'There is no perod which is completely CODED'
@@ -268,6 +270,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Height = 17
           Caption = 'De&tailed'
           Checked = True
+          ParentColor = False
           TabOrder = 6
           TabStop = True
           OnClick = ControlChange
@@ -278,25 +281,25 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 105
           Height = 17
           Caption = '&Summarised'
+          ParentColor = False
           TabOrder = 7
           OnClick = ControlChange
         end
         object pnlCustomDates: TPanel
           Left = 0
           Top = 72
-          Width = 301
+          Width = 366
           Height = 67
           BevelOuter = bvNone
           TabOrder = 3
           inline ecDateSelector: TfmeDateSelector
             Left = 0
-            Top = -2
-            Width = 308
+            Top = 0
+            Width = 369
             Height = 62
             TabOrder = 0
             TabStop = True
-            ExplicitTop = -2
-            ExplicitWidth = 308
+            ExplicitWidth = 369
             ExplicitHeight = 62
             inherited Label2: TLabel
               Left = 8
@@ -392,6 +395,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 185
           Height = 17
           Caption = 'Compare Actual &Values To'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 0
           OnClick = ControlChange
         end
@@ -402,6 +407,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Height = 17
           Caption = '&Budget'
           Enabled = False
+          ParentColor = False
           TabOrder = 2
           OnClick = ControlChange
         end
@@ -413,6 +419,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Caption = '&Last Year'
           Checked = True
           Enabled = False
+          ParentColor = False
           TabOrder = 1
           TabStop = True
           OnClick = ControlChange
@@ -423,7 +430,9 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 225
           Height = 17
           Caption = 'Incl&ude Variance'
+          Color = clWindow
           Enabled = False
+          ParentColor = False
           TabOrder = 4
           OnClick = ControlChange
         end
@@ -433,6 +442,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 257
           Height = 17
           Caption = 'I&nclude Year-to-Date'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 5
           OnClick = ControlChange
         end
@@ -456,8 +467,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Height = 36
         Align = alTop
         BevelOuter = bvNone
-        TabOrder = 3
-        ExplicitTop = 338
+        TabOrder = 4
         object Bevel5: TBevel
           Left = 0
           Top = 33
@@ -471,6 +481,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 161
           Height = 17
           Caption = 'Include Cash on &Hand'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 0
           OnClick = ControlChange
         end
@@ -481,6 +493,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Height = 17
           Caption = 'Deta&iled'
           Enabled = False
+          ParentColor = False
           TabOrder = 1
           OnClick = ControlChange
         end
@@ -492,6 +505,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Caption = 'Su&mmarised'
           Checked = True
           Enabled = False
+          ParentColor = False
           TabOrder = 2
           TabStop = True
           OnClick = ControlChange
@@ -536,6 +550,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Width = 177
           Height = 17
           Caption = 'Include C&ompleted'
+          Color = clWindow
+          ParentColor = False
           TabOrder = 1
           OnClick = ckAllJobsClick
         end
@@ -547,8 +563,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Height = 49
         Align = alTop
         BevelOuter = bvNone
-        TabOrder = 4
-        ExplicitTop = 374
+        TabOrder = 5
         object Bevel6: TBevel
           Left = 0
           Top = 41
@@ -565,6 +580,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
             'P&rompt to use budgeted figures when no actual figures are avail' +
             'able.'
           Checked = True
+          Color = clWindow
+          ParentColor = False
           State = cbChecked
           TabOrder = 0
         end
@@ -577,8 +594,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
         Align = alTop
         BevelOuter = bvNone
         Caption = ' '
-        TabOrder = 5
-        ExplicitTop = 281
+        TabOrder = 3
         object Bevel4: TBevel
           Left = 0
           Top = 55
@@ -594,7 +610,6 @@ object dlgCashflowOptions: TdlgCashflowOptions
           Align = alLeft
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitHeight = 59
           object Bevel7: TBevel
             Left = -322
             Top = 0
@@ -611,6 +626,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Width = 161
             Height = 17
             Caption = 'Include &Quantities'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 1
           end
           object chkIncludeCodes: TCheckBox
@@ -619,6 +636,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Width = 161
             Height = 17
             Caption = 'Include &Chart Codes'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 0
           end
           object chkGSTInclusive: TCheckBox
@@ -627,6 +646,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Width = 121
             Height = 17
             Caption = '&GST Inclusive'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 2
           end
         end
@@ -643,6 +664,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Width = 113
             Height = 17
             Caption = 'Summarised'
+            ParentColor = False
             TabOrder = 2
             OnClick = ControlChange
           end
@@ -653,6 +675,7 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Height = 17
             Caption = 'Detailed'
             Checked = True
+            ParentColor = False
             TabOrder = 1
             TabStop = True
             OnClick = ControlChange
@@ -663,6 +686,8 @@ object dlgCashflowOptions: TdlgCashflowOptions
             Width = 253
             Height = 17
             Caption = 'Include Non-Posting Chart Code Titles'
+            Color = clWindow
+            ParentColor = False
             TabOrder = 0
             OnClick = ControlChange
           end
@@ -733,6 +758,10 @@ object dlgCashflowOptions: TdlgCashflowOptions
           end
           inherited btnClearAllDivisions: TButton
             OnClick = fmeDivisionSelector1btnClearAllDivisionsClick
+          end
+          inherited chkSplitByDivision: TCheckBox
+            Color = clWindow
+            ParentColor = False
           end
         end
       end
