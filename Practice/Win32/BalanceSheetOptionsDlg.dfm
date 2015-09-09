@@ -2,18 +2,22 @@ inherited dlgBalanceSheet: TdlgBalanceSheet
   Caption = 'Balance Sheet Report Options'
   ClientHeight = 439
   OldCreateOrder = True
+  ExplicitWidth = 639
   ExplicitHeight = 467
   PixelsPerInch = 96
   TextHeight = 13
   inherited pnlButtons: TPanel
     Top = 401
-    ExplicitTop = 341
+    ExplicitTop = 401
   end
   inherited PageControl1: TPageControl
     Height = 401
-    ExplicitHeight = 341
+    ExplicitHeight = 401
     inherited tbsOptions: TTabSheet
-      ExplicitHeight = 313
+      ExplicitLeft = 4
+      ExplicitTop = 24
+      ExplicitWidth = 625
+      ExplicitHeight = 373
       inherited pnlReportStyle: TPanel
         inherited Label6: TLabel
           Top = 10
@@ -99,8 +103,7 @@ inherited dlgBalanceSheet: TdlgBalanceSheet
       end
       inherited pnlAdvBudget: TPanel
         Top = 326
-        ExplicitLeft = -1
-        ExplicitTop = 317
+        ExplicitTop = 326
         inherited chkPromptToUseBudget: TCheckBox
           Top = 10
           ExplicitTop = 10
@@ -108,14 +111,19 @@ inherited dlgBalanceSheet: TdlgBalanceSheet
       end
       inherited pnlCheckBoxes: TPanel
         Top = 260
-        ExplicitTop = 308
+        ExplicitTop = 260
+        inherited pnlInclude: TPanel
+          inherited cbPercentage: TCheckBox
+            Visible = False
+          end
+        end
       end
     end
     inherited tbsAdvanced: TTabSheet
-      ExplicitHeight = 313
+      ExplicitHeight = 373
     end
     inherited tsbDivisions: TTabSheet
-      ExplicitHeight = 313
+      ExplicitHeight = 373
       inherited Panel1: TPanel
         inherited fmeDivisionSelector1: TfmeDivisionSelector
           Left = 26
