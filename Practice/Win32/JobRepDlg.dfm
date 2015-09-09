@@ -33,11 +33,7 @@ object dlgJobRep: TdlgJobRep
     Height = 263
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 1
-    ExplicitLeft = 368
-    ExplicitTop = 8
-    ExplicitWidth = 241
-    ExplicitHeight = 249
+    TabOrder = 2
     object Label3: TLabel
       Left = 32
       Top = 24
@@ -55,22 +51,20 @@ object dlgJobRep: TdlgJobRep
     Align = alClient
     BevelOuter = bvNone
     Caption = ' '
-    TabOrder = 0
+    TabOrder = 1
     Visible = False
-    ExplicitLeft = 344
-    ExplicitTop = 8
-    ExplicitWidth = 245
-    ExplicitHeight = 249
+    ExplicitLeft = 304
+    ExplicitTop = 2
     object Label6: TLabel
       Left = 8
-      Top = 7
+      Top = 8
       Width = 17
       Height = 13
       Caption = 'Job'
     end
     object btnJob: TSpeedButton
       Left = 173
-      Top = 4
+      Top = 5
       Width = 65
       Height = 21
       Hint = 'Lookup Jobs'
@@ -84,7 +78,7 @@ object dlgJobRep: TdlgJobRep
       Left = 8
       Top = 33
       Width = 231
-      Height = 177
+      Height = 193
       Hint = 'Select Jobs to show on Report'
       AutoScale = True
       CheckBoxStyle = stCheck
@@ -134,7 +128,7 @@ object dlgJobRep: TdlgJobRep
     end
     object btnSaveTemplate: TButton
       Left = 8
-      Top = 216
+      Top = 230
       Width = 110
       Height = 25
       Caption = 'Sa&ve Template'
@@ -143,7 +137,7 @@ object dlgJobRep: TdlgJobRep
     end
     object btnLoad: TButton
       Left = 128
-      Top = 216
+      Top = 230
       Width = 110
       Height = 25
       Caption = '&Load Template'
@@ -160,10 +154,7 @@ object dlgJobRep: TdlgJobRep
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
-    TabOrder = 2
-    ExplicitLeft = -18
-    ExplicitTop = 506
-    ExplicitWidth = 592
+    TabOrder = 3
     DesignSize = (
       557
       41)
@@ -179,7 +170,7 @@ object dlgJobRep: TdlgJobRep
       ExplicitWidth = 125
     end
     object btnPreview: TButton
-      Left = 5
+      Left = 8
       Top = 8
       Width = 75
       Height = 25
@@ -193,7 +184,7 @@ object dlgJobRep: TdlgJobRep
       OnClick = btnPreviewClick
     end
     object btnFile: TButton
-      Left = 85
+      Left = 88
       Top = 8
       Width = 75
       Height = 25
@@ -206,7 +197,7 @@ object dlgJobRep: TdlgJobRep
       OnClick = btnFileClick
     end
     object btnEmail: TButton
-      Left = 166
+      Left = 169
       Top = 8
       Width = 75
       Height = 25
@@ -219,7 +210,7 @@ object dlgJobRep: TdlgJobRep
       OnClick = btnEmailClick
     end
     object btnSave: TBitBtn
-      Left = 327
+      Left = 309
       Top = 8
       Width = 75
       Height = 25
@@ -227,10 +218,9 @@ object dlgJobRep: TdlgJobRep
       Caption = 'Sa&ve'
       TabOrder = 3
       OnClick = btnSaveClick
-      ExplicitLeft = 350
     end
     object btnOK: TButton
-      Left = 397
+      Left = 392
       Top = 8
       Width = 75
       Height = 25
@@ -241,10 +231,9 @@ object dlgJobRep: TdlgJobRep
       ShowHint = True
       TabOrder = 4
       OnClick = btnOKClick
-      ExplicitLeft = 432
     end
     object btnCancel: TButton
-      Left = 479
+      Left = 474
       Top = 8
       Width = 75
       Height = 25
@@ -256,24 +245,23 @@ object dlgJobRep: TdlgJobRep
       ShowHint = True
       TabOrder = 5
       OnClick = btnCancelClick
-      ExplicitLeft = 503
     end
   end
-  object Panel1: TPanel
+  object pnlLeftContainer: TPanel
     Left = 0
     Top = 0
     Width = 308
     Height = 263
     Align = alLeft
     BevelOuter = bvNone
-    TabOrder = 3
+    TabOrder = 0
     object pnlOptions: TPanel
       Left = 0
       Top = 157
       Width = 329
       Height = 100
       BevelOuter = bvNone
-      TabOrder = 0
+      TabOrder = 2
       object Label9: TLabel
         Left = 28
         Top = 11
@@ -345,14 +333,14 @@ object dlgJobRep: TdlgJobRep
         ExplicitWidth = 329
       end
       inline DateSelector: TfmeDateSelector
-        Left = 19
-        Top = 14
+        Left = 21
+        Top = 7
         Width = 276
         Height = 62
         TabOrder = 0
         TabStop = True
-        ExplicitLeft = 19
-        ExplicitTop = 14
+        ExplicitLeft = 21
+        ExplicitTop = 7
         ExplicitHeight = 62
         inherited Label2: TLabel
           Left = 8
@@ -388,14 +376,17 @@ object dlgJobRep: TdlgJobRep
     end
     object pnlAccounts: TPanel
       Left = 0
-      Top = 8
-      Width = 329
+      Top = 0
+      Width = 308
       Height = 49
+      Align = alTop
       BevelOuter = bvNone
-      TabOrder = 2
+      TabOrder = 0
+      ExplicitTop = 8
+      ExplicitWidth = 329
       object Label1: TLabel
         Left = 28
-        Top = 16
+        Top = 17
         Width = 22
         Height = 13
         Caption = 'Jobs'
@@ -403,15 +394,16 @@ object dlgJobRep: TdlgJobRep
       object Shape1: TShape
         Left = 0
         Top = 48
-        Width = 329
+        Width = 308
         Height = 1
         Align = alBottom
         Pen.Color = clSilver
         ExplicitTop = 47
+        ExplicitWidth = 329
       end
       object rbAllCodes: TRadioButton
         Left = 106
-        Top = 16
+        Top = 17
         Width = 73
         Height = 17
         Hint = 'Show all Jobs on Report'
@@ -427,7 +419,7 @@ object dlgJobRep: TdlgJobRep
       end
       object rbSelectedCodes: TRadioButton
         Left = 202
-        Top = 16
+        Top = 17
         Width = 89
         Height = 17
         Hint = 'Show selected Jobs on Report'

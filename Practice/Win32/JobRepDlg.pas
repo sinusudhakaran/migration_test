@@ -50,7 +50,7 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     ShapeBorder: TShape;
-    Panel1: TPanel;
+    pnlLeftContainer: TPanel;
     pnlOptions: TPanel;
     Label9: TLabel;
     rbDetailed: TRadioButton;
