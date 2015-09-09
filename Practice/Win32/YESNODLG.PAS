@@ -11,12 +11,10 @@ type
   TdlgYesNo = class(TForm)
     lblText: TLabel;
     Image1: TImage;
-    pnlControls: TPanel;
+    CheckBox1: TCheckBox;
     btnCancel: TButton;
     btnYes: TButton;
     btnNo: TButton;
-    CheckBox1: TCheckBox;
-    ShapeBorder: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnYesClick(Sender: TObject);
     procedure btnNoClick(Sender: TObject);
@@ -173,11 +171,7 @@ begin
       lblText.Width := Width - lblText.Left - MarginWidth;
 
       Height     := CapHeight+ lblText.Height + btnYes.Height + 4*MarginHeight;
-      if MyDlg.CheckBox1.Visible then
-        btnYes.Top := 10
-      else
-        btnYes.Top := 18;
-
+      btnYes.Top := lblText.Height+3*MarginHeight;
       btnNo.Top  := btnYes.Top;
       btnCancel.Top := btnYes.Top;
     end;
@@ -218,12 +212,7 @@ begin
       lblText.Width := Width - lblText.Left - MarginWidth;
 
       Height     := CapHeight+ lblText.Height + btnYes.Height + 4*MarginHeight+ CheckBox1.Height;
-
-      if MyDlg.CheckBox1.Visible then
-        btnYes.Top := 10
-      else
-        btnYes.Top := 18;
-
+      btnYes.Top := lblText.Height+3*MarginHeight;
       btnNo.Top  := btnYes.Top;
     end;
     MyDlg.DefButton   := defButton;
