@@ -49,7 +49,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 8
     Width = 589
     Height = 571
-    ActivePage = tbsOptions
+    ActivePage = tbsClient
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'
@@ -383,7 +383,7 @@ object frmClientDetails: TfrmClientDetails
         Top = 369
         Width = 529
         Height = 137
-        TabOrder = 3
+        TabOrder = 4
         Visible = False
         object lblConnectName: TLabel
           Left = 16
@@ -456,7 +456,7 @@ object frmClientDetails: TfrmClientDetails
         Top = 155
         Width = 529
         Height = 200
-        TabOrder = 2
+        TabOrder = 3
         object chkForceCheckout: TCheckBox
           Left = 16
           Top = 19
@@ -529,7 +529,7 @@ object frmClientDetails: TfrmClientDetails
         Width = 529
         Height = 67
         Caption = 'BankLink Online Clients'
-        TabOrder = 4
+        TabOrder = 2
         object btnClientSettings: TButton
           Left = 20
           Top = 24
@@ -564,10 +564,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsAdmin: TTabSheet
       Caption = 'Administration'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label14: TLabel
         Left = 92
         Top = 208
@@ -620,7 +616,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 0
         OnChange = cmbResponsibleChange
@@ -826,7 +822,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 3
         OnChange = cmbResponsibleChange
@@ -838,7 +834,7 @@ object frmClientDetails: TfrmClientDetails
         Height = 21
         Style = csDropDownList
         Ctl3D = True
-        ItemHeight = 0
+        ItemHeight = 13
         ParentCtl3D = False
         TabOrder = 4
         OnChange = cmbResponsibleChange
@@ -847,10 +843,6 @@ object frmClientDetails: TfrmClientDetails
     object tbsNotes: TTabSheet
       Caption = 'Notes'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         581
         543)
@@ -881,10 +873,6 @@ object frmClientDetails: TfrmClientDetails
     object tsSmartLink: TTabSheet
       Caption = 'SmartLink'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label19: TLabel
         Left = 16
         Top = 16
@@ -1022,7 +1010,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          TabOrder = 1
+          TabOrder = 4
           OnClick = radUseCustomContactDetailsClick
         end
         object edtPracticeContactName: TEdit
@@ -1039,7 +1027,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Style = []
           MaxLength = 38
           ParentFont = False
-          TabOrder = 2
+          TabOrder = 1
           Text = 'edtPracticeContactName'
         end
         object edtPracticeContactPhone: TEdit
@@ -1056,7 +1044,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Style = []
           MaxLength = 15
           ParentFont = False
-          TabOrder = 3
+          TabOrder = 2
           Text = 'edtPracticeContactPhone'
         end
         object edtPracticeContactEmail: TEdit
@@ -1073,7 +1061,7 @@ object frmClientDetails: TfrmClientDetails
           Font.Style = []
           MaxLength = 76
           ParentFont = False
-          TabOrder = 4
+          TabOrder = 3
           Text = 'edtPracticeContactEmail'
         end
         object edtSupplierContactName: TEdit

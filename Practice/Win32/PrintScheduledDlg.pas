@@ -43,7 +43,6 @@ type
   TLookupOption = (ltUser, ltGroup, ltClientType);
   
   TdlgPrintScheduled = class(TbkOKCancelDlgForm)
-    btnPreview: TButton;
     OvcController1: TOvcController;
     PageControl1: TPageControl;
     tbsOptions: TTabSheet;
@@ -52,14 +51,12 @@ type
     rbStaffMember: TRadioButton;
     rbClient: TRadioButton;
     grpRange: TGroupBox;
-    Bevel1: TBevel;
     GroupBox2: TGroupBox;
     btnCoding: TButton;
     btnPayee: TButton;
     btnChart: TButton;
     btnSort: TButton;
     btnClient: TButton;
-    btnPrint: TButton;
     Label3: TLabel;
     rcbReportsEnding: TRzComboBox;
     btnSummary: TButton;
@@ -102,7 +99,7 @@ type
     lblTo: TLabel;
     edtToCode: TEdit;
     Label5: TLabel;
-    GroupBox7: TGroupBox;
+    gbTrans: TGroupBox;
     rbNew: TRadioButton;
     rbAll: TRadioButton;
     btnListReportsDue: TButton;
@@ -148,6 +145,8 @@ type
     cbCDOnline: TComboBox;
     ckCDOnline: TCheckBox;
     cbOnline: TCheckBox;
+    btnPrint: TButton;
+    btnPreview: TButton;
 
     procedure rbStaffMemberClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -188,6 +187,7 @@ type
     procedure btnFaxJobsClick(Sender: TObject);
     procedure btnJobsClick(Sender: TObject);
     procedure btnOnlineMsgClick(Sender: TObject);
+    procedure PageControl1Change(Sender: TObject);
   private
     { Private declarations }
     ButtonPressed : integer;
@@ -684,6 +684,12 @@ begin
   //all ok
   result := true;
 end;
+procedure TdlgPrintScheduled.PageControl1Change(Sender: TObject);
+begin
+  inherited;
+
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure TdlgPrintScheduled.btnEmailMsgClick(Sender: TObject);

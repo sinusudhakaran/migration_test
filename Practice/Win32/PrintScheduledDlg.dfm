@@ -2,70 +2,79 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
   Left = 340
   Top = 277
   Caption = 'Generate Scheduled Reports'
-  ClientHeight = 596
-  ClientWidth = 643
+  ClientHeight = 598
+  ClientWidth = 646
+  Color = clWindow
   OldCreateOrder = True
   OnDestroy = FormDestroy
-  ExplicitWidth = 649
-  ExplicitHeight = 624
-  DesignSize = (
-    643
-    596)
+  ExplicitWidth = 652
+  ExplicitHeight = 626
   PixelsPerInch = 96
   TextHeight = 13
-  object Bevel1: TBevel [0]
-    Left = 0
-    Top = 559
-    Width = 643
-    Height = 37
-    Align = alBottom
-    Shape = bsSpacer
-    ExplicitTop = 409
-    ExplicitWidth = 632
-  end
-  inherited btnOK: TButton
-    Left = 467
-    Top = 566
-    Hint = 'Save the scheduled report settings'
-    Anchors = [akLeft, akBottom]
-    Caption = 'OK'
-    Default = False
-    ModalResult = 0
-    TabOrder = 3
-    OnClick = btnOKClick
-    ExplicitLeft = 467
-    ExplicitTop = 566
-  end
-  inherited btnCancel: TButton
-    Left = 561
-    Top = 566
-    Hint = 'Cancel changes'
-    ModalResult = 0
-    TabOrder = 4
-    OnClick = btnCancelClick
-    ExplicitLeft = 561
-    ExplicitTop = 566
-  end
-  object btnPreview: TButton
-    Left = 8
-    Top = 566
-    Width = 75
-    Height = 25
-    Hint = 'Preview the Scheduled Reports'
-    Anchors = [akLeft, akBottom]
-    Caption = 'Pre&view'
-    Default = True
+  inherited pnlBottomControls: TPanel
+    Top = 557
+    Width = 646
+    ParentBackground = False
     TabOrder = 1
-    OnClick = btnPreviewClick
+    ExplicitTop = 557
+    ExplicitWidth = 646
+    inherited ShapeBotBorder: TShape
+      Width = 646
+      Visible = False
+      ExplicitWidth = 646
+    end
+    inherited btnCancel: TButton
+      Left = 561
+      Top = 7
+      Hint = 'Cancel changes'
+      ModalResult = 0
+      OnClick = btnCancelClick
+      ExplicitLeft = 561
+      ExplicitTop = 7
+    end
+    inherited btnOK: TButton
+      Left = 478
+      Hint = 'Save the scheduled report settings'
+      Anchors = [akLeft, akBottom]
+      Caption = 'OK'
+      Default = False
+      ModalResult = 0
+      OnClick = btnOKClick
+      ExplicitLeft = 478
+    end
+    object btnPrint: TButton
+      Left = 90
+      Top = 8
+      Width = 75
+      Height = 25
+      Hint = 'Generate the Scheduled Reports'
+      Anchors = [akLeft, akBottom]
+      Caption = '&Generate'
+      TabOrder = 2
+      OnClick = btnPrintClick
+    end
+    object btnPreview: TButton
+      Left = 8
+      Top = 8
+      Width = 75
+      Height = 25
+      Hint = 'Preview the Scheduled Reports'
+      Anchors = [akLeft, akBottom]
+      Caption = 'Pre&view'
+      Default = True
+      TabOrder = 3
+      OnClick = btnPreviewClick
+    end
   end
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 643
-    Height = 559
-    ActivePage = tsMessages
+    Width = 646
+    Height = 557
+    ActivePage = tbsOptions
     Align = alClient
     TabOrder = 0
+    OnChange = PageControl1Change
     object tbsOptions: TTabSheet
       Caption = '&Scheduled Reporting Options'
       object grpSettings: TGroupBox
@@ -225,7 +234,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           FrameHotStyle = fsNone
           FrameStyle = fsNone
           FrameVisible = True
-          ItemHeight = 0
+          ItemHeight = 13
           ParentCtl3D = False
           TabOrder = 0
         end
@@ -311,7 +320,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           TabOrder = 7
         end
       end
-      object GroupBox7: TGroupBox
+      object gbTrans: TGroupBox
         Left = 0
         Top = 332
         Width = 632
@@ -360,6 +369,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 113
           Height = 31
           Caption = 'Use Range'
+          ParentColor = False
           TabOrder = 0
           OnClick = rbRangeClick
         end
@@ -369,6 +379,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 113
           Height = 17
           Caption = 'Use Selection'
+          ParentColor = False
           TabOrder = 1
           OnClick = rbRangeClick
         end
@@ -379,6 +390,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 29
           Caption = 'All Staff Members'
           Checked = True
+          ParentColor = False
           TabOrder = 2
           TabStop = True
           OnClick = rbRangeClick
@@ -681,10 +693,6 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object tbsReportSetup: TTabSheet
       Caption = '&Report Setup'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox2: TGroupBox
         Left = 0
         Top = 6
@@ -760,10 +768,6 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object TabSheet1: TTabSheet
       Caption = 'Fa&x Setup'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 253
@@ -877,6 +881,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
             Hint = 'Send fax immediately'
             Caption = 'Send &Immediately'
             Checked = True
+            ParentColor = False
             TabOrder = 0
             TabStop = True
           end
@@ -887,6 +892,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
             Height = 17
             Hint = 'Send fax later (off-peak)'
             Caption = 'Send O&ff-Peak'
+            ParentColor = False
             TabOrder = 1
           end
         end
@@ -932,7 +938,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 21
           Hint = 'Select the Fax Transport'
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbFaxTransportChange
           Items.Strings = (
@@ -948,24 +954,13 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Hint = 'Select the fax printer'
           Style = csDropDownList
           Ctl3D = True
-          ItemHeight = 0
+          ItemHeight = 13
           ParentCtl3D = False
           Sorted = True
           TabOrder = 1
         end
       end
     end
-  end
-  object btnPrint: TButton
-    Left = 90
-    Top = 566
-    Width = 75
-    Height = 25
-    Hint = 'Generate the Scheduled Reports'
-    Anchors = [akLeft, akBottom]
-    Caption = '&Generate'
-    TabOrder = 2
-    OnClick = btnPrintClick
   end
   object OvcController1: TOvcController
     EntryCommands.TableList = (
@@ -979,14 +974,14 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
       False
       ())
     Epoch = 1900
-    Left = 640
-    Top = 557
+    Left = 360
+    Top = 85
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'cvp'
     Options = [ofHideReadOnly, ofNoChangeDir, ofFileMustExist, ofEnableSizing]
     Title = 'Select Cover Page'
-    Left = 177
-    Top = 409
+    Left = 385
+    Top = 225
   end
 end
