@@ -13,15 +13,6 @@ uses
 
 type
   TdlgBudgetReportOptions = class(TForm)
-    gbxOptions: TGroupBox;
-    lblDivision: TLabel;
-    chkChartCodes: TCheckBox;
-    cmbDivision: TComboBox;
-    gbxBudget: TGroupBox;
-    Label1: TLabel;
-    cmbBudget: TComboBox;
-    chkGST: TCheckBox;
-    chkQuantities: TCheckBox;
     Panel1: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
@@ -30,6 +21,16 @@ type
     btnPrint: TButton;
     btnCancel: TButton;
     ShapeBorder: TShape;
+    pnlBudget: TPanel;
+    pnlOptions: TPanel;
+    Label1: TLabel;
+    cmbBudget: TComboBox;
+    lblDivision: TLabel;
+    chkChartCodes: TCheckBox;
+    cmbDivision: TComboBox;
+    chkGST: TCheckBox;
+    chkQuantities: TCheckBox;
+    ShapeTopBorder: TShape;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
