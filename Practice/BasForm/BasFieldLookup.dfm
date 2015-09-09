@@ -4,46 +4,47 @@ inherited dlgBasFieldLookup: TdlgBasFieldLookup
   Caption = 'Add New Bas Field'
   ClientHeight = 205
   ClientWidth = 438
+  Color = clWindow
   OldCreateOrder = True
   ExplicitWidth = 444
-  ExplicitHeight = 237
+  ExplicitHeight = 233
   PixelsPerInch = 96
-  TextHeight = 16
+  TextHeight = 13
   object Label1: TLabel [0]
     Left = 16
     Top = 10
-    Width = 83
-    Height = 16
+    Width = 67
+    Height = 13
     Caption = 'Add Total into'
   end
   object lblGSTClass: TLabel [1]
     Left = 16
     Top = 181
-    Width = 65
-    Height = 16
+    Width = 47
+    Height = 13
     Caption = 'GST Class'
     Visible = False
   end
   object Label3: TLabel [2]
     Left = 16
     Top = 92
-    Width = 66
-    Height = 16
+    Width = 51
+    Height = 13
     Caption = 'Total Type'
   end
   object lblBoxDesc: TLabel [3]
     Left = 120
     Top = 10
-    Width = 89
-    Height = 16
+    Width = 68
+    Height = 13
     Caption = 'G1 Total Sales'
     ShowAccelChar = False
   end
   object lblAccountCode: TLabel [4]
     Left = 16
     Top = 56
-    Width = 84
-    Height = 16
+    Width = 67
+    Height = 13
     Caption = 'Account Code'
     Visible = False
   end
@@ -60,50 +61,53 @@ inherited dlgBasFieldLookup: TdlgBasFieldLookup
   object Label2: TLabel [6]
     Left = 16
     Top = 128
-    Width = 70
-    Height = 16
+    Width = 55
+    Height = 13
     Caption = 'Percentage'
   end
   object Label4: TLabel [7]
     Left = 208
     Top = 128
-    Width = 12
-    Height = 16
+    Width = 11
+    Height = 13
     Caption = '%'
   end
   object cmbGST: TComboBox [8]
     Left = 120
     Top = 174
     Width = 225
-    Height = 24
+    Height = 21
     Style = csDropDownList
-    ItemHeight = 16
+    ItemHeight = 13
     TabOrder = 1
     Visible = False
     OnDropDown = cmbGSTDropDown
   end
-  inherited btnOK: TButton
-    Left = 279
-    Top = 174
+  inherited pnlBottomControls: TPanel
+    Top = 164
+    Width = 438
+    ParentBackground = False
     TabOrder = 4
-    ExplicitLeft = 279
-    ExplicitTop = 174
-  end
-  inherited btnCancel: TButton
-    Left = 359
-    Top = 174
-    TabOrder = 5
-    ExplicitLeft = 359
-    ExplicitTop = 174
+    inherited ShapeBotBorder: TShape
+      Width = 438
+    end
+    inherited btnCancel: TButton
+      Left = 359
+      ExplicitLeft = 359
+    end
+    inherited btnOK: TButton
+      Left = 279
+      ExplicitLeft = 279
+    end
   end
   object cmbTotalType: TComboBox
     Left = 120
     Top = 88
     Width = 193
-    Height = 24
+    Height = 21
     Hint = #39'xx'#39
     Style = csDropDownList
-    ItemHeight = 16
+    ItemHeight = 13
     TabOrder = 2
   end
   object txtCode: TEdit
@@ -123,7 +127,7 @@ inherited dlgBasFieldLookup: TdlgBasFieldLookup
     Left = 120
     Top = 128
     Width = 81
-    Height = 22
+    Height = 19
     Cursor = crIBeam
     DataType = nftDouble
     BorderStyle = bsNone

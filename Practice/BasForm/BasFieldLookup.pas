@@ -15,7 +15,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  bkOKCancelDlg, StdCtrls, Buttons, OvcBase, OvcEF, OvcPB, OvcNF, MoneyDef;
+  bkOKCancelDlg, StdCtrls, Buttons, OvcBase, OvcEF, OvcPB, OvcNF, MoneyDef,
+  ExtCtrls;
 
 const
    bflAccount = 0;

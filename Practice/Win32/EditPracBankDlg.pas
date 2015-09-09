@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   bkOKCancelDlg, OvcBase, StdCtrls, sydefs,
-  OsFont;
+  OsFont, ExtCtrls;
 
 type
   TdlgEditPracBank = class(TbkOKCancelDlgForm)

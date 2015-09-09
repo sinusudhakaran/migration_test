@@ -12,9 +12,6 @@ uses
 
 type
   TdlgCashFlowDateRep = class(TForm)
-    btnPrint: TButton;
-    btnPreview: TButton;
-    btnCancel: TButton;
     gbxReportPeriod: TGroupBox;
     gbxOptions: TGroupBox;
     chkChartCodes: TCheckBox;
@@ -22,12 +19,16 @@ type
     lblData: TLabel;
     lblDivision: TLabel;
     cmbDivision: TComboBox;
-    btnFile: TButton;
     chkLYVariance: TCheckBox;
     DateSelector: TfmeDateSelector;
+    pnlControls: TPanel;
+    btnPrint: TButton;
+    btnPreview: TButton;
+    btnCancel: TButton;
+    btnFile: TButton;
     btnSave: TBitBtn;
     btnEmail: TButton;
-    Bevel1: TBevel;
+    ShapeBorder: TShape;
 
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
