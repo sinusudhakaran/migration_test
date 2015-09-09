@@ -34,11 +34,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Height = 256
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 1
-    ExplicitLeft = 519
-    ExplicitTop = 133
-    ExplicitWidth = 241
-    ExplicitHeight = 297
+    TabOrder = 2
     object Label3: TLabel
       Left = 32
       Top = 24
@@ -56,12 +52,8 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Align = alClient
     BevelOuter = bvNone
     Caption = ' '
-    TabOrder = 0
+    TabOrder = 1
     Visible = False
-    ExplicitLeft = 478
-    ExplicitTop = 8
-    ExplicitWidth = 367
-    ExplicitHeight = 334
     object Label6: TLabel
       Left = 12
       Top = 7
@@ -176,10 +168,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
-    TabOrder = 2
-    ExplicitLeft = 8
-    ExplicitTop = 448
-    ExplicitWidth = 576
+    TabOrder = 3
     DesignSize = (
       564
       41)
@@ -195,7 +184,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       ExplicitWidth = 790
     end
     object btnPreview: TButton
-      Left = 4
+      Left = 6
       Top = 9
       Width = 75
       Height = 25
@@ -209,7 +198,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       OnClick = btnPreviewClick
     end
     object btnFile: TButton
-      Left = 84
+      Left = 86
       Top = 9
       Width = 75
       Height = 25
@@ -222,7 +211,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       OnClick = btnFileClick
     end
     object btnEmail: TButton
-      Left = 165
+      Left = 167
       Top = 9
       Width = 75
       Height = 25
@@ -235,7 +224,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       OnClick = btnEmailClick
     end
     object btnSave: TBitBtn
-      Left = 324
+      Left = 321
       Top = 9
       Width = 75
       Height = 25
@@ -243,10 +232,9 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Caption = 'Sa&ve'
       TabOrder = 3
       OnClick = btnSaveClick
-      ExplicitLeft = 352
     end
     object btnOK: TButton
-      Left = 405
+      Left = 402
       Top = 9
       Width = 75
       Height = 25
@@ -257,10 +245,9 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       ShowHint = True
       TabOrder = 4
       OnClick = btnOKClick
-      ExplicitLeft = 433
     end
     object btnCancel: TButton
-      Left = 485
+      Left = 482
       Top = 9
       Width = 75
       Height = 25
@@ -272,7 +259,6 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       ShowHint = True
       TabOrder = 5
       OnClick = btnCancelClick
-      ExplicitLeft = 497
     end
   end
   object pnlLeftContainer: TPanel
@@ -282,7 +268,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
     Height = 256
     Align = alLeft
     BevelOuter = bvNone
-    TabOrder = 3
+    TabOrder = 0
     object pnlDates: TPanel
       Left = 0
       Top = 49
@@ -290,10 +276,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Height = 84
       Align = alTop
       BevelOuter = bvNone
-      TabOrder = 0
-      ExplicitLeft = 2
-      ExplicitTop = 52
-      ExplicitWidth = 425
+      TabOrder = 1
       object ShapeBottom: TShape
         Left = 0
         Top = 83
@@ -353,11 +336,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Align = alClient
       BevelOuter = bvNone
       Caption = ' '
-      TabOrder = 1
-      ExplicitLeft = 2
-      ExplicitTop = 136
-      ExplicitWidth = 425
-      ExplicitHeight = 463
+      TabOrder = 2
       object Label9: TLabel
         Left = 28
         Top = 11
@@ -406,10 +385,7 @@ object frmTaxablePaymentsRptDlg: TfrmTaxablePaymentsRptDlg
       Height = 49
       Align = alTop
       BevelOuter = bvNone
-      TabOrder = 2
-      ExplicitLeft = 8
-      ExplicitTop = 8
-      ExplicitWidth = 329
+      TabOrder = 0
       object Label1: TLabel
         Left = 28
         Top = 16
