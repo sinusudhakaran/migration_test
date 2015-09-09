@@ -77,11 +77,11 @@ type
     procedure chkUseCustomLedgerCodeClick(Sender: TObject);
     procedure btnMasLedgerCodeClick(Sender: TObject);
     procedure btnSetBankpathClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
     procedure rbAccountingClick(Sender: TObject);
     procedure btndefaultClick(Sender: TObject);
     procedure ckExtractClick(Sender: TObject);
     procedure cmbWebFormatsChange(Sender: TObject);
+    procedure gbxWebExportClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -172,8 +172,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgAcctSystem.FormShow(Sender: TObject);
+procedure TdlgAcctSystem.gbxWebExportClick(Sender: TObject);
 begin
+
 end;
 
 //------------------------------------------------------------------------------
@@ -604,7 +605,7 @@ begin
      OldLoadFrom := clLoad_Client_Files_From;
      Insetup := False;
 
-     Self.ClientHeight := gbxWebExport.Top + 81;
+     Self.ClientHeight := gbxWebExport.Top + 96;
      //*****************
      Self.ShowModal;
      //*****************

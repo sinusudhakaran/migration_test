@@ -14,7 +14,6 @@ object dlgAcctSystem: TdlgAcctSystem
   ShowHint = True
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object gbType: TGroupBox
@@ -352,6 +351,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 4
+    OnClick = gbxWebExportClick
     object Label4: TLabel
       Left = 16
       Top = 16
@@ -382,9 +382,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Caption = ' '
     ParentBackground = False
     TabOrder = 5
-    ExplicitLeft = 8
-    ExplicitTop = 512
-    ExplicitWidth = 513
     DesignSize = (
       520
       41)
@@ -397,7 +394,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Pen.Color = clSilver
     end
     object btndefault: TButton
-      Left = 0
+      Left = 8
       Top = 8
       Width = 108
       Height = 25
@@ -416,7 +413,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Default = True
       TabOrder = 1
       OnClick = btnOkClick
-      ExplicitLeft = 348
     end
     object btnCancel: TButton
       Left = 436
@@ -428,7 +424,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Caption = 'Cancel'
       TabOrder = 2
       OnClick = btnCancelClick
-      ExplicitLeft = 429
     end
   end
 end
