@@ -1,16 +1,19 @@
 inherited dlgBalanceSheet: TdlgBalanceSheet
   Caption = 'Balance Sheet Report Options'
-  ClientHeight = 379
+  ClientHeight = 439
   OldCreateOrder = True
-  ExplicitHeight = 407
+  ExplicitHeight = 467
   PixelsPerInch = 96
   TextHeight = 13
   inherited pnlButtons: TPanel
-    Top = 341
+    Top = 401
+    ExplicitTop = 341
   end
   inherited PageControl1: TPageControl
-    Height = 341
+    Height = 401
+    ExplicitHeight = 341
     inherited tbsOptions: TTabSheet
+      ExplicitHeight = 313
       inherited pnlReportStyle: TPanel
         inherited Label6: TLabel
           Top = 10
@@ -53,11 +56,12 @@ inherited dlgBalanceSheet: TdlgBalanceSheet
         end
       end
       inherited pnlCompare: TPanel
-        Height = 64
-        ExplicitLeft = 0
-        ExplicitTop = 194
-        ExplicitWidth = 625
-        ExplicitHeight = 64
+        Height = 66
+        ExplicitHeight = 66
+        inherited Bevel3: TBevel
+          Top = 65
+          ExplicitTop = 65
+        end
         inherited chkCompare: TCheckBox
           Width = 257
           Caption = 'Compare &Actual Values To Last Year'
@@ -94,55 +98,24 @@ inherited dlgBalanceSheet: TdlgBalanceSheet
         end
       end
       inherited pnlAdvBudget: TPanel
-        Top = 269
-        ExplicitTop = 330
+        Top = 326
+        ExplicitLeft = -1
+        ExplicitTop = 317
         inherited chkPromptToUseBudget: TCheckBox
           Top = 10
           ExplicitTop = 10
         end
       end
-      inherited Panel3: TPanel
-        Top = 258
-        Height = 11
-        ExplicitTop = 258
-        ExplicitHeight = 11
-        inherited Bevel5: TBevel
-          Top = 4
-          ExplicitTop = 4
-        end
-        inherited pnlInclude: TPanel
-          Top = 258
-          ExplicitTop = 258
-          inherited chkIncludeCodes: TCheckBox
-            Top = 8
-            Caption = 'Include &Chart Codes'
-            ExplicitTop = 8
-          end
-          inherited chkIncludeQuantity: TCheckBox
-            Left = 448
-            Top = 2
-            ExplicitLeft = 448
-            ExplicitTop = 2
-          end
-          inherited chkGSTInclusive: TCheckBox
-            Top = 8
-            ExplicitTop = 8
-          end
-          inherited cbPercentage: TCheckBox
-            Left = 430
-            Top = 25
-            Visible = False
-            ExplicitLeft = 430
-            ExplicitTop = 25
-          end
-        end
-        inherited pnlIncludeNonPost: TPanel
-          Top = 258
-          ExplicitTop = 258
-        end
+      inherited pnlCheckBoxes: TPanel
+        Top = 260
+        ExplicitTop = 308
       end
     end
+    inherited tbsAdvanced: TTabSheet
+      ExplicitHeight = 313
+    end
     inherited tsbDivisions: TTabSheet
+      ExplicitHeight = 313
       inherited Panel1: TPanel
         inherited fmeDivisionSelector1: TfmeDivisionSelector
           Left = 26
