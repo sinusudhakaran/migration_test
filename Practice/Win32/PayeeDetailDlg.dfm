@@ -45,7 +45,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
-      TabOrder = 1
+      TabOrder = 0
       OnClick = btnOKClick
     end
     object btnCancel: TButton
@@ -56,7 +56,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = btnCancelClick
     end
     object pnlTotalAmounts: TPanel
@@ -65,7 +65,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
       Width = 366
       Height = 46
       BevelOuter = bvNone
-      TabOrder = 0
+      TabOrder = 2
       object lblFixedHdr: TLabel
         Left = 12
         Top = 8
@@ -229,16 +229,15 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnGetCellAttributes = tblSplitGetCellAttributes
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
-          ExplicitLeft = 4
           CellData = (
             'dlgPayeeDetail.Header'
-            'dlgPayeeDetail.colLineType'
-            'dlgPayeeDetail.colPercent'
-            'dlgPayeeDetail.ColAmount'
-            'dlgPayeeDetail.ColGSTCode'
-            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColAcct'
             'dlgPayeeDetail.ColDesc'
-            'dlgPayeeDetail.ColAcct')
+            'dlgPayeeDetail.colNarration'
+            'dlgPayeeDetail.ColGSTCode'
+            'dlgPayeeDetail.ColAmount'
+            'dlgPayeeDetail.colPercent'
+            'dlgPayeeDetail.colLineType')
           RowData = (
             21)
           ColData = (
@@ -279,6 +278,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
+          ExplicitTop = -3
           object sbtnChart: TSpeedButton
             AlignWithMargins = True
             Left = 10
@@ -897,6 +897,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -915,7 +916,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False

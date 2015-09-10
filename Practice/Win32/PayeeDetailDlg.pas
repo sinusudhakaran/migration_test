@@ -285,7 +285,6 @@ begin
   finally
     fLoading := false;
   end;
-  pcPayee.ActivePageIndex := 0;
 end;
 
 procedure TdlgPayeeDetail.FormCreate(Sender: TObject);
@@ -293,7 +292,6 @@ var
   w, i : integer;
   vsbWidth : integer;
 begin
-  pcPayee.ActivePageIndex := 0;
   bkXPThemes.ThemeForm( Self);
   okPressed := false;
   EditMode := false;
