@@ -39,7 +39,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     State = cbChecked
     TabOrder = 3
   end
-  object Panel1: TPanel
+  object pnlOptions: TPanel
     Left = 16
     Top = 32
     Width = 400
@@ -125,7 +125,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     TabOrder = 2
     OnClick = btnClearClick
   end
-  object Panel2: TPanel
+  object pnlControls: TPanel
     Left = 0
     Top = 304
     Width = 519
@@ -135,9 +135,6 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
     Caption = ' '
     ParentBackground = False
     TabOrder = 4
-    ExplicitLeft = 24
-    ExplicitTop = 280
-    ExplicitWidth = 487
     DesignSize = (
       519
       41)
@@ -179,9 +176,8 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btnCancelClick
-      ExplicitLeft = 408
     end
     object btnPrint: TButton
       Left = 360
@@ -190,7 +186,7 @@ object dlgDownloadReportOptions: TdlgDownloadReportOptions
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&Print'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = btnPrintClick
     end
   end

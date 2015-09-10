@@ -20,7 +20,7 @@ type
   TdlgDownloadReportOptions = class(TForm)
     Label2: TLabel;
     chkHideDeleted: TCheckBox;
-    Panel1: TPanel;
+    pnlOptions: TPanel;
     chkActive: TCheckBox;
     chkInactive: TCheckBox;
     chkNew: TCheckBox;
@@ -29,7 +29,7 @@ type
     btnAll: TButton;
     btnClear: TButton;
     chkAll: TCheckBox;
-    Panel2: TPanel;
+    pnlControls: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnCancel: TButton;
