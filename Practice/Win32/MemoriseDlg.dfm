@@ -3,8 +3,8 @@ object dlgMemorise: TdlgMemorise
   Top = 246
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Memorise Transaction'
-  ClientHeight = 514
-  ClientWidth = 746
+  ClientHeight = 730
+  ClientWidth = 1008
   Color = clBtnFace
   Constraints.MinHeight = 450
   Constraints.MinWidth = 570
@@ -22,121 +22,174 @@ object dlgMemorise: TdlgMemorise
   object GroupBox1: TGroupBox
     Left = 0
     Top = 0
-    Width = 746
-    Height = 230
+    Width = 1008
+    Height = 182
     Align = alTop
     Caption = '  Match On  '
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 0
     DesignSize = (
-      746
-      230)
-    object Label1: TLabel
-      Left = 27
-      Top = 23
-      Width = 53
-      Height = 13
-      Caption = 'Entry Type'
-    end
+      1008
+      182)
     object eRef: TEdit
-      Left = 170
-      Top = 44
+      Left = 139
+      Top = 95
       Width = 209
       Height = 21
       BorderStyle = bsNone
       Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       MaxLength = 12
+      ParentFont = False
       TabOrder = 3
       Text = 'eRef'
     end
     object ePart: TEdit
-      Left = 170
-      Top = 145
-      Width = 337
+      Left = 498
+      Top = 98
+      Width = 262
       Height = 21
       BorderStyle = bsNone
       Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       MaxLength = 12
+      ParentFont = False
       TabOrder = 11
       Text = 'ePart'
     end
     object eOther: TEdit
-      Left = 170
-      Top = 119
-      Width = 337
-      Height = 21
-      BorderStyle = bsNone
-      Enabled = False
-      MaxLength = 20
-      TabOrder = 9
-      Text = 'eOther'
-    end
-    object eCode: TEdit
-      Left = 170
-      Top = 69
+      Left = 139
+      Top = 122
       Width = 209
       Height = 21
       BorderStyle = bsNone
       Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      MaxLength = 20
+      ParentFont = False
+      TabOrder = 9
+      Text = 'eOther'
+    end
+    object eCode: TEdit
+      Left = 139
+      Top = 149
+      Width = 209
+      Height = 21
+      BorderStyle = bsNone
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       MaxLength = 12
+      ParentFont = False
       TabOrder = 5
       Text = 'eCode'
     end
     object cRef: TCheckBox
-      Left = 25
-      Top = 46
-      Width = 129
+      Left = 3
+      Top = 99
+      Width = 130
       Height = 17
       Alignment = taLeftJustify
       Caption = '&Reference'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 2
       OnClick = cRefClick
     end
     object cPart: TCheckBox
-      Left = 25
-      Top = 147
-      Width = 129
+      Left = 382
+      Top = 97
+      Width = 96
       Height = 17
       Alignment = taLeftJustify
       Caption = '&Particulars'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 10
       OnClick = cPartClick
     end
     object cOther: TCheckBox
-      Left = 25
-      Top = 121
-      Width = 129
+      Left = 3
+      Top = 126
+      Width = 130
       Height = 17
       Alignment = taLeftJustify
       Caption = 'O&ther Party'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 8
       OnClick = cOtherClick
     end
     object cCode: TCheckBox
-      Left = 25
-      Top = 71
-      Width = 129
+      Left = 3
+      Top = 149
+      Width = 130
       Height = 17
       Alignment = taLeftJustify
       Caption = '&Analysis Code'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 4
       OnClick = cCodeClick
     end
     object cmbValue: TComboBox
-      Left = 170
-      Top = 195
-      Width = 177
-      Height = 21
+      Left = 498
+      Top = 68
+      Width = 143
+      Height = 24
       Style = csDropDownList
       Ctl3D = False
       Enabled = False
-      ItemHeight = 13
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ItemHeight = 16
       ParentCtl3D = False
+      ParentFont = False
       TabOrder = 15
       OnChange = cmbValueChange
     end
     object nValue: TOvcNumericField
-      Left = 374
-      Top = 196
+      Left = 647
+      Top = 70
       Width = 113
       Height = 22
       Cursor = crIBeam
@@ -152,7 +205,13 @@ object dlgMemorise: TdlgMemorise
       EFColors.Highlight.BackColor = clHighlight
       EFColors.Highlight.TextColor = clHighlightText
       Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       Options = []
+      ParentFont = False
       PictureMask = '###,###,###.##'
       TabOrder = 16
       OnChange = nValueChange
@@ -161,52 +220,77 @@ object dlgMemorise: TdlgMemorise
       RangeLow = {73B2DBB9838916F2FEC3}
     end
     object cEntry: TCheckBox
-      Left = 122
+      Left = 3
       Top = 22
-      Width = 32
+      Width = 130
       Height = 18
       Alignment = taLeftJustify
+      Caption = 'Entry Type'
       Checked = True
       Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       State = cbChecked
       TabOrder = 0
     end
     object cNotes: TCheckBox
-      Left = 25
-      Top = 172
-      Width = 129
+      Left = 382
+      Top = 120
+      Width = 96
       Height = 17
       Alignment = taLeftJustify
       Caption = '&Notes'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 12
       OnClick = cNotesClick
     end
     object eNotes: TEdit
-      Left = 170
-      Top = 170
-      Width = 337
+      Left = 498
+      Top = 125
+      Width = 262
       Height = 21
       BorderStyle = bsNone
       Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       MaxLength = 40
+      ParentFont = False
       TabOrder = 13
       Text = 'eCode'
     end
     object chkStatementDetails: TCheckBox
-      Left = 25
-      Top = 96
-      Width = 129
+      Left = 3
+      Top = 46
+      Width = 130
       Height = 17
       Alignment = taLeftJustify
       Caption = '&Statement Details'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 6
       OnClick = chkStatementDetailsClick
     end
     object eStatementDetails: TEdit
-      Left = 170
-      Top = 94
-      Width = 567
-      Height = 21
+      Left = 139
+      Top = 47
+      Width = 209
+      Height = 42
       Anchors = [akLeft, akTop, akRight]
       BorderStyle = bsNone
       Enabled = False
@@ -215,17 +299,23 @@ object dlgMemorise: TdlgMemorise
       Text = 'eStatement Details'
     end
     object cValue: TCheckBox
-      Left = 25
-      Top = 197
-      Width = 129
+      Left = 382
+      Top = 69
+      Width = 96
       Height = 22
       Alignment = taLeftJustify
       Caption = '&Value'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 14
       OnClick = cValueClick
     end
     object eDateFrom: TOvcPictureField
-      Left = 667
+      Left = 498
       Top = 17
       Width = 70
       Height = 20
@@ -246,9 +336,15 @@ object dlgMemorise: TdlgMemorise
       EFColors.Highlight.TextColor = clHighlightText
       Enabled = False
       Epoch = 0
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       InitDateTime = False
       MaxLength = 8
       Options = [efoCaretToEnd]
+      ParentFont = False
       PictureMask = 'DD/mm/yy'
       TabOrder = 19
       OnDblClick = eDateFromDblClick
@@ -256,7 +352,7 @@ object dlgMemorise: TdlgMemorise
       RangeLow = {00000000000000000000}
     end
     object eDateTo: TOvcPictureField
-      Left = 667
+      Left = 498
       Top = 43
       Width = 70
       Height = 20
@@ -277,9 +373,15 @@ object dlgMemorise: TdlgMemorise
       EFColors.Highlight.TextColor = clHighlightText
       Enabled = False
       Epoch = 0
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       InitDateTime = False
       MaxLength = 8
       Options = [efoCaretToEnd]
+      ParentFont = False
       PictureMask = 'DD/mm/yy'
       TabOrder = 21
       OnDblClick = eDateFromDblClick
@@ -287,32 +389,52 @@ object dlgMemorise: TdlgMemorise
       RangeLow = {00000000000000000000}
     end
     object cbFrom: TCheckBox
-      Left = 571
-      Top = 22
+      Left = 382
+      Top = 21
       Width = 96
       Height = 17
+      Alignment = taLeftJustify
       Anchors = [akTop, akRight]
       Caption = 'Applies from'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 18
       OnClick = cbFromClick
     end
     object cbTo: TCheckBox
-      Left = 571
+      Left = 382
       Top = 46
       Width = 96
       Height = 17
+      Alignment = taLeftJustify
       Anchors = [akTop, akRight]
       Caption = 'Applies to'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 20
       OnClick = cbToClick
     end
     object cbMinus: TComboBox
-      Left = 493
-      Top = 196
+      Left = 766
+      Top = 68
       Width = 53
-      Height = 21
+      Height = 24
       Enabled = False
-      ItemHeight = 13
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ItemHeight = 16
+      ParentFont = False
       TabOrder = 17
       OnChange = cbMinusChange
       Items.Strings = (
@@ -320,151 +442,559 @@ object dlgMemorise: TdlgMemorise
         'DR')
     end
     object cmbType: TComboBox
-      Left = 170
-      Top = 19
-      Width = 145
-      Height = 21
+      Left = 139
+      Top = 17
+      Width = 209
+      Height = 24
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 16
       TabOrder = 1
     end
+    object Button1: TButton
+      Left = 869
+      Top = 68
+      Width = 129
+      Height = 25
+      Caption = 'Show more options'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 22
+    end
   end
-  object Panel1: TPanel
+  object Panel2: TPanel
     Left = 0
-    Top = 230
-    Width = 746
-    Height = 213
-    Align = alClient
-    BevelOuter = bvLowered
-    BorderWidth = 5
+    Top = 671
+    Width = 1008
+    Height = 38
+    Align = alBottom
+    BevelOuter = bvNone
     TabOrder = 1
-    object ToolBar: TPanel
-      AlignWithMargins = True
-      Left = 6
-      Top = 6
-      Width = 734
-      Height = 26
-      Margins.Left = 0
-      Margins.Top = 0
-      Margins.Right = 0
-      Margins.Bottom = 5
-      Align = alTop
-      AutoSize = True
-      BevelOuter = bvNone
+    DesignSize = (
+      1008
+      38)
+    object btnOK: TButton
+      Left = 849
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = '&OK'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 929
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      OnClick = btnCancelClick
+    end
+    object btnCopy: TButton
+      Left = 754
+      Top = 8
+      Width = 89
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Copy'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
-      object sbtnPayee: TSpeedButton
-        AlignWithMargins = True
-        Left = 74
-        Top = 2
-        Width = 65
-        Height = 22
-        Margins.Top = 2
-        Margins.Bottom = 2
-        Align = alLeft
-        Caption = 'Payee'
-        Flat = True
-        OnClick = sbtnPayeeClick
-        ExplicitLeft = 0
-        ExplicitTop = 0
+      OnClick = btnCopyClick
+    end
+  end
+  object sBar: TStatusBar
+    Left = 0
+    Top = 709
+    Width = 1008
+    Height = 21
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    Panels = <
+      item
+        Text = '1 of 100'
+        Width = 75
+      end>
+    UseSystemFont = False
+  end
+  object pnlMain: TPanel
+    Left = 0
+    Top = 182
+    Width = 1008
+    Height = 489
+    Align = alClient
+    TabOrder = 3
+    object Splitter: TSplitter
+      Left = 1
+      Top = 233
+      Width = 1006
+      Height = 3
+      Cursor = crVSplit
+      Align = alTop
+      Beveled = True
+    end
+    object Panel1: TPanel
+      Left = 1
+      Top = 1
+      Width = 1006
+      Height = 232
+      Align = alTop
+      BevelOuter = bvLowered
+      BorderWidth = 5
+      TabOrder = 0
+      DesignSize = (
+        1006
+        232)
+      object lblFixedHdr: TLabel
+        Left = 222
+        Top = 204
+        Width = 41
+        Height = 16
+        Caption = 'Fixed $'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
       end
-      object sbtnChart: TSpeedButton
-        AlignWithMargins = True
-        Left = 3
-        Top = 2
-        Width = 65
-        Height = 22
-        Margins.Top = 2
-        Margins.Bottom = 2
-        Align = alLeft
-        Caption = 'Chart'
-        Flat = True
-        OnClick = sbtnChartClick
-        ExplicitTop = 4
+      object lblFixed: TLabel
+        Left = 272
+        Top = 204
+        Width = 96
+        Height = 16
+        Caption = '$999,999,999.00'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
       end
-      object sbtnJob: TSpeedButton
-        AlignWithMargins = True
-        Left = 145
-        Top = 2
-        Width = 65
-        Height = 22
-        Margins.Top = 2
-        Margins.Bottom = 2
-        Align = alLeft
-        Caption = 'Job'
-        Flat = True
-        OnClick = sbtnJobClick
+      object lblRemDollar: TLabel
+        Left = 55
+        Top = 204
+        Width = 96
+        Height = 16
+        Caption = '$999,999,999.00'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
       end
-      object sbtnSuper: TSpeedButton
-        AlignWithMargins = True
-        Left = 216
-        Top = 2
-        Width = 65
-        Height = 22
-        Margins.Top = 2
-        Margins.Bottom = 2
-        Align = alLeft
-        Caption = 'Super'
-        Flat = True
-        OnClick = sbtnSuperClick
-        ExplicitTop = 4
+      object lblRemDollarHdr: TLabel
+        Left = 12
+        Top = 202
+        Width = 37
+        Height = 16
+        Caption = 'Rem $'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
       end
-      object chkMaster: TCheckBox
+      object ToolBar: TPanel
         AlignWithMargins = True
-        Left = 287
-        Top = 2
-        Width = 141
-        Height = 22
-        Margins.Top = 2
-        Margins.Bottom = 2
-        Align = alLeft
-        Caption = '&Memorise to MASTER'
+        Left = 6
+        Top = 6
+        Width = 994
+        Height = 26
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 5
+        Align = alTop
+        AutoSize = True
+        BevelOuter = bvNone
         TabOrder = 0
-        OnClick = chkMasterClick
+        object sbtnPayee: TSpeedButton
+          AlignWithMargins = True
+          Left = 74
+          Top = 2
+          Width = 65
+          Height = 22
+          Margins.Top = 2
+          Margins.Bottom = 2
+          Align = alLeft
+          Caption = 'Payee'
+          Flat = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          OnClick = sbtnPayeeClick
+          ExplicitLeft = 0
+          ExplicitTop = 0
+        end
+        object sbtnChart: TSpeedButton
+          AlignWithMargins = True
+          Left = 3
+          Top = 2
+          Width = 65
+          Height = 22
+          Margins.Top = 2
+          Margins.Bottom = 2
+          Align = alLeft
+          Caption = 'Chart'
+          Flat = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          OnClick = sbtnChartClick
+          ExplicitTop = 4
+        end
+        object sbtnJob: TSpeedButton
+          AlignWithMargins = True
+          Left = 145
+          Top = 2
+          Width = 65
+          Height = 22
+          Margins.Top = 2
+          Margins.Bottom = 2
+          Align = alLeft
+          Caption = 'Job'
+          Flat = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          OnClick = sbtnJobClick
+        end
+        object sbtnSuper: TSpeedButton
+          AlignWithMargins = True
+          Left = 216
+          Top = 2
+          Width = 65
+          Height = 22
+          Margins.Top = 2
+          Margins.Bottom = 2
+          Align = alLeft
+          Caption = 'Super'
+          Flat = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          OnClick = sbtnSuperClick
+          ExplicitTop = 4
+        end
+        object chkMaster: TCheckBox
+          AlignWithMargins = True
+          Left = 287
+          Top = 2
+          Width = 141
+          Height = 22
+          Margins.Top = 2
+          Margins.Bottom = 2
+          Align = alLeft
+          Caption = '&Memorise to MASTER'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 0
+          OnClick = chkMasterClick
+        end
+        object chkAccountSystem: TCheckBox
+          AlignWithMargins = True
+          Left = 434
+          Top = 2
+          Width = 114
+          Height = 22
+          Margins.Top = 2
+          Margins.Bottom = 2
+          Align = alLeft
+          Caption = 'Only Apply to :'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 1
+          OnClick = chkAccountSystemClick
+        end
+        object cbAccounting: TComboBox
+          AlignWithMargins = True
+          Left = 554
+          Top = 1
+          Width = 437
+          Height = 24
+          Margins.Top = 1
+          Margins.Bottom = 1
+          Align = alClient
+          Style = csDropDownList
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ItemHeight = 16
+          ParentFont = False
+          Sorted = True
+          TabOrder = 2
+        end
       end
-      object chkAccountSystem: TCheckBox
-        AlignWithMargins = True
-        Left = 434
-        Top = 2
-        Width = 114
-        Height = 22
-        Margins.Top = 2
-        Margins.Bottom = 2
-        Align = alLeft
-        Caption = 'Only Apply to :'
+      object tblSplit: TOvcTable
+        Left = 6
+        Top = 37
+        Width = 991
+        Height = 161
+        RowLimit = 6
+        LockedCols = 0
+        LeftCol = 0
+        ActiveCol = 0
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Color = clWindow
+        Colors.ActiveUnfocused = clWindow
+        Colors.ActiveUnfocusedText = clWindowText
+        Colors.Editing = clWindow
+        Controller = memController
+        Ctl3D = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        GridPenSet.NormalGrid.NormalColor = clBtnShadow
+        GridPenSet.NormalGrid.Style = psSolid
+        GridPenSet.NormalGrid.Effect = ge3D
+        GridPenSet.LockedGrid.NormalColor = clBtnShadow
+        GridPenSet.LockedGrid.Style = psSolid
+        GridPenSet.LockedGrid.Effect = geBoth
+        GridPenSet.CellWhenFocused.NormalColor = clBlack
+        GridPenSet.CellWhenFocused.Style = psSolid
+        GridPenSet.CellWhenFocused.Effect = geBoth
+        GridPenSet.CellWhenUnfocused.NormalColor = clBlack
+        GridPenSet.CellWhenUnfocused.Style = psDash
+        GridPenSet.CellWhenUnfocused.Effect = geNone
+        Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
+        ParentCtl3D = False
+        ParentFont = False
         TabOrder = 1
-        OnClick = chkAccountSystemClick
+        OnActiveCellChanged = tblSplitActiveCellChanged
+        OnActiveCellMoving = tblSplitActiveCellMoving
+        OnBeginEdit = tblSplitBeginEdit
+        OnDoneEdit = tblSplitDoneEdit
+        OnEndEdit = tblSplitEndEdit
+        OnEnter = tblSplitEnter
+        OnEnteringRow = tblSplitEnteringRow
+        OnExit = tblSplitExit
+        OnGetCellData = tblSplitGetCellData
+        OnGetCellAttributes = tblSplitGetCellAttributes
+        OnMouseDown = tblSplitMouseDown
+        OnUserCommand = tblSplitUserCommand
+        CellData = (
+          'dlgMemorise.colLineType'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct'
+          'dlgMemorise.Header')
+        RowData = (
+          21)
+        ColData = (
+          86
+          False
+          True
+          'dlgMemorise.ColAcct'
+          172
+          False
+          True
+          'dlgMemorise.ColDesc'
+          145
+          False
+          True
+          'dlgMemorise.colNarration'
+          45
+          False
+          True
+          'dlgMemorise.ColPayee'
+          86
+          False
+          True
+          'dlgMemorise.colJob'
+          45
+          False
+          True
+          'dlgMemorise.ColGSTCode'
+          100
+          False
+          True
+          'dlgMemorise.ColAmount'
+          100
+          False
+          True
+          'dlgMemorise.ColPercent'
+          45
+          False
+          True
+          'dlgMemorise.colLineType')
       end
-      object cbAccounting: TComboBox
-        AlignWithMargins = True
-        Left = 554
-        Top = 1
-        Width = 177
-        Height = 21
-        Margins.Top = 1
-        Margins.Bottom = 1
-        Align = alClient
-        Style = csDropDownList
-        ItemHeight = 13
-        Sorted = True
+      object Panel4: TPanel
+        Left = 568
+        Top = 204
+        Width = 432
+        Height = 25
+        Anchors = [akRight, akBottom]
+        BevelInner = bvRaised
+        BevelOuter = bvLowered
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = 27
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
         TabOrder = 2
+        object lblAmountHdr: TLabel
+          Left = 4
+          Top = 4
+          Width = 44
+          Height = 16
+          Caption = 'Amount'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblTotalPercHdr: TLabel
+          Left = 156
+          Top = 4
+          Width = 45
+          Height = 16
+          Alignment = taRightJustify
+          Caption = 'Total %'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblRemPercHdr: TLabel
+          Left = 277
+          Top = 4
+          Width = 76
+          Height = 16
+          Alignment = taRightJustify
+          Caption = 'Remaining %'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblRemPerc: TLabel
+          Left = 383
+          Top = 4
+          Width = 40
+          Height = 16
+          Alignment = taRightJustify
+          Caption = '1000%'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblTotalPerc: TLabel
+          Left = 231
+          Top = 4
+          Width = 40
+          Height = 16
+          Alignment = taRightJustify
+          Caption = '1000%'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblAmount: TLabel
+          Left = 54
+          Top = 4
+          Width = 96
+          Height = 16
+          Caption = '$999,999,999.00'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
       end
     end
-    object tblSplit: TOvcTable
-      Left = 6
-      Top = 37
-      Width = 734
-      Height = 170
-      RowLimit = 6
+    object tblTran: TOvcTable
+      Left = 1
+      Top = 236
+      Width = 1006
+      Height = 252
+      RowLimit = 2
       LockedCols = 0
       LeftCol = 0
-      ActiveCol = 0
       Align = alClient
       Color = clWindow
       Colors.ActiveUnfocused = clWindow
       Colors.ActiveUnfocusedText = clWindowText
       Colors.Editing = clWindow
-      Controller = memController
+      Controller = tranController
       Ctl3D = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
       GridPenSet.NormalGrid.NormalColor = clBtnShadow
       GridPenSet.NormalGrid.Style = psSolid
       GridPenSet.NormalGrid.Effect = ge3D
@@ -477,212 +1007,45 @@ object dlgMemorise: TdlgMemorise
       GridPenSet.CellWhenUnfocused.NormalColor = clBlack
       GridPenSet.CellWhenUnfocused.Style = psDash
       GridPenSet.CellWhenUnfocused.Effect = geNone
-      LockedRowsCell = Header
       Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
       ParentCtl3D = False
+      ParentFont = False
       TabOrder = 1
-      OnActiveCellChanged = tblSplitActiveCellChanged
-      OnActiveCellMoving = tblSplitActiveCellMoving
-      OnBeginEdit = tblSplitBeginEdit
-      OnDoneEdit = tblSplitDoneEdit
-      OnEndEdit = tblSplitEndEdit
-      OnEnter = tblSplitEnter
-      OnEnteringRow = tblSplitEnteringRow
-      OnExit = tblSplitExit
-      OnGetCellData = tblSplitGetCellData
-      OnGetCellAttributes = tblSplitGetCellAttributes
-      OnMouseDown = tblSplitMouseDown
-      OnUserCommand = tblSplitUserCommand
-      CellData = (
-        'dlgMemorise.Header'
-        'dlgMemorise.colLineType'
-        'dlgMemorise.ColPercent'
-        'dlgMemorise.ColAmount'
-        'dlgMemorise.ColGSTCode'
-        'dlgMemorise.colJob'
-        'dlgMemorise.ColPayee'
-        'dlgMemorise.colNarration'
-        'dlgMemorise.ColDesc'
-        'dlgMemorise.ColAcct')
+      CellData = ()
       RowData = (
         21)
       ColData = (
-        86
+        150
         False
-        True
-        'dlgMemorise.ColAcct'
-        172
         False
-        True
-        'dlgMemorise.ColDesc'
-        145
+        150
         False
-        True
-        'dlgMemorise.colNarration'
-        45
         False
-        True
-        'dlgMemorise.ColPayee'
-        86
+        150
         False
-        True
-        'dlgMemorise.colJob'
-        45
         False
-        True
-        'dlgMemorise.ColGSTCode'
-        100
+        150
         False
-        True
-        'dlgMemorise.ColAmount'
-        100
         False
-        True
-        'dlgMemorise.ColPercent'
-        45
+        150
         False
-        True
-        'dlgMemorise.colLineType')
+        False
+        150
+        False
+        False
+        150
+        False
+        False
+        150
+        False
+        False
+        150
+        False
+        False
+        150
+        False
+        False)
     end
-  end
-  object Panel2: TPanel
-    Left = 0
-    Top = 443
-    Width = 746
-    Height = 50
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 2
-    DesignSize = (
-      746
-      50)
-    object btnOK: TButton
-      Left = 587
-      Top = 20
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = '&OK'
-      TabOrder = 2
-      OnClick = btnOKClick
-    end
-    object btnCancel: TButton
-      Left = 667
-      Top = 20
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Cancel'
-      TabOrder = 3
-      OnClick = btnCancelClick
-    end
-    object Panel4: TPanel
-      Left = 3
-      Top = 3
-      Width = 442
-      Height = 46
-      BevelInner = bvRaised
-      BevelOuter = bvLowered
-      TabOrder = 0
-      object lblAmountHdr: TLabel
-        Left = 13
-        Top = 8
-        Width = 37
-        Height = 13
-        Caption = 'Amount'
-      end
-      object lblFixedHdr: TLabel
-        Left = 117
-        Top = 8
-        Width = 35
-        Height = 13
-        Caption = 'Fixed $'
-      end
-      object lblRemDollarHdr: TLabel
-        Left = 219
-        Top = 8
-        Width = 30
-        Height = 13
-        Caption = 'Rem $'
-      end
-      object lblTotalPercHdr: TLabel
-        Left = 322
-        Top = 8
-        Width = 38
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'Total %'
-      end
-      object lblRemPercHdr: TLabel
-        Left = 399
-        Top = 8
-        Width = 35
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'Rem %'
-      end
-      object lblRemPerc: TLabel
-        Left = 397
-        Top = 24
-        Width = 35
-        Height = 13
-        Alignment = taRightJustify
-        Caption = '1000%'
-      end
-      object lblTotalPerc: TLabel
-        Left = 325
-        Top = 24
-        Width = 35
-        Height = 13
-        Alignment = taRightJustify
-        Caption = '1000%'
-      end
-      object lblRemDollar: TLabel
-        Left = 219
-        Top = 24
-        Width = 84
-        Height = 13
-        Caption = '$999,999,999.00'
-      end
-      object lblFixed: TLabel
-        Left = 116
-        Top = 24
-        Width = 84
-        Height = 13
-        Caption = '$999,999,999.00'
-      end
-      object lblAmount: TLabel
-        Left = 12
-        Top = 24
-        Width = 84
-        Height = 13
-        Caption = '$999,999,999.00'
-      end
-    end
-    object btnCopy: TButton
-      Left = 492
-      Top = 20
-      Width = 89
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = 'Copy to New'
-      TabOrder = 1
-      OnClick = btnCopyClick
-    end
-  end
-  object sBar: TStatusBar
-    Left = 0
-    Top = 493
-    Width = 746
-    Height = 21
-    Panels = <
-      item
-        Text = '1 of 100'
-        Width = 75
-      end>
-    ParentFont = True
-    UseSystemFont = False
   end
   object memController: TOvcController
     EntryCommands.TableList = (
@@ -696,8 +1059,8 @@ object dlgMemorise: TdlgMemorise
       False
       ())
     Epoch = 1900
-    Left = 216
-    Top = 312
+    Left = 280
+    Top = 336
   end
   object ColAmount: TOvcTCNumericField
     Adjust = otaCenterRight
@@ -709,12 +1072,13 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
     OnKeyPress = ColAmountKeyPress
-    Left = 424
-    Top = 336
+    Left = 488
+    Top = 360
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
@@ -723,8 +1087,8 @@ object dlgMemorise: TdlgMemorise
     Color = clWindow
     Table = tblSplit
     TableColor = False
-    Left = 264
-    Top = 336
+    Left = 328
+    Top = 360
   end
   object ColAcct: TOvcTCString
     Adjust = otaCenterLeft
@@ -736,16 +1100,16 @@ object dlgMemorise: TdlgMemorise
     OnKeyPress = ColAcctKeyPress
     OnKeyUp = ColAcctKeyUp
     OnOwnerDraw = ColAcctOwnerDraw
-    Left = 224
-    Top = 336
+    Left = 288
+    Top = 360
   end
   object ColGSTCode: TOvcTCString
     MaxLength = 3
     Table = tblSplit
     OnKeyDown = ColGSTCodeKeyDown
     OnOwnerDraw = ColGSTCodeOwnerDraw
-    Left = 392
-    Top = 336
+    Left = 456
+    Top = 360
   end
   object Header: TOvcTCColHead
     Headings.Strings = (
@@ -759,15 +1123,14 @@ object dlgMemorise: TdlgMemorise
       'Percent'
       '%/$')
     ShowLetters = False
-    Table = tblSplit
-    Left = 192
-    Top = 336
+    Left = 256
+    Top = 360
   end
   object colNarration: TOvcTCString
     MaxLength = 200
     Table = tblSplit
-    Left = 296
-    Top = 336
+    Left = 360
+    Top = 360
   end
   object colLineType: TOvcTCComboBox
     AcceptActivationClick = False
@@ -776,14 +1139,14 @@ object dlgMemorise: TdlgMemorise
     MaxLength = 1
     Style = csDropDownList
     Table = tblSplit
-    Left = 328
-    Top = 304
+    Left = 392
+    Top = 328
   end
   object popMem: TPopupMenu
     Images = AppImages.Coding
     OnPopup = popMemPopup
-    Left = 568
-    Top = 64
+    Left = 704
+    Top = 328
     object LookupChart1: TMenuItem
       Caption = '&Lookup Chart                                        F2'
       ImageIndex = 0
@@ -844,13 +1207,14 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
     OnKeyDown = ColPayeeKeyDown
     OnOwnerDraw = ColPayeeOwnerDraw
-    Left = 328
-    Top = 337
+    Left = 392
+    Top = 361
     RangeHigh = {3F420F00000000000000}
     RangeLow = {00000000000000000000}
   end
@@ -864,33 +1228,47 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
     OnKeyPress = ColAmountKeyPress
-    Left = 456
-    Top = 336
+    Left = 520
+    Top = 360
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
   end
   object colJob: TOvcTCString
     MaxLength = 8
     Table = tblSplit
-    Left = 360
-    Top = 336
+    Left = 424
+    Top = 360
   end
   object Rowtmr: TTimer
     Enabled = False
     Interval = 100
     OnTimer = RowtmrTimer
-    Left = 40
-    Top = 280
+    Left = 104
+    Top = 304
   end
   object tmrPayee: TTimer
     Interval = 30
     OnTimer = tmrPayeeTimer
-    Left = 592
-    Top = 168
+    Left = 640
+    Top = 328
+  end
+  object tranController: TOvcController
+    EntryCommands.TableList = (
+      'Default'
+      True
+      ()
+      'WordStar'
+      False
+      ()
+      'Grid'
+      False
+      ())
+    Epoch = 1900
+    Left = 280
+    Top = 488
   end
 end

@@ -3,7 +3,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Top = 0
   Caption = 'Suggested Memorisations for '
   ClientHeight = 448
-  ClientWidth = 649
+  ClientWidth = 669
   Color = clBtnFace
   Constraints.MinHeight = 400
   Constraints.MinWidth = 534
@@ -22,18 +22,19 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   TextHeight = 13
   object pnlButtons: TPanel
     Left = 0
-    Top = 407
-    Width = 649
-    Height = 41
+    Top = 408
+    Width = 669
+    Height = 40
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitWidth = 649
     DesignSize = (
-      649
-      41)
+      669
+      40)
     object btnClose: TButton
-      Left = 564
-      Top = 8
+      Left = 584
+      Top = 10
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -47,10 +48,11 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       ModalResult = 1
       ParentFont = False
       TabOrder = 0
+      ExplicitLeft = 564
     end
     object btnCreate: TButton
-      Left = 483
-      Top = 8
+      Left = 503
+      Top = 10
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -63,11 +65,12 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       ParentFont = False
       TabOrder = 1
       OnClick = btnCreateClick
+      ExplicitLeft = 483
     end
     object chkAllowSuggMemPopup: TCheckBox
       Left = 89
       Top = 14
-      Width = 388
+      Width = 408
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Allow Suggested Memorisation '#39'Pop-up'#39
@@ -78,13 +81,20 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Font.Style = []
       ParentFont = False
       TabOrder = 2
+      ExplicitWidth = 388
     end
     object btnHide: TButton
       Left = 8
-      Top = 6
+      Top = 10
       Width = 75
       Height = 25
       Caption = 'Hide'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 3
       OnClick = btnHideClick
     end
@@ -92,11 +102,12 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 649
+    Width = 669
     Height = 33
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitWidth = 649
     object lblBankAccount: TLabel
       Left = 8
       Top = 8
@@ -114,24 +125,28 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object pnlLayout1: TPanel
     Left = 0
     Top = 33
-    Width = 649
-    Height = 374
+    Width = 669
+    Height = 375
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitWidth = 649
+    ExplicitHeight = 374
     object pnlLayout2: TPanel
       Left = 0
       Top = 0
-      Width = 649
-      Height = 374
+      Width = 669
+      Height = 375
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitWidth = 649
+      ExplicitHeight = 374
       object tblSuggMems: TOvcTable
         Left = 0
         Top = 0
-        Width = 649
-        Height = 374
+        Width = 669
+        Height = 375
         RowLimit = 2
         LockedCols = 0
         LeftCol = 0
@@ -146,6 +161,11 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         Colors.Editing = clWindow
         Controller = cntSuggMems
         Ctl3D = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
         GridPenSet.NormalGrid.NormalColor = clSilver
         GridPenSet.NormalGrid.SecondColor = clWhite
         GridPenSet.NormalGrid.Style = psSolid
@@ -162,20 +182,22 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         LockedRowsCell = hdrSuggMems
         Options = [otoNoRowResizing, otoTabToArrow, otoEnterToArrow, otoRowSelection]
         ParentCtl3D = False
+        ParentFont = False
         ParentShowHint = False
         ShowHint = False
         TabOrder = 0
         OnActiveCellChanged = tblSuggMemsActiveCellChanged
         OnDblClick = tblSuggMemsDblClick
         OnGetCellData = tblSuggMemsGetCellData
-        ExplicitTop = -3
+        ExplicitWidth = 649
+        ExplicitHeight = 374
         CellData = (
           'RecommendedMemorisationsFrm.hdrSuggMems'
-          'RecommendedMemorisationsFrm.coUnCodedMatch'
-          'RecommendedMemorisationsFrm.colCodedMatch'
-          'RecommendedMemorisationsFrm.colCode'
+          'RecommendedMemorisationsFrm.colEntryType'
           'RecommendedMemorisationsFrm.colStatementDetails'
-          'RecommendedMemorisationsFrm.colEntryType')
+          'RecommendedMemorisationsFrm.colCode'
+          'RecommendedMemorisationsFrm.colCodedMatch'
+          'RecommendedMemorisationsFrm.coUnCodedMatch')
         RowData = (
           21
           0
@@ -208,7 +230,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800C40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800C80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

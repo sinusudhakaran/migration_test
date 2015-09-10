@@ -7702,7 +7702,11 @@ end;
 
 procedure TfrmCoding.btnCreateClick(Sender: TObject);
 begin
-  DoRecommendedMems;
+  if ((SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+      Assigned(BankAccount)) then
+  begin
+    SuggestedMem.DoCreateNewMemorisation(BankAccount, MyClient.clChart, SelectedSuggestedMemId);
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

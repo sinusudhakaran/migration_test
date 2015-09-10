@@ -28,6 +28,7 @@ type
 
 const
   BLANK_LINE = -1;
+  NO_DATA = -2;
   SuggMemSortedListRecSize = Sizeof(TSuggMemSortedListRec);
 
 type

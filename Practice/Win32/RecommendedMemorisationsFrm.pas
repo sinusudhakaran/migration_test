@@ -249,7 +249,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.tblSuggMemsDblClick(Sender: TObject);
 begin
-  if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.Id = BLANK_LINE then
+  if tblSuggMems.ActiveRow = 0 then
+    Exit;
+
+  if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id = BLANK_LINE then
     Exit;
 
   DoCreateNewMemorisation(tblSuggMems.ActiveRow);
@@ -273,6 +276,9 @@ procedure TRecommendedMemorisationsFrm.colEntryTypeOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
+  if Data=nil then
+    Exit;
+
   DrawEntryTypeOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Byte(Data^), DoneIt);
 end;
 
@@ -282,7 +288,21 @@ procedure TRecommendedMemorisationsFrm.colStatementDetailsOwnerDraw(
   ColNum: Integer; const CellAttr: TOvcCellAttributes; Data: Pointer;
   var DoneIt: Boolean);
 begin
+  if Data=nil then
+    Exit;
+
   DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.colCodedMatchOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  if Data=nil then
+    Exit;
+
+  DrawNumberOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Integer(Data^), DoneIt);
 end;
 
 //------------------------------------------------------------------------------
@@ -290,6 +310,9 @@ procedure TRecommendedMemorisationsFrm.colCodeOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
+  if Data=nil then
+    Exit;
+
   DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
 end;
 
@@ -298,6 +321,9 @@ procedure TRecommendedMemorisationsFrm.coUnCodedMatchOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
+  if Data=nil then
+    Exit;
+
   DrawNumberOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Integer(Data^), DoneIt);
 end;
 
@@ -314,23 +340,15 @@ procedure TRecommendedMemorisationsFrm.btnHideClick(Sender: TObject);
 var
   Hide : boolean;
 begin
-  if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.Id = BLANK_LINE then
+  if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id = BLANK_LINE then
     Exit;
 
-  Hide := not fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.IsHidden;
+  Hide := not fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.IsHidden;
 
-  SuggestedMem.UpdateSuggestion(fBankAccount, fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.Id, Hide, false);
+  SuggestedMem.UpdateSuggestion(fBankAccount, fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id, Hide, false);
 
   Refresh();
   tblSuggMems.Invalidate;
-end;
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.colCodedMatchOwnerDraw(Sender: TObject;
-  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
-  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
-begin
-  DrawNumberOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Integer(Data^), DoneIt);
 end;
 
 //------------------------------------------------------------------------------
@@ -347,6 +365,7 @@ begin
   DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, CellText, DoneIt);
 end;
 
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.DrawNumberOnCell(TableCanvas: TCanvas;
                                                         const CellRect: TRect;
                                                         RowNum, ColNum: Integer;
@@ -371,15 +390,25 @@ begin
   TableCanvas.Font.Color       := CellAttr.caFontColor;
   TableCanvas.Brush.Color      := CellAttr.caColor;
 
+  if fSuggMemSortedList.GetPRec(RowNum-1)^.isHidden then
+    TableCanvas.Font.Style := [fsItalic]
+  else
+    TableCanvas.Font.Style := [];
+
   if tblSuggMems.ActiveRow = RowNum then
   begin
     TableCanvas.Font.Color  := clWhite;
     TableCanvas.Brush.Color := bkBranding.SelectionColor;
+  end
+  else
+  begin
+    if fSuggMemSortedList.GetPRec(RowNum-1)^.isHidden then
+      TableCanvas.Font.Color := clInactiveCaptionText;
   end;
 
   TableCanvas.FillRect( CellRect );
 
-  if fSuggMemSortedList.GetPRec(RowNum)^.Id = BLANK_LINE then
+  if fSuggMemSortedList.GetPRec(RowNum-1)^.Id = BLANK_LINE then
   begin
     DoneIt := true;
     Exit;
@@ -398,24 +427,66 @@ procedure TRecommendedMemorisationsFrm.FillSortedList;
 var
   BlankItem : TSuggMemSortedListRec;
 begin
-  fLoading := true;
-
-  try
-    fSuggMemSortedList.FreeAll();
-    SuggestedMem.GetSuggestedMems(fBankAccount, MyClient.clChart, fSuggMemSortedList);
-    BlankItem.Id := BLANK_LINE;
-    fSuggMemSortedList.AddItem(BlankItem);
-  finally
-    fLoading := false;
-  end;
+  fSuggMemSortedList.FreeAll();
+  SuggestedMem.GetSuggestedMems(fBankAccount, MyClient.clChart, fSuggMemSortedList);
+  BlankItem.Id := BLANK_LINE;
+  fSuggMemSortedList.AddItem(BlankItem);
 end;
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.Refresh;
+var
+  ActiveSuggId : integer;
+  ThereIsHidden, ThereIsUnHidden : boolean;
+  Index : integer;
+  NewData : pSuggMemSortedListRec;
 begin
-  FillSortedList();
+  fLoading := true;
+  try
+    if fSuggMemSortedList.ItemCount > 0 then
+      ActiveSuggId := fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id
+    else
+      ActiveSuggId := NO_DATA;
 
-  tblSuggMems.RowLimit := fSuggMemSortedList.ItemCount;
+    tblSuggMems.RowLimit := 0;
+
+    FillSortedList();
+
+    // check if there are hidden and unhidden
+    ThereIsHidden := false;
+    ThereIsUnHidden := false;
+    for Index := 0 to fSuggMemSortedList.ItemCount-1 do
+    begin
+      NewData := fSuggMemSortedList.GetPRec(Index);
+      if NewData^.IsHidden then
+        ThereIsHidden := true;
+
+      if not NewData^.IsHidden then
+        ThereIsUnHidden := true;
+    end;
+
+    if (ThereIsHidden and ThereIsUnHidden) then
+      tblSuggMems.RowLimit := fSuggMemSortedList.ItemCount+1
+    else
+      tblSuggMems.RowLimit := fSuggMemSortedList.ItemCount;
+
+    for Index := 0 to fSuggMemSortedList.ItemCount-1 do
+    begin
+      NewData := fSuggMemSortedList.GetPRec(Index);
+      if ActiveSuggId > NO_DATA then
+      begin
+        if NewData^.Id = ActiveSuggId then
+        begin
+          tblSuggMems.ActiveRow := Index + 1;
+          break;
+        end;
+      end;
+    end;
+    
+
+  finally
+    fLoading := false;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -436,7 +507,7 @@ begin
     Exit;
   end;
 
-  if fSuggMemSortedList.GetPRec(aRow)^.Id = BLANK_LINE then
+  if fSuggMemSortedList.GetPRec(aRow-1)^.Id = BLANK_LINE then
   begin
     btnHide.Enabled := false;
     btnCreate.Enabled := false;
@@ -450,7 +521,7 @@ begin
     btnCreate.Enabled := true;
 
     btnCreate.Default := true;
-    if fSuggMemSortedList.GetPRec(aRow)^.IsHidden then
+    if fSuggMemSortedList.GetPRec(aRow-1)^.IsHidden then
       btnHide.Caption := 'Un-hide'
     else
       btnHide.Caption := 'Hide';
@@ -463,23 +534,23 @@ procedure TRecommendedMemorisationsFrm.ReadCellforPaint(RowNum, ColNum: integer;
 begin
   case ColNum of
     ccEntryType : begin
-      fTempByte := fSuggMemSortedList.GetPRec(RowNum)^.AccType;
+      fTempByte := fSuggMemSortedList.GetPRec(RowNum-1)^.AccType;
       Data := @fTempByte;
     end;
     ccStatementDetails : begin
-      fTempString := fSuggMemSortedList.GetPRec(RowNum)^.MatchedPhrase;
+      fTempString := fSuggMemSortedList.GetPRec(RowNum-1)^.MatchedPhrase;
       Data := @fTempString;
     end;
     ccCode : begin
-      fTempString := fSuggMemSortedList.GetPRec(RowNum)^.Account;
+      fTempString := fSuggMemSortedList.GetPRec(RowNum-1)^.Account;
       Data := @fTempString;
     end;
     ccCodedMatch: begin
-      fTempInteger := fSuggMemSortedList.GetPRec(RowNum)^.ManualCount;
+      fTempInteger := fSuggMemSortedList.GetPRec(RowNum-1)^.ManualCount;
       Data := @fTempInteger;
     end;
     ccUnCodedMatch: begin
-      fTempInteger := fSuggMemSortedList.GetPRec(RowNum)^.UnCodedCount;
+      fTempInteger := fSuggMemSortedList.GetPRec(RowNum-1)^.UnCodedCount;
       Data := @fTempInteger;
     end;
   end;
@@ -494,7 +565,7 @@ var
   MemLine: pMemorisation_Line_Rec;
   i: integer;
 begin
-  pData := fSuggMemSortedList.GetPRec(aRow);
+  pData := fSuggMemSortedList.GetPRec(aRow-1);
 
   // Create memorisation
   Mems := fBankAccount.baMemorisations_List;

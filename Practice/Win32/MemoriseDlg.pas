@@ -29,13 +29,49 @@ unit MemoriseDlg;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, OvcTCmmn, OvcTCell, OvcTCStr, OvcTCHdr, OvcBase, OvcTable,
-  bkdefs,baObj32, OvcTCEdt, OvcTCBEF, OvcTCNum, OvcTCCBx, ExtCtrls,
-  BKConst, OvcTCBmp, OvcTCGly, OvcEF, OvcPB, OvcNF, Buttons, OvcABtn, globals,
-  ImgList, ComCtrls, ToolWin, OvcTCPic,moneydef, OvcTCSim, glConst,
-  MemorisationsObj, Menus, SuperFieldsutils,
-  OsFont, ovcpf;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  OvcTCmmn,
+  OvcTCell,
+  OvcTCStr,
+  OvcTCHdr,
+  OvcBase,
+  OvcTable,
+  bkdefs,
+  baObj32,
+  OvcTCEdt,
+  OvcTCBEF,
+  OvcTCNum,
+  OvcTCCBx,
+  ExtCtrls,
+  BKConst,
+  OvcTCBmp,
+  OvcTCGly,
+  OvcEF,
+  OvcPB,
+  OvcNF,
+  Buttons,
+  OvcABtn,
+  globals,
+  ImgList,
+  ComCtrls,
+  ToolWin,
+  OvcTCPic,
+  moneydef,
+  OvcTCSim,
+  glConst,
+  MemorisationsObj,
+  Menus,
+  SuperFieldsutils,
+  OsFont,
+  ovcpf;
 
 type
 
@@ -58,43 +94,24 @@ type
     cPart: TCheckBox;
     cOther: TCheckBox;
     cCode: TCheckBox;
-    Panel1: TPanel;
     ColAmount: TOvcTCNumericField;
     ColDesc: TOvcTCString;
     ColAcct: TOvcTCString;
     cmbValue: TComboBox;
     nValue: TOvcNumericField;
     cEntry: TCheckBox;
-    Label1: TLabel;
     ColGSTCode: TOvcTCString;
     cNotes: TCheckBox;
     eNotes: TEdit;
     Panel2: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
-    ToolBar: TPanel;
-    sbtnPayee: TSpeedButton;
-    sbtnChart: TSpeedButton;
-    sbtnJob: TSpeedButton;
-    chkMaster: TCheckBox;
-    tblSplit: TOvcTable;
     Header: TOvcTCColHead;
     chkStatementDetails: TCheckBox;
     eStatementDetails: TEdit;
     colNarration: TOvcTCString;
     cValue: TCheckBox;
     colLineType: TOvcTCComboBox;
-    Panel4: TPanel;
-    lblAmountHdr: TLabel;
-    lblFixedHdr: TLabel;
-    lblRemDollarHdr: TLabel;
-    lblTotalPercHdr: TLabel;
-    lblRemPercHdr: TLabel;
-    lblRemPerc: TLabel;
-    lblTotalPerc: TLabel;
-    lblRemDollar: TLabel;
-    lblFixed: TLabel;
-    lblAmount: TLabel;
     sBar: TStatusBar;
     popMem: TPopupMenu;
     LookupChart1: TMenuItem;
@@ -108,9 +125,6 @@ type
     AmountApplyRemainingAmount1: TMenuItem;
     ColPayee: TOvcTCNumericField;
     ColPercent: TOvcTCNumericField;
-    sbtnSuper: TSpeedButton;
-    chkAccountSystem: TCheckBox;
-    cbAccounting: TComboBox;
     EditSuperfundDetails1: TMenuItem;
     ClearSuperfundDetails1: TMenuItem;
     colJob: TOvcTCString;
@@ -124,6 +138,32 @@ type
     cbMinus: TComboBox;
     tmrPayee: TTimer;
     cmbType: TComboBox;
+    Button1: TButton;
+    pnlMain: TPanel;
+    Panel1: TPanel;
+    ToolBar: TPanel;
+    sbtnPayee: TSpeedButton;
+    sbtnChart: TSpeedButton;
+    sbtnJob: TSpeedButton;
+    sbtnSuper: TSpeedButton;
+    chkMaster: TCheckBox;
+    chkAccountSystem: TCheckBox;
+    cbAccounting: TComboBox;
+    tblSplit: TOvcTable;
+    tblTran: TOvcTable;
+    tranController: TOvcController;
+    Panel4: TPanel;
+    lblAmountHdr: TLabel;
+    lblTotalPercHdr: TLabel;
+    lblRemPercHdr: TLabel;
+    lblRemPerc: TLabel;
+    lblTotalPerc: TLabel;
+    lblAmount: TLabel;
+    lblFixedHdr: TLabel;
+    lblFixed: TLabel;
+    lblRemDollar: TLabel;
+    lblRemDollarHdr: TLabel;
+    Splitter: TSplitter;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -207,12 +247,11 @@ type
     { Private declarations }
     PopulatePayee : boolean;
     AltLineColor : integer;
-    EditMode : boolean;
+    tblSplitInEdit : boolean;
     SplitData : TSplitArray;
     RemovingMask : boolean;
     ExistingCode: string;
     Loading : boolean; //set to true when loading values into form.  Stop onClick events being fired
-    InEditMemorisationMode : Boolean;
     GSTClassEditable       : Boolean;
     CalledFromRecommendedMems: boolean;
     PayeeUsed: boolean;
@@ -262,9 +301,11 @@ type
     procedure PopulateDataFromPayee(PayeeCode: integer; ChangeActiveCol: boolean = True);
     procedure PopulateCmbType(BA: TBank_Account; EntryType: byte);
     function GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
+  protected
+    procedure SetDlgEditMode(aValue : TDlgEditMode);
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
-    property DlgEditMode: TDlgEditMode read fDlgEditMode write fDlgEditMode;
+    property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
     { Public declarations }
   end;
 
@@ -313,14 +354,17 @@ uses
   GenUtils,
   WinUtils,
   StdHints,
-  YesNoDlg, ECollect, MemUtils,
+  YesNoDlg,
+  ECollect,
+  MemUtils,
   CountryUtils,
   SystemMemorisationList,
   SYDEFS,
   AuditMgr,
   BKtxIO,
   PayeeObj,
-  PayeeRecodeDlg, bkBranding;
+  PayeeRecodeDlg,
+  bkBranding;
 
 {$R *.DFM}
 
@@ -443,7 +487,7 @@ begin
      W := W + i + 2;
      Columns[ NarrationCol ].Width := Columns[ NarrationCol ].Width + ( Width - W );
   end;
-  EditMode := false;
+  tblSplitInEdit := false;
   RemovingMask := false;
 
   if not ( Assigned( AdminSystem) and Assigned( CurrUser )) then
@@ -707,7 +751,7 @@ var
   Msg : TWMKey;
 begin
   {lost focus so finalise edit if in edit mode}
-   if EditMode then
+   if tblSplitInEdit then
    begin
       Msg.CharCode := vk_f6;
       ColAcct.SendKeyToTable(Msg);
@@ -767,15 +811,15 @@ begin
       data := @SplitData[RowNum].Payee;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitBeginEdit(Sender: TObject; RowNum,
   ColNum: Integer; var AllowIt: Boolean);
 begin
-    if ColNum <> 1 then
-      EditMode := true;
-
-
+  if ColNum <> 1 then
+    tblSplitInEdit := true;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitEndEdit(Sender: TObject;
   Cell: TOvcTableCellAncestor; RowNum, ColNum: Integer;
@@ -783,13 +827,10 @@ procedure TdlgMemorise.tblSplitEndEdit(Sender: TObject;
 var
   tempNo   : integer;
   tempID   : string;
-
-
-
 begin
   btnCancel.Cancel := false;
 
-  EditMode := false;
+  tblSplitInEdit := false;
   WasType :=  SplitData[RowNum].LineType;
   case ColNum of
      GSTCodeCol : begin
@@ -800,7 +841,7 @@ begin
         if (trim(tempID) <> '') and (tempNo = 0) then begin
            WinUtils.ErrorSound;
            AllowIt := false;
-           EditMode := true;  //still editing
+           tblSplitInEdit := true;  //still editing
         end
         else
           TEdit(ColGSTCode.CellEditor).Text:= GetGSTClassCode( MyClient, tempNo);
@@ -818,7 +859,7 @@ begin
           begin
             WinUtils.ErrorSound;
             AllowIt := false;
-            EditMode := true;  //still editing
+            tblSplitInEdit := true;  //still editing
           end;
         end;
      end;
@@ -931,7 +972,7 @@ begin
       begin
         if not tblSplit.StopEditingState(True) then
            Exit;
-        if EditMode then
+        if tblSplitInEdit then
            Code := TEdit(ColAcct.CellEditor).Text
         else
            Code := SplitData[tblSplit.ActiveRow].AcctCode;
@@ -947,7 +988,7 @@ begin
              tblSplit.InvalidateCell(tblSplit.ActiveRow, PayeeCol);
            end;
            ExistingCode := Code;
-           if EditMode then
+           if tblSplitInEdit then
                TEdit(ColAcct.CellEditor).Text := Code
            else begin
               SplitData[tblSplit.ActiveRow].AcctCode := Code;
@@ -1303,8 +1344,17 @@ begin
       SetComboIndexByIntObject(Value,cbAccounting);
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.SetDlgEditMode(aValue: TDlgEditMode);
+begin
+  if aValue <> fDlgEditMode then
+  begin
+    fDlgEditMode := aValue;
+  end;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgMemorise.SetFirstLineDefaultAmount;
 begin
   if ( SplitData[1].AcctCode = '') then
@@ -1657,7 +1707,7 @@ begin
 
    end;
 
-   if InEditMemorisationMode then begin
+   if (fDlgEditMode = demEdit) then begin
       //check to see if this is a master memorisation and add an extra warning
       ExtraMsg := '';
       if chkMaster.checked then begin
@@ -1771,6 +1821,7 @@ begin
 
    result := true;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TdlgMemorise.SplitLineIsValid( LineNo : integer) : boolean;
 begin
@@ -1857,7 +1908,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.sbtnChartClick(Sender: TObject);
 begin
-  if not EditMode then
+  if not tblSplitInEdit then
      tblSplit.SetFocus;
 //  keybd_event(vk_f2,0,0,0); seems to be unreliable when called from the pop-up menu
   tblSplitUserCommand(Self, tcLookup);
@@ -1865,21 +1916,21 @@ end;
 
 procedure TdlgMemorise.sbtnJobClick(Sender: TObject);
 begin
-  if not EditMode then
+  if not tblSplitInEdit then
      tblSplit.SetFocus;
   tblSplitUserCommand(Self, tcJobLookup);
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.sbtnPayeeClick(Sender: TObject);
 begin
-  if not EditMode then
+  if not tblSplitInEdit then
      tblSplit.SetFocus;
   tblSplitUserCommand(Self, tcPayeeLookup);
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.sbtnSuperClick(Sender: TObject);
 begin
-   if not EditMode then
+   if not tblSplitInEdit then
       tblSplit.SetFocus;
    tblSplitUserCommand(Self, tcSuperEdit);
 end;
@@ -1895,7 +1946,7 @@ var
 
   MatchOnEquals : boolean;
 begin
-   if ((tblSplit.ActiveCol <> PercentCol) and (tblSplit.ActiveCol <> AmountCol)) or (EditMode) then exit;
+   if ((tblSplit.ActiveCol <> PercentCol) and (tblSplit.ActiveCol <> AmountCol)) or (tblSplitInEdit) then exit;
    RowNum := tblSplit.ActiveRow;
 
    if not ( SplitData[ RowNum].LineType in [ mltPercentage, mltDollarAmt]) then
@@ -1982,6 +2033,7 @@ begin
   DrawText(C.Handle, PChar( S ), StrLen( PChar( S ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
   DoneIt := true;
 end;
+
 //------------------------------------------------------------------------------
 function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean;
                        MemLine: pMemorisation_Line_Rec = nil) : boolean;
@@ -2012,7 +2064,7 @@ begin
          PopulateCmbType(BA, tr.txType);
          CalledFromRecommendedMems := Assigned(MemLine);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-         InEditMemorisationMode := false;
+         DlgEditMode := demCreate;
          SourceBankAccount := ba;
          EditMem := nil;
          EditMemorisedList := nil;
@@ -2072,7 +2124,7 @@ begin
          end;
 
          //initialise form
-         EditMode  := false;
+         tblSplitInEdit  := false;
 
          //init data, Filled in Create
          SplitData[1].Amount := 100.0;
@@ -2263,7 +2315,7 @@ begin
       try
          PopulateCmbType(BA, pM.mdFields.mdType);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-         InEditMemorisationMode := true;
+         DlgEditMode := demEdit;
          EditMem  := pM;
          EditMemorisedList := MemorisedList;
          ExistingCode := '';
@@ -2708,7 +2760,7 @@ begin
    end;
    chkAccountSystemClick(nil);
    if Loading
-   or InEditMemorisationMode then
+   or (fDlgEditMode = demEdit) then
       Exit;
    //must be in create mode
    //if checked then make sure we have default GST Classes.
@@ -2881,7 +2933,7 @@ end;
 
 procedure TdlgMemorise.ClearSuperfundDetails1Click(Sender: TObject);
 begin
-   if not EditMode then
+   if not tblSplitInEdit then
       tblSplit.SetFocus;
    tblSplitUserCommand(Self, tcSuperClear);
 end;
@@ -3224,7 +3276,7 @@ Begin
                  InvalidateRow(ActiveRow);                 
                end
                else
-                 TOvcNumericField(ColPercent.CellEditor).AsFloat := 0.0;               
+                 TOvcNumericField(ColPercent.CellEditor).AsFloat := 0.0;
                DittoOK := true;
             end;
          end;
@@ -3896,7 +3948,7 @@ begin
   finally
     TypeList.Free;
   end;
-end;           
+end;
 
 initialization
    debugMe := debugUnit(UnitName);

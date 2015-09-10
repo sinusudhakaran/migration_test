@@ -131,6 +131,8 @@ type
     function GetStatus(const aBankAccount : TBank_Account; const aChart : TChart) : TSuggMemStatus;
     function DetermineStatus(const aBankAccount : TBank_Account; const aChart : TChart): string;
 
+    function DoCreateNewMemorisation(const aBankAccount : TBank_Account; const aChart : TChart; aSuggId : integer) : boolean;
+
     property MainState : byte read fMainState write fMainState;
     property NoMoreRecord : boolean read fNoMoreRecord;
     property DoneProcessingEvent : TDoneProcessingEvent read fDoneProcessingEvent write fDoneProcessingEvent;
@@ -156,6 +158,8 @@ uses
   SYDEFS,
   mxFiles32,
   stDate,
+  BKMLIO,
+  MemoriseDlg,
   LogUtil;
 
 const
@@ -1448,6 +1452,52 @@ begin
 
   if aTrans^.tiSuggested_Mem_State = tssUnScanned then
     inc(aBankAccount.baFields.baSuggested_UnProcessed_Count);
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.DoCreateNewMemorisation(const aBankAccount : TBank_Account; const aChart : TChart; aSuggId : integer) : boolean;
+var
+  Mems: TMemorisations_List;
+  Mem: TMemorisation;
+  MemLine: pMemorisation_Line_Rec;
+  SuggIndex : integer;
+  Suggestion: pSuggested_Mem_Rec;
+  SuggMemItem : TSuggMemSortedListRec;
+begin
+  Result := false;
+
+  if aSuggId <= TRAN_SUGG_NOT_FOUND then
+    Exit;
+
+  if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(aSuggId, SuggIndex) then
+  begin
+    Suggestion := aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex);
+
+    if not GetSuggestionUsedInfo(aBankAccount, Suggestion, aChart, SuggMemItem) then
+      Exit;
+  end;
+
+  // Create memorisation
+  Mems := aBankAccount.baMemorisations_List;
+  Mem := TMemorisation.Create(Mems.AuditMgr);
+
+  try
+    Mem.mdFields.mdMatch_On_Statement_Details := true;
+    Mem.mdFields.mdStatement_Details := SuggMemItem.MatchedPhrase;
+    Mem.mdFields.mdType := SuggMemItem.AccType;
+
+    // Create memorisation line
+    MemLine := New_Memorisation_Line_Rec;
+    MemLine.mlAccount := SuggMemItem.Account;
+    MemLine.mlGST_Class := MyClient.clChart.GSTClass(SuggMemItem.Account);
+    MemLine.mlPercentage := 100 * 10000; // Use 10000 for percentages
+    Mem.mdLines.Insert(MemLine);
+
+    // OK pressed, and insert mem?
+    Result := CreateMemorisation(aBankAccount, Mems, Mem);
+  finally
+    FreeAndNil(Mem);
+  end;
 end;
 
 //------------------------------------------------------------------------------
