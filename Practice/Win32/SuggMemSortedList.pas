@@ -8,7 +8,7 @@ uses
   eCollect;
 
 type
-  TColSortOrder = (csType, csPhrase, csAccount, csManual, csTotal);
+  TColSortOrder = (csType, csPhrase, csAccount, csCodedMatch, csUncodedMatch);
 
   //----------------------------------------------------------------------------
   pSuggMemSortedListRec = ^TSuggMemSortedListRec;
@@ -19,6 +19,7 @@ type
     Account            : String[20];
     TotalCount         : Integer;
     ManualCount        : integer;
+    UnCodedCount       : integer;
     ManualAcountCount  : integer;
     IsExactMatch       : boolean;
     IsHidden           : boolean;
@@ -140,11 +141,11 @@ begin
   if Result = 0 then
   begin
     case fColSortOrder of
-      csType    : Result := CompareValue(SuggItem1.AccType, SuggItem2.AccType);
-      csPhrase  : Result := CompareText(SuggItem1.MatchedPhrase, SuggItem2.MatchedPhrase);
-      csAccount : Result := CompareText(SuggItem1.Account, SuggItem2.Account);
-      csManual  : Result := CompareValue(SuggItem1.ManualCount, SuggItem2.ManualCount);
-      csTotal   : Result := CompareValue(SuggItem1.TotalCount, SuggItem2.TotalCount);
+      csType         : Result := CompareValue(SuggItem1.AccType, SuggItem2.AccType);
+      csPhrase       : Result := CompareText(SuggItem1.MatchedPhrase, SuggItem2.MatchedPhrase);
+      csAccount      : Result := CompareText(SuggItem1.Account, SuggItem2.Account);
+      csCodedMatch   : Result := CompareValue(SuggItem1.ManualCount, SuggItem2.ManualCount);
+      csUncodedMatch : Result := CompareValue(SuggItem1.TotalCount, SuggItem2.UnCodedCount);
     end;
   end;
 end;
@@ -165,6 +166,7 @@ begin
   NewSuggMem^.IsExactMatch       := aSuggMemSortedItem.IsExactMatch;
   NewSuggMem^.IsHidden           := aSuggMemSortedItem.IsHidden;
   NewSuggMem^.IsHiddenForSession := aSuggMemSortedItem.IsHiddenForSession;
+  NewSuggMem^.UnCodedCount       := aSuggMemSortedItem.TotalCount + aSuggMemSortedItem.ManualCount;
 
   Insert(NewSuggMem);
 end;

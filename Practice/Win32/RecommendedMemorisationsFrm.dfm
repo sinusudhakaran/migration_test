@@ -3,79 +3,96 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Top = 0
   Caption = 'Suggested Memorisations for '
   ClientHeight = 448
-  ClientWidth = 704
+  ClientWidth = 649
   Color = clBtnFace
   Constraints.MinHeight = 400
   Constraints.MinWidth = 534
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -13
+  Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
   Position = poMainFormCenter
-  OnActivate = FormActivate
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 16
+  TextHeight = 13
   object pnlButtons: TPanel
     Left = 0
     Top = 407
-    Width = 704
+    Width = 649
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      704
+      649
       41)
+    object btnClose: TButton
+      Left = 564
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Close'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ModalResult = 1
+      ParentFont = False
+      TabOrder = 0
+    end
+    object btnCreate: TButton
+      Left = 483
+      Top = 8
+      Width = 75
+      Height = 25
+      Anchors = [akRight, akBottom]
+      Caption = 'Create'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnClick = btnCreateClick
+    end
     object chkAllowSuggMemPopup: TCheckBox
       Left = 89
       Top = 14
-      Width = 442
+      Width = 388
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Allow Suggested Memorisation '#39'Pop-up'#39
-      TabOrder = 0
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
     end
-    object btnHide: TBitBtn
+    object btnHide: TButton
       Left = 8
-      Top = 8
+      Top = 6
       Width = 75
       Height = 25
       Caption = 'Hide'
-      TabOrder = 1
+      TabOrder = 3
       OnClick = btnHideClick
     end
-    object btnCreate: TButton
-      Left = 537
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = 'Create'
-      TabOrder = 2
-      OnClick = btnCreateClick
-    end
-    object btnCancel: TButton
-      Left = 618
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = 'Close'
-      ModalResult = 2
-      TabOrder = 3
-    end
   end
-  object pnlTop: TPanel
+  object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 704
+    Width = 649
     Height = 33
     Align = alTop
     BevelOuter = bvNone
@@ -86,71 +103,112 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Width = 85
       Height = 16
       Caption = 'lblBankAccount'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
   end
-  object vstTree: TVirtualStringTree
+  object pnlLayout1: TPanel
     Left = 0
     Top = 33
-    Width = 704
+    Width = 649
     Height = 374
     Align = alClient
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    Header.AutoSizeIndex = 0
-    Header.Font.Charset = DEFAULT_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -11
-    Header.Font.Name = 'Tahoma'
-    Header.Font.Style = []
-    Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-    LineStyle = lsSolid
-    ParentBackground = False
-    ParentFont = False
+    BevelOuter = bvNone
     TabOrder = 2
-    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-    TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
-    TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect]
-    OnDblClick = vstTreeDblClick
-    OnFocusChanged = vstTreeFocusChanged
-    OnGetText = vstTreeGetText
-    OnGetNodeDataSize = vstTreeGetNodeDataSize
-    OnHeaderClick = vstTreeHeaderClick
-    OnMouseDown = vstTreeMouseDown
-    ExplicitTop = 30
-    Columns = <
-      item
-        Position = 0
-        Width = 110
-        WideText = 'Entry Type'
+    object pnlLayout2: TPanel
+      Left = 0
+      Top = 0
+      Width = 649
+      Height = 374
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 0
+      object tblSuggMems: TOvcTable
+        Left = 0
+        Top = 0
+        Width = 649
+        Height = 374
+        RowLimit = 2
+        LockedCols = 0
+        LeftCol = 0
+        ActiveCol = 0
+        Access = otxReadOnly
+        Align = alClient
+        Color = clWindow
+        Colors.ActiveUnfocused = clBtnFace
+        Colors.ActiveUnfocusedText = clWindowText
+        Colors.Locked = clGray
+        Colors.LockedText = clWhite
+        Colors.Editing = clWindow
+        Controller = cntSuggMems
+        Ctl3D = False
+        GridPenSet.NormalGrid.NormalColor = clSilver
+        GridPenSet.NormalGrid.SecondColor = clWhite
+        GridPenSet.NormalGrid.Style = psSolid
+        GridPenSet.NormalGrid.Effect = geVertical
+        GridPenSet.LockedGrid.NormalColor = clBtnShadow
+        GridPenSet.LockedGrid.Style = psSolid
+        GridPenSet.LockedGrid.Effect = ge3D
+        GridPenSet.CellWhenFocused.NormalColor = clBlack
+        GridPenSet.CellWhenFocused.Style = psSolid
+        GridPenSet.CellWhenFocused.Effect = geBoth
+        GridPenSet.CellWhenUnfocused.NormalColor = clWindowText
+        GridPenSet.CellWhenUnfocused.Style = psSolid
+        GridPenSet.CellWhenUnfocused.Effect = geBoth
+        LockedRowsCell = hdrSuggMems
+        Options = [otoNoRowResizing, otoTabToArrow, otoEnterToArrow, otoRowSelection]
+        ParentCtl3D = False
+        ParentShowHint = False
+        ShowHint = False
+        TabOrder = 0
+        OnActiveCellChanged = tblSuggMemsActiveCellChanged
+        OnDblClick = tblSuggMemsDblClick
+        OnGetCellData = tblSuggMemsGetCellData
+        ExplicitTop = -3
+        CellData = (
+          'RecommendedMemorisationsFrm.hdrSuggMems'
+          'RecommendedMemorisationsFrm.coUnCodedMatch'
+          'RecommendedMemorisationsFrm.colCodedMatch'
+          'RecommendedMemorisationsFrm.colCode'
+          'RecommendedMemorisationsFrm.colStatementDetails'
+          'RecommendedMemorisationsFrm.colEntryType')
+        RowData = (
+          21
+          0
+          False
+          42)
+        ColData = (
+          63
+          False
+          True
+          'RecommendedMemorisationsFrm.colEntryType'
+          377
+          False
+          True
+          'RecommendedMemorisationsFrm.colStatementDetails'
+          72
+          False
+          True
+          'RecommendedMemorisationsFrm.colCode'
+          67
+          False
+          True
+          'RecommendedMemorisationsFrm.colCodedMatch'
+          67
+          False
+          True
+          'RecommendedMemorisationsFrm.coUnCodedMatch')
       end
-      item
-        Position = 1
-        Width = 230
-        WideText = 'Statement Details'
-      end
-      item
-        Position = 2
-        Width = 100
-        WideText = 'Code'
-      end
-      item
-        Position = 3
-        Width = 75
-        WideText = 'Manual'
-      end
-      item
-        Position = 4
-        Width = 75
-        WideText = 'Total'
-      end>
+    end
   end
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800DC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800C40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -288,5 +346,75 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       8001000000000000800100000000000080010000000000008001000000000000
       C003000000000000FFFF00000000000000000000000000000000000000000000
       000000000000}
+  end
+  object hdrSuggMems: TOvcTCColHead
+    Headings.Strings = (
+      'Entry Type'
+      'Statement Details'
+      'Code'
+      'Coded Matches'
+      'Uncoded Matches')
+    ShowLetters = False
+    Table = tblSuggMems
+    UseWordWrap = True
+    OnClick = hdrSuggMemsClick
+    Left = 80
+    Top = 122
+  end
+  object cntSuggMems: TOvcController
+    EntryCommands.TableList = (
+      'Grid'
+      True
+      (
+        113
+        0))
+    Epoch = 1900
+    Left = 42
+    Top = 120
+  end
+  object colStatementDetails: TOvcTCString
+    Adjust = otaCenterLeft
+    MaxLength = 10
+    ShowHint = True
+    Table = tblSuggMems
+    OnOwnerDraw = colStatementDetailsOwnerDraw
+    Left = 80
+    Top = 169
+  end
+  object colCodedMatch: TOvcTCString
+    Adjust = otaCenterLeft
+    MaxLength = 10
+    ShowHint = True
+    Table = tblSuggMems
+    OnOwnerDraw = colCodedMatchOwnerDraw
+    Left = 144
+    Top = 169
+  end
+  object colCode: TOvcTCString
+    Adjust = otaCenterLeft
+    MaxLength = 10
+    ShowHint = True
+    Table = tblSuggMems
+    OnOwnerDraw = colCodeOwnerDraw
+    Left = 112
+    Top = 169
+  end
+  object colEntryType: TOvcTCString
+    Adjust = otaCenterLeft
+    MaxLength = 10
+    ShowHint = True
+    Table = tblSuggMems
+    OnOwnerDraw = colEntryTypeOwnerDraw
+    Left = 48
+    Top = 169
+  end
+  object coUnCodedMatch: TOvcTCString
+    Adjust = otaCenterLeft
+    MaxLength = 10
+    ShowHint = True
+    Table = tblSuggMems
+    OnOwnerDraw = coUnCodedMatchOwnerDraw
+    Left = 176
+    Top = 169
   end
 end

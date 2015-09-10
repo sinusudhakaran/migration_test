@@ -5,8 +5,15 @@ interface
 uses
   Windows,
   Messages,
+  ovctcedt,
+  ovcbase,
+  ovctcmmn,
+  ovctcell,
+  ovctcstr,
+  ovctchdr,
   ImgList,
   Controls,
+  ovctable,
   StdCtrls,
   Classes,
   ExtCtrls,
@@ -17,58 +24,91 @@ uses
   baObj32,
   Graphics,
   SuggestedMems,
-  SuggMemSortedList,
-  VirtualTrees,
-  Buttons;
+  SuggMemSortedList;
 
 type
   //----------------------------------------------------------------------------
   TRecommendedMemorisationsFrm = class(TForm)
     pnlButtons: TPanel;
-    pnlTop: TPanel;
+    btnClose: TButton;
+    Panel1: TPanel;
     lblBankAccount: TLabel;
     Images: TImageList;
-    chkAllowSuggMemPopup: TCheckBox;
-    vstTree: TVirtualStringTree;
-    btnHide: TBitBtn;
     btnCreate: TButton;
-    btnCancel: TButton;
+    chkAllowSuggMemPopup: TCheckBox;
+    btnHide: TButton;
+    pnlLayout1: TPanel;
+    pnlLayout2: TPanel;
+    tblSuggMems: TOvcTable;
+    hdrSuggMems: TOvcTCColHead;
+    cntSuggMems: TOvcController;
+    colStatementDetails: TOvcTCString;
+    colCodedMatch: TOvcTCString;
+    colCode: TOvcTCString;
+    colEntryType: TOvcTCString;
+    coUnCodedMatch: TOvcTCString;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure vstTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure vstTreeGetNodeDataSize(Sender: TBaseVirtualTree;
-      var NodeDataSize: Integer);
-    procedure FormResize(Sender: TObject);
-    procedure vstTreeHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
-      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure vstTreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex);
+    procedure tblSuggMemsGetCellData(Sender: TObject; RowNum, ColNum: Integer;
+      var Data: Pointer; Purpose: TOvcCellDataPurpose);
+    procedure colCodeOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure colEntryTypeOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure colStatementDetailsOwnerDraw(Sender: TObject;
+      TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure colCodedMatchOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure coUnCodedMatchOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure tblSuggMemsActiveCellChanged(Sender: TObject; RowNum,
+      ColNum: Integer);
+    procedure hdrSuggMemsClick(Sender: TObject);
     procedure btnHideClick(Sender: TObject);
-    procedure vstTreeDblClick(Sender: TObject);
-    procedure vstTreeMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure btnCreateClick(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
+    procedure tblSuggMemsDblClick(Sender: TObject);
   private
     fLoading : boolean;
     fBankAccount: TBank_Account;
     fSuggMemSortedList: TSuggMemSortedList;
-    fMouseDownX : integer;
-    fMouseDownY : integer;
 
     fTempByte : Byte;
     fTempInteger : integer;
     fTempString : string;
 
-    function GetSuggIdFromNode(aNode: PVirtualNode) : integer;
-    procedure RefreshMemControls(aNode: PVirtualNode);
+    procedure DrawEntryTypeOnCell(TableCanvas: TCanvas;
+                                  const CellRect: TRect;
+                                  RowNum, ColNum: Integer;
+                                  const CellAttr: TOvcCellAttributes;
+                                  aValue : byte;
+                                  var DoneIt: Boolean);
+
+    procedure DrawNumberOnCell(TableCanvas: TCanvas;
+                               const CellRect: TRect;
+                               RowNum, ColNum: Integer;
+                               const CellAttr: TOvcCellAttributes;
+                               aValue : integer;
+                               var DoneIt: Boolean);
+
+    procedure DrawTextOnCell(TableCanvas: TCanvas;
+                             const CellRect: TRect;
+                             RowNum, ColNum: Integer;
+                             const CellAttr: TOvcCellAttributes;
+                             aValue : string;
+                             var DoneIt: Boolean);
 
     procedure FillSortedList();
     procedure Refresh();
 
-    procedure DoCreateNewMemorisation(const aNode: PVirtualNode);
+    procedure ReadCellforPaint(RowNum,ColNum : integer;var Data : pointer);
+    procedure RefreshMemControls(aRow: integer);
+    procedure DoCreateNewMemorisation(aRow: integer);
   public
     property BankAccount: TBank_Account read fBankAccount write fBankAccount;
   end;
@@ -98,8 +138,8 @@ const
   ccEntryType        = 0;
   ccStatementDetails = 1;
   ccCode             = 2;
-  ccManual           = 3;
-  ccTotal            = 4;
+  ccCodedMatch       = 3;
+  ccUnCodedMatch     = 4;
 
   DT_OPTIONS_STR = DT_LEFT or DT_VCENTER or DT_SINGLELINE;
   DT_OPTIONS_INT = DT_RIGHT or DT_VCENTER or DT_SINGLELINE;
@@ -146,6 +186,9 @@ begin
   bkXPThemes.ThemeForm(self);
   Self.HelpContext := BKH_Suggested_memorisations;
 
+  bkBranding.StyleOvcTableGrid(tblSuggMems);
+  bkBranding.StyleTableHeading(hdrSuggMems);
+
   UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
   chkAllowSuggMemPopup.Checked := UserRec^.usAllow_Suggested_Mems_Popup;
 
@@ -156,7 +199,6 @@ end;
 procedure TRecommendedMemorisationsFrm.FormShow(Sender: TObject);
 begin
   inherited;
-  vstTree.Header.Font.Size := Font.Size;
 
   Caption := 'Suggested Memorisations for ' + MyClient.clFields.clCode;
 
@@ -167,15 +209,19 @@ begin
   lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
 
   Refresh();
-
-  RefreshMemControls(vstTree.GetFirstSelected);
-  vstTree.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.FormActivate(Sender: TObject);
+procedure TRecommendedMemorisationsFrm.hdrSuggMemsClick(Sender: TObject);
 begin
-  self.repaint;
+  case tblSuggMems.ActiveCol of
+    ccEntryType        : fSuggMemSortedList.ColSortOrder := csType;
+    ccStatementDetails : fSuggMemSortedList.ColSortOrder := csPhrase;
+    ccCode             : fSuggMemSortedList.ColSortOrder := csAccount;
+    ccCodedMatch       : fSuggMemSortedList.ColSortOrder := csCodedMatch;
+    ccUnCodedMatch     : fSuggMemSortedList.ColSortOrder := csUncodedMatch;
+  end;
+  tblSuggMems.Invalidate;
 end;
 
 //------------------------------------------------------------------------------
@@ -192,221 +238,159 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeFocusChanged(
-  Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+procedure TRecommendedMemorisationsFrm.tblSuggMemsActiveCellChanged(
+  Sender: TObject; RowNum, ColNum: Integer);
 begin
-  RefreshMemControls(vstTree.GetFirstSelected);
+  RefreshMemControls(RowNum);
+
+  tblSuggMems.Invalidate;
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeGetNodeDataSize(
-  Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+procedure TRecommendedMemorisationsFrm.tblSuggMemsDblClick(Sender: TObject);
 begin
-  NodeDataSize := SizeOf(TSuggMemSortedListRec);
-end;
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeGetText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
-var
-  pData: pSuggMemSortedListRec;
-  Value : integer;
-begin
-  CellText := '';
-
-  pData := pSuggMemSortedListRec(vstTree.GetNodeData(Node)^);
-
-  if pData^.Id = BLANK_LINE then
+  if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.Id = BLANK_LINE then
     Exit;
 
-  case Column of
-    // Entry type
-    0:
-    begin
-      CellText := Format('%d:%s', [
-        pData^.AccType,
-        MyClient.clFields.clShort_Name[pData^.AccType]
-        ]);
-    end;
-
-    // Statement details
-    1: CellText := pData^.MatchedPhrase;
-
-    // Code
-    2: CellText := pData^.Account;
-
-    // Manual #
-    3:
-    begin
-      Value := pData^.ManualCount;
-      CellText := IntToStr(Value);
-    end;
-
-    // Total #
-    4:
-    begin
-      Value := pData^.TotalCount;
-      CellText := IntToStr(Value);
-    end;
-  end;
-
-  if pData^.IsHidden then
-  begin
-    vstTree.Font.Style := [fsItalic];
-    vstTree.Font.Color := clInactiveCaptionText;
-  end
-  else
-  begin
-    vstTree.Font.Style := [];
-    vstTree.Font.Color := clblack;
-  end;
+  DoCreateNewMemorisation(tblSuggMems.ActiveRow);
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeHeaderClick(Sender: TVTHeader;
-  Column: TColumnIndex; Button: TMouseButton; Shift: TShiftState; X,
-  Y: Integer);
+procedure TRecommendedMemorisationsFrm.tblSuggMemsGetCellData(Sender: TObject;
+  RowNum, ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
 begin
-  case Column of
-    ccEntryType        : fSuggMemSortedList.ColSortOrder := csType;
-    ccStatementDetails : fSuggMemSortedList.ColSortOrder := csPhrase;
-    ccCode             : fSuggMemSortedList.ColSortOrder := csAccount;
-    ccManual           : fSuggMemSortedList.ColSortOrder := csManual;
-    ccTotal            : fSuggMemSortedList.ColSortOrder := csTotal;
-  end;
-  Refresh();
-end;
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeDblClick(Sender: TObject);
-var
-  Node : PVirtualNode;
-begin
-  Node := vstTree.GetNodeAt(fMouseDownX, fMouseDownY);
-
-  if Assigned(Node) then
-  begin
-    DoCreateNewMemorisation(Node);
-  end;
-end;
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.vstTreeMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fMouseDownX := X;
-  fMouseDownY := Y;
-end;
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.FormResize(Sender: TObject);
-var
-  Widths: array of integer;
-  iTotal: integer;
-  i: integer;
-  iDetails: integer;
-begin
-  SetLength(Widths, vstTree.Header.Columns.Count);
-  iTotal := 0;
-
-  for i := 0 to vstTree.Header.Columns.Count-1 do
-  begin
-    Widths[i] := vstTree.Header.Columns[i].Width;
-
-    if (i = ccStatementDetails) then
-      continue;
-
-    iTotal := iTotal + Widths[i];
-  end;
-
-  iDetails := vstTree.Width - iTotal - 25 - 10;
-  vstTree.Header.Columns[ccStatementDetails].Width := iDetails;
-
-  self.Repaint;
-end;
-
-//------------------------------------------------------------------------------
-function TRecommendedMemorisationsFrm.GetSuggIdFromNode(aNode: PVirtualNode): integer;
-var
-  pData : pSuggMemSortedListRec;
-begin
-  pData := pSuggMemSortedListRec(vstTree.GetNodeData(aNode)^);
-  Result := pData^.id;
-end;
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.RefreshMemControls(aNode: PVirtualNode);
-var
-  pData: pSuggMemSortedListRec;
-begin
-  if fLoading then
+  if fLoading = true then
     Exit;
 
-  if not assigned(aNode) then
-  begin
-    btnHide.Enabled := false;
-    btnCreate.Enabled := false;
-
-    btnHide.Caption := 'Hide';
-    btnCreate.Default := false;
+  if RowNum = 0 then
     Exit;
-  end;
 
-  pData := pSuggMemSortedListRec(vstTree.GetNodeData(aNode)^);
+  ReadCellforPaint(RowNum, ColNum, Data);
+end;
 
-  if pData^.Id = BLANK_LINE then
-  begin
-    btnHide.Enabled := false;
-    btnCreate.Enabled := false;
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.colEntryTypeOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  DrawEntryTypeOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Byte(Data^), DoneIt);
+end;
 
-    btnHide.Caption := 'Hide';
-    btnCreate.Default := false;
-  end
-  else
-  begin
-    btnHide.Enabled := true;
-    btnCreate.Enabled := true;
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.colStatementDetailsOwnerDraw(
+  Sender: TObject; TableCanvas: TCanvas; const CellRect: TRect; RowNum,
+  ColNum: Integer; const CellAttr: TOvcCellAttributes; Data: Pointer;
+  var DoneIt: Boolean);
+begin
+  DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
 
-    btnCreate.Default := true;
-    if pData^.IsHidden then
-      btnHide.Caption := 'Un-hide'
-    else
-      btnHide.Caption := 'Hide';
-  end;
-  self.Repaint;
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.colCodeOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.coUnCodedMatchOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  DrawNumberOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Integer(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.btnCreateClick(Sender: TObject);
+begin
+  DoCreateNewMemorisation(tblSuggMems.ActiveRow);
+
+  tblSuggMems.Invalidate;
 end;
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.btnHideClick(Sender: TObject);
 var
-  NodeIndex : integer;
-  Node : PVirtualNode;
-  pData: pSuggMemSortedListRec;
   Hide : boolean;
 begin
-  Node := vstTree.GetFirstSelected();
+  if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.Id = BLANK_LINE then
+    Exit;
 
-  if Assigned(Node) then
+  Hide := not fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.IsHidden;
+
+  SuggestedMem.UpdateSuggestion(fBankAccount, fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow)^.Id, Hide, false);
+
+  Refresh();
+  tblSuggMems.Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.colCodedMatchOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  DrawNumberOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Integer(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.DrawEntryTypeOnCell(TableCanvas: TCanvas;
+                                                           const CellRect: TRect;
+                                                           RowNum, ColNum: Integer;
+                                                           const CellAttr: TOvcCellAttributes;
+                                                           aValue: byte;
+                                                           var DoneIt: Boolean);
+var
+  CellText : string;
+begin
+  CellText := Format('%d:%s', [aValue, MyClient.clFields.clShort_Name[aValue]]);
+  DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, CellText, DoneIt);
+end;
+
+procedure TRecommendedMemorisationsFrm.DrawNumberOnCell(TableCanvas: TCanvas;
+                                                        const CellRect: TRect;
+                                                        RowNum, ColNum: Integer;
+                                                        const CellAttr: TOvcCellAttributes;
+                                                        aValue: integer;
+                                                        var DoneIt: Boolean);
+begin
+  DrawTextOnCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, IntToStr(aValue), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.DrawTextOnCell(TableCanvas: TCanvas;
+                                                      const CellRect: TRect;
+                                                      RowNum, ColNum: Integer;
+                                                      const CellAttr: TOvcCellAttributes;
+                                                      aValue: string;
+                                                      var DoneIt: Boolean);
+var
+  DataRect : TRect;
+begin
+  TableCanvas.Font             := CellAttr.caFont;
+  TableCanvas.Font.Color       := CellAttr.caFontColor;
+  TableCanvas.Brush.Color      := CellAttr.caColor;
+
+  if tblSuggMems.ActiveRow = RowNum then
   begin
-    pData := pSuggMemSortedListRec(vstTree.GetNodeData(Node)^);
-    Hide := not pData^.IsHidden;
-
-    Node := vstTree.GetFirst();
-    while assigned(Node) do
-    begin
-      if vstTree.Selected[Node]then
-      begin
-        pData := pSuggMemSortedListRec(vstTree.GetNodeData(Node)^);
-
-        if pData^.Id > BLANK_LINE then
-          SuggestedMem.UpdateSuggestion(fBankAccount, pData^.Id, Hide, false);
-      end;
-      Node := Node.NextSibling;
-    end;
-
-    Refresh;
+    TableCanvas.Font.Color  := clWhite;
+    TableCanvas.Brush.Color := bkBranding.SelectionColor;
   end;
+
+  TableCanvas.FillRect( CellRect );
+
+  if fSuggMemSortedList.GetPRec(RowNum)^.Id = BLANK_LINE then
+  begin
+    DoneIt := true;
+    Exit;
+  end;
+
+  DataRect := CellRect;
+  InflateRect( DataRect, -2, -2 );
+
+  DrawText( TableCanvas.Handle, PChar( aValue ), StrLen( PChar( aValue ) ), DataRect, DT_OPTIONS_STR );
+
+  DoneIt := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -428,174 +412,81 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.Refresh;
-var
-  Index : integer;
-  Node : PVirtualNode;
-  NewNode : PVirtualNode;
-  NewData : pSuggMemSortedListRec;
-  ThereIsHidden, ThereIsUnHidden : boolean;
-  SelSuggIds : array of integer;
-  SelectionDone : boolean;
-
-  //----------------------------------------------------------------------------
-  procedure AddSuggToSelected(aSuggId : integer);
-  begin
-    SetLength(SelSuggIds, Length(SelSuggIds) + 1);
-    SelSuggIds[High(SelSuggIds)] := aSuggId;
-  end;
-
-  //----------------------------------------------------------------------------
-  function IsNodeInArray(NodeSuggId : Integer) : boolean;
-  var
-    Index : integer;
-  begin
-    Result := false;
-    for Index := 0 to High(SelSuggIds) do
-    begin
-      if SelSuggIds[Index] = NodeSuggId then
-      begin
-        Result := true;
-        Exit;
-      end;
-    end;
-  end;
 begin
-  Node := vstTree.GetFirst();
-  while assigned(Node) do
-  begin
-    if vstTree.Selected[Node] then
-      AddSuggToSelected(GetSuggIdFromNode(Node));
-    Node := Node.NextSibling;
-  end;
-
   FillSortedList();
 
-  // check if there are hidden and unhidden
-  ThereIsHidden := false;
-  ThereIsUnHidden := false;
-  for Index := 0 to fSuggMemSortedList.ItemCount-1 do
-  begin
-    NewData := fSuggMemSortedList.GetPRec(Index);
-    if NewData^.IsHidden then
-      ThereIsHidden := true;
-
-    if not NewData^.IsHidden then
-      ThereIsUnHidden := true;
-  end;
-
-  vstTree.BeginUpdate;
-  try
-    vstTree.Clear;
-    SelectionDone := false;
-
-    // Add nodes
-    for Index := 0 to fSuggMemSortedList.ItemCount-1 do
-    begin
-      NewData := fSuggMemSortedList.GetPRec(Index);
-      if NewData^.Id = BLANK_LINE then
-      begin
-        if (not ThereIsHidden) or (not ThereIsUnHidden) then
-          continue;
-      end;
-
-      // Add
-      NewNode := vstTree.AddChild(nil, NewData);
-
-      if IsNodeInArray(NewData^.Id) then
-      begin
-        vstTree.Selected[NewNode] := True;
-
-        if not SelectionDone then
-        begin
-          SelectionDone := true;
-          vstTree.FocusedNode := NewNode;
-        end;
-      end;
-    end;
-
-    if not SelectionDone then
-    begin
-      vstTree.Selected[vstTree.GetFirst] := true;
-      vstTree.FocusedNode := vstTree.GetFirst;
-    end;
-
-  finally
-    vstTree.EndUpdate;
-    fLoading := false;
-  end;
+  tblSuggMems.RowLimit := fSuggMemSortedList.ItemCount;
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.btnCreateClick(Sender: TObject);
+procedure TRecommendedMemorisationsFrm.RefreshMemControls(aRow: integer);
 var
-  SelNode : PVirtualNode;
-  NextNode : PVirtualNode;
-  //NextAccount : string;
-  //NextStatement : string;
-  SuggId : integer;
+  pData: pSuggMemSortedListRec;
 begin
-  SelNode := vstTree.GetFirstSelected();
-
-  if not assigned(SelNode) then
+  if fLoading then
     Exit;
 
-  NextNode := vstTree.GetNextVisible(SelNode);
-  if not Assigned(NextNode) then
-    NextNode := vstTree.GetPreviousVisible(SelNode);
-
-  if Assigned(NextNode) then
-    SuggId := GetSuggIdFromNode(NextNode);
-
-  DoCreateNewMemorisation(SelNode);
-
-  if Assigned(NextNode) then
+  if aRow < 0 then
   begin
-    SelNode := vstTree.GetFirst;
-    while Assigned(SelNode) do
-    begin
-      if SuggId = GetSuggIdFromNode(SelNode) then
-      begin
-        vstTree.Selected[SelNode] := true;
-        vstTree.FocusedNode := SelNode;
-        break;
-      end;
+    btnHide.Enabled := false;
+    btnCreate.Enabled := false;
 
-      SelNode := SelNode.NextSibling;
+    btnHide.Caption := 'Hide';
+    btnCreate.Default := false;
+    Exit;
+  end;
+
+  if fSuggMemSortedList.GetPRec(aRow)^.Id = BLANK_LINE then
+  begin
+    btnHide.Enabled := false;
+    btnCreate.Enabled := false;
+
+    btnHide.Caption := 'Hide';
+    btnCreate.Default := false;
+  end
+  else
+  begin
+    btnHide.Enabled := true;
+    btnCreate.Enabled := true;
+
+    btnCreate.Default := true;
+    if fSuggMemSortedList.GetPRec(aRow)^.IsHidden then
+      btnHide.Caption := 'Un-hide'
+    else
+      btnHide.Caption := 'Hide';
+  end;
+  self.Repaint;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.ReadCellforPaint(RowNum, ColNum: integer; var Data: pointer);
+begin
+  case ColNum of
+    ccEntryType : begin
+      fTempByte := fSuggMemSortedList.GetPRec(RowNum)^.AccType;
+      Data := @fTempByte;
+    end;
+    ccStatementDetails : begin
+      fTempString := fSuggMemSortedList.GetPRec(RowNum)^.MatchedPhrase;
+      Data := @fTempString;
+    end;
+    ccCode : begin
+      fTempString := fSuggMemSortedList.GetPRec(RowNum)^.Account;
+      Data := @fTempString;
+    end;
+    ccCodedMatch: begin
+      fTempInteger := fSuggMemSortedList.GetPRec(RowNum)^.ManualCount;
+      Data := @fTempInteger;
+    end;
+    ccUnCodedMatch: begin
+      fTempInteger := fSuggMemSortedList.GetPRec(RowNum)^.UnCodedCount;
+      Data := @fTempInteger;
     end;
   end;
 end;
 
 //------------------------------------------------------------------------------
-{function TRecommendedMemorisationsFrm.GetButtonRect(const aCellRect: TRect): TRect;
-var
-  iCellWidth: integer;
-  iCellHeight: integer;
-  TempBitmap: TBitmap;
-  iImageWidth: integer;
-  iImageHeight: integer;
-begin
-  {iCellWidth := aCellRect.Right - aCellRect.Left;
-  iCellHeight := aCellRect.Bottom - aCellRect.Top;
-
-  TempBitmap := TBitmap.Create;
-  try
-    if not Images.GetBitmap(ICON_BUTTON, TempBitmap) then
-      ASSERT(false);
-    iImageWidth := TempBitmap.Width;
-    iImageHeight := TempBitmap.Height;
-  finally
-    FreeAndNil(TempBitmap);
-  end;
-
-  result.Left := aCellRect.Left + (iCellWidth div 2) - (iImageWidth div 2);
-  result.Right := result.Left + iImageWidth;
-  result.Top := aCellRect.Top + (iCellHeight div 2) - (iImageHeight div 2);
-  result.Bottom := result.Top + iImageHeight;
-end; }
-
-
-//------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.DoCreateNewMemorisation(const aNode: PVirtualNode);
+procedure TRecommendedMemorisationsFrm.DoCreateNewMemorisation(aRow: integer);
 var
   pData: pSuggMemSortedListRec;
   Mems: TMemorisations_List;
@@ -603,7 +494,7 @@ var
   MemLine: pMemorisation_Line_Rec;
   i: integer;
 begin
-  pData := pSuggMemSortedListRec(vstTree.GetNodeData(aNode)^);
+  pData := fSuggMemSortedList.GetPRec(aRow);
 
   // Create memorisation
   Mems := fBankAccount.baMemorisations_List;
@@ -627,13 +518,13 @@ begin
     begin
       Refresh();
 
-      RefreshMemControls(vstTree.GetFirstSelected);
-      vstTree.SetFocus;
+      RefreshMemControls(aRow);
+      tblSuggMems.SetFocus;
     end
     else
     begin
-      RefreshMemControls(vstTree.GetFirstSelected);
-      vstTree.SetFocus;
+      RefreshMemControls(aRow);
+      tblSuggMems.SetFocus;
     end;
   finally
     FreeAndNil(Mem);
