@@ -55,7 +55,7 @@ object dlgStatusReportRange: TdlgStatusReportRange
     Height = 24
     BorderStyle = bsNone
     CharCase = ecUpperCase
-    TabOrder = 3
+    TabOrder = 4
   end
   object edtFromCode: TEdit
     Left = 144
@@ -64,7 +64,7 @@ object dlgStatusReportRange: TdlgStatusReportRange
     Height = 24
     BorderStyle = bsNone
     CharCase = ecUpperCase
-    TabOrder = 2
+    TabOrder = 3
   end
   object rbClient: TRadioButton
     Left = 144
@@ -73,7 +73,7 @@ object dlgStatusReportRange: TdlgStatusReportRange
     Height = 17
     Caption = '&Client'
     Checked = True
-    TabOrder = 0
+    TabOrder = 1
     TabStop = True
     OnClick = rbClientClick
   end
@@ -83,7 +83,7 @@ object dlgStatusReportRange: TdlgStatusReportRange
     Width = 137
     Height = 17
     Caption = 'Staff &Member'
-    TabOrder = 1
+    TabOrder = 2
     OnClick = rbClientClick
   end
   inline DateSelector: TfmeDateSelector
@@ -91,7 +91,7 @@ object dlgStatusReportRange: TdlgStatusReportRange
     Top = 35
     Width = 361
     Height = 70
-    TabOrder = 4
+    TabOrder = 0
     TabStop = True
     ExplicitLeft = 16
     ExplicitTop = 35
@@ -170,7 +170,6 @@ object dlgStatusReportRange: TdlgStatusReportRange
       Default = True
       TabOrder = 0
       OnClick = btnPreviewClick
-      ExplicitTop = 22
     end
     object btnFile: TButton
       Left = 83
@@ -181,7 +180,6 @@ object dlgStatusReportRange: TdlgStatusReportRange
       Caption = 'Fil&e'
       TabOrder = 1
       OnClick = btnFileClick
-      ExplicitTop = 22
     end
     object btnPrint: TButton
       Left = 268
@@ -192,7 +190,6 @@ object dlgStatusReportRange: TdlgStatusReportRange
       Caption = '&Print'
       TabOrder = 2
       OnClick = btnPrintClick
-      ExplicitTop = 22
     end
     object btnCancel: TButton
       Left = 351
@@ -204,7 +201,6 @@ object dlgStatusReportRange: TdlgStatusReportRange
       Caption = 'Cancel'
       TabOrder = 3
       OnClick = btnCancelClick
-      ExplicitTop = 22
     end
   end
 end
