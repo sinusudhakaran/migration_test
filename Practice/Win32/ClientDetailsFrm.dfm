@@ -49,7 +49,7 @@ object frmClientDetails: TfrmClientDetails
     Top = 8
     Width = 589
     Height = 571
-    ActivePage = tbsClient
+    ActivePage = tbsOptions
     TabOrder = 0
     object tbsClient: TTabSheet
       Caption = 'Client Details'

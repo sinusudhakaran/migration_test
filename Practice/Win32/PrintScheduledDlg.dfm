@@ -28,6 +28,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
       Top = 7
       Hint = 'Cancel changes'
       ModalResult = 0
+      TabOrder = 3
       OnClick = btnCancelClick
       ExplicitLeft = 561
       ExplicitTop = 7
@@ -39,6 +40,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
       Caption = 'OK'
       Default = False
       ModalResult = 0
+      TabOrder = 2
       OnClick = btnOKClick
       ExplicitLeft = 478
     end
@@ -50,7 +52,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
       Hint = 'Generate the Scheduled Reports'
       Anchors = [akLeft, akBottom]
       Caption = '&Generate'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = btnPrintClick
     end
     object btnPreview: TButton
@@ -62,7 +64,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
       Anchors = [akLeft, akBottom]
       Caption = 'Pre&view'
       Default = True
-      TabOrder = 3
+      TabOrder = 0
       OnClick = btnPreviewClick
     end
   end
@@ -166,7 +168,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           BorderStyle = bsNone
           CharCase = ecUpperCase
           MaxLength = 8
-          TabOrder = 2
+          TabOrder = 5
         end
         object edtToCode: TEdit
           Left = 502
@@ -176,7 +178,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           BorderStyle = bsNone
           CharCase = ecUpperCase
           MaxLength = 8
-          TabOrder = 3
+          TabOrder = 6
         end
         object edtSelection: TEdit
           Left = 297
@@ -185,7 +187,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 24
           BorderStyle = bsNone
           CharCase = ecUpperCase
-          TabOrder = 4
+          TabOrder = 7
           OnExit = edtSelectionExit
         end
         object rbGroup: TRadioButton
@@ -194,7 +196,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 69
           Height = 17
           Caption = '&Group'
-          TabOrder = 5
+          TabOrder = 2
           OnClick = rbStaffMemberClick
         end
         object rbClientType: TRadioButton
@@ -203,8 +205,51 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 98
           Height = 17
           Caption = 'Client T&ype'
-          TabOrder = 6
+          TabOrder = 3
           OnClick = rbStaffMemberClick
+        end
+        object Panel1: TPanel
+          Left = 4
+          Top = 42
+          Width = 145
+          Height = 82
+          BevelOuter = bvNone
+          TabOrder = 4
+          object rbRange: TRadioButton
+            Left = 17
+            Top = 26
+            Width = 113
+            Height = 31
+            Caption = 'Use Range'
+            Color = clBtnFace
+            ParentColor = False
+            TabOrder = 0
+            OnClick = rbRangeClick
+          end
+          object rbSelection: TRadioButton
+            Left = 18
+            Top = 64
+            Width = 113
+            Height = 17
+            Caption = 'Use Selection'
+            Color = clBtnFace
+            ParentColor = False
+            TabOrder = 1
+            OnClick = rbRangeClick
+          end
+          object rbSelectAll: TRadioButton
+            Left = 18
+            Top = -2
+            Width = 125
+            Height = 29
+            Caption = 'All Staff Members'
+            Checked = True
+            Color = clBtnFace
+            ParentColor = False
+            TabOrder = 2
+            TabStop = True
+            OnClick = rbRangeClick
+          end
         end
       end
       object grpRange: TGroupBox
@@ -356,51 +401,11 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         TabOrder = 4
         OnClick = btnListReportsDueClick
       end
-      object Panel1: TPanel
-        Left = 3
-        Top = 111
-        Width = 145
-        Height = 82
-        BevelOuter = bvNone
-        TabOrder = 5
-        object rbRange: TRadioButton
-          Left = 17
-          Top = 26
-          Width = 113
-          Height = 31
-          Caption = 'Use Range'
-          ParentColor = False
-          TabOrder = 0
-          OnClick = rbRangeClick
-        end
-        object rbSelection: TRadioButton
-          Left = 18
-          Top = 64
-          Width = 113
-          Height = 17
-          Caption = 'Use Selection'
-          ParentColor = False
-          TabOrder = 1
-          OnClick = rbRangeClick
-        end
-        object rbSelectAll: TRadioButton
-          Left = 18
-          Top = -2
-          Width = 125
-          Height = 29
-          Caption = 'All Staff Members'
-          Checked = True
-          ParentColor = False
-          TabOrder = 2
-          TabStop = True
-          OnClick = rbRangeClick
-        end
-      end
     end
     object tsMessages: TTabSheet
       Caption = '&Message Setup'
       ImageIndex = 3
-      object GroupBox6: TGroupBox
+      object gbOptions: TGroupBox
         Left = 0
         Top = 6
         Width = 632
@@ -486,7 +491,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
             'Enter a message to be added to the coverpage of each faxed repor' +
             't'
           Caption = 'Cover &Page Message'
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnCoverPageMsgClick
         end
         object ckCDFax: TCheckBox
@@ -495,7 +500,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 170
           Height = 17
           Caption = '&Fax Custom Document'
-          TabOrder = 1
+          TabOrder = 0
           OnClick = ckCDClick
         end
         object cbCDFax: TComboBox
@@ -506,7 +511,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Style = csDropDownList
           Enabled = False
           ItemHeight = 13
-          TabOrder = 2
+          TabOrder = 1
         end
       end
       object gbEmail: TGroupBox
@@ -522,7 +527,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 217
           Height = 25
           Caption = 'Ema&il Message '
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnEmailMsgClick
         end
         object cbCDEmail: TComboBox
@@ -541,7 +546,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 170
           Height = 17
           Caption = '&Attach Custom Document'
-          TabOrder = 2
+          TabOrder = 0
           OnClick = ckCDClick
         end
       end
@@ -558,7 +563,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 217
           Height = 25
           Caption = '&BankLink Notes Message '
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnBNotesMsgClick
         end
         object ckCDNotes: TCheckBox
@@ -567,7 +572,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 170
           Height = 17
           Caption = 'Attach C&ustom Document'
-          TabOrder = 1
+          TabOrder = 0
           OnClick = ckCDClick
         end
         object cbCDNotes: TComboBox
@@ -578,7 +583,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Style = csDropDownList
           Enabled = False
           ItemHeight = 13
-          TabOrder = 2
+          TabOrder = 1
         end
       end
       object gbBooks: TGroupBox
@@ -587,14 +592,14 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         Width = 632
         Height = 56
         Caption = 'Send Banklink Books files'
-        TabOrder = 4
+        TabOrder = 5
         object btnCheckOutMsg: TButton
           Left = 410
           Top = 20
           Width = 217
           Height = 25
           Caption = 'BankLink Boo&ks Message'
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnCheckOutMsgClick
         end
         object cbCDBooks: TComboBox
@@ -613,7 +618,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 170
           Height = 17
           Caption = 'Attach Cust&om Document'
-          TabOrder = 2
+          TabOrder = 0
           OnClick = ckCDClick
         end
       end
@@ -623,14 +628,14 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
         Width = 632
         Height = 56
         Caption = 'Send BankLink webNotes files'
-        TabOrder = 5
+        TabOrder = 4
         object btnWebNotesMsg: TButton
           Left = 410
           Top = 20
           Width = 217
           Height = 25
           Caption = '&BankLink WebNotes Message '
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnWebNotesMsgClick
         end
         object ckCDwebNotes: TCheckBox
@@ -639,7 +644,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 170
           Height = 17
           Caption = 'Attach C&ustom Document'
-          TabOrder = 1
+          TabOrder = 0
           OnClick = ckCDClick
         end
         object cbCDwebNotes: TComboBox
@@ -650,10 +655,10 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Style = csDropDownList
           Enabled = False
           ItemHeight = 13
-          TabOrder = 2
+          TabOrder = 1
         end
       end
-      object GroupBox5: TGroupBox
+      object gbSend: TGroupBox
         Left = 1
         Top = 468
         Width = 631
@@ -666,7 +671,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 213
           Height = 25
           Caption = 'BankLink Boo&ks Message'
-          TabOrder = 0
+          TabOrder = 2
           OnClick = btnOnlineMsgClick
         end
         object cbCDOnline: TComboBox
@@ -685,7 +690,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 170
           Height = 17
           Caption = 'Attach Cust&om Document'
-          TabOrder = 2
+          TabOrder = 0
           OnClick = ckCDClick
         end
       end
@@ -724,7 +729,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 145
           Height = 25
           Caption = 'List Chart of &Accounts'
-          TabOrder = 2
+          TabOrder = 3
           OnClick = btnChartClick
         end
         object btnSort: TButton
@@ -733,7 +738,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 145
           Height = 25
           Caption = 'Sort Header'
-          TabOrder = 4
+          TabOrder = 5
           OnClick = btnSortClick
         end
         object btnClient: TButton
@@ -742,7 +747,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 145
           Height = 25
           Caption = '&Client Header'
-          TabOrder = 3
+          TabOrder = 4
           OnClick = btnClientClick
         end
         object btnSummary: TButton
@@ -751,7 +756,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 145
           Height = 25
           Caption = 'S&ummary'
-          TabOrder = 5
+          TabOrder = 6
           OnClick = btnSummaryClick
         end
         object btnJobs: TButton
@@ -760,7 +765,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 145
           Height = 25
           Caption = 'List &Jobs'
-          TabOrder = 6
+          TabOrder = 2
           OnClick = btnJobsClick
         end
       end
@@ -768,7 +773,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
     object TabSheet1: TTabSheet
       Caption = 'Fa&x Setup'
       ImageIndex = 2
-      object GroupBox3: TGroupBox
+      object gbSetup: TGroupBox
         Left = 0
         Top = 253
         Width = 632
@@ -802,7 +807,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 25
           Hint = 'Edit the Reports Settings for the List Chart of Accounts Report'
           Caption = 'List Chart of &Accounts'
-          TabOrder = 2
+          TabOrder = 3
           OnClick = btnFaxChartClick
         end
         object Button1: TButton
@@ -811,7 +816,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Width = 145
           Height = 25
           Caption = 'Test Report'
-          TabOrder = 3
+          TabOrder = 4
           Visible = False
           OnClick = Button1Click
         end
@@ -822,11 +827,11 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
           Height = 25
           Hint = 'Edit the Reports Settings for the List Payees Report'
           Caption = 'List &Jobs'
-          TabOrder = 4
+          TabOrder = 2
           OnClick = btnFaxJobsClick
         end
       end
-      object GroupBox4: TGroupBox
+      object gbFaxOptions: TGroupBox
         Left = 0
         Top = 133
         Width = 632
@@ -881,6 +886,7 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
             Hint = 'Send fax immediately'
             Caption = 'Send &Immediately'
             Checked = True
+            Color = clBtnFace
             ParentColor = False
             TabOrder = 0
             TabStop = True
@@ -892,12 +898,13 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
             Height = 17
             Hint = 'Send fax later (off-peak)'
             Caption = 'Send O&ff-Peak'
+            Color = clBtnFace
             ParentColor = False
             TabOrder = 1
           end
         end
       end
-      object GroupBox1: TGroupBox
+      object gbFaxService: TGroupBox
         Left = 0
         Top = 6
         Width = 632
@@ -974,8 +981,8 @@ inherited dlgPrintScheduled: TdlgPrintScheduled
       False
       ())
     Epoch = 1900
-    Left = 360
-    Top = 85
+    Left = 392
+    Top = 61
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'cvp'
