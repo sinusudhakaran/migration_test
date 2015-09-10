@@ -46,7 +46,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       '&Detailed')
     TabOrder = 0
   end
-  object Panel1: TPanel
+  object pnlControls: TPanel
     Left = 0
     Top = 124
     Width = 483
@@ -56,9 +56,6 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
     Caption = ' '
     ParentBackground = False
     TabOrder = 3
-    ExplicitLeft = 8
-    ExplicitTop = 208
-    ExplicitWidth = 478
     DesignSize = (
       483
       41)
@@ -99,7 +96,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&Print'
-      TabOrder = 2
+      TabOrder = 4
       OnClick = btnOKClick
     end
     object btnCancel: TButton
@@ -110,7 +107,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      TabOrder = 3
+      TabOrder = 5
       OnClick = btnCancelClick
     end
     object btnSave: TBitBtn
@@ -120,7 +117,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Sa&ve'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = BtnSaveClick
     end
     object btnEmail: TButton
@@ -130,7 +127,7 @@ object dlgListPayeeOptions: TdlgListPayeeOptions
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'E&mail'
-      TabOrder = 5
+      TabOrder = 2
       OnClick = btnEmailClick
     end
   end

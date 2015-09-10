@@ -44,7 +44,7 @@ type
     ckbRuleLineBetweenPayees: TCheckBox;
     rgSortPayeesBy: TRadioGroup;
     rgReportFormat: TRadioGroup;
-    Panel1: TPanel;
+    pnlControls: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnOK: TButton;
