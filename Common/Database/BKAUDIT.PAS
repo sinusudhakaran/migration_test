@@ -639,6 +639,31 @@ begin
     FAuditNamesArray[160,249] := 'Suggested_Mem_State';
     FAuditNamesArray[160,250] := 'Suggested_Mem_Index';
 
+   FAuditTableArray[162] := 'Transaction_Extra';
+    FAuditNamesArray[162,164] := 'Sequence_No';
+    FAuditNamesArray[162,165] := 'Date_Effective';
+    FAuditNamesArray[162,166] := 'SF_Other_Income';
+    FAuditNamesArray[162,167] := 'SF_Other_Trust_Deductions';
+    FAuditNamesArray[162,168] := 'SF_CGT_Concession_Amount';
+    FAuditNamesArray[162,169] := 'SF_CGT_ForeignCGT_Before_Disc';
+    FAuditNamesArray[162,170] := 'SF_CGT_ForeignCGT_Indexation';
+    FAuditNamesArray[162,171] := 'SF_CGT_ForeignCGT_Other_Method';
+    FAuditNamesArray[162,172] := 'SF_CGT_TaxPaid_Indexation';
+    FAuditNamesArray[162,173] := 'SF_CGT_TaxPaid_Other_Method';
+    FAuditNamesArray[162,174] := 'SF_Other_Net_Foreign_Income';
+    FAuditNamesArray[162,175] := 'SF_Cash_Distribution';
+    FAuditNamesArray[162,176] := 'SF_AU_Franking_Credits_NZ_Co';
+    FAuditNamesArray[162,177] := 'SF_Non_Res_Witholding_Tax';
+    FAuditNamesArray[162,178] := 'SF_LIC_Deductions';
+    FAuditNamesArray[162,179] := 'SF_Non_Cash_CGT_Discounted_Before_Discount';
+    FAuditNamesArray[162,180] := 'SF_Non_Cash_CGT_Indexation';
+    FAuditNamesArray[162,181] := 'SF_Non_Cash_CGT_Other_Method';
+    FAuditNamesArray[162,182] := 'SF_Non_Cash_CGT_Capital_Losses';
+    FAuditNamesArray[162,183] := 'SF_Share_Brokerage';
+    FAuditNamesArray[162,184] := 'SF_Share_Consideration';
+    FAuditNamesArray[162,185] := 'SF_Share_GST_Amount';
+    FAuditNamesArray[162,186] := 'SF_Share_GST_Rate';
+
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';
     FAuditNamesArray[180,183] := 'Account';

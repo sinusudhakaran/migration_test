@@ -10,7 +10,8 @@ uses
   bkdefs,
   ecollect,
   iostream,
-  AuditMgr;
+  AuditMgr,
+  teList32;
 
 type
   //----------------------------------------------------------------------------
@@ -72,6 +73,7 @@ type
     FBank_Account : TObject;
     FAuditMgr     : TClientAuditManager;
     FLoading      : boolean;
+    fTransaction_Extra_List : TTransaction_Extra_List;
 
     fTran_Suggested_Index : TTran_Suggested_Index;
     fTran_Transaction_Code_Index : TTran_Transaction_Code_Index;
@@ -90,6 +92,7 @@ type
     function Compare(Item1,Item2 : Pointer): Integer; override;
     procedure Insert(Item:Pointer); override;
     procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
+    procedure Insert_Transaction_Extra_Rec( var p: pTransaction_Extra_Rec );
 
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S: TIOStream);
@@ -132,6 +135,7 @@ type
     property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
 
     property Tran_Suggested_Index : TTran_Suggested_Index read fTran_Suggested_Index;
+    property Transaction_Extra_List : TTransaction_Extra_List read fTransaction_Extra_List;
   end;
 
   procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
@@ -160,7 +164,8 @@ uses
   bkDateUtils,
   baObj32,
   SuggestedMems,
-  BKUTIL32;
+  BKUTIL32,
+  bkteio;
 
 const
   DebugMe : boolean = false;
@@ -367,6 +372,12 @@ begin
   Dispose_Transaction_Rec(pTransaction_Rec(item));
 end;
 //------------------------------------------------------------------------------
+procedure TTransaction_List.Insert_Transaction_Extra_Rec(
+  var p: pTransaction_Extra_Rec);
+begin
+  fTransaction_Extra_List.Insert_Transaction_Extra_Rec( P );
+end;
+
 procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
   NewAuditID: Boolean = True);
 const
@@ -435,6 +446,7 @@ const
 Var
    Token       : Byte;
    pTX         : pTransaction_Rec;
+   pTXe        : pTransaction_Extra_Rec;
    pDS         : pDissection_Rec;
    msg         : string;
 Begin
@@ -464,6 +476,13 @@ Begin
                  Read_Dissection_Rec ( pDS^, S );
                  AppendDissection( pTX, pDS );
               end;
+
+           tkBegin_Transaction_Extra :
+             begin
+               pTXe := New_Transaction_Extra_Rec;
+               Read_Transaction_Extra_Rec( pTXe^, S );
+               Insert_Transaction_Extra_Rec( pTXe );
+             end
 
            else
            begin { Should never happen }
@@ -502,9 +521,10 @@ procedure TTransaction_List.SaveToFile(var S: TIOStream);
 const
   ThisMethodName = 'TTransaction_List.SaveToFile';
 Var
-   i   : LongInt;
-   pTX : pTransaction_Rec;
-   pDS : pDissection_Rec;
+   i    : LongInt;
+   pTX  : pTransaction_Rec;
+   pTXe : pTransaction_Extra_Rec;
+   pDS  : pDissection_Rec;
    TXCount  : LongInt;
    DSCount  : LongInt;
 
@@ -549,6 +569,11 @@ Begin
          Inc( DSCount );
          pDS := pDS^.dsNext;
       end;
+
+      pTXe := fTransaction_Extra_List.Transaction_Extra_At( i );
+      if not assigned( pTXe ) then begin
+      end;
+        BKTEIO.Write_Transaction_Extra_Rec( pTXe^, S );
    end;
    S.WriteToken( tkEndSection );
 
@@ -788,6 +813,9 @@ begin
 
   fTran_Suggested_Index := TTran_Suggested_Index.Create;
   fTran_Transaction_Code_Index := TTran_Transaction_Code_Index.Create;
+
+  fTransaction_Extra_List := TTransaction_Extra_List.Create;
+
   FLoading := False;
   Duplicates := false;
   FLastSeq := 0;
@@ -798,8 +826,9 @@ end;
 
 destructor TTransaction_List.Destroy;
 begin
-  FreeAndNil(fTran_Transaction_Code_Index);
-  FreeAndNil(fTran_Suggested_Index);
+  FreeAndNil( fTransaction_Extra_List );
+  FreeAndNil( fTran_Transaction_Code_Index );
+  FreeAndNil( fTran_Suggested_Index );
   inherited;
 end;
 

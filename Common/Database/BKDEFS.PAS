@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 739;
-   BK_IOLIB_Date    = '07/09/15';
+   BK_IOLIB_Version : Integer = 744;
+   BK_IOLIB_Date    = '10/09/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -253,6 +253,7 @@ Type
    pMemorisation_Line_Rec                = ^tMemorisation_Line_Rec ;
    pBank_Account_Rec                     = ^tBank_Account_Rec ;
    pTransaction_Rec                      = ^tTransaction_Rec ;
+   pTransaction_Extra_Rec                = ^tTransaction_Extra_Rec ;
    pDissection_Rec                       = ^tDissection_Rec ;
    pBalances_Rec                         = ^tBalances_Rec ;
    pSubGroup_Heading_Rec                 = ^tSubGroup_Heading_Rec ;
@@ -1013,6 +1014,36 @@ Type
 
 {  -------------------------------------------------------------------  }
 
+   tTransaction_Extra_Rec = Packed Record
+      teRecord_Type                      : Byte;
+      teSequence_No                      : Integer;       { Stored }
+      teDate_Effective                   : Integer;       { Stored }
+      teSF_Other_Income                  : Money;       { Stored }
+      teSF_Other_Trust_Deductions        : Money;       { Stored }
+      teSF_CGT_Concession_Amount         : Money;       { Stored }
+      teSF_CGT_ForeignCGT_Before_Disc    : Money;       { Stored }
+      teSF_CGT_ForeignCGT_Indexation     : Money;       { Stored }
+      teSF_CGT_ForeignCGT_Other_Method   : Money;       { Stored }
+      teSF_CGT_TaxPaid_Indexation        : Money;       { Stored }
+      teSF_CGT_TaxPaid_Other_Method      : Money;       { Stored }
+      teSF_Other_Net_Foreign_Income      : Money;       { Stored }
+      teSF_Cash_Distribution             : Money;       { Stored }
+      teSF_AU_Franking_Credits_NZ_Co     : Money;       { Stored }
+      teSF_Non_Res_Witholding_Tax        : Money;       { Stored }
+      teSF_LIC_Deductions                : Money;       { Stored }
+      teSF_Non_Cash_CGT_Discounted_Before_Discount : Money;       { Stored }
+      teSF_Non_Cash_CGT_Indexation       : Money;       { Stored }
+      teSF_Non_Cash_CGT_Other_Method     : Money;       { Stored }
+      teSF_Non_Cash_CGT_Capital_Losses   : Money;       { Stored }
+      teSF_Share_Brokerage               : Money;       { Stored }
+      teSF_Share_Consideration           : Money;       { Stored }
+      teSF_Share_GST_Amount              : Money;       { Stored }
+      teSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+      teEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
    tDissection_Rec = Packed Record
       dsRecord_Type                      : Byte;
       dsSequence_No                      : Integer;       { Stored }
@@ -1512,6 +1543,7 @@ Const
    Memorisation_Line_Rec_Size                = Sizeof( TMemorisation_Line_Rec ); 
    Bank_Account_Rec_Size                     = Sizeof( TBank_Account_Rec ); 
    Transaction_Rec_Size                      = Sizeof( TTransaction_Rec ); 
+   Transaction_Extra_Rec_Size                = Sizeof( TTransaction_Extra_Rec ); 
    Dissection_Rec_Size                       = Sizeof( TDissection_Rec ); 
    Balances_Rec_Size                         = Sizeof( TBalances_Rec ); 
    SubGroup_Heading_Rec_Size                 = Sizeof( TSubGroup_Heading_Rec ); 

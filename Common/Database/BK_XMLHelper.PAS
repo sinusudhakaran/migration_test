@@ -107,6 +107,14 @@ public
 end;
 
 
+TTransaction_Extra_RecHelper = record helper for TTransaction_Extra_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
 TDissection_RecHelper = record helper for TDissection_Rec
 public
 	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
@@ -2260,6 +2268,90 @@ begin
 	txSuggested_Mem_Index := GetIntAttr(Result, 'SuggestedMemIndex');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TTransaction_Extra_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKTransactionExtra';
+end;
+
+
+function TTransaction_Extra_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SequenceNo', teSequence_No);
+	SetIntAttr(Result, 'DateEffective', teDate_Effective);
+	SetInt64Attr(Result, 'SFOtherIncome', teSF_Other_Income);
+	SetInt64Attr(Result, 'SFOtherTrustDeductions', teSF_Other_Trust_Deductions);
+	SetInt64Attr(Result, 'SFCGTConcessionAmount', teSF_CGT_Concession_Amount);
+	SetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc', teSF_CGT_ForeignCGT_Before_Disc);
+	SetInt64Attr(Result, 'SFCGTForeignCGTIndexation', teSF_CGT_ForeignCGT_Indexation);
+	SetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod', teSF_CGT_ForeignCGT_Other_Method);
+	SetInt64Attr(Result, 'SFCGTTaxPaidIndexation', teSF_CGT_TaxPaid_Indexation);
+	SetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod', teSF_CGT_TaxPaid_Other_Method);
+	SetInt64Attr(Result, 'SFOtherNetForeignIncome', teSF_Other_Net_Foreign_Income);
+	SetInt64Attr(Result, 'SFCashDistribution', teSF_Cash_Distribution);
+	SetInt64Attr(Result, 'SFAUFrankingCreditsNZCo', teSF_AU_Franking_Credits_NZ_Co);
+	SetInt64Attr(Result, 'SFNonResWitholdingTax', teSF_Non_Res_Witholding_Tax);
+	SetInt64Attr(Result, 'SFLICDeductions', teSF_LIC_Deductions);
+	SetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount', teSF_Non_Cash_CGT_Discounted_Before_Discount);
+	SetInt64Attr(Result, 'SFNonCashCGTIndexation', teSF_Non_Cash_CGT_Indexation);
+	SetInt64Attr(Result, 'SFNonCashCGTOtherMethod', teSF_Non_Cash_CGT_Other_Method);
+	SetInt64Attr(Result, 'SFNonCashCGTCapitalLosses', teSF_Non_Cash_CGT_Capital_Losses);
+	SetInt64Attr(Result, 'SFShareBrokerage', teSF_Share_Brokerage);
+	SetInt64Attr(Result, 'SFShareConsideration', teSF_Share_Consideration);
+	SetInt64Attr(Result, 'SFShareGSTAmount', teSF_Share_GST_Amount);
+	SetTextAttr(Result, 'SFShareGSTRate', teSF_Share_GST_Rate);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TTransaction_Extra_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	teSequence_No := GetIntAttr(Result, 'SequenceNo');
+	teDate_Effective := GetIntAttr(Result, 'DateEffective');
+	teSF_Other_Income := GetInt64Attr(Result, 'SFOtherIncome');
+	teSF_Other_Trust_Deductions := GetInt64Attr(Result, 'SFOtherTrustDeductions');
+	teSF_CGT_Concession_Amount := GetInt64Attr(Result, 'SFCGTConcessionAmount');
+	teSF_CGT_ForeignCGT_Before_Disc := GetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc');
+	teSF_CGT_ForeignCGT_Indexation := GetInt64Attr(Result, 'SFCGTForeignCGTIndexation');
+	teSF_CGT_ForeignCGT_Other_Method := GetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod');
+	teSF_CGT_TaxPaid_Indexation := GetInt64Attr(Result, 'SFCGTTaxPaidIndexation');
+	teSF_CGT_TaxPaid_Other_Method := GetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod');
+	teSF_Other_Net_Foreign_Income := GetInt64Attr(Result, 'SFOtherNetForeignIncome');
+	teSF_Cash_Distribution := GetInt64Attr(Result, 'SFCashDistribution');
+	teSF_AU_Franking_Credits_NZ_Co := GetInt64Attr(Result, 'SFAUFrankingCreditsNZCo');
+	teSF_Non_Res_Witholding_Tax := GetInt64Attr(Result, 'SFNonResWitholdingTax');
+	teSF_LIC_Deductions := GetInt64Attr(Result, 'SFLICDeductions');
+	teSF_Non_Cash_CGT_Discounted_Before_Discount := GetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount');
+	teSF_Non_Cash_CGT_Indexation := GetInt64Attr(Result, 'SFNonCashCGTIndexation');
+	teSF_Non_Cash_CGT_Other_Method := GetInt64Attr(Result, 'SFNonCashCGTOtherMethod');
+	teSF_Non_Cash_CGT_Capital_Losses := GetInt64Attr(Result, 'SFNonCashCGTCapitalLosses');
+	teSF_Share_Brokerage := GetInt64Attr(Result, 'SFShareBrokerage');
+	teSF_Share_Consideration := GetInt64Attr(Result, 'SFShareConsideration');
+	teSF_Share_GST_Amount := GetInt64Attr(Result, 'SFShareGSTAmount');
+	teSF_Share_GST_Rate := GetTextAttr(Result, 'SFShareGSTRate');
+	except
+		on E: Exception do ReRaise (E, 'Reading TTransaction_Extra_Rec');
 	end;
 
 	CNode := nil;

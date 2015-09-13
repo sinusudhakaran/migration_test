@@ -77,6 +77,30 @@ type
       dtTax_Invoice: Boolean;
       dtForex_Conversion_Rate            : Double;
       dtLocal_Amount          : Money;
+
+    //DN additional fields for BGL360
+      dtSF_Other_Income                  : Money;       { Stored }
+      dtSF_Other_Trust_Deductions        : Money;       { Stored }
+      dtSF_CGT_Concession_Amount         : Money;       { Stored }
+      dtSF_CGT_ForeignCGT_Before_Disc    : Money;       { Stored }
+      dtSF_CGT_ForeignCGT_Indexation     : Money;       { Stored }
+      dtSF_CGT_ForeignCGT_Other_Method   : Money;       { Stored }
+      dtSF_CGT_TaxPaid_Indexation        : Money;       { Stored }
+      dtSF_CGT_TaxPaid_Other_Method      : Money;       { Stored }
+      dtSF_Other_Net_Foreign_Income      : Money;       { Stored }
+      dtSF_Cash_Distribution             : Money;       { Stored }
+      dtSF_AU_Franking_Credits_NZ_Co     : Money;       { Stored }
+      dtSF_Non_Res_Witholding_Tax        : Money;       { Stored }
+      dtSF_LIC_Deductions                : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Discounted_Before_Discount : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Indexation       : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Other_Method     : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Capital_Losses   : Money;       { Stored }
+      dtSF_Share_Brokerage               : Money;       { Stored }
+      dtSF_Share_Consideration           : Money;       { Stored }
+      dtSF_Share_GST_Amount              : Money;       { Stored }
+      dtSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+
    end;
 
 procedure ClearSuperfundDetails(dwr: PWorkDissect_Rec); overload;
@@ -137,6 +161,29 @@ type
       dtSF_Transaction_Type_Code: string;
       dtSF_Capital_Gains_Fraction_Half: Boolean;
       dtJob: string;
+
+    //DN additional fields for BGL360
+      dtSF_Other_Income                  : Money;       { Stored }
+      dtSF_Other_Trust_Deductions        : Money;       { Stored }
+      dtSF_CGT_Concession_Amount         : Money;       { Stored }
+      dtSF_CGT_ForeignCGT_Before_Disc    : Money;       { Stored }
+      dtSF_CGT_ForeignCGT_Indexation     : Money;       { Stored }
+      dtSF_CGT_ForeignCGT_Other_Method   : Money;       { Stored }
+      dtSF_CGT_TaxPaid_Indexation        : Money;       { Stored }
+      dtSF_CGT_TaxPaid_Other_Method      : Money;       { Stored }
+      dtSF_Other_Net_Foreign_Income      : Money;       { Stored }
+      dtSF_Cash_Distribution             : Money;       { Stored }
+      dtSF_AU_Franking_Credits_NZ_Co     : Money;       { Stored }
+      dtSF_Non_Res_Witholding_Tax        : Money;       { Stored }
+      dtSF_LIC_Deductions                : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Discounted_Before_Discount : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Indexation       : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Other_Method     : Money;       { Stored }
+      dtSF_Non_Cash_CGT_Capital_Losses   : Money;       { Stored }
+      dtSF_Share_Brokerage               : Money;       { Stored }
+      dtSF_Share_Consideration           : Money;       { Stored }
+      dtSF_Share_GST_Amount              : Money;       { Stored }
+      dtSF_Share_GST_Rate                : String[ 5 ];       { Stored }
    end;
 
 procedure ClearSuperfundDetails(jwr: PWorkJournal_Rec); overload ;

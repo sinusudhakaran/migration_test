@@ -20,6 +20,7 @@ PROCEDURE UpdateCRC( CONST Rec : TMemorisation_Detail_Rec; VAR CRC : LongWord );
 PROCEDURE UpdateCRC( CONST Rec : TMemorisation_Line_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TBank_Account_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TTransaction_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TTransaction_Extra_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TDissection_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TBalances_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TSubGroup_Heading_Rec; VAR CRC : LongWord ); OVERLOAD;
@@ -280,6 +281,21 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( txSpare_String )^, Len );
       Len := Length( txSF_Transaction_Code );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( txSF_Transaction_Code )^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TTransaction_Extra_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @teRecord_Type;
+      RE    := @teEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
    end;
 end;
 
