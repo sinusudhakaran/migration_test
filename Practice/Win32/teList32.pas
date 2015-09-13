@@ -162,7 +162,7 @@ Begin
   If BKTEIO.IsATransaction_Extra_Rec( P ) then
   Begin
     Inc( FLastSeq );
-    P^.teSequence_No  := FLastSeq;
+//DN    P^.teSequence_No  := FLastSeq;
 
     Inherited Insert( P );
   end;

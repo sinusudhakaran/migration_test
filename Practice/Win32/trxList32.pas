@@ -385,6 +385,7 @@ const
 var
   NewTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
   NewTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
+  NewTran_TransAction_Extra_Rec : pTransaction_Extra_Rec;
 
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -429,7 +430,18 @@ Begin
       FTran_Transaction_Code_Index.Insert( NewTran_Transaction_Code_Index_Rec );
     end;
 
+    // Build additional BGL360 fields
+    if (fBank_Account is TBank_Account) and
+       (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
+    begin
+      NewTran_TransAction_Extra_Rec := fTransaction_Extra_List.New_Transaction_Extra;
+      if assigned( NewTran_TransAction_Extra_Rec ) then begin
+        NewTran_TransAction_Extra_Rec^.teSequence_No := P^.txSequence_No;
+        NewTran_TransAction_Extra_Rec^.teDate_Effective := P^.txDate_Effective;
 
+        fTransaction_Extra_List.Insert_Transaction_Extra_Rec( NewTran_TransAction_Extra_Rec );
+      end;
+    end;
 
     //Get next audit ID for new transactions
     if (not FLoading) and Assigned(fAuditMgr) and NewAuditID then
