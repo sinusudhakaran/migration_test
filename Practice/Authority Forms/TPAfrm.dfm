@@ -4,7 +4,7 @@ object frmTPA: TfrmTPA
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Third Party Authority'
-  ClientHeight = 750
+  ClientHeight = 749
   ClientWidth = 782
   Color = clWindow
   Constraints.MinWidth = 640
@@ -27,7 +27,7 @@ object frmTPA: TfrmTPA
     Left = 8
     Top = 8
     Width = 767
-    Height = 693
+    Height = 691
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -163,7 +163,7 @@ object frmTPA: TfrmTPA
           ExplicitWidth = 604
         end
         object lblMaskErrorHint1: TLabel
-          Left = 6
+          Left = 7
           Top = 96
           Width = 608
           Height = 20
@@ -303,7 +303,7 @@ object frmTPA: TfrmTPA
           ExplicitWidth = 604
         end
         object lblMaskErrorHint2: TLabel
-          Left = 6
+          Left = 7
           Top = 96
           Width = 608
           Height = 22
@@ -483,7 +483,7 @@ object frmTPA: TfrmTPA
           ExplicitWidth = 604
         end
         object lblMaskErrorHint3: TLabel
-          Left = 6
+          Left = 7
           Top = 96
           Width = 608
           Height = 22
@@ -675,7 +675,7 @@ object frmTPA: TfrmTPA
       Left = 0
       Top = 495
       Width = 763
-      Height = 93
+      Height = 90
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
@@ -685,7 +685,7 @@ object frmTPA: TfrmTPA
       OnClick = pnlDataClick
       DesignSize = (
         763
-        93)
+        90)
       object lblSecureCode: TLabel
         Left = 299
         Top = 62
@@ -787,7 +787,7 @@ object frmTPA: TfrmTPA
         TabOrder = 2
       end
       object chkSupplyAsProvisional: TCheckBox
-        Left = 24
+        Left = 28
         Top = 108
         Width = 512
         Height = 17
@@ -801,9 +801,9 @@ object frmTPA: TfrmTPA
     end
     object pnlRural: TPanel
       Left = 0
-      Top = 588
+      Top = 585
       Width = 763
-      Height = 97
+      Height = 95
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
@@ -812,7 +812,7 @@ object frmTPA: TfrmTPA
       TabOrder = 4
       DesignSize = (
         763
-        97)
+        95)
       object lblRuralInstitutions: TLabel
         Left = 28
         Top = 13
@@ -848,7 +848,7 @@ object frmTPA: TfrmTPA
   end
   object pnlControls: TPanel
     Left = 0
-    Top = 709
+    Top = 708
     Width = 782
     Height = 41
     Align = alBottom
@@ -856,6 +856,7 @@ object frmTPA: TfrmTPA
     Caption = ' '
     ParentBackground = False
     TabOrder = 1
+    ExplicitTop = 709
     DesignSize = (
       782
       41)

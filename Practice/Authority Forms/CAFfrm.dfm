@@ -5,7 +5,7 @@ object frmCAF: TfrmCAF
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Client Authority Form'
-  ClientHeight = 691
+  ClientHeight = 710
   ClientWidth = 783
   Color = clWindow
   Constraints.MinWidth = 350
@@ -26,13 +26,14 @@ object frmCAF: TfrmCAF
   TextHeight = 17
   object Panel6: TPanel
     Left = 0
-    Top = 650
+    Top = 669
     Width = 783
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 1
+    ExplicitTop = 650
     object ShapeBorder: TShape
       Left = 0
       Top = 0
@@ -129,7 +130,7 @@ object frmCAF: TfrmCAF
     Left = 8
     Top = 10
     Width = 767
-    Height = 632
+    Height = 650
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -153,7 +154,7 @@ object frmCAF: TfrmCAF
       Left = 0
       Top = 496
       Width = 763
-      Height = 134
+      Height = 164
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
@@ -163,7 +164,7 @@ object frmCAF: TfrmCAF
       OnClick = pnlDataClick
       DesignSize = (
         763
-        134)
+        164)
       object lblSecureCode: TLabel
         Left = 288
         Top = 56
@@ -422,7 +423,7 @@ object frmCAF: TfrmCAF
           Caption = 'Cost Code'
         end
         object lblMaskErrorHint1: TLabel
-          Left = 6
+          Left = 7
           Top = 96
           Width = 608
           Height = 20
@@ -576,7 +577,7 @@ object frmCAF: TfrmCAF
           Caption = 'Cost Code'
         end
         object lblMaskErrorHint2: TLabel
-          Left = 6
+          Left = 7
           Top = 96
           Width = 608
           Height = 19
@@ -729,7 +730,7 @@ object frmCAF: TfrmCAF
           Caption = 'Cost Code'
         end
         object lblMaskErrorHint3: TLabel
-          Left = 6
+          Left = 7
           Top = 96
           Width = 608
           Height = 20
