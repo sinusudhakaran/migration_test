@@ -35,7 +35,6 @@ type
     btnSave: TBitBtn;
     btnOK: TButton;
     btClose: TButton;
-    ShapeBorder: TShape;
 
     procedure btnOKClick(Sender: TObject);
     procedure btCloseClick(Sender: TObject);
