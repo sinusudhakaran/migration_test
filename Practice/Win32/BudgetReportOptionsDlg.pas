@@ -13,7 +13,7 @@ uses
 
 type
   TdlgBudgetReportOptions = class(TForm)
-    Panel1: TPanel;
+    pnlControls: TPanel;
     btnPreview: TButton;
     btnFile: TButton;
     btnEmail: TButton;
