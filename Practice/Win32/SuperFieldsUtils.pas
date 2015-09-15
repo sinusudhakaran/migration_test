@@ -926,12 +926,14 @@ begin
       //DN The Extra Transaction record exists
       //DN begin
 
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.Transaction_Extra_At( iTransaction_Extra )
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.
+                              Transaction_Extra_At( iTransaction_Extra )
       else begin
       //DN The Transaction does NOT exist, need to create one!!!
         ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.New_Transaction_Extra;
         ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
         ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
+        BA.baTransaction_List.Transaction_Extra_List.Insert_Transaction_Extra_Rec( ParentTransExtra );
       end;
 
         SuperForm.SetFields( ParentTrans^.txSF_Imputed_Credit,                               // Franking Credits
