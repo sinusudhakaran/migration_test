@@ -461,6 +461,7 @@ Var
    pTXe        : pTransaction_Extra_Rec;
    pDS         : pDissection_Rec;
    msg         : string;
+   iTransactionIndex : integer;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    FLoading := True;
@@ -491,9 +492,17 @@ Begin
 
            tkBegin_Transaction_Extra :
              begin
-               pTXe := New_Transaction_Extra_Rec;
-               Read_Transaction_Extra_Rec( pTXe^, S );
-               Insert_Transaction_Extra_Rec( pTXe );
+               if fTransaction_Extra_List.SearchUsingDateandTranSeqNo(
+                    pTX^.txDate_Effective, pTX^.txSequence_No,
+                    iTransactionIndex ) then begin
+                 pTXe := fTransaction_Extra_List.Transaction_Extra_At( iTransactionIndex );
+                 Read_Transaction_Extra_Rec( pTXe^, S );
+               end
+               else begin
+                 pTXe := New_Transaction_Extra_Rec;
+                 Read_Transaction_Extra_Rec( pTXe^, S );
+                 Insert_Transaction_Extra_Rec( pTXe );
+               end;
              end
 
            else
@@ -584,8 +593,11 @@ Begin
 
       pTXe := fTransaction_Extra_List.Transaction_Extra_At( i );
       if not assigned( pTXe ) then begin
+        pTXe := fTransaction_Extra_List.New_Transaction_Extra;
+        pTXe^.teSequence_No := pTX^.txSequence_No;
+        pTXe^.teDate_Effective := pTX^.txDate_Effective;
       end;
-        BKTEIO.Write_Transaction_Extra_Rec( pTXe^, S );
+      BKTEIO.Write_Transaction_Extra_Rec( pTXe^, S );
    end;
    S.WriteToken( tkEndSection );
 
