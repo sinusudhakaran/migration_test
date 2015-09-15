@@ -73,7 +73,12 @@ type
     procedure btnHideClick(Sender: TObject);
     procedure btnCreateClick(Sender: TObject);
     procedure tblSuggMemsDblClick(Sender: TObject);
+    procedure tblSuggMemsLockedCellClick(Sender: TObject; RowNum,
+      ColNum: Integer);
+    procedure tblSuggMemsLeavingRow(Sender: TObject; RowNum: Integer);
+    procedure FormResize(Sender: TObject);
   private
+    fHeadingClicked : boolean;
     fLoading : boolean;
     fBankAccount: TBank_Account;
     fSuggMemSortedList: TSuggMemSortedList;
@@ -106,7 +111,7 @@ type
     procedure FillSortedList();
     procedure Refresh();
 
-    procedure ReadCellforPaint(RowNum,ColNum : integer;var Data : pointer);
+    procedure ReadCellforPaint(RowNum, ColNum : integer; var Data : pointer);
     procedure RefreshMemControls(aRow: integer);
     procedure DoCreateNewMemorisation(aRow: integer);
   public
@@ -181,6 +186,7 @@ var
 begin
   inherited;
 
+  fHeadingClicked := false;
   fLoading := true;
 
   bkXPThemes.ThemeForm(self);
@@ -209,6 +215,7 @@ begin
   lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
 
   Refresh();
+  tblSuggMems.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
@@ -238,6 +245,31 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.FormResize(Sender: TObject);
+var
+  Widths: array of integer;
+  iTotal: integer;
+  i: integer;
+  iDetails: integer;
+begin
+  SetLength(Widths, tblSuggMems.ColCount);
+  iTotal := 0;
+
+  for i := 0 to tblSuggMems.ColCount-1 do
+  begin
+    Widths[i] := tblSuggMems.Columns.Width[i];
+
+    if (i = ccStatementDetails) then
+      continue;
+
+    iTotal := iTotal + Widths[i];
+  end;
+
+  iDetails := tblSuggMems.Width - iTotal - 25 - 10;
+  tblSuggMems.Columns.Width[ccStatementDetails] := iDetails;
+end;
+
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.tblSuggMemsActiveCellChanged(
   Sender: TObject; RowNum, ColNum: Integer);
 begin
@@ -249,7 +281,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.tblSuggMemsDblClick(Sender: TObject);
 begin
-  if tblSuggMems.ActiveRow = 0 then
+  if fHeadingClicked then
     Exit;
 
   if fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id = BLANK_LINE then
@@ -269,6 +301,29 @@ begin
     Exit;
 
   ReadCellforPaint(RowNum, ColNum, Data);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.tblSuggMemsLeavingRow(Sender: TObject;
+  RowNum: Integer);
+begin
+  fHeadingClicked := false;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.tblSuggMemsLockedCellClick(
+  Sender: TObject; RowNum, ColNum: Integer);
+begin
+  fHeadingClicked := true;
+  case ColNum of
+    ccEntryType        : fSuggMemSortedList.ColSortOrder := csType;
+    ccStatementDetails : fSuggMemSortedList.ColSortOrder := csPhrase;
+    ccCode             : fSuggMemSortedList.ColSortOrder := csAccount;
+    ccCodedMatch       : fSuggMemSortedList.ColSortOrder := csCodedMatch;
+    ccUnCodedMatch     : fSuggMemSortedList.ColSortOrder := csUncodedMatch;
+  end;
+  Refresh();
+  tblSuggMems.Invalidate;
 end;
 
 //------------------------------------------------------------------------------
@@ -348,6 +403,7 @@ begin
   SuggestedMem.UpdateSuggestion(fBankAccount, fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id, Hide, false);
 
   Refresh();
+  RefreshMemControls(tblSuggMems.ActiveRow);
   tblSuggMems.Invalidate;
 end;
 
@@ -482,7 +538,6 @@ begin
         end;
       end;
     end;
-    
 
   finally
     fLoading := false;
@@ -526,7 +581,6 @@ begin
     else
       btnHide.Caption := 'Hide';
   end;
-  self.Repaint;
 end;
 
 //------------------------------------------------------------------------------

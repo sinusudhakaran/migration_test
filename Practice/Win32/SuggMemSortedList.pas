@@ -146,7 +146,7 @@ begin
       csPhrase       : Result := CompareText(SuggItem1.MatchedPhrase, SuggItem2.MatchedPhrase);
       csAccount      : Result := CompareText(SuggItem1.Account, SuggItem2.Account);
       csCodedMatch   : Result := CompareValue(SuggItem1.ManualCount, SuggItem2.ManualCount);
-      csUncodedMatch : Result := CompareValue(SuggItem1.TotalCount, SuggItem2.UnCodedCount);
+      csUncodedMatch : Result := CompareValue(SuggItem1.UnCodedCount, SuggItem2.UnCodedCount);
     end;
   end;
 end;
@@ -167,7 +167,7 @@ begin
   NewSuggMem^.IsExactMatch       := aSuggMemSortedItem.IsExactMatch;
   NewSuggMem^.IsHidden           := aSuggMemSortedItem.IsHidden;
   NewSuggMem^.IsHiddenForSession := aSuggMemSortedItem.IsHiddenForSession;
-  NewSuggMem^.UnCodedCount       := aSuggMemSortedItem.TotalCount + aSuggMemSortedItem.ManualCount;
+  NewSuggMem^.UnCodedCount       := aSuggMemSortedItem.TotalCount - aSuggMemSortedItem.ManualCount;
 
   Insert(NewSuggMem);
 end;

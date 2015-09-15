@@ -3,7 +3,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Top = 0
   Caption = 'Suggested Memorisations for '
   ClientHeight = 448
-  ClientWidth = 669
+  ClientWidth = 696
   Color = clBtnFace
   Constraints.MinHeight = 400
   Constraints.MinWidth = 534
@@ -17,23 +17,24 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pnlButtons: TPanel
     Left = 0
     Top = 408
-    Width = 669
+    Width = 696
     Height = 40
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     ExplicitWidth = 649
     DesignSize = (
-      669
+      696
       40)
     object btnClose: TButton
-      Left = 584
+      Left = 611
       Top = 10
       Width = 75
       Height = 25
@@ -51,7 +52,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       ExplicitLeft = 564
     end
     object btnCreate: TButton
-      Left = 503
+      Left = 530
       Top = 10
       Width = 75
       Height = 25
@@ -70,7 +71,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     object chkAllowSuggMemPopup: TCheckBox
       Left = 89
       Top = 14
-      Width = 408
+      Width = 435
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Allow Suggested Memorisation '#39'Pop-up'#39
@@ -102,7 +103,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 669
+    Width = 696
     Height = 33
     Align = alTop
     BevelOuter = bvNone
@@ -125,7 +126,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object pnlLayout1: TPanel
     Left = 0
     Top = 33
-    Width = 669
+    Width = 696
     Height = 375
     Align = alClient
     BevelOuter = bvNone
@@ -135,7 +136,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     object pnlLayout2: TPanel
       Left = 0
       Top = 0
-      Width = 669
+      Width = 696
       Height = 375
       Align = alClient
       BevelOuter = bvNone
@@ -145,7 +146,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       object tblSuggMems: TOvcTable
         Left = 0
         Top = 0
-        Width = 669
+        Width = 696
         Height = 375
         RowLimit = 2
         LockedCols = 0
@@ -189,8 +190,9 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         OnActiveCellChanged = tblSuggMemsActiveCellChanged
         OnDblClick = tblSuggMemsDblClick
         OnGetCellData = tblSuggMemsGetCellData
-        ExplicitWidth = 649
-        ExplicitHeight = 374
+        OnLeavingRow = tblSuggMemsLeavingRow
+        OnLockedCellClick = tblSuggMemsLockedCellClick
+        ExplicitWidth = 669
         CellData = (
           'RecommendedMemorisationsFrm.hdrSuggMems'
           'RecommendedMemorisationsFrm.colEntryType'
@@ -204,7 +206,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
           False
           42)
         ColData = (
-          63
+          90
           False
           True
           'RecommendedMemorisationsFrm.colEntryType'

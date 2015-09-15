@@ -84,35 +84,17 @@ type
   );
 
   TdlgMemorise = class(TForm)
-    GroupBox1: TGroupBox;
-    eRef: TEdit;
-    ePart: TEdit;
-    eOther: TEdit;
-    eCode: TEdit;
     memController: TOvcController;
-    cRef: TCheckBox;
-    cPart: TCheckBox;
-    cOther: TCheckBox;
-    cCode: TCheckBox;
     ColAmount: TOvcTCNumericField;
     ColDesc: TOvcTCString;
     ColAcct: TOvcTCString;
-    cmbValue: TComboBox;
-    nValue: TOvcNumericField;
-    cEntry: TCheckBox;
     ColGSTCode: TOvcTCString;
-    cNotes: TCheckBox;
-    eNotes: TEdit;
     Panel2: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
     Header: TOvcTCColHead;
-    chkStatementDetails: TCheckBox;
-    eStatementDetails: TEdit;
     colNarration: TOvcTCString;
-    cValue: TCheckBox;
     colLineType: TOvcTCComboBox;
-    sBar: TStatusBar;
     popMem: TPopupMenu;
     LookupChart1: TMenuItem;
     LookupGSTClass1: TMenuItem;
@@ -128,19 +110,12 @@ type
     EditSuperfundDetails1: TMenuItem;
     ClearSuperfundDetails1: TMenuItem;
     colJob: TOvcTCString;
-    eDateFrom: TOvcPictureField;
-    eDateTo: TOvcPictureField;
-    cbFrom: TCheckBox;
-    cbTo: TCheckBox;
     btnCopy: TButton;
     LookupJob1: TMenuItem;
     Rowtmr: TTimer;
-    cbMinus: TComboBox;
     tmrPayee: TTimer;
-    cmbType: TComboBox;
-    Button1: TButton;
     pnlMain: TPanel;
-    Panel1: TPanel;
+    pnlAllocateTo: TPanel;
     ToolBar: TPanel;
     sbtnPayee: TSpeedButton;
     sbtnChart: TSpeedButton;
@@ -150,20 +125,50 @@ type
     chkAccountSystem: TCheckBox;
     cbAccounting: TComboBox;
     tblSplit: TOvcTable;
-    tblTran: TOvcTable;
     tranController: TOvcController;
     Panel4: TPanel;
-    lblAmountHdr: TLabel;
-    lblTotalPercHdr: TLabel;
-    lblRemPercHdr: TLabel;
-    lblRemPerc: TLabel;
+    pnlDetails: TPanel;
+    cEntry: TCheckBox;
+    cmbType: TComboBox;
+    chkStatementDetails: TCheckBox;
+    eStatementDetails: TEdit;
+    cRef: TCheckBox;
+    eRef: TEdit;
+    eOther: TEdit;
+    cOther: TCheckBox;
+    cCode: TCheckBox;
+    eCode: TEdit;
+    cNotes: TCheckBox;
+    cPart: TCheckBox;
+    cValue: TCheckBox;
+    cbTo: TCheckBox;
+    cbFrom: TCheckBox;
+    eDateFrom: TOvcPictureField;
+    eDateTo: TOvcPictureField;
+    cmbValue: TComboBox;
+    nValue: TOvcNumericField;
+    cbMinus: TComboBox;
+    btnShowMoreOptions: TButton;
+    ePart: TEdit;
+    eNotes: TEdit;
+    lblMatchOn: TLabel;
+    Splitter1: TSplitter;
+    lblAllocateTo: TLabel;
+    pnlAllocateToLine: TPanel;
+    pnlMatchingTransactions: TPanel;
     lblTotalPerc: TLabel;
+    lblRemPerc: TLabel;
+    lblRemPercHdr: TLabel;
+    lblTotalPercHdr: TLabel;
     lblAmount: TLabel;
-    lblFixedHdr: TLabel;
+    lblAmountHdr: TLabel;
     lblFixed: TLabel;
+    lblFixedHdr: TLabel;
     lblRemDollar: TLabel;
     lblRemDollarHdr: TLabel;
-    Splitter: TSplitter;
+    tblTran: TOvcTable;
+    lblMatchingTransactions: TLabel;
+    pnlChartLine: TPanel;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -243,6 +248,7 @@ type
     procedure RowtmrTimer(Sender: TObject);
     procedure cbMinusChange(Sender: TObject);
     procedure tmrPayeeTimer(Sender: TObject);
+    procedure btnShowMoreOptionsClick(Sender: TObject);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -271,6 +277,7 @@ type
     tmrRow: Integer;
     tmrCol: Integer;
     fDlgEditMode: TDlgEditMode;
+    fShowMoreOptions : boolean;
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
@@ -303,6 +310,7 @@ type
     function GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
   protected
     procedure SetDlgEditMode(aValue : TDlgEditMode);
+    procedure UpdateMoreOptions();
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
@@ -437,43 +445,43 @@ begin
 
 
     case clCountry of
-     whNewZealand :
-        Begin
-           sbtnSuper.Visible := False;
-        end;
-     whAustralia, whUK :
-        Begin
-           cCode.Caption    := '&Bank Type';
-           eCode.MaxLength  := 12;
+      whNewZealand :
+      Begin
+        sbtnSuper.Visible := False;
+      end;
+      whAustralia, whUK :
+      Begin
+        cCode.Caption    := '&Bank Type';
+        eCode.MaxLength  := 12;
 
-           cPart.Visible    := false;
-           ePart.Visible    := false;
-           cOther.Visible   := false;
-           eOther.Visible   := false;
+        cPart.Visible    := false;
+        ePart.Visible    := false;
+        cOther.Visible   := false;
+        eOther.Visible   := false;
 
-           cNotes.Top       := cOther.Top;
-           eNotes.Top       := eOther.Top;
+        cNotes.Top       := cPart.Top;
+        eNotes.Top       := ePart.Top;
+        cCode.Top        := cOther.Top;
+        eCode.Top        := eOther.Top;
 
-           cValue.Top       := cPart.Top + 3;
-           cmbValue.Top     := ePart.Top + 3;
-           nValue.Top       := ePart.Top + 4;
-           cbMinus.Top      := nValue.Top;
-
-           GroupBox1.Height := 180;
-           sbtnSuper.Visible :=  CanUseSuperFundFields(MyClient.clFields.clCountry,  MyClient.clFields.clAccounting_System_Used, sfMem);
-        end;
-     end;
+        sbtnSuper.Visible :=  CanUseSuperFundFields(MyClient.clFields.clCountry,  MyClient.clFields.clAccounting_System_Used, sfMem);
+      end;
+    end;
+    fShowMoreOptions := false;
+    UpdateMoreOptions();
   end;
-  if not sbtnSuper.Visible then begin
-     EditSuperfundDetails1.Visible := False;
-     ClearSuperfundDetails1.Visible := False;
-  end; 
+
+  if not sbtnSuper.Visible then
+  begin
+    EditSuperfundDetails1.Visible := False;
+    ClearSuperfundDetails1.Visible := False;
+  end;
 
   //Resize for
   Width  := Max( 630, Round( (application.MainForm.Monitor.WorkareaRect.Right - application.MainForm.Monitor.WorkareaRect.Left) * 0.8));
   Height := Max( 450, Round( (application.MainForm.Monitor.WorkareaRect.Bottom - application.MainForm.Monitor.WorkareaRect.Top) * 0.8));
 
- 
+
 
   // Resize the Desc Column to fit the table size
   with tblSplit do begin
@@ -717,10 +725,18 @@ begin
    end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.btnShowMoreOptionsClick(Sender: TObject);
+begin
+  fShowMoreOptions := not fShowMoreOptions;
+  UpdateMoreOptions();
+end;
+
 // The entry type is not stored globally, so the simplest way for us to get
 // it is to take it from cmbType, after stripping out the colon and short name.
 // If no integer is passed to this method, it will return the currently selected
 // item
+//------------------------------------------------------------------------------
 function TdlgMemorise.GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
 begin
   if (ItemIndex = -1) or (ItemIndex >= cmbType.Items.Count) then
@@ -3309,7 +3325,7 @@ end;
 procedure TdlgMemorise.tblSplitEnteringRow(Sender: TObject;
   RowNum: Integer);
 begin
-  sBar.Panels[0].Text := Format( '%d of %d', [ tblSplit.ActiveRow, GLCONST.Max_mx_Lines ] );
+  //sBar.Panels[0].Text := Format( '%d of %d', [ tblSplit.ActiveRow, GLCONST.Max_mx_Lines ] );
   ExistingCode := SplitData[tblSplit.ActiveRow].AcctCode;
 end;
 
@@ -3334,7 +3350,7 @@ begin
 
 
   lblFixedHdr.Caption := 'Fixed ' + LCur;
-  lblRemDollarHdr.Caption := 'Rem ' + LCur;
+  lblRemDollarHdr.Caption := 'Remaining ' + LCur;
 
   With FixedAmount1 do
       Caption := 'Apply &fixed amount                             ' + LCur;
@@ -3429,6 +3445,23 @@ begin
     ShowPopup( x,y,popMem);
   end;
 {$ENDIF}
+end;
+
+procedure TdlgMemorise.UpdateMoreOptions();
+begin
+  if fShowMoreOptions then
+  begin
+    btnShowMoreOptions.Caption := 'Hide more options';
+    case MyClient.clFields.clCountry of
+      whNewZealand : pnlDetails.Height := 207;
+      whAustralia, whUK : pnlDetails.Height := 177;
+    end;
+  end
+  else
+  begin
+    btnShowMoreOptions.Caption := 'Show more options';
+    pnlDetails.Height := 117;
+  end;
 end;
 
 procedure TdlgMemorise.ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
