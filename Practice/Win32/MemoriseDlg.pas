@@ -2459,76 +2459,99 @@ begin
             //fill detail
             for i := pM.mdLines.First to pM.mdLines.Last do
             begin
-               MemLine := pM.mdLines.MemorisationLine_At(i);
-               SplitData[ i+1].AcctCode         := MemLine^.mlAccount;
-               SplitData[ i+1].GST_Has_Been_Edited := MemLine^.mlGST_Has_Been_Edited;
-               pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
-               if Assigned( pAcct) then begin
-                  SplitData[ i+1].Desc   := pAcct^.chAccount_Description;
-               end
-               else begin
-                  SplitData[ i+1].Desc  := '';
-               end;
-               SplitData[ i+1].JobCode  := MemLine^.mlJob_Code;
-               //load in the gst class code.  If this is master memorisation and the gst
-               //has not been edited then load in the current default for the account code
-               //There is no need to do this for client memorisations because they will be
-               //updated when the chart is changed
-               if mdFields.mdFrom_Master_List and ( not MemLine^.mlGST_Has_Been_Edited) then begin
-                  //load default for chart
-                  SplitData[ i+1].GSTClassCode  := GetGSTClassCode( MyClient, MyClient.clChart.GSTClass( MemLine^.mlAccount));
-               end
-               else begin
-                  //memorisation stores class no so load in class id
-                  SplitData[ i+1].GSTClassCode     := GetGSTClassCode( MyClient, MemLine^.mlGST_Class);
-               end;
-               if MemLine^.mlLine_Type = mltPercentage then
-                  SplitData[ i+1].Amount := Percent2Double( MemLine^.mlPercentage)
-               else
-                  SplitData[ i+1].Amount := Money2Double( MemLine^.mlPercentage);
-               SplitData[ i+1].Narration := MemLine^.mlGL_Narration;
+              MemLine := pM.mdLines.MemorisationLine_At(i);
+              SplitData[ i+1].AcctCode         := MemLine^.mlAccount;
+              SplitData[ i+1].GST_Has_Been_Edited := MemLine^.mlGST_Has_Been_Edited;
+              pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
+              if Assigned( pAcct) then begin
+                 SplitData[ i+1].Desc   := pAcct^.chAccount_Description;
+              end
+              else begin
+                 SplitData[ i+1].Desc  := '';
+              end;
+              SplitData[ i+1].JobCode  := MemLine^.mlJob_Code;
+              //load in the gst class code.  If this is master memorisation and the gst
+              //has not been edited then load in the current default for the account code
+              //There is no need to do this for client memorisations because they will be
+              //updated when the chart is changed
+              if mdFields.mdFrom_Master_List and ( not MemLine^.mlGST_Has_Been_Edited) then begin
+                 //load default for chart
+                 SplitData[ i+1].GSTClassCode  := GetGSTClassCode( MyClient, MyClient.clChart.GSTClass( MemLine^.mlAccount));
+              end
+              else begin
+                 //memorisation stores class no so load in class id
+                 SplitData[ i+1].GSTClassCode     := GetGSTClassCode( MyClient, MemLine^.mlGST_Class);
+              end;
+              if MemLine^.mlLine_Type = mltPercentage then
+                 SplitData[ i+1].Amount := Percent2Double( MemLine^.mlPercentage)
+              else
+                 SplitData[ i+1].Amount := Money2Double( MemLine^.mlPercentage);
+              SplitData[ i+1].Narration := MemLine^.mlGL_Narration;
 
-               if MemLine^.mlAccount <> '' then
-                  SplitData[ i+1].LineType := MemLine^.mlLine_Type
-               else
-                  SplitData[ i+1].LineType := pltPercentage;
+              if MemLine^.mlAccount <> '' then
+                 SplitData[ i+1].LineType := MemLine^.mlLine_Type
+              else
+                 SplitData[ i+1].LineType := pltPercentage;
 
-               SplitData[ i+1].Payee := MemLine^.mlPayee;
+              SplitData[ i+1].Payee := MemLine^.mlPayee;
 
-               SplitData[ i+1].SF_PCFranked := MemLine^.mlSF_PCFranked;
-               SplitData[ i+1].SF_PCUnFranked := MemLine^.mlSF_PCUnFranked;
+              SplitData[ i+1].SF_PCFranked := MemLine^.mlSF_PCFranked;
+              SplitData[ i+1].SF_PCUnFranked := MemLine^.mlSF_PCUnFranked;
 
-               SplitData[ i+1].SF_Member_ID := MemLine^.mlSF_Member_ID;
-               SplitData[ i+1].SF_Fund_ID   := MemLine^.mlSF_Fund_ID;
-               SplitData[ i+1].SF_Fund_Code := MemLine^.mlSF_Fund_Code;
-               SplitData[ i+1].SF_Trans_ID  := MemLine^.mlSF_Trans_ID;
-               SplitData[ i+1].SF_Trans_Code  := MemLine^.mlSF_Trans_Code;
-               SplitData[ i+1].SF_Member_Account_ID := MemLine^.mlSF_Member_Account_ID;
-               SplitData[ i+1].SF_Member_Account_Code := MemLine^.mlSF_Member_Account_Code;
-               SplitData[ i+1].SF_Member_Component := MemLine^.mlSF_Member_Component;
+              SplitData[ i+1].SF_Member_ID := MemLine^.mlSF_Member_ID;
+              SplitData[ i+1].SF_Fund_ID   := MemLine^.mlSF_Fund_ID;
+              SplitData[ i+1].SF_Fund_Code := MemLine^.mlSF_Fund_Code;
+              SplitData[ i+1].SF_Trans_ID  := MemLine^.mlSF_Trans_ID;
+              SplitData[ i+1].SF_Trans_Code  := MemLine^.mlSF_Trans_Code;
+              SplitData[ i+1].SF_Member_Account_ID := MemLine^.mlSF_Member_Account_ID;
+              SplitData[ i+1].SF_Member_Account_Code := MemLine^.mlSF_Member_Account_Code;
+              SplitData[ i+1].SF_Member_Component := MemLine^.mlSF_Member_Component;
 
-               SplitData[ i+1].Quantity := MemLine.mlQuantity;
+              SplitData[ i+1].Quantity := MemLine^.mlQuantity;
 
-               SplitData[ i+1].SF_GDT_Date := MemLine.mlSF_GDT_Date;
-               SplitData[ i+1].SF_Tax_Free_Dist := MemLine.mlSF_Tax_Free_Dist;
-               SplitData[ i+1].SF_Tax_Exempt_Dist := MemLine.mlSF_Tax_Exempt_Dist;
-               SplitData[ i+1].SF_Tax_Deferred_Dist := MemLine.mlSF_Tax_Deferred_Dist;
-               SplitData[ i+1].SF_TFN_Credits := MemLine.mlSF_TFN_Credits;
-               SplitData[ i+1].SF_Foreign_Income := MemLine.mlSF_Foreign_Income;
-               SplitData[ i+1].SF_Foreign_Tax_Credits := MemLine.mlSF_Foreign_Tax_Credits;
-               SplitData[ i+1].SF_Capital_Gains_Indexed := MemLine.mlSF_Capital_Gains_Indexed;
-               SplitData[ i+1].SF_Capital_Gains_Disc := MemLine.mlSF_Capital_Gains_Disc;
-               SplitData[ i+1].SF_Capital_Gains_Other := MemLine.mlSF_Capital_Gains_Other;
-               SplitData[ i+1].SF_Other_Expenses := MemLine.mlSF_Other_Expenses;
-               SplitData[ i+1].SF_Interest := MemLine.mlSF_Interest;
-               SplitData[ i+1].SF_Capital_Gains_Foreign_Disc := MemLine.mlSF_Capital_Gains_Foreign_Disc;
-               SplitData[ i+1].SF_Rent := MemLine.mlSF_Rent;
-               SplitData[ i+1].SF_Special_Income := MemLine.mlSF_Special_Income;
-               SplitData[ i+1].SF_Other_Tax_Credit := MemLine.mlSF_Other_Tax_Credit;
-               SplitData[ i+1].SF_Non_Resident_Tax := MemLine.mlSF_Non_Resident_Tax;
-               SplitData[ i+1].SF_Foreign_Capital_Gains_Credit := MemLine.mlSF_Foreign_Capital_Gains_Credit;
-               SplitData[ i+1].SF_Capital_Gains_Fraction_Half := MemLine.mlSF_Capital_Gains_Fraction_Half;
-               SplitData[ i+1].SF_Edited := MemLine^.mlSF_Edited;
+              SplitData[ i+1].SF_GDT_Date := MemLine^.mlSF_GDT_Date;
+              SplitData[ i+1].SF_Tax_Free_Dist := MemLine^.mlSF_Tax_Free_Dist;
+              SplitData[ i+1].SF_Tax_Exempt_Dist := MemLine^.mlSF_Tax_Exempt_Dist;
+              SplitData[ i+1].SF_Tax_Deferred_Dist := MemLine^.mlSF_Tax_Deferred_Dist;
+              SplitData[ i+1].SF_TFN_Credits := MemLine^.mlSF_TFN_Credits;
+              SplitData[ i+1].SF_Foreign_Income := MemLine^.mlSF_Foreign_Income;
+              SplitData[ i+1].SF_Foreign_Tax_Credits := MemLine^.mlSF_Foreign_Tax_Credits;
+              SplitData[ i+1].SF_Capital_Gains_Indexed := MemLine^.mlSF_Capital_Gains_Indexed;
+              SplitData[ i+1].SF_Capital_Gains_Disc := MemLine^.mlSF_Capital_Gains_Disc;
+              SplitData[ i+1].SF_Capital_Gains_Other := MemLine^.mlSF_Capital_Gains_Other;
+              SplitData[ i+1].SF_Other_Expenses := MemLine^.mlSF_Other_Expenses;
+              SplitData[ i+1].SF_Interest := MemLine^.mlSF_Interest;
+              SplitData[ i+1].SF_Capital_Gains_Foreign_Disc := MemLine^.mlSF_Capital_Gains_Foreign_Disc;
+              SplitData[ i+1].SF_Rent := MemLine^.mlSF_Rent;
+              SplitData[ i+1].SF_Special_Income := MemLine^.mlSF_Special_Income;
+              SplitData[ i+1].SF_Other_Tax_Credit := MemLine^.mlSF_Other_Tax_Credit;
+              SplitData[ i+1].SF_Non_Resident_Tax := MemLine^.mlSF_Non_Resident_Tax;
+              SplitData[ i+1].SF_Foreign_Capital_Gains_Credit := MemLine^.mlSF_Foreign_Capital_Gains_Credit;
+              SplitData[ i+1].SF_Capital_Gains_Fraction_Half := MemLine^.mlSF_Capital_Gains_Fraction_Half;
+              SplitData[ i+1].SF_Edited := MemLine^.mlSF_Edited;
+
+              //DN BGL360 Extended fields
+              SplitData[ i+1 ].SF_Other_Income                            := MemLine^.mlSF_Other_Income;
+              SplitData[ i+1 ].SF_Other_Trust_Deductions                  := MemLine^.mlSF_Other_Trust_Deductions;
+              SplitData[ i+1 ].SF_CGT_Concession_Amount                   := MemLine^.mlSF_CGT_Concession_Amount;
+              SplitData[ i+1 ].SF_CGT_ForeignCGT_Before_Disc              := MemLine^.mlSF_CGT_ForeignCGT_Before_Disc;
+              SplitData[ i+1 ].SF_CGT_ForeignCGT_Indexation               := MemLine^.mlSF_CGT_ForeignCGT_Indexation;
+              SplitData[ i+1 ].SF_CGT_ForeignCGT_Other_Method             := MemLine^.mlSF_CGT_ForeignCGT_Other_Method;
+              SplitData[ i+1 ].SF_CGT_TaxPaid_Indexation                  := MemLine^.mlSF_CGT_TaxPaid_Indexation;
+              SplitData[ i+1 ].SF_CGT_TaxPaid_Other_Method                := MemLine^.mlSF_CGT_TaxPaid_Other_Method;
+              SplitData[ i+1 ].SF_Other_Net_Foreign_Income                := MemLine^.mlSF_Other_Net_Foreign_Income;
+              SplitData[ i+1 ].SF_Cash_Distribution                       := MemLine^.mlSF_Cash_Distribution;
+              SplitData[ i+1 ].SF_AU_Franking_Credits_NZ_Co               := MemLine^.mlSF_AU_Franking_Credits_NZ_Co;
+              SplitData[ i+1 ].SF_Non_Res_Witholding_Tax                  := MemLine^.mlSF_Non_Res_Witholding_Tax;
+              SplitData[ i+1 ].SF_LIC_Deductions                          := MemLine^.mlSF_LIC_Deductions;
+              SplitData[ i+1 ].SF_Non_Cash_CGT_Discounted_Before_Discount := MemLine^.mlSF_Non_Cash_CGT_Discounted_Before_Discount;
+              SplitData[ i+1 ].SF_Non_Cash_CGT_Indexation                 := MemLine^.mlSF_Non_Cash_CGT_Indexation;
+              SplitData[ i+1 ].SF_Non_Cash_CGT_Other_Method               := MemLine^.mlSF_Non_Cash_CGT_Other_Method;
+              SplitData[ i+1 ].SF_Non_Cash_CGT_Capital_Losses             := MemLine^.mlSF_Non_Cash_CGT_Capital_Losses;
+              SplitData[ i+1 ].SF_Share_Brokerage                         := MemLine^.mlSF_Share_Brokerage;
+              SplitData[ i+1 ].SF_Share_Consideration                     := MemLine^.mlSF_Share_Consideration;
+              SplitData[ i+1 ].SF_Share_GST_Amount                        := MemLine^.mlSF_Share_GST_Amount;
+              SplitData[ i+1 ].SF_Share_GST_Rate                          := MemLine^.mlSF_Share_GST_Rate;
             end;
          end;
          //Show Total Line
@@ -3138,20 +3161,42 @@ begin
              mlSF_Foreign_Capital_Gains_Credit := SplitData[i].SF_Foreign_Capital_Gains_Credit;
              mlSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
 
+             //DN BGL360 Extended fields
+             mlSF_Other_Income                            := SplitData[ i ].SF_Other_Income;
+             mlSF_Other_Trust_Deductions                  := SplitData[ i ].SF_Other_Trust_Deductions;
+             mlSF_CGT_Concession_Amount                   := SplitData[ i ].SF_CGT_Concession_Amount;
+             mlSF_CGT_ForeignCGT_Before_Disc              := SplitData[ i ].SF_CGT_ForeignCGT_Before_Disc;
+             mlSF_CGT_ForeignCGT_Indexation               := SplitData[ i ].SF_CGT_ForeignCGT_Indexation;
+             mlSF_CGT_ForeignCGT_Other_Method             := SplitData[ i ].SF_CGT_ForeignCGT_Other_Method;
+             mlSF_CGT_TaxPaid_Indexation                  := SplitData[ i ].SF_CGT_TaxPaid_Indexation;
+             mlSF_CGT_TaxPaid_Other_Method                := SplitData[ i ].SF_CGT_TaxPaid_Other_Method;
+             mlSF_Other_Net_Foreign_Income                := SplitData[ i ].SF_Other_Net_Foreign_Income;
+             mlSF_Cash_Distribution                       := SplitData[ i ].SF_Cash_Distribution;
+             mlSF_AU_Franking_Credits_NZ_Co               := SplitData[ i ].SF_AU_Franking_Credits_NZ_Co;
+             mlSF_Non_Res_Witholding_Tax                  := SplitData[ i ].SF_Non_Res_Witholding_Tax;
+             mlSF_LIC_Deductions                          := SplitData[ i ].SF_LIC_Deductions;
+             mlSF_Non_Cash_CGT_Discounted_Before_Discount := SplitData[ i ].SF_Non_Cash_CGT_Discounted_Before_Discount;
+             mlSF_Non_Cash_CGT_Indexation                 := SplitData[ i ].SF_Non_Cash_CGT_Indexation;
+             mlSF_Non_Cash_CGT_Other_Method               := SplitData[ i ].SF_Non_Cash_CGT_Other_Method;
+             mlSF_Non_Cash_CGT_Capital_Losses             := SplitData[ i ].SF_Non_Cash_CGT_Capital_Losses;
+             mlSF_Share_Brokerage                         := SplitData[ i ].SF_Share_Brokerage;
+             mlSF_Share_Consideration                     := SplitData[ i ].SF_Share_Consideration;
+             mlSF_Share_GST_Amount                        := SplitData[ i ].SF_Share_GST_Amount;
+             mlSF_Share_GST_Rate                          := SplitData[ i ].SF_Share_GST_Rate;
 
 
              mlSF_edited := SplitData[i].SF_edited;
            end;
 
            if AuditIDList.Count > 0 then begin
-             MemLine.mlAudit_Record_ID := integer(AuditIDList.Items[0]);
+             MemLine^.mlAudit_Record_ID := integer(AuditIDList.Items[0]);
              pM.mdLines.Insert(MemLine);
              AuditIDList.Delete(0);
            end else if ATempMem then
              pM.mdLines.Insert(MemLine)
            else begin
              if IsMaster and Assigned(AdminSystem) then
-               MemLine.mlAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
+               MemLine^.mlAudit_Record_ID := SystemAuditMgr.NextAuditRecordID;
              pM.mdLines.Insert(MemLine)
            end;
          end;
