@@ -441,6 +441,7 @@ type
     mniAssert: TMenuItem;
     mniListManual: TMenuItem;
     mniHelpProvideFeedback: TMenuItem;
+    mniPromos: TMenuItem;
     procedure FormResize(Sender: TObject);
     procedure tmClockTimer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -732,6 +733,7 @@ type
     procedure mniListManualClick(Sender: TObject);
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
     procedure mniHelpProvideFeedbackClick(Sender: TObject);
+    procedure mniPromosClick(Sender: TObject);
 
   private
     FClientInstance,
@@ -1128,7 +1130,9 @@ uses
   WebUtils,
   formNPSWebHost,
   uLeanEngageLib,
-  formLEFeedback;
+  formLEFeedback,
+  PromoWindowObj,
+  PromoDisplayForm;
   //StockBalancesDlg;
 
 const
@@ -1466,7 +1470,8 @@ begin
    TutorialsFile := ExecDir + 'tutorial.chm';
    mniTutorialsTOC.Caption := AppTitle + ' &Tutorial';
    mniTutorialsTOC.Visible := BKFileExists(TutorialsFile);
-
+   //mniPromos.Visible := (DisplayPromoContents.Count > 0);
+   
    mniBKHelp.Caption := AppTitle + ' &Help';
    mniBKHelp.Visible := bkHelp.BKHelpFileExists;
 
@@ -5013,6 +5018,26 @@ end;
 procedure TfrmMain.mniPRExportClick(Sender: TObject);
 begin
    DoModalReport(REPORT_PROFIT_EXPORT,rdNone);
+end;
+
+procedure TfrmMain.mniPromosClick(Sender: TObject);
+var
+  ShowForm : TPromoDisplayFrm;
+begin
+  if DisplayPromoContents.TotalContents > 0 then
+  begin
+    DisplayPromoContents.DisplayTypes := [ctMarketing, ctTechnical];
+    DisplayPromoContents.ListValidContents;
+    if DisplayPromoContents.Count > 0 then
+    begin
+      ShowForm := TPromoDisplayFrm.Create(Nil);
+      try
+        ShowForm.ShowModal;
+      finally
+        FreeAndNil(ShowForm);
+      end;
+    end;
+  end;
 end;
 
 procedure TfrmMain.mniBalanceExportClick(Sender: TObject);

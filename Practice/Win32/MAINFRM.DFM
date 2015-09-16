@@ -1680,6 +1680,10 @@ object frmMain: TfrmMain
         Caption = '&Tutorials'
         OnClick = mniTutorialsTOCClick
       end
+      object mniPromos: TMenuItem
+        Caption = '&Promos'
+        OnClick = mniPromosClick
+      end
       object N4: TMenuItem
         Caption = '-'
       end
