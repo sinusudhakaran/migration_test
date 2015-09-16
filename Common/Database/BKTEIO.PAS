@@ -9,16 +9,16 @@ INTERFACE USES BKDEFS, IOSTREAM, BKAUDITUTILS;
 {  -------------------------------------------------------------------  }
 
 CONST
-   tkBegin_Transaction_Extra            = 162 ;
-   tkEnd_Transaction_Extra              = 163 ;
+   tkBegin_Transaction_Extension        = 162 ;
+   tkEnd_Transaction_Extension          = 163 ;
 
-FUNCTION  IsATransaction_Extra_Rec ( P : Pointer ): Boolean;
-PROCEDURE Write_Transaction_Extra_Rec ( Var O : TTransaction_Extra_Rec ; Var F : TIOStream );
-PROCEDURE Read_Transaction_Extra_Rec ( Var O : TTransaction_Extra_Rec ; Var F : TIOStream );
-FUNCTION  New_Transaction_Extra_Rec : pTransaction_Extra_Rec ;
-PROCEDURE Free_Transaction_Extra_Rec_Dynamic_Fields ( Var O : TTransaction_Extra_Rec );
-FUNCTION Transaction_Extra_Rec_Delta(P1, P2, P3: pTransaction_Extra_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
-procedure Copy_Transaction_Extra_Rec(P1, P2: pTransaction_Extra_Rec);
+FUNCTION  IsATransaction_Extension_Rec ( P : Pointer ): Boolean;
+PROCEDURE Write_Transaction_Extension_Rec ( Var O : TTransaction_Extension_Rec ; Var F : TIOStream );
+PROCEDURE Read_Transaction_Extension_Rec ( Var O : TTransaction_Extension_Rec ; Var F : TIOStream );
+FUNCTION  New_Transaction_Extension_Rec : pTransaction_Extension_Rec ;
+PROCEDURE Free_Transaction_Extension_Rec_Dynamic_Fields ( Var O : TTransaction_Extension_Rec );
+FUNCTION Transaction_Extension_Rec_Delta(P1, P2, P3: pTransaction_Extension_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+procedure Copy_Transaction_Extension_Rec(P1, P2: pTransaction_Extension_Rec);
 procedure SetAllFieldsChanged(var ChangedFields: TChanged_Fields_Array);
 
 {  -------------------------------------------------------------------  }
@@ -28,11 +28,11 @@ IMPLEMENTATION USES MONEYDEF, MALLOC, BKDBEXCEPT;
 CONST
    SUnitName           = 'BKTEIO';
    SBoundsError        = 'BKTEIO Error: %s is out of bounds [ %d %d ], value is %d';
-   SInvalidPointer     = 'BKTEIO Error: Pointer is NIL in IsATransaction_Extra_Rec';
-   SInvalidType        = 'BKTEIO Error: Type is invalid in IsATransaction_Extra_Rec';
-   SInvalidEOR         = 'BKTEIO Error: EOR is missing in IsATransaction_Extra_Rec';
-   SUnknownToken       = 'BKTEIO Error: Unknown token %d in Read_Transaction_Extra_Rec';
-   SInsufficientMemory = 'BKTEIO Error: Out of memory in New_Transaction_Extra_Rec';
+   SInvalidPointer     = 'BKTEIO Error: Pointer is NIL in IsATransaction_Extension_Rec';
+   SInvalidType        = 'BKTEIO Error: Type is invalid in IsATransaction_Extension_Rec';
+   SInvalidEOR         = 'BKTEIO Error: EOR is missing in IsATransaction_Extension_Rec';
+   SUnknownToken       = 'BKTEIO Error: Unknown token %d in Read_Transaction_Extension_Rec';
+   SInsufficientMemory = 'BKTEIO Error: Out of memory in New_Transaction_Extension_Rec';
 
 {  -------------------------------------------------------------------  }
 
@@ -69,18 +69,21 @@ CONST
    tkteSF_Share_Consideration           = 184 ;
    tkteSF_Share_GST_Amount              = 185 ;
    tkteSF_Share_GST_Rate                = 186 ;
+   tkteSF_Cash_Date                     = 187 ;
+   tkteSF_Accrual_Date                  = 188 ;
+   tkteSF_Record_Date                   = 189 ;
 
 {  -------------------------------------------------------------------  }
 
-FUNCTION IsATransaction_Extra_Rec ( P : Pointer ): Boolean;
+FUNCTION IsATransaction_Extension_Rec ( P : Pointer ): Boolean;
 
 Begin
    If P=NIL then
       Raise ECorruptData.Create( SInvalidPointer );
-   With PTransaction_Extra_Rec ( P )^ do Begin
-      If teRecord_Type <> tkBegin_Transaction_Extra then
+   With PTransaction_Extension_Rec ( P )^ do Begin
+      If teRecord_Type <> tkBegin_Transaction_Extension then
          Raise ECorruptData.Create( SInvalidType );
-      If teEOR <> tkEnd_Transaction_Extra then
+      If teEOR <> tkEnd_Transaction_Extension then
          Raise ECorruptData.Create( SInvalidEOR );
    end;
    Result := TRUE;
@@ -88,12 +91,12 @@ end;
 
 {  -------------------------------------------------------------------  }
 
-PROCEDURE Write_Transaction_Extra_Rec ( Var O : TTransaction_Extra_Rec ; Var F : TIOStream );
+PROCEDURE Write_Transaction_Extension_Rec ( Var O : TTransaction_Extension_Rec ; Var F : TIOStream );
 
 Begin
-   If IsATransaction_Extra_Rec ( @O ) then With O do
+   If IsATransaction_Extension_Rec ( @O ) then With O do
    Begin
-      F.WriteToken( tkBegin_Transaction_Extra );
+      F.WriteToken( tkBegin_Transaction_Extension );
       F.WriteIntegerValue( tkteSequence_No , teSequence_No );
       F.WriteDateValue( tkteDate_Effective , teDate_Effective );
       F.WriteMoneyValue( tkteSF_Other_Income , teSF_Other_Income );
@@ -117,28 +120,31 @@ Begin
       F.WriteMoneyValue( tkteSF_Share_Consideration , teSF_Share_Consideration );
       F.WriteMoneyValue( tkteSF_Share_GST_Amount , teSF_Share_GST_Amount );
       F.WriteStringValue( tkteSF_Share_GST_Rate , teSF_Share_GST_Rate );
-      F.WriteToken( tkEnd_Transaction_Extra );
+      F.WriteDateValue( tkteSF_Cash_Date , teSF_Cash_Date );
+      F.WriteDateValue( tkteSF_Accrual_Date , teSF_Accrual_Date );
+      F.WriteDateValue( tkteSF_Record_Date , teSF_Record_Date );
+      F.WriteToken( tkEnd_Transaction_Extension );
    end;
-end; { of Write_Transaction_Extra_Rec }
+end; { of Write_Transaction_Extension_Rec }
 
 {  -------------------------------------------------------------------  }
 
-PROCEDURE Read_Transaction_Extra_Rec ( Var O : TTransaction_Extra_Rec; Var F : TIOStream );
+PROCEDURE Read_Transaction_Extension_Rec ( Var O : TTransaction_Extension_Rec; Var F : TIOStream );
 
 Var
    Token : Byte;
 
 Begin
-   FillChar( O, Transaction_Extra_Rec_Size, 0 );
-   O.teRecord_Type := tkBegin_Transaction_Extra;
-   O.teEOR := tkEnd_Transaction_Extra;
-   Token := tkBegin_Transaction_Extra;
+   FillChar( O, Transaction_Extension_Rec_Size, 0 );
+   O.teRecord_Type := tkBegin_Transaction_Extension;
+   O.teEOR := tkEnd_Transaction_Extension;
+   Token := tkBegin_Transaction_Extension;
 
-   While Token <> tkEnd_Transaction_Extra do With O do
+   While Token <> tkEnd_Transaction_Extension do With O do
    Begin
       Case Token of
-         tkBegin_Transaction_Extra :; { Do Nothing }
-         tkEnd_Transaction_Extra :; { Do Nothing }
+         tkBegin_Transaction_Extension :; { Do Nothing }
+         tkEnd_Transaction_Extension :; { Do Nothing }
          tkteSequence_No                      : teSequence_No := F.ReadIntegerValue;
          tkteDate_Effective                   : teDate_Effective := F.ReadDateValue;
          tkteSF_Other_Income                  : teSF_Other_Income := F.ReadMoneyValue;
@@ -162,38 +168,41 @@ Begin
          tkteSF_Share_Consideration           : teSF_Share_Consideration := F.ReadMoneyValue;
          tkteSF_Share_GST_Amount              : teSF_Share_GST_Amount := F.ReadMoneyValue;
          tkteSF_Share_GST_Rate                : teSF_Share_GST_Rate := F.ReadStringValue;
+         tkteSF_Cash_Date                     : teSF_Cash_Date := F.ReadDateValue;
+         tkteSF_Accrual_Date                  : teSF_Accrual_Date := F.ReadDateValue;
+         tkteSF_Record_Date                   : teSF_Record_Date := F.ReadDateValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
       Token := F.ReadToken;
    end; { of While }
-end; { of Read_Transaction_Extra_Rec }
+end; { of Read_Transaction_Extension_Rec }
 
 {  -------------------------------------------------------------------  }
 
-FUNCTION New_Transaction_Extra_Rec : pTransaction_Extra_Rec ;
+FUNCTION New_Transaction_Extension_Rec : pTransaction_Extension_Rec ;
 
 Var
-   P : pTransaction_Extra_Rec;
+   P : pTransaction_Extension_Rec;
 Begin
-   SafeGetMem( P, Transaction_Extra_Rec_Size ); 
+   SafeGetMem( P, Transaction_Extension_Rec_Size ); 
    If Assigned( P ) then With P^ do
    Begin
-      FillChar( P^, Transaction_Extra_Rec_Size, 0 );
-      teRecord_Type := tkBegin_Transaction_Extra;
-      teEOR         := tkEnd_Transaction_Extra;
+      FillChar( P^, Transaction_Extension_Rec_Size, 0 );
+      teRecord_Type := tkBegin_Transaction_Extension;
+      teEOR         := tkEnd_Transaction_Extension;
    end
    else
       Raise EInsufficientMemory.Create( SInsufficientMemory );
-   New_Transaction_Extra_Rec := P;
+   New_Transaction_Extension_Rec := P;
 end;
 
 {  -------------------------------------------------------------------  }
 
-PROCEDURE Free_Transaction_Extra_Rec_Dynamic_Fields ( Var O : TTransaction_Extra_Rec );
+PROCEDURE Free_Transaction_Extension_Rec_Dynamic_Fields ( Var O : TTransaction_Extension_Rec );
 
 Begin
-   If IsATransaction_Extra_Rec ( @O ) then With O do
+   If IsATransaction_Extension_Rec ( @O ) then With O do
    Begin
       { Free any dynamically allocated memory }
    end;
@@ -208,7 +217,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkteSequence_No to tkteSF_Share_GST_Rate do begin
+  for i := tkteSequence_No to tkteSF_Record_Date do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -216,7 +225,7 @@ end;
 
 {  -------------------------------------------------------------------  }
 
-FUNCTION Transaction_Extra_Rec_Delta(P1, P2, P3: pTransaction_Extra_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
+FUNCTION Transaction_Extension_Rec_Delta(P1, P2, P3: pTransaction_Extension_Rec; var ChangedFields: TChanged_Fields_Array): Boolean;
 var
   i: integer;
 begin
@@ -225,7 +234,7 @@ begin
 
   //Add
   if not Assigned(P2) then begin
-    Copy_Transaction_Extra_Rec(P1, P3);
+    Copy_Transaction_Extension_Rec(P1, P3);
     SetAllFieldsChanged(ChangedFields);
     Result := True;
     Exit;
@@ -348,21 +357,36 @@ begin
     ChangedFields[i] := tkteSF_Share_GST_Rate;
     Inc(i);
   end;
+  if (P1.teSF_Cash_Date <> P2.teSF_Cash_Date) then begin
+    P3.teSF_Cash_Date := P1.teSF_Cash_Date;
+    ChangedFields[i] := tkteSF_Cash_Date;
+    Inc(i);
+  end;
+  if (P1.teSF_Accrual_Date <> P2.teSF_Accrual_Date) then begin
+    P3.teSF_Accrual_Date := P1.teSF_Accrual_Date;
+    ChangedFields[i] := tkteSF_Accrual_Date;
+    Inc(i);
+  end;
+  if (P1.teSF_Record_Date <> P2.teSF_Record_Date) then begin
+    P3.teSF_Record_Date := P1.teSF_Record_Date;
+    ChangedFields[i] := tkteSF_Record_Date;
+    Inc(i);
+  end;
 
   Result := (i > 0);
 end;
 
 {  -------------------------------------------------------------------  }
 
-procedure Copy_Transaction_Extra_Rec(P1, P2: pTransaction_Extra_Rec);
+procedure Copy_Transaction_Extension_Rec(P1, P2: pTransaction_Extension_Rec);
 var
   S: TIOStream;
 begin
   S := TIOStream.Create;
   try
-    Write_Transaction_Extra_Rec(P1^, S);
+    Write_Transaction_Extension_Rec(P1^, S);
     S.Position := 0;
-    Read_Transaction_Extra_Rec(P2^, S);
+    Read_Transaction_Extension_Rec(P2^, S);
   finally
     S.Free;
   end;

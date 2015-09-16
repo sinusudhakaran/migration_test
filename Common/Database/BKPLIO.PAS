@@ -87,6 +87,30 @@ CONST
    tkplSF_Ledger_ID                     = 135 ;
    tkplSF_Ledger_Name                   = 136 ;
    tkplAudit_Record_ID                  = 137 ;
+   tkplSF_Other_Income                  = 138 ;
+   tkplSF_Other_Trust_Deductions        = 139 ;
+   tkplSF_CGT_Concession_Amount         = 140 ;
+   tkplSF_CGT_ForeignCGT_Before_Disc    = 141 ;
+   tkplSF_CGT_ForeignCGT_Indexation     = 142 ;
+   tkplSF_CGT_ForeignCGT_Other_Method   = 143 ;
+   tkplSF_CGT_TaxPaid_Indexation        = 144 ;
+   tkplSF_CGT_TaxPaid_Other_Method      = 145 ;
+   tkplSF_Other_Net_Foreign_Income      = 146 ;
+   tkplSF_Cash_Distribution             = 147 ;
+   tkplSF_AU_Franking_Credits_NZ_Co     = 148 ;
+   tkplSF_Non_Res_Witholding_Tax        = 149 ;
+   tkplSF_LIC_Deductions                = 150 ;
+   tkplSF_Non_Cash_CGT_Discounted_Before_Discount = 151 ;
+   tkplSF_Non_Cash_CGT_Indexation       = 152 ;
+   tkplSF_Non_Cash_CGT_Other_Method     = 153 ;
+   tkplSF_Non_Cash_CGT_Capital_Losses   = 154 ;
+   tkplSF_Share_Brokerage               = 155 ;
+   tkplSF_Share_Consideration           = 156 ;
+   tkplSF_Share_GST_Amount              = 157 ;
+   tkplSF_Share_GST_Rate                = 158 ;
+   tkplSF_Cash_Date                     = 159 ;
+   tkplSF_Accrual_Date                  = 160 ;
+   tkplSF_Record_Date                   = 161 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -153,6 +177,30 @@ Begin
       F.WriteIntegerValue( tkplSF_Ledger_ID , plSF_Ledger_ID );
       F.WriteAnsiStringValue( tkplSF_Ledger_Name , plSF_Ledger_Name );
       F.WriteIntegerValue( tkplAudit_Record_ID , plAudit_Record_ID );
+      F.WriteMoneyValue( tkplSF_Other_Income , plSF_Other_Income );
+      F.WriteMoneyValue( tkplSF_Other_Trust_Deductions , plSF_Other_Trust_Deductions );
+      F.WriteMoneyValue( tkplSF_CGT_Concession_Amount , plSF_CGT_Concession_Amount );
+      F.WriteMoneyValue( tkplSF_CGT_ForeignCGT_Before_Disc , plSF_CGT_ForeignCGT_Before_Disc );
+      F.WriteMoneyValue( tkplSF_CGT_ForeignCGT_Indexation , plSF_CGT_ForeignCGT_Indexation );
+      F.WriteMoneyValue( tkplSF_CGT_ForeignCGT_Other_Method , plSF_CGT_ForeignCGT_Other_Method );
+      F.WriteMoneyValue( tkplSF_CGT_TaxPaid_Indexation , plSF_CGT_TaxPaid_Indexation );
+      F.WriteMoneyValue( tkplSF_CGT_TaxPaid_Other_Method , plSF_CGT_TaxPaid_Other_Method );
+      F.WriteMoneyValue( tkplSF_Other_Net_Foreign_Income , plSF_Other_Net_Foreign_Income );
+      F.WriteMoneyValue( tkplSF_Cash_Distribution , plSF_Cash_Distribution );
+      F.WriteMoneyValue( tkplSF_AU_Franking_Credits_NZ_Co , plSF_AU_Franking_Credits_NZ_Co );
+      F.WriteMoneyValue( tkplSF_Non_Res_Witholding_Tax , plSF_Non_Res_Witholding_Tax );
+      F.WriteMoneyValue( tkplSF_LIC_Deductions , plSF_LIC_Deductions );
+      F.WriteMoneyValue( tkplSF_Non_Cash_CGT_Discounted_Before_Discount , plSF_Non_Cash_CGT_Discounted_Before_Discount );
+      F.WriteMoneyValue( tkplSF_Non_Cash_CGT_Indexation , plSF_Non_Cash_CGT_Indexation );
+      F.WriteMoneyValue( tkplSF_Non_Cash_CGT_Other_Method , plSF_Non_Cash_CGT_Other_Method );
+      F.WriteMoneyValue( tkplSF_Non_Cash_CGT_Capital_Losses , plSF_Non_Cash_CGT_Capital_Losses );
+      F.WriteMoneyValue( tkplSF_Share_Brokerage , plSF_Share_Brokerage );
+      F.WriteMoneyValue( tkplSF_Share_Consideration , plSF_Share_Consideration );
+      F.WriteMoneyValue( tkplSF_Share_GST_Amount , plSF_Share_GST_Amount );
+      F.WriteStringValue( tkplSF_Share_GST_Rate , plSF_Share_GST_Rate );
+      F.WriteDateValue( tkplSF_Cash_Date , plSF_Cash_Date );
+      F.WriteDateValue( tkplSF_Accrual_Date , plSF_Accrual_Date );
+      F.WriteDateValue( tkplSF_Record_Date , plSF_Record_Date );
       F.WriteToken( tkEnd_Payee_Line );
    end;
 end; { of Write_Payee_Line_Rec }
@@ -216,6 +264,30 @@ Begin
          tkplSF_Ledger_ID                     : plSF_Ledger_ID := F.ReadIntegerValue;
          tkplSF_Ledger_Name                   : plSF_Ledger_Name := F.ReadAnsiStringValue;
          tkplAudit_Record_ID                  : plAudit_Record_ID := F.ReadIntegerValue;
+         tkplSF_Other_Income                  : plSF_Other_Income := F.ReadMoneyValue;
+         tkplSF_Other_Trust_Deductions        : plSF_Other_Trust_Deductions := F.ReadMoneyValue;
+         tkplSF_CGT_Concession_Amount         : plSF_CGT_Concession_Amount := F.ReadMoneyValue;
+         tkplSF_CGT_ForeignCGT_Before_Disc    : plSF_CGT_ForeignCGT_Before_Disc := F.ReadMoneyValue;
+         tkplSF_CGT_ForeignCGT_Indexation     : plSF_CGT_ForeignCGT_Indexation := F.ReadMoneyValue;
+         tkplSF_CGT_ForeignCGT_Other_Method   : plSF_CGT_ForeignCGT_Other_Method := F.ReadMoneyValue;
+         tkplSF_CGT_TaxPaid_Indexation        : plSF_CGT_TaxPaid_Indexation := F.ReadMoneyValue;
+         tkplSF_CGT_TaxPaid_Other_Method      : plSF_CGT_TaxPaid_Other_Method := F.ReadMoneyValue;
+         tkplSF_Other_Net_Foreign_Income      : plSF_Other_Net_Foreign_Income := F.ReadMoneyValue;
+         tkplSF_Cash_Distribution             : plSF_Cash_Distribution := F.ReadMoneyValue;
+         tkplSF_AU_Franking_Credits_NZ_Co     : plSF_AU_Franking_Credits_NZ_Co := F.ReadMoneyValue;
+         tkplSF_Non_Res_Witholding_Tax        : plSF_Non_Res_Witholding_Tax := F.ReadMoneyValue;
+         tkplSF_LIC_Deductions                : plSF_LIC_Deductions := F.ReadMoneyValue;
+         tkplSF_Non_Cash_CGT_Discounted_Before_Discount : plSF_Non_Cash_CGT_Discounted_Before_Discount := F.ReadMoneyValue;
+         tkplSF_Non_Cash_CGT_Indexation       : plSF_Non_Cash_CGT_Indexation := F.ReadMoneyValue;
+         tkplSF_Non_Cash_CGT_Other_Method     : plSF_Non_Cash_CGT_Other_Method := F.ReadMoneyValue;
+         tkplSF_Non_Cash_CGT_Capital_Losses   : plSF_Non_Cash_CGT_Capital_Losses := F.ReadMoneyValue;
+         tkplSF_Share_Brokerage               : plSF_Share_Brokerage := F.ReadMoneyValue;
+         tkplSF_Share_Consideration           : plSF_Share_Consideration := F.ReadMoneyValue;
+         tkplSF_Share_GST_Amount              : plSF_Share_GST_Amount := F.ReadMoneyValue;
+         tkplSF_Share_GST_Rate                : plSF_Share_GST_Rate := F.ReadStringValue;
+         tkplSF_Cash_Date                     : plSF_Cash_Date := F.ReadDateValue;
+         tkplSF_Accrual_Date                  : plSF_Accrual_Date := F.ReadDateValue;
+         tkplSF_Record_Date                   : plSF_Record_Date := F.ReadDateValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -265,7 +337,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkplAccount to tkplAudit_Record_ID do begin
+  for i := tkplAccount to tkplSF_Record_Date do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -493,6 +565,126 @@ begin
   if (P1.plAudit_Record_ID <> P2.plAudit_Record_ID) then begin
     P3.plAudit_Record_ID := P1.plAudit_Record_ID;
     ChangedFields[i] := tkplAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.plSF_Other_Income <> P2.plSF_Other_Income) then begin
+    P3.plSF_Other_Income := P1.plSF_Other_Income;
+    ChangedFields[i] := tkplSF_Other_Income;
+    Inc(i);
+  end;
+  if (P1.plSF_Other_Trust_Deductions <> P2.plSF_Other_Trust_Deductions) then begin
+    P3.plSF_Other_Trust_Deductions := P1.plSF_Other_Trust_Deductions;
+    ChangedFields[i] := tkplSF_Other_Trust_Deductions;
+    Inc(i);
+  end;
+  if (P1.plSF_CGT_Concession_Amount <> P2.plSF_CGT_Concession_Amount) then begin
+    P3.plSF_CGT_Concession_Amount := P1.plSF_CGT_Concession_Amount;
+    ChangedFields[i] := tkplSF_CGT_Concession_Amount;
+    Inc(i);
+  end;
+  if (P1.plSF_CGT_ForeignCGT_Before_Disc <> P2.plSF_CGT_ForeignCGT_Before_Disc) then begin
+    P3.plSF_CGT_ForeignCGT_Before_Disc := P1.plSF_CGT_ForeignCGT_Before_Disc;
+    ChangedFields[i] := tkplSF_CGT_ForeignCGT_Before_Disc;
+    Inc(i);
+  end;
+  if (P1.plSF_CGT_ForeignCGT_Indexation <> P2.plSF_CGT_ForeignCGT_Indexation) then begin
+    P3.plSF_CGT_ForeignCGT_Indexation := P1.plSF_CGT_ForeignCGT_Indexation;
+    ChangedFields[i] := tkplSF_CGT_ForeignCGT_Indexation;
+    Inc(i);
+  end;
+  if (P1.plSF_CGT_ForeignCGT_Other_Method <> P2.plSF_CGT_ForeignCGT_Other_Method) then begin
+    P3.plSF_CGT_ForeignCGT_Other_Method := P1.plSF_CGT_ForeignCGT_Other_Method;
+    ChangedFields[i] := tkplSF_CGT_ForeignCGT_Other_Method;
+    Inc(i);
+  end;
+  if (P1.plSF_CGT_TaxPaid_Indexation <> P2.plSF_CGT_TaxPaid_Indexation) then begin
+    P3.plSF_CGT_TaxPaid_Indexation := P1.plSF_CGT_TaxPaid_Indexation;
+    ChangedFields[i] := tkplSF_CGT_TaxPaid_Indexation;
+    Inc(i);
+  end;
+  if (P1.plSF_CGT_TaxPaid_Other_Method <> P2.plSF_CGT_TaxPaid_Other_Method) then begin
+    P3.plSF_CGT_TaxPaid_Other_Method := P1.plSF_CGT_TaxPaid_Other_Method;
+    ChangedFields[i] := tkplSF_CGT_TaxPaid_Other_Method;
+    Inc(i);
+  end;
+  if (P1.plSF_Other_Net_Foreign_Income <> P2.plSF_Other_Net_Foreign_Income) then begin
+    P3.plSF_Other_Net_Foreign_Income := P1.plSF_Other_Net_Foreign_Income;
+    ChangedFields[i] := tkplSF_Other_Net_Foreign_Income;
+    Inc(i);
+  end;
+  if (P1.plSF_Cash_Distribution <> P2.plSF_Cash_Distribution) then begin
+    P3.plSF_Cash_Distribution := P1.plSF_Cash_Distribution;
+    ChangedFields[i] := tkplSF_Cash_Distribution;
+    Inc(i);
+  end;
+  if (P1.plSF_AU_Franking_Credits_NZ_Co <> P2.plSF_AU_Franking_Credits_NZ_Co) then begin
+    P3.plSF_AU_Franking_Credits_NZ_Co := P1.plSF_AU_Franking_Credits_NZ_Co;
+    ChangedFields[i] := tkplSF_AU_Franking_Credits_NZ_Co;
+    Inc(i);
+  end;
+  if (P1.plSF_Non_Res_Witholding_Tax <> P2.plSF_Non_Res_Witholding_Tax) then begin
+    P3.plSF_Non_Res_Witholding_Tax := P1.plSF_Non_Res_Witholding_Tax;
+    ChangedFields[i] := tkplSF_Non_Res_Witholding_Tax;
+    Inc(i);
+  end;
+  if (P1.plSF_LIC_Deductions <> P2.plSF_LIC_Deductions) then begin
+    P3.plSF_LIC_Deductions := P1.plSF_LIC_Deductions;
+    ChangedFields[i] := tkplSF_LIC_Deductions;
+    Inc(i);
+  end;
+  if (P1.plSF_Non_Cash_CGT_Discounted_Before_Discount <> P2.plSF_Non_Cash_CGT_Discounted_Before_Discount) then begin
+    P3.plSF_Non_Cash_CGT_Discounted_Before_Discount := P1.plSF_Non_Cash_CGT_Discounted_Before_Discount;
+    ChangedFields[i] := tkplSF_Non_Cash_CGT_Discounted_Before_Discount;
+    Inc(i);
+  end;
+  if (P1.plSF_Non_Cash_CGT_Indexation <> P2.plSF_Non_Cash_CGT_Indexation) then begin
+    P3.plSF_Non_Cash_CGT_Indexation := P1.plSF_Non_Cash_CGT_Indexation;
+    ChangedFields[i] := tkplSF_Non_Cash_CGT_Indexation;
+    Inc(i);
+  end;
+  if (P1.plSF_Non_Cash_CGT_Other_Method <> P2.plSF_Non_Cash_CGT_Other_Method) then begin
+    P3.plSF_Non_Cash_CGT_Other_Method := P1.plSF_Non_Cash_CGT_Other_Method;
+    ChangedFields[i] := tkplSF_Non_Cash_CGT_Other_Method;
+    Inc(i);
+  end;
+  if (P1.plSF_Non_Cash_CGT_Capital_Losses <> P2.plSF_Non_Cash_CGT_Capital_Losses) then begin
+    P3.plSF_Non_Cash_CGT_Capital_Losses := P1.plSF_Non_Cash_CGT_Capital_Losses;
+    ChangedFields[i] := tkplSF_Non_Cash_CGT_Capital_Losses;
+    Inc(i);
+  end;
+  if (P1.plSF_Share_Brokerage <> P2.plSF_Share_Brokerage) then begin
+    P3.plSF_Share_Brokerage := P1.plSF_Share_Brokerage;
+    ChangedFields[i] := tkplSF_Share_Brokerage;
+    Inc(i);
+  end;
+  if (P1.plSF_Share_Consideration <> P2.plSF_Share_Consideration) then begin
+    P3.plSF_Share_Consideration := P1.plSF_Share_Consideration;
+    ChangedFields[i] := tkplSF_Share_Consideration;
+    Inc(i);
+  end;
+  if (P1.plSF_Share_GST_Amount <> P2.plSF_Share_GST_Amount) then begin
+    P3.plSF_Share_GST_Amount := P1.plSF_Share_GST_Amount;
+    ChangedFields[i] := tkplSF_Share_GST_Amount;
+    Inc(i);
+  end;
+  if (P1.plSF_Share_GST_Rate <> P2.plSF_Share_GST_Rate) then begin
+    P3.plSF_Share_GST_Rate := P1.plSF_Share_GST_Rate;
+    ChangedFields[i] := tkplSF_Share_GST_Rate;
+    Inc(i);
+  end;
+  if (P1.plSF_Cash_Date <> P2.plSF_Cash_Date) then begin
+    P3.plSF_Cash_Date := P1.plSF_Cash_Date;
+    ChangedFields[i] := tkplSF_Cash_Date;
+    Inc(i);
+  end;
+  if (P1.plSF_Accrual_Date <> P2.plSF_Accrual_Date) then begin
+    P3.plSF_Accrual_Date := P1.plSF_Accrual_Date;
+    ChangedFields[i] := tkplSF_Accrual_Date;
+    Inc(i);
+  end;
+  if (P1.plSF_Record_Date <> P2.plSF_Record_Date) then begin
+    P3.plSF_Record_Date := P1.plSF_Record_Date;
+    ChangedFields[i] := tkplSF_Record_Date;
     Inc(i);
   end;
 

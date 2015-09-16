@@ -107,7 +107,7 @@ public
 end;
 
 
-TTransaction_Extra_RecHelper = record helper for TTransaction_Extra_Rec
+TTransaction_Extension_RecHelper = record helper for TTransaction_Extension_Rec
 public
 	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
 	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
@@ -116,6 +116,14 @@ end;
 
 
 TDissection_RecHelper = record helper for TDissection_Rec
+public
+	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
+	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
+	class function GetXMLNodeName: string; static;
+end;
+
+
+TDissection_Extension_RecHelper = record helper for TDissection_Extension_Rec
 public
 	function WriteRecToNode(var Node: IXMLNode): IXMLNode;
 	function ReadRecFromNode(Node: IXMLNode): IXMLNode;
@@ -1501,6 +1509,30 @@ begin
 	SetIntAttr(Result, 'SFLedgerID', plSF_Ledger_ID);
 	SetTextAttr(Result, 'SFLedgerName', plSF_Ledger_Name);
 	SetIntAttr(Result, 'AuditRecordID', plAudit_Record_ID);
+	SetInt64Attr(Result, 'SFOtherIncome', plSF_Other_Income);
+	SetInt64Attr(Result, 'SFOtherTrustDeductions', plSF_Other_Trust_Deductions);
+	SetInt64Attr(Result, 'SFCGTConcessionAmount', plSF_CGT_Concession_Amount);
+	SetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc', plSF_CGT_ForeignCGT_Before_Disc);
+	SetInt64Attr(Result, 'SFCGTForeignCGTIndexation', plSF_CGT_ForeignCGT_Indexation);
+	SetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod', plSF_CGT_ForeignCGT_Other_Method);
+	SetInt64Attr(Result, 'SFCGTTaxPaidIndexation', plSF_CGT_TaxPaid_Indexation);
+	SetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod', plSF_CGT_TaxPaid_Other_Method);
+	SetInt64Attr(Result, 'SFOtherNetForeignIncome', plSF_Other_Net_Foreign_Income);
+	SetInt64Attr(Result, 'SFCashDistribution', plSF_Cash_Distribution);
+	SetInt64Attr(Result, 'SFAUFrankingCreditsNZCo', plSF_AU_Franking_Credits_NZ_Co);
+	SetInt64Attr(Result, 'SFNonResWitholdingTax', plSF_Non_Res_Witholding_Tax);
+	SetInt64Attr(Result, 'SFLICDeductions', plSF_LIC_Deductions);
+	SetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount', plSF_Non_Cash_CGT_Discounted_Before_Discount);
+	SetInt64Attr(Result, 'SFNonCashCGTIndexation', plSF_Non_Cash_CGT_Indexation);
+	SetInt64Attr(Result, 'SFNonCashCGTOtherMethod', plSF_Non_Cash_CGT_Other_Method);
+	SetInt64Attr(Result, 'SFNonCashCGTCapitalLosses', plSF_Non_Cash_CGT_Capital_Losses);
+	SetInt64Attr(Result, 'SFShareBrokerage', plSF_Share_Brokerage);
+	SetInt64Attr(Result, 'SFShareConsideration', plSF_Share_Consideration);
+	SetInt64Attr(Result, 'SFShareGSTAmount', plSF_Share_GST_Amount);
+	SetTextAttr(Result, 'SFShareGSTRate', plSF_Share_GST_Rate);
+	SetIntAttr(Result, 'SFCashDate', plSF_Cash_Date);
+	SetIntAttr(Result, 'SFAccrualDate', plSF_Accrual_Date);
+	SetIntAttr(Result, 'SFRecordDate', plSF_Record_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1558,6 +1590,30 @@ begin
 	plSF_Ledger_ID := GetIntAttr(Result, 'SFLedgerID');
 	plSF_Ledger_Name := GetTextAttr(Result, 'SFLedgerName');
 	plAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	plSF_Other_Income := GetInt64Attr(Result, 'SFOtherIncome');
+	plSF_Other_Trust_Deductions := GetInt64Attr(Result, 'SFOtherTrustDeductions');
+	plSF_CGT_Concession_Amount := GetInt64Attr(Result, 'SFCGTConcessionAmount');
+	plSF_CGT_ForeignCGT_Before_Disc := GetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc');
+	plSF_CGT_ForeignCGT_Indexation := GetInt64Attr(Result, 'SFCGTForeignCGTIndexation');
+	plSF_CGT_ForeignCGT_Other_Method := GetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod');
+	plSF_CGT_TaxPaid_Indexation := GetInt64Attr(Result, 'SFCGTTaxPaidIndexation');
+	plSF_CGT_TaxPaid_Other_Method := GetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod');
+	plSF_Other_Net_Foreign_Income := GetInt64Attr(Result, 'SFOtherNetForeignIncome');
+	plSF_Cash_Distribution := GetInt64Attr(Result, 'SFCashDistribution');
+	plSF_AU_Franking_Credits_NZ_Co := GetInt64Attr(Result, 'SFAUFrankingCreditsNZCo');
+	plSF_Non_Res_Witholding_Tax := GetInt64Attr(Result, 'SFNonResWitholdingTax');
+	plSF_LIC_Deductions := GetInt64Attr(Result, 'SFLICDeductions');
+	plSF_Non_Cash_CGT_Discounted_Before_Discount := GetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount');
+	plSF_Non_Cash_CGT_Indexation := GetInt64Attr(Result, 'SFNonCashCGTIndexation');
+	plSF_Non_Cash_CGT_Other_Method := GetInt64Attr(Result, 'SFNonCashCGTOtherMethod');
+	plSF_Non_Cash_CGT_Capital_Losses := GetInt64Attr(Result, 'SFNonCashCGTCapitalLosses');
+	plSF_Share_Brokerage := GetInt64Attr(Result, 'SFShareBrokerage');
+	plSF_Share_Consideration := GetInt64Attr(Result, 'SFShareConsideration');
+	plSF_Share_GST_Amount := GetInt64Attr(Result, 'SFShareGSTAmount');
+	plSF_Share_GST_Rate := GetTextAttr(Result, 'SFShareGSTRate');
+	plSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
+	plSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
+	plSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Line_Rec');
 	end;
@@ -1849,6 +1905,30 @@ begin
 	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', mlSF_Foreign_Capital_Gains_Credit);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', mlSF_Capital_Gains_Fraction_Half);
 	SetIntAttr(Result, 'AuditRecordID', mlAudit_Record_ID);
+	SetInt64Attr(Result, 'SFOtherIncome', mlSF_Other_Income);
+	SetInt64Attr(Result, 'SFOtherTrustDeductions', mlSF_Other_Trust_Deductions);
+	SetInt64Attr(Result, 'SFCGTConcessionAmount', mlSF_CGT_Concession_Amount);
+	SetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc', mlSF_CGT_ForeignCGT_Before_Disc);
+	SetInt64Attr(Result, 'SFCGTForeignCGTIndexation', mlSF_CGT_ForeignCGT_Indexation);
+	SetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod', mlSF_CGT_ForeignCGT_Other_Method);
+	SetInt64Attr(Result, 'SFCGTTaxPaidIndexation', mlSF_CGT_TaxPaid_Indexation);
+	SetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod', mlSF_CGT_TaxPaid_Other_Method);
+	SetInt64Attr(Result, 'SFOtherNetForeignIncome', mlSF_Other_Net_Foreign_Income);
+	SetInt64Attr(Result, 'SFCashDistribution', mlSF_Cash_Distribution);
+	SetInt64Attr(Result, 'SFAUFrankingCreditsNZCo', mlSF_AU_Franking_Credits_NZ_Co);
+	SetInt64Attr(Result, 'SFNonResWitholdingTax', mlSF_Non_Res_Witholding_Tax);
+	SetInt64Attr(Result, 'SFLICDeductions', mlSF_LIC_Deductions);
+	SetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount', mlSF_Non_Cash_CGT_Discounted_Before_Discount);
+	SetInt64Attr(Result, 'SFNonCashCGTIndexation', mlSF_Non_Cash_CGT_Indexation);
+	SetInt64Attr(Result, 'SFNonCashCGTOtherMethod', mlSF_Non_Cash_CGT_Other_Method);
+	SetInt64Attr(Result, 'SFNonCashCGTCapitalLosses', mlSF_Non_Cash_CGT_Capital_Losses);
+	SetInt64Attr(Result, 'SFShareBrokerage', mlSF_Share_Brokerage);
+	SetInt64Attr(Result, 'SFShareConsideration', mlSF_Share_Consideration);
+	SetInt64Attr(Result, 'SFShareGSTAmount', mlSF_Share_GST_Amount);
+	SetTextAttr(Result, 'SFShareGSTRate', mlSF_Share_GST_Rate);
+	SetIntAttr(Result, 'SFCashDate', mlSF_Cash_Date);
+	SetIntAttr(Result, 'SFAccrualDate', mlSF_Accrual_Date);
+	SetIntAttr(Result, 'SFRecordDate', mlSF_Record_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1906,6 +1986,30 @@ begin
 	mlSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
 	mlSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
 	mlAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	mlSF_Other_Income := GetInt64Attr(Result, 'SFOtherIncome');
+	mlSF_Other_Trust_Deductions := GetInt64Attr(Result, 'SFOtherTrustDeductions');
+	mlSF_CGT_Concession_Amount := GetInt64Attr(Result, 'SFCGTConcessionAmount');
+	mlSF_CGT_ForeignCGT_Before_Disc := GetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc');
+	mlSF_CGT_ForeignCGT_Indexation := GetInt64Attr(Result, 'SFCGTForeignCGTIndexation');
+	mlSF_CGT_ForeignCGT_Other_Method := GetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod');
+	mlSF_CGT_TaxPaid_Indexation := GetInt64Attr(Result, 'SFCGTTaxPaidIndexation');
+	mlSF_CGT_TaxPaid_Other_Method := GetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod');
+	mlSF_Other_Net_Foreign_Income := GetInt64Attr(Result, 'SFOtherNetForeignIncome');
+	mlSF_Cash_Distribution := GetInt64Attr(Result, 'SFCashDistribution');
+	mlSF_AU_Franking_Credits_NZ_Co := GetInt64Attr(Result, 'SFAUFrankingCreditsNZCo');
+	mlSF_Non_Res_Witholding_Tax := GetInt64Attr(Result, 'SFNonResWitholdingTax');
+	mlSF_LIC_Deductions := GetInt64Attr(Result, 'SFLICDeductions');
+	mlSF_Non_Cash_CGT_Discounted_Before_Discount := GetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount');
+	mlSF_Non_Cash_CGT_Indexation := GetInt64Attr(Result, 'SFNonCashCGTIndexation');
+	mlSF_Non_Cash_CGT_Other_Method := GetInt64Attr(Result, 'SFNonCashCGTOtherMethod');
+	mlSF_Non_Cash_CGT_Capital_Losses := GetInt64Attr(Result, 'SFNonCashCGTCapitalLosses');
+	mlSF_Share_Brokerage := GetInt64Attr(Result, 'SFShareBrokerage');
+	mlSF_Share_Consideration := GetInt64Attr(Result, 'SFShareConsideration');
+	mlSF_Share_GST_Amount := GetInt64Attr(Result, 'SFShareGSTAmount');
+	mlSF_Share_GST_Rate := GetTextAttr(Result, 'SFShareGSTRate');
+	mlSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
+	mlSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
+	mlSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TMemorisation_Line_Rec');
 	end;
@@ -2277,13 +2381,13 @@ end;
 
 // ----------------------------------------------------------------------------
 
-class function TTransaction_Extra_RecHelper.GetXMLNodeName: string;
+class function TTransaction_Extension_RecHelper.GetXMLNodeName: string;
 begin
-	result := 'BKTransactionExtra';
+	result := 'BKTransactionExtension';
 end;
 
 
-function TTransaction_Extra_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+function TTransaction_Extension_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
 	I, J, M: Integer;
 begin
@@ -2311,6 +2415,9 @@ begin
 	SetInt64Attr(Result, 'SFShareConsideration', teSF_Share_Consideration);
 	SetInt64Attr(Result, 'SFShareGSTAmount', teSF_Share_GST_Amount);
 	SetTextAttr(Result, 'SFShareGSTRate', teSF_Share_GST_Rate);
+	SetIntAttr(Result, 'SFCashDate', teSF_Cash_Date);
+	SetIntAttr(Result, 'SFAccrualDate', teSF_Accrual_Date);
+	SetIntAttr(Result, 'SFRecordDate', teSF_Record_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2318,7 +2425,7 @@ begin
 end;
 
 
-function TTransaction_Extra_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+function TTransaction_Extension_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
 var PNode, CNode, CCNode: IXMLNode;
 	I, J: Integer;
 begin
@@ -2350,8 +2457,11 @@ begin
 	teSF_Share_Consideration := GetInt64Attr(Result, 'SFShareConsideration');
 	teSF_Share_GST_Amount := GetInt64Attr(Result, 'SFShareGSTAmount');
 	teSF_Share_GST_Rate := GetTextAttr(Result, 'SFShareGSTRate');
+	teSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
+	teSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
+	teSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
 	except
-		on E: Exception do ReRaise (E, 'Reading TTransaction_Extra_Rec');
+		on E: Exception do ReRaise (E, 'Reading TTransaction_Extension_Rec');
 	end;
 
 	CNode := nil;
@@ -2510,6 +2620,94 @@ begin
 	dsOpening_Balance_Currency := GetTextAttr(Result, 'OpeningBalanceCurrency');
 	except
 		on E: Exception do ReRaise (E, 'Reading TDissection_Rec');
+	end;
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+// ----------------------------------------------------------------------------
+
+class function TDissection_Extension_RecHelper.GetXMLNodeName: string;
+begin
+	result := 'BKDissectionExtension';
+end;
+
+
+function TDissection_Extension_RecHelper.WriteRecToNode(var Node: IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J, M: Integer;
+begin
+	Result := Node.AddChild(GetXMLNodeName);
+	SetIntAttr(Result, 'SequenceNo', deSequence_No);
+	SetInt64Attr(Result, 'SFOtherIncome', deSF_Other_Income);
+	SetInt64Attr(Result, 'SFOtherTrustDeductions', deSF_Other_Trust_Deductions);
+	SetInt64Attr(Result, 'SFCGTConcessionAmount', deSF_CGT_Concession_Amount);
+	SetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc', deSF_CGT_ForeignCGT_Before_Disc);
+	SetInt64Attr(Result, 'SFCGTForeignCGTIndexation', deSF_CGT_ForeignCGT_Indexation);
+	SetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod', deSF_CGT_ForeignCGT_Other_Method);
+	SetInt64Attr(Result, 'SFCGTTaxPaidIndexation', deSF_CGT_TaxPaid_Indexation);
+	SetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod', deSF_CGT_TaxPaid_Other_Method);
+	SetInt64Attr(Result, 'SFOtherNetForeignIncome', deSF_Other_Net_Foreign_Income);
+	SetInt64Attr(Result, 'SFCashDistribution', deSF_Cash_Distribution);
+	SetInt64Attr(Result, 'SFAUFrankingCreditsNZCo', deSF_AU_Franking_Credits_NZ_Co);
+	SetInt64Attr(Result, 'SFNonResWitholdingTax', deSF_Non_Res_Witholding_Tax);
+	SetInt64Attr(Result, 'SFLICDeductions', deSF_LIC_Deductions);
+	SetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount', deSF_Non_Cash_CGT_Discounted_Before_Discount);
+	SetInt64Attr(Result, 'SFNonCashCGTIndexation', deSF_Non_Cash_CGT_Indexation);
+	SetInt64Attr(Result, 'SFNonCashCGTOtherMethod', deSF_Non_Cash_CGT_Other_Method);
+	SetInt64Attr(Result, 'SFNonCashCGTCapitalLosses', deSF_Non_Cash_CGT_Capital_Losses);
+	SetInt64Attr(Result, 'SFShareBrokerage', deSF_Share_Brokerage);
+	SetInt64Attr(Result, 'SFShareConsideration', deSF_Share_Consideration);
+	SetInt64Attr(Result, 'SFShareGSTAmount', deSF_Share_GST_Amount);
+	SetTextAttr(Result, 'SFShareGSTRate', deSF_Share_GST_Rate);
+	SetIntAttr(Result, 'SFCashDate', deSF_Cash_Date);
+	SetIntAttr(Result, 'SFAccrualDate', deSF_Accrual_Date);
+	SetIntAttr(Result, 'SFRecordDate', deSF_Record_Date);
+
+	CNode := nil;
+	CCNode := nil;
+	PNode := nil;
+end;
+
+
+function TDissection_Extension_RecHelper.ReadRecFromNode(Node :IXMLNode): IXMLNode;
+var PNode, CNode, CCNode: IXMLNode;
+	I, J: Integer;
+begin
+	if Node.NodeName = GetXMLNodeName then Result := Node
+	else
+	Result := Node.ChildNodes.FindNode(GetXMLNodeName);
+	if not assigned(Result) then exit;
+	try
+	deSequence_No := GetIntAttr(Result, 'SequenceNo');
+	deSF_Other_Income := GetInt64Attr(Result, 'SFOtherIncome');
+	deSF_Other_Trust_Deductions := GetInt64Attr(Result, 'SFOtherTrustDeductions');
+	deSF_CGT_Concession_Amount := GetInt64Attr(Result, 'SFCGTConcessionAmount');
+	deSF_CGT_ForeignCGT_Before_Disc := GetInt64Attr(Result, 'SFCGTForeignCGTBeforeDisc');
+	deSF_CGT_ForeignCGT_Indexation := GetInt64Attr(Result, 'SFCGTForeignCGTIndexation');
+	deSF_CGT_ForeignCGT_Other_Method := GetInt64Attr(Result, 'SFCGTForeignCGTOtherMethod');
+	deSF_CGT_TaxPaid_Indexation := GetInt64Attr(Result, 'SFCGTTaxPaidIndexation');
+	deSF_CGT_TaxPaid_Other_Method := GetInt64Attr(Result, 'SFCGTTaxPaidOtherMethod');
+	deSF_Other_Net_Foreign_Income := GetInt64Attr(Result, 'SFOtherNetForeignIncome');
+	deSF_Cash_Distribution := GetInt64Attr(Result, 'SFCashDistribution');
+	deSF_AU_Franking_Credits_NZ_Co := GetInt64Attr(Result, 'SFAUFrankingCreditsNZCo');
+	deSF_Non_Res_Witholding_Tax := GetInt64Attr(Result, 'SFNonResWitholdingTax');
+	deSF_LIC_Deductions := GetInt64Attr(Result, 'SFLICDeductions');
+	deSF_Non_Cash_CGT_Discounted_Before_Discount := GetInt64Attr(Result, 'SFNonCashCGTDiscountedBeforeDiscount');
+	deSF_Non_Cash_CGT_Indexation := GetInt64Attr(Result, 'SFNonCashCGTIndexation');
+	deSF_Non_Cash_CGT_Other_Method := GetInt64Attr(Result, 'SFNonCashCGTOtherMethod');
+	deSF_Non_Cash_CGT_Capital_Losses := GetInt64Attr(Result, 'SFNonCashCGTCapitalLosses');
+	deSF_Share_Brokerage := GetInt64Attr(Result, 'SFShareBrokerage');
+	deSF_Share_Consideration := GetInt64Attr(Result, 'SFShareConsideration');
+	deSF_Share_GST_Amount := GetInt64Attr(Result, 'SFShareGSTAmount');
+	deSF_Share_GST_Rate := GetTextAttr(Result, 'SFShareGSTRate');
+	deSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
+	deSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
+	deSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
+	except
+		on E: Exception do ReRaise (E, 'Reading TDissection_Extension_Rec');
 	end;
 
 	CNode := nil;

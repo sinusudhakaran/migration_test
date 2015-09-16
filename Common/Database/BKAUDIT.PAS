@@ -400,6 +400,30 @@ begin
     FAuditNamesArray[95,135] := 'SF_Ledger_ID';
     FAuditNamesArray[95,136] := 'SF_Ledger_Name';
     FAuditNamesArray[95,137] := 'Audit_Record_ID';
+    FAuditNamesArray[95,138] := 'SF_Other_Income';
+    FAuditNamesArray[95,139] := 'SF_Other_Trust_Deductions';
+    FAuditNamesArray[95,140] := 'SF_CGT_Concession_Amount';
+    FAuditNamesArray[95,141] := 'SF_CGT_ForeignCGT_Before_Disc';
+    FAuditNamesArray[95,142] := 'SF_CGT_ForeignCGT_Indexation';
+    FAuditNamesArray[95,143] := 'SF_CGT_ForeignCGT_Other_Method';
+    FAuditNamesArray[95,144] := 'SF_CGT_TaxPaid_Indexation';
+    FAuditNamesArray[95,145] := 'SF_CGT_TaxPaid_Other_Method';
+    FAuditNamesArray[95,146] := 'SF_Other_Net_Foreign_Income';
+    FAuditNamesArray[95,147] := 'SF_Cash_Distribution';
+    FAuditNamesArray[95,148] := 'SF_AU_Franking_Credits_NZ_Co';
+    FAuditNamesArray[95,149] := 'SF_Non_Res_Witholding_Tax';
+    FAuditNamesArray[95,150] := 'SF_LIC_Deductions';
+    FAuditNamesArray[95,151] := 'SF_Non_Cash_CGT_Discounted_Before_Discount';
+    FAuditNamesArray[95,152] := 'SF_Non_Cash_CGT_Indexation';
+    FAuditNamesArray[95,153] := 'SF_Non_Cash_CGT_Other_Method';
+    FAuditNamesArray[95,154] := 'SF_Non_Cash_CGT_Capital_Losses';
+    FAuditNamesArray[95,155] := 'SF_Share_Brokerage';
+    FAuditNamesArray[95,156] := 'SF_Share_Consideration';
+    FAuditNamesArray[95,157] := 'SF_Share_GST_Amount';
+    FAuditNamesArray[95,158] := 'SF_Share_GST_Rate';
+    FAuditNamesArray[95,159] := 'SF_Cash_Date';
+    FAuditNamesArray[95,160] := 'SF_Accrual_Date';
+    FAuditNamesArray[95,161] := 'SF_Record_Date';
 
    FAuditTableArray[110] := 'Budget_Header';
     FAuditNamesArray[110,112] := 'Start_Date';
@@ -490,6 +514,30 @@ begin
     FAuditNamesArray[145,185] := 'SF_Foreign_Capital_Gains_Credit';
     FAuditNamesArray[145,186] := 'SF_Capital_Gains_Fraction_Half';
     FAuditNamesArray[145,187] := 'Audit_Record_ID';
+    FAuditNamesArray[145,188] := 'SF_Other_Income';
+    FAuditNamesArray[145,189] := 'SF_Other_Trust_Deductions';
+    FAuditNamesArray[145,190] := 'SF_CGT_Concession_Amount';
+    FAuditNamesArray[145,191] := 'SF_CGT_ForeignCGT_Before_Disc';
+    FAuditNamesArray[145,192] := 'SF_CGT_ForeignCGT_Indexation';
+    FAuditNamesArray[145,193] := 'SF_CGT_ForeignCGT_Other_Method';
+    FAuditNamesArray[145,194] := 'SF_CGT_TaxPaid_Indexation';
+    FAuditNamesArray[145,195] := 'SF_CGT_TaxPaid_Other_Method';
+    FAuditNamesArray[145,196] := 'SF_Other_Net_Foreign_Income';
+    FAuditNamesArray[145,197] := 'SF_Cash_Distribution';
+    FAuditNamesArray[145,198] := 'SF_AU_Franking_Credits_NZ_Co';
+    FAuditNamesArray[145,199] := 'SF_Non_Res_Witholding_Tax';
+    FAuditNamesArray[145,200] := 'SF_LIC_Deductions';
+    FAuditNamesArray[145,201] := 'SF_Non_Cash_CGT_Discounted_Before_Discount';
+    FAuditNamesArray[145,202] := 'SF_Non_Cash_CGT_Indexation';
+    FAuditNamesArray[145,203] := 'SF_Non_Cash_CGT_Other_Method';
+    FAuditNamesArray[145,204] := 'SF_Non_Cash_CGT_Capital_Losses';
+    FAuditNamesArray[145,205] := 'SF_Share_Brokerage';
+    FAuditNamesArray[145,206] := 'SF_Share_Consideration';
+    FAuditNamesArray[145,207] := 'SF_Share_GST_Amount';
+    FAuditNamesArray[145,208] := 'SF_Share_GST_Rate';
+    FAuditNamesArray[145,209] := 'SF_Cash_Date';
+    FAuditNamesArray[145,210] := 'SF_Accrual_Date';
+    FAuditNamesArray[145,211] := 'SF_Record_Date';
 
    FAuditTableArray[150] := 'Bank_Account';
     FAuditNamesArray[150,152] := 'Bank_Account_Number';
@@ -639,7 +687,7 @@ begin
     FAuditNamesArray[160,249] := 'Suggested_Mem_State';
     FAuditNamesArray[160,250] := 'Suggested_Mem_Index';
 
-   FAuditTableArray[162] := 'Transaction_Extra';
+   FAuditTableArray[162] := 'Transaction_Extension';
     FAuditNamesArray[162,164] := 'Sequence_No';
     FAuditNamesArray[162,165] := 'Date_Effective';
     FAuditNamesArray[162,166] := 'SF_Other_Income';
@@ -663,6 +711,9 @@ begin
     FAuditNamesArray[162,184] := 'SF_Share_Consideration';
     FAuditNamesArray[162,185] := 'SF_Share_GST_Amount';
     FAuditNamesArray[162,186] := 'SF_Share_GST_Rate';
+    FAuditNamesArray[162,187] := 'SF_Cash_Date';
+    FAuditNamesArray[162,188] := 'SF_Accrual_Date';
+    FAuditNamesArray[162,189] := 'SF_Record_Date';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';
@@ -726,6 +777,33 @@ begin
     FAuditNamesArray[180,240] := 'Foreign_Currency_Amount';
     FAuditNamesArray[180,241] := 'Forex_Document_Date';
     FAuditNamesArray[180,242] := 'Opening_Balance_Currency';
+
+   FAuditTableArray[182] := 'Dissection_Extension';
+    FAuditNamesArray[182,184] := 'Sequence_No';
+    FAuditNamesArray[182,185] := 'SF_Other_Income';
+    FAuditNamesArray[182,186] := 'SF_Other_Trust_Deductions';
+    FAuditNamesArray[182,187] := 'SF_CGT_Concession_Amount';
+    FAuditNamesArray[182,188] := 'SF_CGT_ForeignCGT_Before_Disc';
+    FAuditNamesArray[182,189] := 'SF_CGT_ForeignCGT_Indexation';
+    FAuditNamesArray[182,190] := 'SF_CGT_ForeignCGT_Other_Method';
+    FAuditNamesArray[182,191] := 'SF_CGT_TaxPaid_Indexation';
+    FAuditNamesArray[182,192] := 'SF_CGT_TaxPaid_Other_Method';
+    FAuditNamesArray[182,193] := 'SF_Other_Net_Foreign_Income';
+    FAuditNamesArray[182,194] := 'SF_Cash_Distribution';
+    FAuditNamesArray[182,195] := 'SF_AU_Franking_Credits_NZ_Co';
+    FAuditNamesArray[182,196] := 'SF_Non_Res_Witholding_Tax';
+    FAuditNamesArray[182,197] := 'SF_LIC_Deductions';
+    FAuditNamesArray[182,198] := 'SF_Non_Cash_CGT_Discounted_Before_Discount';
+    FAuditNamesArray[182,199] := 'SF_Non_Cash_CGT_Indexation';
+    FAuditNamesArray[182,200] := 'SF_Non_Cash_CGT_Other_Method';
+    FAuditNamesArray[182,201] := 'SF_Non_Cash_CGT_Capital_Losses';
+    FAuditNamesArray[182,202] := 'SF_Share_Brokerage';
+    FAuditNamesArray[182,203] := 'SF_Share_Consideration';
+    FAuditNamesArray[182,204] := 'SF_Share_GST_Amount';
+    FAuditNamesArray[182,205] := 'SF_Share_GST_Rate';
+    FAuditNamesArray[182,206] := 'SF_Cash_Date';
+    FAuditNamesArray[182,207] := 'SF_Accrual_Date';
+    FAuditNamesArray[182,208] := 'SF_Record_Date';
 
    FAuditTableArray[190] := 'Balances';
     FAuditNamesArray[190,192] := 'GST_Period_Starts';

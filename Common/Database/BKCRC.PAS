@@ -20,8 +20,9 @@ PROCEDURE UpdateCRC( CONST Rec : TMemorisation_Detail_Rec; VAR CRC : LongWord );
 PROCEDURE UpdateCRC( CONST Rec : TMemorisation_Line_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TBank_Account_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TTransaction_Rec; VAR CRC : LongWord ); OVERLOAD;
-PROCEDURE UpdateCRC( CONST Rec : TTransaction_Extra_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TTransaction_Extension_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TDissection_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TDissection_Extension_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TBalances_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TSubGroup_Heading_Rec; VAR CRC : LongWord ); OVERLOAD;
 PROCEDURE UpdateCRC( CONST Rec : TDivision_Heading_Rec; VAR CRC : LongWord ); OVERLOAD;
@@ -286,7 +287,7 @@ end;
 
 // ------------------------------------------------------------------- 
 
-PROCEDURE UpdateCRC( CONST Rec : TTransaction_Extra_Rec; VAR CRC : LongWord ); OVERLOAD;
+PROCEDURE UpdateCRC( CONST Rec : TTransaction_Extension_Rec; VAR CRC : LongWord ); OVERLOAD;
 Var
    Len    : Integer;
    RS, RE : Pointer;
@@ -323,6 +324,21 @@ Begin
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( dsDocument_Title )^, Len );
       Len := Length( dsSF_Transaction_Code );
       If ( Len > 0 ) then CRC32.UpdateCRC( CRC, Pointer( dsSF_Transaction_Code )^, Len );
+   end;
+end;
+
+// ------------------------------------------------------------------- 
+
+PROCEDURE UpdateCRC( CONST Rec : TDissection_Extension_Rec; VAR CRC : LongWord ); OVERLOAD;
+Var
+   Len    : Integer;
+   RS, RE : Pointer;
+Begin
+   With Rec do begin
+      RS    := @deRecord_Type;
+      RE    := @deEOR;
+      Len   := Integer( RE ) - Integer( RS );
+      CRC32.UpdateCRC( CRC , RS^, Len );
    end;
 end;
 

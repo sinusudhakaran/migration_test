@@ -343,6 +343,198 @@ namespace BankLink.Practice.BooksIO
 		public Int32 AuditRecordID { get; set; }
 
 
+
+		/// <summary>
+		/// SFOtherIncome property
+		/// </summary>
+		[XmlAttribute("SFOtherIncome", DataType = "long")]
+		public Int64 SFOtherIncome { get; set; }
+
+
+
+		/// <summary>
+		/// SFOtherTrustDeductions property
+		/// </summary>
+		[XmlAttribute("SFOtherTrustDeductions", DataType = "long")]
+		public Int64 SFOtherTrustDeductions { get; set; }
+
+
+
+		/// <summary>
+		/// SFCGTConcessionAmount property
+		/// </summary>
+		[XmlAttribute("SFCGTConcessionAmount", DataType = "long")]
+		public Int64 SFCGTConcessionAmount { get; set; }
+
+
+
+		/// <summary>
+		/// SFCGTForeignCGTBeforeDisc property
+		/// </summary>
+		[XmlAttribute("SFCGTForeignCGTBeforeDisc", DataType = "long")]
+		public Int64 SFCGTForeignCGTBeforeDisc { get; set; }
+
+
+
+		/// <summary>
+		/// SFCGTForeignCGTIndexation property
+		/// </summary>
+		[XmlAttribute("SFCGTForeignCGTIndexation", DataType = "long")]
+		public Int64 SFCGTForeignCGTIndexation { get; set; }
+
+
+
+		/// <summary>
+		/// SFCGTForeignCGTOtherMethod property
+		/// </summary>
+		[XmlAttribute("SFCGTForeignCGTOtherMethod", DataType = "long")]
+		public Int64 SFCGTForeignCGTOtherMethod { get; set; }
+
+
+
+		/// <summary>
+		/// SFCGTTaxPaidIndexation property
+		/// </summary>
+		[XmlAttribute("SFCGTTaxPaidIndexation", DataType = "long")]
+		public Int64 SFCGTTaxPaidIndexation { get; set; }
+
+
+
+		/// <summary>
+		/// SFCGTTaxPaidOtherMethod property
+		/// </summary>
+		[XmlAttribute("SFCGTTaxPaidOtherMethod", DataType = "long")]
+		public Int64 SFCGTTaxPaidOtherMethod { get; set; }
+
+
+
+		/// <summary>
+		/// SFOtherNetForeignIncome property
+		/// </summary>
+		[XmlAttribute("SFOtherNetForeignIncome", DataType = "long")]
+		public Int64 SFOtherNetForeignIncome { get; set; }
+
+
+
+		/// <summary>
+		/// SFCashDistribution property
+		/// </summary>
+		[XmlAttribute("SFCashDistribution", DataType = "long")]
+		public Int64 SFCashDistribution { get; set; }
+
+
+
+		/// <summary>
+		/// SFAUFrankingCreditsNZCo property
+		/// </summary>
+		[XmlAttribute("SFAUFrankingCreditsNZCo", DataType = "long")]
+		public Int64 SFAUFrankingCreditsNZCo { get; set; }
+
+
+
+		/// <summary>
+		/// SFNonResWitholdingTax property
+		/// </summary>
+		[XmlAttribute("SFNonResWitholdingTax", DataType = "long")]
+		public Int64 SFNonResWitholdingTax { get; set; }
+
+
+
+		/// <summary>
+		/// SFLICDeductions property
+		/// </summary>
+		[XmlAttribute("SFLICDeductions", DataType = "long")]
+		public Int64 SFLICDeductions { get; set; }
+
+
+
+		/// <summary>
+		/// SFNonCashCGTDiscountedBeforeDiscount property
+		/// </summary>
+		[XmlAttribute("SFNonCashCGTDiscountedBeforeDiscount", DataType = "long")]
+		public Int64 SFNonCashCGTDiscountedBeforeDiscount { get; set; }
+
+
+
+		/// <summary>
+		/// SFNonCashCGTIndexation property
+		/// </summary>
+		[XmlAttribute("SFNonCashCGTIndexation", DataType = "long")]
+		public Int64 SFNonCashCGTIndexation { get; set; }
+
+
+
+		/// <summary>
+		/// SFNonCashCGTOtherMethod property
+		/// </summary>
+		[XmlAttribute("SFNonCashCGTOtherMethod", DataType = "long")]
+		public Int64 SFNonCashCGTOtherMethod { get; set; }
+
+
+
+		/// <summary>
+		/// SFNonCashCGTCapitalLosses property
+		/// </summary>
+		[XmlAttribute("SFNonCashCGTCapitalLosses", DataType = "long")]
+		public Int64 SFNonCashCGTCapitalLosses { get; set; }
+
+
+
+		/// <summary>
+		/// SFShareBrokerage property
+		/// </summary>
+		[XmlAttribute("SFShareBrokerage", DataType = "long")]
+		public Int64 SFShareBrokerage { get; set; }
+
+
+
+		/// <summary>
+		/// SFShareConsideration property
+		/// </summary>
+		[XmlAttribute("SFShareConsideration", DataType = "long")]
+		public Int64 SFShareConsideration { get; set; }
+
+
+
+		/// <summary>
+		/// SFShareGSTAmount property
+		/// </summary>
+		[XmlAttribute("SFShareGSTAmount", DataType = "long")]
+		public Int64 SFShareGSTAmount { get; set; }
+
+
+
+		/// <summary>
+		/// SFShareGSTRate property
+		/// </summary>
+		[XmlAttribute("SFShareGSTRate", DataType = "string")]
+		public String SFShareGSTRate { get; set; }
+
+
+
+		/// <summary>
+		/// SFCashDate property
+		/// </summary>
+		[XmlAttribute("SFCashDate", DataType = "int")]
+		public Int32 SFCashDate { get; set; }
+
+
+
+		/// <summary>
+		/// SFAccrualDate property
+		/// </summary>
+		[XmlAttribute("SFAccrualDate", DataType = "int")]
+		public Int32 SFAccrualDate { get; set; }
+
+
+
+		/// <summary>
+		/// SFRecordDate property
+		/// </summary>
+		[XmlAttribute("SFRecordDate", DataType = "int")]
+		public Int32 SFRecordDate { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -398,6 +590,30 @@ namespace BankLink.Practice.BooksIO
 			s.WriteInt32Value(135, SFLedgerID);
 			s.WriteAnsiStringValue(136, SFLedgerName);
 			s.WriteInt32Value(137, AuditRecordID);
+			s.WriteMoneyValue(138, SFOtherIncome);
+			s.WriteMoneyValue(139, SFOtherTrustDeductions);
+			s.WriteMoneyValue(140, SFCGTConcessionAmount);
+			s.WriteMoneyValue(141, SFCGTForeignCGTBeforeDisc);
+			s.WriteMoneyValue(142, SFCGTForeignCGTIndexation);
+			s.WriteMoneyValue(143, SFCGTForeignCGTOtherMethod);
+			s.WriteMoneyValue(144, SFCGTTaxPaidIndexation);
+			s.WriteMoneyValue(145, SFCGTTaxPaidOtherMethod);
+			s.WriteMoneyValue(146, SFOtherNetForeignIncome);
+			s.WriteMoneyValue(147, SFCashDistribution);
+			s.WriteMoneyValue(148, SFAUFrankingCreditsNZCo);
+			s.WriteMoneyValue(149, SFNonResWitholdingTax);
+			s.WriteMoneyValue(150, SFLICDeductions);
+			s.WriteMoneyValue(151, SFNonCashCGTDiscountedBeforeDiscount);
+			s.WriteMoneyValue(152, SFNonCashCGTIndexation);
+			s.WriteMoneyValue(153, SFNonCashCGTOtherMethod);
+			s.WriteMoneyValue(154, SFNonCashCGTCapitalLosses);
+			s.WriteMoneyValue(155, SFShareBrokerage);
+			s.WriteMoneyValue(156, SFShareConsideration);
+			s.WriteMoneyValue(157, SFShareGSTAmount);
+			s.WriteShortStringValue(158, SFShareGSTRate);
+			s.WriteJulDateValue(159, SFCashDate);
+			s.WriteJulDateValue(160, SFAccrualDate);
+			s.WriteJulDateValue(161, SFRecordDate);
 			s.WriteToken(96);
 		}
 
@@ -538,6 +754,78 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 137 :
 				AuditRecordID = s.ReadInt32Value("AuditRecordID");
+				break;
+			case 138 :
+				SFOtherIncome = s.ReadMoneyValue("SFOtherIncome");
+				break;
+			case 139 :
+				SFOtherTrustDeductions = s.ReadMoneyValue("SFOtherTrustDeductions");
+				break;
+			case 140 :
+				SFCGTConcessionAmount = s.ReadMoneyValue("SFCGTConcessionAmount");
+				break;
+			case 141 :
+				SFCGTForeignCGTBeforeDisc = s.ReadMoneyValue("SFCGTForeignCGTBeforeDisc");
+				break;
+			case 142 :
+				SFCGTForeignCGTIndexation = s.ReadMoneyValue("SFCGTForeignCGTIndexation");
+				break;
+			case 143 :
+				SFCGTForeignCGTOtherMethod = s.ReadMoneyValue("SFCGTForeignCGTOtherMethod");
+				break;
+			case 144 :
+				SFCGTTaxPaidIndexation = s.ReadMoneyValue("SFCGTTaxPaidIndexation");
+				break;
+			case 145 :
+				SFCGTTaxPaidOtherMethod = s.ReadMoneyValue("SFCGTTaxPaidOtherMethod");
+				break;
+			case 146 :
+				SFOtherNetForeignIncome = s.ReadMoneyValue("SFOtherNetForeignIncome");
+				break;
+			case 147 :
+				SFCashDistribution = s.ReadMoneyValue("SFCashDistribution");
+				break;
+			case 148 :
+				SFAUFrankingCreditsNZCo = s.ReadMoneyValue("SFAUFrankingCreditsNZCo");
+				break;
+			case 149 :
+				SFNonResWitholdingTax = s.ReadMoneyValue("SFNonResWitholdingTax");
+				break;
+			case 150 :
+				SFLICDeductions = s.ReadMoneyValue("SFLICDeductions");
+				break;
+			case 151 :
+				SFNonCashCGTDiscountedBeforeDiscount = s.ReadMoneyValue("SFNonCashCGTDiscountedBeforeDiscount");
+				break;
+			case 152 :
+				SFNonCashCGTIndexation = s.ReadMoneyValue("SFNonCashCGTIndexation");
+				break;
+			case 153 :
+				SFNonCashCGTOtherMethod = s.ReadMoneyValue("SFNonCashCGTOtherMethod");
+				break;
+			case 154 :
+				SFNonCashCGTCapitalLosses = s.ReadMoneyValue("SFNonCashCGTCapitalLosses");
+				break;
+			case 155 :
+				SFShareBrokerage = s.ReadMoneyValue("SFShareBrokerage");
+				break;
+			case 156 :
+				SFShareConsideration = s.ReadMoneyValue("SFShareConsideration");
+				break;
+			case 157 :
+				SFShareGSTAmount = s.ReadMoneyValue("SFShareGSTAmount");
+				break;
+			case 158 :
+				SFShareGSTRate = s.ReadShortStringValue("SFShareGSTRate");
+				break;
+			case 159 :
+				SFCashDate = s.ReadJulDateValue("SFCashDate");
+				break;
+			case 160 :
+				SFAccrualDate = s.ReadJulDateValue("SFAccrualDate");
+				break;
+			case 161 :
+				SFRecordDate = s.ReadJulDateValue("SFRecordDate");
 				break;
 			case BeginToken :
 			case EndToken :
