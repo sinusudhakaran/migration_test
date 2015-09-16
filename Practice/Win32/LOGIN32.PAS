@@ -16,7 +16,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, sydefs, pwdSeed, Mask, jpeg,osFont;
-  
+
 type
   TfrmLogin = class(TForm)
     pnlBackground: TPanel;
@@ -53,7 +53,7 @@ type
 
     function Login(uName, pass: String; out Cancelled: Boolean): Boolean;
     class procedure UpdateLocalSecurePassword(UserCode: String; const Password: String);
-    
+
     function ValidateUser(uName : string; pass : string) : boolean;
     procedure WMQueryEndSession(var Msg : TWMQueryEndSession); message WM_QueryEndSession;
     procedure WMEndSession(var Msg : TWMEndSession); message WM_ENDSESSION;
@@ -66,6 +66,8 @@ type
 
     property Password: String read FPassword;
   end;
+
+procedure ShowPromoWindow(aUserRec : pUser_Rec);
 
 function LoginUser(TryUserName : string): boolean;
 function LogoutUser : boolean;
@@ -98,7 +100,9 @@ uses
   EditUserPassword,
   LockUtils,
   GenUtils,
-  bkBranding;
+  bkBranding,
+  PromoDisplayForm,
+  PromoWindowObj;
 
 const
   UnitName = 'LOGIN32';
@@ -135,6 +139,7 @@ var
   AspectRatio : double;
 begin
   bkXPThemes.ThemeForm( Self);
+  
   lblVersion.Font.Name := Font.Name;
   Caption := SHORTAPPNAME + ' Login';
   lblVersion.Caption := ShortAppname + ' ' + WINUTILS.GetAppYearVersionStr;
@@ -455,7 +460,7 @@ begin
       //Prevent the license agreement window from appearing behind the login screen.
       f.PopupParent := O;
       f.PopupMode := pmExplicit;
-      
+
       if f.ShowModal <> mrYes then
       begin
         ErrorSound;
@@ -472,7 +477,7 @@ end;
 function TfrmLogin.ValidateUser(uName, pass: string): boolean;
 var
   Cancelled: Boolean;
-begin
+ begin
   result := false;
   Inc(Tries);
 
@@ -480,7 +485,7 @@ begin
   If uName = SUPERUSER then
   begin
     user := nil;
-    {validate special password - randomly generated}
+    {validate special password - randomly g enerated}
     if (pass = SuperPwd) then
     begin
       result := true;
@@ -779,6 +784,7 @@ begin
 //  end;
 //end;
 end;
+
 //------------------------------------------------------------------------------
 function RequestLogin(var TryUserName : string; var UserRec : pUser_Rec; out Password: String) : boolean;
 var
@@ -828,6 +834,60 @@ begin
   result := true;
 end;
 {$ENDIF}
+//------------------------------------------------------------------------------
+procedure ShowPromoWindow(aUserRec : pUser_Rec);
+var
+  ShowPromos : Boolean;
+
+  procedure DisplayPromoScreen;
+  var
+    ShowForm : TPromoDisplayFrm;
+  begin
+    ShowForm := TPromoDisplayFrm.Create(Nil);
+    try
+      ShowForm.ShowModal;
+    finally
+      FreeAndNil(ShowForm);
+    end;
+  end;
+
+begin
+  {Prevent superuser and automatic logins}
+  while (DisplayPromoContents.ProcessingData) do
+  begin
+    DisplayPromoContents.StartContentfulReadTimer;
+    //Sleep(5);
+    Application.ProcessMessages;
+  end;
+  DisplayPromoContents.LogUserRec := aUserRec;// Assigned to validate the contents against the user levels
+  if ((DisplayPromoContents.TotalContents > 0) and
+      (Globals.StartupParam_UserPassword = '') and
+      (Globals.StartupParam_UserToLoginAs = '') and
+      ((not Assigned(aUserRec)) or
+      (aUserRec.usCode <> SUPERUSER)) ) then
+  begin
+    if UserINI_Show_Promo_Window then
+    begin
+      if PRACINI_CurrentVersion <> WinUtils.GetAppVersionStr then
+      begin
+        if Trim(aUserRec.usEULA_Version) <> '' then
+        begin
+          DisplayPromoContents.DisplayTypes := [ctUpgrade];
+          DisplayPromoContents.ListValidContents;
+          if DisplayPromoContents.Count > 0 then
+            DisplayPromoScreen;
+          UserINI_Show_Promo_Window := False;
+
+          Exit;
+        end;
+      end;
+      DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade,ctMarketing, ctTechnical];
+      DisplayPromoContents.ListValidContents;
+      if DisplayPromoContents.Count > 0 then
+        DisplayPromoScreen;
+    end;
+  end;
+end;
 //------------------------------------------------------------------------------
 function LoginUser(TryUserName : string): boolean;
 const
@@ -935,6 +995,8 @@ begin
     end
     else
       MadAddEmailBodyValue('User-Name','SuperUser');
+
+    ShowPromoWindow(User);
 
     if Debugme then
     begin
