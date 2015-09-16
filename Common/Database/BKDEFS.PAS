@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 744;
-   BK_IOLIB_Date    = '10/09/15';
+   BK_IOLIB_Version : Integer = 754;
+   BK_IOLIB_Date    = '16/09/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -253,8 +253,9 @@ Type
    pMemorisation_Line_Rec                = ^tMemorisation_Line_Rec ;
    pBank_Account_Rec                     = ^tBank_Account_Rec ;
    pTransaction_Rec                      = ^tTransaction_Rec ;
-   pTransaction_Extra_Rec                = ^tTransaction_Extra_Rec ;
+   pTransaction_Extension_Rec            = ^tTransaction_Extension_Rec ;
    pDissection_Rec                       = ^tDissection_Rec ;
+   pDissection_Extension_Rec             = ^tDissection_Extension_Rec ;
    pBalances_Rec                         = ^tBalances_Rec ;
    pSubGroup_Heading_Rec                 = ^tSubGroup_Heading_Rec ;
    pDivision_Heading_Rec                 = ^tDivision_Heading_Rec ;
@@ -696,6 +697,30 @@ Type
       plSF_Ledger_Name                   : AnsiString;       { Stored }
       plAudit_Record_ID                  : Integer;       { Stored }
       plTemp_Tag                         : Integer;
+      plSF_Other_Income                  : Money;       { Stored }
+      plSF_Other_Trust_Deductions        : Money;       { Stored }
+      plSF_CGT_Concession_Amount         : Money;       { Stored }
+      plSF_CGT_ForeignCGT_Before_Disc    : Money;       { Stored }
+      plSF_CGT_ForeignCGT_Indexation     : Money;       { Stored }
+      plSF_CGT_ForeignCGT_Other_Method   : Money;       { Stored }
+      plSF_CGT_TaxPaid_Indexation        : Money;       { Stored }
+      plSF_CGT_TaxPaid_Other_Method      : Money;       { Stored }
+      plSF_Other_Net_Foreign_Income      : Money;       { Stored }
+      plSF_Cash_Distribution             : Money;       { Stored }
+      plSF_AU_Franking_Credits_NZ_Co     : Money;       { Stored }
+      plSF_Non_Res_Witholding_Tax        : Money;       { Stored }
+      plSF_LIC_Deductions                : Money;       { Stored }
+      plSF_Non_Cash_CGT_Discounted_Before_Discount : Money;       { Stored }
+      plSF_Non_Cash_CGT_Indexation       : Money;       { Stored }
+      plSF_Non_Cash_CGT_Other_Method     : Money;       { Stored }
+      plSF_Non_Cash_CGT_Capital_Losses   : Money;       { Stored }
+      plSF_Share_Brokerage               : Money;       { Stored }
+      plSF_Share_Consideration           : Money;       { Stored }
+      plSF_Share_GST_Amount              : Money;       { Stored }
+      plSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+      plSF_Cash_Date                     : Integer;       { Stored }
+      plSF_Accrual_Date                  : Integer;       { Stored }
+      plSF_Record_Date                   : Integer;       { Stored }
       plEOR                              : Byte;
    end;
 
@@ -814,6 +839,30 @@ Type
       mlSF_Capital_Gains_Fraction_Half   : Boolean;       { Stored }
       mlAudit_Record_ID                  : Integer;       { Stored }
       mlTemp_Tag                         : Integer;
+      mlSF_Other_Income                  : Money;       { Stored }
+      mlSF_Other_Trust_Deductions        : Money;       { Stored }
+      mlSF_CGT_Concession_Amount         : Money;       { Stored }
+      mlSF_CGT_ForeignCGT_Before_Disc    : Money;       { Stored }
+      mlSF_CGT_ForeignCGT_Indexation     : Money;       { Stored }
+      mlSF_CGT_ForeignCGT_Other_Method   : Money;       { Stored }
+      mlSF_CGT_TaxPaid_Indexation        : Money;       { Stored }
+      mlSF_CGT_TaxPaid_Other_Method      : Money;       { Stored }
+      mlSF_Other_Net_Foreign_Income      : Money;       { Stored }
+      mlSF_Cash_Distribution             : Money;       { Stored }
+      mlSF_AU_Franking_Credits_NZ_Co     : Money;       { Stored }
+      mlSF_Non_Res_Witholding_Tax        : Money;       { Stored }
+      mlSF_LIC_Deductions                : Money;       { Stored }
+      mlSF_Non_Cash_CGT_Discounted_Before_Discount : Money;       { Stored }
+      mlSF_Non_Cash_CGT_Indexation       : Money;       { Stored }
+      mlSF_Non_Cash_CGT_Other_Method     : Money;       { Stored }
+      mlSF_Non_Cash_CGT_Capital_Losses   : Money;       { Stored }
+      mlSF_Share_Brokerage               : Money;       { Stored }
+      mlSF_Share_Consideration           : Money;       { Stored }
+      mlSF_Share_GST_Amount              : Money;       { Stored }
+      mlSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+      mlSF_Cash_Date                     : Integer;       { Stored }
+      mlSF_Accrual_Date                  : Integer;       { Stored }
+      mlSF_Record_Date                   : Integer;       { Stored }
       mlEOR                              : Byte;
    end;
 
@@ -1009,12 +1058,13 @@ Type
       txSuggested_Mem_State              : Byte;       { Stored }
       txSuggested_Mem_Index              : Integer;       { Stored }
       txSuggested_Manual_Count           : Integer;
+      txTranaction_Extension             : pTransaction_Extension_Rec;
       txEOR                              : Byte;
    end;
 
 {  -------------------------------------------------------------------  }
 
-   tTransaction_Extra_Rec = Packed Record
+   tTransaction_Extension_Rec = Packed Record
       teRecord_Type                      : Byte;
       teSequence_No                      : Integer;       { Stored }
       teDate_Effective                   : Integer;       { Stored }
@@ -1039,6 +1089,9 @@ Type
       teSF_Share_Consideration           : Money;       { Stored }
       teSF_Share_GST_Amount              : Money;       { Stored }
       teSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+      teSF_Cash_Date                     : Integer;       { Stored }
+      teSF_Accrual_Date                  : Integer;       { Stored }
+      teSF_Record_Date                   : Integer;       { Stored }
       teEOR                              : Byte;
    end;
 
@@ -1112,7 +1165,40 @@ Type
       dsBank_Account                     : TObject;
       dsClient                           : TObject;
       dsTemp_Base_Amount                 : Money;
+      dsDissection_Extension             : pDissection_Extension_Rec;
       dsEOR                              : Byte;
+   end;
+
+{  -------------------------------------------------------------------  }
+
+   tDissection_Extension_Rec = Packed Record
+      deRecord_Type                      : Byte;
+      deSequence_No                      : Integer;       { Stored }
+      deSF_Other_Income                  : Money;       { Stored }
+      deSF_Other_Trust_Deductions        : Money;       { Stored }
+      deSF_CGT_Concession_Amount         : Money;       { Stored }
+      deSF_CGT_ForeignCGT_Before_Disc    : Money;       { Stored }
+      deSF_CGT_ForeignCGT_Indexation     : Money;       { Stored }
+      deSF_CGT_ForeignCGT_Other_Method   : Money;       { Stored }
+      deSF_CGT_TaxPaid_Indexation        : Money;       { Stored }
+      deSF_CGT_TaxPaid_Other_Method      : Money;       { Stored }
+      deSF_Other_Net_Foreign_Income      : Money;       { Stored }
+      deSF_Cash_Distribution             : Money;       { Stored }
+      deSF_AU_Franking_Credits_NZ_Co     : Money;       { Stored }
+      deSF_Non_Res_Witholding_Tax        : Money;       { Stored }
+      deSF_LIC_Deductions                : Money;       { Stored }
+      deSF_Non_Cash_CGT_Discounted_Before_Discount : Money;       { Stored }
+      deSF_Non_Cash_CGT_Indexation       : Money;       { Stored }
+      deSF_Non_Cash_CGT_Other_Method     : Money;       { Stored }
+      deSF_Non_Cash_CGT_Capital_Losses   : Money;       { Stored }
+      deSF_Share_Brokerage               : Money;       { Stored }
+      deSF_Share_Consideration           : Money;       { Stored }
+      deSF_Share_GST_Amount              : Money;       { Stored }
+      deSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+      deSF_Cash_Date                     : Integer;       { Stored }
+      deSF_Accrual_Date                  : Integer;       { Stored }
+      deSF_Record_Date                   : Integer;       { Stored }
+      deEOR                              : Byte;
    end;
 
 {  -------------------------------------------------------------------  }
@@ -1543,8 +1629,9 @@ Const
    Memorisation_Line_Rec_Size                = Sizeof( TMemorisation_Line_Rec ); 
    Bank_Account_Rec_Size                     = Sizeof( TBank_Account_Rec ); 
    Transaction_Rec_Size                      = Sizeof( TTransaction_Rec ); 
-   Transaction_Extra_Rec_Size                = Sizeof( TTransaction_Extra_Rec ); 
+   Transaction_Extension_Rec_Size            = Sizeof( TTransaction_Extension_Rec ); 
    Dissection_Rec_Size                       = Sizeof( TDissection_Rec ); 
+   Dissection_Extension_Rec_Size             = Sizeof( TDissection_Extension_Rec ); 
    Balances_Rec_Size                         = Sizeof( TBalances_Rec ); 
    SubGroup_Heading_Rec_Size                 = Sizeof( TSubGroup_Heading_Rec ); 
    Division_Heading_Rec_Size                 = Sizeof( TDivision_Heading_Rec ); 
