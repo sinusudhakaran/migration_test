@@ -73,7 +73,7 @@ type
     FBank_Account : TObject;
     FAuditMgr     : TClientAuditManager;
     FLoading      : boolean;
-    fTransaction_Extra_List : TTransaction_Extra_List;
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving    fTransaction_Extension_List : TTransaction_Extension_List;
 
     fTran_Suggested_Index : TTran_Suggested_Index;
     fTran_Transaction_Code_Index : TTran_Transaction_Code_Index;
@@ -92,7 +92,7 @@ type
     function Compare(Item1,Item2 : Pointer): Integer; override;
     procedure Insert(Item:Pointer); override;
     procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
-    procedure Insert_Transaction_Extra_Rec( var p: pTransaction_Extra_Rec );
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving    procedure Insert_Transaction_Extension_Rec( var p: pTransaction_Extension_Rec );
 
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S: TIOStream);
@@ -107,6 +107,7 @@ type
 
 
     function New_Transaction : pTransaction_Rec;
+    function New_Transaction_Extension_Rec: pTransaction_Extension_Rec;
 
     // Effective date
     // Note: returns 0 zero or first/last date of Effective Date
@@ -135,13 +136,16 @@ type
     property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
 
     property Tran_Suggested_Index : TTran_Suggested_Index read fTran_Suggested_Index;
-    property Transaction_Extra_List : TTransaction_Extra_List read fTransaction_Extra_List;
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving    property Transaction_Extension_List : TTransaction_Extension_List read fTransaction_Extension_List;
   end;
 
   procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
   procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
   procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
                              AClientAuditManager: TClientAuditManager = nil );
+
+ //DN BGL360 Extended fields
+  procedure AppendDissectionExtension( D : pDissection_Rec; DE : pDissection_Extension_Rec );
 
 //------------------------------------------------------------------------------
 implementation
@@ -165,7 +169,8 @@ uses
   baObj32,
   SuggestedMems,
   BKUTIL32,
-  bkteio;
+  bkteio,
+  bkdeio;
 
 const
   DebugMe : boolean = false;
@@ -254,6 +259,14 @@ begin
 
   if (BKDSIO.IsADissection_Rec( P ) )  then
   begin
+    //DN BGL360 Extended Fields
+    if assigned( p^.dsDissection_Extension ) then
+      if BKDEIO.IsADissection_Extension_Rec( p^.dsDissection_Extension ) then begin
+        BKDEIO.Free_Dissection_Extension_Rec_Dynamic_Fields( p^.dsDissection_Extension^ );
+        MALLOC.SafeFreeMem( p^.dsDissection_Extension, Dissection_Extension_Rec_Size );
+      end; 
+    //DN BGL360 Extended Fields
+
     BKDSIO.Free_Dissection_Rec_Dynamic_Fields( p^);
     MALLOC.SafeFreeMem( P, Dissection_Rec_Size );
   end;
@@ -279,6 +292,16 @@ Begin
          Dispose_Dissection_Rec( This );
          This := Next;
       end;
+
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+    //DN BGL360 Extended Fields
+    if assigned( p^.txTranaction_Extension ) then
+      if BKTEIO.IsATransaction_Extension_Rec( p^.txTranaction_Extension ) then begin
+        BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( p^.txTranaction_Extension^ );
+        MALLOC.SafeFreeMem( p^.txTranaction_Extension, Transaction_Extension_Rec_Size );
+      end;
+    //DN BGL360 Extended Fields
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving
 
       BKTXIO.Free_Transaction_Rec_Dynamic_Fields( P^);
       MALLOC.SafeFreeMem( P, Transaction_Rec_Size );
@@ -317,33 +340,50 @@ end;
 //------------------------------------------------------------------------------
 
 Procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
-  AClientAuditManager: TClientAuditManager);
+            AClientAuditManager: TClientAuditManager = nil);
 const
   ThisMethodName = 'AppendDissection';
 Var
    Seq : Integer;
 Begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Seq := 0;
-   If T^.txLast_Dissection<>NIL then Seq := T^.txLast_Dissection^.dsSequence_No;
-   Inc( Seq );
-   With D^ do
-   Begin
-      dsTransaction  := T;
-      dsSequence_No  := Seq;
-      dsNext         := NIL;
-      dsClient       := T.txClient;
-      dsBank_Account := T.txBank_Account;
-      if Assigned(AClientAuditManager) then
-        dsAudit_Record_ID := AClientAuditManager.NextAuditRecordID;
-   end;
-   With T^ do
-   Begin
-      If ( txFirst_Dissection = NIL ) then txFirst_Dissection := D;
-      If ( txLast_Dissection<>NIL ) then txLast_Dissection^.dsNext := D;
-      txLast_Dissection := D;
-   end;
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  Seq := 0;
+  If T^.txLast_Dissection<>NIL then Seq := T^.txLast_Dissection^.dsSequence_No;
+  Inc( Seq );
+  With D^ do
+  Begin
+    dsTransaction  := T;
+    dsSequence_No  := Seq;
+    dsNext         := NIL;
+    dsClient       := T.txClient;
+    dsBank_Account := T.txBank_Account;
+    if Assigned(AClientAuditManager) then
+      dsAudit_Record_ID := AClientAuditManager.NextAuditRecordID;
+  end;
+  With T^ do
+  Begin
+    If ( txFirst_Dissection = NIL ) then txFirst_Dissection := D;
+    If ( txLast_Dissection<>NIL ) then txLast_Dissection^.dsNext := D;
+    txLast_Dissection := D;
+  end;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+//------------------------------------------------------------------------------
+//DN BGL360 Extended fields
+procedure AppendDissectionExtension( D : pDissection_Rec; DE : pDissection_Extension_Rec );
+const
+  ThisMethodName = 'AppendDissectionExtension';
+Var
+   Seq : Integer;
+Begin
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  D^.dsDissection_Extension := DE;
+  DE^.deSequence_No := D^.dsSequence_No;
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //------------------------------------------------------------------------------
@@ -371,12 +411,15 @@ procedure TTransaction_List.FreeItem(Item : Pointer);
 begin
   Dispose_Transaction_Rec(pTransaction_Rec(item));
 end;
+
 //------------------------------------------------------------------------------
-procedure TTransaction_List.Insert_Transaction_Extra_Rec(
-  var p: pTransaction_Extra_Rec);
+(*//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+procedure TTransaction_List.Insert_Transaction_Extension_Rec(
+  var p: pTransaction_Extension_Rec);
 begin
-  fTransaction_Extra_List.Insert_Transaction_Extra_Rec( P );
+  fTransaction_Extension_List.Insert_Transaction_Extension_Rec( P );
 end;
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving*)
 
 procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
   NewAuditID: Boolean = True);
@@ -385,7 +428,7 @@ const
 var
   NewTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
   NewTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
-  NewTran_TransAction_Extra_Rec : pTransaction_Extra_Rec;
+  NewTran_Transaction_Extension_Rec : pTransaction_Extension_Rec;
 
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -434,13 +477,24 @@ Begin
     if (fBank_Account is TBank_Account) and
        (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
     begin
-      NewTran_TransAction_Extra_Rec := fTransaction_Extra_List.New_Transaction_Extra;
-      if assigned( NewTran_TransAction_Extra_Rec ) then begin
-        NewTran_TransAction_Extra_Rec^.teSequence_No := P^.txSequence_No;
-        NewTran_TransAction_Extra_Rec^.teDate_Effective := P^.txDate_Effective;
+      if not assigned( P^.txTranaction_Extension ) then begin
+        NewTran_Transaction_Extension_Rec := BKTEIO.New_Transaction_Extension_Rec;
+        if assigned( NewTran_Transaction_Extension_Rec ) then begin
+          NewTran_Transaction_Extension_Rec^.teSequence_No := P^.txSequence_No;
+          NewTran_Transaction_Extension_Rec^.teDate_Effective := P^.txDate_Effective;
 
-        fTransaction_Extra_List.Insert_Transaction_Extra_Rec( NewTran_TransAction_Extra_Rec );
+          P^.txTranaction_Extension := NewTran_Transaction_Extension_Rec;
+        end;
       end;
+(*//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+      NewTran_Transaction_Extension_Rec := fTransaction_Extension_List.New_Transaction_Extension;
+      if assigned( NewTran_Transaction_Extension_Rec ) then begin
+        NewTran_Transaction_Extension_Rec^.teSequence_No := P^.txSequence_No;
+        NewTran_Transaction_Extension_Rec^.teDate_Effective := P^.txDate_Effective;
+
+        fTransaction_Extension_List.Insert_Transaction_Extension_Rec( NewTran_Transaction_Extension_Rec );
+      end;
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving*)
     end;
 
     //Get next audit ID for new transactions
@@ -458,8 +512,9 @@ const
 Var
    Token       : Byte;
    pTX         : pTransaction_Rec;
-   pTXe        : pTransaction_Extra_Rec;
+   pTXe        : pTransaction_Extension_Rec;
    pDS         : pDissection_Rec;
+   pDSe        : pDissection_Extension_Rec;
    msg         : string;
    iTransactionIndex : integer;
 Begin
@@ -487,22 +542,45 @@ Begin
               Begin
                  pDS := New_Dissection_Rec;
                  Read_Dissection_Rec ( pDS^, S );
+
+               //DN BGL360 Extended Fields - Check if the Dissection Extended record is there
+                 //DN and if so react, else generate a new for saving
+
+                 pDSe := New_Dissection_Extension_Rec;
+
+                 Token := S.ReadToken;
+                 if Token = tkBegin_Dissection_Extension then //DN This means the Extended record has been stored before
+                 begin
+                   Read_Dissection_Extension_Rec(pDSe^, S);
+                 end
+                 else // There is NO stored Extended Record and therefore stream needs to be positioned back
+                 begin
+                   S.Position := S.Position - 1;
+                   pDSe^.deSequence_No := pDS^.dsSequence_No;
+                 end;
+
                  AppendDissection( pTX, pDS );
+                 AppendDissectionExtension( pDS, pDSe );
               end;
 
-           tkBegin_Transaction_Extra :
+           tkBegin_Transaction_Extension :
              begin
-               if fTransaction_Extra_List.SearchUsingDateandTranSeqNo(
+               if not assigned( PTX^.txTranaction_Extension ) then // The Extension has not beein built yet
+                 PTX^.txTranaction_Extension := New_Transaction_Extension_Rec;
+               Read_Transaction_Extension_Rec( PTX^.txTranaction_Extension^, S )
+(*DN BGL360 Extended Fields - Try a different method for storing and retrieving
+               if fTransaction_Extension_List.SearchUsingDateandTranSeqNo(
                     pTX^.txDate_Effective, pTX^.txSequence_No,
                     iTransactionIndex ) then begin
-                 pTXe := fTransaction_Extra_List.Transaction_Extra_At( iTransactionIndex );
-                 Read_Transaction_Extra_Rec( pTXe^, S );
+                 pTXe := fTransaction_Extension_List.Transaction_Extension_At( iTransactionIndex );
+                 Read_Transaction_Extension_Rec( pTXe^, S );
                end
                else begin
-                 pTXe := New_Transaction_Extra_Rec;
-                 Read_Transaction_Extra_Rec( pTXe^, S );
-                 Insert_Transaction_Extra_Rec( pTXe );
+                 pTXe := New_Transaction_Extension_Rec;
+                 Read_Transaction_Extension_Rec( pTXe^, S );
+                 Insert_Transaction_Extension_Rec( pTXe );
                end;
+DN BGL360 Extended Fields - Try a different method for storing and ret6rieving *)
              end
 
            else
@@ -537,6 +615,20 @@ begin
   ClearSuperFundFields(Result);
 end;
 
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+function TTransaction_List.New_Transaction_Extension_Rec: pTransaction_Extension_Rec;
+begin
+  // Create a Transaction Rec with Object references
+  // so we can call Helper Methods on it
+  // before it is inserted into the list.
+  Result := BKTEIO.New_Transaction_Extension_Rec;
+//DN  Result.txBank_Account := fBank_Account;
+//DN  Result.txClient  := fClient;
+
+  ClearSuperFundFields(Result);
+end;
+
+
 //------------------------------------------------------------------------------
 procedure TTransaction_List.SaveToFile(var S: TIOStream);
 const
@@ -544,7 +636,7 @@ const
 Var
    i    : LongInt;
    pTX  : pTransaction_Rec;
-   pTXe : pTransaction_Extra_Rec;
+   pTXe : pTransaction_Extension_Rec;
    pDS  : pDissection_Rec;
    TXCount  : LongInt;
    DSCount  : LongInt;
@@ -565,7 +657,7 @@ Begin
    begin
      fTran_Suggested_Index.SortForSave := true;
      fTran_Suggested_Index.Sort();
-     
+
      fTran_Transaction_Code_Index.Sort();
    end;
 
@@ -588,16 +680,33 @@ Begin
       Begin
          BKDSIO.Write_Dissection_Rec ( pDS^, S );
          Inc( DSCount );
+
+         //DN BGL360 Extended Fields - Check if the Dissection Extended record
+         //is there, if so store it
+         if assigned( pDS^.dsDissection_Extension ) then begin
+           BKDEIO.Write_Dissection_Extension_Rec( pDS^.dsDissection_Extension^, S );
+         end;
+
          pDS := pDS^.dsNext;
       end;
 
-      pTXe := fTransaction_Extra_List.Transaction_Extra_At( i );
+      pTXe := pTX^.txTranaction_Extension;
       if not assigned( pTXe ) then begin
-        pTXe := fTransaction_Extra_List.New_Transaction_Extra;
+        pTXe := BKTEIO.New_Transaction_Extension_Rec;
+        pTXe^.teSequence_No := pTX^.txSequence_No;
+        pTXe^.teDate_Effective := pTX^.txDate_Effective;
+        pTX^.txTranaction_Extension := pTXe;
+      end;
+      BKTEIO.Write_Transaction_Extension_Rec( pTXe^, S );
+(*//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+      pTXe := fTransaction_Extension_List.Transaction_Extension_At( i );
+      if not assigned( pTXe ) then begin
+        pTXe := fTransaction_Extension_List.New_Transaction_Extension;
         pTXe^.teSequence_No := pTX^.txSequence_No;
         pTXe^.teDate_Effective := pTX^.txDate_Effective;
       end;
-      BKTEIO.Write_Transaction_Extra_Rec( pTXe^, S );
+      BKTEIO.Write_Transaction_Extension_Rec( pTXe^, S );
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving*)
    end;
    S.WriteToken( tkEndSection );
 
@@ -838,7 +947,7 @@ begin
   fTran_Suggested_Index := TTran_Suggested_Index.Create;
   fTran_Transaction_Code_Index := TTran_Transaction_Code_Index.Create;
 
-  fTransaction_Extra_List := TTransaction_Extra_List.Create;
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving  fTransaction_Extension_List := TTransaction_Extension_List.Create;
 
   FLoading := False;
   Duplicates := false;
@@ -850,7 +959,7 @@ end;
 
 destructor TTransaction_List.Destroy;
 begin
-  FreeAndNil( fTransaction_Extra_List );
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving  FreeAndNil( fTransaction_Extension_List );
   FreeAndNil( fTran_Transaction_Code_Index );
   FreeAndNil( fTran_Suggested_Index );
   inherited;

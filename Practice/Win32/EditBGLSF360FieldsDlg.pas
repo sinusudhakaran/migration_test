@@ -227,7 +227,11 @@ type
                          mComponent : byte;
                          mUnits: Money;
                          mAccount,
-                         mShareGSTRate: shortstring);
+                         mShareGSTRate: shortstring;
+                         dCash_Date,
+                         dAccrual_Date,
+                         dRecord_Date : integer
+                         );
 
     procedure SetInfo(iDate : integer; sNarration: string; mAmount : Money);
 
@@ -271,7 +275,10 @@ type
                         var mComponent : byte;
                         var mUnits: Money;
                         var mAccount: shortstring;
-                        var mShareGSTRate: shortstring) : boolean;
+                        var mShareGSTRate: shortstring;
+                        var dCash_Date : integer;
+                        var dAccrual_Date : integer;
+                        var dRecord_Date : integer) : boolean;
 
     property ReadOnly : boolean read FReadOnly write SetReadOnly;
     property MoveDirection : TFundNavigation read FMoveDirection write SetMoveDirection;
@@ -340,7 +347,10 @@ function TdlgEditBGLSF360Fields.GetFields( var mImputedCredit : Money;
                         var mComponent : byte;
                         var mUnits: Money;
                         var mAccount: shortstring;
-                        var mShareGSTRate: shortstring) : boolean;
+                        var mShareGSTRate: shortstring;
+                        var dCash_Date : integer;
+                        var dAccrual_Date : integer;
+                        var dRecord_Date : integer) : boolean;
 (*function TdlgEditBGLSF360Fields.GetFields(var mImputedCredit,
                          mTaxFreeDist,
                          mTaxExemptDist,
@@ -493,22 +503,11 @@ begin
 
   mUnits := nfUnits.AsFloat * 10000;
 
+  dCash_Date    := eCashDate.AsStDate;
+  dAccrual_Date := eAccrualDate.AsStDate;
+  dRecord_Date  := eRecordDate.AsStDate;
 
-  Result := (* ( mImputedCredit <> 0) or
-            ( mTaxFreeDist <> 0) or
-            ( mTaxExemptDist <> 0) or
-            ( mTaxDeferredDist <> 0) or
-            ( mTFNCredits <> 0) or
-            ( mForeignIncome <> 0) or
-            ( mForeignTaxCredits <> 0) or
-            ( mCapitalGains <> 0) or
-            ( mDiscountedCapitalGains <> 0) or
-            ( mCapitalGainsOther <> 0) or
-            ( mOtherExpenses <> 0) or
-            ( mFranked <> 0) or
-            ( mUnfranked <> 0) or *)
-
-            ( mImputedCredit <> 0) or
+  Result := ( mImputedCredit <> 0) or
             ( mTaxFreeDist <> 0) or
             ( mTaxExemptDist <> 0) or
             ( mTaxDeferredDist <> 0) or
@@ -548,7 +547,10 @@ begin
             ( mComponent <> 0) or
             ( mUnits <> 0) or
             ( mAccount <>  '' ) or
-            ( mShareGSTRate <> '' );
+            ( mShareGSTRate <> '' ) or
+            ( dCash_Date <> 0) or
+            ( dAccrual_Date <> 0) or
+            ( dRecord_Date <> 0);
 
 
             
@@ -650,7 +652,11 @@ procedure TdlgEditBGLSF360Fields.SetFields(
             mComponent : byte;
             mUnits: Money;
             mAccount,
-            mShareGSTRate: shortstring);
+            mShareGSTRate: shortstring;
+            dCash_Date,
+            dAccrual_Date,
+            dRecord_Date : integer
+            );
 begin
 
 // ** Panel Distribution Panel **
@@ -775,7 +781,10 @@ begin
 
 
 // DN Not sure about whether these map?
-  eCashDate.AsStDate := BkNull2St(dCGTDate);
+  eCashDate.AsStDate    := BkNull2St(dCash_Date);
+  eAccrualDate.AsStDate := BkNull2St(dAccrual_Date);
+  eRecordDate.AsStDate  := BkNull2St(dRecord_Date);
+
 
   nfUnits.AsFloat := mUnits / 10000;
 
@@ -974,7 +983,7 @@ begin
   ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
 
   p := MyClient.clChart.Account_At(ChartIndex);
-  if not p.chPosting_Allowed then
+  if not p^.chPosting_Allowed then
   begin
     if FSkip = 1 then
     begin
@@ -988,8 +997,10 @@ begin
     else
       cmbxAccount.ItemIndex := FCurrentAccountIndex
   end
-  else
+  else begin
     FCurrentAccountIndex := cmbxAccount.ItemIndex;
+    TranAccount := p^.chAccount_Code; //DN Set the TranAccount code so that the screen will refresh;
+  end;
   FSkip := 0;
 end;
 
@@ -1059,6 +1070,7 @@ procedure TdlgEditBGLSF360Fields.SetRevenuePercentage(const Value: boolean);
 begin
    FRevenuePercentage := Value;
 
+   SetPercentLabel(lpLessOtherAllowableTrustDeductions, FRevenuePercentage);
    SetPercentLabel(lpCGTConcession, FRevenuePercentage);
    SetPercentLabel(lpCGTCapitalLosses, FRevenuePercentage);
    SetPercentLabel(lpAssessableForeignSourceIncome, FRevenuePercentage);

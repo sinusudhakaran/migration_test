@@ -16,7 +16,7 @@ type
   //----------------------------------------------------------------------------
 
   //----------------------------------------------------------------------------
-  TTransaction_Extra_List = class(TExtdSortedCollection)
+  TTransaction_Extension_List = class(TExtdSortedCollection)
   private
     FLastSeq      : integer;
 //DN    FClient       : TObject;
@@ -24,32 +24,32 @@ type
 //DN    FAuditMgr     : TClientAuditManager;
     FLoading      : boolean;
 
-//DN    function FindRecordID(ARecordID: integer):  pTransaction_Extra_Rec;
+//DN    function FindRecordID(ARecordID: integer):  pTransaction_Extension_Rec;
 //DN    procedure SetClient(const Value: TObject);
 //DN    procedure SetBank_Account(const Value: TObject);
 //DN    procedure SetAuditMgr(const Value: TClientAuditManager);
   protected
     procedure FreeItem(Item : Pointer); override;
   public
-    constructor Create(*( AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager )*); reintroduce; overload; virtual;
+    constructor Create; reintroduce; overload; virtual;
     destructor Destroy; override;
     function Compare(Item1,Item2 : Pointer): Integer; override;
     procedure Insert(Item:Pointer); override;
-    procedure Insert_Transaction_Extra_Rec((*var *)p: pTransaction_Extra_Rec );
+    procedure Insert_Transaction_Extension_Rec(p: pTransaction_Extension_Rec );
 
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S: TIOStream);
-    function Transaction_Extra_At(Index : longint) : pTransaction_Extra_Rec;
+    function Transaction_Extension_At(Index : longint) : pTransaction_Extension_Rec;
 //DN    function GetTransCoreID_At(Index : longint) : int64;
-//DN    function FindTransactionFromECodingUID( UID : integer) : pTransaction_Extra_Rec;
-//DN    function FindTransactionFromMatchId(UID: integer): pTransaction_Extra_Rec;
+//DN    function FindTransactionFromECodingUID( UID : integer) : pTransaction_Extension_Rec;
+//DN    function FindTransactionFromMatchId(UID: integer): pTransaction_Extension_Rec;
     function SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
 //DN    function SearchUsingTypeDateandTranSeqNo(aType : Byte; aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
 //DN    function SearchByTransactionCoreID(aCore_Transaction_ID, aCore_Transaction_ID_High: integer; var aIndex: integer): Boolean;
 //DN    function TransactionCoreIDExists(aCore_Transaction_ID, aCore_Transaction_ID_High: integer): Boolean;
 
 
-    function New_Transaction_Extra : pTransaction_Extra_Rec;
+    function New_Transaction_Extension_Rec : pTransaction_Extension_Rec;
 
     // Effective date
     // Note: returns 0 zero or first/last date of Effective Date
@@ -61,12 +61,12 @@ type
 //DN    function LastPresDate : LongInt;
 
     procedure UpdateCRC(var CRC : Longword);
-//DN    procedure DoAudit(ATransactionListCopy: TTransaction_Extra_List; AParentID: integer;
+//DN    procedure DoAudit(ATransactionListCopy: TTransaction_Extension_List; AParentID: integer;
 //DN                      AAccountType: byte; var AAuditTable: TAuditTable);
-//DN    procedure DoDissectionAudit(ATransaction, ATransactionCopy: pTransaction_Extra_Rec;
+//DN    procedure DoDissectionAudit(ATransaction, ATransactionCopy: pTransaction_Extension_Rec;
 //DN                                AAccountType: byte;
 //DN                                var AAuditTable: TAuditTable);
-//DN    procedure SetAuditInfo(P1, P2: pTransaction_Extra_Rec; AParentID: integer;
+//DN    procedure SetAuditInfo(P1, P2: pTransaction_Extension_Rec; AParentID: integer;
 //DN                           var AAuditInfo: TAuditInfo);
 //DN    procedure SetDissectionAuditInfo(P1, P2: pDissection_Rec; AParentID: integer;
 //DN                                     var AAuditInfo: TAuditInfo);
@@ -80,7 +80,7 @@ type
 //DN    property Tran_Suggested_Index : TTran_Suggested_Index read fTran_Suggested_Index;
   end;
 
-  procedure Dispose_Transaction_Extra_Rec(p: pTransaction_Extra_Rec);
+  procedure Dispose_Transaction_Extension_Rec(p: pTransaction_Extension_Rec);
 
 //------------------------------------------------------------------------------
 implementation
@@ -112,34 +112,34 @@ const
   SInsufficientMemory = UnitName + ' Error: Out of memory in %s.NewItem';
 
 
-procedure Dispose_Transaction_Extra_Rec(p: pTransaction_Extra_Rec);
+procedure Dispose_Transaction_Extension_Rec(p: pTransaction_Extension_Rec);
 const
-  ThisMethodName = 'Dispose_Transaction_Extra_Rec';
+  ThisMethodName = 'Dispose_Transaction_Extension_Rec';
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   if ( BKTEIO.IsATransaction_Extra_Rec( P ) )  then With P^ do
+   if ( BKTEIO.IsATransaction_Extension_Rec( P ) )  then With P^ do
    Begin
-      BKTEIO.Free_Transaction_Extra_Rec_Dynamic_Fields( P^);
-      MALLOC.SafeFreeMem( P, Transaction_Extra_Rec_Size );
+      BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( P^);
+      MALLOC.SafeFreeMem( P, Transaction_Extension_Rec_Size );
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 
-{ TTransaction_Extra_List }
+{ TTransaction_Extension_List }
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.Compare(Item1, Item2 : pointer): integer;
+function TTransaction_Extension_List.Compare(Item1, Item2 : pointer): integer;
 begin
-  if pTransaction_Extra_Rec(Item1)^.teDate_Effective < pTransaction_Extra_Rec(Item2)^.teDate_Effective then result := -1 else
-  if pTransaction_Extra_Rec(Item1)^.teDate_Effective > pTransaction_Extra_Rec(Item2)^.teDate_Effective then result := 1 else
-  if pTransaction_Extra_Rec(Item1)^.teSequence_No    < pTransaction_Extra_Rec(Item2)^.teSequence_No then result := -1 else
-  if pTransaction_Extra_Rec(Item1)^.teSequence_No    > pTransaction_Extra_Rec(Item2)^.teSequence_No then result := 1 else
+  if pTransaction_Extension_Rec(Item1)^.teDate_Effective < pTransaction_Extension_Rec(Item2)^.teDate_Effective then result := -1 else
+  if pTransaction_Extension_Rec(Item1)^.teDate_Effective > pTransaction_Extension_Rec(Item2)^.teDate_Effective then result := 1 else
+  if pTransaction_Extension_Rec(Item1)^.teSequence_No    < pTransaction_Extension_Rec(Item2)^.teSequence_No then result := -1 else
+  if pTransaction_Extension_Rec(Item1)^.teSequence_No    > pTransaction_Extension_Rec(Item2)^.teSequence_No then result := 1 else
   result := 0;
 end;
 //------------------------------------------------------------------------------
-procedure TTransaction_Extra_List.Insert(Item:Pointer);
+procedure TTransaction_Extension_List.Insert(Item:Pointer);
 const
-  ThisMethodName = 'TTransaction_Extra_List.Insert';
+  ThisMethodName = 'TTransaction_Extension_List.Insert';
 var
   Msg : string;
 begin
@@ -148,18 +148,18 @@ begin
   raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
 end;
 //------------------------------------------------------------------------------
-procedure TTransaction_Extra_List.FreeItem(Item : Pointer);
+procedure TTransaction_Extension_List.FreeItem(Item : Pointer);
 begin
-  Dispose_Transaction_Extra_Rec(pTransaction_Extra_Rec(item));
+  Dispose_Transaction_Extension_Rec(pTransaction_Extension_Rec(item));
 end;
 //------------------------------------------------------------------------------
-procedure TTransaction_Extra_List.Insert_Transaction_Extra_Rec( (*var *)p: pTransaction_Extra_Rec );
+procedure TTransaction_Extension_List.Insert_Transaction_Extension_Rec( p: pTransaction_Extension_Rec );
 const
-  ThisMethodName = 'TTransaction_Extra_List.Insert_Transaction_Extra_Rec';
+  ThisMethodName = 'TTransaction_Extension_List.Insert_Transaction_Extension_Rec';
 
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-  If BKTEIO.IsATransaction_Extra_Rec( P ) then
+  If BKTEIO.IsATransaction_Extension_Rec( P ) then
   Begin
     Inc( FLastSeq );
 //DN    P^.teSequence_No  := FLastSeq;
@@ -169,12 +169,12 @@ Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //------------------------------------------------------------------------------
-procedure TTransaction_Extra_List.LoadFromFile(var S : TIOStream);
+procedure TTransaction_Extension_List.LoadFromFile(var S : TIOStream);
 const
-  ThisMethodName = 'TTransaction_Extra_List.LoadFromFile';
+  ThisMethodName = 'TTransaction_Extension_List.LoadFromFile';
 Var
    Token              : Byte;
-   pTransaction_Extra : pTransaction_Extra_Rec;
+   pTransaction_Extension : pTransaction_Extension_Rec;
    pDS         : pDissection_Rec;
    msg         : string;
 Begin
@@ -186,16 +186,16 @@ Begin
 //DN     if (fBank_Account is TBank_Account) then
 //DN       TBank_Account(fBank_Account).baFields.baSuggested_UnProcessed_Count := 0;
 
-     pTransaction_Extra := NIL;
+     pTransaction_Extension := NIL;
      Token := S.ReadToken;
      While ( Token <> tkEndSection ) do
      Begin
         Case Token of
-           tkBegin_Transaction_Extra :
+           tkBegin_Transaction_Extension :
               Begin
-                 pTransaction_Extra := New_Transaction_Extra_Rec;
-                 Read_Transaction_Extra_Rec ( pTransaction_Extra^, S );
-                 Insert_Transaction_Extra_Rec( pTransaction_Extra );
+                 pTransaction_Extension := New_Transaction_Extension_Rec;
+                 Read_Transaction_Extension_Rec ( pTransaction_Extension^, S );
+                 Insert_Transaction_Extension_Rec( pTransaction_Extension );
               end;
 
 //DN           tkBegin_Dissection :
@@ -225,12 +225,12 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
-function TTransaction_Extra_List.New_Transaction_Extra: pTransaction_Extra_Rec;
+function TTransaction_Extension_List.New_Transaction_Extension_Rec: pTransaction_Extension_Rec;
 begin
   // Create a Transaction Rec with Object references
   // so we can call Helper Methods on it
   // before it is inserted into the list.
-  Result := BKTEIO.New_Transaction_Extra_Rec;
+  Result := BKTEIO.New_Transaction_Extension_Rec;
 //DN  Result.txBank_Account := fBank_Account;
 //DN  Result.txClient  := fClient;
 
@@ -238,12 +238,12 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TTransaction_Extra_List.SaveToFile(var S: TIOStream);
+procedure TTransaction_Extension_List.SaveToFile(var S: TIOStream);
 const
-  ThisMethodName = 'TTransaction_Extra_List.SaveToFile';
+  ThisMethodName = 'TTransaction_Extension_List.SaveToFile';
 Var
    i   : LongInt;
-   pTransaction_Extra : pTransaction_Extra_Rec;
+   pTransaction_Extension : pTransaction_Extension_Rec;
 //DN   pDS : pDissection_Rec;
    TXCount  : LongInt;
 //DN   DSCount  : LongInt;
@@ -272,14 +272,14 @@ Begin
 
    For i := 0 to Pred( ItemCount ) do
    Begin
-      pTransaction_Extra := Transaction_Extra_At( i );
+      pTransaction_Extension := Transaction_Extension_At( i );
 
 //DN      if IsNotAJournalAccount then
 //DN        pTx^.txSuggested_Mem_State := self.GetIndexPRec(i)^.tiSuggested_Mem_State;
 
 //DN      pTransEXtra^.txLRN_NOW_UNUSED := 0;   //clear any obsolete data
 
-      BKTEIO.Write_Transaction_Extra_Rec ( pTransaction_Extra^, S );
+      BKTEIO.Write_Transaction_Extension_Rec ( pTransaction_Extension^, S );
       Inc( TXCount );
 
 (*//DN      pDS := pTransEXtra^.txFirst_Dissection;
@@ -308,7 +308,7 @@ end;
 
 
 (*//DN
-procedure TTransaction_Extra_List.SetAuditInfo(P1, P2: pTransaction_Extra_Rec;
+procedure TTransaction_Extension_List.SetAuditInfo(P1, P2: pTransaction_Extension_Rec;
   AParentID: integer; var AAuditInfo: TAuditInfo);
 begin
   AAuditInfo.AuditAction := aaNone;
@@ -328,7 +328,7 @@ begin
   end else if Assigned(P2) then begin
     //Change
     AAuditInfo.AuditRecordID := P1.txAudit_Record_ID;
-    if Transaction_Extra_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
+    if Transaction_Extension_Rec_Delta(P1, P2, AAuditInfo.AuditRecord, AAuditInfo.AuditChangedFields) then
       AAuditInfo.AuditAction := aaChange;
   end else begin
     //Add
@@ -336,28 +336,28 @@ begin
     AAuditInfo.AuditRecordID := P1.txAudit_Record_ID;
     P1.txAudit_Record_ID := AAuditInfo.AuditRecordID;
     BKTEIO.SetAllFieldsChanged(AAuditInfo.AuditChangedFields);
-    Copy_Transaction_Extra_Rec(P1, AAuditInfo.AuditRecord);
+    Copy_Transaction_Extension_Rec(P1, AAuditInfo.AuditRecord);
   end;
 end;
 //DN *)
 
-//DNprocedure TTransaction_Extra_List.SetAuditMgr(const Value: TClientAuditManager);
+//DNprocedure TTransaction_Extension_List.SetAuditMgr(const Value: TClientAuditManager);
 //DNbegin
 //DN  FAuditMgr := Value;
 //DNend;
 //DN
-//DNprocedure TTransaction_Extra_List.SetBank_Account(const Value: TObject);
+//DNprocedure TTransaction_Extension_List.SetBank_Account(const Value: TObject);
 //DNbegin
 //DN  FBank_Account := Value;
 //DNend;
 
-//DNprocedure TTransaction_Extra_List.SetClient(const Value: TObject);
+//DNprocedure TTransaction_Extension_List.SetClient(const Value: TObject);
 //DNbegin
 //DN  FClient := Value;
 //DNend;
 
 (*
-procedure TTransaction_Extra_List.SetDissectionAuditInfo(P1, P2: pDissection_Rec;
+procedure TTransaction_Extension_List.SetDissectionAuditInfo(P1, P2: pDissection_Rec;
   AParentID: integer; var AAuditInfo: TAuditInfo);
 begin
   AAuditInfo.AuditAction := aaNone;
@@ -393,7 +393,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-function TTransaction_Extra_List.TransactionCoreIDExists(aCore_Transaction_ID,
+function TTransaction_Extension_List.TransactionCoreIDExists(aCore_Transaction_ID,
   aCore_Transaction_ID_High: integer): Boolean;
 var
   aIndex : integer;
@@ -402,9 +402,9 @@ begin
 end;
 *)
 
-function TTransaction_Extra_List.Transaction_Extra_At(Index : longint) : pTransaction_Extra_Rec;
+function TTransaction_Extension_List.Transaction_Extension_At(Index : longint) : pTransaction_Extension_Rec;
 const
-  ThisMethodName = 'TTransaction_Extra_List.Transaction_At';
+  ThisMethodName = 'TTransaction_Extension_List.Transaction_At';
 Var
    P : Pointer;
 Begin
@@ -413,72 +413,72 @@ Begin
    if ( Index < First ) or (Index > Last ) then // Not found exit returning nil
      exit;
    P := At( Index );
-   If BKTEIO.IsATransaction_Extra_Rec( P ) then
+   If BKTEIO.IsATransaction_Extension_Rec( P ) then
       result := P;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 (*
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.GetIndexPRec(aIndex: integer): pTran_Suggested_Index_Rec;
+function TTransaction_Extension_List.GetIndexPRec(aIndex: integer): pTran_Suggested_Index_Rec;
 begin
   Result := fTran_Suggested_Index.At(aIndex);
 end;
 *)
 
 //------------------------------------------------------------------------------
-//DNfunction TTransaction_Extra_List.GetTransCoreID_At(Index : longint) : int64;
+//DNfunction TTransaction_Extension_List.GetTransCoreID_At(Index : longint) : int64;
 //DNbegin
 //DN  Result := BKUTIL32.GetTransCoreID(Transaction_At(Index));
 //DNend;
 
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.FirstEffectiveDate : LongInt;
+function TTransaction_Extension_List.FirstEffectiveDate : LongInt;
 var
   i: integer;
-  pTransaction_Extra: pTransaction_Extra_Rec;
+  pTransaction_Extension: pTransaction_Extension_Rec;
 begin
   result := 0;
 
   for i := 0 to ItemCount-1 do
   begin
-    pTransaction_Extra := Transaction_Extra_At(i);
+    pTransaction_Extension := Transaction_Extension_At(i);
 
     if (i = 0) then
-      result := pTransaction_Extra^.teDate_Effective
+      result := pTransaction_Extension^.teDate_Effective
     else
-      result := Min(result, pTransaction_Extra^.teDate_Effective);
+      result := Min(result, pTransaction_Extension^.teDate_Effective);
   end;
 end;
 
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.LastEffectiveDate : LongInt;
+function TTransaction_Extension_List.LastEffectiveDate : LongInt;
 var
   i: integer;
-  pTransaction_Extra: pTransaction_Extra_Rec;
+  pTransaction_Extension: pTransaction_Extension_Rec;
 begin
   result := 0;
 
   for i := 0 to ItemCount-1 do
   begin
-    pTransaction_Extra := Transaction_Extra_At(i);
+    pTransaction_Extension := Transaction_Extension_At(i);
 
     if (i = 0) then
-      result := pTransaction_Extra^.teDate_Effective
+      result := pTransaction_Extension^.teDate_Effective
     else
-      result := Max(result, pTransaction_Extra^.teDate_Effective);
+      result := Max(result, pTransaction_Extension^.teDate_Effective);
   end;
 end;
 
 (*//DN
 //------------------------------------------------------------------------------
 //DN
-function TTransaction_Extra_List.FirstPresDate : LongInt;
+function TTransaction_Extension_List.FirstPresDate : LongInt;
 //returns 0 if no transactions or the first Date of Presentation
 const
-  ThisMethodName = 'TTransaction_Extra_List.FirstDate';
+  ThisMethodName = 'TTransaction_Extension_List.FirstDate';
 var
   i: integer;
-  TransRec: tTransaction_Extra_Rec;
+  TransRec: tTransaction_Extension_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -495,13 +495,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.LastPresDate : LongInt;
+function TTransaction_Extension_List.LastPresDate : LongInt;
 //returns 0 if no transactions or the highest Date of Presentation
 const
-  ThisMethodName = 'TTransaction_Extra_List.LastDate';
+  ThisMethodName = 'TTransaction_Extension_List.LastDate';
 var
   i: integer;
-  TransRec: tTransaction_Extra_Rec;
+  TransRec: tTransaction_Extension_Rec;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -518,15 +518,15 @@ end;
 
 
 //------------------------------------------------------------------------------
-procedure TTransaction_Extra_List.UpdateCRC(var CRC: Longword);
+procedure TTransaction_Extension_List.UpdateCRC(var CRC: Longword);
 var
   T: Integer;
-  pTransaction_Extra: pTransaction_Extra_Rec;
+  pTransaction_Extension: pTransaction_Extension_Rec;
 //DN  Dissection: pDissection_Rec;
 begin
   For T := 0 to Pred( ItemCount ) do Begin
-     pTransaction_Extra := Transaction_Extra_At( T );
-     BKCRC.UpdateCRC( pTransaction_Extra^, CRC );
+     pTransaction_Extension := Transaction_Extension_At( T );
+     BKCRC.UpdateCRC( pTransaction_Extension^, CRC );
 //DN     With Transaction^ do Begin
 //DN        Dissection := txFirst_Dissection;
 //DN        While Dissection<>NIL do With Dissection^ do Begin
@@ -538,7 +538,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-constructor TTransaction_Extra_List.Create; //DN(AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager);
+constructor TTransaction_Extension_List.Create; //DN(AClient, ABank_Account: TObject; AAuditMgr: TClientAuditManager);
 begin
   inherited Create;
 
@@ -550,21 +550,21 @@ begin
 //DN  FAuditMgr := AAuditMgr;
 end;
 
-destructor TTransaction_Extra_List.Destroy;
+destructor TTransaction_Extension_List.Destroy;
 begin
   inherited;
 end;
 
 //------------------------------------------------------------------------------
 (* //DN
-procedure TTransaction_Extra_List.DoAudit(ATransactionListCopy: TTransaction_Extra_List;
+procedure TTransaction_Extension_List.DoAudit(ATransactionListCopy: TTransaction_Extension_List;
   AParentID: integer; AAccountType: byte; var AAuditTable: TAuditTable);
 var
   i: integer;
-  P1, P2: pTransaction_Extra_Rec;
+  P1, P2: pTransaction_Extension_Rec;
   AuditInfo: TAuditInfo;
   ProvDateStr: string;
-  T1, T2: pTransaction_Extra_Rec;
+  T1, T2: pTransaction_Extension_Rec;
 begin
   //Note: AuditType is dependant on the type of bank account
   AuditInfo.AuditUser := FAuditMgr.CurrentUserCode;
@@ -628,8 +628,8 @@ begin
 end;
 //DN *)
 (* //DN
-procedure TTransaction_Extra_List.DoDissectionAudit(ATransaction,
-  ATransactionCopy: pTransaction_Extra_Rec; AAccountType: byte; var AAuditTable: TAuditTable);
+procedure TTransaction_Extension_List.DoDissectionAudit(ATransaction,
+  ATransactionCopy: pTransaction_Extension_Rec; AAccountType: byte; var AAuditTable: TAuditTable);
 var
   P1, P2: pDissection_Rec;
   AuditInfo: TAuditInfo;
@@ -679,7 +679,7 @@ end;
 //DN *)
 
 (* //DN
-function TTransaction_Extra_List.FindRecordID(ARecordID: integer): pTransaction_Extra_Rec;
+function TTransaction_Extension_List.FindRecordID(ARecordID: integer): pTransaction_Extension_Rec;
 var
   i : integer;
 begin
@@ -695,11 +695,11 @@ end;
 //DN *)
 
 (*//DN
-function TTransaction_Extra_List.FindTransactionFromECodingUID(
-  UID: integer): pTransaction_Extra_Rec;
+function TTransaction_Extension_List.FindTransactionFromECodingUID(
+  UID: integer): pTransaction_Extension_Rec;
 var
   T: Integer;
-  Transaction: pTransaction_Extra_Rec;
+  Transaction: pTransaction_Extension_Rec;
 begin
   result := nil;
   for T := First to Last do
@@ -713,11 +713,11 @@ begin
   end;
 end;
 
-function TTransaction_Extra_List.FindTransactionFromMatchId(
-  UID: integer): pTransaction_Extra_Rec;
+function TTransaction_Extension_List.FindTransactionFromMatchId(
+  UID: integer): pTransaction_Extension_Rec;
 var
   T: Integer;
-  Transaction: pTransaction_Extra_Rec;
+  Transaction: pTransaction_Extension_Rec;
 begin
   result := nil;
   for T := First to Last do
@@ -732,7 +732,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.SearchByTransactionCoreID(aCore_Transaction_ID,
+function TTransaction_Extension_List.SearchByTransactionCoreID(aCore_Transaction_ID,
   aCore_Transaction_ID_High: integer; var aIndex: integer): Boolean;
 var
   SearchTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
@@ -750,7 +750,7 @@ begin
 end;
 //DN *)
 
-function TTransaction_Extra_List.SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
+function TTransaction_Extension_List.SearchUsingDateandTranSeqNo(aDate_Effective, aTranSeqNo : integer; var aIndex: integer): Boolean;
 var
   Top, Bottom, Index, CompRes : Integer;
 begin
@@ -761,9 +761,9 @@ begin
   begin
     Index := ( Top + Bottom ) shr 1;
 
-    CompRes := CompareValue(aDate_Effective, pTransaction_Extra_Rec(At(Index))^.teDate_Effective);
+    CompRes := CompareValue(aDate_Effective, pTransaction_Extension_Rec(At(Index))^.teDate_Effective);
     if CompRes = 0 then
-      CompRes := CompareValue(aTranSeqNo, pTransaction_Extra_Rec(At(Index))^.teSequence_No);
+      CompRes := CompareValue(aTranSeqNo, pTransaction_Extension_Rec(At(Index))^.teSequence_No);
 
     if CompRes > 0 then
       Top := Index + 1
@@ -782,7 +782,7 @@ end;
 
 (*
 //------------------------------------------------------------------------------
-function TTransaction_Extra_List.SearchUsingTypeDateandTranSeqNo(aType: Byte; aDate_Effective, aTranSeqNo: integer; var aIndex: integer): Boolean;
+function TTransaction_Extension_List.SearchUsingTypeDateandTranSeqNo(aType: Byte; aDate_Effective, aTranSeqNo: integer; var aIndex: integer): Boolean;
 var
   SearchpTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
 begin

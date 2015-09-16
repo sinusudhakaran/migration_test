@@ -22,7 +22,7 @@ uses
 
 procedure RefreshChart;
 procedure ReadCSVFile(FilePath: string; NewChart: TChart);
-
+procedure FetchCOSFromAPI(NewChart: TChart);
 //******************************************************************************
 implementation
 
@@ -293,6 +293,9 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure FetchCOSFromAPI(NewChart: TChart);
+begin
+end;
 
 Initialization
    DebugMe := LogUtil.DebugUnit( UnitName );

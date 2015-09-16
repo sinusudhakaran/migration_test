@@ -644,6 +644,9 @@ F|SF_Share_Brokerage|$
 F|SF_Share_Consideration|$
 F|SF_Share_GST_Amount|$
 F|SF_Share_GST_Rate|S|5
+F|SF_Cash_Date|D
+F|SF_Accrual_Date|D
+F|SF_Record_Date|D
 E
 
 N|Budget Header|bu|110
@@ -765,6 +768,9 @@ F|SF_Share_Brokerage|$
 F|SF_Share_Consideration|$
 F|SF_Share_GST_Amount|$
 F|SF_Share_GST_Rate|S|5
+F|SF_Cash_Date|D
+F|SF_Accrual_Date|D
+F|SF_Record_Date|D
 E
 
 N|Bank Account|ba|150
@@ -952,8 +958,9 @@ F|IsOnline_Transaction|Y
 F|Suggested Mem State|B
 F|Suggested Mem Index|L
 C|Suggested Manual Count|L
+C|Tranaction_Extension|P|Transaction_Extension_Rec
 E
-N|Transaction Extra|te|162
+N|Transaction Extension|te|162
 F|Sequence No|L
 F|Date Effective|D
 F|SF_Other_Income|$
@@ -977,6 +984,9 @@ F|SF_Share_Brokerage|$
 F|SF_Share_Consideration|$
 F|SF_Share_GST_Amount|$
 F|SF_Share_GST_Rate|S|5
+F|SF_Cash_Date|D
+F|SF_Accrual_Date|D
+F|SF_Record_Date|D
 E
 
 N|Dissection|ds|180
@@ -1046,6 +1056,35 @@ C|Next|P|Dissection_Rec
 C|Bank Account|TO
 C|Client|TO
 C|Temp Base Amount|$
+C|Dissection_Extension|P|Dissection_Extension_Rec
+E
+
+N|Dissection_Extension|de|182
+F|Sequence No|L
+F|SF_Other_Income|$
+F|SF_Other_Trust_Deductions|$
+F|SF_CGT_Concession_Amount|$
+F|SF_CGT_ForeignCGT_Before_Disc|$
+F|SF_CGT_ForeignCGT_Indexation|$
+F|SF_CGT_ForeignCGT_Other_Method|$
+F|SF_CGT_TaxPaid_Indexation|$
+F|SF_CGT_TaxPaid_Other_Method|$
+F|SF_Other_Net_Foreign_Income|$
+F|SF_Cash_Distribution|$
+F|SF_AU_Franking_Credits_NZ_Co|$
+F|SF_Non_Res_Witholding_Tax|$
+F|SF_LIC_Deductions|$
+F|SF_Non_Cash_CGT_Discounted_Before_Discount|$
+F|SF_Non_Cash_CGT_Indexation|$
+F|SF_Non_Cash_CGT_Other_Method|$
+F|SF_Non_Cash_CGT_Capital_Losses|$
+F|SF_Share_Brokerage|$
+F|SF_Share_Consideration|$
+F|SF_Share_GST_Amount|$
+F|SF_Share_GST_Rate|S|5
+F|SF_Cash_Date|D
+F|SF_Accrual_Date|D
+F|SF_Record_Date|D
 E
 
 N|Balances|bl|190

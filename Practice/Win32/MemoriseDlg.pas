@@ -2552,6 +2552,9 @@ begin
               SplitData[ i+1 ].SF_Share_Consideration                     := MemLine^.mlSF_Share_Consideration;
               SplitData[ i+1 ].SF_Share_GST_Amount                        := MemLine^.mlSF_Share_GST_Amount;
               SplitData[ i+1 ].SF_Share_GST_Rate                          := MemLine^.mlSF_Share_GST_Rate;
+              SplitData[ i+1 ].SF_Cash_Date                               := MemLine^.mlSF_Cash_Date;
+              SplitData[ i+1 ].SF_Accrual_Date                            := MemLine^.mlSF_Accrual_Date;
+              SplitData[ i+1 ].SF_Record_Date                             := MemLine^.mlSF_Record_Date;
             end;
          end;
          //Show Total Line
@@ -3183,7 +3186,10 @@ begin
              mlSF_Share_Consideration                     := SplitData[ i ].SF_Share_Consideration;
              mlSF_Share_GST_Amount                        := SplitData[ i ].SF_Share_GST_Amount;
              mlSF_Share_GST_Rate                          := SplitData[ i ].SF_Share_GST_Rate;
-
+             mlSF_Cash_Date                               := SplitData[ i ].SF_Cash_Date;
+             mlSF_Accrual_Date                            := SplitData[ i ].SF_Accrual_Date;
+             mlSF_Record_Date                             := SplitData[ i ].SF_Record_Date;
+             //DN BGL360 Extended fields
 
              mlSF_edited := SplitData[i].SF_edited;
            end;

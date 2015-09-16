@@ -3471,6 +3471,36 @@ begin
                    dtPercent_Amount      := dsPercent_Amount;
                    dtAmount_Type_Is_Percent := dsAmount_Type_Is_Percent;
                    dtForex_Conversion_Rate   := dsForex_Conversion_Rate   ;
+
+                   //DN BGL360 - Extended fields
+                   if assigned( dsDissection_Extension ) then
+                     with dsDissection_Extension^ do begin
+                       dtSF_Other_Income                            := deSF_Other_Income;
+                       dtSF_Other_Trust_Deductions                  := deSF_Other_Trust_Deductions;
+                       dtSF_CGT_Concession_Amount                   := deSF_CGT_Concession_Amount;
+                       dtSF_CGT_ForeignCGT_Before_Disc              := deSF_CGT_ForeignCGT_Before_Disc;
+                       dtSF_CGT_ForeignCGT_Indexation               := deSF_CGT_ForeignCGT_Indexation;
+                       dtSF_CGT_ForeignCGT_Other_Method             := deSF_CGT_ForeignCGT_Other_Method;
+                       dtSF_CGT_TaxPaid_Indexation                  := deSF_CGT_TaxPaid_Indexation;
+                       dtSF_CGT_TaxPaid_Other_Method                := deSF_CGT_TaxPaid_Other_Method;
+                       dtSF_Other_Net_Foreign_Income                := deSF_Other_Net_Foreign_Income;
+                       dtSF_Cash_Distribution                       := deSF_Cash_Distribution;
+                       dtSF_AU_Franking_Credits_NZ_Co               := deSF_AU_Franking_Credits_NZ_Co;
+                       dtSF_Non_Res_Witholding_Tax                  := deSF_Non_Res_Witholding_Tax;
+                       dtSF_LIC_Deductions                          := deSF_LIC_Deductions;
+                       dtSF_Non_Cash_CGT_Discounted_Before_Discount := deSF_Non_Cash_CGT_Discounted_Before_Discount;
+                       dtSF_Non_Cash_CGT_Indexation                 := deSF_Non_Cash_CGT_Indexation;
+                       dtSF_Non_Cash_CGT_Other_Method               := deSF_Non_Cash_CGT_Other_Method;
+                       dtSF_Non_Cash_CGT_Capital_Losses             := deSF_Non_Cash_CGT_Capital_Losses;
+                       dtSF_Share_Brokerage                         := deSF_Share_Brokerage;
+                       dtSF_Share_Consideration                     := deSF_Share_Consideration;
+                       dtSF_Share_GST_Amount                        := deSF_Share_GST_Amount;
+                       dtSF_Share_GST_Rate                          := deSF_Share_GST_Rate;
+                       dtSF_Cash_Date                               := deSF_Cash_Date;
+                       dtSF_Accrual_Date                            := deSF_Accrual_Date;
+                       dtSF_Record_Date                             := deSF_Record_Date;
+                     end;
+                   //DN BGL360 - Extended fields
                 end;
                 pDissection := dsNext;
                 Inc( i );
@@ -3848,6 +3878,38 @@ begin
                    dsSF_Transaction_Code    := dtSF_Transaction_Type_Code;
                    dsSF_Capital_Gains_Fraction_Half := dtSF_Capital_Gains_Fraction_Half;
                    dsSF_Super_Fields_Edited := dtSuper_Fields_Edited ;
+
+
+                 //DN BGL360 - Extended fields
+                   if assigned( dsDissection_Extension ) then
+                     with dsDissection_Extension^ do begin
+                       deSF_Other_Income                            := dtSF_Other_Income;
+                       deSF_Other_Trust_Deductions                  := dtSF_Other_Trust_Deductions;
+                       deSF_CGT_Concession_Amount                   := dtSF_CGT_Concession_Amount;
+                       deSF_CGT_ForeignCGT_Before_Disc              := dtSF_CGT_ForeignCGT_Before_Disc;
+                       deSF_CGT_ForeignCGT_Indexation               := dtSF_CGT_ForeignCGT_Indexation;
+                       deSF_CGT_ForeignCGT_Other_Method             := dtSF_CGT_ForeignCGT_Other_Method;
+                       deSF_CGT_TaxPaid_Indexation                  := dtSF_CGT_TaxPaid_Indexation;
+                       deSF_CGT_TaxPaid_Other_Method                := dtSF_CGT_TaxPaid_Other_Method;
+                       deSF_Other_Net_Foreign_Income                := dtSF_Other_Net_Foreign_Income;
+                       deSF_Cash_Distribution                       := dtSF_Cash_Distribution;
+                       deSF_AU_Franking_Credits_NZ_Co               := dtSF_AU_Franking_Credits_NZ_Co;
+                       deSF_Non_Res_Witholding_Tax                  := dtSF_Non_Res_Witholding_Tax;
+                       deSF_LIC_Deductions                          := dtSF_LIC_Deductions;
+                       deSF_Non_Cash_CGT_Discounted_Before_Discount := dtSF_Non_Cash_CGT_Discounted_Before_Discount;
+                       deSF_Non_Cash_CGT_Indexation                 := dtSF_Non_Cash_CGT_Indexation;
+                       deSF_Non_Cash_CGT_Other_Method               := dtSF_Non_Cash_CGT_Other_Method;
+                       deSF_Non_Cash_CGT_Capital_Losses             := dtSF_Non_Cash_CGT_Capital_Losses;
+                       deSF_Share_Brokerage                         := dtSF_Share_Brokerage;
+                       deSF_Share_Consideration                     := dtSF_Share_Consideration;
+                       deSF_Share_GST_Amount                        := dtSF_Share_GST_Amount;
+                       deSF_Share_GST_Rate                          := dtSF_Share_GST_Rate;
+                       deSF_Cash_Date                               := dtSF_Cash_Date;
+                       deSF_Accrual_Date                            := dtSF_Accrual_Date;
+                       deSF_Record_Date                             := dtSF_Record_Date;
+                     end;
+                 //DN BGL360 - Extended fields
+
 
                    dsNotes_Read := dtNotes_Read;
                    dsImport_Notes_Read := dtImport_Notes_Read;

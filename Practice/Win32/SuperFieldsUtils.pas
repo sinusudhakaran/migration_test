@@ -83,7 +83,7 @@ type
     SF_Ledger_Name: AnsiString;
     JobCode       : string [8];
 
-  //DN additional fields for BGL360
+  //DN BGL360 Extended Fields - additional fields for BGL360
     SF_Other_Income                  : Money;       { Stored }
     SF_Other_Trust_Deductions        : Money;       { Stored }
     SF_CGT_Concession_Amount         : Money;       { Stored }
@@ -105,6 +105,10 @@ type
     SF_Share_Consideration           : Money;       { Stored }
     SF_Share_GST_Amount              : Money;       { Stored }
     SF_Share_GST_Rate                : String[ 5 ];       { Stored }
+    SF_Cash_Date                     : Integer;       { Stored }
+    SF_Accrual_Date                  : Integer;       { Stored }
+    SF_Record_Date                   : Integer;       { Stored }
+  //DN BGL360 Extended Fields - additional fields for BGL360
   end;
 
 
@@ -113,14 +117,14 @@ type
   procedure ClearSuperfundDetails(mwr: PmemSplitRec); overload;
   procedure ClearWorkRecDetails(mwr: PmemSplitRec); overload;
 
-  function EditSuperFields( ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extra_Rec; *)var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
-  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extra_Rec; *)pWD : pWorkDissect_Rec;
+  function EditSuperFields( ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
+  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)pWD : pWorkDissect_Rec;
                              var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
 
-  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extra_Rec; *)pWJ : pWorkJournal_Rec;
+  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)pWJ : pWorkJournal_Rec;
                              var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
 
-  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extra_Rec; *)var Mem : TmemSplitRec;
+  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)var Mem : TmemSplitRec;
                              var Move: TFundNavigation; var T, L: Integer;
                              aSDMode : TSuperDialogMode;
                              BA: TBank_Account = nil
@@ -904,11 +908,11 @@ end;
 
 
 // BGL 360 Transaction
-function EditBGL360Fields( BA: TBank_Account; ParentTrans : pTransaction_Rec; (*pTE : pTransaction_Extra_Rec; *)var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
+function EditBGL360Fields( BA: TBank_Account; ParentTrans : pTransaction_Rec; (*pTE : pTransaction_Extension_Rec; *)var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
-  iTransaction_Extra : integer;
-  ParentTransExtra : pTransaction_Extra_Rec;
+  iTransaction_Extension : integer;
+  ParentTransExtra : pTransaction_Extension_Rec;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm );
@@ -920,21 +924,31 @@ begin
     SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txGL_Narration, ParentTrans^.txAmount);
 
     if assigned( BA ) then begin
-      // Find the current transaction_extra record
-      if BA.baTransaction_List.Transaction_Extra_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extra ) then
+      // Find the current Transaction_Extension record
+      if not assigned( ParentTrans^.txTranaction_Extension ) then //DN The Transaction does NOT exist, need to create one!!!
+      begin
+        ParentTransExtra := BA.baTransaction_List.New_Transaction_Extension_Rec;
+        ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
+        ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
+      end;
+      ParentTransExtra := ParentTrans^.txTranaction_Extension;
+(* //DN BGL360 Extended Fields - Try a different method for storing and retrieving
+      // Find the current Transaction_Extension record
+      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
+           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
       //DN The Extra Transaction record exists
       //DN begin
 
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.
-                              Transaction_Extra_At( iTransaction_Extra )
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.
+                              Transaction_Extension_At( iTransaction_Extension )
       else begin
       //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.New_Transaction_Extra;
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
         ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
         ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
-        BA.baTransaction_List.Transaction_Extra_List.Insert_Transaction_Extra_Rec( ParentTransExtra );
+        BA.baTransaction_List.Transaction_Extension_List.Insert_Transaction_Extension_Rec( ParentTransExtra );
       end;
+//DN BGL360 Extended Fields - Try a different method for storing and retrieving *)
 
         SuperForm.SetFields( ParentTrans^.txSF_Imputed_Credit,                               // Franking Credits
                              ParentTrans^.txSF_Tax_Free_Dist,                                // Tax Free Amounts
@@ -975,7 +989,10 @@ begin
                              ParentTrans^.txSF_Member_Component,
                              ParentTrans^.txQuantity,                                        // Units
                              ParentTrans^.txAccount,
-                             ParentTransExtra^.teSF_Share_GST_Rate
+                             ParentTransExtra^.teSF_Share_GST_Rate,
+                             ParentTransExtra^.teSF_Cash_Date,
+                             ParentTransExtra^.teSF_Accrual_Date,
+                             ParentTransExtra^.teSF_Record_Date
                              );
         SuperForm.ReadOnly := ( ParentTrans^.txLocked)
                            or ( ParentTrans^.txDate_Transferred <> 0);
@@ -1032,7 +1049,10 @@ begin
                              ParentTrans^.txSF_Member_Component,
                              ParentTrans^.txQuantity,                                        // Units
                              ParentTrans^.txAccount,
-                             ParentTransExtra^.teSF_Share_GST_Rate
+                             ParentTransExtra^.teSF_Share_GST_Rate,
+                             ParentTransExtra^.teSF_Cash_Date,
+                             ParentTransExtra^.teSF_Accrual_Date,
+                             ParentTransExtra^.teSF_Record_Date
                            );
 
           if ParentTrans^.txSF_Super_Fields_Edited then begin
@@ -1061,8 +1081,8 @@ end;
 function EditBGL360Fields(  BA: TBank_Account; ParentTrans : pTransaction_Rec; pWJ : pWorkJournal_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
-  iTransaction_Extra : integer;
-  ParentTransExtra : pTransaction_Extra_Rec;
+  iTransaction_Extension : integer;
+  ParentTransExtra : pTransaction_Extension_Rec;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
@@ -1073,19 +1093,21 @@ begin
     Superform.FrankPercentage := False;
 
     if assigned( BA ) then begin
-      // Find the current transaction_extra record
-      if BA.baTransaction_List.Transaction_Extra_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extra ) then
+(*DN BGL360 Extended Fields
+      // Find the current Transaction_Extension record
+      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
+           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
       //DN The Extra Transaction record exists
       //DN begin
 
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.Transaction_Extra_At( iTransaction_Extra )
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.Transaction_Extension_At( iTransaction_Extension )
       else begin
       //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.New_Transaction_Extra;
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
         ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
         ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
       end;
+DN BGL360 Extended Fields *)
 
         SuperForm.SetFields( pWJ^.dtSF_Imputed_Credit,
                              pWJ^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
@@ -1101,35 +1123,38 @@ begin
                              pWJ^.dtSF_Franked,                                      // Franked
                              pWJ^.dtSF_Unfranked,                                    // UnFranked
 
-                             ParentTrans^.txSF_Interest,                                     // Gross Interest
-                             ParentTransExtra^.teSF_Other_Income,                            // Other Income
-                             ParentTransExtra^.teSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             ParentTransExtra^.teSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Before_Disc,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Indexation,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Other_Method,
-                             ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Indexation,
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Other_Method,
-                             ParentTransExtra^.teSF_Other_Net_Foreign_Income,
-                             ParentTransExtra^.teSF_Cash_Distribution,
-                             ParentTransExtra^.teSF_AU_Franking_Credits_NZ_Co,
-                             ParentTransExtra^.teSF_Non_Res_Witholding_Tax,
-                             ParentTransExtra^.teSF_LIC_Deductions,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Indexation,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Other_Method,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Capital_Losses,
-                             ParentTransExtra^.teSF_Share_Brokerage,
-                             ParentTransExtra^.teSF_Share_Consideration,
-                             ParentTransExtra^.teSF_Share_GST_Amount,
+                             pWJ^.dtSF_Interest,                                     // Gross Interest
+                             pWJ^.dtSF_Other_Income,                            // Other Income
+                             pWJ^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
+                             pWJ^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
+                             pWJ^.dtSF_CGT_ForeignCGT_Before_Disc,
+                             pWJ^.dtSF_CGT_ForeignCGT_Indexation,
+                             pWJ^.dtSF_CGT_ForeignCGT_Other_Method,
+                             pWJ^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
+                             pWJ^.dtSF_CGT_TaxPaid_Indexation,
+                             pWJ^.dtSF_CGT_TaxPaid_Other_Method,
+                             pWJ^.dtSF_Other_Net_Foreign_Income,
+                             pWJ^.dtSF_Cash_Distribution,
+                             pWJ^.dtSF_AU_Franking_Credits_NZ_Co,
+                             pWJ^.dtSF_Non_Res_Witholding_Tax,
+                             pWJ^.dtSF_LIC_Deductions,
+                             pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                             pWJ^.dtSF_Non_Cash_CGT_Indexation,
+                             pWJ^.dtSF_Non_Cash_CGT_Other_Method,
+                             pWJ^.dtSF_Non_Cash_CGT_Capital_Losses,
+                             pWJ^.dtSF_Share_Brokerage,
+                             pWJ^.dtSF_Share_Consideration,
+                             pWJ^.dtSF_Share_GST_Amount,
 
                              pWJ^.dtSF_CGT_Date,
                              pWJ^.dtSF_Member_Component,
                              PWJ^.dtQuantity,
                              PWJ^.dtAccount,
 
-                             ParentTransExtra^.teSF_Share_GST_Rate
+                             pWJ^.dtSF_Share_GST_Rate,
+                             pWJ^.dtSF_Cash_Date,
+                             pWJ^.dtSF_Accrual_Date,
+                             pWJ^.dtSF_Record_Date
                            );
 
         SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
@@ -1161,32 +1186,35 @@ begin
                            pWJ^.dtSF_Franked,                                      // Franked
                            pWJ^.dtSF_Unfranked,                                    // Unfranked
                            pWJ^.dtSF_Interest,                                     // Gross Interest
-                           ParentTransExtra^.teSF_Other_Income,                            // Other Income
-                           ParentTransExtra^.teSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                           ParentTransExtra^.teSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                           ParentTransExtra^.teSF_CGT_ForeignCGT_Before_Disc,
-                           ParentTransExtra^.teSF_CGT_ForeignCGT_Indexation,
-                           ParentTransExtra^.teSF_CGT_ForeignCGT_Other_Method,
+                           pWJ^.dtSF_Other_Income,                            // Other Income
+                           pWJ^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
+                           pWJ^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
+                           pWJ^.dtSF_CGT_ForeignCGT_Before_Disc,
+                           pWJ^.dtSF_CGT_ForeignCGT_Indexation,
+                           pWJ^.dtSF_CGT_ForeignCGT_Other_Method,
                            pWJ^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                           ParentTransExtra^.teSF_CGT_TaxPaid_Indexation,
-                           ParentTransExtra^.teSF_CGT_TaxPaid_Other_Method,
-                           ParentTransExtra^.teSF_Other_Net_Foreign_Income,
-                           ParentTransExtra^.teSF_Cash_Distribution,
-                           ParentTransExtra^.teSF_AU_Franking_Credits_NZ_Co,
-                           ParentTransExtra^.teSF_Non_Res_Witholding_Tax,
-                           ParentTransExtra^.teSF_LIC_Deductions,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Indexation,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Other_Method,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Capital_Losses,
-                           ParentTransExtra^.teSF_Share_Brokerage,
-                           ParentTransExtra^.teSF_Share_Consideration,
-                           ParentTransExtra^.teSF_Share_GST_Amount,
+                           pWJ^.dtSF_CGT_TaxPaid_Indexation,
+                           pWJ^.dtSF_CGT_TaxPaid_Other_Method,
+                           pWJ^.dtSF_Other_Net_Foreign_Income,
+                           pWJ^.dtSF_Cash_Distribution,
+                           pWJ^.dtSF_AU_Franking_Credits_NZ_Co,
+                           pWJ^.dtSF_Non_Res_Witholding_Tax,
+                           pWJ^.dtSF_LIC_Deductions,
+                           pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                           pWJ^.dtSF_Non_Cash_CGT_Indexation,
+                           pWJ^.dtSF_Non_Cash_CGT_Other_Method,
+                           pWJ^.dtSF_Non_Cash_CGT_Capital_Losses,
+                           pWJ^.dtSF_Share_Brokerage,
+                           pWJ^.dtSF_Share_Consideration,
+                           pWJ^.dtSF_Share_GST_Amount,
                            pWJ^.dtSF_CGT_Date,
                            pWJ^.dtSF_Member_Component,
                            pWJ^.dtQuantity,                                        // Units
                            pWJ^.dtAccount,
-                           ParentTransExtra^.teSF_Share_GST_Rate
+                           pWJ^.dtSF_Share_GST_Rate,
+                           pWJ^.dtSF_Cash_Date,
+                           pWJ^.dtSF_Accrual_Date,
+                           pWJ^.dtSF_Record_Date
                          );
           if Move in [fnGoForward, fnGoBack] then
           begin
@@ -1206,8 +1234,8 @@ end;
 function EditBGL360Fields( BA: TBank_Account; ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
-  iTransaction_Extra : integer;
-  ParentTransExtra : pTransaction_Extra_Rec;
+  iTransaction_Extension : integer;
+  ParentTransExtra : pTransaction_Extension_Rec;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
@@ -1218,18 +1246,21 @@ begin
     Superform.FrankPercentage := false;
 
     if assigned( BA ) then begin
-      // Find the current transaction_extra record
-      if BA.baTransaction_List.Transaction_Extra_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extra ) then 
+(*DN BGL360 Extended Fields
+      // Find the current Transaction_Extension record
+      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
+           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
       //DN The Extra Transaction record exists
       //DN begin
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.Transaction_Extra_At( iTransaction_Extra )
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.Transaction_Extension_At( iTransaction_Extension )
       else begin
       //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.New_Transaction_Extra;
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
         ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
         ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
       end;
+DN BGL360 Extended Fields *)
+
 
         SuperForm.SetFields( pWD^.dtSF_Imputed_Credit,
                              pWD^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
@@ -1271,7 +1302,10 @@ begin
                              pWD^.dtSF_Member_Component,
                              pWD^.dtQuantity,                                        // Units
                              pWD^.dtAccount,
-                             pWD^.dtSF_Share_GST_Rate
+                             pWD^.dtSF_Share_GST_Rate,
+                             pWD^.dtSF_Cash_Date,
+                             pWD^.dtSF_Accrual_Date,
+                             pWD^.dtSF_Record_Date
 
 (* //DN - ATtempt #1
                              ParentTransExtra^.teSF_Other_Income,                            // Other Income
@@ -1356,7 +1390,10 @@ begin
                              pWD^.dtSF_Member_Component,
                              pWD^.dtQuantity,                                        // Units
                              pWD^.dtAccount,
-                             pWD^.dtSF_Share_GST_Rate
+                             pWD^.dtSF_Share_GST_Rate,
+                             pWD^.dtSF_Cash_Date,
+                             pWD^.dtSF_Accrual_Date,
+                             pWD^.dtSF_Record_Date
 
 (* //DN - ATtempt #1
                              pWD^.dtSF_Imputed_Credit,
@@ -1424,8 +1461,8 @@ var
   ForDate: Integer;
   Narration: string;
   Amount: Money;
-  iTransaction_Extra : integer;
-  ParentTransExtra : pTransaction_Extra_Rec;
+  iTransaction_Extension : integer;
+  ParentTransExtra : pTransaction_Extension_Rec;
 
 begin
   Result := false;
@@ -1470,19 +1507,21 @@ begin
     Amount := 0; // Just a temp value
 
     if assigned( BA ) then begin
-      // Find the current transaction_extra record
-      if BA.baTransaction_List.Transaction_Extra_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extra ) then
+(*DN BGL360 Extended Fields
+      // Find the current Transaction_Extension record
+      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
+           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
       //DN The Extra Transaction record exists
       //DN begin
 
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.Transaction_Extra_At( iTransaction_Extra )
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.Transaction_Extension_At( iTransaction_Extension )
       else begin
       //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extra_List.New_Transaction_Extra;
+        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
         ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
         ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
       end;
+DN BGL360 Extended Fields *)
 
         SuperForm.SetFields (Amount,
                              Mem.SF_Tax_Free_Dist,
@@ -1535,7 +1574,10 @@ begin
                              Mem.Quantity,
                              Mem.AcctCode,
 
-                             Mem.SF_Share_GST_Rate
+                             Mem.SF_Share_GST_Rate,
+                             Mem.SF_Cash_Date,
+                             Mem.SF_Accrual_Date,
+                             Mem.SF_Record_Date
                             );
 
         SuperForm.MoveDirection := Move;
@@ -1601,7 +1643,10 @@ begin
                              Mem.Quantity,
                              Mem.AcctCode,
 
-                             Mem.SF_Share_GST_Rate
+                             Mem.SF_Share_GST_Rate,
+                             Mem.SF_Cash_Date,
+                             Mem.SF_Accrual_Date,
+                             Mem.SF_Record_Date
                            );
 
           if Move in [fnGoForward, fnGoBack] then begin

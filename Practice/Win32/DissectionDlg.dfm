@@ -90,9 +90,6 @@ object dlgDissection: TdlgDissection
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitLeft = 0
-    ExplicitTop = 667
-    ExplicitWidth = 956
     DesignSize = (
       950
       60)
@@ -649,7 +646,6 @@ object dlgDissection: TdlgDissection
       Anchors = [akLeft, akTop, akRight]
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitTop = 109
       DesignSize = (
         950
         28)
@@ -890,8 +886,6 @@ object dlgDissection: TdlgDissection
           ScrollBars = ssVertical
           TabOrder = 1
           OnChange = memNotesChange
-          ExplicitWidth = 935
-          ExplicitHeight = 39
         end
       end
       object pnlNotesTitle: TPanel
@@ -1080,7 +1074,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     OnChange = celAmountChange
@@ -1100,7 +1093,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     OnChange = celGstAmtChange
@@ -1120,7 +1112,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblDissect
     OnChange = celQuantityChange
@@ -1153,7 +1144,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     Left = 336
@@ -1170,7 +1160,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblDissect
     Left = 336
@@ -1193,7 +1182,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -1455,6 +1443,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblDissect
     OnKeyPress = celPercentKeyPress
@@ -1579,7 +1568,6 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblDissect
     Left = 336
@@ -1595,6 +1583,7 @@ object dlgDissection: TdlgDissection
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblDissect
     OnChange = celAmountChange

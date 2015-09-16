@@ -100,7 +100,10 @@ type
       dtSF_Share_Consideration           : Money;       { Stored }
       dtSF_Share_GST_Amount              : Money;       { Stored }
       dtSF_Share_GST_Rate                : String[ 5 ];       { Stored }
-
+      dtSF_Cash_Date                     : Integer;       { Stored }
+      dtSF_Accrual_Date                  : Integer;       { Stored }
+      dtSF_Record_Date                   : Integer;       { Stored }
+    //DN BGL360 - Extended Fields - additional fields for BGL360
    end;
 
 procedure ClearSuperfundDetails(dwr: PWorkDissect_Rec); overload;
@@ -162,7 +165,7 @@ type
       dtSF_Capital_Gains_Fraction_Half: Boolean;
       dtJob: string;
 
-    //DN additional fields for BGL360
+    //DN BGL360 - Extended Fields - additional fields for BGL360
       dtSF_Other_Income                  : Money;       { Stored }
       dtSF_Other_Trust_Deductions        : Money;       { Stored }
       dtSF_CGT_Concession_Amount         : Money;       { Stored }
@@ -184,6 +187,10 @@ type
       dtSF_Share_Consideration           : Money;       { Stored }
       dtSF_Share_GST_Amount              : Money;       { Stored }
       dtSF_Share_GST_Rate                : String[ 5 ];       { Stored }
+      dtSF_Cash_Date                     : Integer;       { Stored }
+      dtSF_Accrual_Date                  : Integer;       { Stored }
+      dtSF_Record_Date                   : Integer;       { Stored }
+    //DN BGL360 - Extended Fields - additional fields for BGL360
    end;
 
 procedure ClearSuperfundDetails(jwr: PWorkJournal_Rec); overload ;

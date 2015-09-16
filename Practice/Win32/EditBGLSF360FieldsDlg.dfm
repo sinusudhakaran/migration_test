@@ -42,10 +42,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       TabOrder = 0
       object tsAustralianIncome: TTabSheet
         Caption = 'Australian Income'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblLessOtherAllowableTrustDeductions: TLabel
           Left = 6
           Top = 176
@@ -138,10 +134,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsCapitalGains: TTabSheet
         Caption = 'Capital Gains'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblCGTConcession: TLabel
           Left = 6
           Top = 99
@@ -177,7 +169,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 0
+          TabOrder = 1
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -187,7 +179,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Top = 3
           Width = 442
           Height = 90
-          TabOrder = 1
+          TabOrder = 0
           ExplicitLeft = 3
           ExplicitTop = 3
           inherited lpCGTDiscounted: TLabel
@@ -406,10 +398,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsForeignIncome: TTabSheet
         Caption = 'Foreign Income'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblAssessableForeignSourceIncome: TLabel
           Left = 0
           Top = 6
@@ -613,7 +601,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 3
+          TabOrder = 4
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -635,7 +623,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 4
+          TabOrder = 5
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -657,7 +645,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 5
+          TabOrder = 6
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -666,7 +654,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Top = 77
           Width = 401
           Height = 134
-          TabOrder = 6
+          TabOrder = 3
           ExplicitTop = 77
           ExplicitWidth = 401
           ExplicitHeight = 134
@@ -769,10 +757,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsNonCashCapitalGains: TTabSheet
         Caption = 'Non-Cash Capital Gains/Losses'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lpCGTCapitalLosses: TLabel
           Left = 380
           Top = 99
@@ -807,7 +791,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 0
+          TabOrder = 1
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -817,7 +801,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Top = 3
           Width = 442
           Height = 90
-          TabOrder = 1
+          TabOrder = 0
           ExplicitTop = 3
           inherited nfCGTDiscounted: TOvcNumericField
             RangeHigh = {F6285CFFFFF802952040}
@@ -909,7 +893,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Top = 117
       Width = 390
       Height = 147
-      TabOrder = 1
+      TabOrder = 2
       ExplicitLeft = 1
       ExplicitTop = 117
       ExplicitWidth = 390
@@ -1026,7 +1010,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 2
+      TabOrder = 1
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -1298,7 +1282,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 0
+      TabOrder = 1
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
@@ -1320,7 +1304,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 1
+      TabOrder = 2
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
@@ -1342,7 +1326,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 2
+      TabOrder = 3
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -1373,7 +1357,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       StyleFocused.LookAndFeel.NativeStyle = True
       StyleHot.LookAndFeel.Kind = lfStandard
       StyleHot.LookAndFeel.NativeStyle = True
-      TabOrder = 3
+      TabOrder = 4
       Width = 130
     end
     object nfShareTradeUnits: TOvcNumericField
@@ -1394,7 +1378,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 4
+      TabOrder = 0
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end

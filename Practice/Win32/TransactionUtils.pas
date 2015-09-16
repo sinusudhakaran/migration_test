@@ -21,7 +21,7 @@ interface
 
 procedure  ClearSuperFundFields( pT : pTransaction_Rec); overload;
 procedure  ClearSuperFundFields( pD : pDissection_Rec); overload;
-procedure ClearSuperFundFields( Transaction_Extra_Rec : pTransaction_Extra_Rec); overload;
+procedure ClearSuperFundFields( Transaction_Extension_Rec : pTransaction_Extension_Rec); overload;
 
 procedure  ClearGSTFields( pT : pTransaction_Rec);
 
@@ -243,31 +243,34 @@ begin
   pd^.dsSF_Super_Fields_Edited := false;
 end;
 
-procedure ClearSuperFundFields( Transaction_Extra_Rec : pTransaction_Extra_Rec); overload;
+procedure ClearSuperFundFields( Transaction_Extension_Rec : pTransaction_Extension_Rec); overload;
 begin
-  Transaction_Extra_Rec^.teSequence_No := 0;
-  Transaction_Extra_Rec^.teDate_Effective := 0;
-  Transaction_Extra_Rec^.teSF_Other_Income := 0;
-  Transaction_Extra_Rec^.teSF_Other_Trust_Deductions := 0;
-  Transaction_Extra_Rec^.teSF_CGT_Concession_Amount := 0;
-  Transaction_Extra_Rec^.teSF_CGT_ForeignCGT_Before_Disc := 0;
-  Transaction_Extra_Rec^.teSF_CGT_ForeignCGT_Indexation := 0;
-  Transaction_Extra_Rec^.teSF_CGT_ForeignCGT_Other_Method := 0;
-  Transaction_Extra_Rec^.teSF_CGT_TaxPaid_Indexation := 0;
-  Transaction_Extra_Rec^.teSF_CGT_TaxPaid_Other_Method := 0;
-  Transaction_Extra_Rec^.teSF_Other_Net_Foreign_Income := 0;
-  Transaction_Extra_Rec^.teSF_Cash_Distribution := 0;
-  Transaction_Extra_Rec^.teSF_AU_Franking_Credits_NZ_Co := 0;
-  Transaction_Extra_Rec^.teSF_Non_Res_Witholding_Tax := 0;
-  Transaction_Extra_Rec^.teSF_LIC_Deductions := 0;
-  Transaction_Extra_Rec^.teSF_Non_Cash_CGT_Discounted_Before_Discount := 0;
-  Transaction_Extra_Rec^.teSF_Non_Cash_CGT_Indexation := 0;
-  Transaction_Extra_Rec^.teSF_Non_Cash_CGT_Other_Method := 0;
-  Transaction_Extra_Rec^.teSF_Non_Cash_CGT_Capital_Losses := 0;
-  Transaction_Extra_Rec^.teSF_Share_Brokerage := 0;
-  Transaction_Extra_Rec^.teSF_Share_Consideration := 0;
-  Transaction_Extra_Rec^.teSF_Share_GST_Amount := 0;
-  Transaction_Extra_Rec^.teSF_Share_GST_Rate:= '';
+  Transaction_Extension_Rec^.teSequence_No := 0;
+  Transaction_Extension_Rec^.teDate_Effective := 0;
+  Transaction_Extension_Rec^.teSF_Other_Income := 0;
+  Transaction_Extension_Rec^.teSF_Other_Trust_Deductions := 0;
+  Transaction_Extension_Rec^.teSF_CGT_Concession_Amount := 0;
+  Transaction_Extension_Rec^.teSF_CGT_ForeignCGT_Before_Disc := 0;
+  Transaction_Extension_Rec^.teSF_CGT_ForeignCGT_Indexation := 0;
+  Transaction_Extension_Rec^.teSF_CGT_ForeignCGT_Other_Method := 0;
+  Transaction_Extension_Rec^.teSF_CGT_TaxPaid_Indexation := 0;
+  Transaction_Extension_Rec^.teSF_CGT_TaxPaid_Other_Method := 0;
+  Transaction_Extension_Rec^.teSF_Other_Net_Foreign_Income := 0;
+  Transaction_Extension_Rec^.teSF_Cash_Distribution := 0;
+  Transaction_Extension_Rec^.teSF_AU_Franking_Credits_NZ_Co := 0;
+  Transaction_Extension_Rec^.teSF_Non_Res_Witholding_Tax := 0;
+  Transaction_Extension_Rec^.teSF_LIC_Deductions := 0;
+  Transaction_Extension_Rec^.teSF_Non_Cash_CGT_Discounted_Before_Discount := 0;
+  Transaction_Extension_Rec^.teSF_Non_Cash_CGT_Indexation := 0;
+  Transaction_Extension_Rec^.teSF_Non_Cash_CGT_Other_Method := 0;
+  Transaction_Extension_Rec^.teSF_Non_Cash_CGT_Capital_Losses := 0;
+  Transaction_Extension_Rec^.teSF_Share_Brokerage := 0;
+  Transaction_Extension_Rec^.teSF_Share_Consideration := 0;
+  Transaction_Extension_Rec^.teSF_Share_GST_Amount := 0;
+  Transaction_Extension_Rec^.teSF_Share_GST_Rate:= '';
+  Transaction_Extension_Rec^.teSF_Cash_Date:= 0;
+  Transaction_Extension_Rec^.teSF_Accrual_Date:= 0;
+  Transaction_Extension_Rec^.teSF_Record_Date:= 0;
 end;
 
 // Does a tx have notes attached to it
