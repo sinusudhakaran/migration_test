@@ -72,6 +72,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             RangeLow = {00000000000000000000}
           end
           inherited nfOtherIncome: TOvcNumericField
+            Top = 34
+            ExplicitTop = 34
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
@@ -89,20 +91,20 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitTop = 69
           end
           inherited btnFrankingCredits: TSpeedButton
-            OnClick = fmeFrankingbtnCalcClick
+            OnClick = frameFrankingbtnCalcClick
           end
           inherited nfFranked: TOvcNumericField
-            OnChange = fmeFrankingnfFrankedChange
+            OnChange = frameFrankingFrankedChange
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
           inherited nfUnfranked: TOvcNumericField
-            OnChange = fmeFrankingnfUnfrankedChange
+            OnChange = frameFrankingUnfrankedChange
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
           inherited nfFrankingCredits: TOvcNumericField
-            OnChange = fmeFrankingnfFrankingCreditsChange
+            OnChange = frameFrankingFrankingCreditsChange
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
@@ -126,7 +128,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Options = []
           PictureMask = '#,###,###,###.##'
           TabOrder = 2
-          OnChange = fmeFrankingnfFrankedChange
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -869,20 +870,24 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       end
       inherited btnFrankingCredits: TSpeedButton
         Top = 54
+        OnClick = frameFrankingbtnCalcClick
         ExplicitTop = 54
       end
       inherited nfFranked: TOvcNumericField
+        OnClick = frameFrankingFrankedChange
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
       end
       inherited nfUnfranked: TOvcNumericField
         Top = 29
+        OnClick = frameFrankingUnfrankedChange
         ExplicitTop = 29
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
       end
       inherited nfFrankingCredits: TOvcNumericField
         Top = 56
+        OnClick = frameFrankingFrankingCreditsChange
         ExplicitTop = 56
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}

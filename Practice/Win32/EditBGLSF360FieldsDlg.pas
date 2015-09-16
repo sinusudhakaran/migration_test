@@ -152,10 +152,10 @@ type
       Shift: TShiftState);
     procedure nfUnitsKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure fmeFrankingnfFrankedChange(Sender: TObject);
-    procedure fmeFrankingnfFrankingCreditsChange(Sender: TObject);
-    procedure fmeFrankingbtnCalcClick(Sender: TObject);
-    procedure fmeFrankingnfUnfrankedChange(Sender: TObject);
+    procedure frameFrankingFrankedChange(Sender: TObject);
+    procedure frameFrankingFrankingCreditsChange(Sender: TObject);
+    procedure frameFrankingbtnCalcClick(Sender: TObject);
+    procedure frameFrankingUnfrankedChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
     FReadOnly, FAutoPresSMinus: boolean;
@@ -933,6 +933,8 @@ end;
 
 procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
 begin
+(*
+
   if assigned( fmeFranking ) then begin
     fmeFranking.nfFrankingCredits.AsFloat := 0;
     fmeFranking.nfFranked.AsFloat := 0;
@@ -948,11 +950,183 @@ begin
 //DN  nfCapitalGains.AsFloat := 0;
   if assigned( fmeBGLCashCapitalGainsTax ) then begin
     fmeBGLCashCapitalGainsTax.nfCGTDiscounted.AsFloat := 0;
-  end;  
+  end;
 //DN  nfCapitalGainsOther.AsFloat := 0;
 //DN  nfOtherExpenses.AsFloat := 0;
 //DN  cmbMember.ItemIndex := 0;
 //DN  eCGTDate.AsString := '';
+*)
+
+  SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0 );
+
+
+
+
+
+
+
+
+(*
+
+
+  if assigned( fmeFranking ) then begin
+    SetNumericValue(fmeFranking.nfFranked,              mFranked, RevenuePercentage);
+    SetNumericValue(fmeFranking.nfUnfranked,            mUnfranked, RevenuePercentage);
+    SetNumericValue(fmeFranking.nfFrankingCredits,      mImputedCredit, RevenuePercentage);
+  end;
+
+  if assigned( fmeInterestIncome ) then begin
+    SetNumericValue(fmeInterestIncome.nfInterest,       mInterest, RevenuePercentage);
+    SetNumericValue(fmeInterestIncome.nfOtherIncome,    mOtherIncome, RevenuePercentage);
+  end;
+  SetNumericValue(nfLessOtherAllowableTrustDeductions,  mOtherTrustDeductions, RevenuePercentage);
+
+  // Capital Gains Tab
+  SetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTIndexation,
+    mCapitalGains, RevenuePercentage);
+  SetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTDiscounted,
+    mDiscountedCapitalGains, RevenuePercentage);
+  SetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTOther,
+    mCapitalGainsOther, RevenuePercentage);
+  SetNumericValue(nfCGTConcession,                      mCGTConcessionAmount, RevenuePercentage);
+
+  SetNumericValue(nfForeignCGTBeforeDiscount,           mForeignCGTBeforeDiscount, RevenuePercentage);
+  SetNumericValue(nfForeignCGTIndexationMethod,         mForeignCGTIndexationMethod, RevenuePercentage);
+  SetNumericValue(nfForeignCGTOtherMethod,              mForeignCGTOtherMethod, RevenuePercentage);
+
+  SetNumericValue(nfTaxPaidBeforeDiscount,              mTaxPaidBeforeDiscount, RevenuePercentage);
+  SetNumericValue(nfTaxPaidIndexationMethod,            mTaxPaidIndexationMethod, RevenuePercentage);
+  SetNumericValue(nfTaxPaidOtherMethod,                 mTaxPaidOtherMethod, RevenuePercentage);
+
+  //Foreign Income Tab
+  SetNumericValue(nfAssessableForeignSourceIncome,      mForeignIncome, RevenuePercentage);
+  SetNumericValue(nfOtherNetForeignSourceIncome,        mOtherNetForeignSourceIncome, RevenuePercentage);
+  SetNumericValue(nfCashDistribution,                   mCashDistribution, RevenuePercentage);
+
+  if assigned( fmeBGLForeignTax1 ) then begin
+    SetNumericValue(fmeBGLForeignTax1.nfForeignIncomeTaxOffset,
+      mForeignTaxCredits, RevenuePercentage);
+    SetNumericValue(fmeBGLForeignTax1.nfAUFrankingCreditsFromNZCompany,
+      mAUFrankingCreditsFromNZCompany, RevenuePercentage);
+    SetNumericValue(fmeBGLForeignTax1.nfTFNAmountsWithheld,
+      mTFNCredits, RevenuePercentage);
+
+    SetNumericValue(fmeBGLForeignTax1.nfNonResidentWithholdingTax,
+      mNonResidentWithholdingTax, RevenuePercentage);
+
+    SetNumericValue(fmeBGLForeignTax1.nfLICDeductions,
+      mLICDeductions, RevenuePercentage);
+
+  end;
+
+  SetNumericValue(nfTaxFreeAmounts,                     mTaxFreeDist, RevenuePercentage);
+  SetNumericValue(nfTaxExemptedAmounts,                 mTaxExemptDist, RevenuePercentage);
+  SetNumericValue(nfTaxDeferredAmounts,                 mTaxDeferredDist, RevenuePercentage);
+  SetNumericValue(nfOtherExpenses,                      mOtherExpenses, RevenuePercentage);
+
+  //Non-Cash Capital Gains/Loses
+  if assigned( fmeBGLNonCashCapitalGainsTax ) then begin
+    SetNumericValue(fmeBGLNonCashCapitalGainsTax.nfCGTDiscounted,
+      mNon_Cash_CGT_Discounted_Before_Discount, RevenuePercentage);
+    SetNumericValue(fmeBGLNonCashCapitalGainsTax.nfCGTIndexation,
+      mNon_Cash_CGT_Indexation, RevenuePercentage);
+    SetNumericValue(fmeBGLNonCashCapitalGainsTax.nfCGTOther,
+      mNon_Cash_CGT_Other, RevenuePercentage);
+  end;
+  SetNumericValue(nfCGTCapitalLosses, mNon_Cash_CGT_Capital_Losses, RevenuePercentage);
+
+// ** Panel Share Trade Panel **
+  SetNumericValue(nfShareBrokerage,     mShareBrokerage, RevenuePercentage);
+  SetNumericValue(nfShareConsideration, mShareConsideration, RevenuePercentage);
+  SetNumericValue(nfShareGSTAmount,     mShareGSTAmount, RevenuePercentage);
+  cmbxShareGSTRate.ItemIndex := cmbxShareGSTRate.Properties.Items.IndexOf(mShareGSTRate);
+
+// ** Panel Interest Panel **
+  SetNumericValue(nfInterest,                  mInterest, RevenuePercentage);
+  SetNumericValue(nfOtherIncome,               mOtherIncome, RevenuePercentage);
+  SetNumericValue(nfTFNAmountsWithheld,        mTFNCredits, RevenuePercentage);
+  SetNumericValue(nfNonResidentWithholdingTax, mNonResidentWithholdingTax, RevenuePercentage);
+
+// ** Panel Dividend Panel **
+  if assigned( fmeBGLFranking ) then begin
+    SetNumericValue(fmeBGLFranking.nfFranked,         mFranked, RevenuePercentage);
+    SetNumericValue(fmeBGLFranking.nfUnfranked,       mUnfranked, RevenuePercentage);
+    SetNumericValue(fmeBGLFranking.nfFrankingCredits, mImputedCredit, RevenuePercentage);
+  end;
+  SetNumericValue(nfForeignIncome,                       mForeignIncome, RevenuePercentage);
+  if assigned( fmeBGLForeignTax2 ) then begin
+    SetNumericValue(fmeBGLForeignTax2.nfForeignIncomeTaxOffset,         mForeignTaxCredits, RevenuePercentage);
+    SetNumericValue(fmeBGLForeignTax2.nfAUFrankingCreditsFromNZCompany, mAUFrankingCreditsFromNZCompany, RevenuePercentage);
+    SetNumericValue(fmeBGLForeignTax2.nfTFNAmountsWithheld,             mTFNCredits, RevenuePercentage);
+    SetNumericValue(fmeBGLForeignTax2.nfNonResidentWithholdingTax,      mNonResidentWithholdingTax, RevenuePercentage);
+    SetNumericValue(fmeBGLForeignTax2.nfLICDeductions,                  mLICDeductions, RevenuePercentage);
+  end;
+
+  TranAccount := mAccount;
+
+
+
+
+  UFModified := ((mFranked <> 0) or (mUnfranked <> 0))
+             and ((mFranked + mUnfranked) <> abs(FActualAmount));
+
+
+  if not MemOnly then  begin
+     SetNumericValue(fmeFranking.nfFrankingCredits, mImputedCredit, False);
+     fmeFrankingnfFrankingCreditsChange(fmeFranking.nfFrankingCredits);
+     SetNumericValue(nfTFNAmountsWithheld,        mTFNCredits, false);
+     if assigned( fmeBGLForeignTax1 ) then begin
+// DN Not sure if these on fmeBGLForeignTax1 and fmeBGLForeignTax2 map?
+       SetNumericValue(fmeBGLForeignTax1.nfTFNAmountsWithheld,      mTFNCredits, RevenuePercentage);
+       SetNumericValue(fmeBGLForeignTax1.nfForeignIncomeTaxOffset,  mForeignTaxCredits, RevenuePercentage);
+     end;
+     if assigned( fmeBGLForeignTax2 ) then begin
+// DN Not sure if these on fmeBGLForeignTax2 and fmeBGLForeignTax1 map?
+       SetNumericValue(fmeBGLForeignTax2.nfTFNAmountsWithheld,      mTFNCredits, RevenuePercentage);
+       SetNumericValue(fmeBGLForeignTax2.nfForeignIncomeTaxOffset,  mForeignTaxCredits, RevenuePercentage);
+     end;
+  end;
+
+
+// DN Not sure about whether these map?
+  eCashDate.AsStDate    := BkNull2St(dCash_Date);
+  eAccrualDate.AsStDate := BkNull2St(dAccrual_Date);
+  eRecordDate.AsStDate  := BkNull2St(dRecord_Date);
+
+
+  nfUnits.AsFloat := mUnits / 10000;
+
+  TranAccount := mAccount;
+  RefreshChartCodeCombo();
+  FCurrentAccountIndex := cmbxAccount.ItemIndex;
+
+  FAutoPressMinus := (FActualAmount < 0) and (mUnits = 0);
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   UFModified := False;
 end;
 
@@ -1257,11 +1431,11 @@ begin
   cmbxAccount.Hint := 'Select Chart code|Select Chart code';
 end;
 
-procedure TdlgEditBGLSF360Fields.fmeFrankingbtnCalcClick(Sender: TObject);
+procedure TdlgEditBGLSF360Fields.frameFrankingbtnCalcClick(Sender: TObject);
 begin
     crModified := False;
-    if assigned( fmeFranking ) then
-      fmeFrankingnfFrankingCreditsChange(nil);
+//    if assigned( fmeFranking ) then
+    fmeFrankingnfFrankingCreditsChange( Sender );
 end;
 
 procedure TdlgEditBGLSF360Fields.FormCloseQuery(Sender: TObject;
@@ -1345,25 +1519,30 @@ begin
     if not ValueIsValid( fmeFranking.nfFranked) then
       Exit;
     if not ValueIsValid( fmeFranking.nfUnFranked) then
-      Exit; 
+      Exit;
 
     //no problems, allow close
     CanClose := true;
   end;
 end;
 
-procedure TdlgEditBGLSF360Fields.fmeFrankingnfFrankingCreditsChange(Sender: TObject);
-var Frank: Double;
+procedure TdlgEditBGLSF360Fields.frameFrankingFrankingCreditsChange(Sender: TObject);
+var
+  Frank: Double;
+  FrankingFrame : TfmeBGLFranking;
 begin
-  if assigned( fmeFranking ) then begin
-    if FrankPercentage then
-      Frank := fmeFranking.nfFranked.asFloat{ * Money2Double(FActualAmount) / 100}
-    else
-      Frank := fmeFranking.nfFranked.asFloat;
+  if ( Sender is TSpeedbutton ) then
+    if ( ( Sender as TSpeedbutton ).Owner is TfmeBGLFranking ) then begin
+      FrankingFrame := ( ( Sender as TSpeedbutton ).Owner as TfmeBGLFranking );
 
-    crModified := CheckFrankingCredit( Frank, fDate, fmeFranking.nfFrankingCredits,
-                    not((Sender = fmeFranking.nfFrankingCredits) or crModified));
-  end;
+      if FrankPercentage then
+        Frank := FrankingFrame.nfFranked.asFloat{ * Money2Double(FActualAmount) / 100}
+      else
+        Frank := FrankingFrame.nfFranked.asFloat;
+
+      crModified := CheckFrankingCredit( Frank, fDate, FrankingFrame.nfFrankingCredits,
+                      not((Sender = FrankingFrame.nfFrankingCredits) or crModified));
+    end;
 end;
 
 procedure TdlgEditBGLSF360Fields.nfTFNCreditsKeyPress(Sender: TObject;
@@ -1374,26 +1553,33 @@ begin
     Key := #0;
 end;
 
-procedure TdlgEditBGLSF360Fields.fmeFrankingnfFrankedChange(Sender: TObject);
-var Actual: Double;
-
+procedure TdlgEditBGLSF360Fields.frameFrankingFrankedChange(Sender: TObject);
+var
+  Actual: Double;
+  FrankingFrame : TfmeBGLFranking;
 begin
-   if assigned( fmeFranking ) then begin
-     if not UFModified then begin
-       if FrankPercentage then
+//DN BGL360 Extended Fields
+//  Add checks for other Franking Frame
+//DN BGL360 Extended Fields
+
+  if ( Sender is TSpeedbutton ) then
+    if ( ( Sender as TSpeedbutton ).Owner is TfmeBGLFranking ) then begin
+      FrankingFrame := ( ( Sender as TSpeedbutton ).Owner as TfmeBGLFranking );
+      if not UFModified then begin
+        if FrankPercentage then
           Actual := 100.0
-       else
+        else
           Actual := Money2Double(FActualAmount);
-       if sender = fmeFranking.nfFranked then
-         CalcFrankAmount(Actual,fmeFranking.nfFranked,fmeFranking.nfUnFranked)
-       else
-         CalcFrankAmount(Actual,fmeFranking.nfUnFranked,fmeFranking.nfFranked)
+        if sender = FrankingFrame.nfFranked then
+          CalcFrankAmount(Actual,FrankingFrame.nfFranked,FrankingFrame.nfUnFranked)
+        else
+          CalcFrankAmount(Actual,FrankingFrame.nfUnFranked,FrankingFrame.nfFranked)
+      end;
+      fmeFrankingnfFrankingCreditsChange(Sender);
     end;
-    fmeFrankingnfFrankingCreditsChange(Sender);
-  end;
 end;
 
-procedure TdlgEditBGLSF360Fields.fmeFrankingnfUnfrankedChange(Sender: TObject);
+procedure TdlgEditBGLSF360Fields.frameFrankingUnfrankedChange(Sender: TObject);
 begin
   UFModified := True;
 end;
