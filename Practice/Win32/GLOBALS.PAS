@@ -325,6 +325,7 @@ var
     PublicKeysDir            : string;
     UserDir                  : string;
     HtmlCache                : string;
+    RTFTemp                  : string;
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Misc settings
@@ -782,6 +783,8 @@ initialization
    HtmlCache                 := DataDir + 'CACHE\HTML\';
    AppVersionStr             := GetAppVersionStr;
    UserDir                   := DataDir;
+   RTFTemp                   := DataDir + 'TMPRTF';
+
 
 {$ENDIF}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

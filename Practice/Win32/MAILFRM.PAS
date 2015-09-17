@@ -20,7 +20,7 @@ Uses
     Admin32,
     SYDEFS,
   WPRTEDefs, WPCTRMemo, WPCTRRich, WPRuler, WPTbar,
-   OsFont, RTFEditFme, ApplicationUtils;
+   OsFont, RTFEditFme, ApplicationUtils, DirUtils;
 
 Type
   TfrmMail = Class (Tform)
@@ -91,6 +91,8 @@ Type
     procedure lvClientFilesEnter(Sender: TObject);
     procedure popClientFilesPopup(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure TSEditContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
 
 
   Private
@@ -662,6 +664,12 @@ begin
    Result:= Emaildir + 'Signature' +tmpExt;
 end;
 
+procedure TfrmMail.TSEditContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.FormDestroy(Sender: TObject);
 begin
@@ -876,10 +884,39 @@ var
   Rlst: LongBool;
   StartUpInfo: TStartUpInfo;
   ProcessInfo: TProcessInformation;
-  Error: integer;
   CmdString : string;
   AttachmentsStr : string;
   ExitCode : Cardinal;
+  RTFFileBodyToSendPath : string;
+
+  function GenerateRndFileName : string;
+  const
+    CharArr : array [0..25] of char = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z') ;
+    Capacity = 25;
+  var
+    smbAmount : integer;
+    smbToGet : integer;
+    i : integer;
+  begin
+    Result := '';
+    Randomize;
+    smbAmount := Random(Capacity);
+    for i := 0 to smbAmount do
+    begin
+      smbToGet := Random(Capacity);
+      Result := Result + CharArr[smbToGet];
+    end;
+    if not DirectoryExists(RTFTemp) then
+    begin
+      if not CreateDir(RTFTemp) then
+        Result := ExtractFileDir(Application.ExeName) +'\'+ Result + '.rtf'
+      else
+        Result := RTFTemp + '\' + Result + '.rtf';
+    end
+    else
+      Result := RTFTemp + '\' + Result + '.rtf';
+  end;
+  
 begin
   //before send mail
   result := false;
@@ -997,8 +1034,10 @@ begin
   PARAM_ATT     = '-att';
   PARAM_SUBJECT = '-subject';
   PARAM_BODY    = '-body';
-  PARAM_IS_RTF  = '-rtf';
-  PARAM_IS_HTML = '-html';
+  PARAM_IS_RTF  = '-rtf' effectivly is a path to RTF file with the body;
+  PARAM_IS_HTML = '-html' effectivly is a path to HTML file with the body;
+  PARAM_IS_OLE  = '-ole true/false'
+  PARAM_IS_OLE  = '-mapi true/false'
 }
         if FileExists(MAPI64BIT) then
         begin
@@ -1017,8 +1056,22 @@ begin
             CmdString := CmdString + ' -cc '+ txtCC.Text;
           if Trim(txtSubject.text) <> '' then
             CmdString := CmdString + ' -subject ' + txtSubject.text;
+          {if Trim(Editor.ERTF.Text) <> '' then
+            CmdString := CmdString + ' -body '+ Editor.ERTF.Text;}
           if Trim(Editor.ERTF.Text) <> '' then
-            CmdString := CmdString + ' -body '+ Editor.ERTF.Text;
+          begin
+            RTFFileBodyToSendPath := GenerateRndFileName;
+            if FileExists(RTFFileBodyToSendPath) then
+            begin
+              DeleteFile(RTFFileBodyToSendPath);
+              RTFFileBodyToSendPath := GenerateRndFileName;
+            end;
+            Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
+            //Save the body to RTF to load it from external EXE and add it to body.
+            //The file will be removed in external EXE
+            CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
+          end;
+          CmdString := CmdString + ' -ole true;';
 
           AttachmentsStr := '';
           if Attachments.Count > 0 then

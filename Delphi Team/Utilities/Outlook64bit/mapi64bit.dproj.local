@@ -2,7 +2,9 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>2015/08/27 15:06:23.000.528,=C:\Users\vitalii.grigorev\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
-    <Transaction>2015/08/27 15:06:52.000.616,C:\Users\vitalii.grigorev\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Projects\Delphi\Mapi64bit2\mapi64bit.dproj</Transaction>
+    <Transaction>2015/08/27 15:06:52.000.616,D:\Projects\Delphi\Mapi64bit2\mapi64bit.dproj=C:\Users\vitalii.grigorev\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
     <Transaction>2015/08/27 15:07:14.000.737,=D:\Projects\Delphi\Mapi64bit2\EmailSender64.pas</Transaction>
+    <Transaction>2015/09/11 11:27:14.000.982,=C:\Dev\Practice\Dev\Delphi Team\Utilities\Outlook64bit\Unit1.pas</Transaction>
+    <Transaction>2015/09/11 11:27:30.000.991,C:\Dev\Practice\Dev\Delphi Team\Utilities\Outlook64bit\OutlookOle.pas=C:\Dev\Practice\Dev\Delphi Team\Utilities\Outlook64bit\Unit1.pas</Transaction>
   </Transactions>
 </BorlandProject>

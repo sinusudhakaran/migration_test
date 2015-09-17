@@ -269,7 +269,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>mapi64bit_Icon1.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <Debugger_RunParams>C:\Testing\BTA_NZ_5.28.0.5848_sync\mapi64bit.exe -to edsaab@banklink.com.au -subject BankLink Books File for 19SAABAA -body &apos;#$D#$A&apos;The following Client File(s) are now available: 19SAABAA&apos;#$D#$A&apos; -att C:\Testing\BTA_NZ_5.28.0.5848_sync\19SAABAA.BK5;</Debugger_RunParams>
+        <Debugger_RunParams>-to grigorev.vital1981@gmail.com -subject BankLink Books File for HAI773 -rtf C:\Testing\BTA_NZ_5.28.0.5848_sync\bpbpkrawyovttterx.rtf -ole true; -att C:\Testing\BTA_NZ_5.28.0.5848_sync\HAI773.BK5;&apos;</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -282,6 +282,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="EmailSender64.pas"/>
+        <DCCReference Include="OutlookOle.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -320,6 +321,18 @@
                 </DeployFile>
                 <DeployFile LocalName="Win32\Debug\mapi64bit.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
+                        <RemoteName>mapi64bit.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\mapi64bit.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>mapi64bit.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\mapi64bit.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
                         <RemoteName>mapi64bit.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -705,13 +718,13 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>
                 <Platform value="Android">True</Platform>

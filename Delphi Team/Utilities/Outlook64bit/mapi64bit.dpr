@@ -7,7 +7,8 @@ uses
   FMX.Forms,
   System.Sysutils,
   System.Classes,
-  EmailSender64 in 'EmailSender64.pas';
+  EmailSender64 in 'EmailSender64.pas',
+  OutlookOle in 'OutlookOle.pas';
 
 {$R *.res}
 
@@ -22,6 +23,8 @@ uses
    -body body
    -rtf is body is RTF  0 or 1 def = 0
    -html if body is HTML 0 or 1 def 0
+   -ole is OLE
+   -rtf is RTF
 }
 
 const
@@ -33,11 +36,13 @@ const
   PARAM_BODY    = '-body';
   PARAM_IS_RTF  = '-rtf';
   PARAM_IS_HTML = '-html';
+  PARAM_IS_MAPI = '-mapi';
+  PARAM_IS_OLE  = '-ole';
 
 type
   TArrayType = (TO_ARR = 1, CC_ARR = 2, BCC_ARR = 3, ATT_ARR = 4);
 
-function ParamsParsingSendEmail(varEmailSender : TEmailSender64) : integer;
+function ParamsParsingSendEmail : integer; overload;
 const
   comma = ';';
   space = ' ';
@@ -49,10 +54,16 @@ var
   attArray : array of string;
   sbody : string;
   subj : string;
-  isRTF : boolean;
-  isHTML : boolean;
+  sHtmlFilePath : string;
+  sRTFFilePath : string;
   sParam : string;
   varStrList : TStringList;
+  isOLE : boolean;
+  isMAPI : boolean;
+  EmailSender : TEmailSender64;
+  EmailSenderOle : TOutlookOle;
+
+
 
   procedure FillArrayAndClear(aDelimitedTxt : TStrings; aArrType : TArrayType);
   var
@@ -105,7 +116,9 @@ var
          not SameStr(ParamStr(i), PARAM_SUBJECT) and
          not SameStr(ParamStr(i), PARAM_IS_RTF) and
          not SameStr(ParamStr(i), PARAM_IS_HTML) and
-         not SameStr(ParamStr(i), PARAM_BODY) then
+         not SameStr(ParamStr(i), PARAM_BODY) and
+         not SameStr(ParamStr(i), PARAM_IS_MAPI) and
+         not SameStr(ParamStr(i), PARAM_IS_OLE) then
       Result := Result + space + ParamStr(i) else
      exit;
     end;
@@ -163,39 +176,92 @@ begin
       begin
         sParam := ParamStr(i + 1);
         varStrList.DelimitedText := sParam;
-        TryStrToBool(Trim(varStrList.Strings[0]), isRTF);
+        sRTFFilePath := Trim(varStrList.Strings[0]);
         varStrList.Clear;
       end;
+
+      if SameStr(PARAM_IS_OLE, sParam) then
+      begin
+        sParam := ParamStr(i + 1);
+        varStrList.DelimitedText := sParam;
+        TryStrToBool(Trim(varStrList.Strings[0]), isOLE);
+        varStrList.Clear;
+      end;
+
+      if SameStr(PARAM_IS_MAPI, sParam) then
+      begin
+        sParam := ParamStr(i + 1);
+        varStrList.DelimitedText := sParam;
+        TryStrToBool(Trim(varStrList.Strings[0]), isMAPI);
+        varStrList.Clear;
+      end;
+
 
       if SameStr(PARAM_IS_HTML, sParam) then
       begin
         sParam := ParamStr(i + 1);
         varStrList.DelimitedText := sParam;
-        TryStrToBool(Trim(varStrList.Strings[0]), isHTML);
+        sHtmlFilePath := Trim(varStrList.Strings[0]);
         varStrList.Clear;
       end;
     end;
 
-    if (Length(toArray) > 0) and (subj <> '') then
+    if isOle then
     begin
-      for i := 0 to Length(toArray) - 1  do
-        varEmailSender.AddTO(toArray[i]);
+      EmailSenderOle := TOutlookOle.Create;
+      try
+        if (Length(toArray) > 0) and (subj <> '') then
+        begin
+          for i := 0 to Length(toArray) - 1  do
+            EmailSenderOle.AddToRecipient(toArray[i]);
 
-      for i := 0 to Length(ccArray) - 1  do
-        varEmailSender.AddCC(ccArray[i]);
+          for i := 0 to Length(ccArray) - 1  do
+            EmailSenderOle.AddCCRecipient(ccArray[i]);
 
-      for i := 0 to Length(bccArray) - 1  do
-        varEmailSender.AddBCC(bccArray[i]);
+          for i := 0 to Length(bccArray) - 1  do
+            EmailSenderOle.AddBCCRecipient(bccArray[i]);
 
-      for i := 0 to Length(attArray) - 1  do
-        varEmailSender.AddAttchment(attArray[i]);
+          for i := 0 to Length(attArray) - 1  do
+            EmailSenderOle.AddAttachment(attArray[i]);
 
-      varEmailSender.Subject := subj;
-      varEmailSender.Body := sbody;
-      varEmailSender.IsRTF := isRTF;
-      varEmailSender.IsHTML := isHTML;
-      Result := varEmailSender.SendEmail;
+          EmailSenderOle.EmailSubject := subj;
+          EmailSenderOle.EmailBody := '';
+          EmailSenderOle.RTFBodyFilePath := sRTFFilePath;
+          EmailSenderOle.HtmlBodyFilePath := sHtmlFilePath;
+          Result := EmailSenderOle.SendEmail;
+        end;
+      finally
+        EmailSenderOle.Free;
+      end;
+    end;
+
+    if isMAPI then
+    begin
+      EmailSender := TEmailSender64.Create;
+      try
+        if (Length(toArray) > 0) and (subj <> '') then
+        begin
+          for i := 0 to Length(toArray) - 1  do
+            EmailSender.AddTO(toArray[i]);
+
+          for i := 0 to Length(ccArray) - 1  do
+            EmailSender.AddCC(ccArray[i]);
+
+          for i := 0 to Length(bccArray) - 1  do
+            EmailSender.AddBCC(bccArray[i]);
+
+          for i := 0 to Length(attArray) - 1  do
+            EmailSender.AddAttchment(attArray[i]);
+
+          EmailSender.Subject := subj;
+          EmailSender.Body := sbody;
+          Result := EmailSender.SendEmail;
+        end;
+      finally
+        EmailSenderOle.Free;
+      end;
     end
+
     else
       WriteLn('parameters set incorrectly!!!!!');
       WriteLn;
@@ -209,8 +275,6 @@ begin
   end;
 end;
 
-var
-  EmailSender : TEmailSender64;
 begin
   Application.Initialize;
   if ParamCount = 0 then
@@ -221,11 +285,9 @@ begin
   end
   else
   begin
-    EmailSender := TEmailSender64.Create;
     try
-      ExitCode := ParamsParsingSendEmail(EmailSender);
+      ExitCode := ParamsParsingSendEmail;
     finally
-      EmailSender.Free;
       Application.Terminate;
     end;
   end;

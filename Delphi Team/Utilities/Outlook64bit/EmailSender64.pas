@@ -15,7 +15,10 @@ uses
   FMX.StdCtrls,
   Winapi.Windows,
   Winapi.Messages,
-  Winapi.Mapi;
+  Winapi.Mapi,
+  VCL.Forms,
+  ActiveX;
+
 
   type
     TEmailSender64 = class
@@ -28,6 +31,7 @@ uses
       FIsRTF: boolean;
       FTOList: TStringList;
       FAttachmentsList: TStringList;
+      FNameToRemove : string;
 
       MapiMessage: TMapiMessage;
       MapilpSender : TMapiRecipDesc;
@@ -36,6 +40,7 @@ uses
       MapilpSend : PMapiRecipDesc;
       MapiSession : UINT_PTR;
       MapiHandle : UIntPtr;
+    FHtmlFilePath: string;
 
       procedure SetBody(const Value: string);
       procedure SetIsHTML(const Value: boolean);
@@ -48,6 +53,8 @@ uses
       function LogOn : integer;
       function LogOff : integer;
       function ResolveNames(const sAddress : string; var pPMapiRecipDesc : PMapiRecipDesc) : Cardinal;
+      //function GenerateTmpFileName : string;
+      procedure setHtmlFilePath(const Value: string);
     public
       constructor Create;
       destructor Destroy; override;
@@ -61,6 +68,7 @@ uses
       property Body : string read FBody write SetBody;
       property IsRTF : boolean read FIsRTF write SetIsRTF;
       property IsHTML : boolean read FIsHTML write SetIsHTML;
+      property HtmlFilePath : string read FHtmlFilePath write setHtmlFilePath;
 
       procedure AddTO(const sAddressTO : string);
       procedure AddCC(const sAddressCC : string);
@@ -166,6 +174,9 @@ begin
   FillChar(MapilpRec, SizeOf(MapilpRec), #0);
   FillChar(MapilpSend, SizeOf(MapilpSend), #0);
   SetLength(MapilpRecipient, 0);
+
+  if FileExists(FHtmlFilePath) then
+    DeleteFile(PChar(FHtmlFilePath));
 end;
 
 constructor TEmailSender64.Create;
@@ -175,6 +186,7 @@ begin
   FBCCList := TStringList.Create;
   FAttachmentsList := TStringList.Create;
   MapiHandle := UInt(10000000);
+  //FNameToRemove := GenerateTmpFileName;
   Clean;
 end;
 
@@ -185,8 +197,35 @@ begin
   FBCCList.Free;
   FAttachmentsList.Free;
   SetLength(MapilpRecipient, 0);
+  if FileExists(FNameToRemove) then
+    DeleteFile(PChar(FNameToRemove));
   inherited;
 end;
+
+{function TEmailSender64.GenerateTmpFileName: string;
+const
+  CharArr : array [0..25] of char = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z') ;
+  Capacity = 25;
+
+  function GetRndName : string;
+  var
+    smbAmount : integer;
+    smbToGet : integer;
+    i : integer;
+  begin
+    Result := '';
+    Randomize;
+    smbAmount := Random(Capacity);
+    for i := 0 to smbAmount do
+    begin
+      smbToGet := Random(Capacity);
+      Result := Result + CharArr[smbToGet];
+    end;
+  end;
+
+begin
+  Result := GetRndName + '.htm';
+end;  }
 
 function TEmailSender64.LogOff: integer;
 begin
@@ -222,22 +261,25 @@ var
     rcMapiRecord.lpEntryID := rcMapiRec^.lpEntryID;
   end;
 
+  function LowLettersInExtension(const aFileName : string) : PAnsiChar;
+  var
+    sExt : string;
+  begin
+     sExt := AnsiLowerCase(ExtractFileExt(aFileName));
+     Result := PAnsiChar(AnsiString(ExtractFileName(ChangeFileExt(aFileName, sExt))));
+  end;
+
 begin
   Result := MAPI_E_FAILURE;
   if LogOn = SUCCESS_SUCCESS then
   begin
     if FTOList.Count > 0 then
     begin
-      if Length(Trim(Subject)) <= MINIMUM_LEN then
-        Subject := Subject + EXTEND_STRING;
-      if Length(Trim(Body)) <= MINIMUM_LEN then
-        Body := Body + EXTEND_STRING;
 
       MapiMessage.lpszSubject := PAnsiChar(AnsiString(Subject));
-      MapiMessage.lpszNoteText := PAnsiChar(AnsiString(Body));
-      MapiMessage.nRecipCount := FTOList.Count + FCCList.Count + FBCCList.Count;
-      MapiMessage.lpszMessageType := nil;
+      MapiMessage.lpszNoteText := nil;
 
+      MapiMessage.nRecipCount := FTOList.Count + FCCList.Count + FBCCList.Count;
       //TO
       for i := 0 to FTOList.Count - 1 do
       begin
@@ -289,26 +331,51 @@ begin
       MapiMessage.lpRecips :=  Pointer(MapilpRecipient);
 
       //attachments
+      //varRTFFile := TStringList.Create;
+      //varRTFFile.LoadFromFile(FHtmlFilePath);
+      //MapiMessage.lpszNoteText := PAnsiChar(AnsiString(varRTFFile.Text));
+      //varRTFFile.Free;
+
+      //to make RTF add body as an ATTACHMENT!!!!
+
+      GetMem(Attachments, SizeOf(TMapiFileDesc) * (FAttachmentsList.Count + 1));
+      //GetMem(Attachments, SizeOf(TMapiFileDesc) * (1));
+
+      //GetFileType()
+      if FileExists(FHtmlFilePath) then
+      begin
+        Attachments[FAttachmentsList.Count].ulReserved := 0;
+        Attachments[FAttachmentsList.Count].flFlags := 0;
+        Attachments[FAttachmentsList.Count].nPosition := Cardinal($FFFFFFFF);
+        Attachments[FAttachmentsList.Count].lpszFileName := PAnsiChar(AnsiString(FHtmlFilePath));
+        Attachments[FAttachmentsList.Count].lpszPathName := PAnsiChar(AnsiString(FHtmlFilePath));
+        Attachments[FAttachmentsList.Count].lpFileType := nil;
+      end;
+
       if FAttachmentsList.Count > 0 then
       begin
-        GetMem(Attachments, SizeOf(TMapiFileDesc) * FAttachmentsList.Count);
+
         for i := 0 to FAttachmentsList.Count - 1 do
         begin
           Attachments[i].ulReserved := 0;
           Attachments[i].flFlags := 0;
           Attachments[i].nPosition := Cardinal($FFFFFFFF);
+          Attachments[i].lpszFileName := LowLettersInExtension(FAttachmentsList.Strings[i]);
           Attachments[i].lpszPathName := PAnsiChar(AnsiString(FAttachmentsList.Strings[i]));
-          Attachments[i].lpszFileName := PAnsiChar(AnsiString(ExtractFileName(FAttachmentsList.Strings[i])));
           Attachments[i].lpFileType := nil;
         end;
-        MapiMessage.nFileCount := FAttachmentsList.Count;
-        MapiMessage.lpFiles := @Attachments^;
-      end
-      else
-      begin
-        MapiMessage.nFileCount := 0;
-        MapiMessage.lpFiles := nil;
+
       end;
+      //else
+      //begin
+      //  MapiMessage.nFileCount := 0;
+      //  MapiMessage.lpFiles := nil;
+      //end;
+
+      MapiMessage.nFileCount := FAttachmentsList.Count + 1;
+      //MapiMessage.nFileCount := 1;
+      MapiMessage.lpFiles := @Attachments^;
+
       //end creating mail
     end;
   end;
@@ -327,10 +394,8 @@ end;
 function TEmailSender64.SendEmail: integer;
 begin
   Result := PrepareEmail;
-
   if Result = SUCCESS_SUCCESS then
     Result := MapiSendMail(MapiSession, MapiHandle, MapiMessage, MAPI_DIALOG or MAPI_NEW_SESSION or MAPI_ALLOW_OTHERS, 0);
-
   LogOff;
   Clean;
 end;
@@ -338,6 +403,11 @@ end;
 procedure TEmailSender64.SetBody(const Value: string);
 begin
   FBody := Value;
+end;
+
+procedure TEmailSender64.setHtmlFilePath(const Value: string);
+begin
+  FHtmlFilePath := Value;
 end;
 
 procedure TEmailSender64.SetIsHTML(const Value: boolean);
