@@ -765,7 +765,7 @@ begin
 
   if not MemOnly then  begin
      SetNumericValue(fmeFranking.nfFrankingCredits, mImputedCredit, False);
-     fmeFrankingnfFrankingCreditsChange(fmeFranking.nfFrankingCredits);
+     frameFrankingFrankingCreditsChange(fmeFranking.nfFrankingCredits);
      SetNumericValue(nfTFNAmountsWithheld,        mTFNCredits, false);
      if assigned( fmeBGLForeignTax1 ) then begin
 // DN Not sure if these on fmeBGLForeignTax1 and fmeBGLForeignTax2 map?
@@ -1435,7 +1435,7 @@ procedure TdlgEditBGLSF360Fields.frameFrankingbtnCalcClick(Sender: TObject);
 begin
     crModified := False;
 //    if assigned( fmeFranking ) then
-    fmeFrankingnfFrankingCreditsChange( Sender );
+    frameFrankingFrankingCreditsChange( Sender );
 end;
 
 procedure TdlgEditBGLSF360Fields.FormCloseQuery(Sender: TObject;
@@ -1575,7 +1575,7 @@ begin
         else
           CalcFrankAmount(Actual,FrankingFrame.nfUnFranked,FrankingFrame.nfFranked)
       end;
-      fmeFrankingnfFrankingCreditsChange(Sender);
+      frameFrankingFrankingCreditsChange(Sender);
     end;
 end;
 
