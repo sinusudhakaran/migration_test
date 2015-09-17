@@ -189,7 +189,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ImageIndex = 1
         object lblCGTConcession: TLabel
           Left = 6
-          Top = 99
+          Top = 86
           Width = 249
           Height = 17
           Caption = 'Capital Gain Tax (CGT) Concession Amount'
@@ -197,7 +197,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         end
         object lpCGTConcession: TLabel
           Left = 409
-          Top = 99
+          Top = 86
           Width = 11
           Height = 17
           Caption = '%'
@@ -205,50 +205,57 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Visible = False
         end
         object lblForeignCGT: TLabel
-          Left = 281
-          Top = 130
+          Left = 288
+          Top = 133
           Width = 124
           Height = 17
           Caption = 'Foreign Capital Gains'
         end
         object lblTaxPaid: TLabel
-          Left = 477
-          Top = 130
-          Width = 180
+          Left = 560
+          Top = 114
+          Width = 95
           Height = 17
-          Caption = 'Income Tax Paid Offset/Credits'
+          Caption = 'Income Tax Paid'
         end
         object lblBeforeDiscount: TLabel
           Left = 6
-          Top = 152
+          Top = 158
           Width = 92
           Height = 17
           Caption = 'Before Discount'
         end
         object lblIndexationMethod: TLabel
           Left = 6
-          Top = 180
+          Top = 184
           Width = 110
           Height = 17
           Caption = 'Indexation Method'
         end
         object lblOtherMethod: TLabel
           Left = 6
-          Top = 208
+          Top = 210
           Width = 83
           Height = 17
           Caption = 'Other Method'
         end
         object lineCapitalGainsTab: TShape
           Left = 0
-          Top = 127
+          Top = 113
           Width = 720
           Height = 1
           Pen.Color = clSilver
         end
+        object Label1: TLabel
+          Left = 560
+          Top = 133
+          Width = 81
+          Height = 17
+          Caption = 'Offset/Credits'
+        end
         object nfCGTConcession: TOvcNumericField
           Left = 279
-          Top = 97
+          Top = 84
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -273,10 +280,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Left = 3
           Top = 3
           Width = 442
-          Height = 90
+          Height = 80
           TabOrder = 7
           ExplicitLeft = 3
           ExplicitTop = 3
+          ExplicitHeight = 80
           inherited lblCGTDiscounted: TLabel
             Width = 243
             Height = 17
@@ -290,27 +298,35 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblCGTIndexation: TLabel
+            Top = 30
             Width = 149
             Height = 17
+            ExplicitTop = 30
             ExplicitWidth = 149
             ExplicitHeight = 17
           end
           inherited lpCGTIndexation: TLabel
             Left = 406
+            Top = 30
             Height = 17
             ExplicitLeft = 406
+            ExplicitTop = 30
             ExplicitHeight = 17
           end
           inherited lblCGTOther: TLabel
+            Top = 57
             Width = 172
             Height = 17
+            ExplicitTop = 57
             ExplicitWidth = 172
             ExplicitHeight = 17
           end
           inherited lpCGTOther: TLabel
             Left = 406
+            Top = 57
             Height = 17
             ExplicitLeft = 406
+            ExplicitTop = 57
             ExplicitHeight = 17
           end
           inherited nfCGTDiscounted: TOvcNumericField
@@ -321,20 +337,24 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           end
           inherited nfCGTIndexation: TOvcNumericField
             Left = 276
+            Top = 28
             ExplicitLeft = 276
+            ExplicitTop = 28
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
           inherited nfCGTOther: TOvcNumericField
             Left = 276
+            Top = 55
             ExplicitLeft = 276
+            ExplicitTop = 55
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
         end
         object nfForeignCGTBeforeDiscount: TOvcNumericField
-          Left = 279
-          Top = 150
+          Left = 286
+          Top = 156
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -356,8 +376,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfForeignCGTIndexationMethod: TOvcNumericField
-          Left = 279
-          Top = 178
+          Left = 286
+          Top = 182
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -379,8 +399,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfForeignCGTOtherMethod: TOvcNumericField
-          Left = 279
-          Top = 206
+          Left = 286
+          Top = 208
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -402,8 +422,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfTaxPaidBeforeDiscount: TOvcNumericField
-          Left = 503
-          Top = 150
+          Left = 542
+          Top = 156
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -425,8 +445,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfTaxPaidIndexationMethod: TOvcNumericField
-          Left = 503
-          Top = 178
+          Left = 542
+          Top = 182
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -448,8 +468,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfTaxPaidOtherMethod: TOvcNumericField
-          Left = 503
-          Top = 206
+          Left = 542
+          Top = 208
           Width = 129
           Height = 20
           Cursor = crIBeam
@@ -1771,7 +1791,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object nfUnits: TOvcNumericField
       Left = 368
-      Top = 7
+      Top = 9
       Width = 121
       Height = 20
       Cursor = crIBeam
@@ -1795,7 +1815,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object eCashDate: TOvcPictureField
       Left = 589
-      Top = 7
+      Top = 8
       Width = 107
       Height = 20
       Cursor = crIBeam
@@ -1823,7 +1843,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object eAccrualDate: TOvcPictureField
       Left = 368
-      Top = 41
+      Top = 42
       Width = 121
       Height = 20
       Cursor = crIBeam
@@ -1851,7 +1871,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object eRecordDate: TOvcPictureField
       Left = 589
-      Top = 41
+      Top = 42
       Width = 107
       Height = 20
       Cursor = crIBeam
@@ -1879,7 +1899,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object sfEntryType: TOvcPictureField
       Left = 74
-      Top = 41
+      Top = 42
       Width = 138
       Height = 20
       Cursor = crIBeam
@@ -1951,7 +1971,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       OnClick = btnClearClick
     end
     object btnBack: TBitBtn
-      Left = 277
+      Left = 243
       Top = 7
       Width = 75
       Height = 25
@@ -1995,7 +2015,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00}
     end
     object btnNext: TBitBtn
-      Left = 358
+      Left = 324
       Top = 7
       Width = 75
       Height = 25

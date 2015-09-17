@@ -142,6 +142,7 @@ type
     lineDividend: TShape;
     lineDistribution: TShape;
     lineCapitalGainsTab: TShape;
+    Label1: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
