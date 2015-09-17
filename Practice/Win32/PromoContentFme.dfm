@@ -29,7 +29,7 @@ object PromoContentFrame: TPromoContentFrame
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 145
+    Top = 126
     Width = 480
     Height = 13
     Margins.Left = 10
@@ -39,13 +39,14 @@ object PromoContentFrame: TPromoContentFrame
     Align = alTop
     Caption = 'v xcv xcvxcvxc'
     BorderSides = []
-    ExplicitWidth = 74
+    ExplicitLeft = 0
+    ExplicitTop = 149
   end
   object imgContainer: TImage
     Left = 0
-    Top = 168
+    Top = 149
     Width = 500
-    Height = 339
+    Height = 358
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16411,16 +16412,15 @@ object PromoContentFrame: TPromoContentFrame
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFF}
     Stretch = True
-    ExplicitLeft = -10
-    ExplicitTop = 229
-    ExplicitHeight = 334
+    ExplicitTop = 141
+    ExplicitHeight = 342
   end
   object reDescription: TRichEdit
     AlignWithMargins = True
     Left = 10
     Top = 36
     Width = 480
-    Height = 96
+    Height = 77
     Margins.Left = 10
     Margins.Right = 10
     Align = alTop
@@ -16428,7 +16428,7 @@ object PromoContentFrame: TPromoContentFrame
     BevelOuter = bvNone
     BorderStyle = bsNone
     Lines.Strings = (
-      'RichEdit1')
+      'reDescription')
     TabOrder = 0
   end
 end

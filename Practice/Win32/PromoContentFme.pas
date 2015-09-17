@@ -13,8 +13,8 @@ type
   TPromoContentFrame = class(TFrame)
     lblTitle: TRzLabel;
     lblURL: TRzLabel;
-    reDescription: TRichEdit;
     imgContainer: TImage;
+    reDescription: TRichEdit;
   private
     { Private declarations }
   public

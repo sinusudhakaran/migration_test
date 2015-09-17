@@ -9,6 +9,8 @@ uses
 type
   TColourType = (ctGrey, ctPurple);
 
+  TOnArrowMouseMove = procedure(Sender:TObject;Shift: TShiftState;X,Y: Integer) of object;
+
   TPageNavigation = class(TPanel)
   private
     { Private declarations }
@@ -29,11 +31,16 @@ type
     procedure SetNoOfPages(Value : Integer);
     //procedure CopyImage(aSource,aDestination : TImage);
     procedure LayoutPages;
-    procedure OnArrowMove(Sender:TObject;Shift: TShiftState;X,Y: Integer);
-    procedure OnArrowLeave(Sender : TObject);
 
     procedure SetPageImageColour(aImage : TImage;aColour : TColourType);
     procedure SetAllPagesToGrey;
+
+    procedure lblRightArrowClick(Sender: TObject);
+    procedure lblLeftArrowClick(Sender: TObject);
+    procedure ImageClick(Sender: TObject);
+    procedure OnArrowMove(Sender:TObject;Shift: TShiftState;X,Y: Integer);
+    procedure OnArrowLeave(Sender : TObject);
+
   protected
     { Protected declarations }
   public
@@ -57,17 +64,6 @@ type
     property OnLeftArrowClick : TNotifyEvent read FOnLeftArrowClick write FOnLeftArrowClick;
     property OnRightArrowClick : TNotifyEvent read FOnRightArrowClick write FOnRightArrowClick;
     property OnImageClick : TNotifyEvent read FOnImageClick write FOnImageClick;
-
-    procedure lblRightArrowMouseMove(Sender: TObject; Shift: TShiftState; X,Y: Integer);
-    procedure lblLeftArrowMouseMove(Sender: TObject; Shift: TShiftState; X,Y: Integer);
-
-    procedure lblRightArrowMouseLeave(Sender: TObject);
-    procedure lblLeftArrowMouseLeave(Sender: TObject);
-
-    procedure lblRightArrowClick(Sender: TObject);
-    procedure lblLeftArrowClick(Sender: TObject);
-    procedure ImageClick(Sender: TObject);
-
     {Once show all frames, reassign the top of the navigation controls}
     procedure ResetTop;
   end;
@@ -104,7 +100,7 @@ constructor TPageNavigation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  //Globals 
+  //Globals
   FOnImageClick := Nil;
   FOnLeftArrowClick := Nil;
   FOnRightArrowClick := Nil;
@@ -125,8 +121,8 @@ begin
   FLeftArrow := TLabel.Create(Self);
   FLeftArrow.Parent := Self;
   FLeftArrow.OnClick := lblLeftArrowClick;
-  FLeftArrow.OnMouseMove := lblLeftArrowMouseMove;
-  FLeftArrow.OnMouseLeave := lblLeftArrowMouseLeave;
+  FLeftArrow.OnMouseMove := OnArrowMove;
+  FLeftArrow.OnMouseLeave := OnArrowLeave;
   FLeftArrow.AutoSize := False;
   FLeftArrow.Caption := '<';
   FLeftArrow.Height := 33;
@@ -139,8 +135,8 @@ begin
   FRightArrow.Parent := Self;
   FRightArrow.AutoSize := False;
   FRightArrow.OnClick := lblRightArrowClick;
-  FRightArrow.OnMouseMove := lblRightArrowMouseMove;
-  FRightArrow.OnMouseLeave := lblRightArrowMouseLeave;
+  FRightArrow.OnMouseMove := OnArrowMove;
+  FRightArrow.OnMouseLeave := OnArrowLeave;
   FRightArrow.Caption := '>';
   FRightArrow.Height := 33;
   FRightArrow.Width := FPageControlWidth;
@@ -250,17 +246,6 @@ begin
     OnLeftArrowClick(Sender);
 end;
 
-procedure TPageNavigation.lblLeftArrowMouseLeave(Sender: TObject);
-begin
-  OnArrowLeave(Sender);
-end;
-
-procedure TPageNavigation.lblLeftArrowMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  OnArrowMove(Sender, Shift, X,Y);
-end;
-
 procedure TPageNavigation.lblRightArrowClick(Sender: TObject);
 var
   SourceImg , DestImg : TImage;
@@ -275,33 +260,22 @@ begin
 
   SetPageImageColour(TImage(FPages.Items[FCurrentPage-1]), ctPurple);
 
-(*    if i = 1  then
-      SetPageImageColour(PageImage, ctPurple)
-    else
-      SetPageImageColour(PageImage, ctGrey);
+  (*if i = 1  then
+    SetPageImageColour(PageImage, ctPurple)
+  else
+    SetPageImageColour(PageImage, ctGrey);
 
   SourceImg :=  GetPage(FCurrentPage-1);
   DestImg := GetPage(FCurrentPage);
   if (Assigned(SourceImg) and Assigned(DestImg)) then
   begin
     CopyImage(SourceImg, DestImg);
-
+    if FCurrentPage < FNoOfPages then
+      Inc(FCurrentPage);
   end;*)
 
   if Assigned(OnRightArrowClick) then
     OnRightArrowClick(Sender);
-end;
-
-procedure TPageNavigation.lblRightArrowMouseLeave(Sender: TObject);
-begin
-  OnArrowLeave(Sender);
-end;
-
-procedure TPageNavigation.lblRightArrowMouseMove
-(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  OnArrowMove(Sender, Shift, X,Y);
 end;
 
 procedure TPageNavigation.OnArrowLeave(Sender: TObject);
@@ -319,7 +293,6 @@ begin
     Exit;
   Screen.Cursor := crHandPoint;
   TLabel(Sender).Font.Color := clPurple;
-  TLabel(Sender).Font.Color := clBlack;
 end;
 
 procedure TPageNavigation.ResetTop;
@@ -354,12 +327,12 @@ var
   i : Integer;
   PageImage : TImage;
 begin
+  FPages.Clear;
   if Value <= 1 then
     Visible := False;
 
   if not Assigned(ImageList) then
     Exit;
-
   FNoOfPages := Value;
   for i  := 1 to Value do
   begin

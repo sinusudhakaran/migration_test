@@ -866,17 +866,12 @@ begin
         if Trim(aUserRec.usEULA_Version) <> '' then
         begin
           {Prevent superuser and automatic logins}
-          while (DisplayPromoContents.ProcessingData) do
-          begin
-            DisplayPromoContents.StartContentfulReadTimer;
-            Application.ProcessMessages;
-          end;
-          DisplayPromoContents.DisplayTypes := [ctUpgrade];
+          DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade];
           DisplayPromoContents.ListValidContents;
           if DisplayPromoContents.Count > 0 then
             DisplayPromoScreen;
           //UserINI_Show_Promo_Window := False;
-          
+
           Exit;
         end;
       end;
@@ -885,7 +880,7 @@ begin
         DisplayPromoContents.StartContentfulReadTimer;
         Application.ProcessMessages;
       end;
-      DisplayPromoContents.DisplayTypes := [ctUpgrade,ctMarketing, ctTechnical];
+      DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
       DisplayPromoContents.ListValidContents;
       if DisplayPromoContents.Count > 0 then
         DisplayPromoScreen;

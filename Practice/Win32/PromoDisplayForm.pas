@@ -119,7 +119,7 @@ begin
         NewFrame.lblTitle.Caption := Content.Title;
         NewFrame.lblTitle.Font.Color := HyperLinkColor;
         NewFrame.lblTitle.Font.Style := [fsBold, fsUnderline];
-        NewFrame.reDescription.Lines.Clear;
+        NewFrame.reDescription.Clear;
         NewFrame.reDescription.Lines.Add(Content.Description);
         NewFrame.lblURL.Caption := Content.URL;
         NewFrame.lblURL.Font.Color := HyperLinkColor;
@@ -149,7 +149,6 @@ begin
     //pnlMoveControls.Visible := True;
     PageNavigation.Visible := True;
     PageNavigation.Align := alBottom;
-    PageNavigation.NoOfPages := DisplayPromoContents.NoOfPagesRequired;
   end;
   pnlFrames.Align := alClient;
   PageNavigation.ResetTop;
@@ -159,6 +158,7 @@ procedure TPromoDisplayFrm.FormCreate(Sender: TObject);
 begin
   FrameList := TObjectList.Create;
   PageNavigation := TPageNavigation.Create(self);
+
   PageNavigation.Visible := False;
   PageNavigation.Parent := Self;//pnlMoveControls;
   PageNavigation.Height := 44;
@@ -167,7 +167,7 @@ begin
   PageNavigation.OnLeftArrowClick := lblRightArrowClick;
   PageNavigation.OnRightArrowClick := lblLeftArrowClick;
   PageNavigation.OnImageClick := PageImageClick;
-  
+
   PageNavigation.PageControlMargin := 4;
   PageNavigation.PageControlWidth := 20;
   if Assigned(DisplayPromoContents) then
@@ -175,6 +175,8 @@ begin
     DisplayPromoContents.PromoMainWindowHeight := 800-pnlControls.Height - PageNavigation.Height ;//pnlMoveControls.Height;
     //pnlMoveControls.Width := 600;
     DisplayPromoContents.SetContentDisplayProperties;// set display properties
+    PageNavigation.NoOfPages := DisplayPromoContents.NoOfPagesRequired;
+
     DisplayPage(1);
   end;
   PurpleImageIndex := 1;
