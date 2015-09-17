@@ -281,6 +281,9 @@ type
     procedure eStatementDetailsChange(Sender: TObject);
     procedure tblTranActiveCellChanged(Sender: TObject; RowNum,
       ColNum: Integer);
+    procedure tblTranGetCellAttributes(Sender: TObject; RowNum, ColNum: Integer;
+      var CellAttr: TOvcCellAttributes);
+    procedure cCodeExit(Sender: TObject);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -736,6 +739,13 @@ begin
    if not Loading then
       if eCode.enabled then eCode.setFocus;
 end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.cCodeExit(Sender: TObject);
+begin
+  RefreshMemTransactions();
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitActiveCellMoving(Sender: TObject;
   Command: Word; var RowNum, ColNum: Integer);
@@ -1107,6 +1117,23 @@ begin
   tblTran.Invalidate;
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.tblTranGetCellAttributes(Sender: TObject; RowNum,
+  ColNum: Integer; var CellAttr: TOvcCellAttributes);
+begin
+  if (RowNum = tblSplit.LockedRows) then
+    Exit;
+
+  if (CellAttr.caColor = tblSplit.Color) then
+  begin
+    if Odd(RowNum) then
+      CellAttr.caColor := clwhite
+    else
+      CellAttr.caColor := AltLineColor;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.tblTranGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
 begin
@@ -1116,6 +1143,7 @@ begin
   ReadCellforPaint(RowNum, ColNum, Data);
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.tmrPayeeTimer(Sender: TObject);
 begin
   PopulatePayee := True;
@@ -3151,6 +3179,8 @@ begin
   AutoSize(chkAccountSystem);
   if CalledFromRecommendedMems then
     chkStatementDetails.Checked := True;
+
+  RefreshMemTransactions();
 end;
 
 function TdlgMemorise.GetAccountingSystem: Integer;
@@ -4192,11 +4222,6 @@ begin
       PopUpCalendar(TEdit(Sender),ld);
       TOVcPictureField(Sender).AsStDate := ld;
    end;
-end;
-
-procedure TdlgMemorise.eStatementDetailsChange(Sender: TObject);
-begin
-  RefreshMemTransactions();
 end;
 
 function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;

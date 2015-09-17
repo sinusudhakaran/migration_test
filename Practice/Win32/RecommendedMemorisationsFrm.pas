@@ -77,11 +77,14 @@ type
       ColNum: Integer);
     procedure tblSuggMemsLeavingRow(Sender: TObject; RowNum: Integer);
     procedure FormResize(Sender: TObject);
+    procedure tblSuggMemsGetCellAttributes(Sender: TObject; RowNum,
+      ColNum: Integer; var CellAttr: TOvcCellAttributes);
   private
     fHeadingClicked : boolean;
     fLoading : boolean;
     fBankAccount: TBank_Account;
     fSuggMemSortedList: TSuggMemSortedList;
+    AltLineColor : integer;
 
     fTempByte : Byte;
     fTempInteger : integer;
@@ -194,6 +197,7 @@ begin
 
   bkBranding.StyleOvcTableGrid(tblSuggMems);
   bkBranding.StyleTableHeading(hdrSuggMems);
+  bkBranding.StyleAltRowColor(AltLineColor);
 
   UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
   chkAllowSuggMemPopup.Checked := UserRec^.usAllow_Suggested_Mems_Popup;
@@ -288,6 +292,22 @@ begin
     Exit;
 
   DoCreateNewMemorisation(tblSuggMems.ActiveRow);
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.tblSuggMemsGetCellAttributes(
+  Sender: TObject; RowNum, ColNum: Integer; var CellAttr: TOvcCellAttributes);
+begin
+  if (RowNum = tblSuggMems.LockedRows) then
+    Exit;
+
+  if (CellAttr.caColor = tblSuggMems.Color) then
+  begin
+    if Odd(RowNum) then
+      CellAttr.caColor := clwhite
+    else
+      CellAttr.caColor := AltLineColor;
+  end;
 end;
 
 //------------------------------------------------------------------------------

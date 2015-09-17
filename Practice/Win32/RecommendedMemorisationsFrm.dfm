@@ -29,7 +29,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 649
     DesignSize = (
       696
       40)
@@ -49,7 +48,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       ModalResult = 1
       ParentFont = False
       TabOrder = 0
-      ExplicitLeft = 564
     end
     object btnCreate: TButton
       Left = 530
@@ -66,7 +64,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       ParentFont = False
       TabOrder = 1
       OnClick = btnCreateClick
-      ExplicitLeft = 483
     end
     object chkAllowSuggMemPopup: TCheckBox
       Left = 89
@@ -82,7 +79,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Font.Style = []
       ParentFont = False
       TabOrder = 2
-      ExplicitWidth = 388
     end
     object btnHide: TButton
       Left = 8
@@ -108,7 +104,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 649
     object lblBankAccount: TLabel
       Left = 8
       Top = 8
@@ -131,8 +126,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 649
-    ExplicitHeight = 374
     object pnlLayout2: TPanel
       Left = 0
       Top = 0
@@ -141,8 +134,6 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitWidth = 649
-      ExplicitHeight = 374
       object tblSuggMems: TOvcTable
         Left = 0
         Top = 0
@@ -190,11 +181,16 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         OnActiveCellChanged = tblSuggMemsActiveCellChanged
         OnDblClick = tblSuggMemsDblClick
         OnGetCellData = tblSuggMemsGetCellData
+        OnGetCellAttributes = tblSuggMemsGetCellAttributes
         OnLeavingRow = tblSuggMemsLeavingRow
         OnLockedCellClick = tblSuggMemsLockedCellClick
-        ExplicitWidth = 669
         CellData = (
-          'RecommendedMemorisationsFrm.hdrSuggMems')
+          'RecommendedMemorisationsFrm.hdrSuggMems'
+          'RecommendedMemorisationsFrm.coUnCodedMatch'
+          'RecommendedMemorisationsFrm.colCodedMatch'
+          'RecommendedMemorisationsFrm.colCode'
+          'RecommendedMemorisationsFrm.colStatementDetails'
+          'RecommendedMemorisationsFrm.colEntryType')
         RowData = (
           21
           0
@@ -227,7 +223,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800D00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
