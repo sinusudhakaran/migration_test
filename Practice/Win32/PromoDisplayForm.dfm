@@ -57,7 +57,17 @@ object PromoDisplayFrm: TPromoDisplayFrm
       Height = 17
       Caption = 'Dont show this again'
       TabOrder = 1
+      Visible = False
     end
+  end
+  object pnlFrames: TPanel
+    Left = 64
+    Top = 144
+    Width = 393
+    Height = 273
+    BevelOuter = bvNone
+    ParentColor = True
+    TabOrder = 1
   end
   object PageImages: TImageList
     Height = 32
@@ -65,7 +75,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Left = 32
     Top = 624
     Bitmap = {
-      494C010102000800180020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101020008001C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

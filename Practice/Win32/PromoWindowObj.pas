@@ -213,6 +213,7 @@ uses Dialogs, Math, Variants,IdBaseComponent, IdComponent, IdTCPConnection,
 procedure StartPromoThread;
 begin
   ContentfulThread := TContentfulThread.Create(False);
+  Application.ProcessMessages;
   // Automatically free on terminate. Property is set for that
 end;
 
@@ -378,6 +379,7 @@ begin
     //FContentFulResponseJSON.Text := FipsHTTPS.TransferredData;
     //ProcessJSONData;
     Result := True;
+    Application.ProcessMessages;
   except
     on E: Exception do begin
       // Do Nothing, suppress the error
@@ -408,6 +410,8 @@ begin
         sURL := 'http:' + sURL;
 
       idHTTP.Get(sURL, MemStream);
+
+      Application.ProcessMessages;
       MemStream.Seek(0,soFromBeginning);
       aMainImageBitmap.LoadFromStream(MemStream);
 
@@ -893,25 +897,25 @@ begin
   FreeOnTerminate := True;
   while not Terminated do
   begin
-    EnterCriticalSection(CritSect);
+    //EnterCriticalSection(CritSect);
     if Assigned(DisplayPromoContents) then
     begin
       DisplayPromoContents.ClearList;
       DisplayPromoContents.LoadAllDisplayContents; // Load
     end;
-    LeaveCriticalSection(CritSect);
+    //LeaveCriticalSection(CritSect);
     Terminate;
   end;
 end;
 
 initialization
-  InitializeCriticalSection(CritSect);
+  //InitializeCriticalSection(CritSect);
   DisplayPromoContents := TDisplayContents.Create;
 
   StartPromoThread;
 
 finalization
-  DeleteCriticalSection(CritSect);
+  //DeleteCriticalSection(CritSect);
   FreeAndNil(DisplayPromoContents);
 
 end.

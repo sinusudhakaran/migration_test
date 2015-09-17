@@ -852,36 +852,40 @@ var
   end;
 
 begin
-  {Prevent superuser and automatic logins}
-  while (DisplayPromoContents.ProcessingData) do
-  begin
-    DisplayPromoContents.StartContentfulReadTimer;
-    //Sleep(5);
-    Application.ProcessMessages;
-  end;
   DisplayPromoContents.LogUserRec := aUserRec;// Assigned to validate the contents against the user levels
-  if ((DisplayPromoContents.TotalContents > 0) and
+  if ({(DisplayPromoContents.TotalContents > 0) and}
       (Globals.StartupParam_UserPassword = '') and
       (Globals.StartupParam_UserToLoginAs = '') and
       ((not Assigned(aUserRec)) or
       (aUserRec.usCode <> SUPERUSER)) ) then
   begin
-    if UserINI_Show_Promo_Window then
+    //if UserINI_Show_Promo_Window then
     begin
       if PRACINI_CurrentVersion <> WinUtils.GetAppVersionStr then
       begin
         if Trim(aUserRec.usEULA_Version) <> '' then
         begin
+          {Prevent superuser and automatic logins}
+          while (DisplayPromoContents.ProcessingData) do
+          begin
+            DisplayPromoContents.StartContentfulReadTimer;
+            Application.ProcessMessages;
+          end;
           DisplayPromoContents.DisplayTypes := [ctUpgrade];
           DisplayPromoContents.ListValidContents;
           if DisplayPromoContents.Count > 0 then
             DisplayPromoScreen;
-          UserINI_Show_Promo_Window := False;
-
+          //UserINI_Show_Promo_Window := False;
+          
           Exit;
         end;
       end;
-      DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade,ctMarketing, ctTechnical];
+      while (DisplayPromoContents.ProcessingData) do
+      begin
+        DisplayPromoContents.StartContentfulReadTimer;
+        Application.ProcessMessages;
+      end;
+      DisplayPromoContents.DisplayTypes := [ctUpgrade,ctMarketing, ctTechnical];
       DisplayPromoContents.ListValidContents;
       if DisplayPromoContents.Count > 0 then
         DisplayPromoScreen;

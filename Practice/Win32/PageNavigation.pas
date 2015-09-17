@@ -27,7 +27,7 @@ type
     function GetPage(Index : Integer):TImage;
 
     procedure SetNoOfPages(Value : Integer);
-    procedure CopyImage(aSource,aDestination : TImage);
+    //procedure CopyImage(aSource,aDestination : TImage);
     procedure LayoutPages;
     procedure OnArrowMove(Sender:TObject;Shift: TShiftState;X,Y: Integer);
     procedure OnArrowLeave(Sender : TObject);
@@ -44,6 +44,8 @@ type
   published
     { Published declarations }
     property NoOfPages : Integer read FNoOfPages write SetNoOfPages;
+    {Image list is a list of grey and purple bullet images that can be shown for pages.
+    This should be assigned from the calling place}
     property ImageList : TImageList read FImageList write FImageList;
     property LeftArrow : TLabel read FLeftArrow;
     property RightArrow : TLabel read FRightArrow;
@@ -56,10 +58,9 @@ type
     property OnRightArrowClick : TNotifyEvent read FOnRightArrowClick write FOnRightArrowClick;
     property OnImageClick : TNotifyEvent read FOnImageClick write FOnImageClick;
 
-    procedure lblRightArrowMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure lblLeftArrowMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
+    procedure lblRightArrowMouseMove(Sender: TObject; Shift: TShiftState; X,Y: Integer);
+    procedure lblLeftArrowMouseMove(Sender: TObject; Shift: TShiftState; X,Y: Integer);
+
     procedure lblRightArrowMouseLeave(Sender: TObject);
     procedure lblLeftArrowMouseLeave(Sender: TObject);
 
@@ -67,6 +68,7 @@ type
     procedure lblLeftArrowClick(Sender: TObject);
     procedure ImageClick(Sender: TObject);
 
+    {Once show all frames, reassign the top of the navigation controls}
     procedure ResetTop;
   end;
 
@@ -83,7 +85,7 @@ end;
 
 { TPageNavigation }
 
-procedure TPageNavigation.CopyImage(aSource, aDestination: TImage);
+(*procedure TPageNavigation.CopyImage(aSource, aDestination: TImage);
 var
   tempPic : TPicture;
 begin
@@ -96,16 +98,21 @@ begin
     FreeAndNil(tempPic);
   end;
 end;
+*)
 
 constructor TPageNavigation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  OnLeftArrowClick := Nil;
-  OnRightArrowClick := Nil;
+
+  //Globals 
+  FOnImageClick := Nil;
+  FOnLeftArrowClick := Nil;
+  FOnRightArrowClick := Nil;
   FCurrentPage := 1;
   FPageControlMargin := 4;
   FPageControlWidth := 20;
 
+  // Layot and settings of main panel
   Self.Height := 44;
   Self.Height := 600;
   Self.Align := alBottom;
@@ -114,12 +121,12 @@ begin
   Self.BevelOuter := bvNone;
   Self.BorderStyle := bsNone;
 
+  // Layout of left arrow
   FLeftArrow := TLabel.Create(Self);
   FLeftArrow.Parent := Self;
   FLeftArrow.OnClick := lblLeftArrowClick;
   FLeftArrow.OnMouseMove := lblLeftArrowMouseMove;
   FLeftArrow.OnMouseLeave := lblLeftArrowMouseLeave;
-  //FLeftArrow.Owner := Self;
   FLeftArrow.AutoSize := False;
   FLeftArrow.Caption := '<';
   FLeftArrow.Height := 33;
@@ -127,13 +134,13 @@ begin
   FLeftArrow.Font.Size := 20;
   FLeftArrow.Font.Style := [fsBold];
 
+  // Layout of right arrow
   FRightArrow := TLabel.Create(Self);
   FRightArrow.Parent := Self;
   FRightArrow.AutoSize := False;
   FRightArrow.OnClick := lblRightArrowClick;
   FRightArrow.OnMouseMove := lblRightArrowMouseMove;
   FRightArrow.OnMouseLeave := lblRightArrowMouseLeave;
-  //FRightArrow.Owner := Self;
   FRightArrow.Caption := '>';
   FRightArrow.Height := 33;
   FRightArrow.Width := FPageControlWidth;
@@ -224,14 +231,20 @@ begin
   if FCurrentPage <= 1 then
     Exit;
 
-  SourceImg :=  GetPage(FCurrentPage-2);
+  if FCurrentPage <> 1 then
+    Dec(FCurrentPage);
+
+  SetAllPagesToGrey;
+  SetPageImageColour(TImage(FPages.Items[FCurrentPage-1]), ctPurple);
+
+  (*SourceImg :=  GetPage(FCurrentPage-2);
   DestImg := GetPage(FCurrentPage-1);
   if (Assigned(SourceImg) and Assigned(DestImg)) then
   begin
     CopyImage(SourceImg, DestImg);
     if FCurrentPage <> 1 then
       Dec(FCurrentPage);
-  end;
+  end;*)
 
   if Assigned(OnLeftArrowClick) then
     OnLeftArrowClick(Sender);
@@ -255,15 +268,25 @@ begin
   if FCurrentPage >= FNoOfPages then
     Exit;
 
+  if FCurrentPage < FNoOfPages then
+    Inc(FCurrentPage);
+
+  SetAllPagesToGrey;
+
+  SetPageImageColour(TImage(FPages.Items[FCurrentPage-1]), ctPurple);
+
+(*    if i = 1  then
+      SetPageImageColour(PageImage, ctPurple)
+    else
+      SetPageImageColour(PageImage, ctGrey);
+
   SourceImg :=  GetPage(FCurrentPage-1);
   DestImg := GetPage(FCurrentPage);
   if (Assigned(SourceImg) and Assigned(DestImg)) then
   begin
     CopyImage(SourceImg, DestImg);
 
-    if FCurrentPage < FNoOfPages then
-      Inc(FCurrentPage);
-  end;
+  end;*)
 
   if Assigned(OnRightArrowClick) then
     OnRightArrowClick(Sender);

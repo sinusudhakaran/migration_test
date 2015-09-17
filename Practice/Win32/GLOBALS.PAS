@@ -494,7 +494,7 @@ var
     UserINI_Job_Lookup_Sort_Column: integer;
 
     UserINI_Version: Integer;
-    UserINI_Show_Promo_Window: Boolean;
+    //UserINI_Show_Promo_Window: Boolean;
     //client manager settings
     UserINI_CM_Default_View : integer;  // 0 = all files, 1 = my files
     UserINI_CM_Column_Widths : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of integer;

@@ -1052,7 +1052,7 @@ begin
       UserINI_Payee_Lookup_Sort_Column := IniFile.ReadInteger(GrpUserOptions, 'PayeeLookupSortColumn', 1);
       UserINI_Job_Lookup_Sort_Column := IniFile.ReadInteger(GrpUserOptions, 'JobLookupSortColumn', 0);
       UserINI_Chart_Lookup_Sort_Column := IniFile.ReadInteger(GrpUserOptions, 'ChartLookupSortColumn', 0);
-      UserINI_Show_Promo_Window := IniFile.ReadBool(GrpUserOptions, 'ShowPromoWindow', True);
+      //UserINI_Show_Promo_Window := IniFile.ReadBool(GrpUserOptions, 'ShowPromoWindow', True);
       //client manager settings
       UserINI_CM_Default_View:= IniFile.ReadInteger( GrpClientMgr, 'DefaultView', 0);
       s := IniFile.ReadString( GrpClientMgr, 'SubFilter', '');
@@ -1171,7 +1171,7 @@ begin
       IniFile.WriteInteger( GrpUserOptions, 'ChartLookupSortColumn', UserINI_Chart_Lookup_Sort_Column);
 
       //Show promo window
-      IniFile.WriteBool( GrpUserOptions, 'ShowPromoWindow', UserINI_Show_Promo_Window);
+      //IniFile.WriteBool( GrpUserOptions, 'ShowPromoWindow', UserINI_Show_Promo_Window);
 
       //client manager settings
       IniFile.WriteInteger( GrpClientMgr, 'DefaultView', UserINI_CM_Default_View);

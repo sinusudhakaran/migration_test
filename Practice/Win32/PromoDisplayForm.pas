@@ -6,22 +6,30 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, PromoWindowObj, PromoContentFme, StdCtrls, Buttons, ExtCtrls,
   dxGDIPlusClasses, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
-  IdHTTP, OSFont, ImgList, Contnrs, PageNavigation;
+  IdHTTP, OSFont, ImgList, Contnrs, PageNavigation, dxBar;
 
 type
+  {This is the main promo screen where all content types will be displayed.
+  Each content type is a frame will be added on the fly based on the content type selected
+  or the time of firing}
   TPromoDisplayFrm = class(TForm)
     pnlControls: TPanel;
     ShapeBotBorder: TShape;
     btnClose: TBitBtn;
     cbHidePromo: TCheckBox;
     PageImages: TImageList;
+    pnlFrames: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
     PurpleImageIndex : Integer;
+    {Each fram added to the form will be saved in this list so that it can be freed later}
     FrameList : TObjectList;
+    {Page navigation component which has left arrow, right arrow and circle images
+    equal to the no of pages. This is visible only if the no of pages > 1.}
     PageNavigation : TPageNavigation;
+    {}
     procedure ImageClick(Sender: TObject);
     procedure OnArrowMove(Sender:TObject;Shift: TShiftState;X,Y: Integer);
     procedure OnArrowLeave(Sender : TObject);
@@ -60,7 +68,7 @@ uses ipshttps, ShellApi, Globals;
 
 procedure TPromoDisplayFrm.btnCloseClick(Sender: TObject);
 begin
-  UserINI_Show_Promo_Window := (not cbHidePromo.Checked);
+  //UserINI_Show_Promo_Window := (not cbHidePromo.Checked);
   ShowedPromoWindow := True;
   Close;
 end;
@@ -103,7 +111,7 @@ begin
       begin
         NewFrame := TPromoContentFrame.Create(Self);
         FrameList.Add(NewFrame);
-        NewFrame.Parent := Self;
+        NewFrame.Parent := pnlFrames;//Self;
         NewFrame.Name := NewFrame.Name + IntToStr(aPageIndex) +  IntToStr(i);
         NewFrame.TabOrder := i+1;
         NewFrame.Align := alBottom;
@@ -143,7 +151,7 @@ begin
     PageNavigation.Align := alBottom;
     PageNavigation.NoOfPages := DisplayPromoContents.NoOfPagesRequired;
   end;
-
+  pnlFrames.Align := alClient;
   PageNavigation.ResetTop;
 end;
 
@@ -237,15 +245,8 @@ end;
 procedure TPromoDisplayFrm.OnURLClick(Sender: TObject);
 var
   sURL : string;
-  //UrlPosition : Integer;
 begin
   sURL := TLabel(Sender).Caption;
-  {UrlPosition := Pos('URL: ', sURL);
-  if UrlPosition > 0 then
-  begin
-    // get url by removing URL: from the caption
-    sURL := Copy(sURL, UrlPosition+5, Length(sURL));
-  end;}
   ShellExecute(0, 'OPEN', PChar(sURL), '', '', SW_SHOWNORMAL);
 end;
 
