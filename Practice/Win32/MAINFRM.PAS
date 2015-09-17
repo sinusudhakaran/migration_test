@@ -5026,7 +5026,7 @@ var
 begin
   if DisplayPromoContents.TotalContents > 0 then
   begin
-    DisplayPromoContents.DisplayTypes := [ctMarketing, ctTechnical];
+    DisplayPromoContents.DisplayTypes := [ctUpgrade, ctMarketing, ctTechnical];
     DisplayPromoContents.ListValidContents;
     if DisplayPromoContents.Count > 0 then
     begin
