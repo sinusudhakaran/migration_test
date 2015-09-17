@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, PromoWindowObj, PromoContentFme, StdCtrls, Buttons, ExtCtrls,
   dxGDIPlusClasses, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
-  IdHTTP, OSFont, ImgList, Contnrs, PageNavigation, dxBar;
+  IdHTTP, OSFont, ImgList, Contnrs, PageNavigation;
 
 type
   {This is the main promo screen where all content types will be displayed.
