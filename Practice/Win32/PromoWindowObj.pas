@@ -485,7 +485,7 @@ var
   Bitmap : Graphics.TBitmap;
 begin
   ProcessingData := True;
-  FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
+  //FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
   FContentFulResponseJSON.Text := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
 
   BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON.Text) as TlkJSONobject;
@@ -691,6 +691,7 @@ procedure TContentfulDataList.TransferData(Sender: TObject; Direction,
   BytesTransferred: Integer; Text: String);
 begin
   FContentFulResponseJSON.Add(Text);
+  //ShowMessage(Text);
 end;
 
 { TDisplayContents }
