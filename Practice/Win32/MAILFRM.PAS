@@ -173,7 +173,8 @@ function SendClientAndOtherFilesTo(Title: string; Recipient: string; Subject: st
 
 function SendFileTo(Title: string; Recipient: string; Subject: string;
                     Filename: string; var AttachSent: Boolean; CanSelectClient:
-                    boolean = true; HideClientEmail: Boolean = False): boolean;
+                    boolean = true; HideClientEmail: Boolean = False;
+                    MailMatter:TMemo=nil): boolean;
 
 function EditSignature: Boolean;
 
@@ -1867,7 +1868,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SendFileTo( Title : string; Recipient : string; Subject: string;
   Filename : string; var AttachSent: Boolean; CanSelectClient : boolean = true;
-  HideClientEmail: Boolean = False) : boolean;
+  HideClientEmail: Boolean = False;MailMatter:TMemo=nil) : boolean;
 var
   SendDlg : TfrmMail;
   NewItem : TListItem;
@@ -1878,6 +1879,12 @@ begin
     with SendDlg do begin
       EditMode := False;
       HideDropDowns := HideClientEmail;
+      if Assigned(MailMatter) then
+      begin
+        BodyText := MailMatter.Text;
+        Editor.ERTF.RTFText.AsString := MailMatter.Text;
+      end;
+
       BNotesFile := Filename;
       BKHelpSetUp(SendDlg, BKH_Sending_a_client_file_via_email);
       txtRecipient.text := Recipient;

@@ -104,7 +104,9 @@ object frmMail: TfrmMail
             Left = 0
             Top = 0
             Width = 797
-            ExplicitWidth = 793
+            ExplicitLeft = 0
+            ExplicitTop = 0
+            ExplicitWidth = 797
             ToolbarControls = (
               cbFont
               cbSize
@@ -219,25 +221,31 @@ object frmMail: TfrmMail
             53697A653A313130303B5D5D2F3E3C6469762063733D313E3C63206E723D312F
             3E3435363334353C2F6469763E0D0A}
           OnMailMergeGetText = ERichTextMailMergeGetText
-          ExplicitWidth = 769
-          ExplicitHeight = 253
+          ExplicitLeft = 26
+          ExplicitTop = 60
+          ExplicitWidth = 771
+          ExplicitHeight = 255
         end
         inherited LeftRuler: TWPVertRuler
           Left = 0
           Top = 60
           Height = 255
-          ExplicitHeight = 253
+          ExplicitLeft = 0
+          ExplicitTop = 60
+          ExplicitHeight = 255
         end
         inherited TopRuler: TWPRuler
           Left = 0
           Top = 34
           Width = 797
-          ExplicitWidth = 795
+          ExplicitLeft = 0
+          ExplicitTop = 34
+          ExplicitWidth = 797
         end
       end
       inherited ActImages: TImageList
         Bitmap = {
-          494C010111001400BC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+          494C010111001400C00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
           0000000000003600000028000000400000005000000001002000000000000050
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
