@@ -67,7 +67,6 @@ type
     lblCGTCapitalLosses: TLabel;
     fmeBGLCashCapitalGainsTax: TfmeBGLCapitalGainsTax;
     fmeBGLNonCashCapitalGainsTax: TfmeBGLCapitalGainsTax;
-    grpForeign: TGroupBox;
     lblForeignCGT: TLabel;
     lblTaxPaid: TLabel;
     lblBeforeDiscount: TLabel;
@@ -142,6 +141,7 @@ type
     lineInterest: TShape;
     lineDividend: TShape;
     lineDistribution: TShape;
+    lineCapitalGainsTab: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
