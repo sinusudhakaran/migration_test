@@ -4,7 +4,6 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
-  madScreenShot,
   madExcept,
   madLinkDisAsm,
   madListHardware,
@@ -67,7 +66,8 @@ uses
   BanklinkOnlineSettingsFrm in 'Win32\BanklinkOnlineSettingsFrm.pas' {frmBanklinkOnlineSettings},
   BlopiClient in 'Win32\BlopiClient.pas',
   AcclipseX in 'Extract\AcclipseX.pas',
-  INISettings in 'Win32\INISettings.pas';
+  INISettings in 'Win32\INISettings.pas',
+  PromoWindowObj in 'Win32\PromoWindowObj.pas';
 
 //  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 
@@ -94,11 +94,18 @@ begin
 
       //********************************************
       //delphi generated code
-  Application.CreateForm(TfrmMain, frmMain);
-  Application.CreateForm(TAppImages, AppImages);
-  Application.CreateForm(TfrmStatus, frmStatus);
-  //********************************************
+      Application.CreateForm(TfrmMain, frmMain);
+      Application.CreateForm(TAppImages, AppImages);
+      Application.CreateForm(TfrmStatus, frmStatus);
+      //********************************************
       ApplicationStartUpAndShutDown.AfterFormCreation;
+
+      while (DisplayPromoContents.ProcessingData) do
+      begin
+        DisplayPromoContents.StartContentfulReadTimer;
+        Application.ProcessMessages;
+      end;
+
     except
       On E : Exception do
       begin
