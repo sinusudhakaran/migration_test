@@ -99,7 +99,13 @@ begin
 
     if (Result) and (Mode = AFEmail) then
     begin
-      MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
+      if Assigned(Values.memAMEXEmailMessage) then
+      begin
+        AttachmentSent := False;
+        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True, Values.memAMEXEmailMessage);
+      end
+      else
+        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
       DeleteFile(PAnsiChar(Job.ReportFile));
     end;
   finally
