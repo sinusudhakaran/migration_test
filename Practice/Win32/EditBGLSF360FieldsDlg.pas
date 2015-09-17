@@ -135,6 +135,13 @@ type
     lblOtherExpenses: TLabel;
     nfOtherExpenses: TOvcNumericField;
     lpOtherExpenses: TLabel;
+    lineTransactionInfo: TShape;
+    lineShareTrade: TShape;
+    lineFooter: TShape;
+    sfEntryType: TOvcPictureField;
+    lineInterest: TShape;
+    lineDividend: TShape;
+    lineDistribution: TShape;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1332,7 +1339,7 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     lblRecordDate.Visible    := true;
     eRecordDate.Visible      := true;
     lblEntryType.Visible     := true;
-    lbldispEntryType.Visible := true;
+    sfEntryType.Visible      := true;
   end;
 
   procedure HideHeaderFields;
@@ -1346,13 +1353,14 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     lblRecordDate.Visible    := false;
     eRecordDate.Visible      := false;
     lblEntryType.Visible     := false;
-    lbldispEntryType.Visible := false;
+    sfEntryType.Visible      := false;
   end;
 
   procedure Configure_Distribution;
   begin
     ShowHeaderFields;
-    lbldispEntryType.Caption := 'Distribution';
+//DN UI Changes-Angela    lbldispEntryType.Caption := 'Distribution';
+    sfEntryType.Text        := 'Distribution';
     pnlDistribution.Visible := true;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := false;
@@ -1362,7 +1370,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
   procedure Configure_Dividend;
   begin
     ShowHeaderFields;
-    lbldispEntryType.Caption := 'Dividend';
+//DN UI Changes-Angela    lbldispEntryType.Caption := 'Dividend';
+    sfEntryType.Text        := 'Dividend';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := true;
     pnlInterest.Visible     := false;
@@ -1372,7 +1381,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
   procedure Configure_Interest;
   begin
     ShowHeaderFields;
-    lbldispEntryType.Caption := 'Interest';
+//DN UI Changes-Angela    lbldispEntryType.Caption := 'Interest';
+    sfEntryType.Text        := 'Interest';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := true;
@@ -1382,7 +1392,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
   procedure Configure_ShareTrade;
   begin
     ShowHeaderFields;
-    lbldispEntryType.Caption := 'Share Trade';
+//DN UI Changes-Angela    lbldispEntryType.Caption := 'Share Trade';
+    sfEntryType.Text        := 'Share Trade';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := false;
@@ -1392,7 +1403,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
   procedure Configure_OtherTX;
   begin
     HideHeaderFields;
-    lbldispEntryType.Caption := 'Other';
+//DN UI Changes-Angela    lbldispEntryType.Caption := 'Other';
+    sfEntryType.Text        := 'Other';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := false;
