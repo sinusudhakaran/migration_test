@@ -16,6 +16,7 @@ uses
   chList32,
   trxList32,
   SuggMemSortedList,
+  MemTranSortedList,
   Classes;
 
 const
@@ -110,6 +111,7 @@ type
 
     procedure UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId : integer; aIsHidden, aIsHiddenForSession : boolean);
     function GetSuggestionUsedByTransaction(const aBankAccount: TBank_Account; const aTrans : pTransaction_Rec; const aChart : TChart; var aSuggMemItem : TSuggMemSortedListRec) : boolean;
+    function GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList) : boolean;
 
     procedure SetSuggestedTransactionState(const aBankAccount : TBank_Account; const aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false; aIsBulk : boolean = false); Overload;
     procedure SetSuggestedTransactionState(const aBankAccount : TBank_Account; const aTrans : pTran_Suggested_Index_Rec; aState : byte; aAccountChanged : boolean = false; aIsBulk : boolean = false); Overload;
@@ -160,6 +162,8 @@ uses
   stDate,
   BKMLIO,
   MemoriseDlg,
+  Autocode32,
+  mxUtils,
   LogUtil;
 
 const
@@ -396,6 +400,49 @@ begin
           Result := true;
         end;
       end;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList) : boolean;
+var
+  TranIndex : integer;
+  Tran : pTransaction_Rec;
+  NewSuggMemSortedItem : TMemTranSortedListRec;
+begin
+  for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
+  begin
+    Tran := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
+
+    if Tran^.txLocked then
+      Continue;
+
+    If Tran^.txDate_Transferred <> 0 then
+      Continue;
+
+    If ( Tran^.txType <> aTempMem.mdFields^.mdType ) and
+       not ( aTempMem.mdFields^.mdType = AllEntries ) then
+      Continue;
+
+    if Tran^.txDate_Effective < aTempMem.mdFields^.mdFrom_Date then
+      Continue;
+
+    if (aTempMem.mdFields^.mdUntil_Date > 0) and
+       (Tran^.txDate_Effective > aTempMem.mdFields^.mdUntil_Date) then
+      Continue;
+
+    if CanMemorise(Tran, aTempMem) then
+    begin
+      NewSuggMemSortedItem.SequenceNo        := Tran^.txSequence_No;
+      NewSuggMemSortedItem.DateEffective     := Tran^.txDate_Effective;
+      NewSuggMemSortedItem.Account           := Tran^.txAccount;
+      NewSuggMemSortedItem.Amount            := Tran^.txAmount;
+      NewSuggMemSortedItem.Statement_Details := Tran^.txStatement_Details;
+      NewSuggMemSortedItem.CodedBy           := Tran^.txCoded_By;
+      NewSuggMemSortedItem.HasPotentialIssue := false;
+
+      aMemTranSortedList.AddItem(NewSuggMemSortedItem);
     end;
   end;
 end;

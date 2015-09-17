@@ -62,7 +62,7 @@ uses
 const
   UnitName = 'SuggMemSortedList';
   DebugMe: boolean = false;
-  SInsufficientMemory = UnitName + ' Error: Out of memory in TSuggested_Mem_Index.NewItem';
+  SInsufficientMemory = UnitName + ' Error: Out of memory in TSuggMemSortedListRec.NewItem';
 
 { TSuggMemSortedList }
 //------------------------------------------------------------------------------

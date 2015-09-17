@@ -15,6 +15,7 @@ object dlgMemorise: TdlgMemorise
   Scaled = False
   ShowHint = True
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -78,6 +79,21 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 0
       OnClick = btnCopyClick
+    end
+    object btnDelete: TButton
+      Left = 6
+      Top = 6
+      Width = 89
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'Delete'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 3
     end
   end
   object pnlMain: TPanel
@@ -275,6 +291,7 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
           Sorted = True
           TabOrder = 2
+          ExplicitTop = -4
         end
       end
       object tblSplit: TOvcTable
@@ -329,15 +346,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.colLineType'
-          'dlgMemorise.ColPercent'
-          'dlgMemorise.ColAmount'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colNarration'
+          'dlgMemorise.ColAcct'
           'dlgMemorise.ColDesc'
-          'dlgMemorise.ColAcct')
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.colLineType')
         RowData = (
           21)
         ColData = (
@@ -575,8 +592,8 @@ object dlgMemorise: TdlgMemorise
         ParentFont = False
       end
       object tblTran: TOvcTable
-        Left = 6
-        Top = 30
+        Left = 8
+        Top = 28
         Width = 1019
         Height = 267
         RowLimit = 2
@@ -606,44 +623,43 @@ object dlgMemorise: TdlgMemorise
         GridPenSet.CellWhenUnfocused.NormalColor = clBlack
         GridPenSet.CellWhenUnfocused.Style = psDash
         GridPenSet.CellWhenUnfocused.Effect = geNone
-        Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
+        LockedRowsCell = tranHeader
+        Options = [otoNoRowResizing, otoEnterToArrow, otoRowSelection]
         ParentCtl3D = False
         ParentFont = False
         TabOrder = 0
-        CellData = ()
+        OnActiveCellChanged = tblTranActiveCellChanged
+        OnGetCellData = tblTranGetCellData
+        CellData = (
+          'dlgMemorise.tranHeader'
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranDate')
         RowData = (
           21)
         ColData = (
+          125
+          False
+          True
+          'dlgMemorise.colTranDate'
+          75
+          False
+          True
+          'dlgMemorise.colTranAccount'
+          125
+          False
+          True
+          'dlgMemorise.colTranAmount'
+          500
+          False
+          True
+          'dlgMemorise.colTranStatementDetails'
           150
           False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False
-          150
-          False
-          False)
+          True
+          'dlgMemorise.colTranCodedBy')
       end
     end
   end
@@ -739,6 +755,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 3
       Text = 'eStatement Details'
+      OnChange = eStatementDetailsChange
     end
     object cRef: TCheckBox
       Left = 14
@@ -1140,7 +1157,7 @@ object dlgMemorise: TdlgMemorise
       ())
     Epoch = 1900
     Left = 280
-    Top = 336
+    Top = 328
   end
   object ColAmount: TOvcTCNumericField
     Adjust = otaCenterRight
@@ -1152,7 +1169,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1288,7 +1304,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1309,6 +1324,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1349,7 +1365,79 @@ object dlgMemorise: TdlgMemorise
       False
       ())
     Epoch = 1900
-    Left = 320
-    Top = 696
+    Left = 264
+    Top = 584
+  end
+  object tranHeader: TOvcTCColHead
+    Headings.Strings = (
+      'Date'
+      'Account'
+      'Amount'
+      'Statement Details'
+      'Coded By')
+    ShowLetters = False
+    Table = tblTran
+    Left = 304
+    Top = 584
+  end
+  object colTranDate: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    AutoAdvanceLeftRight = True
+    MaxLength = 10
+    Table = tblTran
+    OnOwnerDraw = colTranDateOwnerDraw
+    Left = 264
+    Top = 632
+  end
+  object colTranAccount: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    AutoAdvanceLeftRight = True
+    MaxLength = 10
+    Table = tblTran
+    OnOwnerDraw = colTranAccountOwnerDraw
+    Left = 304
+    Top = 632
+  end
+  object colTranStatementDetails: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    AutoAdvanceLeftRight = True
+    MaxLength = 10
+    Table = tblTran
+    OnOwnerDraw = colTranStatementDetailsOwnerDraw
+    Left = 384
+    Top = 632
+  end
+  object colTranCodedBy: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    AutoAdvanceLeftRight = True
+    MaxLength = 10
+    Table = tblTran
+    OnOwnerDraw = colTranCodedByOwnerDraw
+    Left = 424
+    Top = 632
+  end
+  object colTranAmount: TOvcTCNumericField
+    Access = otxReadOnly
+    Adjust = otaCenterRight
+    Color = clWindow
+    DataType = nftDouble
+    EFColors.Disabled.BackColor = clWindow
+    EFColors.Disabled.TextColor = clGrayText
+    EFColors.Error.BackColor = clRed
+    EFColors.Error.TextColor = clBlack
+    EFColors.Highlight.BackColor = clHighlight
+    EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
+    PictureMask = '###,###,###.##'
+    Table = tblTran
+    TableColor = False
+    Left = 344
+    Top = 632
+    RangeHigh = {73B2DBB9838916F2FE43}
+    RangeLow = {73B2DBB9838916F2FEC3}
   end
 end

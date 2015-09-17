@@ -71,18 +71,25 @@ uses
   Menus,
   SuperFieldsutils,
   OsFont,
+  MemTranSortedList,
   ovcpf;
 
 type
-
   TSplitArray = Array[ 1 .. GLCONST.Max_mx_Lines ] of TmemSplitRec;
-
-type
   TDlgEditMode = (
     demCreate,
-    demEdit
+    demEdit,
+    demMasterCreate,
+    demMasterEdit
   );
 
+const
+  ALL_EDIT = [demEdit, demMasterEdit];
+  ALL_CREATE = [demCreate, demMasterCreate];
+  ALL_MASTER = [demMasterEdit, demMasterCreate];
+  ALL_NO_MASTER = [demEdit, demCreate];
+
+type
   TdlgMemorise = class(TForm)
     memController: TOvcController;
     ColAmount: TOvcTCNumericField;
@@ -169,6 +176,13 @@ type
     tblTran: TOvcTable;
     lblMatchingTransactions: TLabel;
     pnlChartLine: TPanel;
+    btnDelete: TButton;
+    tranHeader: TOvcTCColHead;
+    colTranDate: TOvcTCString;
+    colTranAccount: TOvcTCString;
+    colTranStatementDetails: TOvcTCString;
+    colTranCodedBy: TOvcTCString;
+    colTranAmount: TOvcTCNumericField;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -249,6 +263,24 @@ type
     procedure cbMinusChange(Sender: TObject);
     procedure tmrPayeeTimer(Sender: TObject);
     procedure btnShowMoreOptionsClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure colTranDateOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure colTranAccountOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure colTranStatementDetailsOwnerDraw(Sender: TObject;
+      TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure colTranCodedByOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
+      const CellRect: TRect; RowNum, ColNum: Integer;
+      const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure tblTranGetCellData(Sender: TObject; RowNum, ColNum: Integer;
+      var Data: Pointer; Purpose: TOvcCellDataPurpose);
+    procedure eStatementDetailsChange(Sender: TObject);
+    procedure tblTranActiveCellChanged(Sender: TObject; RowNum,
+      ColNum: Integer);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -278,6 +310,11 @@ type
     tmrCol: Integer;
     fDlgEditMode: TDlgEditMode;
     fShowMoreOptions : boolean;
+    fMemTranSortedList : TMemTranSortedList;
+
+    fTempByte : Byte;
+    fTempInteger : integer;
+    fTempString : string;
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
@@ -308,13 +345,22 @@ type
     procedure PopulateDataFromPayee(PayeeCode: integer; ChangeActiveCol: boolean = True);
     procedure PopulateCmbType(BA: TBank_Account; EntryType: byte);
     function GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
+
+    procedure ReadCellforPaint(RowNum, ColNum : integer; var Data : pointer);
+    procedure DrawTextOnTranCell(TableCanvas: TCanvas;
+                                 const CellRect: TRect;
+                                 RowNum, ColNum: Integer;
+                                 const CellAttr: TOvcCellAttributes;
+                                 aValue : string;
+                                 var DoneIt: Boolean);
   protected
     procedure SetDlgEditMode(aValue : TDlgEditMode);
     procedure UpdateMoreOptions();
+    procedure UpdateControls();
+    procedure RefreshMemTransactions();
   public
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
-    { Public declarations }
   end;
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
@@ -323,7 +369,6 @@ type
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; Prefix: string = '';
                             CopySaveSeq: integer = -1;
-                            aDlgEditMode: TDlgEditMode = demEdit;
                             FromRecommendedMems: boolean = false): boolean;
   function  CreateMemorisation(BA: TBank_Account;
               MemorisedList: TMemorisations_List; pM: TMemorisation): boolean;
@@ -372,6 +417,7 @@ uses
   BKtxIO,
   PayeeObj,
   PayeeRecodeDlg,
+  SuggestedMems,
   bkBranding;
 
 {$R *.DFM}
@@ -388,6 +434,13 @@ CONST
   tcSuperClear     = ccUserFirst + 8;
   tcJobLookup      = ccUserFirst + 9;
 
+  {Mem Tran Table Consts}
+  mtDate             = 0;
+  mtAccount          = 1;
+  mtAmount           = 2;
+  mtStatementDetails = 3;
+  mtCodedBy          = 4;
+
   //Column Nos
   AcctCol      = 0;
   DescCol      = 1;
@@ -401,6 +454,9 @@ CONST
 
   mrCopy = mrRetry;
 
+  DT_OPTIONS_STR = DT_LEFT or DT_VCENTER or DT_SINGLELINE;
+  DT_OPTIONS_INT = DT_RIGHT or DT_VCENTER or DT_SINGLELINE;
+
 const
   UnitName = 'MEMORISEDLG';
 
@@ -413,21 +469,25 @@ var
 
 procedure TdlgMemorise.FormCreate(Sender: TObject);
 var
-   i : Integer;
-   W : Integer;
-
+  i : Integer;
+  W : Integer;
 begin
+  fMemTranSortedList := TMemTranSortedList.Create();
   CalledFromRecommendedMems := False;
   PayeeUsed := False;
   bkXPThemes.ThemeForm(Self);
 
-  for i := Low(SplitData) to High(SplitData) do begin
-     ClearWorkRecDetails(@SplitData[i]);
+  for i := Low(SplitData) to High(SplitData) do
+  begin
+    ClearWorkRecDetails(@SplitData[i]);
   end;
 
   bkBranding.StyleOvcTableGrid(tblSplit);
   bkBranding.StyleTableHeading(header);
   bkBranding.StyleAltRowColor(AltLineColor);
+
+  bkBranding.StyleOvcTableGrid(tblTran);
+  bkBranding.StyleTableHeading(tranHeader);
 
   SourceBankAccount := nil;
 
@@ -555,6 +615,13 @@ begin
   FsuperTop := -999;
   FSuperLeft := -999;
 end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(fMemTranSortedList);
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.SetUpHelp;
 begin
@@ -1033,6 +1100,21 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.tblTranActiveCellChanged(Sender: TObject; RowNum,
+  ColNum: Integer);
+begin
+  tblTran.Invalidate;
+end;
+
+procedure TdlgMemorise.tblTranGetCellData(Sender: TObject; RowNum,
+  ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
+begin
+  if RowNum = 0 then
+    Exit;
+
+  ReadCellforPaint(RowNum, ColNum, Data);
+end;
 
 procedure TdlgMemorise.tmrPayeeTimer(Sender: TObject);
 begin
@@ -1241,6 +1323,82 @@ begin //RowtmrTimer
 end;//RowtmrTimer
 
 //------------------------------------------------------------------------------
+procedure TdlgMemorise.UpdateControls;
+var
+  i          : integer;
+  GSTEdited  : Boolean;
+
+  //----------------------------------------------------------------------------
+  procedure SetJobPayee(Value: Boolean);
+  begin
+    sbtnPayee.Enabled := Value;
+    sbtnJob.Enabled := Value;
+    LookupJob1.Enabled := Value;
+    LookupPayee1.Enabled := Value;
+
+    if value then
+    begin
+      colPayee.Access := otxDefault;
+      colJob.Access := otxDefault;
+    end
+    else
+    begin
+      colPayee.Access := otxReadOnly;
+      colJob.Access := otxReadOnly;
+    end;
+  end;
+
+begin
+  case fDlgEditMode of
+    demCreate : begin
+      Caption := 'Memorisation';
+      btnCopy.Visible := false;
+      btnDelete.Visible := false;
+      btnOk.Caption := 'Create';
+    end;
+    demEdit : begin
+      Caption := 'Memorisation';
+      btnCopy.Visible := true;
+      btnDelete.Visible := true;
+      btnOk.Caption := 'Update';
+    end;
+    demMasterCreate : begin
+      Caption := 'MASTER Memorisation';
+      btnCopy.Visible := false;
+      btnDelete.Visible := false;
+      btnOk.Caption := 'Create';
+    end;
+    demMasterEdit : begin
+      Caption := 'MASTER Memorisation';
+      btnCopy.Visible := true;
+      btnDelete.Visible := true;
+      btnOk.Caption := 'Update';
+    end;
+  end;
+
+  if DlgEditMode in ALL_MASTER then
+  begin
+    if Assigned(AdminSystem) then
+    begin
+      chkAccountSystem.Visible := AdminSystem.DualAccountingSystem;
+      cbAccounting.Visible := chkAccountSystem.Visible;
+    end
+    else
+    begin
+      chkAccountSystem.Visible := False;
+      cbAccounting.Visible := False;
+    end;
+    SetJobPayee(False);
+  end
+  else
+  begin
+    chkAccountSystem.Visible := False;
+    cbAccounting.Visible := False;
+    SetJobPayee(True);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.UpdateFields(RowNum: integer);
 var
    Acct : pAccount_Rec;
@@ -1365,9 +1523,9 @@ end;
 procedure TdlgMemorise.SetDlgEditMode(aValue: TDlgEditMode);
 begin
   if aValue <> fDlgEditMode then
-  begin
     fDlgEditMode := aValue;
-  end;
+
+  UpdateControls();
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1723,7 +1881,8 @@ begin
 
    end;
 
-   if (fDlgEditMode = demEdit) then begin
+   if (DlgEditMode in ALL_EDIT) then
+   begin
       //check to see if this is a master memorisation and add an extra warning
       ExtraMsg := '';
       if chkMaster.checked then begin
@@ -1845,7 +2004,54 @@ begin
           or (SplitData[LineNo].Amount <>0)
           or (SplitData[LineNo].SF_Edited);
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.ReadCellforPaint(RowNum, ColNum: integer; var Data: pointer);
+begin
+  case ColNum of
+    mtDate : begin
+      fTempString := bkDate2Str(fMemTranSortedList.GetPRec(RowNum-1)^.DateEffective);
+      Data := @fTempString;
+    end;
+    mtAccount : begin
+      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Account;
+      Data := @fTempString;
+    end;
+    mtAmount : begin
+      Data := @fMemTranSortedList.GetPRec(RowNum-1)^.Amount;
+    end;
+    mtStatementDetails: begin
+      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Statement_Details;
+      Data := @fTempString;
+    end;
+    mtCodedBy: begin
+      fTempString := cbNames[fMemTranSortedList.GetPRec(RowNum-1)^.CodedBy];
+      Data := @fTempString;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.RefreshMemTransactions;
+var
+  TempMem : TMemorisation;
+begin
+  TempMem := TMemorisation.Create(nil);
+  try
+    SaveToMemRec(TempMem, SourceTransaction, chkMaster.checked, true);
+
+    tblTran.RowLimit := 0;
+
+    fMemTranSortedList.FreeAll;
+    SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList);
+
+    tblTran.RowLimit := fMemTranSortedList.ItemCount;
+  finally
+    FreeAndNil(TempMem);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.RemoveBlankLines;
 var
    NewData : TSplitArray;
@@ -2077,10 +2283,11 @@ begin
    try
       with MemDlg,tr^ do
       begin
+         DlgEditMode := demCreate;
+
          PopulateCmbType(BA, tr.txType);
          CalledFromRecommendedMems := Assigned(MemLine);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-         DlgEditMode := demCreate;
          SourceBankAccount := ba;
          EditMem := nil;
          EditMemorisedList := nil;
@@ -2150,8 +2357,6 @@ begin
          UpdateTotal;
 
          SourceTransaction := Tr;
-         btnCopy.Visible := False;
-         btnCopy.Enabled := False;
 
          // Block below is only used when creating a memorisation from the Recommended Mems form
          if CalledFromRecommendedMems then
@@ -2166,8 +2371,6 @@ begin
            // Set the ClassNo from the Account Code
            if assigned(pAcct) then
              SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, pAcct.chGST_Class);
-
-           MemDlg.Caption := 'Memorise Transaction';
          end;
 
          //**************************
@@ -2259,7 +2462,6 @@ end;
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   var pM: TMemorisation; var DeleteSelectedMem: boolean;
   IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1;
-  aDlgEditMode: TDlgEditMode = demEdit;
   FromRecommendedMems: boolean = false): boolean;
 // edits an existing memorisation
 //
@@ -2331,8 +2533,13 @@ begin
       try
          PopulateCmbType(BA, pM.mdFields.mdType);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-         DlgEditMode := demEdit;
-         EditMem  := pM;
+
+         EditMem := pM;
+         if pM.mdFields.mdFrom_Master_List then
+           fDlgEditMode := demMasterEdit
+         else
+           fDlgEditMode := demEdit;
+
          EditMemorisedList := MemorisedList;
          ExistingCode := '';
          //Controls will be initialise in the FormCreate method
@@ -2342,16 +2549,6 @@ begin
          LocaliseForm;
 
          with pM do begin
-            fDlgEditMode := aDlgEditMode; // Store for OKToPost
-            case DlgEditMode of
-              demCreate: Caption := 'Create';
-              demEdit: Caption := 'Edit';
-            end;
-            if mdFields.mdFrom_Master_List then
-               Caption := Caption + ' MASTER Memorisation'
-            else
-               Caption := Caption + ' Memorisation';
-
             cmbType.Text := inttostr(mdFields.mdType) + ':' + MyClient.clFields.clShort_Name[mdFields.mdType];
             //set edit boxes
             eRef.Text              := mdFields.mdReference;
@@ -2431,11 +2628,12 @@ begin
             end;
             SetComboIndexByIntObject( AmountMatchType, cmbValue);
 
-            chkMaster.Checked  := mdFields.mdFrom_Master_List;
-            if mdFields.mdUse_Accounting_System then begin
+            if mdFields.mdUse_Accounting_System then
+            begin
 
                chkAccountSystem.Checked := True;
-               if not assigned(adminSystem) then begin
+               if not assigned(adminSystem) then
+               begin
                   // Better have something...
                   // Can be Au only
                   cbAccounting.items.Clear;
@@ -2453,59 +2651,59 @@ begin
                chkAccountSystem.Checked := False;
                AccountingSystem := MyClient.clFields.clAccounting_System_Used;
             end;
-            chkMasterClick(nil);
+            UpdateControls();
 
             Loading := false;
             //fill detail
             for i := pM.mdLines.First to pM.mdLines.Last do
             begin
-              MemLine := pM.mdLines.MemorisationLine_At(i);
-              SplitData[ i+1].AcctCode         := MemLine^.mlAccount;
-              SplitData[ i+1].GST_Has_Been_Edited := MemLine^.mlGST_Has_Been_Edited;
-              pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
-              if Assigned( pAcct) then begin
-                 SplitData[ i+1].Desc   := pAcct^.chAccount_Description;
-              end
-              else begin
-                 SplitData[ i+1].Desc  := '';
-              end;
-              SplitData[ i+1].JobCode  := MemLine^.mlJob_Code;
-              //load in the gst class code.  If this is master memorisation and the gst
-              //has not been edited then load in the current default for the account code
-              //There is no need to do this for client memorisations because they will be
-              //updated when the chart is changed
-              if mdFields.mdFrom_Master_List and ( not MemLine^.mlGST_Has_Been_Edited) then begin
-                 //load default for chart
-                 SplitData[ i+1].GSTClassCode  := GetGSTClassCode( MyClient, MyClient.clChart.GSTClass( MemLine^.mlAccount));
-              end
-              else begin
-                 //memorisation stores class no so load in class id
-                 SplitData[ i+1].GSTClassCode     := GetGSTClassCode( MyClient, MemLine^.mlGST_Class);
-              end;
-              if MemLine^.mlLine_Type = mltPercentage then
-                 SplitData[ i+1].Amount := Percent2Double( MemLine^.mlPercentage)
-              else
-                 SplitData[ i+1].Amount := Money2Double( MemLine^.mlPercentage);
-              SplitData[ i+1].Narration := MemLine^.mlGL_Narration;
+               MemLine := pM.mdLines.MemorisationLine_At(i);
+               SplitData[ i+1].AcctCode         := MemLine^.mlAccount;
+               SplitData[ i+1].GST_Has_Been_Edited := MemLine^.mlGST_Has_Been_Edited;
+               pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
+               if Assigned( pAcct) then begin
+                  SplitData[ i+1].Desc   := pAcct^.chAccount_Description;
+               end
+               else begin
+                  SplitData[ i+1].Desc  := '';
+               end;
+               SplitData[ i+1].JobCode  := MemLine^.mlJob_Code;
+               //load in the gst class code.  If this is master memorisation and the gst
+               //has not been edited then load in the current default for the account code
+               //There is no need to do this for client memorisations because they will be
+               //updated when the chart is changed
+               if mdFields.mdFrom_Master_List and ( not MemLine^.mlGST_Has_Been_Edited) then begin
+                  //load default for chart
+                  SplitData[ i+1].GSTClassCode  := GetGSTClassCode( MyClient, MyClient.clChart.GSTClass( MemLine^.mlAccount));
+               end
+               else begin
+                  //memorisation stores class no so load in class id
+                  SplitData[ i+1].GSTClassCode     := GetGSTClassCode( MyClient, MemLine^.mlGST_Class);
+               end;
+               if MemLine^.mlLine_Type = mltPercentage then
+                  SplitData[ i+1].Amount := Percent2Double( MemLine^.mlPercentage)
+               else
+                  SplitData[ i+1].Amount := Money2Double( MemLine^.mlPercentage);
+               SplitData[ i+1].Narration := MemLine^.mlGL_Narration;
 
-              if MemLine^.mlAccount <> '' then
-                 SplitData[ i+1].LineType := MemLine^.mlLine_Type
-              else
-                 SplitData[ i+1].LineType := pltPercentage;
+               if MemLine^.mlAccount <> '' then
+                  SplitData[ i+1].LineType := MemLine^.mlLine_Type
+               else
+                  SplitData[ i+1].LineType := pltPercentage;
 
-              SplitData[ i+1].Payee := MemLine^.mlPayee;
+               SplitData[ i+1].Payee := MemLine^.mlPayee;
 
-              SplitData[ i+1].SF_PCFranked := MemLine^.mlSF_PCFranked;
-              SplitData[ i+1].SF_PCUnFranked := MemLine^.mlSF_PCUnFranked;
+               SplitData[ i+1].SF_PCFranked := MemLine^.mlSF_PCFranked;
+               SplitData[ i+1].SF_PCUnFranked := MemLine^.mlSF_PCUnFranked;
 
-              SplitData[ i+1].SF_Member_ID := MemLine^.mlSF_Member_ID;
-              SplitData[ i+1].SF_Fund_ID   := MemLine^.mlSF_Fund_ID;
-              SplitData[ i+1].SF_Fund_Code := MemLine^.mlSF_Fund_Code;
-              SplitData[ i+1].SF_Trans_ID  := MemLine^.mlSF_Trans_ID;
-              SplitData[ i+1].SF_Trans_Code  := MemLine^.mlSF_Trans_Code;
-              SplitData[ i+1].SF_Member_Account_ID := MemLine^.mlSF_Member_Account_ID;
-              SplitData[ i+1].SF_Member_Account_Code := MemLine^.mlSF_Member_Account_Code;
-              SplitData[ i+1].SF_Member_Component := MemLine^.mlSF_Member_Component;
+               SplitData[ i+1].SF_Member_ID := MemLine^.mlSF_Member_ID;
+               SplitData[ i+1].SF_Fund_ID   := MemLine^.mlSF_Fund_ID;
+               SplitData[ i+1].SF_Fund_Code := MemLine^.mlSF_Fund_Code;
+               SplitData[ i+1].SF_Trans_ID  := MemLine^.mlSF_Trans_ID;
+               SplitData[ i+1].SF_Trans_Code  := MemLine^.mlSF_Trans_Code;
+               SplitData[ i+1].SF_Member_Account_ID := MemLine^.mlSF_Member_Account_ID;
+               SplitData[ i+1].SF_Member_Account_Code := MemLine^.mlSF_Member_Account_Code;
+               SplitData[ i+1].SF_Member_Component := MemLine^.mlSF_Member_Component;
 
               SplitData[ i+1].Quantity := MemLine^.mlQuantity;
 
@@ -2563,7 +2761,6 @@ begin
          chkMaster.Enabled := FromRecommendedMems;
          AllowMasterMemorised := False; // Sounds wrong, but also used for 'Can I Change MasterMem'.. You Cannot ...
          // Don't show 'Copy to New' if we've come from recommended mems
-         btnCopy.Visible := not FromRecommendedMems;
          //turn off editing of gst col if master
          //or if using Ledger Elite
 
@@ -2769,78 +2966,73 @@ procedure TdlgMemorise.chkMasterClick(Sender: TObject);
 var
    i          : integer;
    GSTEdited  : Boolean;
-
-   procedure SetJobPayee(Value: Boolean);
-   begin
-      sbtnPayee.Enabled := Value;
-      sbtnJob.Enabled := Value;
-      LookupJob1.Enabled := Value;
-      LookupPayee1.Enabled := Value;
-      if value then begin
-         colPayee.Access := otxDefault;
-         colJob.Access := otxDefault;
-      end else begin
-         colPayee.Access := otxReadOnly;
-         colJob.Access := otxReadOnly;
-      end;
-   end;
-   
 begin
-   if chkMaster.Checked then begin
-      if Assigned(AdminSystem) then begin
-         chkAccountSystem.Visible := AdminSystem.DualAccountingSystem;
-         cbAccounting.Visible := chkAccountSystem.Visible;
-      end else begin
-         chkAccountSystem.Visible := False;
-         cbAccounting.Visible := False;
+  if chkMaster.Checked then
+  begin
+    if DlgEditMode = demEdit then
+      DlgEditMode := demMasterEdit
+    else
+      DlgEditMode := demMasterCreate;
+  end
+  else
+  begin
+    if DlgEditMode = demMasterEdit then
+      DlgEditMode := demEdit
+    else
+      DlgEditMode := demCreate;
+  end;
+
+  UpdateControls();
+
+  chkAccountSystemClick(nil);
+
+  if Loading
+  or (DlgEditMode in ALL_EDIT) then
+    Exit;
+  //must be in create mode
+  //if checked then make sure we have default GST Classes.
+
+  if chkMaster.Checked then
+  begin
+    GSTEdited := False;
+    for i := 1 to GLCONST.Max_mx_Lines do
+    begin
+      if SplitData[i].GST_Has_Been_Edited then
+      begin
+        GSTEdited := true;
+        Break;
       end;
-      SetJobPayee(False);
-   end else begin
-      chkAccountSystem.Visible := False;
-      cbAccounting.Visible := False;
-      SetJobPayee(True);
-   end;
-   chkAccountSystemClick(nil);
-   if Loading
-   or (fDlgEditMode = demEdit) then
+    end;
+
+    if GSTEdited then
+    begin
+      chkMaster.Checked := False;
+      HelpfulInfoMsg( 'You cannot memorise at a MASTER level if you have altered the GST Class column in the memorisation. '+
+                       #$0D+#$0D+'MASTER memorised entries always apply GST at the default rate for the account in the client''s chart.', 0 );
       Exit;
-   //must be in create mode
-   //if checked then make sure we have default GST Classes.
-   if chkMaster.Checked then begin
-      GSTEdited := False;
-      for i := 1 to GLCONST.Max_mx_Lines do
-         if SplitData[i].GST_Has_Been_Edited then begin
-            GSTEdited := true;
-            Break;
-         end;
-      if GSTEdited then begin
-         chkMaster.Checked := False;
-         HelpfulInfoMsg( 'You cannot memorise at a MASTER level if you have altered the GST Class column in the memorisation. '+
-                             #$0D+#$0D+'MASTER memorised entries always apply GST at the default rate for the account in the client''s chart.', 0 );
-         Exit;
+    end;
 
+    for i := 1 to GLCONST.Max_mx_Lines do
+    begin
+      if SplitData[i].SF_Edited and
+         ((SplitData[i].SF_Fund_ID > -1) or (SplitData[i].SF_Member_Account_ID > -1)) then
+      begin
+        GSTEdited := true;
+        Break;
       end;
+    end;
 
+    if GSTEdited then
+    begin
+      chkMaster.Checked := False;
+      HelpfulInfoMsg( 'You cannot memorise at a MASTER level if you have fund specific selections in the memorisation.', 0 );
+      Exit;
+    end;
 
-      for i := 1 to GLCONST.Max_mx_Lines do
-         if SplitData[i].SF_Edited
-         and ((SplitData[i].SF_Fund_ID > -1) or (SplitData[i].SF_Member_Account_ID > -1))   then begin
-            GSTEdited := true;
-            Break;
-         end;
-      if GSTEdited then begin
-         chkMaster.Checked := False;
-         HelpfulInfoMsg( 'You cannot memorise at a MASTER level if you have fund specific selections in the memorisation.', 0 );
-         Exit;
-
-      end;
-
-      if HasPayees
-      or HasJobs then
-         HelpfulInfoMsg('Payees or Jobs cannot be used in Master Memorisations.'#13'The Payees or Jobs you have used in this memorisation will not be saved.', 0);
-
-
-   end;
+    if HasPayees
+    or HasJobs then
+      HelpfulInfoMsg('Payees or Jobs cannot be used in Master Memorisations.'#13'The Payees or Jobs you have used in this memorisation will not be saved.', 0);
+  end;
 end;
 //------------------------------------------------------------------------------
 
@@ -3594,6 +3786,51 @@ begin
    DoneIt := True;
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.colTranDateOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  if Data=nil then
+    Exit;
+
+  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.colTranAccountOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  if Data=nil then
+    Exit;
+
+  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.colTranStatementDetailsOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  if Data=nil then
+    Exit;
+
+  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.colTranCodedByOwnerDraw(Sender: TObject;
+  TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
+  const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+begin
+  if Data=nil then
+    Exit;
+
+  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.ColPayeeKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
@@ -3918,6 +4155,35 @@ begin
    end;
 end;
 
+procedure TdlgMemorise.DrawTextOnTranCell(TableCanvas: TCanvas;
+                                          const CellRect: TRect;
+                                          RowNum, ColNum: Integer;
+                                          const CellAttr: TOvcCellAttributes;
+                                          aValue: string;
+                                          var DoneIt: Boolean);
+var
+  DataRect : TRect;
+begin
+  TableCanvas.Font             := CellAttr.caFont;
+  TableCanvas.Font.Color       := CellAttr.caFontColor;
+  TableCanvas.Brush.Color      := CellAttr.caColor;
+
+  {if tblTran.ActiveRow = RowNum then
+  begin
+    TableCanvas.Font.Color  := clWhite;
+    TableCanvas.Brush.Color := bkBranding.SelectionColor;
+  end;}
+
+  TableCanvas.FillRect( CellRect );
+
+  DataRect := CellRect;
+  InflateRect( DataRect, -2, -2 );
+
+  DrawText( TableCanvas.Handle, PChar( aValue ), StrLen( PChar( aValue ) ), DataRect, DT_OPTIONS_STR );
+
+  DoneIt := true;
+end;
+
 procedure TdlgMemorise.eDateFromDblClick(Sender: TObject);
 var ld: Integer;
 begin
@@ -3926,6 +4192,11 @@ begin
       PopUpCalendar(TEdit(Sender),ld);
       TOVcPictureField(Sender).AsStDate := ld;
    end;
+end;
+
+procedure TdlgMemorise.eStatementDetailsChange(Sender: TObject);
+begin
+  RefreshMemTransactions();
 end;
 
 function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
@@ -4034,10 +4305,10 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 initialization
    debugMe := debugUnit(UnitName);
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
+
 end.
 
 
