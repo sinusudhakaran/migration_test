@@ -278,7 +278,6 @@ type
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
     procedure tblTranGetCellData(Sender: TObject; RowNum, ColNum: Integer;
       var Data: Pointer; Purpose: TOvcCellDataPurpose);
-    procedure eStatementDetailsChange(Sender: TObject);
     procedure tblTranActiveCellChanged(Sender: TObject; RowNum,
       ColNum: Integer);
     procedure tblTranGetCellAttributes(Sender: TObject; RowNum, ColNum: Integer;

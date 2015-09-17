@@ -728,7 +728,6 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 3
       Text = 'eStatement Details'
-      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object cRef: TCheckBox
