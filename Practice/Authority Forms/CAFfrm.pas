@@ -109,6 +109,9 @@ type
     Bevel3: TBevel;
     Bevel4: TBevel;
     ShapeBorder: TShape;
+    pnlAmexMessage: TPanel;
+    memMessage: TMemo;
+    memAMEXEmailMessage: TMemo;
     procedure btnPreviewClick(Sender: TObject);
     procedure btnFileClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
@@ -1149,6 +1152,34 @@ begin
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
              (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
           begin
+            pnlAmexMessage.Visible := False;
+            pnlInstitution.Visible := True;
+            lblBranch.Visible := True;
+            edtBranch.Visible := True;
+            Bevel4.Visible := True;
+            pnlClient.Visible := True;
+            pnlData.Visible := True;
+
+            if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
+            begin                            // order of making it hidden matters
+              pnlData.Visible := False;
+              pnlClient.Visible := False;
+              Bevel4.Visible := False;
+              lblBranch.Visible := False;
+              edtBranch.Visible := False;
+              pnlInstitution.Visible := False;
+              pnlAmexMessage.Visible := True;
+            end;
+
+            btnPreview.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+            btnPrint.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+            btnFile.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+            btnImport.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+            btnClear.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+            btnEmail.Left := 183;
+            if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
+              btnEmail.Left := btnPreview.Left;
+
             if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
             begin
               mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
@@ -1496,12 +1527,22 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCAF.btnEmailClick(Sender: TObject);
 begin
-  RunExitEvents;
-
-  if ValidateForm then
+  if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
   begin
+    memAMEXEmailMessage.Text := StringReplace(memAMEXEmailMessage.Text,'#CODE',AdminSystem.fdFields.fdBankLink_Code,[rfReplaceAll, rfIgnoreCase]);
     FButton := BTN_EMAIL;
     ModalResult := mrOk;
+  end
+  else
+  begin
+    memAMEXEmailMessage.Clear;
+    RunExitEvents;
+
+    if ValidateForm then
+    begin
+      FButton := BTN_EMAIL;
+      ModalResult := mrOk;
+    end;
   end;
 end;
 

@@ -5,7 +5,7 @@ object frmCAF: TfrmCAF
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Client Authority Form'
-  ClientHeight = 710
+  ClientHeight = 700
   ClientWidth = 783
   Color = clWindow
   Constraints.MinWidth = 350
@@ -26,14 +26,14 @@ object frmCAF: TfrmCAF
   TextHeight = 17
   object Panel6: TPanel
     Left = 0
-    Top = 669
+    Top = 659
     Width = 783
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 1
-    ExplicitTop = 650
+    ExplicitTop = 669
     object ShapeBorder: TShape
       Left = 0
       Top = 0
@@ -93,7 +93,7 @@ object frmCAF: TfrmCAF
       OnClick = btnPrintClick
     end
     object btnEmail: TButton
-      Left = 183
+      Left = 184
       Top = 8
       Width = 83
       Height = 25
@@ -130,7 +130,7 @@ object frmCAF: TfrmCAF
     Left = 8
     Top = 10
     Width = 767
-    Height = 650
+    Height = 640
     BevelKind = bkFlat
     BevelOuter = bvNone
     Color = clWhite
@@ -154,7 +154,7 @@ object frmCAF: TfrmCAF
       Left = 0
       Top = 496
       Width = 763
-      Height = 164
+      Height = 153
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
@@ -164,7 +164,7 @@ object frmCAF: TfrmCAF
       OnClick = pnlDataClick
       DesignSize = (
         763
-        164)
+        153)
       object lblSecureCode: TLabel
         Left = 288
         Top = 56
@@ -367,6 +367,7 @@ object frmCAF: TfrmCAF
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitTop = 82
       object Bevel2: TBevel
         Left = -4
         Top = 123
@@ -376,9 +377,9 @@ object frmCAF: TfrmCAF
       end
       object Bevel3: TBevel
         Left = -4
-        Top = 245
+        Top = 248
         Width = 767
-        Height = 8
+        Height = 7
         Shape = bsTopLine
       end
       object pnlInstData1: TPanel
@@ -913,6 +914,72 @@ object frmCAF: TfrmCAF
         TabOrder = 2
       end
     end
+    object pnlAmexMessage: TPanel
+      Left = 0
+      Top = 649
+      Width = 763
+      Height = 122
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 4
+      Visible = False
+      object memMessage: TMemo
+        AlignWithMargins = True
+        Left = 28
+        Top = 3
+        Width = 732
+        Height = 116
+        Margins.Left = 28
+        Align = alClient
+        BevelInner = bvNone
+        BevelOuter = bvNone
+        BorderStyle = bsNone
+        Lines.Strings = (
+          
+            'American Express requires your client to request the bank feed f' +
+            'rom their web site.'
+          ''
+          
+            'Please click on the email button, to send an email to your clien' +
+            't.'
+          
+            'This will create an email with a link to the relevant American w' +
+            'eb page. '
+          ''
+          
+            '(The link will include your practice code, to ensure that the da' +
+            'ta gets delivered to you)')
+        TabOrder = 0
+        ExplicitLeft = 8
+        ExplicitTop = 136
+        ExplicitWidth = 185
+        ExplicitHeight = 89
+      end
+    end
+  end
+  object memAMEXEmailMessage: TMemo
+    Left = 0
+    Top = 688
+    Width = 767
+    Height = 70
+    Lines.Strings = (
+      'Please follow #LINK to the American Express web site.'
+      ''
+      
+        'From there you will be able to select which of your accounts you' +
+        ' want included in the bank feed sent to us.'
+      ''
+      'Note. This link already includes our practice code.'
+      
+        'However if you need to enter the practice code for any reason, i' +
+        't it : #CODE.'
+      
+        '(It is important to enter this number carefully as it ensures th' +
+        'at the data gets sent to us and not to another accountant)'
+      ''
+      '')
+    TabOrder = 2
+    Visible = False
   end
   object Opendlg: TOpenDialog
     Filter = 'Excel file*.xls|*.xls'
