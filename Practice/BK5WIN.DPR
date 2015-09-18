@@ -4,7 +4,6 @@ program Bk5Win;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uses
-  madScreenShot,
   madExcept,
   madLinkDisAsm,
   madListHardware,
@@ -69,7 +68,8 @@ uses
   AcclipseX in 'Extract\AcclipseX.pas',
   INISettings in 'Win32\INISettings.pas',
   RecommendedMemorisationsFrm in 'Win32\RecommendedMemorisationsFrm.pas' {frmRecommendedMemorisations},
-  MemTranSortedList in 'Win32\MemTranSortedList.pas';
+  MemTranSortedList in 'Win32\MemTranSortedList.pas',
+  PromoWindowObj in 'Win32\PromoWindowObj.pas';
 
 //  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 
@@ -101,6 +101,13 @@ begin
   Application.CreateForm(TfrmStatus, frmStatus);
   //********************************************
       ApplicationStartUpAndShutDown.AfterFormCreation;
+      while (DisplayPromoContents.ProcessingData) do
+      begin
+        DisplayPromoContents.StartContentfulReadTimer;
+        Application.ProcessMessages;
+      end;
+
+
     except
       On E : Exception do
       begin
