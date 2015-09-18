@@ -95,7 +95,6 @@ type
     But if we go for all content types, we can not specify the order, so we need our own sorting
     method to sort the data}
 
-    FIsSortRequired : Boolean;
     FProcessingData : Boolean;
     {Start of the data transfer function, clear the storage list and make it
     ready for the data receives}
@@ -127,7 +126,6 @@ type
 
     function GetDateFromStr(ADateStr: string):TDateTime;    
     procedure ProcessJSONData;
-    procedure SortContentfulData;
     function Count : Integer;
     procedure ClearList;
     property Item[Index:Integer] : TContentfulObj read GetContent;
@@ -152,9 +150,10 @@ type
     function GetProcessingData:Boolean;
     procedure SetProcessingData(Value : Boolean);
     procedure TimerStopsContentfulReadTimer(Sender: TObject);
+    procedure SortContentfulData;
   public
     LogUserRec : pUser_Rec;
-    
+
     constructor Create;
     destructor Destroy;override;
     function LoadAllDisplayContents():Boolean;
@@ -345,7 +344,6 @@ end;
 
 function TContentfulDataList.GetContentfulURL(aContentType: TContentType): string;
 begin
-  FIsSortRequired := True;
   //Add base url and space id
   Result := PRACTICE_CONTENTSPACE_URL + '/' + PRACTICE_CONTENTSPACE_ID + '/';
   //Add access token
@@ -362,7 +360,6 @@ begin
     end;
     {set the order of contents - set it to priority at the moment}
     Result := Result + '&order=fields.priority';
-    FIsSortRequired := False;
   end;
 end;
 
@@ -607,8 +604,6 @@ begin
       end;
     end;
     FipsHTTPS.Connected := False;
-    if FIsSortRequired then
-      SortContentfulData;
   finally
     ProcessingData := False;
 
@@ -674,11 +669,6 @@ begin
     Result := ctMarketing
   else if aContenetType = PRACTICE_TYPE_TECHNICAL_ID then
     Result := ctTechnical;
-end;
-
-procedure TContentfulDataList.SortContentfulData;
-begin
-  FContentList.Sort(TListSortCompare(@CompareObjects));
 end;
 
 procedure TContentfulDataList.StartDataTransfer(Sender: TObject; Direction: Integer);
@@ -838,6 +828,11 @@ begin
   FSourceContents.ProcessingData := Value;
 end;
 
+procedure TDisplayContents.SortContentfulData;
+begin
+  FDisplayContents.Sort(TListSortCompare(@CompareObjects));
+end;
+
 procedure TDisplayContents.StartContentfulReadTimer;
 begin
   FTimerStopsContentfulRead.Enabled := True;
@@ -889,6 +884,18 @@ begin
     else if (not (utBooks in aContent.ValidUsers)) then // books
       Result := False;
   end;
+
+  if (aContent.ValidStartDate > 0) then
+  begin
+    if (Now < aContent.ValidStartDate) then
+      Result := False;
+  end;
+  if (aContent.ValidEndDate > 0) then
+  begin
+    if (Now > aContent.ValidStartDate) then
+      Result := False;
+  end;
+
 end;
 
 { TContentfulThread }

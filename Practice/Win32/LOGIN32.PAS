@@ -880,7 +880,7 @@ begin
         DisplayPromoContents.StartContentfulReadTimer;
         Application.ProcessMessages;
       end;
-      DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
+      DisplayPromoContents.DisplayTypes := [ctAll,ctMarketing, ctTechnical];
       DisplayPromoContents.ListValidContents;
       if DisplayPromoContents.Count > 0 then
         DisplayPromoScreen;
