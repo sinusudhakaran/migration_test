@@ -1859,8 +1859,11 @@ end;
 procedure TfrmClientManager.DoOpen;
 var
   Code: string;
+  Opened : boolean;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Enter DoOpen');
+
+  Opened := false;
   Code := ClientLookup.FirstSelectedCode;
   if (Code <> '') then begin
 
@@ -1869,7 +1872,7 @@ begin
 
      fDoNotRefreshLookup := True;
      try
-       Files.OpenClient(Code);
+       Opened := Files.OpenClient(Code);
      finally
        fDoNotRefreshLookup := false;
      end;
@@ -1877,12 +1880,18 @@ begin
   end;
 
   RefreshHomepage([HRP_Init]);
-  if assigned( LEFeedbackForm )then begin
-    TfrmClientHomePage(ClientHomePage).LEFeedbackForm := LEFeedbackForm;
-    LEFeedbackForm.Show;
-  end
-  else
-    TfrmClientHomePage(ClientHomePage).LEFeedbackForm := nil; 
+
+  if Opened then
+  begin
+    if assigned( LEFeedbackForm ) then
+    begin
+      TfrmClientHomePage(ClientHomePage).LEFeedbackForm := LEFeedbackForm;
+      LEFeedbackForm.Show;
+    end
+    else
+      TfrmClientHomePage(ClientHomePage).LEFeedbackForm := nil;
+  end;
+
   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');
 end;
 

@@ -37,7 +37,7 @@ type
   function GetBankLinkOnlineSubDomain: string;
 
   {$IFNDEF TESTLOCKING}
-  procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
+  function OpenClient(OpenCode : string; IsDDE: Boolean = False) : boolean;
   function CloseClient( Interactive : boolean = false; DoClientHomePage: Boolean = True): Boolean;
   procedure SaveClient(CopyWarning: boolean = false);
   function AbandonChanges(ConfirmAction : boolean): Boolean; {only applicable to global client obj}
@@ -1237,7 +1237,7 @@ begin
 end;
 {$IFNDEF TESTLOCKING}
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure OpenClient(OpenCode : string; IsDDE: Boolean = False);
+function OpenClient(OpenCode : string; IsDDE: Boolean = False) : boolean;
 //the user is loading the client to work on it.  This client will be loaded
 //into the myClient global object
 const
@@ -1251,6 +1251,7 @@ var
   Snapshot: ITransactionSnapshot;
   ErrorCode : TOpenClientError;
 begin
+  Result := false;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   try
     MsgBar('Loading Client',true);
@@ -1276,7 +1277,8 @@ begin
     if CloseClient then
     begin
       //allow read only
-      if not OpenAClientReturnErrors(OpenCode,MyClient,false, ErrorCode, True, False, IsDDE) then
+      Result := OpenAClientReturnErrors(OpenCode,MyClient,false, ErrorCode, True, False, IsDDE);
+      if not Result then
         Exit;
     end;
 
