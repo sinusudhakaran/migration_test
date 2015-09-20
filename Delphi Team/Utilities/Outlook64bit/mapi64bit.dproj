@@ -266,10 +266,10 @@
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+        <Debugger_RunParams>-to angela@banklink.co.nz; -subject MYOB BankLink Coding Report for ARDLEY (01/02/15 to 28/02/15); -ole true; -rtf C:\Testing\BTA_NZ_5.28.0.5848_sync\Users\ADMIN\TMPRTF\rfuo.rtf; -att C:\Testing\BTA_NZ_5.28.0.5848_sync\OUTBOX\CODING TEST.PDF;C:\Testing\BTA_NZ_5.28.0.5848_sync\Users\ADMIN\TMPRTF\rfuo.rtf;</Debugger_RunParams>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>mapi64bit_Icon1.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <Debugger_RunParams>-to grigorev.vital1981@gmail.com -subject BankLink Books File for HAI773 -rtf C:\Testing\BTA_NZ_5.28.0.5848_sync\bpbpkrawyovttterx.rtf -ole true; -att C:\Testing\BTA_NZ_5.28.0.5848_sync\HAI773.BK5;&apos;</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -718,12 +718,12 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>

@@ -128,6 +128,8 @@ Type
     function CreateMailObjectAndSend(ToAddresses, CCAddresses, ReplyTo,
                                      aSubject,MessageBody: string; AttachmentsList: TStringList;
                                      StatusChangeMethod: TStatusChangeMeth): boolean;
+    function SendEmail64Bit(const aCmdLineParams : string) : Cardinal;
+    function GenerateRndFileName : string;                                     
     procedure SetupUI;
     procedure SaveFailedEmail(Attachments: TStringList);
 
@@ -679,6 +681,47 @@ begin
   fBodyText.Free;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TfrmMail.SendEmail64Bit(const aCmdLineParams: string): Cardinal;
+const
+  MAPI64BIT = 'mapi64bit.exe';
+var
+  Rlst: LongBool;
+  StartUpInfo: TStartUpInfo;
+  ProcessInfo: TProcessInformation;
+  s64bitAppPath : string;
+begin
+  Result := 1000;
+  if FileExists(MAPI64BIT) then
+  begin
+    FillChar(StartUpInfo, SizeOf(TStartUpInfo), #0);
+    with StartUpInfo do
+    begin
+      cb := SizeOf(TStartUpInfo);
+      dwFlags := STARTF_USESHOWWINDOW or STARTF_FORCEONFEEDBACK;
+      wShowWindow := SW_HIDE;
+    end;
+
+    s64bitAppPath := ExtractFileDir(Application.ExeName) + '\' + MAPI64BIT;
+    s64bitAppPath := s64bitAppPath + aCmdLineParams;
+    Rlst := CreateProcess(nil, PChar(s64bitAppPath + aCmdLineParams), nil, nil, false, REALTIME_PRIORITY_CLASS, nil, nil, StartUpInfo, ProcessInfo);
+    if Rlst then
+    with ProcessInfo do
+    begin
+      if WaitForSingleObject(hProcess, INFINITE) <> WAIT_TIMEOUT then
+      begin
+        GetExitCodeProcess(ProcessInfo.hProcess, Result);
+        CloseHandle(hThread);
+        CloseHandle(hProcess);
+      end else
+      begin
+        Win32Check(Windows.TerminateProcess(hProcess,0));
+        OpenProcess(PROCESS_TERMINATE, False, ProcessInfo.dwProcessId);
+      end;
+    end;
+  end else
+    MessageDlg(rsMAPI_X64EXE_NOT_FOUND, mtError, [mbOk], 0);
+end;
+
 procedure TfrmMail.SetBodyText(const Value: string);
 begin
    fBodyText.Text := Value;
@@ -868,7 +911,6 @@ end;
 function TfrmMail.PracticeSendMail( BK5Files, OtherAttachments : TStringList; CheckoutClientFiles : boolean; WasOpenCode: string) : boolean;
 const
   ThisMethodName = 'PracticeSendMail';
-  MAPI64BIT = 'mapi64bit.exe';
 var
   ProgressFrm : TFrmChkProgress;
   EncodedLogoString : string;
@@ -882,42 +924,9 @@ var
   aMsg : string;
 
   //create process variables
-  Rlst: LongBool;
-  StartUpInfo: TStartUpInfo;
-  ProcessInfo: TProcessInformation;
   CmdString : string;
   AttachmentsStr : string;
-  ExitCode : Cardinal;
   RTFFileBodyToSendPath : string;
-
-  function GenerateRndFileName : string;
-  const
-    CharArr : array [0..25] of char = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z') ;
-    Capacity = 25;
-  var
-    smbAmount : integer;
-    smbToGet : integer;
-    i : integer;
-  begin
-    Result := '';
-    Randomize;
-    smbAmount := Random(Capacity);
-    for i := 0 to smbAmount do
-    begin
-      smbToGet := Random(Capacity);
-      Result := Result + CharArr[smbToGet];
-    end;
-    if not DirectoryExists(RTFTemp) then
-    begin
-      if not CreateDir(RTFTemp) then
-        Result := ExtractFileDir(Application.ExeName) +'\'+ Result + '.rtf'
-      else
-        Result := RTFTemp + '\' + Result + '.rtf';
-    end
-    else
-      Result := RTFTemp + '\' + Result + '.rtf';
-  end;
-  
 begin
   //before send mail
   result := false;
@@ -1028,83 +1037,39 @@ begin
                                 Editor.ERTF.Text, Attachments, UpdateStatus)
       else
       begin
-{
-  PARAM_TO      = '-to';
-  PARAM_CC      = '-cc';
-  PARAM_BCC     = '-bcc';
-  PARAM_ATT     = '-att';
-  PARAM_SUBJECT = '-subject';
-  PARAM_BODY    = '-body';
-  PARAM_IS_RTF  = '-rtf' effectivly is a path to RTF file with the body;
-  PARAM_IS_HTML = '-html' effectivly is a path to HTML file with the body;
-  PARAM_IS_OLE  = '-ole true/false'
-  PARAM_IS_OLE  = '-mapi true/false'
-}
-        if FileExists(MAPI64BIT) then
-        begin
-          FillChar(StartUpInfo, SizeOf(TStartUpInfo), #0);
-          with StartUpInfo do
-          begin
-            cb := SizeOf(TStartUpInfo);
-            dwFlags := STARTF_USESHOWWINDOW or STARTF_FORCEONFEEDBACK;
-            wShowWindow := SW_HIDE;
-          end;
-          CmdString := PChar(ExtractFileDir(Application.ExeName)+'\'+MAPI64BIT);
+        CmdString := '';
 
-          if Trim(txtRecipient.Text) <> '' then
-            CmdString := CmdString + ' -to '+ txtRecipient.Text;
-          if Trim(txtCC.Text) <> '' then
-            CmdString := CmdString + ' -cc '+ txtCC.Text;
-          if Trim(txtSubject.text) <> '' then
-            CmdString := CmdString + ' -subject ' + txtSubject.text;
-          {if Trim(Editor.ERTF.Text) <> '' then
-            CmdString := CmdString + ' -body '+ Editor.ERTF.Text;}
-          if Trim(Editor.ERTF.Text) <> '' then
+        if Trim(txtRecipient.Text) <> '' then
+          CmdString := CmdString + ' -to '+ txtRecipient.Text;
+        if Trim(txtCC.Text) <> '' then
+          CmdString := CmdString + ' -cc '+ txtCC.Text;
+        if Trim(txtSubject.text) <> '' then
+          CmdString := CmdString + ' -subject ' + txtSubject.text;
+        if Trim(Editor.ERTF.Text) <> '' then
+        begin
+          RTFFileBodyToSendPath := GenerateRndFileName;
+          if FileExists(RTFFileBodyToSendPath) then
           begin
+            DeleteFile(RTFFileBodyToSendPath);
             RTFFileBodyToSendPath := GenerateRndFileName;
-            if FileExists(RTFFileBodyToSendPath) then
-            begin
-              DeleteFile(RTFFileBodyToSendPath);
-              RTFFileBodyToSendPath := GenerateRndFileName;
-            end;
-            Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
-            //Save the body to RTF to load it from external EXE and add it to body.
-            //The file will be removed in external EXE
-            CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
           end;
-          CmdString := CmdString + ' -ole true;';
-
-          AttachmentsStr := '';
-          if Attachments.Count > 0 then
-          begin
-            for i := 0 to Attachments.Count - 1 do
-               AttachmentsStr := AttachmentsStr + Attachments.Strings[i] + ';';
-          end;
-          if AttachmentsStr <> '' then
-            CmdString := CmdString + ' -att '+ AttachmentsStr;
-
-          Rlst := CreateProcess(nil, PChar(CmdString), nil, nil, false, REALTIME_PRIORITY_CLASS, nil, nil, StartUpInfo, ProcessInfo);
-          if Rlst then
-          with ProcessInfo do
-          begin
-            if WaitForSingleObject(hProcess, INFINITE) <> WAIT_TIMEOUT then
-            begin
-              GetExitCodeProcess(ProcessInfo.hProcess, ExitCode);
-              CloseHandle(hThread);
-              CloseHandle(hProcess);
-            end else
-            begin
-              Win32Check(Windows.TerminateProcess(hProcess,0));
-              OpenProcess(PROCESS_TERMINATE, False, ProcessInfo.dwProcessId);
-            end;
-           end;
-           
-        MailSentOK := ExitCode = 0;   
-        end else
-        begin
-          MessageDlg(rsMAPI_X64EXE_NOT_FOUND, mtError, [mbOk], 0);
-          MailSentOK := False;
+          Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
+          //Save the body to RTF to load it from external EXE and add it to body.
+          //The file will be removed in external EXE
+          CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
         end;
+        CmdString := CmdString + ' -ole true;';
+
+        AttachmentsStr := '';
+        if Attachments.Count > 0 then
+        begin
+          for i := 0 to Attachments.Count - 1 do
+            AttachmentsStr := AttachmentsStr + Attachments.Strings[i] + ';';
+        end;
+        if AttachmentsStr <> '' then
+          CmdString := CmdString + ' -att '+ AttachmentsStr;
+
+      MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
       end;
     finally
       Attachments.Free;
@@ -1984,6 +1949,10 @@ var
    sMsg: string;
    SomeFailed: boolean;
    cfRec: pClient_File_Rec;
+   cmdLine : string;
+   counter : Integer;
+   cmdLineHlp : string;
+   RTFFileBodyToSendPath : string;
 
    function RenameAttachment(OldName: string; NewName: string) : boolean;
    begin
@@ -2040,8 +2009,10 @@ begin //SendSceduledEmail
          //chkCheckout.Checked := False;
          //chkCheckout.Visible := False;
          try
-         if MailObj.Connect then begin
-
+           //if MailObj.Connect then begin
+           begin
+             if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
+               MailObj.Connect;
            for I := 0 to EmailList.Count - 1 do begin
              //check if cancel button pressed
              if Status_Cancel_Pressed then begin
@@ -2203,70 +2174,172 @@ begin //SendSceduledEmail
              end;//AdminSystem.fdFields, EmailInfo
 
              //Send Message(s), if the send fails move on to the next file
-             try try
-                   MailObj.SendMail;
-                   // processmessages is needed for Windows XP and Office XP
-                   // to stop this application from locking up
-                   Application.ProcessMessages;
-                   //log succesful send of mail
-                   sMsg := Format( 'Mail Sent to %s (%s', [ EmailInfo.ClientCode,
-                                                                    EmailInfo.EmailAddress ]);
-                   if (EmailInfo.CCEmailAddress <> '') then
-                      sMsg := sMsg + Format(',%s)', [EmailInfo.CCEmailAddress])
-                   else
-                      sMsg := sMsg + ')';
-                   LogUtil.LogMsg( lmInfo, UnitName, sMsg);
+             if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
+             begin
+               try try
+                     MailObj.SendMail;
+                     // processmessages is needed for Windows XP and Office XP
+                     // to stop this application from locking up
+                     Application.ProcessMessages;
+                     //log succesful send of mail
+                     sMsg := Format( 'Mail Sent to %s (%s', [ EmailInfo.ClientCode,
+                                                                      EmailInfo.EmailAddress ]);
+                     if (EmailInfo.CCEmailAddress <> '') then
+                        sMsg := sMsg + Format(',%s)', [EmailInfo.CCEmailAddress])
+                     else
+                        sMsg := sMsg + ')';
+                     LogUtil.LogMsg( lmInfo, UnitName, sMsg);
 
-                   // add to do item once email sent
-                   if EmailInfo.EmailType in [EMAIL_CHECKOUT, EMAIL_BANKLINK_ONLINE] then begin
-                      if LoadAdminSystem( true, ThisMethodName +' '+ EmailInfo.ClientCode) then begin
-                         cfRec := AdminSystem.fdSystem_Client_File_List.FindCode(EmailInfo.ClientCode);
-                         if Assigned(cfRec) then
-                            AddAutomaticToDoItem( CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
+                     // add to do item once email sent
+                     if EmailInfo.EmailType in [EMAIL_CHECKOUT, EMAIL_BANKLINK_ONLINE] then begin
+                        if LoadAdminSystem( true, ThisMethodName +' '+ EmailInfo.ClientCode) then begin
+                           cfRec := AdminSystem.fdSystem_Client_File_List.FindCode(EmailInfo.ClientCode);
+                           if Assigned(cfRec) then
+                              AddAutomaticToDoItem( CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
+                           SaveAdminSystem;
+                        end;
+                     end;
+
+               except
+                     //if mail cannot be sent an exception will be raised
+                     on e: EMailSendFailed do begin
+                        //find all occurances of this client in the list and set completed to false.
+                        for j := 0 to srOptions.srSummaryInfoList.Count-1 do begin
+                           if (pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).ClientCode = EmailInfo.ClientCode) then begin
+                              pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).EmailSendFail := True;
+                              pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).Completed := False;
+                           end;
+                        end;
+
+                        sMsg := Format( 'Unable to Send Mail to %s (%s)', [ EmailInfo.ClientCode,
+                                                                                   E.Message ]);
+                        LogUtil.LogMsg( lmError, UnitName, sMsg);
+                        SomeFailed := true;
+                        // Undo checkout
+                        if (EmailInfo.EmailType = EMAIL_CHECKOUT) then // check back in
+                           //Note: If we get to this stage for a BankLink Online file then it has
+                           //been uploaded - so we don't need to undo the checkout
+                           CheckInClient(EmailInfo.ClientCode, EmailOutboxDir, nil, True);
+                        // Decrement ecoding sequence
+                        if EmailInfo.EmailType = EMAIL_ECODING then begin
+                           OpenAClient(EmailInfo.ClientCode, MyClient, True);
+                           if Assigned(MyClient) then begin
+                              Dec(MyClient.clFields.clECoding_Last_File_No);
+                              Files.DoClientSave( TRUE, MyClient);
+                           end;
+                           MyClient.Free;
+                           MyClient := nil;
+                           BatchReports.XMLString := '';
+                        end;
+                     end;
+               end;
+
+               finally
+                     //clean up any ecoding files
+                     if EmailInfo.ECodingFilename <> '' then
+                        SysUtils.DeleteFile( EmailOutboxDir + EmailInfo.ECodingFilename);
+               end;
+             end else
+             //sending email thru the 64bit application
+             begin
+               try
+                 cmdLine := '';
+                 cmdLineHlp := '';
+                 if MailObj.Recipients.Count > 0 then
+                 begin
+                   for counter := 0 to MailObj.Recipients.Count - 1 do
+                   begin
+                     if SameStr(cmdLineHlp, '') then
+                       cmdLineHlp := MailObj.Recipients[counter] + ';'
+                     else
+                       cmdLineHlp := cmdLineHlp + MailObj.Recipients.Strings[counter];
+                   end;
+                   
+                   cmdLine := cmdLine + ' -to ' +cmdLineHlp;
+                   if not SameStr(MailObj.Subject, '')  then
+                     cmdLine := cmdLine + ' -subject ' + MailObj.Subject;
+
+                   //in order to send RTF let's use OLE  
+                   cmdLine := cmdLine + ' -ole true;';
+                   if not SameStr(MailObj.EMail.Text, '') then
+                   begin
+                     RTFFileBodyToSendPath := GenerateRndFileName;
+                     if FileExists(RTFFileBodyToSendPath) then
+                     begin
+                       DeleteFile(RTFFileBodyToSendPath);
+                       RTFFileBodyToSendPath := GenerateRndFileName;
+                     end;
+                     MailObj.EMail.SaveToFile(RTFFileBodyToSendPath);
+                     cmdLine := cmdLine + ' -rtf '+ RTFFileBodyToSendPath;
+                   end;                   
+
+                   if MailObj.Attachments.Count > 0 then
+                   begin
+                     cmdLineHlp := '';
+                     for counter := 0 to MailObj.Attachments.Count - 1 do
+                     begin
+                       if SameStr(cmdLineHlp, '') then
+                         cmdLineHlp := MailObj.Attachments.Strings[counter] + ';'
+                       else
+                        cmdLineHlp := cmdLineHlp + MailObj.Attachments.Strings[counter] + ';';
+                     end;
+                     cmdLine := cmdLine + ' -att ' + cmdLineHlp;
+                   end;
+                 end;
+                 
+                 SendEmail64Bit(cmdLine);
+                 try
+                   if EmailInfo.EmailType in [EMAIL_CHECKOUT, EMAIL_BANKLINK_ONLINE] then
+                   begin
+                     if LoadAdminSystem( true, ThisMethodName +' '+ EmailInfo.ClientCode) then
+                     begin
+                       cfRec := AdminSystem.fdSystem_Client_File_List.FindCode(EmailInfo.ClientCode);
+                       if Assigned(cfRec) then
+                         AddAutomaticToDoItem( CFRec, ttyCheckOut, Format(ToDoMsg_Checkout, [bkDate2Str(CurrentDate)]));
                          SaveAdminSystem;
-                      end;
+                     end;
+                   end;
+                  finally
+                    if EmailInfo.ECodingFilename <> '' then
+                     SysUtils.DeleteFile( EmailOutboxDir + EmailInfo.ECodingFilename);
+                 end;
+               except
+                 on e: EMailSendFailed do
+                 begin
+                 //find all occurances of this client in the list and set completed to false.
+                   for j := 0 to srOptions.srSummaryInfoList.Count-1 do begin
+                     if (pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).ClientCode = EmailInfo.ClientCode) then
+                     begin
+                       pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).EmailSendFail := True;
+                       pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).Completed := False;
+                     end;
                    end;
 
-             except
-                   //if mail cannot be sent an exception will be raised
-                   on e: EMailSendFailed do begin
-                      //find all occurances of this client in the list and set completed to false.
-                      for j := 0 to srOptions.srSummaryInfoList.Count-1 do begin
-                         if (pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).ClientCode = EmailInfo.ClientCode) then begin
-                            pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).EmailSendFail := True;
-                            pSchdRepSummaryRec(srOptions.srSummaryInfoList.Items[j]).Completed := False;
-                         end;
-                      end;
-
-                      sMsg := Format( 'Unable to Send Mail to %s (%s)', [ EmailInfo.ClientCode,
-                                                                                 E.Message ]);
-                      LogUtil.LogMsg( lmError, UnitName, sMsg);
-                      SomeFailed := true;
-                      // Undo checkout
-                      if (EmailInfo.EmailType = EMAIL_CHECKOUT) then // check back in
-                         //Note: If we get to this stage for a BankLink Online file then it has
-                         //been uploaded - so we don't need to undo the checkout
-                         CheckInClient(EmailInfo.ClientCode, EmailOutboxDir, nil, True);
-                      // Decrement ecoding sequence
-                      if EmailInfo.EmailType = EMAIL_ECODING then begin
-                         OpenAClient(EmailInfo.ClientCode, MyClient, True);
-                         if Assigned(MyClient) then begin
-                            Dec(MyClient.clFields.clECoding_Last_File_No);
-                            Files.DoClientSave( TRUE, MyClient);
-                         end;
-                         MyClient.Free;
-                         MyClient := nil;
-                         BatchReports.XMLString := '';
-                      end;
+                   sMsg := Format( 'Unable to Send Mail to %s (%s)', [ EmailInfo.ClientCode,
+                                                                                   E.Message ]);
+                   LogUtil.LogMsg( lmError, UnitName, sMsg);
+                   SomeFailed := true;
+                   // Undo checkout
+                   if (EmailInfo.EmailType = EMAIL_CHECKOUT) then // check back in
+                   //Note: If we get to this stage for a BankLink Online file then it has
+                   //been uploaded - so we don't need to undo the checkout
+                     CheckInClient(EmailInfo.ClientCode, EmailOutboxDir, nil, True);
+                   // Decrement ecoding sequence
+                   if EmailInfo.EmailType = EMAIL_ECODING then
+                   begin
+                     OpenAClient(EmailInfo.ClientCode, MyClient, True);
+                     if Assigned(MyClient) then
+                     begin
+                       Dec(MyClient.clFields.clECoding_Last_File_No);
+                       Files.DoClientSave( TRUE, MyClient);
+                     end;
+                     MyClient.Free;
+                     MyClient := nil;
+                     BatchReports.XMLString := '';
                    end;
+                 end;
+               end;
              end;
-
-             finally
-                   //clean up any ecoding files
-                   if EmailInfo.ECodingFilename <> '' then
-                      SysUtils.DeleteFile( EmailOutboxDir + EmailInfo.ECodingFilename);
-             end;
-
 
            end; // for EmailList Loop
 
@@ -2288,11 +2361,11 @@ begin //SendSceduledEmail
            SysUtils.DeleteFile( EmailOutboxDir + 'PAYEE.TXT');
            SysUtils.DeleteFile( EmailOutboxDir + 'PAYEE.CSV');
            SysUtils.DeleteFile( EmailOutboxDir + 'PAYEE.PDF');
-         end else begin
+         end; //else begin
             //Should only get here if Connect failed without causing an exception
             //Could be because User aborted the connect
-            HelpfulErrorMsg('Unable to Send Mail. Connection Failed',0);
-         end;
+            //HelpfulErrorMsg('Unable to Send Mail. Connection Failed',0);
+         //end;
 
          //Handle exceptions from Mail Object
          except
@@ -2498,6 +2571,36 @@ begin
        txtRecipient.SetFocus;
   end;
   Editor.LoadGlobalMergeMenues;
+end;
+
+function TfrmMail.GenerateRndFileName: string;
+const
+  CharArr : array [0..25] of char = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z') ;
+  Capacity = 25;
+var
+  smbAmount : integer;
+  smbToGet : integer;
+  i : integer;
+  sCurrentUsrDir : string;
+begin
+  Result := '';
+  Randomize;
+  smbAmount := Random(Capacity);
+  for i := 0 to smbAmount do
+  begin
+    smbToGet := Random(Capacity);
+    Result := Result + CharArr[smbToGet];
+  end;
+  sCurrentUsrDir := UserDir + RTFTemp;
+  if not DirectoryExists(sCurrentUsrDir) then
+  begin
+    if not CreateDir(sCurrentUsrDir) then
+      Result := ExtractFileDir(Application.ExeName) +'\'+ Result + '.rtf'
+    else
+      Result := sCurrentUsrDir + '\' + Result + '.rtf';
+  end
+  else
+    Result := sCurrentUsrDir + '\' + Result + '.rtf';
 end;
 
 procedure TfrmMail.HideClientFiles;

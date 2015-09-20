@@ -21,6 +21,7 @@ type
     FHtmlBodyFilePath: string;
     FRTFBodyFilePath: string;
     FIsHTML: Boolean;
+    FMustBeClosedAfter: boolean;
 
     function CheckExists(const sEmailAddress : string; stList : TStringList) : Boolean;
     function PrepareEmail : boolean;
@@ -33,6 +34,10 @@ type
     procedure SetHtmlBodyFilePath(const Value: string);
     procedure SetRTFBodyFilePath(const Value: string);
     procedure SetIsHTML(const Value: Boolean);
+    procedure setMustBeClosedAfter(const Value: boolean);
+
+    property MustBeClosedAfter : boolean read FMustBeClosedAfter write setMustBeClosedAfter;
+    function OutlookRunning : IDispatch;
 
   public
     constructor Create;
@@ -118,7 +123,14 @@ end;
 
 constructor TOutlookOle.Create;
 begin
-  FOutlookOleObject := CreateOleObject(APPLICATION_NAME_OUTLOOK);
+  FOutlookOleObject := OutlookRunning;
+
+  if VarIsClear(FOutlookOleObject) then
+  begin
+    FOutlookOleObject := CreateOleObject(APPLICATION_NAME_OUTLOOK);
+    MustBeClosedAfter := True;
+  end;
+
   FRecipientsToList := TStringList.Create;
   FRecipientsCCList := TStringList.Create;
   FRecipientsBCCList := TStringList.Create;
@@ -133,7 +145,9 @@ begin
   FRecipientsCCList.Free;
   FRecipientsBCCList.Free;
   FAttachmentsList.Free;
-  FOutlookOleObject.Quit;
+  if MustBeClosedAfter then
+    FOutlookOleObject.Quit;
+
   FOutlookOleObject := Unassigned;
 
   if FileExists(HtmlBodyFilePath) then
@@ -153,6 +167,17 @@ end;
 function TOutlookOle.GetEmailSubject: string;
 begin
   Result := FEmailSubject;
+end;
+
+function TOutlookOle.OutlookRunning: IDispatch;
+var
+  ClassID: TCLSID;
+  Unknown: IUnknown;
+begin
+  Result := nil;
+  ClassID := ProgIDToClassID(APPLICATION_NAME_OUTLOOK);
+  if Succeeded(GetActiveObject(ClassID, nil, Unknown)) then
+    OleCheck(Unknown.QueryInterface(IDispatch, Result))
 end;
 
 function TOutlookOle.PrepareEmail : boolean;
@@ -267,6 +292,11 @@ end;
 procedure TOutlookOle.SetIsHTML(const Value: Boolean);
 begin
   FIsHTML := Value;
+end;
+
+procedure TOutlookOle.setMustBeClosedAfter(const Value: boolean);
+begin
+  FMustBeClosedAfter := Value;
 end;
 
 procedure TOutlookOle.SetRichText(const Value: Boolean);
