@@ -4344,9 +4344,8 @@ begin
       InsColDefnRec( 'Attachment', ceDocument, celDocument, CE_DOCUMENT_DEF_WIDTH, CE_DOCUMENT_DEF_VISIBLE, false, CE_DOCUMENT_DEF_EDITABLE, csByDocumentTitle);
 {$ENDIF}
 
-      if BankAccount.IsAJournalAccount then begin
-
-
+      if BankAccount.IsAJournalAccount then
+      begin
          InsColDefnRec( Localise( FCountry, 'GST Amount'), ceGSTAmount, celGstAmt, CE_GSTAMOUNT_DEF_WIDTH, CE_GSTAMOUNT_DEF_VISIBLE, False, False, csByGSTAmount );
          InsColDefnRec( 'Action', ceAction, celAction, 190, true, false, false, 0 );
       end
@@ -4356,7 +4355,9 @@ begin
          InsColDefnRec( 'Payee Name', cePayeeName, celPayeeName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, CE_PAYEENAME_DEF_EDITABLE, csByPayeeName);
          InsColDefnRec( 'Job', ceJob, celJob, CE_JOB_DEF_WIDTH, CE_JOB_DEF_VISIBLE, false, CE_JOB_DEF_EDITABLE, csByJob );
          InsColDefnRec( 'Job Name', ceJobName, celJobName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, False, csByJobName);
-         InsColDefnRec( '', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount, 'Suggested Memorisation');
+
+         if Assigned(AdminSystem) or (not MyClient.clExtra.ceBlock_Client_Edit_Mems) then
+           InsColDefnRec( '', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount, 'Suggested Memorisation');
 
          AllowGSTClassEditing := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
          case MyClient.clFields.clCountry of
