@@ -7,12 +7,12 @@ uses Classes, SysUtils, contnrs, ipshttps, uHttpLib, uLKJSON, Graphics,
 
 type
   {Contenet types}
-  TContentType = (ctAll, ctUpgrade, ctMarketing, ctTechnical, ctUnknown);
+  TContentType = (ctAll, ctUpgrade, ctTechnical, ctMarketing, ctUnknown);
   {Country types}
   TCountryType = (gNZ, gAU, gUK, gANY);
   TCountryTypes = set of TCountryType;
   {user Types}
-  TUserType = (utNormal, utAdmin, utBooks, utRestricted, utANY);
+  TUserType = (utAdmin, utNormal, utRestricted, utPractice, utBooks);
   TUserTypes = set of TUserType;
   {Asset types}
   TAssetType = (atUnknown, atImage, atVideo, atPDF);
@@ -31,7 +31,7 @@ type
     FPriority: Integer;
     FAvailableIn: TCountryTypes;
     FCreatedAt: TDateTime;
-
+    FContentIndex : Integer;
     FValidInVersions: TStringList;
     FValidStartDate: TDateTime;
     FValidEndDate: TDateTime;
@@ -65,6 +65,7 @@ type
     property PageIndexWhereToDisplay : Integer read FPageIndexWhereToDisplay write FPageIndexWhereToDisplay;
     property MainImageID : string read FMainImageID write FMainImageID;
     property MainImageBitmap : Graphics.TBitmap read FMainImageBitmap write FMainImageBitmap;
+    property ContentIndex : Integer read FContentIndex write FContentIndex;
   end;
 
   {Represents Content asset object}
@@ -150,7 +151,6 @@ type
     function GetProcessingData:Boolean;
     procedure SetProcessingData(Value : Boolean);
     procedure TimerStopsContentfulReadTimer(Sender: TObject);
-    procedure SortContentfulData;
   public
     LogUserRec : pUser_Rec;
 
@@ -164,6 +164,7 @@ type
     function TotalContents:Integer; // This returns the total contents returned from contentful site
     procedure ClearList;
     procedure StartContentfulReadTimer;
+    procedure SortContentfulData;
 
     property DisplayTypes : TDisplayTypes read FDisplayTypes write FDisplayTypes;
     property SourceContents : TContentfulDataList read FSourceContents write FSourceContents;
@@ -219,19 +220,33 @@ end;
 {Sort Compare function used to sort the contentful list}
 function CompareObjects(Item1, Item2 : Pointer):Integer;
 begin
-  if TContentfulObj(Item1).Priority < TContentfulObj(Item2).Priority then
+  if TContentfulObj(Item1).ContentIndex < TContentfulObj(Item2).ContentIndex then
     Result := -1
-  else if TContentfulObj(Item1).Priority = TContentfulObj(Item2).Priority then
-  begin
-    if TContentfulObj(Item1).CreatedAt < TContentfulObj(Item2).CreatedAt then
-      Result := -1
-    else if TContentfulObj(Item1).CreatedAt = TContentfulObj(Item2).CreatedAt then
-      Result := 0
-    else
-     Result := 1;
-  end
+  else if TContentfulObj(Item1).ContentIndex > TContentfulObj(Item2).ContentIndex then
+    Result := 1
   else
-    Result := 1;
+  begin
+    if TContentfulObj(Item1).PageIndexWhereToDisplay < TContentfulObj(Item2).PageIndexWhereToDisplay then
+      Result := -1
+    else if TContentfulObj(Item1).PageIndexWhereToDisplay > TContentfulObj(Item2).PageIndexWhereToDisplay then
+      Result := 1
+    else // if  on same page
+    begin
+      if TContentfulObj(Item1).Priority < TContentfulObj(Item2).Priority then
+        Result := -1
+      else if TContentfulObj(Item1).Priority = TContentfulObj(Item2).Priority then
+      begin
+        if TContentfulObj(Item1).CreatedAt < TContentfulObj(Item2).CreatedAt then
+          Result := 1
+        else if TContentfulObj(Item1).CreatedAt = TContentfulObj(Item2).CreatedAt then
+          Result := 0
+        else
+         Result := -1;
+      end
+      else
+        Result := 1;
+    end;
+  end;
 end;
 
 { TContentObj }
@@ -241,6 +256,7 @@ begin
   inherited;
 
   FContentType:= ctAll;
+  FContentIndex := 1;
   FTitle:= '';
   FDescription:= '';
   FURL:= '';
@@ -506,6 +522,11 @@ begin
 
         if Assigned(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'])then
           NewContent.ContentType := SetContentType(VarToStr(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'].Value));
+        if NewContent.ContentType = ctUpgrade then
+          NewContent.ContentIndex := 1
+        else if NewContent.ContentType in [ctTechnical, ctMarketing] then
+          NewContent.ContentIndex := 2;
+
         NewContent.Title := VarToStr(Items.Child[i].Field['fields'].Field['title'].Value);
         if Assigned(Items.Child[i].Field['fields'].Field['description'])then
           NewContent.Description := VarToStr(Items.Child[i].Field['fields'].Field['description'].Value);
@@ -627,8 +648,8 @@ begin
 
   for i := 0 to aUserTypes.Count - 1 do
   begin
-    if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'ANY' then
-      Result :=  Result + [utANY]
+    if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Practice' then
+      Result :=  Result + [utPractice]
     else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Admin' then
       Result :=  Result + [utAdmin]
     else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Normal' then
@@ -867,7 +888,7 @@ begin
   //AdminSystem.fdFields.fdCountry
 
   //validate users
-  if (not (utANY in aContent.ValidUsers)) then
+  if (not (utPractice in aContent.ValidUsers)) then
   begin
     if Assigned(AdminSystem) then // practice
     begin

@@ -866,7 +866,7 @@ begin
         if Trim(aUserRec.usEULA_Version) <> '' then
         begin
           {Prevent superuser and automatic logins}
-          DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade];
+          DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
           DisplayPromoContents.ListValidContents;
           if DisplayPromoContents.Count > 0 then
             DisplayPromoScreen;

@@ -91,8 +91,9 @@ procedure TPromoDisplayFrm.DisplayPage(aPageIndex: Integer);
 var
   i : Integer;
   Content : TContentfulObj;
-  NewFrame : TPromoContentFrame;
+  NewFrame, LastFrame : TPromoContentFrame;
   Bitmap : TBitmap;
+  FoundLast : Boolean;
 begin
   FreeAllExistingFrames;
   if not Assigned(DisplayPromoContents) then
@@ -102,15 +103,23 @@ begin
   //if DisplayPromoContents.NoOfPagesRequired > 1 then
     //pnlMoveControls.Align := alClient;
 
-  for i := 0 to DisplayPromoContents.Count - 1 do
+  FoundLast := False;
+  //DisplayPromoContents.SortContentfulData;
+  for i := 0 to DisplayPromoContents.Count - 1  do
   begin
     Content := TContentfulObj(DisplayPromoContents.Item[i]);
     if Assigned(Content) then
     begin
+      LastFrame := nil;
       if Content.PageIndexWhereToDisplay = aPageIndex then
       begin
         NewFrame := TPromoContentFrame.Create(Self);
         FrameList.Add(NewFrame);
+
+        if not FoundLast then
+          LastFrame := NewFrame;
+
+        FoundLast := True;
         NewFrame.Parent := pnlFrames;//Self;
         NewFrame.Name := NewFrame.Name + IntToStr(aPageIndex) +  IntToStr(i);
         NewFrame.TabOrder := i+1;
@@ -118,7 +127,8 @@ begin
         NewFrame.Align := alTop;
         NewFrame.lblTitle.Caption := Content.Title;
         NewFrame.lblTitle.Font.Color := HyperLinkColor;
-        NewFrame.lblTitle.Font.Style := [fsBold, fsUnderline];
+        NewFrame.lblTitle.Font.Size := 14;
+        NewFrame.lblTitle.Font.Style := [fsBold];
         NewFrame.reDescription.Clear;
         NewFrame.reDescription.Lines.Add(Content.Description);
         NewFrame.lblURL.Caption := Content.URL;
@@ -138,9 +148,9 @@ begin
 
         NewFrame.imgContainer.Visible := Content.IsImageAvilable;
         NewFrame.lblURL.Visible := (Trim(Content.URL) <> '');
-      end
-      else if Content.PageIndexWhereToDisplay > aPageIndex then // no need to process more
-        Break; // Break the loop
+      end;
+      //else if Content.PageIndexWhereToDisplay > aPageIndex then // no need to process more
+        //Break; // Break the loop
     end;
   end;
 
@@ -151,6 +161,8 @@ begin
     PageNavigation.Align := alBottom;
   end;
   pnlFrames.Align := alClient;
+  if Assigned(LastFrame) then
+    NewFrame.Align := alClient;
   PageNavigation.ResetTop;
 end;
 
@@ -172,9 +184,11 @@ begin
   PageNavigation.PageControlWidth := 20;
   if Assigned(DisplayPromoContents) then
   begin
+    DisplayPromoContents.SortContentfulData;
     DisplayPromoContents.PromoMainWindowHeight := 800-pnlControls.Height - PageNavigation.Height ;//pnlMoveControls.Height;
     //pnlMoveControls.Width := 600;
     DisplayPromoContents.SetContentDisplayProperties;// set display properties
+    DisplayPromoContents.SortContentfulData;
     PageNavigation.NoOfPages := DisplayPromoContents.NoOfPagesRequired;
 
     DisplayPage(1);
