@@ -1612,7 +1612,9 @@ begin
     begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug,unitname,'Form Shown Step 2.1 - before TryGetandShowHTMLReminder');
-      UpgradeReminderMsg.TryGetandShowHTMLReminder;
+      {This is commented out in version 5.29 since we implemented similar feature using contentful.
+      TFS id : 89551}
+      //UpgradeReminderMsg.TryGetandShowHTMLReminder;
     end;
 
     if DebugMe then
