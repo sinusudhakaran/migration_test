@@ -239,7 +239,6 @@ Uses
   bkContactInformation;
 
 {$R *.DFM}
-{$R MailBodyTemplate.res}
 
 Const
    UnitName = 'MAILFRM';
