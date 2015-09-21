@@ -783,7 +783,7 @@ initialization
    HtmlCache                 := DataDir + 'CACHE\HTML\';
    AppVersionStr             := GetAppVersionStr;
    UserDir                   := DataDir;
-   RTFTemp                   := 'TMPRTF';
+   RTFTemp                   := 'TEMP';
 
 
 {$ENDIF}
