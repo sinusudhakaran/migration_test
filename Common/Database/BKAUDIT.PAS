@@ -1082,7 +1082,6 @@ begin
     FAuditNamesArray[170,178] := 'Has_Changed';
     FAuditNamesArray[170,179] := 'Manual_Count';
     FAuditNamesArray[170,180] := 'Hidden';
-    FAuditNamesArray[170,181] := 'HiddenForSession';
 
    FAuditTableArray[171] := 'Suggested_Account_Link';
     FAuditNamesArray[171,173] := 'SuggestedId';

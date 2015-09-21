@@ -7692,21 +7692,27 @@ begin
 end;
 
 procedure TfrmCoding.btnHideClick(Sender: TObject);
+var
+  ActiveRow : integer;
 begin
   if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
   begin
     SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, true, false);
     SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
+
+    ActiveRow := tblCoding.ActiveRow;
+
+    LoadWorkTranList;
+    tblCoding.ActiveRow := ActiveRow;
+    tblCoding.Refresh;
+    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
   end;
 end;
 
 procedure TfrmCoding.btnLaterClick(Sender: TObject);
 begin
-  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
-  begin
-    SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, false, true);
-    SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
-  end
+  MyClient.SuggMemsHidePopupOnCoding := true;
+  SuggMemPopup(self).Close;
 end;
 
 procedure TfrmCoding.btnCreateClick(Sender: TObject);
@@ -8167,7 +8173,8 @@ begin
   if not (( RowNum < tblCoding.TopRow) or
           ( RowNum > ( tblCoding.TopRow + tblCoding.VisibleRows - tblCoding.LockedRows))) and
      (pT^.txSuggested_Mem_Index > TRAN_SUGG_NOT_FOUND) and
-     (not ColumnFmtList.ColumnDefn_At(SuggColNum)^.cdHidden) then
+     (not ColumnFmtList.ColumnDefn_At(SuggColNum)^.cdHidden) and
+     (not MyClient.SuggMemsHidePopupOnCoding) then
   begin
     SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
 
@@ -8179,8 +8186,7 @@ begin
 
     if not SuggMemPopup(self).Showing then
     begin
-      UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
-      if UserRec^.usAllow_Suggested_Mems_Popup then
+      if UserINI_Suggested_Mems_Show_Popup then
       begin
         SuggMemPopup(self).visible := true;
         SuggMemPopup(self).show;
@@ -10585,4 +10591,5 @@ initialization
    DebugMe := DebugUnit(UnitName);
 
 end.
+
 

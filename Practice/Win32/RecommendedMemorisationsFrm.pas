@@ -199,8 +199,7 @@ begin
   bkBranding.StyleTableHeading(hdrSuggMems);
   bkBranding.StyleAltRowColor(AltLineColor);
 
-  UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
-  chkAllowSuggMemPopup.Checked := UserRec^.usAllow_Suggested_Mems_Popup;
+  chkAllowSuggMemPopup.Checked := UserINI_Suggested_Mems_Show_Popup;
 
   fSuggMemSortedList := TSuggMemSortedList.create;
 end;
@@ -242,8 +241,7 @@ var
 begin
   FreeAndNil(fSuggMemSortedList);
 
-  UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
-  UserRec^.usAllow_Suggested_Mems_Popup := chkAllowSuggMemPopup.Checked;
+  UserINI_Suggested_Mems_Show_Popup := chkAllowSuggMemPopup.Checked;
 
   inherited;
 end;
@@ -677,3 +675,4 @@ begin
 end;
 
 end.
+

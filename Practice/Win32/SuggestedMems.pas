@@ -395,7 +395,6 @@ begin
           aSuggMemItem.ManualCount        := ManualCount;
           aSuggMemItem.IsExactMatch       := (not aSuggestion^.smStart_Data) and (not aSuggestion^.smEnd_Data);
           aSuggMemItem.IsHidden           := aSuggestion^.smHidden;
-          aSuggMemItem.IsHiddenForSession := aSuggestion^.smHiddenForSession;
 
           Result := true;
         end;
@@ -705,10 +704,7 @@ var
   SuggIndex : integer;
 begin
   if aBankAccount.baSuggested_Mem_List.SearchUsingSuggestedId(aSuggestionId, SuggIndex) then
-  begin
     aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHidden := aIsHidden;
-    aBankAccount.baSuggested_Mem_List.GetPRec(SuggIndex)^.smHiddenForSession := aIsHiddenForSession;
-  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -841,15 +837,14 @@ var
   NewSuggested_Mem : TSuggested_Mem;
 begin
   NewSuggested_Mem := TSuggested_Mem.Create();
-  NewSuggested_Mem.smFields.smTypeId           := aTypeId;
-  NewSuggested_Mem.smFields.smPhraseId         := aPhraseId;
-  NewSuggested_Mem.smFields.smStart_Data       := Start_Data;
-  NewSuggested_Mem.smFields.smEnd_Data         := End_Data;
-  NewSuggested_Mem.smFields.smUpdate_Date      := CurrentDate;
-  NewSuggested_Mem.smFields.smHas_Changed      := true;
-  NewSuggested_Mem.smFields.smManual_Count     := 0;
-  NewSuggested_Mem.smFields.smHidden           := false;
-  NewSuggested_Mem.smFields.smHiddenForSession := false;
+  NewSuggested_Mem.smFields.smTypeId       := aTypeId;
+  NewSuggested_Mem.smFields.smPhraseId     := aPhraseId;
+  NewSuggested_Mem.smFields.smStart_Data   := Start_Data;
+  NewSuggested_Mem.smFields.smEnd_Data     := End_Data;
+  NewSuggested_Mem.smFields.smUpdate_Date  := CurrentDate;
+  NewSuggested_Mem.smFields.smHas_Changed  := true;
+  NewSuggested_Mem.smFields.smManual_Count := 0;
+  NewSuggested_Mem.smFields.smHidden       := false;
   aBankAccount.baSuggested_Mem_List.Insert_Suggested_Mem_Rec(NewSuggested_Mem);
   aSuggested_Mem_Rec := aBankAccount.baSuggested_Mem_List.GetAs_pRec(NewSuggested_Mem);
 end;

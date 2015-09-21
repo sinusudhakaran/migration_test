@@ -4102,7 +4102,6 @@ begin
 	SetBoolAttr(Result, 'HasChanged', smHas_Changed);
 	SetIntAttr(Result, 'ManualCount', smManual_Count);
 	SetBoolAttr(Result, 'Hidden', smHidden);
-	SetBoolAttr(Result, 'HiddenForSession', smHiddenForSession);
 
 	CNode := nil;
 	CCNode := nil;
@@ -4128,7 +4127,6 @@ begin
 	smHas_Changed := GetBoolAttr(Result, 'HasChanged');
 	smManual_Count := GetIntAttr(Result, 'ManualCount');
 	smHidden := GetBoolAttr(Result, 'Hidden');
-	smHiddenForSession := GetBoolAttr(Result, 'HiddenForSession');
 	except
 		on E: Exception do ReRaise (E, 'Reading TSuggested_Mem_Rec');
 	end;

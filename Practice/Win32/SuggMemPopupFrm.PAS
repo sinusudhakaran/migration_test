@@ -61,6 +61,7 @@ begin
   if not Assigned(frmSuggMemPopup) then
   begin
     frmSuggMemPopup := TfrmSuggMemPopup.create(aOwner);
+    frmSuggMemPopup.Visible := false;
     frmSuggMemPopup.PopupParent := aOwner;
   end;
 

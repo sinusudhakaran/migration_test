@@ -258,7 +258,7 @@ object dlgMemorise: TdlgMemorise
         end
       end
       object tblSplit: TOvcTable
-        Left = 6
+        Left = 8
         Top = 82
         Width = 1019
         Height = 132
@@ -309,15 +309,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.colLineType'
-          'dlgMemorise.ColPercent'
-          'dlgMemorise.ColAmount'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colNarration'
+          'dlgMemorise.ColAcct'
           'dlgMemorise.ColDesc'
-          'dlgMemorise.ColAcct')
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.colLineType')
         RowData = (
           21)
         ColData = (
@@ -602,11 +602,11 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranDate'
-          'dlgMemorise.colTranCodedBy'
-          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranAmount'
           'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranAmount')
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranDate')
         RowData = (
           21)
         ColData = (
@@ -1160,7 +1160,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1296,7 +1295,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1317,6 +1315,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1423,6 +1422,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False

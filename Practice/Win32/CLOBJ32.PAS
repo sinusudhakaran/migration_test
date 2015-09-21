@@ -53,6 +53,9 @@ type
     FAuditTable            : TAuditTable;
     FClientAuditMgr        : TClientAuditManager;
     FOpened                : Boolean;
+
+    fSuggMemsHidePopupOnCoding : boolean;
+
 {$ENDIF}
     clWas_Code             : string;  //store the client code to detect a rename
     clRawStreamSize        : integer; //store stream size on open so can estimate for save
@@ -155,6 +158,7 @@ type
     property ClientAuditMgr: TClientAuditManager read FClientAuditMgr;
     property ClientCopy: TClientObj read GetClientCopy;
     property Opened: Boolean read FOpened write FOpened default false;
+    property SuggMemsHidePopupOnCoding : boolean read fSuggMemsHidePopupOnCoding write fSuggMemsHidePopupOnCoding;
 {$ENDIF}
   end;
 
@@ -268,6 +272,7 @@ begin
 
    //Exchange rate source
    FExchangeSource := TExchangeSource.Create;
+   fSuggMemsHidePopupOnCoding := false;
 {$ENDIF}
    LogDebugMsg(ThisMethodName + ' Ends');
 end;

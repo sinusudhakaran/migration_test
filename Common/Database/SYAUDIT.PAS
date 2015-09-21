@@ -285,7 +285,6 @@ begin
     FAuditNamesArray[60,89] := 'Using_Secure_Authentication';
     FAuditNamesArray[60,90] := 'User_Data_Block';
     FAuditNamesArray[60,91] := 'Salt';
-    FAuditNamesArray[60,92] := 'Allow_Suggested_Mems_Popup';
 
    FAuditTableArray[50] := 'System_Bank_Account';
     FAuditNamesArray[50,52] := 'Account_Number';

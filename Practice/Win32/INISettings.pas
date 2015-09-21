@@ -1138,6 +1138,8 @@ begin
       UserINI_Client_Lookup_Edit_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
       UserINI_Client_Lookup_Send_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Send_Email);
 
+      UserINI_Suggested_Mems_Show_Popup := IniFile.ReadBool(GrpUserOptions, 'SuggestedMemsShowPopup', UserINI_Suggested_Mems_Show_Popup);
+
       UserIniUpgrade(IniFile);
 
     end;
@@ -1251,6 +1253,8 @@ begin
       IniFile.WriteBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Flag_Read_Only);
       IniFile.WriteBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
       IniFile.WriteBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Send_Email);
+
+      IniFile.WriteBool(GrpUserOptions, 'SuggestedMemsShowPopup', UserINI_Suggested_Mems_Show_Popup);
     end;
   finally
     IniFile.UpdateFile;
@@ -1422,4 +1426,5 @@ begin
 end;
 
 end.
+
 

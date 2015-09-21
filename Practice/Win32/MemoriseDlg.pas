@@ -584,7 +584,8 @@ begin
   cmbValue.Items.AddObject( mxNames[ mxAmtLessOrEqual], TObject( mxAmtLessOrEqual));
   cmbValue.Items.AddObject( mxNames[ mxAmtGreaterOrEqual], TObject( mxAmtGreaterOrEqual));
 
-  with tblSplit.Controller.EntryCommands do begin
+  with tblSplit.Controller.EntryCommands do
+  begin
     {remove F2 functionallity}
     DeleteCommand('Grid',VK_F2,0,0,0);
     DeleteCommand('Grid',VK_F3,0,0,0);
