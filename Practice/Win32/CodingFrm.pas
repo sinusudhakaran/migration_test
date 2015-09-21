@@ -1390,7 +1390,8 @@ begin
         ecRecommendedMems:
           DoRecommendedMems;
         ecSuggestedMemCount:
-          LoadWTLNewSort( csSuggestedMemCount);
+          if (not (MEMSINI_SupportOptions = meiDisableSuggestedMems)) then
+            LoadWTLNewSort( csSuggestedMemCount);
      end;
    finally
      EnableAutoSave;
@@ -4356,7 +4357,8 @@ begin
          InsColDefnRec( 'Job', ceJob, celJob, CE_JOB_DEF_WIDTH, CE_JOB_DEF_VISIBLE, false, CE_JOB_DEF_EDITABLE, csByJob );
          InsColDefnRec( 'Job Name', ceJobName, celJobName, CE_PAYEENAME_DEF_WIDTH, CE_PAYEENAME_DEF_VISIBLE, false, False, csByJobName);
 
-         if Assigned(AdminSystem) or (not MyClient.clExtra.ceBlock_Client_Edit_Mems) then
+         if (Assigned(AdminSystem) or (not MyClient.clExtra.ceBlock_Client_Edit_Mems)) and
+            (not (MEMSINI_SupportOptions = meiDisableSuggestedMems)) then
            InsColDefnRec( '', ceSuggestedMemCount, celSuggestedMemCount, CE_SUGGMEMCOUNT_DEF_WIDTH , CE_SUGGMEMCOUNT_DEF_VISIBLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, CE_SUGGMEMCOUNT_DEF_EDITABLE, csSuggestedMemCount, 'Suggested Memorisation');
 
          AllowGSTClassEditing := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
@@ -5148,10 +5150,13 @@ begin
 
         ceSuggestedMemCount :
         begin
-          SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
-          pT^.txSuggested_Manual_Count := tmpPaintSuggMemsData.ManualCount;
+          if (not (MEMSINI_SupportOptions = meiDisableSuggestedMems)) then
+          begin
+            SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
+            pT^.txSuggested_Manual_Count := tmpPaintSuggMemsData.ManualCount;
 
-          data := @tmpPaintSuggMemsData;
+            data := @tmpPaintSuggMemsData;
+          end;
         end
 
       else
@@ -8113,8 +8118,7 @@ begin
    end;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+//------------------------------------------------------------------------------
 procedure TfrmCoding.ShowHintForCell( const RowNum, ColNum : integer);
 var
   pT         : pTransaction_Rec;
@@ -8123,6 +8127,23 @@ var
   CellRect   : TRect;
   SuggColNum : integer;
   UserRec    : PUser_Rec;
+
+  //----------------------------------------------------------------------------
+  procedure ShowNormalHint();
+  begin
+    case FieldID of
+      ceAccount : CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
+      ceEffDate,
+      ceAction : if isjournal then
+                    CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
+
+      cePayee : CustomHint := GetPayeeHint(pT, INI_ShowCodeHints);
+      ceJob : CustomHint := GetJobHint(PT, INI_ShowCodeHints);
+    end;
+
+    if CustomHint <> '' then
+      ShowCodingHint( RowNum, ColNum, CustomHint );
+  end;
 begin
   if not ValidDataRow(RowNum) then
      exit;
@@ -8131,6 +8152,12 @@ begin
   pT   := WorkTranList.Transaction_At(RowNum-1);
   FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
   CustomHint := '';
+
+  if (MEMSINI_SupportOptions = meiDisableSuggestedMems) then
+  begin
+    ShowNormalHint();
+    Exit;
+  end;
 
   SuggColNum := ColumnFmtList.GetColNumOfField(ceSuggestedMemCount);
 
@@ -8152,6 +8179,7 @@ begin
       UserRec := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
       if UserRec^.usAllow_Suggested_Mems_Popup then
       begin
+        SuggMemPopup(self).visible := true;
         SuggMemPopup(self).show;
         tblCoding.SetFocus;
       end;
@@ -8164,20 +8192,7 @@ begin
   end;
 
   if not SuggMemPopup(self).Showing then
-  begin
-    case FieldID of
-      ceAccount : CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
-      ceEffDate,
-      ceAction : if isjournal then
-                    CustomHint := GetCodeEntriesHint( Bank_Account, pT, INI_ShowCodeHints );
-
-      cePayee : CustomHint := GetPayeeHint(pT, INI_ShowCodeHints);
-      ceJob : CustomHint := GetJobHint(PT, INI_ShowCodeHints);
-    end;
-
-    if CustomHint <> '' then
-      ShowCodingHint( RowNum, ColNum, CustomHint );
-  end;
+    ShowNormalHint();
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.WMVScroll(var Msg: TWMScroll);
