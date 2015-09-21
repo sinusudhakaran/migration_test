@@ -379,7 +379,7 @@ CONST
 
    csMax = 29;
 
-   csNames : Array[ csMin..csMax ] of String[20]=
+   csNames : Array[ csMin..csMax ] of String[30]=
       (  'Date Effective',
          'Cheque Number',
          'Date Presented',
@@ -409,7 +409,7 @@ CONST
          'Alternative Code',
          'Transaction ID',
          'Sent to ' + BRAND_SHORT_NAME,
-         'test 3'
+         'Suggested Memorisation'
          );
 
   //use this array to pick out items in the order the should appear in picklists
