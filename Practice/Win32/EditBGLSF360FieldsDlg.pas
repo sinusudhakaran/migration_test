@@ -1544,9 +1544,9 @@ var
   Frank: Double;
   FrankingFrame : TfmeBGLFranking;
 begin
-  if ( Sender is TSpeedbutton ) then
-    if ( ( Sender as TSpeedbutton ).Owner is TfmeBGLFranking ) then begin
-      FrankingFrame := ( ( Sender as TSpeedbutton ).Owner as TfmeBGLFranking );
+  if ( Sender is TComponent ) then
+    if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
+      FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
 
       if FrankPercentage then
         Frank := FrankingFrame.nfFranked.asFloat{ * Money2Double(FActualAmount) / 100}
@@ -1575,9 +1575,9 @@ begin
 //  Add checks for other Franking Frame
 //DN BGL360 Extended Fields
 
-  if ( Sender is TSpeedbutton ) then
-    if ( ( Sender as TSpeedbutton ).Owner is TfmeBGLFranking ) then begin
-      FrankingFrame := ( ( Sender as TSpeedbutton ).Owner as TfmeBGLFranking );
+  if ( Sender is TComponent ) then
+    if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
+      FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
       if not UFModified then begin
         if FrankPercentage then
           Actual := 100.0
