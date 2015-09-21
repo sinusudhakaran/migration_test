@@ -5720,10 +5720,10 @@ begin
      FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
 
      SelectedSuggestedMemId := pT^.txSuggested_Mem_Index;
+     ShowHintForCell( RowNum, ColNum);
 
      case FieldID of
         ceAccount : begin
-           ShowHintForCell( RowNum, ColNum);
            HintText      := Localise( FCountry, 'Enter an Account Code    (F2) Lookup Chart    (F3) Lookup Payee  (F5) Lookup Job  (F7) Lookup GST' );
 
            if pT^.txFirst_Dissection <> nil then
@@ -5749,9 +5749,12 @@ begin
                                         //windows will try to use the system speaker.
         end;
         ceEffDate,
-        ceAction:  ShowHintForCell( RowNum, ColNum);
+        //ceAction:  //ShowHintForCell( RowNum, ColNum);
         ceNarration :
-           HintText   := 'Enter a Narration or press (F3) to select a Payee';
+        begin
+          //ShowHintForCell( RowNum, ColNum);
+          HintText   := 'Enter a Narration or press (F3) to select a Payee';
+        end;
         ceStatementDetails :
            HintText   := 'The original details from the institution that provided this Transaction';
         ceOtherParty :
@@ -5765,16 +5768,16 @@ begin
         ceQuantity :
            HintText   := 'Enter the Quantity value';
         cePayee    : begin
-           ShowHintForCell(RowNum, ColNum);
+           //ShowHintForCell(RowNum, ColNum);
            HintText   := 'Enter the Payee Number    (F3) Lookup Payee';
         end;
         ceJob : begin
-           ShowHintForCell(RowNum, ColNum);
+           //ShowHintForCell(RowNum, ColNum);
            HintText   := 'Enter the Job Code for this Transaction    (F5) Lookup Job Code';
         end;
         ceForexRate :
           Begin
-           ShowHintForCell( RowNum, ColNum);
+           //ShowHintForCell( RowNum, ColNum);
            HintText   := 'Enter the exchange rate for this Transaction    (F2) Lookup Rates';
           End;
 
@@ -9652,6 +9655,7 @@ begin
   if not tblCoding.InEditingState then
   begin
     ColNum := tblCoding.ActiveCol;
+
     ShowHintForCell( RowNum, ColNum);
   end;
 end;
