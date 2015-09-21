@@ -33,7 +33,6 @@ object frmCAF: TfrmCAF
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 1
-    ExplicitTop = 669
     object ShapeBorder: TShape
       Left = 0
       Top = 0
@@ -323,8 +322,8 @@ object frmCAF: TfrmCAF
         OnMouseLeave = lblAdditionalFormRequiredMouseLeave
       end
       object cmbInstitution: TComboBox
-        Left = 153
-        Top = 10
+        Left = 152
+        Top = 14
         Width = 366
         Height = 25
         Style = csDropDownList
@@ -367,7 +366,6 @@ object frmCAF: TfrmCAF
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitTop = 82
       object Bevel2: TBevel
         Left = -4
         Top = 123
@@ -934,6 +932,7 @@ object frmCAF: TfrmCAF
         BevelInner = bvNone
         BevelOuter = bvNone
         BorderStyle = bsNone
+        Enabled = False
         Lines.Strings = (
           
             'American Express requires your client to request the bank feed f' +
@@ -943,25 +942,22 @@ object frmCAF: TfrmCAF
             'Please click on the email button, to send an email to your clien' +
             't.'
           
-            'This will create an email with a link to the relevant American w' +
-            'eb page. '
+            'This will create an email with a link to the relevant American E' +
+            'xpress web page. '
           ''
           
             '(The link will include your practice code, to ensure that the da' +
-            'ta gets delivered to you)')
+            'ta gets delivered to you.)')
         TabOrder = 0
-        ExplicitLeft = 8
-        ExplicitTop = 136
-        ExplicitWidth = 185
-        ExplicitHeight = 89
       end
     end
   end
   object memAMEXEmailMessage: TMemo
-    Left = 0
+    Left = 8
     Top = 688
     Width = 767
     Height = 70
+    Enabled = False
     Lines.Strings = (
       'Please follow #LINK to the American Express web site.'
       ''
@@ -972,10 +968,12 @@ object frmCAF: TfrmCAF
       'Note. This link already includes our practice code.'
       
         'However if you need to enter the practice code for any reason, i' +
-        't it : #CODE.'
+        't is : #CODE.'
       
         '(It is important to enter this number carefully as it ensures th' +
-        'at the data gets sent to us and not to another accountant)'
+        'at the data gets sent to us and not to another accountant.)'
+      ''
+      'Thank you.'
       ''
       '')
     TabOrder = 2

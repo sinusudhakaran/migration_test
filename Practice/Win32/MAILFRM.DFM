@@ -220,6 +220,8 @@ object frmMail: TfrmMail
             686172466F6E743A262333393B417269616C262333393B3B43686172466F6E74
             53697A653A313130303B5D5D2F3E3C6469762063733D313E3C63206E723D312F
             3E3435363334353C2F6469763E0D0A}
+          OneClickHyperlink = True
+          HyperLinkEvent = EditorERTFHyperLinkEvent
           OnMailMergeGetText = ERichTextMailMergeGetText
           ExplicitLeft = 26
           ExplicitTop = 60
@@ -245,7 +247,7 @@ object frmMail: TfrmMail
       end
       inherited ActImages: TImageList
         Bitmap = {
-          494C010111001400C00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+          494C010111001400CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
           0000000000003600000028000000400000005000000001002000000000000050
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
@@ -925,6 +927,10 @@ object frmMail: TfrmMail
     TabOrder = 3
     object TSEMail: TTabSheet
       Caption = 'TSEMail'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pnlHeader: TPanel
         Left = 0
         Top = 0
@@ -1161,6 +1167,10 @@ object frmMail: TfrmMail
     object TSEdit: TTabSheet
       Caption = 'TSEdit'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object ImageList1: TImageList

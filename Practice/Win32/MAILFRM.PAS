@@ -93,6 +93,8 @@ Type
     procedure MenuItem4Click(Sender: TObject);
     procedure TSEditContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure EditorERTFHyperLinkEvent(Sender: TObject; text, url: string;
+      IgnoredNumber: Integer);
 
 
   Private
@@ -146,6 +148,7 @@ Type
     function IsEmailAddressSupport(aEmail : string) : boolean;
 
   Public
+    procedure ReplaceMailBodyConstants(ReplaceStrings: TStringList);
     procedure UpdateStatus(Sender : TObject; Status: string);
     { Public declarations }
     function Execute: boolean;
@@ -176,7 +179,8 @@ function SendClientAndOtherFilesTo(Title: string; Recipient: string; Subject: st
 function SendFileTo(Title: string; Recipient: string; Subject: string;
                     Filename: string; var AttachSent: Boolean; CanSelectClient:
                     boolean = true; HideClientEmail: Boolean = False;
-                    MailMatter:TMemo=nil): boolean;
+                    GetTemplateFromRes:Boolean=False;
+                    ReplaceStrings:TStringList=nil): boolean;
 
 function EditSignature: Boolean;
 
@@ -235,6 +239,7 @@ Uses
   bkContactInformation;
 
 {$R *.DFM}
+{$R MailBodyTemplate.res}
 
 Const
    UnitName = 'MAILFRM';
@@ -1099,6 +1104,31 @@ begin
     ProgressFrm.Release;
   end;
 end;
+
+{ReplaceStrings data should have a code=value format. So the function search
+for each code and replace it with the value}
+procedure TfrmMail.ReplaceMailBodyConstants(ReplaceStrings: TStringList);
+var
+  i, Position : integer;
+  sCode, sValue : string;
+begin
+  if ((Not Assigned(ReplaceStrings)) or (ReplaceStrings.Count = 0))  then
+    Exit;
+
+  for i := 0 to ReplaceStrings.Count - 1 do
+  begin
+    Position := Pos('=', ReplaceStrings.Strings[i]);
+    if (Position > 0) then
+    begin
+      sCode := Copy(ReplaceStrings.Strings[i], 1, Position - 1);
+      sValue := Copy(ReplaceStrings.Strings[i], Position + 1, Length(ReplaceStrings.Strings[i]));
+      if Trim(sCode) <> '' then
+        Editor.ERTF.DisplayedText.RtfText.AsString
+          := StringReplace(Editor.ERTF.DisplayedText.RtfText.AsANSIString, sCode, sValue,[rfReplaceAll, rfIgnoreCase]);
+    end;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.DoSave;
 begin
@@ -1831,12 +1861,16 @@ begin
    end { try };
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+{ReplaceStrings data should be of the format CODETOREPLACE=STRINGValue}
 function SendFileTo( Title : string; Recipient : string; Subject: string;
   Filename : string; var AttachSent: Boolean; CanSelectClient : boolean = true;
-  HideClientEmail: Boolean = False;MailMatter:TMemo=nil) : boolean;
+  HideClientEmail: Boolean = False;GetTemplateFromRes:Boolean=False;
+  ReplaceStrings:TStringList=nil) : boolean;
 var
   SendDlg : TfrmMail;
   NewItem : TListItem;
+  ResStream : TResourceStream;
+  tempMemo : TMemo;
 begin
   AttachSent := False;
   SendDlg := TfrmMail.Create(Application.MainForm);
@@ -1844,10 +1878,18 @@ begin
     with SendDlg do begin
       EditMode := False;
       HideDropDowns := HideClientEmail;
-      if Assigned(MailMatter) then
+      if GetTemplateFromRes then
       begin
-        BodyText := MailMatter.Text;
-        Editor.ERTF.RTFText.AsString := MailMatter.Text;
+        ResStream := TResourceStream.Create(hinstance, 'MailBodyTemplate', RT_RCDATA);
+        tempMemo := TMemo.Create(Application);
+        try
+          ResStream.Position := 0;
+          Editor.ERTF.LoadFromStream(ResStream);
+          ReplaceMailBodyConstants(ReplaceStrings);
+        finally
+          ResStream.Free;
+          tempMemo.Free;
+        end;
       end;
 
       BNotesFile := Filename;
@@ -2450,6 +2492,12 @@ begin
   btnSend.Enabled := false;
 end;
 
+
+procedure TfrmMail.EditorERTFHyperLinkEvent(Sender: TObject; text, url: string;
+  IgnoredNumber: Integer);
+begin
+  ShellExecute(0, 'OPEN', PChar(url), '', '', SW_SHOWNORMAL);
+end;
 
 procedure TfrmMail.EnableForm;
 begin

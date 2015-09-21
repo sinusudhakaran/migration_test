@@ -99,10 +99,16 @@ begin
 
     if (Result) and (Mode = AFEmail) then
     begin
-      if Assigned(Values.memAMEXEmailMessage) then
+      if (Values.InstitutionCode = 'AMEX') then
+        Job.ReportFile := '';
+
+      if Values.LoadMailTemplateFromResource then
       begin
         AttachmentSent := False;
-        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True, Values.memAMEXEmailMessage);
+
+        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent,
+                    False, True,
+                    Values.LoadMailTemplateFromResource,Values.MailReplaceStrings);
       end
       else
         MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);

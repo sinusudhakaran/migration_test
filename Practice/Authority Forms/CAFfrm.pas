@@ -25,7 +25,7 @@ uses
   ovcef,
   ovcpb,
   ovcpf,
-  MaskValidateEdit;
+  MaskValidateEdit, ComCtrls, WPRTEDefs, WPCTRMemo, WPCTRRich;
 
 type
   TInstitutionType = (inNone, inOther, inBLO);
@@ -210,6 +210,9 @@ type
     fCurrentDisplayError1 : string;
     fCurrentDisplayError2 : string;
     fCurrentDisplayError3 : string;
+    FLoadMailTemplateFromResource : Boolean;
+    FMailReplaceStrings: TStringList;
+    FInstitutionCode : widestring;
 
     procedure MaskValidateAccNumber(AccountNumText: string; WhichAccount: integer);
     procedure MaskValidateAccNumber1();
@@ -251,6 +254,9 @@ type
     property AccountNumber2 : string  read fAccountNumber2 write fAccountNumber2;
     property AccountNumber3 : string  read fAccountNumber3 write fAccountNumber3;
     property InstitutionType : TInstitutionType read fInstitutionType write fInstitutionType;
+    property InstitutionCode : widestring read FInstitutionCode write FInstitutionCode;
+    property LoadMailTemplateFromResource: Boolean read FLoadMailTemplateFromResource write FLoadMailTemplateFromResource;
+    property MailReplaceStrings : TStringList read FMailReplaceStrings write FMailReplaceStrings;
   end;
 
 //------------------------------------------------------------------------------
@@ -285,6 +291,8 @@ var
   Index : integer;
   SortList : TStringList;
 begin
+  LoadMailTemplateFromResource := False;
+  FMailReplaceStrings:= TStringList.Create;
   fValidAccount1 := false;
   fValidAccount2 := false;
   fValidAccount3 := false;
@@ -361,6 +369,7 @@ end;
 procedure TfrmCAF.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(fMaskHint);
+  FreeAndNil(FMailReplaceStrings);
 end;
 
 //------------------------------------------------------------------------------
@@ -1057,6 +1066,9 @@ begin
   edtAccountNumber1.Text := '';
   edtAccountNumber2.Text := '';
   edtAccountNumber3.Text := '';
+  FInstitutionCode := '';
+  if ((cmbInstitution.ItemIndex >= 0) and (Assigned(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])))) then
+    FInstitutionCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
   if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
   begin
     AccNumber1 := fMaskHint.RemovedMaskBsbFromAccountNumber(fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text), fMaskBsb1);
@@ -1178,7 +1190,10 @@ begin
             btnClear.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
             btnEmail.Left := 183;
             if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
+            begin
               btnEmail.Left := btnPreview.Left;
+              Self.ActiveControl := btnEmail;
+            end;
 
             if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
             begin
@@ -1526,10 +1541,19 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCAF.btnEmailClick(Sender: TObject);
+var
+  Link : string;
 begin
+  MailReplaceStrings.Clear;
+  LoadMailTemplateFromResource := False;
   if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
   begin
-    memAMEXEmailMessage.Text := StringReplace(memAMEXEmailMessage.Text,'#CODE',AdminSystem.fdFields.fdBankLink_Code,[rfReplaceAll, rfIgnoreCase]);
+    Link := '"https://qwww316.americanexpress.com/iFormsSecure/auth_reg/en_AU/iforms.do?cuid=RatingsAndReview_en_AU&evtsrc=link&evttype=0&cpid=email009%20&myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
+
+    LoadMailTemplateFromResource := True;
+    MailReplaceStrings.Add('AMEXBANKLINKSITE='+Link);
+    MailReplaceStrings.Add('#CODE='+AdminSystem.fdFields.fdBankLink_Code);
+
     FButton := BTN_EMAIL;
     ModalResult := mrOk;
   end

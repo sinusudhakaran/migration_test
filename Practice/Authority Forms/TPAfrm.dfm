@@ -675,7 +675,7 @@ object frmTPA: TfrmTPA
       Left = 0
       Top = 495
       Width = 763
-      Height = 90
+      Height = 100
       Align = alTop
       BevelEdges = [beLeft, beRight, beBottom]
       BevelOuter = bvNone
@@ -685,7 +685,7 @@ object frmTPA: TfrmTPA
       OnClick = pnlDataClick
       DesignSize = (
         763
-        90)
+        100)
       object lblSecureCode: TLabel
         Left = 299
         Top = 62
@@ -788,7 +788,7 @@ object frmTPA: TfrmTPA
       end
       object chkSupplyAsProvisional: TCheckBox
         Left = 28
-        Top = 108
+        Top = 114
         Width = 512
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -801,7 +801,7 @@ object frmTPA: TfrmTPA
     end
     object pnlRural: TPanel
       Left = 0
-      Top = 585
+      Top = 595
       Width = 763
       Height = 95
       Align = alTop
@@ -810,6 +810,7 @@ object frmTPA: TfrmTPA
       Color = clWhite
       ParentBackground = False
       TabOrder = 4
+      ExplicitTop = 585
       DesignSize = (
         763
         95)
@@ -856,7 +857,6 @@ object frmTPA: TfrmTPA
     Caption = ' '
     ParentBackground = False
     TabOrder = 1
-    ExplicitTop = 709
     DesignSize = (
       782
       41)
