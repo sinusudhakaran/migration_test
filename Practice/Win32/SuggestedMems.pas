@@ -109,7 +109,7 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId : integer; aIsHidden, aIsHiddenForSession : boolean);
+    procedure UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId : integer; aIsHidden : boolean);
     function GetSuggestionUsedByTransaction(const aBankAccount: TBank_Account; const aTrans : pTransaction_Rec; const aChart : TChart; var aSuggMemItem : TSuggMemSortedListRec) : boolean;
     function GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList) : boolean;
 
@@ -463,7 +463,7 @@ var
 begin
   Result := false;
 
-  BestSuggMemsData.Id := 0;
+  BestSuggMemsData.Id := -1;
   BestSuggMemsData.ManualCount := 0;
   BestSuggMemsData.MatchedPhrase := '';
   BestSuggMemsData.Account := '';
@@ -471,7 +471,6 @@ begin
   BestSuggMemsData.ManualAcountCount := 0;
   BestSuggMemsData.IsExactMatch := false;
   BestSuggMemsData.IsHidden := false;
-  BestSuggMemsData.IsHiddenForSession := false;
 
   aTrans^.txSuggested_Mem_Index := TRAN_NO_SUGG;
 
@@ -495,19 +494,10 @@ begin
 
         if GetSuggestionUsedInfo(aBankAccount, Suggestion, aChart, SuggMemsData) then
         begin
+          if (SuggMemsData.IsHidden) then
+            Continue;
+
           if aTrans^.txSuggested_Mem_Index = TRAN_NO_SUGG then
-          begin
-            aTrans^.txSuggested_Mem_Index := Suggestion^.smId;
-            BestSuggMemsData := SuggMemsData;
-            Continue;
-          end;
-
-          if (SuggMemsData.IsHidden or SuggMemsData.IsHiddenForSession) and
-             not (BestSuggMemsData.IsHidden or BestSuggMemsData.IsHiddenForSession) then
-            Continue;
-
-          if not (SuggMemsData.IsHidden or SuggMemsData.IsHiddenForSession) and
-             (BestSuggMemsData.IsHidden or BestSuggMemsData.IsHiddenForSession) then
           begin
             aTrans^.txSuggested_Mem_Index := Suggestion^.smId;
             BestSuggMemsData := SuggMemsData;
@@ -699,7 +689,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMems.UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId: integer; aIsHidden, aIsHiddenForSession: boolean);
+procedure TSuggestedMems.UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId: integer; aIsHidden: boolean);
 var
   SuggIndex : integer;
 begin

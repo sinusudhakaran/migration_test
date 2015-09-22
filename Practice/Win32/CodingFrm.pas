@@ -558,6 +558,8 @@ type
     procedure DoSuggestedMemsDoneProcessing();
 
   protected
+    procedure RefreshSuggestedMemColumn();
+
     procedure btnHideClick(Sender: TObject);
     procedure btnLaterClick(Sender: TObject);
     procedure btnCreateClick(Sender: TObject);
@@ -2926,6 +2928,8 @@ begin
     SuggMemPopup(self).Close;
 
   DoSuggestedMemsDoneProcessing();
+
+  RefreshSuggestedMemColumn();
 end;
 
 //------------------------------------------------------------------------------
@@ -7691,36 +7695,53 @@ begin
    SearchTimerTimer(nil);
 end;
 
-procedure TfrmCoding.btnHideClick(Sender: TObject);
+//------------------------------------------------------------------------------
+procedure TfrmCoding.RefreshSuggestedMemColumn;
 var
+  pT : pTransaction_Rec;
   ActiveRow : integer;
+begin
+  ActiveRow := tblCoding.ActiveRow;
+
+  LoadWorkTranList;
+  tblCoding.ActiveRow := ActiveRow;
+
+  pT := WorkTranList.Transaction_At(ActiveRow-1);
+  SelectedSuggestedMemId := pT^.txSuggested_Mem_Index;
+
+  tblCoding.InvalidateTable();
+  tblCoding.SetFocus;
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCoding.btnHideClick(Sender: TObject);
 begin
   if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
   begin
-    SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, true, false);
+    SuggMemPopup(self).Close;
+
+    SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, true);
     SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
 
-    ActiveRow := tblCoding.ActiveRow;
-
-    LoadWorkTranList;
-    tblCoding.ActiveRow := ActiveRow;
-    tblCoding.Refresh;
-    RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+    RefreshSuggestedMemColumn();
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCoding.btnLaterClick(Sender: TObject);
 begin
   MyClient.SuggMemsHidePopupOnCoding := true;
   SuggMemPopup(self).Close;
 end;
 
+//------------------------------------------------------------------------------
 procedure TfrmCoding.btnCreateClick(Sender: TObject);
 begin
   if ((SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
       Assigned(BankAccount)) then
   begin
     SuggestedMem.DoCreateNewMemorisation(BankAccount, MyClient.clChart, SelectedSuggestedMemId);
+    RefreshSuggestedMemColumn();
   end;
 end;
 

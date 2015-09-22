@@ -418,7 +418,7 @@ begin
 
   Hide := not fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.IsHidden;
 
-  SuggestedMem.UpdateSuggestion(fBankAccount, fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id, Hide, false);
+  SuggestedMem.UpdateSuggestion(fBankAccount, fSuggMemSortedList.GetPRec(tblSuggMems.ActiveRow-1)^.Id, Hide);
 
   Refresh();
   RefreshMemControls(tblSuggMems.ActiveRow);
