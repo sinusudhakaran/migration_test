@@ -104,6 +104,8 @@ begin
     //pnlMoveControls.Align := alClient;
 
   FoundLast := False;
+  LastFrame := Nil;
+  NewFrame := Nil;
   //DisplayPromoContents.SortContentfulData;
   for i := 0 to DisplayPromoContents.Count - 1  do
   begin
@@ -161,7 +163,7 @@ begin
     PageNavigation.Align := alBottom;
   end;
   pnlFrames.Align := alClient;
-  if Assigned(LastFrame) then
+  if Assigned(LastFrame) and Assigned(NewFrame) then
     NewFrame.Align := alClient;
   PageNavigation.ResetTop;
 end;

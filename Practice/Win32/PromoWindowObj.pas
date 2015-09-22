@@ -661,6 +661,7 @@ end;
 function TContentfulDataList.ProcessVersions(aVersions: TlkJSONbase): string;
 var
   i : Integer;
+  sValue : string;
 begin
   Result := '';
 
@@ -669,10 +670,14 @@ begin
 
   for i := 0 to aVersions.Count - 1 do
   begin
+    sValue := VarToStr(aVersions.Child[i].Value);
+    if UpperCase(sValue) = 'ANY' then
+      sValue := UpperCase(sValue);
+
     if Trim(Result) = '' then
-      Result :=  VarToStr(aVersions.Child[i].Value)
+      Result :=  sValue
     else
-      Result :=  Result + ',' + VarToStr(aVersions.Child[i].Value)
+      Result :=  Result + ',' + sValue;
   end;
 end;
 
@@ -905,7 +910,7 @@ end;
 function TDisplayContents.ValidateContent(aContent: TContentfulObj): Boolean;
 var
   Major, Minor, Release, Build : Word;
-  Index : Integer;
+  Index: Integer;
   CurrentMajorVersion, CurrentMinorVersion ,
   PrevMajorVersion, PrevMinorVersion: string;
 begin
@@ -921,7 +926,8 @@ begin
   // Validate versions
   if aContent.ContentType in [ctMarketing, ctTechnical] then
   begin
-    if ((not aContent.ValidInVersions.Find(CurrentMajorVersion, Index)) and
+    if ((not aContent.ValidInVersions.Find('ANY', Index)) and
+      (not aContent.ValidInVersions.Find(CurrentMajorVersion, Index)) and
       (not aContent.ValidInVersions.Find(CurrentMinorVersion, Index))) then
       Result := False;
   end
@@ -945,7 +951,7 @@ begin
     //validate geography
     if (not (gANY in aContent.Geography)) then
     begin
-      if (AdminSystem.fdFields.fdCountry <> Byte(aContent.Geography))  then
+      if (not(TCountryType(AdminSystem.fdFields.fdCountry) in aContent.Geography))  then
         Result := False;
     end;
     //validate user types
