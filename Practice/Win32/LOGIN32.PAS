@@ -370,7 +370,6 @@ end;
 
 class function TfrmLogin.LoginOnline(User: TUser_Rec; uName: String; var CurrentPassword: String; out Cancelled, OfflineAuthentication: Boolean; IgnoreOnlineUser: Boolean = False): Boolean;
 var
-  PromptPasswordChange: Boolean;
   FullName: String;
   pUser: pUser_Rec;
   AuthenticationStatus: TAuthenticationStatus;
@@ -836,8 +835,6 @@ end;
 {$ENDIF}
 //------------------------------------------------------------------------------
 procedure ShowPromoWindow(aUserRec : pUser_Rec);
-var
-  ShowPromos : Boolean;
 
   procedure DisplayPromoScreen;
   var
@@ -852,7 +849,11 @@ var
   end;
 
 begin
-  DisplayPromoContents.LogUserRec := aUserRec;// Assigned to validate the contents against the user levels
+  with DisplayPromoContents do
+  begin
+    LogUserRec^ := aUserRec^;// Assigned to validate the contents against the user levels
+  end;
+
   if ({(DisplayPromoContents.TotalContents > 0) and}
       (Globals.StartupParam_UserPassword = '') and
       (Globals.StartupParam_UserToLoginAs = '') and
@@ -866,6 +867,7 @@ begin
         if Trim(aUserRec.usEULA_Version) <> '' then
         begin
           {Prevent superuser and automatic logins}
+          DisplayPromoContents.UpgradeVersionFrom := PRACINI_CurrentVersion;
           DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
           DisplayPromoContents.ListValidContents;
           if DisplayPromoContents.Count > 0 then
@@ -880,6 +882,7 @@ begin
         DisplayPromoContents.StartContentfulReadTimer;
         Application.ProcessMessages;
       end;
+      DisplayPromoContents.UpgradeVersionFrom := PRACINI_CurrentVersion;
       DisplayPromoContents.DisplayTypes := [ctAll,ctMarketing, ctTechnical];
       DisplayPromoContents.ListValidContents;
       if DisplayPromoContents.Count > 0 then

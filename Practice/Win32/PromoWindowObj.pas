@@ -146,13 +146,15 @@ type
     FPromoMainWindowHeight : Integer;
     FNoOfPagesRequired : Integer;
     FTimerStopsContentfulRead: TTimer;
+    FUpgradeVersionFrom : string;
 
     function GetContent(aIndex:Integer):TContentfulObj;
     function GetProcessingData:Boolean;
     procedure SetProcessingData(Value : Boolean);
     procedure TimerStopsContentfulReadTimer(Sender: TObject);
+    procedure GetPrevUpgradeVersions(var PrevMajorVersion: string; var PrevMinorVersion: string);
   public
-    LogUserRec : pUser_Rec;
+    LogUserRec : pUser_Rec; // for validation purpose
 
     constructor Create;
     destructor Destroy;override;
@@ -173,6 +175,9 @@ type
     property NoOfPagesRequired : Integer read FNoOfPagesRequired write FNoOfPagesRequired;
     property Item[Index:Integer] : TContentfulObj read GetContent;
     property ProcessingData : Boolean read GetProcessingData write SetProcessingData;
+
+    // For validation purpose
+    property UpgradeVersionFrom : string read FUpgradeVersionFrom write FUpgradeVersionFrom;
   end;
 
   TContentfulThread = class(TThread)
@@ -321,8 +326,6 @@ end;
 
 function TContentfulDataList.GetDateFromStr(ADateStr: string):TDateTime;
 var
-  Position : Integer;
-  DateStr, TimeStr : string;
   Day, Year, Month, Hour , Min, Sec : Word;
 begin
   Year := StrToIntDef(Copy(ADateStr, 1,4),0);
@@ -488,7 +491,7 @@ end;
 procedure TContentfulDataList.ProcessJSONData;
 var
   BaseJSONObject : TlkJSONbase;
-  Items, Assets,Geography, Versions, UserTypes : TlkJSONbase;
+  Items, Assets : TlkJSONbase;
   i : Integer;
   NewContent : TContentfulObj;
 
@@ -498,8 +501,8 @@ var
   Bitmap : Graphics.TBitmap;
 begin
   ProcessingData := True;
-  //FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
   FContentFulResponseJSON.Text := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
+  FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
 
   BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON.Text) as TlkJSONobject;
   Items := BaseJSONObject.Field['items'];
@@ -535,10 +538,6 @@ begin
 
         if Assigned(Items.Child[i].Field['fields'].Field['priority'])then
           NewContent.Priority := StrToIntDef(VarToStr(Items.Child[i].Field['fields'].Field['priority'].Value),1);
-
-        Geography := Items.Child[i].Field['fields'].Field['geography'];
-        Versions := Items.Child[i].Field['fields'].Field['validVersions'];
-        UserTypes := Items.Child[i].Field['fields'].Field['userType'];
 
         if Assigned(Items.Child[i].Field['fields'].Field['geography'])then
           NewContent.AvailableIn := ProcessCountry((Items.Child[i].Field['fields'].Field['geography']));
@@ -648,15 +647,15 @@ begin
 
   for i := 0 to aUserTypes.Count - 1 do
   begin
-    if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Practice' then
+    if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'PRACTICE' then
       Result :=  Result + [utPractice]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Admin' then
+    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'ADMIN' then
       Result :=  Result + [utAdmin]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Normal' then
+    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'NORMAL' then
       Result :=  Result + [utNormal]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Books' then
+    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'BOOKS' then
       Result :=  Result + [utBooks]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'Restricted' then
+    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'RESTRICTED' then
       Result :=  Result + [utRestricted];
   end;
 end;
@@ -720,7 +719,7 @@ end;
 constructor TDisplayContents.Create;
 begin
   inherited;
-
+  LogUserRec := New(pUser_Rec);
   FDisplayTypes := [ctAll];
   FSourceContents := TContentfulDataList.Create;
   FDisplayContents := TObjectList.Create;
@@ -743,7 +742,7 @@ begin
     FDisplayContents.Clear;
     FreeAndNil(FDisplayContents);
   end;
-
+  Dispose(LogUserRec);
   inherited;
 end;
 
@@ -752,6 +751,42 @@ begin
   Result := Nil;
   if ((aIndex >= 0) and (aIndex < FDisplayContents.Count)) then
     Result := TContentfulObj(FDisplayContents.Items[aIndex]);
+end;
+
+procedure TDisplayContents.GetPrevUpgradeVersions(var PrevMajorVersion,
+  PrevMinorVersion: string);
+var
+  Position : Integer;
+  VersionNo, sMajor , sMinor , sRelease : string;
+begin
+  PrevMajorVersion := '';
+  PrevMinorVersion := '';
+  VersionNo := UpgradeVersionFrom;
+
+  // Major version
+  Position := Pos('.', VersionNo);
+  if Position > 0 then
+  begin
+    sMajor := Copy(VersionNo, 1 , Position - 1);
+    VersionNo := Copy(VersionNo, Position+1, Length(VersionNo));
+  end;
+  // Minor version
+  Position := Pos('.', VersionNo);
+  if Position > 0 then
+  begin
+    sMinor := Copy(VersionNo, 1 , Position - 1);
+    VersionNo := Copy(VersionNo, Position+1, Length(VersionNo));
+  end;
+  // Release version
+  Position := Pos(' ', VersionNo);
+  if Position > 0 then
+  begin
+    sRelease := Copy(VersionNo, 1 , Position - 1);
+    VersionNo := Copy(VersionNo, Position+1, Length(VersionNo));
+  end;
+
+  PrevMajorVersion := sMajor + '.' + sMinor;
+  PrevMinorVersion := sMajor + '.' + sMinor + '.' +  sRelease;
 end;
 
 function TDisplayContents.GetProcessingData: Boolean;
@@ -875,23 +910,51 @@ function TDisplayContents.ValidateContent(aContent: TContentfulObj): Boolean;
 var
   Major, Minor, Release, Build : Word;
   Index : Integer;
-  MajorVersion : string;
+  CurrentMajorVersion, CurrentMinorVersion ,
+  PrevMajorVersion, PrevMinorVersion: string;
 begin
   Result := True;
 
   WinUtils.GetBuildInfo( Major, Minor, Release, Build);
-  MajorVersion := IntToStr(Major) + '.' + IntToStr(Minor);
 
-  if ((aContent.ValidInVersions.Count > 0) and (not aContent.ValidInVersions.Find(MajorVersion,Index))) then
-    Result := False;
-  // Validate geography
-  //AdminSystem.fdFields.fdCountry
+  CurrentMajorVersion := IntToStr(Major) + '.' + IntToStr(Minor);
+  CurrentMinorVersion := IntToStr(Major) + '.' + IntToStr(Minor) + '.' + IntToStr(Release);
 
-  //validate users
-  if (not (utPractice in aContent.ValidUsers)) then
+  GetPrevUpgradeVersions(PrevMajorVersion, PrevMinorVersion);
+
+  // Validate versions
+  if aContent.ContentType in [ctMarketing, ctTechnical] then
   begin
-    if Assigned(AdminSystem) then // practice
+    if ((not aContent.ValidInVersions.Find(CurrentMajorVersion, Index)) and
+      (not aContent.ValidInVersions.Find(CurrentMinorVersion, Index))) then
+      Result := False;
+  end
+  else if aContent.ContentType = ctUpgrade then
+  begin
+    if PrevMinorVersion <> CurrentMinorVersion then
     begin
+      if aContent.ValidInVersions.Find(PrevMinorVersion, Index) then
+        Result := False;
+    end;
+    if (not aContent.ValidInVersions.Find(CurrentMinorVersion, Index)) then
+      Result := False;
+  end;
+
+  if not Result then
+    Exit;
+
+  //Validate Users
+  if Assigned(AdminSystem) then // practice
+  begin
+    //validate geography
+    if (not (gANY in aContent.Geography)) then
+    begin
+      if (AdminSystem.fdFields.fdCountry <> Byte(aContent.Geography))  then
+        Result := False;
+    end;
+    //validate user types
+    if (( not (utPractice in aContent.ValidUsers))) then
+    begin {Do the below check only if it's not Practice. Is user is Practice, all Practice users(admin, normal, restricted) can access that content}
       if Assigned(LogUserRec) then
       begin
         if (LogUserRec.usSystem_Access and (not LogUserRec. usIs_Remote_User) and (not (utAdmin in aContent.ValidUsers))) then // Admin user
@@ -901,22 +964,27 @@ begin
         else if ((not LogUserRec.usSystem_Access) and (LogUserRec. usIs_Remote_User) and (not (utRestricted in aContent.ValidUsers))) then // Restricted user
           Result := False;
       end;
-    end
-    else if (not (utBooks in aContent.ValidUsers)) then // books
-      Result := False;
-  end;
+    end;
+  end
+  else if (not (utBooks in aContent.ValidUsers)) then // books
+    Result := False;
 
-  if (aContent.ValidStartDate > 0) then
-  begin
-    if (Now < aContent.ValidStartDate) then
-      Result := False;
-  end;
-  if (aContent.ValidEndDate > 0) then
-  begin
-    if (Now > aContent.ValidStartDate) then
-      Result := False;
-  end;
+  if not Result then
+    Exit;
 
+  if aContent.ContentType in [ctMarketing, ctTechnical] then
+  begin
+    if (aContent.ValidStartDate > 0) then
+    begin
+      if (Now < aContent.ValidStartDate) then
+        Result := False;
+    end;
+    if (aContent.ValidEndDate > 0) then
+    begin
+      if (Now > aContent.ValidStartDate) then
+        Result := False;
+    end;
+  end;
 end;
 
 { TContentfulThread }

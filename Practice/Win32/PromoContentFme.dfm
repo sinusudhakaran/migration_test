@@ -39,8 +39,7 @@ object PromoContentFrame: TPromoContentFrame
     Align = alTop
     Caption = 'v xcv xcvxcvxc'
     BorderSides = []
-    ExplicitLeft = 0
-    ExplicitTop = 149
+    ExplicitWidth = 74
   end
   object imgContainer: TImage
     Left = 0
