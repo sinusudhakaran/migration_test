@@ -849,11 +849,6 @@ procedure ShowPromoWindow(aUserRec : pUser_Rec);
   end;
 
 begin
-  with DisplayPromoContents do
-  begin
-    LogUserRec^ := aUserRec^;// Assigned to validate the contents against the user levels
-  end;
-
   if ({(DisplayPromoContents.TotalContents > 0) and}
       (Globals.StartupParam_UserPassword = '') and
       (Globals.StartupParam_UserToLoginAs = '') and

@@ -125,7 +125,7 @@ type
     {This function talks to contentful api and grabs all available contents}
     function GetContents(aContentType: TContentType;RetryCount : integer; var Retries : integer): Boolean;
 
-    function GetDateFromStr(ADateStr: string):TDateTime;    
+    function GetDateFromStr(ADateStr: string):TDateTime;
     procedure ProcessJSONData;
     function Count : Integer;
     procedure ClearList;
@@ -154,8 +154,6 @@ type
     procedure TimerStopsContentfulReadTimer(Sender: TObject);
     procedure GetPrevUpgradeVersions(var PrevMajorVersion: string; var PrevMinorVersion: string);
   public
-    LogUserRec : pUser_Rec; // for validation purpose
-
     constructor Create;
     destructor Destroy;override;
     function LoadAllDisplayContents():Boolean;
@@ -502,7 +500,7 @@ var
 begin
   ProcessingData := True;
   FContentFulResponseJSON.Text := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
-  FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
+  //FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
 
   BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON.Text) as TlkJSONobject;
   Items := BaseJSONObject.Field['items'];
@@ -719,7 +717,6 @@ end;
 constructor TDisplayContents.Create;
 begin
   inherited;
-  LogUserRec := New(pUser_Rec);
   FDisplayTypes := [ctAll];
   FSourceContents := TContentfulDataList.Create;
   FDisplayContents := TObjectList.Create;
@@ -742,7 +739,6 @@ begin
     FDisplayContents.Clear;
     FreeAndNil(FDisplayContents);
   end;
-  Dispose(LogUserRec);
   inherited;
 end;
 
@@ -955,15 +951,12 @@ begin
     //validate user types
     if (( not (utPractice in aContent.ValidUsers))) then
     begin {Do the below check only if it's not Practice. Is user is Practice, all Practice users(admin, normal, restricted) can access that content}
-      if Assigned(LogUserRec) then
-      begin
-        if (LogUserRec.usSystem_Access and (not LogUserRec. usIs_Remote_User) and (not (utAdmin in aContent.ValidUsers))) then // Admin user
-          Result := False
-        else if ((not LogUserRec.usSystem_Access) and (not LogUserRec. usIs_Remote_User) and (not (utNormal in aContent.ValidUsers))) then // Normal user
-          Result := False
-        else if ((not LogUserRec.usSystem_Access) and (LogUserRec. usIs_Remote_User) and (not (utRestricted in aContent.ValidUsers))) then // Restricted user
-          Result := False;
-      end;
+      if (CurrUser.CanAccessAdmin and (not CurrUser.HasRestrictedAccess) and (not (utAdmin in aContent.ValidUsers))) then // Admin user
+        Result := False
+      else if ((not CurrUser.CanAccessAdmin) and (not CurrUser.HasRestrictedAccess) and (not (utNormal in aContent.ValidUsers))) then // Normal user
+        Result := False
+      else if ((not CurrUser.CanAccessAdmin) and (CurrUser.HasRestrictedAccess) and (not (utRestricted in aContent.ValidUsers))) then // Restricted user
+        Result := False;
     end;
   end
   else if (not (utBooks in aContent.ValidUsers)) then // books
