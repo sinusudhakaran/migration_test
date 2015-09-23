@@ -26,6 +26,7 @@ uses
    -html if body is HTML 0 or 1 def 0
    -ole is OLE
    -rtf is RTF
+   -exportcontacts (USERS TEMP DIR!!!!)
 }
 
 const
@@ -39,6 +40,7 @@ const
   PARAM_IS_HTML = '-html';
   PARAM_IS_MAPI = '-mapi';
   PARAM_IS_OLE  = '-ole';
+  PARAM_EXPORT =  '-export';
 
 type
   TArrayType = (TO_ARR = 1, CC_ARR = 2, BCC_ARR = 3, ATT_ARR = 4);
@@ -58,6 +60,7 @@ var
   sHtmlFilePath : string;
   sRTFFilePath : string;
   sParam : string;
+  sFolderToExport : string;
   varStrList : TStringList;
   isOLE : boolean;
   isMAPI : boolean;
@@ -144,6 +147,7 @@ var
          not SameStr(ParamStr(i), PARAM_IS_HTML) and
          not SameStr(ParamStr(i), PARAM_BODY) and
          not SameStr(ParamStr(i), PARAM_IS_MAPI) and
+         not SameStr(ParamStr(i), PARAM_EXPORT) and
          not SameStr(ParamStr(i), PARAM_IS_OLE) then
       Result := Result + space + ParamStr(i) else
      Break;
@@ -169,6 +173,7 @@ var
          not SameStr(ParamStr(i), PARAM_IS_HTML) and
          not SameStr(ParamStr(i), PARAM_BODY) and
          not SameStr(ParamStr(i), PARAM_IS_MAPI) and
+         not SameStr(ParamStr(i), PARAM_EXPORT) and
          not SameStr(ParamStr(i), PARAM_IS_OLE) then
       sAttachment := sAttachment + space + ParamStr(i) else
      Break;
@@ -253,6 +258,15 @@ begin
         varStrList.Clear;
       end;
 
+      if SameStr(PARAM_EXPORT, sParam) then
+      begin
+        sParam := ParamStr(i + 1);
+        varStrList.DelimitedText := sParam;
+        sFolderToExport := Trim(varStrList.Strings[0]);
+        varStrList.Clear;
+      end;
+
+
       if SameStr(PARAM_IS_OLE, sParam) then
       begin
         sParam := ParamStr(i + 1);
@@ -296,13 +310,14 @@ begin
 
           for i := 0 to Length(attArray) - 1  do
             EmailSenderOle.AddAttachment(attArray[i]);
+         end;
 
-          EmailSenderOle.EmailSubject := subj;
-          EmailSenderOle.EmailBody := '';
-          EmailSenderOle.RTFBodyFilePath := sRTFFilePath;
-          EmailSenderOle.HtmlBodyFilePath := sHtmlFilePath;
-          Result := EmailSenderOle.SendEmail;
-        end;
+         EmailSenderOle.EmailSubject := subj;
+         EmailSenderOle.EmailBody := '';
+         EmailSenderOle.RTFBodyFilePath := sRTFFilePath;
+         EmailSenderOle.HtmlBodyFilePath := sHtmlFilePath;
+         EmailSenderOle.TempExportDir := sFolderToExport;
+         Result := EmailSenderOle.SendEmail;
       finally
         EmailSenderOle.Free;
       end;

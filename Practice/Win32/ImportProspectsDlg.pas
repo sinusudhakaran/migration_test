@@ -8,7 +8,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Buttons, StdCtrls, DB, OpDbOlk, OpShared, OpOlkXP, OpOutlk,
   CheckLst, ExtCtrls,
-  OSFont;
+  OSFont, ApplicationUtils;
 
 type
   EImportType = (itProspects,itClients);
@@ -132,7 +132,8 @@ uses bkXPThemes, GlobalDirectories, ErrorMoreFrm, BKConst, ImagesFrm,
 
 procedure TfrmImportProspects.FormCreate(Sender: TObject);
 begin
-  MAPIInitialize(nil);
+  if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
+    MAPIInitialize(nil);
   bkXPThemes.ThemeForm( Self);
   ImagesFrm.AppImages.Misc.GetBitmap(MISC_FINDFOLDER_BMP,btnFromFile.Glyph);
   RestoreHeight := pnlOutlook.Height;
@@ -1016,7 +1017,8 @@ end;
 
 procedure TfrmImportProspects.FormDestroy(Sender: TObject);
 begin
-  MAPIUninitialize;
+  if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
+    MAPIUninitialize;
   if Assigned(opoContacts) then
     FreeAndNil(opoContacts);
   if Assigned(ocdsContacts) then

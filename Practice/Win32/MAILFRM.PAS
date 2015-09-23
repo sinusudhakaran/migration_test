@@ -2385,7 +2385,8 @@ begin //SendSceduledEmail
            end; // for EmailList Loop
 
            //Disconnect from mail server
-           MailObj.Disconnect;
+           if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
+             MailObj.Disconnect;
 
            //Report if sending mail failed for some clients
            if SomeFailed then begin

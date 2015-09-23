@@ -22,6 +22,7 @@ type
     FRTFBodyFilePath: string;
     FIsHTML: Boolean;
     FMustBeClosedAfter: boolean;
+    FTempExportDir: string;
 
     function CheckExists(const sEmailAddress : string; stList : TStringList) : Boolean;
     function PrepareEmail : boolean;
@@ -35,6 +36,7 @@ type
     procedure SetRTFBodyFilePath(const Value: string);
     procedure SetIsHTML(const Value: Boolean);
     procedure setMustBeClosedAfter(const Value: boolean);
+    procedure SetTempExportDir(const Value: string);
 
     property MustBeClosedAfter : boolean read FMustBeClosedAfter write setMustBeClosedAfter;
     function OutlookRunning : IDispatch;
@@ -47,6 +49,7 @@ type
     procedure AddCCRecipient(const sEmailAddress : string);
     procedure AddBCCRecipient(const sEmailAddress : string);
     procedure AddAttachment(const aFilePath : string);
+    procedure ExportGlobalContactsList;
 
     property CopiesCount : Integer read FCopiesCount write SetCopiesCount;
     property EmailBody : string read GetEmailBody write SetEmailBody;
@@ -55,6 +58,7 @@ type
     property IsHTML : Boolean read FIsHTML write SetIsHTML;
     property HtmlBodyFilePath : string read FHtmlBodyFilePath write SetHtmlBodyFilePath;
     property RTFBodyFilePath : string read FRTFBodyFilePath write SetRTFBodyFilePath;
+    property TempExportDir : string read FTempExportDir write SetTempExportDir;
 
     function SendEmail : integer;
  end;
@@ -74,6 +78,13 @@ const
    olFormatRichText = 3;
 
    wdAlertsNone = 0;
+
+   MapiNameSpace = 'MAPI';
+   MapiContacts = 'Contacts';
+   X400Type = 'EX';
+   XmlnsMicrosoft = 'http://schemas.microsoft.com/mapi/proptag/0x39FE001E';
+   CSVHeader ='Code;Name;Address1;Address2;Address3;Phone;Fax;Mobile;Salutation;Email;Contact;User';
+   CSVSeparator = ';';
 
 implementation
 
@@ -157,6 +168,146 @@ begin
     DeleteFile(PChar(RTFBodyFilePath));
 
   inherited;
+end;
+
+procedure TOutlookOle.ExportGlobalContactsList;
+var
+  Namespace : OleVariant;
+  AddressList :  OleVariant;
+  AddressListItem : OleVariant;
+  Contact : OleVariant;
+  iCounter : integer;
+  tmp : TStringList;
+  csvstring : string;
+
+  function ConvertX400(const sAddress : string) : string;
+  var
+    iCount : integer;
+    entry : OleVariant;
+    varMailItem : OleVariant;
+    varAddress : OleVariant;
+    varRecipient : OleVariant;
+  begin
+    Result := '';
+    for iCount := 1 to AddressList.Count do
+    begin
+      entry := AddressList.Item(iCount);
+      if entry.Address = sAddress then
+      begin
+        varMailItem := FOutlookOleObject.CreateItem(olMailItemTo);
+        try
+          varAddress := varMailItem.Recipients.Add(sAddress);
+          varAddress.Resolve;
+          varRecipient := varMailItem.Recipients[1];
+          Result := varRecipient.PropertyAccessor.GetProperty(XmlnsMicrosoft);
+        finally
+          varMailItem := Unassigned;
+          varAddress := Unassigned;
+          varRecipient := Unassigned;
+        end;
+      end;
+    end;
+  end;
+
+begin
+  if DirectoryExists(FTempExportDir) then
+  begin
+    Namespace := FOutlookOleObject.GetNameSpace(MapiNameSpace);
+    tmp := TStringList.Create;
+    try
+      //AddressList := Namespace.AddressLists.Item('Global Address List').AddressEntries;
+      AddressList := Namespace.AddressLists.Item(MapiContacts).AddressEntries;
+      if AddressList.Count > 0  then
+      begin
+        tmp.Add(CSVHeader);
+        for iCounter := 1 to AddressList.Count do
+        begin
+          AddressListItem := AddressList.Item(iCounter);
+          //if AddressListItem.Type = X400Type then
+          begin
+            Contact := AddressList.Item(iCounter).GetExchangeUser ;
+            //Contact := AddressList.Item(iCounter);
+            if not VarIsClear(Contact) then
+            begin
+              //TO DO extract data from both Exhange and not exchange users generate CSV string and save to a file
+              //tmp.Add(Contact.JobTitle);
+              {if not VarIsClear(Contact.CompanyName) then
+                csvstring := csvstring + Contact.CompanyName + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;
+
+              if not VarIsClear(Contact.CompanyName) then
+                csvstring := csvstring + Contact.CompanyName + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;
+
+              if not VarIsClear(Contact.Name) then
+                csvstring := csvstring + Contact.Name + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;
+
+              if not VarIsClear(Contact.AddressCity) then
+                csvstring := csvstring + Contact.AddressCity + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;
+
+              if not VarIsClear(Contact.PostalCode) then
+                csvstring := csvstring + Contact.PostalCode + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;
+
+              if not VarIsClear(Contact.PostalCode) then
+                csvstring := csvstring + Contact.PostalCode + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;
+
+              if not VarIsClear(Contact.PostalCode) then
+                csvstring := csvstring + Contact.PostalCode + CSVSeparator
+              else
+                csvstring := csvstring + CSVSeparator;}
+
+             tmp.Add(csvstring);
+            end;
+
+{
+
+        CSVHeader ='Code;Name;Address1;Address2;Address3;Phone;Fax;Mobile;Salutation;Email;Contact;User';
+        code := '';
+        clientname := Trim(ocdsContacts.FieldByName('CompanyName').AsString);
+        address1 := '';
+        address2 := '';
+        address3 := '';
+        phone := '';
+        fax := '';
+        mobile := '';
+        sal := '';
+        email := '';
+        contact := Trim(ocdsContacts.FieldByName('FirstName').AsString + ' ' +
+            ocdsContacts.FieldByName('MiddleName').AsString + ' ' +
+            ocdsContacts.FieldByName('LastName').AsString);
+
+         Trim(ocdsContacts.FieldByName('HomeTelephoneNumber').AsString);
+         Trim(ocdsContacts.FieldByName('BusinessFaxNumber').AsString);
+         Trim(ocdsContacts.FieldByName('MobileTelephoneNumber').AsString);
+         Trim(ocdsContacts.FieldByName('CarTelephoneNumber').AsString);
+         Trim(ocdsContacts.FieldByName('Title').AsString);
+         email
+
+}
+          end;
+          //tmp.Add(RetriveInfoForContact(AddressListItem.Name));
+          //tmp.Add(AddressListItem.Name + ';' + ConvertX400(AddressListItem.Address)+';'+AddressListItem.BusinessAddressStreet);
+
+          if iCounter > 10 then
+            exit;
+        end;
+      end;
+    finally
+      tmp.SaveToFile(FTempExportDir+'\TempMapiOulookExportFile.csv');
+      tmp.Free;
+      Namespace := Unassigned;
+    end;
+  end;
 end;
 
 function TOutlookOle.GetEmailBody: string;
@@ -259,10 +410,16 @@ end;
 
 function TOutlookOle.SendEmail : integer;
 begin
+  //thats just export to CSV we dont want to send a message
+  if not SameStr(TempExportDir, '') then
+  begin
+    ExportGlobalContactsList;
+    exit;
+  end;
+
   if PrepareEmail then
   begin
     FMailItem.Send;
-    //FOutlookOleObject.GetNamespace('MAPI').SendAndReceive(True);
     FMailItem := Unassigned;
   end;
   Result := 0;
@@ -307,6 +464,11 @@ procedure TOutlookOle.SetRTFBodyFilePath(const Value: string);
 begin
   FRTFBodyFilePath := Value;
   IsRichText := True;
+end;
+
+procedure TOutlookOle.SetTempExportDir(const Value: string);
+begin
+  FTempExportDir := Value;
 end;
 
 end.
