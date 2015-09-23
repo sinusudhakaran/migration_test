@@ -21,7 +21,8 @@ type
   TDisplayTypes = set of TContentType;
 
   TProcessListType = (plCountry, plUserType);
-  {Contenet object}
+
+  {Content object}
   TContentfulObj = class
   private
     FContentType: TContentType;
@@ -42,7 +43,7 @@ type
     FMainImageID : string;// This is just to go thru the json to get the original image file from the asset section
     FMainImageBitmap : Graphics.TBitmap;
   public
-    constructor Create;
+    Constructor Create;
     Destructor Destroy;override;
 
     //Display fields
@@ -107,14 +108,18 @@ type
                             Direction: Integer;
                             BytesTransferred: LongInt;
                             Text: String);
+    {Get a specific content on teh specified index}
     function GetContent(aIndex:Integer):TContentfulObj;
 
+    {Process the valid country list for the content, can be any , nz or au}
     function ProcessCountry(aCountry : TlkJSONbase):TCountryTypes;
+    {Process the valid users list for the content, can be admin, normal, restricted, practice or books}
     function ProcessUsers(aUserTypes : TlkJSONbase):TUserTypes;
+    {Process valid versions for the content, it's a comma separated list}
     function ProcessVersions(aVersions :TlkJSONbase):string;
-
+    {Process Date}
     function ProcessDate(aDate : string):TDateTime;
-
+    {This function grabs the image from the url and returns in the bitmap object and pass it to the calling function}
     function GetImageFromURL(aURL: string; var aMainImageBitmap: Graphics.TBitmap):Boolean;
     function SetContentType(aContenetType: string): TContentType;
   public
@@ -147,12 +152,13 @@ type
     FNoOfPagesRequired : Integer;
     FTimerStopsContentfulRead: TTimer;
     FUpgradeVersionFrom : string;
-
+    FUpgradeVersionTo : string;
+    FDateToValidate : TDateTime;
     function GetContent(aIndex:Integer):TContentfulObj;
     function GetProcessingData:Boolean;
     procedure SetProcessingData(Value : Boolean);
     procedure TimerStopsContentfulReadTimer(Sender: TObject);
-    procedure GetPrevUpgradeVersions(var PrevMajorVersion: string; var PrevMinorVersion: string);
+    procedure GetUpgradeVersions(VersionNoFrom:string;var PrevMajorVersion: string; var PrevMinorVersion: string);
   public
     constructor Create;
     destructor Destroy;override;
@@ -176,6 +182,8 @@ type
 
     // For validation purpose
     property UpgradeVersionFrom : string read FUpgradeVersionFrom write FUpgradeVersionFrom;
+    property UpgradeVersionTo : string read FUpgradeVersionTo write FUpgradeVersionTo;
+    property DateToValidate : TDateTime read FDateToValidate write FDateToValidate;
   end;
 
   TContentfulThread = class(TThread)
@@ -211,7 +219,12 @@ const
 implementation
 
 uses Dialogs, Math, Variants,IdBaseComponent, IdComponent, IdTCPConnection,
-      IdTCPClient,IdHTTP, Forms, Globals, DateUtils;
+      IdTCPClient,IdHTTP, Forms, Globals, DateUtils, LogUtil;
+
+var
+  DebugMe : Boolean = False;
+const
+  UnitName = 'PromoWindowObj';
 
 procedure StartPromoThread;
 begin
@@ -224,9 +237,9 @@ end;
 function CompareObjects(Item1, Item2 : Pointer):Integer;
 begin
   if TContentfulObj(Item1).ContentIndex < TContentfulObj(Item2).ContentIndex then
-    Result := -1
-  else if TContentfulObj(Item1).ContentIndex > TContentfulObj(Item2).ContentIndex then
     Result := 1
+  else if TContentfulObj(Item1).ContentIndex > TContentfulObj(Item2).ContentIndex then
+    Result := -1
   else
   begin
     if TContentfulObj(Item1).PageIndexWhereToDisplay < TContentfulObj(Item2).PageIndexWhereToDisplay then
@@ -490,17 +503,21 @@ procedure TContentfulDataList.ProcessJSONData;
 var
   BaseJSONObject : TlkJSONbase;
   Items, Assets : TlkJSONbase;
-  i : Integer;
   NewContent : TContentfulObj;
-
   AssetList : TObjectList;
   Asset : TContentfulAssetObj;
-  j: Integer;
   Bitmap : Graphics.TBitmap;
+
+  i : Integer;
+  j: Integer;
 begin
   ProcessingData := True;
   FContentFulResponseJSON.Text := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
-  //FContentFulResponseJSON.SaveToFile('C:\Users\Sinu.Sudhakaran\Desktop\json.txt');
+  if DebugMe then
+  begin
+    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON.Text);
+    FContentFulResponseJSON.SaveToFile('json.txt');
+  end;
 
   BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON.Text) as TlkJSONobject;
   Items := BaseJSONObject.Field['items'];
@@ -508,7 +525,6 @@ begin
   if Assigned(BaseJSONObject.Field['includes']) and Assigned(BaseJSONObject.Field['includes'].Field['Asset']) then
     Assets := BaseJSONObject.Field['includes'].Field['Asset'];
 
-    //ShowMessage('Asset Count ' + IntToStr(Assets.Count));
   AssetList := TObjectList.Create;
   try
     {Read all contents and process it}
@@ -523,6 +539,7 @@ begin
 
         if Assigned(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'])then
           NewContent.ContentType := SetContentType(VarToStr(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'].Value));
+
         if NewContent.ContentType = ctUpgrade then
           NewContent.ContentIndex := 1
         else if NewContent.ContentType in [ctTechnical, ctMarketing] then
@@ -627,10 +644,9 @@ begin
 
     Items := Nil;
     Assets := Nil;
-    BaseJSONObject := Nil;
-    
     AssetList.Clear;
     FreeAndNil(AssetList);
+    FreeAndNil(BaseJSONObject);
   end;
 end;
 
@@ -704,7 +720,6 @@ procedure TContentfulDataList.TransferData(Sender: TObject; Direction,
   BytesTransferred: Integer; Text: String);
 begin
   FContentFulResponseJSON.Add(Text);
-  //ShowMessage(Text);
 end;
 
 { TDisplayContents }
@@ -731,6 +746,7 @@ begin
   FTimerStopsContentfulRead.OnTimer := TimerStopsContentfulReadTimer;
   // Default value. Can be set differently
   FPromoMainWindowHeight := CONTENT_MAINSCREEN_HEIGHT;
+  FDateToValidate := Today;
 end;
 
 destructor TDisplayContents.Destroy;
@@ -754,7 +770,7 @@ begin
     Result := TContentfulObj(FDisplayContents.Items[aIndex]);
 end;
 
-procedure TDisplayContents.GetPrevUpgradeVersions(var PrevMajorVersion,
+procedure TDisplayContents.GetUpgradeVersions(VersionNoFrom:string;var PrevMajorVersion,
   PrevMinorVersion: string);
 var
   Position : Integer;
@@ -762,7 +778,7 @@ var
 begin
   PrevMajorVersion := '';
   PrevMinorVersion := '';
-  VersionNo := UpgradeVersionFrom;
+  VersionNo := VersionNoFrom;
 
   // Major version
   Position := Pos('.', VersionNo);
@@ -916,12 +932,13 @@ var
 begin
   Result := True;
 
-  WinUtils.GetBuildInfo( Major, Minor, Release, Build);
-
-  CurrentMajorVersion := IntToStr(Major) + '.' + IntToStr(Minor);
-  CurrentMinorVersion := IntToStr(Major) + '.' + IntToStr(Minor) + '.' + IntToStr(Release);
-
-  GetPrevUpgradeVersions(PrevMajorVersion, PrevMinorVersion);
+  if Trim(UpgradeVersionTo) = '' then
+  begin
+    WinUtils.GetBuildInfo( Major, Minor, Release, Build);
+    UpgradeVersionTo := IntToStr(Major) + '.' + IntToStr(Minor) + '.' + IntToStr(Release) + ' Build '+ IntToStr(Build);
+  end;
+  GetUpgradeVersions(UpgradeVersionTo,CurrentMajorVersion, CurrentMinorVersion);
+  GetUpgradeVersions(UpgradeVersionFrom,PrevMajorVersion, PrevMinorVersion);
 
   // Validate versions
   if aContent.ContentType in [ctMarketing, ctTechnical] then
@@ -975,12 +992,12 @@ begin
   begin
     if (aContent.ValidStartDate > 0) then
     begin
-      if (Now < aContent.ValidStartDate) then
+      if (FDateToValidate < aContent.ValidStartDate) then
         Result := False;
     end;
     if (aContent.ValidEndDate > 0) then
     begin
-      if (Now > aContent.ValidStartDate) then
+      if (FDateToValidate > aContent.ValidStartDate) then
         Result := False;
     end;
   end;
@@ -1009,6 +1026,7 @@ initialization
   DisplayPromoContents := TDisplayContents.Create;
 
   StartPromoThread;
+  DebugMe := DebugUnit(UnitName);
 
 finalization
   //DeleteCriticalSection(CritSect);

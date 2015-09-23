@@ -5,12 +5,14 @@ interface
 uses
   SysUtils, Classes, Controls, ExtCtrls, ImgList, Contnrs, Graphics,
   StdCtrls, Forms, Variants;
-
 type
-  TColourType = (ctGrey, ctPurple);
+  {Colour types used to active and inactive pages - Gray for inactive and purple for active}
+  TColourType = (ctGray, ctPurple);
 
   TOnArrowMouseMove = procedure(Sender:TObject;Shift: TShiftState;X,Y: Integer) of object;
 
+  {This class creates a set of pages (basically using image controls to fake page navigation)
+  }
   TPageNavigation = class(TPanel)
   private
     { Private declarations }
@@ -319,7 +321,7 @@ var
   i : Integer;
 begin
   for i := 0 to FPages.Count - 1 do
-    SetPageImageColour(TImage(FPages.Items[i]),ctGrey);
+    SetPageImageColour(TImage(FPages.Items[i]),ctGray);
 end;
 
 procedure TPageNavigation.SetNoOfPages(Value : Integer);
@@ -349,7 +351,7 @@ begin
     if i = 1  then
       SetPageImageColour(PageImage, ctPurple)
     else
-      SetPageImageColour(PageImage, ctGrey);
+      SetPageImageColour(PageImage, ctGray);
 
     FPages.Add(PageImage);
   end;
@@ -365,7 +367,7 @@ begin
   Bitmap := TBitmap.Create;
   try
     case aColour of
-      ctGrey: FImageList.GetBitmap(1, Bitmap);
+      ctGray: FImageList.GetBitmap(1, Bitmap);
       ctPurple: FImageList.GetBitmap(0, Bitmap);
     end;
 
