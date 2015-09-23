@@ -213,7 +213,7 @@ type
     FLoadMailTemplateFromResource : Boolean;
     FMailReplaceStrings: TStringList;
     FInstitutionCode : widestring;
-
+    FMailSubject : string;
     procedure MaskValidateAccNumber(AccountNumText: string; WhichAccount: integer);
     procedure MaskValidateAccNumber1();
     procedure MaskValidateAccNumber2();
@@ -257,6 +257,7 @@ type
     property InstitutionCode : widestring read FInstitutionCode write FInstitutionCode;
     property LoadMailTemplateFromResource: Boolean read FLoadMailTemplateFromResource write FLoadMailTemplateFromResource;
     property MailReplaceStrings : TStringList read FMailReplaceStrings write FMailReplaceStrings;
+    property MailSubject: string read FMailSubject write FMailSubject;
   end;
 
 //------------------------------------------------------------------------------
@@ -1067,6 +1068,7 @@ begin
   edtAccountNumber2.Text := '';
   edtAccountNumber3.Text := '';
   FInstitutionCode := '';
+  memMessage.Visible := False;
   if ((cmbInstitution.ItemIndex >= 0) and (Assigned(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])))) then
     FInstitutionCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
   if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
@@ -1193,6 +1195,7 @@ begin
             begin
               btnEmail.Left := btnPreview.Left;
               Self.ActiveControl := btnEmail;
+              cmbInstitution.SetFocus;
             end;
 
             if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
@@ -1546,8 +1549,10 @@ var
 begin
   MailReplaceStrings.Clear;
   LoadMailTemplateFromResource := False;
+  FMailSubject := '';
   if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
   begin
+    FMailSubject := 'Bank feed for American Express bank account/s';
     Link := '"https://qwww316.americanexpress.com/iFormsSecure/auth_reg/en_AU/iforms.do?cuid=RatingsAndReview_en_AU&evtsrc=link&evttype=0&cpid=email009%20&myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
 
     LoadMailTemplateFromResource := True;

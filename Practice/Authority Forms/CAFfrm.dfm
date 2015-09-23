@@ -323,7 +323,7 @@ object frmCAF: TfrmCAF
       end
       object cmbInstitution: TComboBox
         Left = 152
-        Top = 14
+        Top = 10
         Width = 366
         Height = 25
         Style = csDropDownList
@@ -928,12 +928,13 @@ object frmCAF: TfrmCAF
         Width = 732
         Height = 116
         Margins.Left = 28
+        TabStop = False
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
         BorderStyle = bsNone
-        Enabled = False
         Lines.Strings = (
+          ''
           
             'American Express requires your client to request the bank feed f' +
             'rom their web site.'

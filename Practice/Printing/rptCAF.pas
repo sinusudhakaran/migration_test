@@ -106,12 +106,12 @@ begin
       begin
         AttachmentSent := False;
 
-        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent,
+        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, Values.MailSubject, Job.ReportFile, AttachmentSent,
                     False, True,
                     Values.LoadMailTemplateFromResource,Values.MailReplaceStrings);
       end
       else
-        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, '', Job.ReportFile, AttachmentSent, False, True);
+        MailFrm.SendFileTo( 'Send Client Authority Form', Addr, Values.MailSubject, Job.ReportFile, AttachmentSent, False, True);
       DeleteFile(PAnsiChar(Job.ReportFile));
     end;
   finally
