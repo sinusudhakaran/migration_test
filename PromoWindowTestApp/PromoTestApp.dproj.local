@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2015/09/22 14:39:19.789.dproj,C:\Users\Sinu.Sudhakaran\Documents\RAD Studio\Projects\Project1.dproj=C:\TFS\Practice\Dev\PromoWindowTestApp\PromoTestApp.dproj</Transaction>
+    <Transaction>2015/09/22 15:37:51.528.pas,C:\TFS\Practice\Dev\PromoWindowTestApp\Unit1.pas=C:\TFS\Practice\Dev\PromoWindowTestApp\OptionsScreenFrm.pas</Transaction>
+    <Transaction>2015/09/22 15:37:51.528.dfm,C:\TFS\Practice\Dev\PromoWindowTestApp\Unit1.dfm=C:\TFS\Practice\Dev\PromoWindowTestApp\OptionsScreenFrm.dfm</Transaction>
+    <Transaction>2015/09/22 15:38:48.174.pas,C:\TFS\Practice\Dev\Practice\Win32\PromoDisplayForm.pas=</Transaction>
+    <Transaction>2015/09/22 15:38:48.174.dfm,C:\TFS\Practice\Dev\Practice\Win32\PromoDisplayForm.dfm=</Transaction>
+  </Transactions>
+</BorlandProject>
