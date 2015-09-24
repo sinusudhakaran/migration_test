@@ -94,6 +94,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 3
+      OnClick = btnDeleteClick
     end
   end
   object pnlMain: TPanel

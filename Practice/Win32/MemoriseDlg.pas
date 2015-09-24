@@ -283,6 +283,7 @@ type
     procedure tblTranGetCellAttributes(Sender: TObject; RowNum, ColNum: Integer;
       var CellAttr: TOvcCellAttributes);
     procedure cCodeExit(Sender: TObject);
+    procedure btnDeleteClick(Sender: TObject);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -455,7 +456,8 @@ CONST
   PercentCol   = 7;
   TypeCol      = 8;
 
-  mrCopy = mrRetry;
+  mrCopy   = mrRetry;
+  mrDelete = mrYes;
 
   DT_OPTIONS_STR = DT_LEFT or DT_VCENTER or DT_SINGLELINE;
   DT_OPTIONS_INT = DT_RIGHT or DT_VCENTER or DT_SINGLELINE;
@@ -832,6 +834,7 @@ begin
   else
     Result := byte(cmbType.Items.Objects[ItemIndex]);
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
 begin
@@ -839,15 +842,29 @@ begin
      Modalresult := mrCopy;
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.btnDeleteClick(Sender: TObject);
+begin
+  if AskYesNo('Confirm Delete',
+              'Deleting this Memorisation will remove all coding for entries that match the criteria,' + #13 +
+              ' which are yet to be transferred or finalised.' + #13#13 +
+              'Please confirm you wish to delete.', DLG_NO, 0) = DLG_YES then
+  begin
+    modalresult := mrDelete;  // toDelete
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCancelClick(Sender: TObject);
 begin
-   modalresult := mrCancel;
+  modalresult := mrCancel;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitEnter(Sender: TObject);
 begin
-   btnOk.Default := false;
-   btnCancel.Cancel := false;
+  btnOk.Default := false;
+  btnCancel.Cancel := false;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitExit(Sender: TObject);
@@ -2954,6 +2971,18 @@ begin
 
                Result := true;
            end;
+           mrDelete : begin
+             if pM.mdFields.mdFrom_Master_List then
+             begin
+               MemorisedList.DelFreeItem(pM);
+               DeleteSelectedMem := True;
+             end
+             else
+             begin
+               ba.baMemorisations_List.DelFreeItem(pM);
+             end;
+             Result := True;
+           end
            else if iscopy then begin
                //need to remove the copy..
                if pM.mdFields.mdFrom_Master_List then begin

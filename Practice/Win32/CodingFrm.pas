@@ -706,6 +706,7 @@ uses
   BudgetFrm,
   SuggMemPopupFrm,
   sydefs,
+  memutils,
   mxFiles32;
 
 const
@@ -1893,6 +1894,10 @@ var
    DeleteSelectedMem  : boolean;
    BankPrefix         : BankPrefixStr;
    CanDoMems          : boolean;
+   MasterMemToDelete  : integer;
+   SystemMemorisation : pSystem_Memorisation_List_Rec;
+   i : integer;
+   SystemMem: TMemorisation;
 
    procedure ApplyMem;
    begin
@@ -1924,8 +1929,38 @@ begin
           FindMemorisation(BankAccount, pT, Mem);
           DeleteSelectedMem := False;
           BankPrefix := mxFiles32.GetBankPrefix(tBank_Account(BankAccount).baFields.baBank_Account_Number);
+
           if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem, False, BankPrefix) then
-            ApplyMem;
+          begin
+            if DeleteSelectedMem then
+            begin
+              MasterMemToDelete := -1;
+              if Assigned(AdminSystem) then
+              begin
+                SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+                if Assigned(SystemMemorisation) then
+                begin
+                  for i := 0 to TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount - 1 do
+                  begin
+                    if (TMemorisation(TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i)).mdFields.mdSequence_No =
+                       Mem.mdFields^.mdSequence_No) then
+                    begin
+                      MasterMemToDelete := i;
+                      Break;
+                    end;
+                  end;
+
+                  if (DeleteSelectedMem and (MasterMemToDelete > -1)) then
+                  begin
+                    SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
+                    DeleteMem(MemList, BankAccount, SystemMem, BankPrefix);
+                  end;
+                end;
+              end;
+            end
+            else
+              ApplyMem;
+          end;
         end
         else
         begin
