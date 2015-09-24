@@ -309,15 +309,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.ColAcct'
-          'dlgMemorise.ColDesc'
-          'dlgMemorise.colNarration'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.ColAmount'
+          'dlgMemorise.colLineType'
           'dlgMemorise.ColPercent'
-          'dlgMemorise.colLineType')
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           21)
         ColData = (
@@ -602,11 +602,11 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranAmount'
-          'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranDate'
           'dlgMemorise.colTranCodedBy'
-          'dlgMemorise.colTranDate')
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colTranAmount')
         RowData = (
           21)
         ColData = (
@@ -658,8 +658,8 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
     end
     object cEntry: TCheckBox
-      Left = 14
-      Top = 29
+      Left = 12
+      Top = 30
       Width = 130
       Height = 18
       Alignment = taLeftJustify
@@ -677,7 +677,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cmbType: TComboBox
-      Left = 152
+      Left = 150
       Top = 27
       Width = 270
       Height = 24
@@ -694,7 +694,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object chkStatementDetails: TCheckBox
-      Left = 14
+      Left = 12
       Top = 60
       Width = 130
       Height = 17
@@ -731,7 +731,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cRef: TCheckBox
-      Left = 14
+      Left = 12
       Top = 120
       Width = 130
       Height = 17
@@ -748,7 +748,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object eRef: TEdit
-      Left = 152
+      Left = 150
       Top = 117
       Width = 270
       Height = 24
@@ -767,7 +767,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object eOther: TEdit
-      Left = 152
+      Left = 150
       Top = 147
       Width = 270
       Height = 24
@@ -786,7 +786,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cOther: TCheckBox
-      Left = 14
+      Left = 12
       Top = 150
       Width = 130
       Height = 17
@@ -803,7 +803,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cCode: TCheckBox
-      Left = 14
+      Left = 12
       Top = 180
       Width = 130
       Height = 17
@@ -820,7 +820,7 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object eCode: TEdit
-      Left = 152
+      Left = 150
       Top = 177
       Width = 270
       Height = 24
@@ -839,8 +839,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cNotes: TCheckBox
-      Left = 441
-      Top = 151
+      Left = 440
+      Top = 150
       Width = 96
       Height = 17
       Alignment = taLeftJustify
@@ -857,8 +857,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cPart: TCheckBox
-      Left = 441
-      Top = 121
+      Left = 440
+      Top = 120
       Width = 96
       Height = 17
       Alignment = taLeftJustify
@@ -875,8 +875,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cValue: TCheckBox
-      Left = 441
-      Top = 91
+      Left = 440
+      Top = 90
       Width = 96
       Height = 22
       Alignment = taLeftJustify
@@ -893,8 +893,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cbTo: TCheckBox
-      Left = 441
-      Top = 61
+      Left = 440
+      Top = 60
       Width = 96
       Height = 17
       Alignment = taLeftJustify
@@ -911,8 +911,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object cbFrom: TCheckBox
-      Left = 441
-      Top = 31
+      Left = 440
+      Top = 30
       Width = 96
       Height = 17
       Alignment = taLeftJustify
@@ -929,8 +929,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object eDateFrom: TOvcPictureField
-      Left = 543
-      Top = 28
+      Left = 545
+      Top = 27
       Width = 70
       Height = 24
       Cursor = crIBeam
@@ -967,8 +967,8 @@ object dlgMemorise: TdlgMemorise
       RangeLow = {00000000000000000000}
     end
     object eDateTo: TOvcPictureField
-      Left = 543
-      Top = 58
+      Left = 545
+      Top = 57
       Width = 70
       Height = 24
       Cursor = crIBeam
@@ -1005,8 +1005,8 @@ object dlgMemorise: TdlgMemorise
       RangeLow = {00000000000000000000}
     end
     object cmbValue: TComboBox
-      Left = 543
-      Top = 88
+      Left = 545
+      Top = 87
       Width = 143
       Height = 24
       Style = csDropDownList
@@ -1026,8 +1026,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object nValue: TOvcNumericField
-      Left = 693
-      Top = 88
+      Left = 694
+      Top = 87
       Width = 113
       Height = 24
       Cursor = crIBeam
@@ -1060,8 +1060,8 @@ object dlgMemorise: TdlgMemorise
       RangeLow = {73B2DBB9838916F2FEC3}
     end
     object cbMinus: TComboBox
-      Left = 812
-      Top = 88
+      Left = 814
+      Top = 87
       Width = 53
       Height = 24
       Anchors = [akTop, akRight]
@@ -1082,7 +1082,7 @@ object dlgMemorise: TdlgMemorise
     end
     object btnShowMoreOptions: TButton
       Left = 896
-      Top = 88
+      Top = 86
       Width = 129
       Height = 25
       Anchors = [akTop, akRight]
@@ -1097,8 +1097,8 @@ object dlgMemorise: TdlgMemorise
       OnClick = btnShowMoreOptionsClick
     end
     object ePart: TEdit
-      Left = 543
-      Top = 118
+      Left = 545
+      Top = 117
       Width = 262
       Height = 24
       Anchors = [akTop, akRight]
@@ -1116,8 +1116,8 @@ object dlgMemorise: TdlgMemorise
       OnExit = cCodeExit
     end
     object eNotes: TEdit
-      Left = 543
-      Top = 148
+      Left = 545
+      Top = 147
       Width = 262
       Height = 24
       Anchors = [akTop, akRight]
@@ -1160,6 +1160,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1295,6 +1296,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1315,7 +1317,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1422,7 +1423,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False
