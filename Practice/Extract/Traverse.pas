@@ -16,9 +16,9 @@ const
    twAllNewUncodedEntries  = 3;
    twAllPresentedEntries   = 4;
    twAllUnpresentedEntries = 5;  twMax = 5;
-   
+
    csByGSTRate             = csMax + 1;
-   
+
 TYPE
    ProcPtr = Procedure;
 
@@ -30,6 +30,7 @@ Procedure SetOnATProc        ( P : ProcPtr );
 
 Var
    Transaction  : pTransaction_Rec;
+   TransactionExtra : pTransaction_Extension_Rec;
    Dissection   : pDissection_Rec;
    Bank_Account : TBank_Account;
    Traverse_From: TstDate;
@@ -431,6 +432,19 @@ Var
    OK                : Boolean;
    Item              : pTraverseItem;
    Balance           : Money;
+   
+   function GetExtraTransctionData:pTransaction_Extension_Rec;
+   begin
+    {To get the extra transaction record}
+    if not assigned(Transaction^.txTranaction_Extension ) then
+    begin
+      TransactionExtra := ABank_Account.baTransaction_List.New_Transaction_Extension_Rec;
+      TransactionExtra^.teDate_Effective := Transaction^.txDate_Effective;
+      TransactionExtra^.teSequence_No    := Transaction^.txSequence_No;
+    end;
+    TransactionExtra := Transaction^.txTranaction_Extension;
+
+   end;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    
@@ -449,6 +463,7 @@ Begin
         for TNo := Last downto First do
         begin
           Transaction := Transaction_at(TNo);
+          TransactionExtra := GetExtraTransctionData;
 
           if (Balance <> Unknown) then
           begin
@@ -462,6 +477,7 @@ Begin
         for TNo := Last downto First do
         begin
           Transaction := Transaction_at(TNo);
+          TransactionExtra := GetExtraTransctionData;
 
           Transaction.txTemp_Balance := Balance;
 
@@ -474,6 +490,7 @@ Begin
          for TNo := 0 to Pred( ItemCount ) do
          Begin
             Transaction := Transaction_At( TNo );
+            TransactionExtra := GetExtraTransctionData;
             with Transaction^ do
             Begin
                if ( txDate_Effective >=FromDate ) and
@@ -485,23 +502,25 @@ Begin
       else
       begin { We need to sort the entries first }
          If Assigned( BeforeSortProcPtr ) then BeforeSortProcPtr;
-         
+
          SortedList := TTraverseList.Create;
 
          Try
             for TNo := 0 to Pred( ItemCount ) do
             Begin
                Transaction := Transaction_At( TNo );
+               TransactionExtra := GetExtraTransctionData;
+               
                with Transaction^ do
                Begin
                   OK := False;
-               
+
                   (* In DatePresented order, we need to select the entries based on
                   their Presentation Date *)
-               
+
                   if ( SortMethod = csDatePresented ) then
                   Begin
-                     If ( txDate_Presented >= FromDate ) and ( txDate_Presented <= ToDate ) then 
+                     If ( txDate_Presented >= FromDate ) and ( txDate_Presented <= ToDate ) then
                         OK := True;
                   end
                   else
