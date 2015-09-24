@@ -7,18 +7,10 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ovcbase, ovcef, ovcpb, ovcnf, MoneyDef,
   ovcpf, bkconst, Buttons, cxGraphics, cxControls, cxContainer, cxEdit,
   cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont, cxLookAndFeels,
-  cxLookAndFeelPainters, ComCtrls,
+  cxLookAndFeelPainters, ComCtrls, Globals,
   BGLCapitalGainsFme, BGLFrankingFme, BGLInterestIncomeFme, BGLForeignTaxFme;
 
-const
-  // Transaction Type equivalent account numbers
-  cttanDistribution = 23800;
-  cttanDividend     = 23900;
-  cttanInterest     = 25000;
-  cttanShareTrade   = 70000;
-
 type
-  TTransactionTypes = (ttDistribution, ttDividend, ttInterest, ttShareTrade, ttOtherTx );
 
   TdlgEditBGLSF360Fields = class(TForm)
     pnlFooters: TPanel;
@@ -309,7 +301,7 @@ uses
   SelectDate,
   WarningMoreFrm,
   SuperFieldsutils,
-  AccountLookupFrm, BKDefs, Globals, imagesfrm, bkhelp;
+  AccountLookupFrm, BKDefs, imagesfrm, bkhelp;
 
 {$R *.dfm}
 

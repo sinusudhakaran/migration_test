@@ -714,6 +714,11 @@ const
     INI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
     INI_LeanEngage_API_KEY : string = '';
 
+  // Transaction Type equivalent account numbers
+  cttanDistribution = 23800;
+  cttanDividend     = 23900;
+  cttanInterest     = 25000;
+  cttanShareTrade   = 70000;
 
   {$ifdef DEBUG}
     INI_LeanEngage_System_Switch : string = cLeanEngage_TestSwitch;
@@ -728,6 +733,8 @@ Type
                            meiDisableSuggestedMems,
                            meiDisableSuggestedMemsOld,
                            meiLogAllMems);
+
+  TTransactionTypes = (ttDistribution, ttDividend, ttInterest, ttShareTrade, ttOtherTx );
 
 Var
     MEMSINI_SupportOptions : TMemsSupportOptions;
