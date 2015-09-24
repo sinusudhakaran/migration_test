@@ -80,6 +80,7 @@ type
     imgStatementDetails: TImage;
     imgBlueSuggMemCircle: TImage;
     imgGraySuggMemCircle: TImage;
+    imgGridColArrow: TImage;
     procedure FormCreate(Sender: TObject);
   private
 
