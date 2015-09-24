@@ -8,7 +8,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, ComCtrls, Cryptcon, Blowunit, OvcBase, OvcEF, OvcPB,
   OvcNF, Mask, RzEdit, RzSpnEdt, Buttons, rzCmboBx,
-  OsFont;
+  OsFont, ApplicationUtils;
 
 type
   TfrmOptions = class(TForm)
@@ -167,6 +167,9 @@ begin
     tsEmail.TabVisible := not CurrUser.HasRestrictedAccess;
 
   DoRebranding();
+
+  if IsWoW64 then
+    chkExtendedMAPI.Visible := False;  
 end;
 
 procedure TfrmOptions.FormDestroy(Sender: TObject);
