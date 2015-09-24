@@ -1128,7 +1128,7 @@ uses
   SuggestedMems,
   ChartExportToMYOBCashbook,
   WebUtils,
-  formNPSWebHost,
+  formWebHost,
   uLeanEngageLib,
   formLEFeedback,
   PromoWindowObj,
@@ -2341,9 +2341,9 @@ begin
       for I := 0 to NPSLeanEngage.Surveys.Count - 1 do begin
         if DebugMe then
           LogUtil.LogMsg(lmDebug,unitname,
-            format( 'TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url = %s, Application.MainForm)',
+            format( 'TfrmWebHost.Show( NPSLeanEngage.Surveys[ i ].Url = %s, Application.MainForm)',
             [ NPSLeanEngage.Surveys[ i ].Url ] ) );
-        TfrmNPSWebHost.Show( NPSLeanEngage.Surveys[ i ].Url );
+        TfrmWebHost.Show( NPSLeanEngage.Surveys[ i ].Url );
       end;
 end;
 
@@ -2608,12 +2608,12 @@ begin
     if NPSLeanEngage.HasFeedbackURL then begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug,unitname,
-          format( 'TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL = %s, Self)',
+          format( 'TfrmWebHost.Show( NPSLeanEngage.FeedbackURL = %s, Self)',
           [ NPSLeanEngage.FeedbackURL ] ) );
-      TfrmNPSWebHost.Show( NPSLeanEngage.FeedbackURL );
+      TfrmWebHost.Show( NPSLeanEngage.FeedbackURL );
     end
     else begin // Try again, something went wrong
-      TfrmNPSWebHost.Show( 'http://localhost/' );
+      TfrmWebHost.Show( 'http://localhost/' );
   	end;
   end;
 end;
