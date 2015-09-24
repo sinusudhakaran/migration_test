@@ -16,8 +16,8 @@ object frmMail: TfrmMail
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 120
-  TextHeight = 16
+  PixelsPerInch = 96
+  TextHeight = 13
   object sbMail: TStatusBar
     Left = 0
     Top = 551
@@ -248,7 +248,7 @@ object frmMail: TfrmMail
       end
       inherited ActImages: TImageList
         Bitmap = {
-          494C010111001400E00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+          494C010111001400E40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
           0000000000003600000028000000400000005000000001002000000000000050
           0000000000000000000000000000000000000000000000000000000000000000
           0000000000000000000000000000000000000000000000000000000000000000
@@ -932,44 +932,43 @@ object frmMail: TfrmMail
         Left = 0
         Top = 0
         Width = 791
-        Height = 166
+        Height = 169
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
         DesignSize = (
           791
-          166)
+          169)
         object lblMailTo: TLabel
           Left = 8
           Top = 12
-          Width = 15
-          Height = 16
+          Width = 12
+          Height = 13
           Caption = '&To'
           FocusControl = txtRecipient
         end
         object lblReturn: TLabel
           Left = 8
-          Top = 67
-          Width = 46
-          Height = 16
+          Top = 66
+          Width = 40
+          Height = 13
           Caption = '&Reply to'
           FocusControl = eReturnAddr
         end
-        object Label2: TLabel
+        object lblSubject: TLabel
           Left = 8
-          Top = 63
-          Width = 43
-          Height = 16
+          Top = 64
+          Width = 36
+          Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Su&bject'
           FocusControl = txtSubject
-          ExplicitTop = 72
         end
         object lblCC: TLabel
           Left = 8
           Top = 40
-          Width = 14
-          Height = 16
+          Width = 12
+          Height = 13
           Caption = '&Cc'
           FocusControl = txtCC
         end
@@ -1027,27 +1026,25 @@ object frmMail: TfrmMail
         end
         object lblAttachments: TLabel
           Left = 8
-          Top = 130
-          Width = 71
-          Height = 16
+          Top = 137
+          Width = 61
+          Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Attachments'
-          ExplicitTop = 139
         end
         object lblClientFiles: TLabel
           Left = 8
-          Top = 96
-          Width = 62
-          Height = 16
+          Top = 103
+          Width = 51
+          Height = 13
           Anchors = [akLeft, akBottom]
           Caption = 'Client Files'
-          ExplicitTop = 105
         end
         object txtRecipient: TEdit
           Left = 88
           Top = 9
           Width = 700
-          Height = 24
+          Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 2
           Text = 'a@b.c'
@@ -1057,7 +1054,7 @@ object frmMail: TfrmMail
           Left = 88
           Top = 63
           Width = 700
-          Height = 24
+          Height = 21
           Anchors = [akLeft, akTop, akRight]
           MaxLength = 80
           TabOrder = 4
@@ -1065,9 +1062,9 @@ object frmMail: TfrmMail
         end
         object txtSubject: TEdit
           Left = 88
-          Top = 63
+          Top = 61
           Width = 700
-          Height = 24
+          Height = 21
           Anchors = [akLeft, akRight, akBottom]
           MaxLength = 200
           TabOrder = 5
@@ -1077,14 +1074,14 @@ object frmMail: TfrmMail
           Left = 88
           Top = 36
           Width = 700
-          Height = 24
+          Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 3
           Text = 'a@b.c'
         end
         object btnAttach: TButton
           Left = 711
-          Top = 123
+          Top = 130
           Width = 75
           Height = 25
           Action = actAttach
@@ -1094,7 +1091,7 @@ object frmMail: TfrmMail
         end
         object btnAttachClient: TButton
           Left = 711
-          Top = 91
+          Top = 98
           Width = 75
           Height = 25
           Action = actClientFile
@@ -1123,7 +1120,7 @@ object frmMail: TfrmMail
         end
         object lvAttach: TListView
           Left = 88
-          Top = 123
+          Top = 130
           Width = 618
           Height = 30
           Anchors = [akLeft, akRight, akBottom]
@@ -1143,7 +1140,7 @@ object frmMail: TfrmMail
         end
         object lvClientFiles: TListView
           Left = 88
-          Top = 91
+          Top = 98
           Width = 618
           Height = 30
           Anchors = [akLeft, akRight, akBottom]

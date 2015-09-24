@@ -47,7 +47,7 @@ Type
     pnlHeader: TPanel;
     lblMailTo: TLabel;
     lblReturn: TLabel;
-    Label2: TLabel;
+    lblSubject: TLabel;
     lblCC: TLabel;
     Image1: TImage;
     lblAttachments: TLabel;
@@ -421,6 +421,14 @@ begin
   lblReturn.visible   := (INI_Mail_Type = SMTP_MAIL);
   eReturnAddr.visible := (INI_Mail_Type = SMTP_MAIL);
   eReturnAddr.text    := INI_SMTP_From;
+  lblSubject.Top := 69;
+  txtSubject.Top := 66;
+  if lblReturn.Visible then
+  begin
+    {For giving space to lblreturn}
+    lblSubject.Top := 69 + 2;
+    txtSubject.Top := 66 + 2;
+  end;
 
   if not eReturnAddr.Visible then begin
     pcTop.Height := PCTop.Height - 24;
