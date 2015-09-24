@@ -543,6 +543,8 @@ var
   JSONObject: TJsonObject;
   Feedback: TFeedbackJSON;
 
+(*
+//DN #89589 - Lean Request: Remove hard-coding for General Feedback
   function ReplaceLEParams( aURL : string ) : string;
   const
 //    cLEFeedback = '&user_id=%s&widget_title=%s&textarea_placeholder=%s&background_color=%231abc9c&one_way=true';
@@ -560,9 +562,11 @@ var
 //      result := Format( cLEFeedback, [ fIdentity.Id, cLEFeedbackTitle, cLEFeedbackBreadCrum ] );
       result := aUrl + '&user_id=' + fIdentity.Id + '&widget_title=' +
         cLEFeedbackTitle + '&textarea_placeholder=' + cLEFeedbackBreadCrum +
-        '&background_color=%231abc9c&one_way=true';
+        '&background_color=%23187bbd&one_way=true';
     end;
   end;
+//DN #89589 - Lean Request: Remove hard-coding for General Feedback
+*)
 
 begin
   if not Terminated then
@@ -578,7 +582,8 @@ begin
               try
                 Server.setFeedBackResponse( fIdentity.Id, JSONObject, Feedback );
                 FHasFeedbackURL := Feedback.HasUrl;
-                FFeedbackURL    := ReplaceLEParams( Feedback.Url );
+//DN #89589 - Lean Request: Remove hard-coding for General Feedback                 FFeedbackURL    := ReplaceLEParams( Feedback.Url );
+                FFeedbackURL    := Feedback.Url;
               finally
                 freeAndNil( Feedback );
               end;
