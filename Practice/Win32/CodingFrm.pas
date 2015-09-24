@@ -9,7 +9,7 @@ uses
   Windows,
   Messages,
   SysUtils,
-  Classes,
+  Classes,                   
   Graphics,
   Controls,
   Forms,
@@ -2915,7 +2915,6 @@ begin
 
       if RepositionOn(pt) then
          DoDissection(jA);
-
    end;
 end;
 
@@ -2923,6 +2922,8 @@ end;
 procedure TfrmCoding.DoRecommendedMems;
 begin
   ShowRecommendedMemorisations(self, BankAccount);
+
+  SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
 
   if SuggMemPopup(self).Showing then
     SuggMemPopup(self).Close;
@@ -7316,6 +7317,10 @@ begin
   else
     pnlSearch.Height := 0;
 
+  tblCoding.invalidate();
+  SuggMemPopup(self).Close;
+  ShowHintForCell(tblCoding.ActiveRow, tblCoding.ActiveCol);
+
   miSearch.Checked  := Value;
 
   UserINI_CES_Show_Find := Value;
@@ -7485,7 +7490,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FindClick(Sender: TObject);
 begin
-   DoFind;
+  DoFind;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.CloseClick(Sender: TObject);
@@ -7724,6 +7729,7 @@ begin
     SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
 
     RefreshSuggestedMemColumn();
+    UpdateSuggestedMemLabel();
   end;
 end;
 
@@ -8111,7 +8117,7 @@ begin
 
   if Assigned(BankAccount) then
   begin
-    MemCount := SuggestedMem.GetSuggestedMemsCount(BankAccount, MyClient.clChart);
+    MemCount := SuggestedMem.GetSuggestedMemsCount(BankAccount, MyClient.clChart, false);
     if (MemCount = 0) then
     begin
       ShowLblRecommendedMemorisations := False;
@@ -8150,6 +8156,8 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCoding.ShowHintForCell( const RowNum, ColNum : integer);
+const
+  POPUP_MAX_HEIGHT = 153;
 var
   pT         : pTransaction_Rec;
   FieldID    : integer;
@@ -8201,9 +8209,20 @@ begin
 
     CellRect := GetCellRect(RowNum, SuggColNum);
 
-    SuggMemPopup(self).Top  := ((CellRect.Top + CellRect.Bottom) div 2) - (SuggMemPopup(self).Height div 2);
+    SuggMemPopup(self).Top  := (CellRect.Top + CellRect.Bottom) div 2 + 1;
     SuggMemPopup(self).left := CellRect.Right - 5;
-    SuggMemPopup(self).lblLine1.Caption := inttostr(tmpPaintSuggMemsData.ManualCount) + ' matching codings';
+
+    SuggMemPopup(self).ManualCount   := tmpPaintSuggMemsData.ManualCount;
+    SuggMemPopup(self).UnCodedCount  := tmpPaintSuggMemsData.UnCodedCount;
+    SuggMemPopup(self).MatchedPhrase := tmpPaintSuggMemsData.MatchedPhrase;
+    SuggMemPopup(self).FlipPopup     := ((SuggMemPopup(self).Top + POPUP_MAX_HEIGHT) > (self.ClientHeight + 50) );
+
+
+
+    if SuggMemPopup(self).FlipPopup then
+      SuggMemPopup(self).Top := (CellRect.Top + CellRect.Bottom) div 2 - SuggMemPopup(self).Height;
+
+    SuggMemPopup(self).Refresh();
 
     if not SuggMemPopup(self).Showing then
     begin

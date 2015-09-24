@@ -127,7 +127,7 @@ type
     procedure StartMemScan(aForceStart : boolean = false);
     procedure StopMemScan(aForceStop : boolean = false);
 
-    function GetSuggestedMemsCount(const aBankAccount : TBank_Account; const aChart : TChart) : integer;
+    function GetSuggestedMemsCount(const aBankAccount : TBank_Account; const aChart : TChart; aIncludeHidden : boolean = true) : integer;
     procedure GetSuggestedMems(const aBankAccount : TBank_Account; const aChart : TChart; var aSuggMemSortedList : TSuggMemSortedList);
 
     function GetStatus(const aBankAccount : TBank_Account; const aChart : TChart) : TSuggMemStatus;
@@ -393,6 +393,7 @@ begin
           aSuggMemItem.TotalCount         := TotalCount;
           aSuggMemItem.ManualAcountCount  := ManualAccountCount;
           aSuggMemItem.ManualCount        := ManualCount;
+          aSuggMemItem.UnCodedCount       := aSuggMemItem.TotalCount - aSuggMemItem.ManualCount;
           aSuggMemItem.IsExactMatch       := (not aSuggestion^.smStart_Data) and (not aSuggestion^.smEnd_Data);
           aSuggMemItem.IsHidden           := aSuggestion^.smHidden;
 
@@ -525,6 +526,7 @@ begin
     end;
   end;
   aSuggMemItem := BestSuggMemsData;
+  aSuggMemItem.UnCodedCount := aSuggMemItem.TotalCount - aSuggMemItem.ManualCount;
 end;
 
 //------------------------------------------------------------------------------
@@ -1673,7 +1675,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.GetSuggestedMemsCount(const aBankAccount : TBank_Account; const aChart : TChart) : integer;
+function TSuggestedMems.GetSuggestedMemsCount(const aBankAccount : TBank_Account; const aChart : TChart; aIncludeHidden : boolean = true) : integer;
 var
   SuggestedMemIndex : integer;
   Suggestion: pSuggested_Mem_Rec;
@@ -1692,7 +1694,10 @@ begin
       Suggestion := aBankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex);
 
       if GetSuggestionUsedInfo(aBankAccount, Suggestion, aChart, SuggMemItem) then
-        inc(Result);
+      begin
+        if (not SuggMemItem.IsHidden) or aIncludeHidden then
+          inc(Result);
+      end;
     end;
   finally
     StartMemScan();

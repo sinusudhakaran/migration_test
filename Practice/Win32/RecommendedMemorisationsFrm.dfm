@@ -134,6 +134,9 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
+      DesignSize = (
+        696
+        375)
       object tblSuggMems: TOvcTable
         Left = 0
         Top = 0
@@ -172,7 +175,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         GridPenSet.CellWhenUnfocused.Style = psSolid
         GridPenSet.CellWhenUnfocused.Effect = geBoth
         LockedRowsCell = hdrSuggMems
-        Options = [otoNoRowResizing, otoTabToArrow, otoEnterToArrow, otoRowSelection]
+        Options = [otoTabToArrow, otoEnterToArrow, otoRowSelection]
         ParentCtl3D = False
         ParentFont = False
         ParentShowHint = False
@@ -186,7 +189,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         OnLockedCellClick = tblSuggMemsLockedCellClick
         CellData = (
           'RecommendedMemorisationsFrm.hdrSuggMems'
-          'RecommendedMemorisationsFrm.coUnCodedMatch'
+          'RecommendedMemorisationsFrm.spi'
           'RecommendedMemorisationsFrm.colCodedMatch'
           'RecommendedMemorisationsFrm.colCode'
           'RecommendedMemorisationsFrm.colStatementDetails'
@@ -216,14 +219,46 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
           67
           False
           True
-          'RecommendedMemorisationsFrm.coUnCodedMatch')
+          'RecommendedMemorisationsFrm.spi')
+      end
+      object pnlMessage: TPanel
+        Left = 0
+        Top = 143
+        Width = 696
+        Height = 90
+        Anchors = [akLeft, akTop, akRight]
+        BevelOuter = bvNone
+        Color = clWhite
+        ParentBackground = False
+        TabOrder = 1
+        Visible = False
+        DesignSize = (
+          696
+          90)
+        object lblMessage: TLabel
+          Left = 0
+          Top = 40
+          Width = 696
+          Height = 16
+          Alignment = taCenter
+          Anchors = [akLeft, akTop, akRight]
+          AutoSize = False
+          Caption = 'Message'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 225
+        end
       end
     end
   end
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800D80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800E00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -373,6 +408,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Table = tblSuggMems
     UseWordWrap = True
     OnClick = hdrSuggMemsClick
+    OnOwnerDraw = hdrSuggMemsOwnerDraw
     Left = 80
     Top = 122
   end
@@ -423,12 +459,12 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
     Left = 48
     Top = 169
   end
-  object coUnCodedMatch: TOvcTCString
+  object spi: TOvcTCString
     Adjust = otaCenterLeft
     MaxLength = 10
     ShowHint = True
     Table = tblSuggMems
-    OnOwnerDraw = coUnCodedMatchOwnerDraw
+    OnOwnerDraw = spiOwnerDraw
     Left = 176
     Top = 169
   end
