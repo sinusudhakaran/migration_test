@@ -22,6 +22,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     PurpleImageIndex : Integer;
     {Each fram added to the form will be saved in this list so that it can be freed later}
@@ -91,9 +92,8 @@ procedure TPromoDisplayFrm.DisplayPage(aPageIndex: Integer);
 var
   i : Integer;
   Content : TContentfulObj;
-  NewFrame, LastFrame : TPromoContentFrame;
+  NewFrame: TPromoContentFrame;
   Bitmap : TBitmap;
-  FoundLast : Boolean;
 begin
   FreeAllExistingFrames;
   if not Assigned(DisplayPromoContents) then
@@ -103,30 +103,23 @@ begin
   //if DisplayPromoContents.NoOfPagesRequired > 1 then
     //pnlMoveControls.Align := alClient;
 
-  FoundLast := False;
-  LastFrame := Nil;
   NewFrame := Nil;
-  //DisplayPromoContents.SortContentfulData;
+  DisplayPromoContents.SortContentfulData;
   for i := 0 to DisplayPromoContents.Count - 1  do
   begin
     Content := TContentfulObj(DisplayPromoContents.Item[i]);
     if Assigned(Content) then
     begin
-      LastFrame := nil;
       if Content.PageIndexWhereToDisplay = aPageIndex then
       begin
         NewFrame := TPromoContentFrame.Create(Self);
         FrameList.Add(NewFrame);
 
-        if not FoundLast then
-          LastFrame := NewFrame;
-
-        FoundLast := True;
         NewFrame.Parent := pnlFrames;//Self;
         NewFrame.Name := NewFrame.Name + IntToStr(aPageIndex) +  IntToStr(i);
         NewFrame.TabOrder := i+1;
-        NewFrame.Align := alBottom;
-        NewFrame.Align := alTop;
+        //NewFrame.Align := alBottom;
+        //NewFrame.Align := alTop;
         NewFrame.lblTitle.Caption := Content.Title;
         NewFrame.lblTitle.Font.Color := HyperLinkColor;
         NewFrame.lblTitle.Font.Size := 14;
@@ -140,6 +133,7 @@ begin
         NewFrame.lblURL.OnClick := OnURLClick;
         NewFrame.ParentFont := True;
         NewFrame.ParentColor := True;
+        NewFrame.TabOrder := i;
         if Content.IsImageAvilable then
         begin
           NewFrame.imgContainer.Picture.Assign(Content.MainImageBitmap);
@@ -163,8 +157,16 @@ begin
     PageNavigation.Align := alBottom;
   end;
   pnlFrames.Align := alClient;
-  if Assigned(LastFrame) and Assigned(NewFrame) then
-    NewFrame.Align := alClient;
+
+  for i := 0 to FrameList.Count - 1 do
+  begin
+    NewFrame := TPromoContentFrame(FrameList.Items[i]);
+    NewFrame.Align :=  alBottom;
+    NewFrame.Align :=  alTop;
+    {if (i = FrameList.Count - 1) then
+      NewFrame.Align := alClient;}
+  end;
+
   PageNavigation.ResetTop;
 end;
 
@@ -203,6 +205,13 @@ begin
   FrameList.Clear;
   FreeAndNil(FrameList);
   FreeAndNil(PageNavigation);
+end;
+
+procedure TPromoDisplayFrm.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = 27 then
+    Close;
 end;
 
 procedure TPromoDisplayFrm.FreeAllExistingFrames;

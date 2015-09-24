@@ -12,10 +12,12 @@ object PromoDisplayFrm: TPromoDisplayFrm
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object pnlControls: TPanel
@@ -75,7 +77,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Left = 32
     Top = 624
     Bitmap = {
-      494C010102000800340020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800400020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

@@ -849,40 +849,33 @@ procedure ShowPromoWindow(aUserRec : pUser_Rec);
   end;
 
 begin
-  if ({(DisplayPromoContents.TotalContents > 0) and}
+  if ((DisplayPromoContents.TotalContents > 0) and
       (Globals.StartupParam_UserPassword = '') and
       (Globals.StartupParam_UserToLoginAs = '') and
       ((not Assigned(aUserRec)) or
       (aUserRec.usCode <> SUPERUSER)) ) then
   begin
-    //if UserINI_Show_Promo_Window then
+    // Show this after an upgrade or for a new user
+    if ((PRACINI_CurrentVersion <> WinUtils.GetAppVersionStr) or (Trim(aUserRec.usEULA_Version) = '' )) then
     begin
-      if PRACINI_CurrentVersion <> WinUtils.GetAppVersionStr then
-      begin
-        if Trim(aUserRec.usEULA_Version) <> '' then
-        begin
-          {Prevent superuser and automatic logins}
-          DisplayPromoContents.UpgradeVersionFrom := PRACINI_CurrentVersion;
-          DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
-          DisplayPromoContents.ListValidContents;
-          if DisplayPromoContents.Count > 0 then
-            DisplayPromoScreen;
-          //UserINI_Show_Promo_Window := False;
-
-          Exit;
-        end;
-      end;
-      while (DisplayPromoContents.ProcessingData) do
-      begin
-        DisplayPromoContents.StartContentfulReadTimer;
-        Application.ProcessMessages;
-      end;
+      {Prevent superuser and automatic logins}
       DisplayPromoContents.UpgradeVersionFrom := PRACINI_CurrentVersion;
-      DisplayPromoContents.DisplayTypes := [ctAll,ctMarketing, ctTechnical];
+      DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
       DisplayPromoContents.ListValidContents;
       if DisplayPromoContents.Count > 0 then
         DisplayPromoScreen;
+      Exit;
     end;
+    while (DisplayPromoContents.ProcessingData) do
+    begin
+      DisplayPromoContents.StartContentfulReadTimer;
+      Application.ProcessMessages;
+    end;
+    DisplayPromoContents.UpgradeVersionFrom := PRACINI_CurrentVersion;
+    DisplayPromoContents.DisplayTypes := [ctAll,ctMarketing, ctTechnical];
+    DisplayPromoContents.ListValidContents;
+    if DisplayPromoContents.Count > 0 then
+      DisplayPromoScreen;
   end;
 end;
 //------------------------------------------------------------------------------

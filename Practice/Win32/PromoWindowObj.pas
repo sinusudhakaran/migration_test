@@ -237,16 +237,16 @@ end;
 function CompareObjects(Item1, Item2 : Pointer):Integer;
 begin
   if TContentfulObj(Item1).ContentIndex < TContentfulObj(Item2).ContentIndex then
-    Result := 1
-  else if TContentfulObj(Item1).ContentIndex > TContentfulObj(Item2).ContentIndex then
     Result := -1
+  else if TContentfulObj(Item1).ContentIndex > TContentfulObj(Item2).ContentIndex then
+    Result := 1
   else
   begin
-    if TContentfulObj(Item1).PageIndexWhereToDisplay < TContentfulObj(Item2).PageIndexWhereToDisplay then
+    {if TContentfulObj(Item1).PageIndexWhereToDisplay < TContentfulObj(Item2).PageIndexWhereToDisplay then
       Result := -1
     else if TContentfulObj(Item1).PageIndexWhereToDisplay > TContentfulObj(Item2).PageIndexWhereToDisplay then
       Result := 1
-    else // if  on same page
+    else // if  on same page}
     begin
       if TContentfulObj(Item1).Priority < TContentfulObj(Item2).Priority then
         Result := -1
