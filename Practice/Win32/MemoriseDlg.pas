@@ -655,9 +655,19 @@ begin
                     'Check to memorise on the contents of the Particulars field|' +
                     'Check to memorise on the contents of the Particulars field';
 
-   cCode.Hint       :=
-                    'Check to memorise on the contents of the Analysis Code field|' +
-                    'Check to memorise on the contents of the Analysis Code field';
+   case MyClient.clFields.clCountry of
+     whNewZealand :
+     begin
+       cCode.Hint := 'Check to memorise on the contents of the Analysis Code field|' +
+                     'Check to memorise on the contents of the Analysis Code field';
+     end;
+     whAustralia, whUK :
+     begin
+       cCode.Hint := 'Check to memorise on the contents of the Bank Type field|' +
+                     'Check to memorise on the contents of the Bank Type field';
+     end;
+   end;
+
    cNotes.Hint      :=
                     'Check to memorise on the contents of the notes field|';
    cmbValue.Hint    :=
