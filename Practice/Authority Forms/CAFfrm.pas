@@ -1068,7 +1068,13 @@ begin
   edtAccountNumber2.Text := '';
   edtAccountNumber3.Text := '';
   FInstitutionCode := '';
-  memMessage.Visible := False;
+  pnlAmexMessage.Visible := False;
+  pnlInstitution.Visible := True;
+  lblBranch.Visible := True;
+  edtBranch.Visible := True;
+  Bevel4.Visible := True;
+  pnlClient.Visible := True;
+  pnlData.Visible := True;
   if ((cmbInstitution.ItemIndex >= 0) and (Assigned(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])))) then
     FInstitutionCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
   if (fInstitutionType = inBLO) and (aInstitutionType = inOther) then
@@ -1166,14 +1172,6 @@ begin
           if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
              (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
           begin
-            pnlAmexMessage.Visible := False;
-            pnlInstitution.Visible := True;
-            lblBranch.Visible := True;
-            edtBranch.Visible := True;
-            Bevel4.Visible := True;
-            pnlClient.Visible := True;
-            pnlData.Visible := True;
-
             if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
             begin                            // order of making it hidden matters
               pnlData.Visible := False;
@@ -1194,8 +1192,8 @@ begin
             if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
             begin
               btnEmail.Left := btnPreview.Left;
-              Self.ActiveControl := btnEmail;
-              cmbInstitution.SetFocus;
+              //Self.ActiveControl := btnEmail;
+              //cmbInstitution.SetFocus;
             end;
 
             if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
