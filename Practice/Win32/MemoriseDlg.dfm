@@ -4,7 +4,7 @@ object dlgMemorise: TdlgMemorise
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Memorise Transaction'
   ClientHeight = 812
-  ClientWidth = 1034
+  ClientWidth = 1069
   Color = clBtnFace
   Constraints.MinHeight = 450
   Constraints.MinWidth = 570
@@ -23,16 +23,17 @@ object dlgMemorise: TdlgMemorise
   object Panel2: TPanel
     Left = 0
     Top = 776
-    Width = 1034
+    Width = 1069
     Height = 36
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitWidth = 1034
     DesignSize = (
-      1034
+      1069
       36)
     object btnOK: TButton
-      Left = 871
+      Left = 906
       Top = 6
       Width = 75
       Height = 25
@@ -46,9 +47,10 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 1
       OnClick = btnOKClick
+      ExplicitLeft = 871
     end
     object btnCancel: TButton
-      Left = 952
+      Left = 987
       Top = 6
       Width = 75
       Height = 25
@@ -63,6 +65,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 2
       OnClick = btnCancelClick
+      ExplicitLeft = 952
     end
     object btnCopy: TButton
       Left = 101
@@ -99,15 +102,16 @@ object dlgMemorise: TdlgMemorise
   object pnlMain: TPanel
     Left = 0
     Top = 207
-    Width = 1034
+    Width = 1069
     Height = 569
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitWidth = 1034
     object Splitter1: TSplitter
       Left = 0
       Top = 265
-      Width = 1034
+      Width = 1069
       Height = 3
       Cursor = crVSplit
       Align = alTop
@@ -118,7 +122,7 @@ object dlgMemorise: TdlgMemorise
     object pnlAllocateTo: TPanel
       Left = 0
       Top = 0
-      Width = 1034
+      Width = 1069
       Height = 265
       Align = alTop
       BevelOuter = bvNone
@@ -130,8 +134,9 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 0
+      ExplicitWidth = 1034
       DesignSize = (
-        1034
+        1069
         265)
       object lblAllocateTo: TLabel
         Left = 14
@@ -150,16 +155,18 @@ object dlgMemorise: TdlgMemorise
         AlignWithMargins = True
         Left = 6
         Top = 15
-        Width = 1024
+        Width = 1063
         Height = 26
         Margins.Left = 0
         Margins.Top = 0
         Margins.Right = 0
         Margins.Bottom = 5
         Anchors = [akLeft, akTop, akRight]
-        AutoSize = True
         BevelOuter = bvNone
         TabOrder = 0
+        DesignSize = (
+          1063
+          26)
         object sbtnPayee: TSpeedButton
           AlignWithMargins = True
           Left = 74
@@ -246,12 +253,12 @@ object dlgMemorise: TdlgMemorise
           AlignWithMargins = True
           Left = 554
           Top = 1
-          Width = 467
+          Width = 502
           Height = 24
           Margins.Top = 1
           Margins.Bottom = 1
-          Align = alClient
           Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
           ItemHeight = 16
           Sorted = True
           TabOrder = 2
@@ -260,7 +267,7 @@ object dlgMemorise: TdlgMemorise
       object tblSplit: TOvcTable
         Left = 8
         Top = 82
-        Width = 1019
+        Width = 1054
         Height = 132
         RowLimit = 6
         LockedCols = 0
@@ -307,19 +314,20 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblSplitGetCellAttributes
         OnMouseDown = tblSplitMouseDown
         OnUserCommand = tblSplitUserCommand
+        ExplicitWidth = 1019
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.colLineType'
-          'dlgMemorise.ColPercent'
-          'dlgMemorise.ColAmount'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colNarration'
+          'dlgMemorise.ColAcct'
           'dlgMemorise.ColDesc'
-          'dlgMemorise.ColAcct')
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.colLineType')
         RowData = (
-          21)
+          24)
         ColData = (
           86
           False
@@ -359,7 +367,7 @@ object dlgMemorise: TdlgMemorise
           'dlgMemorise.colLineType')
       end
       object Panel4: TPanel
-        Left = 505
+        Left = 540
         Top = 220
         Width = 529
         Height = 39
@@ -372,6 +380,7 @@ object dlgMemorise: TdlgMemorise
         Font.Style = []
         ParentFont = False
         TabOrder = 2
+        ExplicitLeft = 505
         object lblTotalPerc: TLabel
           Left = 287
           Top = 0
@@ -512,28 +521,30 @@ object dlgMemorise: TdlgMemorise
       object pnlAllocateToLine: TPanel
         Left = 0
         Top = 50
-        Width = 1034
+        Width = 1069
         Height = 2
         HelpContext = 2
         Anchors = [akLeft, akTop, akRight]
         BevelOuter = bvLowered
         TabOrder = 3
+        ExplicitWidth = 1034
       end
       object pnlChartLine: TPanel
         Left = 0
         Top = 5
-        Width = 1034
+        Width = 1069
         Height = 2
         HelpContext = 2
         Anchors = [akLeft, akTop, akRight]
         BevelOuter = bvLowered
         TabOrder = 4
+        ExplicitWidth = 1034
       end
     end
     object pnlMatchingTransactions: TPanel
       Left = 0
       Top = 268
-      Width = 1034
+      Width = 1069
       Height = 301
       Align = alClient
       BevelOuter = bvNone
@@ -544,8 +555,9 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 1
+      ExplicitWidth = 1034
       DesignSize = (
-        1034
+        1069
         301)
       object lblMatchingTransactions: TLabel
         Left = 14
@@ -563,7 +575,7 @@ object dlgMemorise: TdlgMemorise
       object tblTran: TOvcTable
         Left = 8
         Top = 28
-        Width = 1019
+        Width = 1054
         Height = 267
         RowLimit = 2
         LockedCols = 0
@@ -600,15 +612,16 @@ object dlgMemorise: TdlgMemorise
         OnActiveCellChanged = tblTranActiveCellChanged
         OnGetCellData = tblTranGetCellData
         OnGetCellAttributes = tblTranGetCellAttributes
+        ExplicitWidth = 1019
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranDate'
-          'dlgMemorise.colTranCodedBy'
-          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranAmount'
           'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranAmount')
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranDate')
         RowData = (
-          21)
+          24)
         ColData = (
           125
           False
@@ -636,13 +649,14 @@ object dlgMemorise: TdlgMemorise
   object pnlDetails: TPanel
     Left = 0
     Top = 0
-    Width = 1034
+    Width = 1069
     Height = 207
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitWidth = 1034
     DesignSize = (
-      1034
+      1069
       207)
     object lblMatchOn: TLabel
       Left = 14
@@ -679,7 +693,7 @@ object dlgMemorise: TdlgMemorise
     object cmbType: TComboBox
       Left = 150
       Top = 27
-      Width = 270
+      Width = 305
       Height = 24
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -692,6 +706,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 1
       OnExit = cCodeExit
+      ExplicitWidth = 270
     end
     object chkStatementDetails: TCheckBox
       Left = 12
@@ -713,7 +728,7 @@ object dlgMemorise: TdlgMemorise
     object eStatementDetails: TEdit
       Left = 150
       Top = 57
-      Width = 270
+      Width = 305
       Height = 48
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
@@ -729,6 +744,7 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 3
       Text = 'eStatement Details'
       OnExit = cCodeExit
+      ExplicitWidth = 270
     end
     object cRef: TCheckBox
       Left = 12
@@ -750,7 +766,7 @@ object dlgMemorise: TdlgMemorise
     object eRef: TEdit
       Left = 150
       Top = 117
-      Width = 270
+      Width = 305
       Height = 24
       Anchors = [akLeft, akTop, akRight]
       BorderStyle = bsNone
@@ -765,11 +781,12 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 5
       Text = 'eRef'
       OnExit = cCodeExit
+      ExplicitWidth = 270
     end
     object eOther: TEdit
       Left = 150
       Top = 147
-      Width = 270
+      Width = 305
       Height = 24
       Anchors = [akLeft, akTop, akRight]
       BorderStyle = bsNone
@@ -784,6 +801,7 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 6
       Text = 'eOther'
       OnExit = cCodeExit
+      ExplicitWidth = 270
     end
     object cOther: TCheckBox
       Left = 12
@@ -822,7 +840,7 @@ object dlgMemorise: TdlgMemorise
     object eCode: TEdit
       Left = 150
       Top = 177
-      Width = 270
+      Width = 305
       Height = 24
       Anchors = [akLeft, akTop, akRight]
       BorderStyle = bsNone
@@ -837,9 +855,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 9
       Text = 'eCode'
       OnExit = cCodeExit
+      ExplicitWidth = 270
     end
     object cNotes: TCheckBox
-      Left = 440
+      Left = 475
       Top = 150
       Width = 96
       Height = 17
@@ -855,9 +874,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 10
       OnClick = cNotesClick
       OnExit = cCodeExit
+      ExplicitLeft = 440
     end
     object cPart: TCheckBox
-      Left = 440
+      Left = 475
       Top = 120
       Width = 96
       Height = 17
@@ -873,9 +893,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 11
       OnClick = cPartClick
       OnExit = cCodeExit
+      ExplicitLeft = 440
     end
     object cValue: TCheckBox
-      Left = 440
+      Left = 475
       Top = 90
       Width = 96
       Height = 22
@@ -891,9 +912,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 12
       OnClick = cValueClick
       OnExit = cCodeExit
+      ExplicitLeft = 440
     end
     object cbTo: TCheckBox
-      Left = 440
+      Left = 475
       Top = 60
       Width = 96
       Height = 17
@@ -909,9 +931,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 13
       OnClick = cbToClick
       OnExit = cCodeExit
+      ExplicitLeft = 440
     end
     object cbFrom: TCheckBox
-      Left = 440
+      Left = 475
       Top = 30
       Width = 96
       Height = 17
@@ -927,9 +950,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 14
       OnClick = cbFromClick
       OnExit = cCodeExit
+      ExplicitLeft = 440
     end
     object eDateFrom: TOvcPictureField
-      Left = 545
+      Left = 580
       Top = 27
       Width = 70
       Height = 24
@@ -963,11 +987,12 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 15
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
+      ExplicitLeft = 545
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
     end
     object eDateTo: TOvcPictureField
-      Left = 545
+      Left = 580
       Top = 57
       Width = 70
       Height = 24
@@ -1001,11 +1026,12 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 16
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
+      ExplicitLeft = 545
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
     end
     object cmbValue: TComboBox
-      Left = 545
+      Left = 580
       Top = 87
       Width = 143
       Height = 24
@@ -1024,9 +1050,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 17
       OnChange = cmbValueChange
       OnExit = cCodeExit
+      ExplicitLeft = 545
     end
     object nValue: TOvcNumericField
-      Left = 694
+      Left = 729
       Top = 87
       Width = 113
       Height = 24
@@ -1056,11 +1083,12 @@ object dlgMemorise: TdlgMemorise
       OnChange = nValueChange
       OnExit = cCodeExit
       OnKeyPress = nValueKeyPress
+      ExplicitLeft = 694
       RangeHigh = {73B2DBB9838916F2FE43}
       RangeLow = {73B2DBB9838916F2FEC3}
     end
     object cbMinus: TComboBox
-      Left = 814
+      Left = 849
       Top = 87
       Width = 53
       Height = 24
@@ -1079,9 +1107,10 @@ object dlgMemorise: TdlgMemorise
       Items.Strings = (
         'CR'
         'DR')
+      ExplicitLeft = 814
     end
     object btnShowMoreOptions: TButton
-      Left = 896
+      Left = 931
       Top = 86
       Width = 129
       Height = 25
@@ -1095,9 +1124,10 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 20
       OnClick = btnShowMoreOptionsClick
+      ExplicitLeft = 896
     end
     object ePart: TEdit
-      Left = 545
+      Left = 580
       Top = 117
       Width = 262
       Height = 24
@@ -1114,9 +1144,10 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 21
       Text = 'ePart'
       OnExit = cCodeExit
+      ExplicitLeft = 545
     end
     object eNotes: TEdit
-      Left = 545
+      Left = 580
       Top = 147
       Width = 262
       Height = 24
@@ -1133,6 +1164,7 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 22
       Text = 'eCode'
       OnExit = cCodeExit
+      ExplicitLeft = 545
     end
   end
   object memController: TOvcController
@@ -1160,7 +1192,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1296,7 +1327,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1317,6 +1347,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1423,6 +1454,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False

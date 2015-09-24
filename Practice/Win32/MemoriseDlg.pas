@@ -317,6 +317,7 @@ type
     fTempByte : Byte;
     fTempInteger : integer;
     fTempString : string;
+    fTempAmount : double;
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
@@ -2046,7 +2047,8 @@ begin
       Data := @fTempString;
     end;
     mtAmount : begin
-      Data := @fMemTranSortedList.GetPRec(RowNum-1)^.Amount;
+      fTempAmount := fMemTranSortedList.GetPRec(RowNum-1)^.Amount/100;
+      Data := @fTempAmount;
     end;
     mtStatementDetails: begin
       fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Statement_Details;
