@@ -1,4 +1,4 @@
-unit formNPSWebHost;
+unit formWebHost;
 
 interface
 
@@ -9,9 +9,9 @@ uses
 
 const
   WM_SHOWING = WM_USER + 1;
-  
+
 type
-  TfrmNPSWebHost = class(TForm)
+  TfrmWebHost = class(TForm)
     WebBrowser: TBKWebBrowser;
     procedure FormShow(Sender: TObject);
     procedure WebBrowserQuit(Sender: TObject);
@@ -21,9 +21,14 @@ type
     procedure FormDestroy(Sender: TObject);
 
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure GetFinalRedirectedURL(ASender: TObject;
+      const pDisp: IDispatch; var URL: OleVariant);
 
   private
     FUrl: String;
+    FFragmentTerminateUrl : shortstring;
+    FFinalRedirectedUrl: String;
+    fCloseOnFinalRedirect : boolean;
     FOleInPlaceActiveObject: IOleInPlaceActiveObject;
     FSaveMessageHandler: TMessageEvent;
 
@@ -32,8 +37,14 @@ type
     procedure MsgHandler(var Msg: TMsg; var Handled: Boolean);
   public
     class procedure Show(Url: String ); static;
+    class function GetRedirectedURL( Sender : TComponent; aURL,
+      aFragmentTerminateUrl  : string;
+      aCloseOnFinalRedirect : boolean = true ) : string; static;
 
     property Url: String read FUrl write FUrl;
+    property FragmentTerminateUrl: shortstring read FFragmentTerminateUrl write FFragmentTerminateUrl;
+    property CloseOnFinalRedirect : boolean read fCloseOnFinalRedirect write fCloseOnFinalRedirect;
+    property FinalRedirectedUrl: String read FFinalRedirectedUrl;
   end;
 
 implementation
@@ -42,20 +53,40 @@ implementation
 
 { TfrmNPSWebHost }
 
-procedure TfrmNPSWebHost.FormCreate(Sender: TObject);
+class function TfrmWebHost.GetRedirectedURL( Sender : TComponent; aURL,
+        aFragmentTerminateUrl : string;
+        aCloseOnFinalRedirect : boolean = true  ) : string;
+var
+  frmWebHost : TfrmWebHost;
+begin
+  result := '';
+  frmWebHost := TfrmWebHost.Create( nil );
+  try
+    frmWebHost.Url := aUrl;
+    frmWebHost.FragmentTerminateUrl := aFragmentTerminateUrl;
+    frmWebHost.CloseOnFinalRedirect := aCloseOnFinalRedirect;
+    frmWebHost.WebBrowser.OnNavigateComplete2 := frmWebHost.GetFinalRedirectedURL;
+    frmWebHost.ShowModal;
+  finally
+    result := frmWebHost.FinalRedirectedUrl;
+    freeAndNil( frmWebHost );
+  end;
+end;
+
+procedure TfrmWebHost.FormCreate(Sender: TObject);
 begin
   FSaveMessageHandler := Forms.Application.OnMessage;
   Application.OnMessage := MsgHandler;
 end;
 
-procedure TfrmNPSWebHost.FormDestroy(Sender: TObject);
+procedure TfrmWebHost.FormDestroy(Sender: TObject);
 begin
   FOleInPlaceActiveObject := nil;
   Application.OnMessage := FSaveMessageHandler;
 end;
 
 
-procedure TfrmNPSWebHost.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfrmWebHost.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   WebBrowser.Stop;
 // DN !!!!!! Hack to avoid TWebBrowser bug that causes main process to hang on termination
@@ -64,12 +95,12 @@ begin
   Action := caFree;
 end;
 
-procedure TfrmNPSWebHost.FormShow(Sender: TObject);
+procedure TfrmWebHost.FormShow(Sender: TObject);
 begin
   PostMessage(Handle, WM_SHOWING, 0, 0);
 end;
 
-procedure TfrmNPSWebHost.MsgHandler(var Msg: TMsg; var Handled: Boolean);
+procedure TfrmWebHost.MsgHandler(var Msg: TMsg; var Handled: Boolean);
 const
   StdKeys = [VK_BACK, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_ESCAPE];
 var IOIPAO: IOleInPlaceActiveObject;
@@ -103,11 +134,11 @@ begin
   end;
 end;
 
-class procedure TfrmNPSWebHost.Show(Url: String);
+class procedure TfrmWebHost.Show(Url: String);
 var
-  WebForm: TfrmNPSWebHost;
+  WebForm: TfrmWebHost;
 begin
-  WebForm := TfrmNPSWebHost.Create(nil);
+  WebForm := TfrmWebHost.Create(nil);
 
   try
     WebForm.Url := Url;
@@ -118,13 +149,38 @@ begin
   end;
 end;
 
-procedure TfrmNPSWebHost.WebBrowserQuit(Sender: TObject);
+procedure TfrmWebHost.GetFinalRedirectedURL(ASender: TObject;
+  const pDisp: IDispatch; var URL: OleVariant);
+var
+  lURL : shortstring;
+  i : integer;
+begin
+  if not VarIsNull( URL  ) then begin
+    lURL := URL;
+
+    i := pos( fFragmentTerminateUrl, lURL );
+    if i > 0 then begin
+
+      lURL := copy(lURL, pos( fFragmentTerminateUrl, lURL ) +
+        length( fFragmentTerminateUrl ),
+          length( lURL ));
+      FFinalRedirectedUrl := URL;
+
+      if fCloseOnFinalRedirect then begin
+        WebBrowser.Stop;
+        Close;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmWebHost.WebBrowserQuit(Sender: TObject);
 begin
   WebBrowser.Stop;
   Close;
 end;
 
-procedure TfrmNPSWebHost.WebBrowserWindowClosing(ASender: TObject;
+procedure TfrmWebHost.WebBrowserWindowClosing(ASender: TObject;
   IsChildWindow: WordBool; var Cancel: WordBool);
 begin
   Cancel := True;
@@ -133,7 +189,7 @@ begin
   PostMessage(Handle, WM_CLOSE, 0, 0);
 end;
 
-procedure TfrmNPSWebHost.WMNCHitTest(var Msg: TWMNCHitTest);
+procedure TfrmWebHost.WMNCHitTest(var Msg: TWMNCHitTest);
 begin
   inherited;
 
@@ -143,7 +199,7 @@ begin
   end;
 end;
 
-procedure TfrmNPSWebHost.WMShowing(var Message: TMessage);
+procedure TfrmWebHost.WMShowing(var Message: TMessage);
 begin
   if FUrl <> '' then
   begin

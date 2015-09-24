@@ -1,4 +1,4 @@
-object frmNPSWebHost: TfrmNPSWebHost
+object frmWebHost: TfrmWebHost
   Left = 0
   Top = 0
   BorderStyle = bsDialog
