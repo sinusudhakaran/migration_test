@@ -3463,7 +3463,7 @@ begin
 	SetTextAttr(Result, 'BGLAccessToken', ceBGLAccessToken);
 	SetTextAttr(Result, 'BGLRefreshToken', ceBGLRefreshToken);
 	SetTextAttr(Result, 'BGLTokenType', ceBGLTokenType);
-	SetIntAttr(Result, 'BGLFundSelected', ceBGLFundSelected);
+	SetTextAttr(Result, 'BGLFundSelected', ceBGLFundSelected);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3624,7 +3624,7 @@ begin
 	ceBGLAccessToken := GetTextAttr(Result, 'BGLAccessToken');
 	ceBGLRefreshToken := GetTextAttr(Result, 'BGLRefreshToken');
 	ceBGLTokenType := GetTextAttr(Result, 'BGLTokenType');
-	ceBGLFundSelected := GetIntAttr(Result, 'BGLFundSelected');
+	ceBGLFundSelected := GetTextAttr(Result, 'BGLFundSelected');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

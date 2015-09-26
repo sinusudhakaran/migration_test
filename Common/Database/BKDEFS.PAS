@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 757;
+   BK_IOLIB_Version : Integer = 758;
    BK_IOLIB_Date    = '26/09/15';
    BK_FILE_VERSION  = 186;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -1448,7 +1448,7 @@ Type
       ceBGLRefreshToken                  : String[ 64 ];       { Stored }
       ceBGLTokenType                     : String[ 32 ];       { Stored }
       ceBGLTokenExpiresAt                : TDateTime;       { Stored }
-      ceBGLFundSelected                  : Integer;       { Stored }
+      ceBGLFundSelected                  : String[ 64 ];       { Stored }
       ceEOR                              : Byte;
    end;
 

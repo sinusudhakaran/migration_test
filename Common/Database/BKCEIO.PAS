@@ -197,7 +197,7 @@ Begin
       F.WriteStringValue( tkceBGLRefreshToken , ceBGLRefreshToken );
       F.WriteStringValue( tkceBGLTokenType , ceBGLTokenType );
       F.WriteDateTimeValue( tkceBGLTokenExpiresAt , ceBGLTokenExpiresAt );
-      F.WriteIntegerValue( tkceBGLFundSelected , ceBGLFundSelected );
+      F.WriteStringValue( tkceBGLFundSelected , ceBGLFundSelected );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -317,7 +317,7 @@ Begin
          tkceBGLRefreshToken                  : ceBGLRefreshToken := F.ReadStringValue;
          tkceBGLTokenType                     : ceBGLTokenType := F.ReadStringValue;
          tkceBGLTokenExpiresAt                : ceBGLTokenExpiresAt := F.ReadDateTimeValue;
-         tkceBGLFundSelected                  : ceBGLFundSelected := F.ReadIntegerValue;
+         tkceBGLFundSelected                  : ceBGLFundSelected := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }

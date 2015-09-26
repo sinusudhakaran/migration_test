@@ -1295,7 +1295,7 @@ F|BGLAccessToken|S|64
 F|BGLRefreshToken|S|64
 F|BGLTokenType|S|32
 F|BGLTokenExpiresAt|DT
-F|BGLFundSelected|L
+F|BGLFundSelected|S|64
 E
 
 N|Deleted Transaction|dx|233

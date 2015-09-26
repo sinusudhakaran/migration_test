@@ -469,8 +469,8 @@ namespace BankLink.Practice.BooksIO
 		/// <summary>
 		/// BGLFundSelected property
 		/// </summary>
-		[XmlAttribute("BGLFundSelected", DataType = "int")]
-		public Int32 BGLFundSelected { get; set; }
+		[XmlAttribute("BGLFundSelected", DataType = "string")]
+		public String BGLFundSelected { get; set; }
 
 
 		/// <summary>
@@ -544,7 +544,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteShortStringValue(96, BGLAccessToken);
 			s.WriteShortStringValue(97, BGLRefreshToken);
 			s.WriteShortStringValue(98, BGLTokenType);
-			s.WriteInt32Value(100, BGLFundSelected);
+			s.WriteShortStringValue(100, BGLFundSelected);
 			s.WriteToken(41);
 		}
 
@@ -735,7 +735,7 @@ namespace BankLink.Practice.BooksIO
 				BGLTokenType = s.ReadShortStringValue("BGLTokenType");
 				break;
 			case 100 :
-				BGLFundSelected = s.ReadInt32Value("BGLFundSelected");
+				BGLFundSelected = s.ReadShortStringValue("BGLFundSelected");
 				break;
 			case BeginToken :
 			case EndToken :
