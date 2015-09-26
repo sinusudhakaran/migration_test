@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, uLKJSON, IdCoder, IdCoderMIME, StrUtils, uHttplib,
-  uBaseRESTServer, ipshttps, Contnrs;
+  uBaseRESTServer, ipshttps, Contnrs, Files;
 
 const
   ENDPOINT_BGI360_Authorise  = '/oauth/authorize?response_type=code&client_id=%s&scope=%s';
@@ -37,6 +37,7 @@ type
   public
     procedure Deserialize(Json: String); override;
     function Serialize: String; override;
+    function SaveTokens: Boolean;
 
     property Access_token : string read fAccess_token;
     property Token_type : string read fToken_type;
@@ -164,7 +165,6 @@ type
 
     function Get_FundList: boolean;
     function Get_Chart_Of_Accounts( aFundID : string ) : boolean;
-
     procedure Set_Auth_Tokens( Access_token : string; Token_type : string;
       Refresh_token : string; Expires_in : string; Scope : string );
 (*    procedure SetNPSIdentity(Identity: TJsonObject);
@@ -177,6 +177,8 @@ type
     property Auth_Code              : string read fAuth_Code write fAuth_Code;
     property Authorization          : string read GetAuthorization write SetAuthorization;
     property Auth_Token             : TAuth_TokenObj read fAuth_TokenObj;
+
+    property FundList : TFundList_Obj read fFundList_Obj;
   end;
 
 implementation
@@ -184,7 +186,8 @@ uses
   LogUtil,
   formWebHost,
   Variants,
-  DateUtils;
+  DateUtils,
+  Globals;
 
 const
   unitname = 'uNPSServer';
@@ -431,11 +434,24 @@ begin
     fRefresh_token := JsonObject.Field['refresh_token'].Value;
     fExpires_in    := JsonObject.Field['expires_in'].Value;
     fScope         := JsonObject.Field['scope'].Value;
-
+    //fWill_Expire_At
 // Calculate when this token will expire//
-    fWill_Expire_At := Now + ( OneSecond * strToInt( fExpires_In ) ) 
+    fWill_Expire_At := Now + ( OneSecond * strToInt( fExpires_In ) )
   finally
     JsonObject.Free;
+  end;
+end;
+
+function TAuth_TokenObj.SaveTokens: Boolean;
+begin
+  // Save tokens to client file.
+  if Assigned( MyClient ) then
+  begin
+    MyClient.clExtra.ceBGLAccessToken := fAccess_token;
+    MyClient.clExtra.ceBGLRefreshToken := fRefresh_token;
+    MyClient.clExtra.ceBGLTokenType := fToken_type;
+    MyClient.clExtra.ceBGLTokenExpiresAt := fWill_Expire_At;
+    SaveClient(false);
   end;
 end;
 
