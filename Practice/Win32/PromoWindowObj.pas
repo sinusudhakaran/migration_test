@@ -201,7 +201,6 @@ var
   ShowedPromoWindow : Boolean;
 
 const
-  PRACTICE_CONTENTSPACE_URL = 'https://cdn.contentful.com/spaces';
   PRACTICE_CONTENTSPACE_ID = 'wdv0bic4eogs';
   PRACTICE_CONTENTSPACE_ACCESSTOKEN = 'efb76108931ac5ad44d673725b637bbda58d97d3dada8a344411dd5fb41af43c';
 
@@ -219,7 +218,7 @@ const
 implementation
 
 uses Dialogs, Math, Variants,IdBaseComponent, IdComponent, IdTCPConnection,
-      IdTCPClient,IdHTTP, Forms, Globals, DateUtils, LogUtil;
+      IdTCPClient,IdHTTP, Forms, Globals, DateUtils, LogUtil, bkURLs;
 
 var
   DebugMe : Boolean = False;
@@ -375,7 +374,10 @@ end;
 function TContentfulDataList.GetContentfulURL(aContentType: TContentType): string;
 begin
   //Add base url and space id
-  Result := PRACTICE_CONTENTSPACE_URL + '/' + PRACTICE_CONTENTSPACE_ID + '/';
+  if Trim(Globals.PRACINI_Contentful_API_URL)= '' then
+    Globals.PRACINI_Contentful_API_URL := TUrls.DefContentfulAPIUrl;
+
+  Result := Globals.PRACINI_Contentful_API_URL + '/' + PRACTICE_CONTENTSPACE_ID + '/';
   //Add access token
   Result := Result + 'entries?access_token=' +  PRACTICE_CONTENTSPACE_ACCESSTOKEN;
 
@@ -641,9 +643,6 @@ begin
     FipsHTTPS.Connected := False;
   finally
     ProcessingData := False;
-
-    Items := Nil;
-    Assets := Nil;
     AssetList.Clear;
     FreeAndNil(AssetList);
     FreeAndNil(BaseJSONObject);

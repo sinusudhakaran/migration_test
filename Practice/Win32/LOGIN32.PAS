@@ -18,6 +18,8 @@ uses
   ExtCtrls, StdCtrls, sydefs, pwdSeed, Mask, jpeg,osFont;
 
 type
+  TLoginType = (ltNormal, ltNewUser, ltUpgrade);
+
   TfrmLogin = class(TForm)
     pnlBackground: TPanel;
     pnlLogin: TPanel;
@@ -50,7 +52,6 @@ type
     Tries     : integer;
     SuperPwd  : string;
     FPassword: String;
-
     function Login(uName, pass: String; out Cancelled: Boolean): Boolean;
     class procedure UpdateLocalSecurePassword(UserCode: String; const Password: String);
 
@@ -67,6 +68,8 @@ type
     property Password: String read FPassword;
   end;
 
+var
+    LoginType : TLoginType;
 procedure ShowPromoWindow(aUserRec : pUser_Rec);
 
 function LoginUser(TryUserName : string): boolean;
@@ -452,8 +455,12 @@ var
 begin
   Result := True;
   {EULA differs - must accept}
+  LoginType := ltNormal;
   if User.usEULA_Version <> WinUtils.GetAppVersionStr then
   begin
+    LoginType := ltUpgrade;
+    if User.usEULA_Version = '' then
+      LoginType := ltNewUser;
     f := TDlgLicense.Create(O);
     try
       //Prevent the license agreement window from appearing behind the login screen.
@@ -856,7 +863,7 @@ begin
       (aUserRec.usCode <> SUPERUSER)) ) then
   begin
     // Show this after an upgrade or for a new user
-    if ((PRACINI_CurrentVersion <> WinUtils.GetAppVersionStr) or (Trim(aUserRec.usEULA_Version) = '' )) then
+    if (LoginType in [ltUpgrade, ltNewUser]) then
     begin
       {Prevent superuser and automatic logins}
       DisplayPromoContents.UpgradeVersionFrom := PRACINI_CurrentVersion;
