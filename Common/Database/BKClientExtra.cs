@@ -441,6 +441,38 @@ namespace BankLink.Practice.BooksIO
 		public String CashbookExportFileLocation { get; set; }
 
 
+
+		/// <summary>
+		/// BGLAccessToken property
+		/// </summary>
+		[XmlAttribute("BGLAccessToken", DataType = "string")]
+		public String BGLAccessToken { get; set; }
+
+
+
+		/// <summary>
+		/// BGLRefreshToken property
+		/// </summary>
+		[XmlAttribute("BGLRefreshToken", DataType = "string")]
+		public String BGLRefreshToken { get; set; }
+
+
+
+		/// <summary>
+		/// BGLTokenType property
+		/// </summary>
+		[XmlAttribute("BGLTokenType", DataType = "string")]
+		public String BGLTokenType { get; set; }
+
+
+
+		/// <summary>
+		/// BGLFundSelected property
+		/// </summary>
+		[XmlAttribute("BGLFundSelected", DataType = "int")]
+		public Int32 BGLFundSelected { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -509,6 +541,10 @@ namespace BankLink.Practice.BooksIO
 			s.WriteInt32Value(93, AddPrefixForAccountCode);
 			s.WriteShortStringValue(94, CashbookGSTMapFileLocation);
 			s.WriteShortStringValue(95, CashbookExportFileLocation);
+			s.WriteShortStringValue(96, BGLAccessToken);
+			s.WriteShortStringValue(97, BGLRefreshToken);
+			s.WriteShortStringValue(98, BGLTokenType);
+			s.WriteInt32Value(100, BGLFundSelected);
 			s.WriteToken(41);
 		}
 
@@ -688,6 +724,18 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 95 :
 				CashbookExportFileLocation = s.ReadShortStringValue("CashbookExportFileLocation");
+				break;
+			case 96 :
+				BGLAccessToken = s.ReadShortStringValue("BGLAccessToken");
+				break;
+			case 97 :
+				BGLRefreshToken = s.ReadShortStringValue("BGLRefreshToken");
+				break;
+			case 98 :
+				BGLTokenType = s.ReadShortStringValue("BGLTokenType");
+				break;
+			case 100 :
+				BGLFundSelected = s.ReadInt32Value("BGLFundSelected");
 				break;
 			case BeginToken :
 			case EndToken :

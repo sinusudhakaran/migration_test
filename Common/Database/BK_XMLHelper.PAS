@@ -3460,6 +3460,10 @@ begin
 	SetIntAttr(Result, 'AddPrefixForAccountCode', ceAdd_Prefix_For_Account_Code);
 	SetTextAttr(Result, 'CashbookGSTMapFileLocation', ceCashbook_GST_Map_File_Location);
 	SetTextAttr(Result, 'CashbookExportFileLocation', ceCashbook_Export_File_Location);
+	SetTextAttr(Result, 'BGLAccessToken', ceBGLAccessToken);
+	SetTextAttr(Result, 'BGLRefreshToken', ceBGLRefreshToken);
+	SetTextAttr(Result, 'BGLTokenType', ceBGLTokenType);
+	SetIntAttr(Result, 'BGLFundSelected', ceBGLFundSelected);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3617,6 +3621,10 @@ begin
 	ceAdd_Prefix_For_Account_Code := GetIntAttr(Result, 'AddPrefixForAccountCode');
 	ceCashbook_GST_Map_File_Location := GetTextAttr(Result, 'CashbookGSTMapFileLocation');
 	ceCashbook_Export_File_Location := GetTextAttr(Result, 'CashbookExportFileLocation');
+	ceBGLAccessToken := GetTextAttr(Result, 'BGLAccessToken');
+	ceBGLRefreshToken := GetTextAttr(Result, 'BGLRefreshToken');
+	ceBGLTokenType := GetTextAttr(Result, 'BGLTokenType');
+	ceBGLFundSelected := GetIntAttr(Result, 'BGLFundSelected');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

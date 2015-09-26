@@ -1291,6 +1291,11 @@ F|Include Non-Posting Chart Codes|Y
 F|Add Prefix For Account Code|L
 F|Cashbook GST Map File Location|S|250
 F|Cashbook Export File Location|S|250
+F|BGLAccessToken|S|64
+F|BGLRefreshToken|S|64
+F|BGLTokenType|S|32
+F|BGLTokenExpiresAt|DT
+F|BGLFundSelected|L
 E
 
 N|Deleted Transaction|dx|233
