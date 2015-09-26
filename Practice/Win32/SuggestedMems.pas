@@ -112,6 +112,7 @@ type
     procedure UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId : integer; aIsHidden : boolean);
     function GetSuggestionUsedByTransaction(const aBankAccount: TBank_Account; const aTrans : pTransaction_Rec; const aChart : TChart; var aSuggMemItem : TSuggMemSortedListRec) : boolean;
     function GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList) : boolean;
+    function IsAccountUsedByMem(const aBankAccount: TBank_Account; const aTempMem : TMemorisation) : boolean;
 
     procedure SetSuggestedTransactionState(const aBankAccount : TBank_Account; const aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false; aIsBulk : boolean = false); Overload;
     procedure SetSuggestedTransactionState(const aBankAccount : TBank_Account; const aTrans : pTran_Suggested_Index_Rec; aState : byte; aAccountChanged : boolean = false; aIsBulk : boolean = false); Overload;
@@ -443,6 +444,42 @@ begin
       NewSuggMemSortedItem.HasPotentialIssue := false;
 
       aMemTranSortedList.AddItem(NewSuggMemSortedItem);
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TSuggestedMems.IsAccountUsedByMem(const aBankAccount: TBank_Account; const aTempMem: TMemorisation): boolean;
+var
+  TranIndex : integer;
+  Tran : pTransaction_Rec;
+begin
+  Result := false;
+  for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
+  begin
+    Tran := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
+
+    if Tran^.txLocked then
+      Continue;
+
+    If Tran^.txDate_Transferred <> 0 then
+      Continue;
+
+    If ( Tran^.txType <> aTempMem.mdFields^.mdType ) and
+       not ( aTempMem.mdFields^.mdType = AllEntries ) then
+      Continue;
+
+    if Tran^.txDate_Effective < aTempMem.mdFields^.mdFrom_Date then
+      Continue;
+
+    if (aTempMem.mdFields^.mdUntil_Date > 0) and
+       (Tran^.txDate_Effective > aTempMem.mdFields^.mdUntil_Date) then
+      Continue;
+
+    if CanMemorise(Tran, aTempMem) then
+    begin
+      Result := true;
+      Exit;
     end;
   end;
 end;

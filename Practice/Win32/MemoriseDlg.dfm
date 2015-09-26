@@ -86,7 +86,7 @@ object dlgMemorise: TdlgMemorise
       Width = 89
       Height = 25
       Anchors = [akLeft, akBottom]
-      Caption = 'Delete'
+      Caption = '&Delete'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -312,15 +312,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.colLineType'
-          'dlgMemorise.ColPercent'
-          'dlgMemorise.ColAmount'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colNarration'
+          'dlgMemorise.ColAcct'
           'dlgMemorise.ColDesc'
-          'dlgMemorise.ColAcct')
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.colLineType')
         RowData = (
           24)
         ColData = (
@@ -605,11 +605,11 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranDate'
-          'dlgMemorise.colTranCodedBy'
-          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranAmount'
           'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranAmount')
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranDate')
         RowData = (
           24)
         ColData = (
@@ -633,6 +633,15 @@ object dlgMemorise: TdlgMemorise
           False
           True
           'dlgMemorise.colTranCodedBy')
+      end
+      object treView: TTreeView
+        Left = 8
+        Top = 28
+        Width = 1054
+        Height = 267
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Indent = 19
+        TabOrder = 1
       end
     end
   end
@@ -1163,7 +1172,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1299,7 +1307,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1320,6 +1327,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1426,6 +1434,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False
