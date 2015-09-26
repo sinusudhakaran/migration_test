@@ -42,6 +42,8 @@ type
     class function DefSecureFormLinkAU: String; static;
     class function DefIBizzFormLinkAU: String; static;
     class function DefAdditionalFormLinkAU: String; static;
+    class function DefBGL360APIUrl : string; static;
+    class function DefContentfulAPIUrl: string; static;
 
     class property WebSites[Index: Integer]: String read GetWebSites;
     class property WebSiteURLs[Index: Integer]: String read GetWebSiteURLs;
@@ -227,6 +229,16 @@ begin
   begin
     Result := 'https://www.banklinkonline.com/services/practiceintegrationfacade.svc';
   end;
+end;
+
+class function TUrls.DefBGL360APIUrl: string;
+begin
+  Result := 'https://api-staging.bgl360.com.au/';
+end;
+
+class function TUrls.DefContentfulAPIUrl: string;
+begin
+  Result := 'https://cdn.contentful.com/spaces';
 end;
 
 class function TUrls.DefInstListLinkAU: String;
