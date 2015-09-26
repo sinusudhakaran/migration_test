@@ -1005,8 +1005,7 @@ begin
       BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
                 MyClient.clExtra.ceBGLTokenType,
                 MyClient.clExtra.ceBGLRefreshToken,
-                MyClient.clExtra.ceBGLTokenExpiresAt,
-                '');
+                MyClient.clExtra.ceBGLTokenExpiresAt);
       if BGLServer.CheckForAuthentication then
       begin
         BGLServer.Get_FundList;
