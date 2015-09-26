@@ -35,6 +35,7 @@ type
     fScope : string;
     fWill_Expire_At: TDateTime;
   public
+    constructor Create; virtual;
     procedure Deserialize(Json: String); override;
     function Serialize: String; override;
     function SaveTokens: Boolean;
@@ -161,8 +162,8 @@ type
     procedure SynchroniseLogMessage;
 
   // Authentication
-    procedure Set_Auth_Tokens( Access_token : string; Token_type : string;
-      Refresh_token : string; Will_Expire_At: TDateTime; Scope : string );
+    procedure Set_Auth_Tokens( aAccess_token : string; aToken_type : string;
+      aRefresh_token : string; aWill_Expire_At: TDateTime );
 
     function CheckForAuthentication : boolean;
 
@@ -240,14 +241,32 @@ begin
     ( trim( Auth_Token.Access_token ) <> '' ) and
     ( trim( Auth_Token.Token_type ) <> '' ) and
     ( trim( Auth_Token.Refresh_token ) <> '' ) and
-    ( SecondsBetween( Now, Auth_Token.fWill_Expire_At ) > 0 ) and
+    ( Now < Auth_Token.fWill_Expire_At ) and
     ( trim( Auth_Token.Scope ) <> '' );
 
-  if not result then
-    result := Get_Auth_Code;
-
-//  if Get then
-  
+  if not result then begin
+  result := {Check if there was ever a Token}
+    ( trim( Auth_Token.Access_token ) <> '' ) and
+    ( trim( Auth_Token.Token_type ) <> '' ) and
+    ( trim( Auth_Token.Refresh_token ) <> '' ) and
+    ( trim( Auth_Token.Scope ) <> '' );
+    if not result then begin      // If there has never been a token
+      result := Get_Auth_Code;    // Need to Authorise, and retrieve Auth_Code
+      if result then
+        result := Get_Auth_Tokens; // Now we can ask for the Tokens
+        if not result then
+          exit;
+    end
+    else begin // There has been a token previously, let's try and refresh
+      result := Get_Refresh_Tokens; // Try and refresh the tokens
+      if not result then begin // something went wrong, let's try and re-authorise
+        freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
+        fAuth_TokenObj := TAuth_TokenObj.Create;  // Recreate the Auth Tokens;
+        Inc( RetryCount );
+        result := CheckForAuthentication;         // Call this routine recursively
+      end;
+    end;
+  end;
 end;
 
 constructor TBGLServer.Create(aOwner : TThread; aAuthenticationKey,
@@ -383,19 +402,17 @@ begin
   end;
 end;
 
-procedure TBGLServer.Set_Auth_Tokens(Access_token: string; Token_type: string; Refresh_token: string;
-  Will_Expire_At: TDateTime; Scope: string);
+procedure TBGLServer.Set_Auth_Tokens( aAccess_token: string;
+            aToken_type: string; aRefresh_token: string;
+            aWill_Expire_At: TDateTime);
 begin
-  fAuth_TokenObj.fAccess_token   := Access_token;
-  fAuth_TokenObj.fToken_type     := Token_type;
-  fAuth_TokenObj.fRefresh_token  := Refresh_token;
+  fAuth_TokenObj.fAccess_token   := aAccess_token;
+  fAuth_TokenObj.fToken_type     := aToken_type;
+  fAuth_TokenObj.fRefresh_token  := aRefresh_token;
 
-  fAuth_TokenObj.fWill_Expire_At := Will_Expire_At;
-//    Now + ( OneSecond * strToInt( fExpires_In ) )
+  fAuth_TokenObj.fWill_Expire_At := aWill_Expire_At;
 
-//  fAuth_TokenObj.fExpires_in    := SecondsBetween( Will_Expire_At, Now );
-
-  fAuth_TokenObj.fScope         := Scope;
+  fAuth_TokenObj.fExpires_in    := intToStr( SecondsBetween( Will_Expire_At, Now ) );
 end;
 
 procedure TBGLServer.SynchroniseLogMessage;
@@ -438,6 +455,19 @@ end;
 
 
 { TAuth_Tokens }
+
+constructor TAuth_TokenObj.Create;
+begin
+  inherited;
+// Pre-Initialise the fields
+  fAccess_Token   := '';
+  fToken_type     := '';
+  fRefresh_token  := '';
+  fExpires_in     := '';
+  fScope          := '';
+
+  fWill_Expire_At :=  0;
+end;
 
 procedure TAuth_TokenObj.Deserialize(Json: String);
 var
