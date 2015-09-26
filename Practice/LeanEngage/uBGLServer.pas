@@ -241,15 +241,13 @@ begin
     ( trim( Auth_Token.Access_token ) <> '' ) and
     ( trim( Auth_Token.Token_type ) <> '' ) and
     ( trim( Auth_Token.Refresh_token ) <> '' ) and
-    ( Now < Auth_Token.fWill_Expire_At ) and
-    ( trim( Auth_Token.Scope ) <> '' );
+    ( Now < Auth_Token.fWill_Expire_At );
 
   if not result then begin
   result := {Check if there was ever, a Token}
     ( trim( Auth_Token.Access_token ) <> '' ) and
     ( trim( Auth_Token.Token_type ) <> '' ) and
-    ( trim( Auth_Token.Refresh_token ) <> '' ) and
-    ( trim( Auth_Token.Scope ) <> '' );
+    ( trim( Auth_Token.Refresh_token ) <> '' );
     if not result then begin      // If there has never been a token
       result := Get_Auth_Code;    // Need to Authorise, and retrieve Auth_Code
       if result then
