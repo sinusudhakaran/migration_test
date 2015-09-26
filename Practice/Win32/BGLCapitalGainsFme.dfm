@@ -58,7 +58,7 @@ object fmeBGLCapitalGainsTax: TfmeBGLCapitalGainsTax
   object nfCGTDiscounted: TOvcNumericField
     Left = 250
     Top = 1
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -80,7 +80,7 @@ object fmeBGLCapitalGainsTax: TfmeBGLCapitalGainsTax
   object nfCGTIndexation: TOvcNumericField
     Left = 250
     Top = 33
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -102,7 +102,7 @@ object fmeBGLCapitalGainsTax: TfmeBGLCapitalGainsTax
   object nfCGTOther: TOvcNumericField
     Left = 250
     Top = 65
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble

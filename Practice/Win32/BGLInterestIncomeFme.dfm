@@ -41,7 +41,7 @@ object fmeBGLInterestIncome: TfmeBGLInterestIncome
   object nfInterest: TOvcNumericField
     Left = 250
     Top = 1
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -63,7 +63,7 @@ object fmeBGLInterestIncome: TfmeBGLInterestIncome
   object nfOtherIncome: TOvcNumericField
     Left = 250
     Top = 33
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble

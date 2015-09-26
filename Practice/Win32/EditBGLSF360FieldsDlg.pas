@@ -847,6 +847,7 @@ begin
   FSkip := 0;
   Glyph := TBitMap.Create;
   ImagesFrm.AppImages.Maintain.GetBitmap( MAINTAIN_LOCK_BMP, Glyph );
+
   // showmember component options
 //DN  cmbMember.Items.Clear;
 end;
@@ -1321,7 +1322,17 @@ end;
 procedure TdlgEditBGLSF360Fields.SetTransactionType(
   const Value: TTransactionTypes);
 
-  procedure ShowHeaderFields;
+  procedure SetFields( aFields : array of TControl; aVisible : boolean );
+  var
+    i : integer;
+  begin
+    for i := 0 to high( aFields ) do
+      aFields[ i ].Visible := aVisible;
+  end;
+
+(*  procedure HideFields( Fields : array of TControl );
+  var
+    i : integer;
   begin
     lblUnits.Visible         := true;
     nfUnits.Visible          := true;
@@ -1333,27 +1344,24 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     eRecordDate.Visible      := true;
     lblEntryType.Visible     := true;
     sfEntryType.Visible      := true;
+  end; *)
+
+  procedure ShowAllHeaderFields;
+  begin
+    SetFields( [ lblUnits, nfUnits, lblCashDate, eCashDate,
+      lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
+      sfEntryType ], true );
   end;
 
-  procedure HideHeaderFields;
+  procedure HideAllHeaderFields;
   begin
-    lblUnits.Visible         := false;
-    nfUnits.Visible          := false;
-    lblCashDate.Visible      := false;
-    eCashDate.Visible        := false;
-    lblAccrualDate.Visible   := false;
-    eAccrualDate.Visible     := false;
-    lblRecordDate.Visible    := false;
-    eRecordDate.Visible      := false;
-    lblEntryType.Visible     := false;
-    sfEntryType.Visible      := false;
+    SetFields( [ lblUnits, nfUnits, lblCashDate, eCashDate,
+      lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
+      sfEntryType ], false );
   end;
 
   procedure Configure_Distribution;
   begin
-    ShowHeaderFields;
-//DN UI Changes-Angela    lbldispEntryType.Caption := 'Distribution';
-    sfEntryType.Text        := 'Distribution';
     pnlDistribution.Visible := true;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := false;
@@ -1362,9 +1370,6 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure Configure_Dividend;
   begin
-    ShowHeaderFields;
-//DN UI Changes-Angela    lbldispEntryType.Caption := 'Dividend';
-    sfEntryType.Text        := 'Dividend';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := true;
     pnlInterest.Visible     := false;
@@ -1373,9 +1378,6 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure Configure_Interest;
   begin
-    ShowHeaderFields;
-//DN UI Changes-Angela    lbldispEntryType.Caption := 'Interest';
-    sfEntryType.Text        := 'Interest';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := true;
@@ -1384,9 +1386,6 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure Configure_ShareTrade;
   begin
-    ShowHeaderFields;
-//DN UI Changes-Angela    lbldispEntryType.Caption := 'Share Trade';
-    sfEntryType.Text        := 'Share Trade';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := false;
@@ -1395,24 +1394,59 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure Configure_OtherTX;
   begin
-    HideHeaderFields;
-//DN UI Changes-Angela    lbldispEntryType.Caption := 'Other';
-    sfEntryType.Text        := 'Other';
     pnlDistribution.Visible := false;
     pnlDividend.Visible     := false;
     pnlInterest.Visible     := false;
     pnlShareTrade.Visible   := false;
   end;
 
+  procedure SetupFields( const Value: TTransactionTypes );
+  begin
+    ShowAllHeaderFields;
+    lblCashDate.Caption   := 'Cash Date';
+    lblRecordDate.Caption := 'Record Date';
+    case Value of
+      ttDistribution : begin
+        sfEntryType.Text        := 'Distribution';
+        Configure_Distribution;
+      end;
+      ttDividend     : begin
+        sfEntryType.Text        := 'Dividend';
+        Configure_Dividend;
+      end;
+      ttInterest     : begin
+        sfEntryType.Text      := 'Interest';
+        SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
+          lblRecordDate, eRecordDate ], false );
+        Configure_Interest;
+      end;
+      ttShareTrade   : begin
+        sfEntryType.Text      := 'Share Trade';
+        lblCashDate.Caption   := 'Contract Date';
+        lblRecordDate.Caption := 'Settlement Date';
+        SetFields( [ lblAccrualDate, eAccrualDate ], false );
+        Configure_ShareTrade;
+      end;
+      ttOtherTx      : begin
+        sfEntryType.Text        := 'Other';
+        HideAllHeaderFields;
+        Configure_OtherTX;
+      end;
+      else begin
+      end;
+    end;
+  end;
+
 begin
   try
-    case Value of
+(*    case Value of
       ttDistribution : Configure_Distribution;
       ttDividend     : Configure_Dividend;
       ttInterest     : Configure_Interest;
       ttShareTrade   : Configure_ShareTrade;
       ttOtherTx      : Configure_OtherTx;
-    end;
+    end; *)
+    SetupFields( Value );
   finally
     fTransactionType := Value;
   end;

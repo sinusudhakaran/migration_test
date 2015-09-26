@@ -90,7 +90,7 @@ object fmeBGLFranking: TfmeBGLFranking
   object nfFranked: TOvcNumericField
     Left = 250
     Top = 1
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -112,7 +112,7 @@ object fmeBGLFranking: TfmeBGLFranking
   object nfUnfranked: TOvcNumericField
     Left = 250
     Top = 33
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -134,7 +134,7 @@ object fmeBGLFranking: TfmeBGLFranking
   object nfFrankingCredits: TOvcNumericField
     Left = 250
     Top = 65
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble

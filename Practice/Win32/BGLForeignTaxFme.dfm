@@ -92,7 +92,7 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object nfForeignIncomeTaxOffset: TOvcNumericField
     Left = 250
     Top = 3
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -114,7 +114,7 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object nfAUFrankingCreditsFromNZCompany: TOvcNumericField
     Left = 250
     Top = 35
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -136,7 +136,7 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object nfTFNAmountsWithheld: TOvcNumericField
     Left = 250
     Top = 67
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -158,7 +158,7 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object nfNonResidentWithholdingTax: TOvcNumericField
     Left = 250
     Top = 99
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
@@ -180,7 +180,7 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object nfLICDeductions: TOvcNumericField
     Left = 250
     Top = 131
-    Width = 129
+    Width = 132
     Height = 20
     Cursor = crIBeam
     DataType = nftDouble
