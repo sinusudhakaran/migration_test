@@ -245,7 +245,7 @@ begin
     ( trim( Auth_Token.Scope ) <> '' );
 
   if not result then begin
-  result := {Check if there was ever a Token}
+  result := {Check if there was ever, a Token}
     ( trim( Auth_Token.Access_token ) <> '' ) and
     ( trim( Auth_Token.Token_type ) <> '' ) and
     ( trim( Auth_Token.Refresh_token ) <> '' ) and
@@ -262,7 +262,6 @@ begin
       if not result then begin // something went wrong, let's try and re-authorise
         freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
         fAuth_TokenObj := TAuth_TokenObj.Create;  // Recreate the Auth Tokens;
-        Inc( RetryCount );
         result := CheckForAuthentication;         // Call this routine recursively
       end;
     end;
@@ -336,61 +335,87 @@ end;
 
 function TBGLServer.Get_Auth_Tokens: boolean;
 begin
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code] ) );
+  result:= true;
+  try
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code] ) );
 
-  Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code ]), nil,
-    fAuth_TokenObj );
+    Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code ]), nil,
+      fAuth_TokenObj );
+      
 
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code ] ) );
+    result := fAuth_TokenObj.SaveTokens;
 
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code ] ) );
+
+  except
+    result := false
+  end;
 end;
 
 function TBGLServer.Get_Chart_Of_Accounts( aFundID : string ) : boolean;
 begin
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code] ) );
+  result:= true;
+  try
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code] ) );
 
-  Post( asOAuth, format( ENDPOINT_BGI360_Chart_Of_Accounts, [ aFundID ] ),
-    nil, fChar_Of_Accounts_Obj );
+    Post( asOAuth, format( ENDPOINT_BGI360_Chart_Of_Accounts, [ aFundID ] ),
+      nil, fChar_Of_Accounts_Obj );
 
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code ] ) );
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code ] ) );
+
+  except
+    result := false
+  end;
 
 end;
 
 function TBGLServer.Get_FundList: boolean;
 begin
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code] ) );
+  result := true;
+  try
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code] ) );
 
-  Post( asOAuth, ENDPOINT_BGI360_Fund_List, nil, fFundList_Obj );
+    Post( asOAuth, ENDPOINT_BGI360_Fund_List, nil, fFundList_Obj );
 
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code ] ) );
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code ] ) );
+  except
+    result := false;
+  end;
 end;
 
 function TBGLServer.Get_Refresh_Tokens: boolean;
 begin
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code] ) );
+  result:= true;
+  try
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code] ) );
 
-  Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
-    [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey ]), nil,
-    fAuth_TokenObj );
+    Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
+      [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey ]), nil,
+      fAuth_TokenObj );
 
-  if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
-      [ Auth_Code ] ) );
+    result := fAuth_TokenObj.SaveTokens;
 
+    if DebugMe then
+      SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
+        [ Auth_Code ] ) );
+
+  except
+    result := false;
+  end;
 end;
 
 procedure TBGLServer.SetAndSynchroniseLogMessage(aLogMessage: string);
@@ -412,7 +437,7 @@ begin
 
   fAuth_TokenObj.fWill_Expire_At := aWill_Expire_At;
 
-  fAuth_TokenObj.fExpires_in    := intToStr( SecondsBetween( Will_Expire_At, Now ) );
+  fAuth_TokenObj.fExpires_in    := intToStr( SecondsBetween( aWill_Expire_At, Now ) );
 end;
 
 procedure TBGLServer.SynchroniseLogMessage;
