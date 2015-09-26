@@ -225,6 +225,16 @@ object dlgAcctSystem: TdlgAcctSystem
         OnClick = chkUseCustomLedgerCodeClick
       end
     end
+    object btnConnectBGL: TButton
+      Left = 140
+      Top = 136
+      Width = 129
+      Height = 25
+      Anchors = [akLeft, akBottom]
+      Caption = 'BGL Sign in'
+      TabOrder = 8
+      OnClick = btnConnectBGLClick
+    end
   end
   object GBExtract: TGroupBox
     AlignWithMargins = True
@@ -351,7 +361,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 4
-    OnClick = gbxWebExportClick
     object Label4: TLabel
       Left = 16
       Top = 16

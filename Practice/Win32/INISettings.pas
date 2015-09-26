@@ -35,6 +35,9 @@ procedure UpdateMemorisationINI_WithLock();
 procedure WriteMemorisationINI_WithLock(aClientCode : string);
 procedure ReadMemorisationINI(aClientCode : string);
 
+function EncryptAToken(aToken: string;var RandomKey: string):string;
+function DecryptAToken(aToken: string;RandomKey: string):string;
+
 //------------------------------------------------------------------------------
 implementation
 uses
@@ -57,7 +60,8 @@ uses
   bkProduct,
   StrUtils,
   dbCreate,
-  BKIniFiles;
+  BKIniFiles,
+  EncryptOpenSSL;
 
 const
    GrpMainForm = 'MainForm';
@@ -128,6 +132,8 @@ const
 
    UnitName      = 'INISettings';
 
+  INIT_VECTOR = '@AT^NK(@YUVK)$#Y';
+  RANDOM_KEY = 'BANKLNK5';
 const
    BK5_INI_Version = 1;
 
@@ -794,6 +800,14 @@ begin
         PRACINI_IPClientLocking_TCPTimeOut := ReadInteger( GrpLocking, 'IPClientLockingTCPTimeOut', 100);
         PRACINI_IPClientLocking_ProcessMessageDelay := ReadInteger( GrpLocking, 'IPClientLockingProcessMessageDelay', 250);
 
+        {BGL API URL}
+        PRACINI_BGL360_API_URL := ReadString(GrpPracLinks,'BGL360APIURL', TUrls.DefBGL360APIUrl);
+        PRACINI_Random_Key := ReadString(GrpPracInfo,'Key', OpenSSLEncription.GetRandomKey);
+        PRACINI_BGL360_Client_ID := ReadString(GrpPracInfo,'BGL360ClientID', EncryptAToken('bankLinkTest',PRACINI_Random_Key));
+        PRACINI_BGL360_Client_Secret := ReadString(GrpPracInfo,'BGL360ClientSecret', EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
+        {Contentful API URL}
+        PRACINI_Contentful_API_URL := ReadString(GrpPracLinks,'ContentfulAPIURL', TUrls.DefContentfulAPIUrl);
+
         CreateGuid(Guid);
         StrGuid := TrimedGuid(Guid);
         PRACINI_IPClientLocking_GROUP_ID := ReadString( GrpLocking, 'IPClientLockingGroupID', StrGuid);
@@ -963,6 +977,16 @@ begin
            WriteString(GrpLocking,  'IPClientLockingGroupID', PRACINI_IPClientLocking_GROUP_ID);
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
+
+          {BGL API URL}
+           WriteString(GrpPracLinks,  'BGL360APIURL', PRACINI_BGL360_API_URL);
+           WriteString(GrpPracInfo,  'BGL360ClientID', PRACINI_BGL360_Client_ID);
+           WriteString(GrpPracInfo,  'BGL360ClientSecret', PRACINI_BGL360_Client_Secret);
+           WriteString(GrpPracInfo,  'Key', PRACINI_Random_Key);
+
+          {Contentful API URL}
+           WriteString(GrpPracLinks,  'ContentfulAPIURL', PRACINI_Contentful_API_URL);
+
          end;
       finally
          PracIniFile.UpdateFile;
@@ -1422,6 +1446,29 @@ begin
       Msg := 'Error during read of MemsIniFile - '+ e.Message;
       LogUtil.LogError( UnitName, Msg);
     end;
+  end;
+end;
+
+function DecryptAToken(aToken: string; RandomKey: string):string;
+begin
+  Result := '';
+
+  if OpenSSLEncription.AESDecrypt(RandomKey, aToken, Result, INIT_VECTOR) then
+  begin
+    //EncryptedKey := OpenSSLEncription.SimpleRSAEncrypt(KeyString, GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN);
+    //Result := EncryptedToken + KEY_DELIMMITER + EncryptedKey;
+  end;
+end;
+
+function EncryptAToken(aToken: string;var RandomKey: string):string;
+begin
+  Result := '';
+  if Trim(RandomKey) = '' then
+    RandomKey := OpenSSLEncription.GetRandomKey;
+  if OpenSSLEncription.AESEncrypt(RandomKey, aToken, Result, INIT_VECTOR) then
+  begin
+    //EncryptedKey := OpenSSLEncription.SimpleRSAEncrypt(KeyString, GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN);
+    //Result := EncryptedToken + KEY_DELIMMITER + EncryptedKey;
   end;
 end;
 

@@ -700,6 +700,14 @@ var
     PRACINI_IPClientLocking_ProcessMessageDelay : integer;
     PRACINI_IPClientLocking_GROUP_ID : string;
 
+    {BGL 360 API url}
+    PRACINI_BGL360_API_URL: string = '';
+    PRACINI_Random_Key : string = '';
+    PRACINI_BGL360_Client_ID: string = 'bankLinkTest';
+    PRACINI_BGL360_Client_Secret: string = 'bankLinkSecret';
+    {Contentful API URL}
+    PRACINI_Contentful_API_URL : string = '';
+
 const
     //LeanEngage
     cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';

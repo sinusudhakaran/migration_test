@@ -57,7 +57,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 416
-    ActivePage = tsBankLinkOnline
+    ActivePage = tbsDetails
     MultiLine = True
     TabOrder = 0
     OnChange = PageControl1Change
@@ -999,6 +999,46 @@ object frmPracticeDetails: TfrmPracticeDetails
         TabOrder = 0
         Text = 'mskABN'
         OnClick = mskABNClick
+      end
+    end
+    object tsBGL360: TTabSheet
+      Caption = 'BGL 360 Credentials'
+      ImageIndex = 7
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object lblLoginClientID: TLabel
+        Left = 16
+        Top = 28
+        Width = 82
+        Height = 13
+        Caption = 'Banklink Client ID'
+        FocusControl = edtBGLClientID
+      end
+      object lblLoginSecret: TLabel
+        Left = 16
+        Top = 60
+        Width = 72
+        Height = 13
+        Caption = 'Banklink Secret'
+        FocusControl = edtBGLSecret
+      end
+      object edtBGLClientID: TEdit
+        Left = 129
+        Top = 25
+        Width = 383
+        Height = 21
+        TabOrder = 0
+        Text = 'bankLinkTest'
+      end
+      object edtBGLSecret: TEdit
+        Left = 129
+        Top = 57
+        Width = 383
+        Height = 21
+        TabOrder = 1
+        Text = 'bankLinkSecret'
       end
     end
   end

@@ -62,6 +62,7 @@ type
     btnOk: TButton;
     btnCancel: TButton;
     Shape1: TShape;
+    btnConnectBGL: TButton;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);
@@ -81,7 +82,8 @@ type
     procedure btndefaultClick(Sender: TObject);
     procedure ckExtractClick(Sender: TObject);
     procedure cmbWebFormatsChange(Sender: TObject);
-    procedure gbxWebExportClick(Sender: TObject);
+    procedure pnlBGLConnectClick(Sender: TObject);
+    procedure btnConnectBGLClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -143,7 +145,11 @@ uses
   BlopiServiceFacade,
   BanklinkOnlineSettingsFrm,
   bkBranding,
-  bkProduct;
+  bkProduct,
+  uBGLServer,
+  INISettings,
+  FundListSelectionFrm,
+  Files;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -172,7 +178,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgAcctSystem.gbxWebExportClick(Sender: TObject);
+procedure TdlgAcctSystem.pnlBGLConnectClick(Sender: TObject);
 begin
 
 end;
@@ -422,9 +428,13 @@ begin
      if pnlMASLedgerCode.visible then begin
        gbxAccounting.Height := gbxAccounting.Height - pnlMASLedgerCode.Height;
        Self.Height := Self.Height - pnlMASLedgerCode.Height;
-       pnlMASLedgerCode.visible := false;       
+       pnlMASLedgerCode.visible := false;
      end;
    end;
+   lblFrom.Visible := (SelectedSystem <> saBGL360);
+   eFrom.Visible := lblFrom.Visible;
+   btnFromFolder.Visible := lblFrom.Visible;
+   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
  end;
 
 //------------------------------------------------------------------------------
@@ -975,6 +985,55 @@ var
 begin
   Ledger := Trim( ExtractFileName( ExcludeTrailingBackslash(eFrom.Text)));
   myobao_utils.CheckBankManID( Ledger, MyClient.clFields.clCode);
+end;
+
+procedure TdlgAcctSystem.btnConnectBGLClick(Sender: TObject);
+var
+  BGLServer: TBGLServer;
+  FundFrm : TFundSelectionFrm;
+begin
+  BGLServer:= TBGLServer.Create(Nil,
+                      DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
+                      DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
+                      Globals.PRACINI_BGL360_API_URL);
+  FundFrm := TFundSelectionFrm.Create(Nil);
+  try
+    if Assigned(MyClient) then
+    begin
+      // Get all BGL values from client file and
+      BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
+                MyClient.clExtra.ceBGLTokenType,
+                MyClient.clExtra.ceBGLRefreshToken,
+                MyClient.clExtra.ceBGLTokenExpiresAt,
+                '');
+      if BGLServer.CheckForAuthentication then
+      begin
+        BGLServer.Get_FundList;
+        if BGLServer.FundList.Count > 0  then
+        begin
+          FundFrm.FundListJSON := BGLServer.FundList;
+          FundFrm.SelectedFundID := MyClient.clExtra.ceBGLFundSelected;
+          if ((FundFrm.ShowModal = mrOk) and (Trim(FundFrm.SelectedFundID) <> '')) then
+          begin
+            if MyClient.clExtra.ceBGLFundSelected <> FundFrm.SelectedFundID then
+            begin
+              MyClient.clExtra.ceBGLFundSelected := FundFrm.SelectedFundID;
+              SaveClient(false);
+            end;
+            BGLServer.Get_Chart_Of_Accounts(FundFrm.SelectedFundID);
+
+          end;
+        end
+        else
+          ShowMessage('No BGL 360 fund list retrieved');
+      end
+      else
+        ShowMessage('BGL Authentication Failed');
+    end;
+  finally
+    FreeAndNil(BGLServer);
+    FreeAndNil(FundFrm);
+  end;
 end;
 
 //------------------------------------------------------------------------------
