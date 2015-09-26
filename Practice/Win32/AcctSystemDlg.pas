@@ -149,7 +149,8 @@ uses
   uBGLServer,
   INISettings,
   FundListSelectionFrm,
-  Files;
+  Files,
+  SimpleFund;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -1020,8 +1021,8 @@ begin
               MyClient.clExtra.ceBGLFundSelected := FundFrm.SelectedFundID;
               SaveClient(false);
             end;
-            BGLServer.Get_Chart_Of_Accounts(FundFrm.SelectedFundID);
-
+            //BGLServer.Get_Chart_Of_Accounts(FundFrm.SelectedFundID);
+            RefreshChart;
           end;
         end
         else
