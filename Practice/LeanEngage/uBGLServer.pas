@@ -152,25 +152,27 @@ type
   //     e.g.
   //       Client_ID = 'bankLinkTest';
   //       Client_Secret = 'bankLinkSecret';
-      constructor Create(aOwner : TThread; aAuthenticationKey,
+    constructor Create(aOwner : TThread; aAuthenticationKey,
                   aAuthenticationPassword, aServerBaseUrl: String); reintroduce;
     destructor Destroy; override;
 
+  // Logging
     procedure SetAndSynchroniseLogMessage( aLogMessage : string );
     procedure SynchroniseLogMessage;
+
+  // Authentication
+    procedure Set_Auth_Tokens( Access_token : string; Token_type : string;
+      Refresh_token : string; Will_Expire_At: TDateTime; Scope : string );
+
+    function CheckForAuthentication : boolean;
 
     function Get_Auth_Code : boolean;
     function Get_Auth_Tokens : boolean;
     function Get_Refresh_Tokens : boolean;
 
+  // API Function calls
     function Get_FundList: boolean;
     function Get_Chart_Of_Accounts( aFundID : string ) : boolean;
-    procedure Set_Auth_Tokens( Access_token : string; Token_type : string;
-      Refresh_token : string; Expires_in : string; Scope : string );
-(*    procedure SetNPSIdentity(Identity: TJsonObject);
-    procedure GetNPSSurvey(UserId: String; Survey: TJsonObject);
-    procedure setEventTrack( UserId: string; MessageContent : TJsonObject);
-    procedure setFeedBackResponse(UserId : string; MessageContent : TJsonObject; Feedback : TFeedbackJSON); *)
 
     property AuthenticationKey : string read fAuthenticationKey;
     property AuthenticationPassword : string read fAuthenticationPassword;
@@ -230,6 +232,22 @@ begin
     AddBasicAuthenticationHeader( Http )
   else
     AddOAuthAuthenticationHeader( Http );
+end;
+
+function TBGLServer.CheckForAuthentication: boolean;
+begin
+  result :=
+    ( trim( Auth_Token.Access_token ) <> '' ) and
+    ( trim( Auth_Token.Token_type ) <> '' ) and
+    ( trim( Auth_Token.Refresh_token ) <> '' ) and
+    ( SecondsBetween( Now, Auth_Token.fWill_Expire_At ) > 0 ) and
+    ( trim( Auth_Token.Scope ) <> '' );
+
+  if not result then
+    result := Get_Auth_Code;
+
+//  if Get then
+  
 end;
 
 constructor TBGLServer.Create(aOwner : TThread; aAuthenticationKey,
@@ -365,13 +383,18 @@ begin
   end;
 end;
 
-procedure TBGLServer.Set_Auth_Tokens(Access_token, Token_type, Refresh_token,
-  Expires_in, Scope: string);
+procedure TBGLServer.Set_Auth_Tokens(Access_token: string; Token_type: string; Refresh_token: string;
+  Will_Expire_At: TDateTime; Scope: string);
 begin
-  fAuth_TokenObj.fAccess_token  := Access_token;
-  fAuth_TokenObj.fToken_type    := Token_type;
-  fAuth_TokenObj.fRefresh_token := Refresh_token;
-  fAuth_TokenObj.fExpires_in    := Expires_in;
+  fAuth_TokenObj.fAccess_token   := Access_token;
+  fAuth_TokenObj.fToken_type     := Token_type;
+  fAuth_TokenObj.fRefresh_token  := Refresh_token;
+
+  fAuth_TokenObj.fWill_Expire_At := Will_Expire_At;
+//    Now + ( OneSecond * strToInt( fExpires_In ) )
+
+//  fAuth_TokenObj.fExpires_in    := SecondsBetween( Will_Expire_At, Now );
+
   fAuth_TokenObj.fScope         := Scope;
 end;
 
@@ -434,7 +457,7 @@ begin
     fRefresh_token := JsonObject.Field['refresh_token'].Value;
     fExpires_in    := JsonObject.Field['expires_in'].Value;
     fScope         := JsonObject.Field['scope'].Value;
-    //fWill_Expire_At
+
 // Calculate when this token will expire//
     fWill_Expire_At := Now + ( OneSecond * strToInt( fExpires_In ) )
   finally
