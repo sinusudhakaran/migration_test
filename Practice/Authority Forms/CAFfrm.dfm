@@ -588,6 +588,7 @@ object frmCAF: TfrmCAF
           Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
+          OnClick = lblMaskErrorHint2Click
         end
         object edtNameOfAccount2: TEdit
           Left = 8
@@ -916,7 +917,7 @@ object frmCAF: TfrmCAF
       Left = 0
       Top = 649
       Width = 763
-      Height = 122
+      Height = 170
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 4
@@ -926,7 +927,7 @@ object frmCAF: TfrmCAF
         Left = 28
         Top = 3
         Width = 732
-        Height = 116
+        Height = 164
         Margins.Left = 28
         TabStop = False
         Align = alClient
@@ -950,6 +951,7 @@ object frmCAF: TfrmCAF
             '(The link will include your practice code, to ensure that the da' +
             'ta gets delivered to you.)')
         TabOrder = 0
+        ExplicitHeight = 116
       end
     end
   end

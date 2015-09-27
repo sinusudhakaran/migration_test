@@ -185,6 +185,7 @@ type
     procedure edtAccountNumber2Enter(Sender: TObject);
     procedure edtAccountNumber3Enter(Sender: TObject);
     procedure pnlDataClick(Sender: TObject);
+    procedure lblMaskErrorHint2Click(Sender: TObject);
   private
     fValidAccount1 : boolean;
     fValidAccount2 : boolean;
@@ -448,6 +449,11 @@ end;
 procedure TfrmCAF.lbliBizzMouseLeave(Sender: TObject);
 begin
   lbliBizz.Font.Style := [];
+end;
+
+procedure TfrmCAF.lblMaskErrorHint2Click(Sender: TObject);
+begin
+
 end;
 
 //------------------------------------------------------------------------------
