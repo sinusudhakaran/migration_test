@@ -45,7 +45,6 @@ type
     tsPayeeDetails: TTabSheet;
     tsContractorDetails: TTabSheet;
     pnlMain: TPanel;
-    tblSplit: TOvcTable;
     Panel2: TPanel;
     sbtnChart: TSpeedButton;
     sbtnSuper: TSpeedButton;
@@ -114,6 +113,7 @@ type
     Shape5: TShape;
     ShapeBottom: TShape;
     Shape6: TShape;
+    tblSplit: TOvcTable;
 
     procedure tblSplitActiveCellMoving(Sender: TObject; Command: Word;
       var RowNum, ColNum: Integer);
@@ -318,7 +318,7 @@ begin
 
   vsbWidth    := GetSystemMetrics( SM_CXVSCROLL );
   //resize the account col so that longest account code fits
-  tblSplit.Columns[ AccountCol ].Width := CalcAcctColWidth( tblSplit.Canvas, tblSplit.Font, 80);
+  tblSplit.Columns[ AccountCol ].Width := CalcAcctColWidth( tblSplit.Canvas, tblSplit.Font, 84);
 
   with tblSplit.Controller.EntryCommands do begin
     {remove F2 functionallity}
@@ -344,7 +344,7 @@ begin
         if not Columns[i].Hidden then
            W := W + Columns.Width[i];
      end;
-     Columns[ NarrationCol ].Width := Columns[ NarrationCol ].Width + ( Width - W ) - 2 - vsbWidth;;
+     Columns[ NarrationCol ].Width := Columns[ NarrationCol ].Width + ( Width - W ) {- 2} - vsbWidth;
   end;
 
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,sbtnChart.Glyph);
@@ -1399,7 +1399,7 @@ procedure TdlgPayeeDetail.sbtnChartClick(Sender: TObject);
 begin
 //  keybd_event(vk_f2,0,0,0); seems to be unreliable when called from the pop-up menu
   tblSplit.SetFocus;
-  tblSplitUserCommand(Self, tcLookup);  
+  tblSplitUserCommand(Self, tcLookup);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2090,7 +2090,7 @@ begin
             W := W + Columns.Width[i];
       end;
       i := GetSystemMetrics( SM_CXVSCROLL ); //Get Width Vertical Scroll Bar
-      W := W + i + 4;
+      W := W + i + 1;
       Columns[ NarrationCol ].Width := Columns[ NarrationCol ].Width + ( Width - W );
    end;
 end;
