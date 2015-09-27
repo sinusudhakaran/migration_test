@@ -112,7 +112,7 @@ begin
 
   // Layot and settings of main panel
   Self.Height := 44;
-  Self.Height := 600;
+  Self.Width := 600;
   Self.Align := alBottom;
   Self.BevelInner := bvNone;
   Self.BevelKind := bkNone;
@@ -121,29 +121,36 @@ begin
 
   // Layout of left arrow
   FLeftArrow := TLabel.Create(Self);
+  FLeftArrow.ParentColor := False;
+  FLeftArrow.Color := clRed;
   FLeftArrow.Parent := Self;
+
   FLeftArrow.OnClick := lblLeftArrowClick;
   FLeftArrow.OnMouseMove := OnArrowMove;
   FLeftArrow.OnMouseLeave := OnArrowLeave;
-  FLeftArrow.AutoSize := False;
   FLeftArrow.Caption := '<';
-  FLeftArrow.Height := 33;
+  FLeftArrow.AutoSize := True;
+  FLeftArrow.Alignment := taCenter;
+  FLeftArrow.Height := Self.Height;
   FLeftArrow.Width := FPageControlWidth;
   FLeftArrow.Font.Size := 20;
   FLeftArrow.Font.Style := [fsBold];
 
   // Layout of right arrow
   FRightArrow := TLabel.Create(Self);
+  FRightArrow.ParentColor := False;
+  FRightArrow.Color := clRed;
   FRightArrow.Parent := Self;
-  FRightArrow.AutoSize := False;
   FRightArrow.OnClick := lblRightArrowClick;
   FRightArrow.OnMouseMove := OnArrowMove;
   FRightArrow.OnMouseLeave := OnArrowLeave;
   FRightArrow.Caption := '>';
-  FRightArrow.Height := 33;
+  FRightArrow.Alignment := FLeftArrow.Alignment;
+  FRightArrow.Height := FLeftArrow.Height;
+  FRightArrow.AutoSize := FLeftArrow.AutoSize;
   FRightArrow.Width := FPageControlWidth;
-  FRightArrow.Font.Size := 20;
-  FRightArrow.Font.Style := [fsBold];
+  FRightArrow.Font.Size := FLeftArrow.Font.Size;
+  FRightArrow.Font.Style := FLeftArrow.Font.Style;
 
   FPages := TObjectList.Create;
   NoOfPages := 2;
@@ -204,17 +211,20 @@ begin
     if Assigned(Page) then
     begin
       Page.Left := LeftStart;
+      Page.Height := FPageControlWidth;
+      Page.Width := FPageControlWidth;
       Page.Visible := True;
+      Page.Center := True;
+
       LeftStart := LeftStart + FPageControlWidth + FPageControlMargin;
     end;
   end;
+
   FRightArrow.Left := LeftStart;
   LeftStart := LeftStart + FPageControlWidth + FPageControlMargin;
   FLeftArrow.Visible := True;
-  FLeftArrow.Top := 6;
   FLeftArrow.ParentColor := False;
   FLeftArrow.ParentFont := False;
-  FLeftArrow.AutoSize := True;
   FRightArrow.Visible := True;
   FRightArrow.Top := FLeftArrow.Top;
   FRightArrow.ParentColor := FLeftArrow.ParentColor;
@@ -311,7 +321,7 @@ begin
     if Assigned(Image) then
     begin
       Position := Ceil((Self.Height - Image.Height) / 2);
-      Image.Top := Position;
+      Image.Top := Position+1;
     end;
   end;
 end;
@@ -341,13 +351,9 @@ begin
     PageImage := TImage.Create(Self);
     PageImage.Parent := Self;
     PageImage.Visible := True;
-    PageImage.Height := FPageControlWidth;
-    PageImage.Width := FPageControlWidth;
     PageImage.Tag := i;
-    PageImage.Top := 14;
-    PageImage.Center := True;
     PageImage.OnClick := ImageClick;
-    
+
     if i = 1  then
       SetPageImageColour(PageImage, ctPurple)
     else
