@@ -73,7 +73,6 @@ type
     FBank_Account : TObject;
     FAuditMgr     : TClientAuditManager;
     FLoading      : boolean;
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving    fTransaction_Extension_List : TTransaction_Extension_List;
 
     fTran_Suggested_Index : TTran_Suggested_Index;
     fTran_Transaction_Code_Index : TTran_Transaction_Code_Index;
@@ -92,7 +91,6 @@ type
     function Compare(Item1,Item2 : Pointer): Integer; override;
     procedure Insert(Item:Pointer); override;
     procedure Insert_Transaction_Rec(var p: pTransaction_Rec; NewAuditID: Boolean = True);
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving    procedure Insert_Transaction_Extension_Rec( var p: pTransaction_Extension_Rec );
 
     procedure LoadFromFile(var S : TIOStream);
     procedure SaveToFile(var S: TIOStream);
@@ -136,7 +134,6 @@ type
     property AuditMgr: TClientAuditManager read FAuditMgr write SetAuditMgr;
 
     property Tran_Suggested_Index : TTran_Suggested_Index read fTran_Suggested_Index;
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving    property Transaction_Extension_List : TTransaction_Extension_List read fTransaction_Extension_List;
   end;
 
   procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
@@ -293,15 +290,13 @@ Begin
          This := Next;
       end;
 
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving
-    //DN BGL360 Extended Fields
-    if assigned( p^.txTranaction_Extension ) then
-      if BKTEIO.IsATransaction_Extension_Rec( p^.txTranaction_Extension ) then begin
-        BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( p^.txTranaction_Extension^ );
-        MALLOC.SafeFreeMem( p^.txTranaction_Extension, Transaction_Extension_Rec_Size );
-      end;
-    //DN BGL360 Extended Fields
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+      //DN BGL360 Extended Fields
+      if assigned( p^.txTranaction_Extension ) then
+        if BKTEIO.IsATransaction_Extension_Rec( p^.txTranaction_Extension ) then begin
+          BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( p^.txTranaction_Extension^ );
+          MALLOC.SafeFreeMem( p^.txTranaction_Extension, Transaction_Extension_Rec_Size );
+        end;
+      //DN BGL360 Extended Fields
 
       BKTXIO.Free_Transaction_Rec_Dynamic_Fields( P^);
       MALLOC.SafeFreeMem( P, Transaction_Rec_Size );
@@ -406,6 +401,7 @@ begin
   LogUtil.LogMsg(lmError, UnitName, Msg );
   raise EInvalidCall.CreateFmt( '%s - %s', [ UnitName, Msg ] );
 end;
+
 //------------------------------------------------------------------------------
 procedure TTransaction_List.FreeItem(Item : Pointer);
 begin
@@ -413,14 +409,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-(*//DN BGL360 Extended Fields - Try a different method for storing and retrieving
-procedure TTransaction_List.Insert_Transaction_Extension_Rec(
-  var p: pTransaction_Extension_Rec);
-begin
-  fTransaction_Extension_List.Insert_Transaction_Extension_Rec( P );
-end;
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving*)
-
 procedure TTransaction_List.Insert_Transaction_Rec(var p: pTransaction_Rec;
   NewAuditID: Boolean = True);
 const
@@ -486,15 +474,6 @@ Begin
           P^.txTranaction_Extension := NewTran_Transaction_Extension_Rec;
         end;
       end;
-(*//DN BGL360 Extended Fields - Try a different method for storing and retrieving
-      NewTran_Transaction_Extension_Rec := fTransaction_Extension_List.New_Transaction_Extension;
-      if assigned( NewTran_Transaction_Extension_Rec ) then begin
-        NewTran_Transaction_Extension_Rec^.teSequence_No := P^.txSequence_No;
-        NewTran_Transaction_Extension_Rec^.teDate_Effective := P^.txDate_Effective;
-
-        fTransaction_Extension_List.Insert_Transaction_Extension_Rec( NewTran_Transaction_Extension_Rec );
-      end;
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving*)
     end;
 
     //Get next audit ID for new transactions
@@ -568,19 +547,6 @@ Begin
                if not assigned( PTX^.txTranaction_Extension ) then // The Extension has not beein built yet
                  PTX^.txTranaction_Extension := New_Transaction_Extension_Rec;
                Read_Transaction_Extension_Rec( PTX^.txTranaction_Extension^, S )
-(*DN BGL360 Extended Fields - Try a different method for storing and retrieving
-               if fTransaction_Extension_List.SearchUsingDateandTranSeqNo(
-                    pTX^.txDate_Effective, pTX^.txSequence_No,
-                    iTransactionIndex ) then begin
-                 pTXe := fTransaction_Extension_List.Transaction_Extension_At( iTransactionIndex );
-                 Read_Transaction_Extension_Rec( pTXe^, S );
-               end
-               else begin
-                 pTXe := New_Transaction_Extension_Rec;
-                 Read_Transaction_Extension_Rec( pTXe^, S );
-                 Insert_Transaction_Extension_Rec( pTXe );
-               end;
-DN BGL360 Extended Fields - Try a different method for storing and ret6rieving *)
              end
 
            else
@@ -615,7 +581,7 @@ begin
   ClearSuperFundFields(Result);
 end;
 
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving
+//DN BGL360 Extended Fields 
 function TTransaction_List.New_Transaction_Extension_Rec: pTransaction_Extension_Rec;
 begin
   // Create a Transaction Rec with Object references
@@ -698,15 +664,6 @@ Begin
         pTX^.txTranaction_Extension := pTXe;
       end;
       BKTEIO.Write_Transaction_Extension_Rec( pTXe^, S );
-(*//DN BGL360 Extended Fields - Try a different method for storing and retrieving
-      pTXe := fTransaction_Extension_List.Transaction_Extension_At( i );
-      if not assigned( pTXe ) then begin
-        pTXe := fTransaction_Extension_List.New_Transaction_Extension;
-        pTXe^.teSequence_No := pTX^.txSequence_No;
-        pTXe^.teDate_Effective := pTX^.txDate_Effective;
-      end;
-      BKTEIO.Write_Transaction_Extension_Rec( pTXe^, S );
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving*)
    end;
    S.WriteToken( tkEndSection );
 
@@ -947,8 +904,6 @@ begin
   fTran_Suggested_Index := TTran_Suggested_Index.Create;
   fTran_Transaction_Code_Index := TTran_Transaction_Code_Index.Create;
 
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving  fTransaction_Extension_List := TTransaction_Extension_List.Create;
-
   FLoading := False;
   Duplicates := false;
   FLastSeq := 0;
@@ -959,7 +914,6 @@ end;
 
 destructor TTransaction_List.Destroy;
 begin
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving  FreeAndNil( fTransaction_Extension_List );
   FreeAndNil( fTran_Transaction_Code_Index );
   FreeAndNil( fTran_Suggested_Index );
   inherited;

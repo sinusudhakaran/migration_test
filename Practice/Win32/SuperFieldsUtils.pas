@@ -117,17 +117,21 @@ type
   procedure ClearSuperfundDetails(mwr: PmemSplitRec); overload;
   procedure ClearWorkRecDetails(mwr: PmemSplitRec); overload;
 
-  function EditSuperFields( ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
-  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)pWD : pWorkDissect_Rec;
-                             var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
+  function EditSuperFields( ParentTrans : pTransaction_Rec;
+                            var Move: TFundNavigation; var T, L: Integer;
+                            BA: TBank_Account = nil) : boolean; overload;
+  function EditSuperFields(  ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec;
+                             var Move: TFundNavigation; var T, L: Integer;
+                             BA: TBank_Account = nil) : boolean; overload;
 
-  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)pWJ : pWorkJournal_Rec;
-                             var Move: TFundNavigation; var T, L: Integer; BA: TBank_Account = nil) : boolean; overload;
+  function EditSuperFields(  ParentTrans : pTransaction_Rec; pWJ : pWorkJournal_Rec;
+                             var Move: TFundNavigation; var T, L: Integer;
+                             BA: TBank_Account = nil) : boolean; overload;
 
-  function EditSuperFields(  ParentTrans : pTransaction_Rec; (*ParentTransExtra : pTransaction_Extension_Rec; *)var Mem : TmemSplitRec;
+  function EditSuperFields(  ParentTrans : pTransaction_Rec; var Mem : TmemSplitRec;
                              var Move: TFundNavigation; var T, L: Integer;
                              aSDMode : TSuperDialogMode;
-                             BA: TBank_Account = nil
+                             BA: TBank_Account = nil 
                              ) : boolean; overload;
 
   function CompanyTax(ForDate: Integer): Money;
@@ -672,32 +676,32 @@ begin
     else
       SuperForm.Position := poScreenCenter;
     if SuperForm.ShowModal = mrOK then
+    begin
+      Move := SuperForm.MoveDirection;
+      pWJ^.dtSF_Super_Fields_Edited := SuperForm.GetFields( pWJ^.dtSF_Imputed_Credit,
+                           pWJ^.dtSF_Tax_Free_Dist,
+                           pWJ^.dtSF_Tax_Exempt_Dist,
+                           pWJ^.dtSF_Tax_Deferred_Dist,
+                           pWJ^.dtSF_TFN_Credits,
+                           pWJ^.dtSF_Foreign_Income,
+                           pWJ^.dtSF_Foreign_Tax_Credits,
+                           pWJ^.dtSF_Capital_Gains_Indexed,
+                           pWJ^.dtSF_Capital_Gains_Disc,
+                           pWJ^.dtSF_Other_Expenses,
+                           pWJ^.dtSF_Capital_Gains_Other,
+                           pWJ^.dtSF_Franked,
+                           pWJ^.dtSF_Unfranked,
+                           pWJ^.dtSF_CGT_Date,
+                           pWJ^.dtSF_Member_Component,
+                           pWJ^.dtAccount,
+                           pWJ^.dtQuantity);
+      if Move in [fnGoForward, fnGoBack] then
       begin
-        Move := SuperForm.MoveDirection;
-        pWJ^.dtSF_Super_Fields_Edited := SuperForm.GetFields( pWJ^.dtSF_Imputed_Credit,
-                             pWJ^.dtSF_Tax_Free_Dist,
-                             pWJ^.dtSF_Tax_Exempt_Dist,
-                             pWJ^.dtSF_Tax_Deferred_Dist,
-                             pWJ^.dtSF_TFN_Credits,
-                             pWJ^.dtSF_Foreign_Income,
-                             pWJ^.dtSF_Foreign_Tax_Credits,
-                             pWJ^.dtSF_Capital_Gains_Indexed,
-                             pWJ^.dtSF_Capital_Gains_Disc,
-                             pWJ^.dtSF_Other_Expenses,
-                             pWJ^.dtSF_Capital_Gains_Other,
-                             pWJ^.dtSF_Franked,
-                             pWJ^.dtSF_Unfranked,
-                             pWJ^.dtSF_CGT_Date,
-                             pWJ^.dtSF_Member_Component,
-                             pWJ^.dtAccount,
-                             pWJ^.dtQuantity);
-        if Move in [fnGoForward, fnGoBack] then
-        begin
-          T := SuperForm.Top;
-          L := SuperForm.Left;
-        end;
-        Result := true;
+        T := SuperForm.Top;
+        L := SuperForm.Left;
       end;
+      Result := true;
+    end;
   finally
     SuperForm.Release;
   end;
@@ -741,32 +745,32 @@ begin
     else
       SuperForm.Position := poScreenCenter;
     if SuperForm.ShowModal = mrOK then
+    begin
+      Move := SuperForm.MoveDirection;
+      pWD^.dtSuper_Fields_Edited := SuperForm.GetFields( pWD^.dtSF_Imputed_Credit,
+                           pWD^.dtSF_Tax_Free_Dist,
+                           pWD^.dtSF_Tax_Exempt_Dist,
+                           pWD^.dtSF_Tax_Deferred_Dist,
+                           pWD^.dtSF_TFN_Credits,
+                           pWD^.dtSF_Foreign_Income,
+                           pWD^.dtSF_Foreign_Tax_Credits,
+                           pWD^.dtSF_Capital_Gains_Indexed,
+                           pWD^.dtSF_Capital_Gains_Disc,
+                           pWD^.dtSF_Other_Expenses,
+                           pWD^.dtSF_Capital_Gains_Other,
+                           pWD^.dtSF_Franked,
+                           pWD^.dtSF_Unfranked,
+                           pWD^.dtSF_CGT_Date,
+                           pWD^.dtSF_Member_Component,
+                           pWD^.dtAccount,
+                           pWD^.dtQuantity);
+      if Move in [fnGoForward, fnGoBack] then
       begin
-        Move := SuperForm.MoveDirection;
-        pWD^.dtSuper_Fields_Edited := SuperForm.GetFields( pWD^.dtSF_Imputed_Credit,
-                             pWD^.dtSF_Tax_Free_Dist,
-                             pWD^.dtSF_Tax_Exempt_Dist,
-                             pWD^.dtSF_Tax_Deferred_Dist,
-                             pWD^.dtSF_TFN_Credits,
-                             pWD^.dtSF_Foreign_Income,
-                             pWD^.dtSF_Foreign_Tax_Credits,
-                             pWD^.dtSF_Capital_Gains_Indexed,
-                             pWD^.dtSF_Capital_Gains_Disc,
-                             pWD^.dtSF_Other_Expenses,
-                             pWD^.dtSF_Capital_Gains_Other,
-                             pWD^.dtSF_Franked,
-                             pWD^.dtSF_Unfranked,
-                             pWD^.dtSF_CGT_Date,
-                             pWD^.dtSF_Member_Component,
-                             pWD^.dtAccount,
-                             pWD^.dtQuantity);
-        if Move in [fnGoForward, fnGoBack] then
-        begin
-          T := SuperForm.Top;
-          L := SuperForm.Left;
-        end;
-        Result := true;
+        T := SuperForm.Top;
+        L := SuperForm.Left;
       end;
+      Result := true;
+    end;
   finally
     SuperForm.Release;
   end;
@@ -905,172 +909,148 @@ end;
 //   BGL 360
 //
 //*****************************************************************************************
-
-
 // BGL 360 Transaction
-function EditBGL360Fields( BA: TBank_Account; ParentTrans : pTransaction_Rec; (*pTE : pTransaction_Extension_Rec; *)var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
+function EditBGL360Fields( ParentTrans : pTransaction_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
   iTransaction_Extension : integer;
-  ParentTransExtra : pTransaction_Extension_Rec;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm );
   try
-//    SuperForm.
     Superform.RevenuePercentage := False;
     Superform.FrankPercentage := False;
 
     SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txGL_Narration, ParentTrans^.txAmount);
 
-    if assigned( BA ) then begin
-      // Find the current Transaction_Extension record
-      if not assigned( ParentTrans^.txTranaction_Extension ) then //DN The Transaction does NOT exist, need to create one!!!
+    SuperForm.SetFields( ParentTrans^.txSF_Imputed_Credit,                                       // Franking Credits
+                         ParentTrans^.txSF_Tax_Free_Dist,                                        // Tax Free Amounts
+                         ParentTrans^.txSF_Tax_Exempt_Dist,                                      // Tax Exempted Amounts
+                         ParentTrans^.txSF_Tax_Deferred_Dist,                                    // Tax Deferred Amounts
+                         ParentTrans^.txSF_TFN_Credits,                                          // Witholding Tax
+                         ParentTrans^.txSF_Foreign_Income,                                       // Assessable Foreign Source Income
+                         ParentTrans^.txSF_Foreign_Tax_Credits,
+                         ParentTrans^.txSF_Capital_Gains_Indexed,                                // Capital Gains - Indexation Method
+                         ParentTrans^.txSF_Capital_Gains_Disc,                                   // Discounted Capital Gains (Before Discount)
+                         ParentTrans^.txSF_Other_Expenses,
+                         ParentTrans^.txSF_Capital_Gains_Other,                                  // Capital Gains Other Method
+                         ParentTrans^.txSF_Franked,                                              // Franked
+                         ParentTrans^.txSF_Unfranked,                                            // Unfranked
+                         ParentTrans^.txSF_Interest,                                             // Gross Interest
+                         ParentTrans^.txTranaction_Extension^.teSF_Other_Income,                 // Other Income
+                         ParentTrans^.txTranaction_Extension^.teSF_Other_Trust_Deductions,       // Other Trust Deductions
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_Concession_Amount,        // CGT Concession amounts
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc,
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Indexation,
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Other_Method,
+
+                         ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                           // Tax Paid Capital Gains discounted before Discount
+
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Indexation,
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Other_Method,
+                         ParentTrans^.txTranaction_Extension^.teSF_Other_Net_Foreign_Income,
+                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Distribution,
+                         ParentTrans^.txTranaction_Extension^.teSF_AU_Franking_Credits_NZ_Co,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Res_Witholding_Tax,
+                         ParentTrans^.txTranaction_Extension^.teSF_LIC_Deductions,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Indexation,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_Brokerage,
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_Consideration,
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Amount,
+
+                         ParentTrans^.txSF_CGT_Date,
+                         ParentTrans^.txSF_Member_Component,
+                         ParentTrans^.txQuantity,                                                // Units
+                         ParentTrans^.txAccount,
+
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Rate,
+                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Date,
+                         ParentTrans^.txTranaction_Extension^.teSF_Accrual_Date,
+                         ParentTrans^.txTranaction_Extension^.teSF_Record_Date
+                       );
+    SuperForm.ReadOnly := ( ParentTrans^.txLocked)
+                       or ( ParentTrans^.txDate_Transferred <> 0);
+    SuperForm.MoveDirection := Move;
+
+    if T > -999 then
+    begin
+      SuperForm.FormTop := T;
+      SuperForm.FormLeft := L;
+    end
+    else
+      SuperForm.Position := poScreenCenter;
+
+    if SuperForm.ShowModal = mrOK then
+    begin
+      Move := SuperForm.MoveDirection;
+      ParentTrans^.txSF_Super_Fields_Edited :=
+        SuperForm.GetFields(ParentTrans^.txSF_Imputed_Credit,
+                         ParentTrans^.txSF_Tax_Free_Dist,                                        // Tax Free Amounts
+                         ParentTrans^.txSF_Tax_Exempt_Dist,                                      // Tax Exempted Amounts
+                         ParentTrans^.txSF_Tax_Deferred_Dist,                                    // Tax Deferred Amounts
+                         ParentTrans^.txSF_TFN_Credits,                                          // Witholding Tax
+                         ParentTrans^.txSF_Foreign_Income,                                       // Assessable Foreign Source Income
+                         ParentTrans^.txSF_Foreign_Tax_Credits,
+                         ParentTrans^.txSF_Capital_Gains_Indexed,                                // Capital Gains - Indexation Method
+                         ParentTrans^.txSF_Capital_Gains_Disc,                                   // Discounted Capital Gains (Before Discount)
+                         ParentTrans^.txSF_Other_Expenses,
+                         ParentTrans^.txSF_Capital_Gains_Other,                                  // Capital Gains Other Method
+                         ParentTrans^.txSF_Franked,                                              // Franked
+                         ParentTrans^.txSF_Unfranked,                                            // Unfranked
+                         ParentTrans^.txSF_Interest,                                             // Gross Interest
+
+                         ParentTrans^.txTranaction_Extension^.teSF_Other_Income,                 // Other Income
+                         ParentTrans^.txTranaction_Extension^.teSF_Other_Trust_Deductions,       // Other Trust Deductions
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_Concession_Amount,        // CGT Concession amounts
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc,
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Indexation,
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Other_Method,
+
+                         ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                           // Tax Paid Capital Gains discounted before Discount
+
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Indexation,
+                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Other_Method,
+                         ParentTrans^.txTranaction_Extension^.teSF_Other_Net_Foreign_Income,
+                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Distribution,
+                         ParentTrans^.txTranaction_Extension^.teSF_AU_Franking_Credits_NZ_Co,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Res_Witholding_Tax,
+                         ParentTrans^.txTranaction_Extension^.teSF_LIC_Deductions,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Indexation,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
+                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_Brokerage,
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_Consideration,
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Amount,
+
+                         ParentTrans^.txSF_CGT_Date,
+                         ParentTrans^.txSF_Member_Component,
+                         ParentTrans^.txQuantity,                                                // Units
+                         ParentTrans^.txAccount,
+
+                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Rate,
+                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Date,
+                         ParentTrans^.txTranaction_Extension^.teSF_Accrual_Date,
+                         ParentTrans^.txTranaction_Extension^.teSF_Record_Date
+                       );
+
+      if ParentTrans^.txSF_Super_Fields_Edited then begin
+         ParentTrans^.txHas_Been_Edited := true;
+         ParentTrans^.txCoded_By := cbManualSuper;
+      end else begin
+         ClearSuperFundFields(ParentTrans);
+         ParentTrans^.txCoded_By := cbManual; //Will get cleaned up
+      end;
+
+      if Move in [fnGoForward, fnGoBack] then
       begin
-        ParentTransExtra := BA.baTransaction_List.New_Transaction_Extension_Rec;
-        ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
-        ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
+        T := SuperForm.Top;
+        L := SuperForm.Left;
       end;
-      ParentTransExtra := ParentTrans^.txTranaction_Extension;
-(* //DN BGL360 Extended Fields - Try a different method for storing and retrieving
-      // Find the current Transaction_Extension record
-      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
-      //DN The Extra Transaction record exists
-      //DN begin
-
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.
-                              Transaction_Extension_At( iTransaction_Extension )
-      else begin
-      //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
-        ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
-        ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
-        BA.baTransaction_List.Transaction_Extension_List.Insert_Transaction_Extension_Rec( ParentTransExtra );
-      end;
-//DN BGL360 Extended Fields - Try a different method for storing and retrieving *)
-
-        SuperForm.SetFields( ParentTrans^.txSF_Imputed_Credit,                               // Franking Credits
-                             ParentTrans^.txSF_Tax_Free_Dist,                                // Tax Free Amounts
-                             ParentTrans^.txSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                             ParentTrans^.txSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                             ParentTrans^.txSF_TFN_Credits,                                  // Witholding Tax
-                             ParentTrans^.txSF_Foreign_Income,                               // Assessable Foreign Source Income
-                             ParentTrans^.txSF_Foreign_Tax_Credits,
-                             ParentTrans^.txSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                             ParentTrans^.txSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                             ParentTrans^.txSF_Other_Expenses,
-                             ParentTrans^.txSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                             ParentTrans^.txSF_Franked,                                      // Franked
-                             ParentTrans^.txSF_Unfranked,                                    // Unfranked
-                             ParentTrans^.txSF_Interest,                                     // Gross Interest
-                             ParentTransExtra^.teSF_Other_Income,                            // Other Income
-                             ParentTransExtra^.teSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             ParentTransExtra^.teSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Before_Disc,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Indexation,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Other_Method,
-                             ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Indexation,
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Other_Method,
-                             ParentTransExtra^.teSF_Other_Net_Foreign_Income,
-                             ParentTransExtra^.teSF_Cash_Distribution,
-                             ParentTransExtra^.teSF_AU_Franking_Credits_NZ_Co,
-                             ParentTransExtra^.teSF_Non_Res_Witholding_Tax,
-                             ParentTransExtra^.teSF_LIC_Deductions,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Indexation,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Other_Method,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Capital_Losses,
-                             ParentTransExtra^.teSF_Share_Brokerage,
-                             ParentTransExtra^.teSF_Share_Consideration,
-                             ParentTransExtra^.teSF_Share_GST_Amount,
-                             ParentTrans^.txSF_CGT_Date,
-                             ParentTrans^.txSF_Member_Component,
-                             ParentTrans^.txQuantity,                                        // Units
-                             ParentTrans^.txAccount,
-                             ParentTransExtra^.teSF_Share_GST_Rate,
-                             ParentTransExtra^.teSF_Cash_Date,
-                             ParentTransExtra^.teSF_Accrual_Date,
-                             ParentTransExtra^.teSF_Record_Date
-                             );
-        SuperForm.ReadOnly := ( ParentTrans^.txLocked)
-                           or ( ParentTrans^.txDate_Transferred <> 0);
-        SuperForm.MoveDirection := Move;
-
-        if T > -999 then
-        begin
-          SuperForm.FormTop := T;
-          SuperForm.FormLeft := L;
-        end
-        else
-          SuperForm.Position := poScreenCenter;
-
-        if SuperForm.ShowModal = mrOK then
-        begin
-          Move := SuperForm.MoveDirection;
-          ParentTrans^.txSF_Super_Fields_Edited :=
-            SuperForm.GetFields(ParentTrans^.txSF_Imputed_Credit,
-                             ParentTrans^.txSF_Tax_Free_Dist,                                // Tax Free Amounts
-                             ParentTrans^.txSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                             ParentTrans^.txSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                             ParentTrans^.txSF_TFN_Credits,                                  // Witholding Tax
-                             ParentTrans^.txSF_Foreign_Income,                               // Assessable Foreign Source Income
-                             ParentTrans^.txSF_Foreign_Tax_Credits,
-                             ParentTrans^.txSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                             ParentTrans^.txSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                             ParentTrans^.txSF_Other_Expenses,
-                             ParentTrans^.txSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                             ParentTrans^.txSF_Franked,                                      // Franked
-                             ParentTrans^.txSF_Unfranked,                                    // Unfranked
-                             ParentTrans^.txSF_Interest,                                     // Gross Interest
-                             ParentTransExtra^.teSF_Other_Income,                            // Other Income
-                             ParentTransExtra^.teSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             ParentTransExtra^.teSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Before_Disc,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Indexation,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Other_Method,
-                             ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Indexation,
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Other_Method,
-                             ParentTransExtra^.teSF_Other_Net_Foreign_Income,
-                             ParentTransExtra^.teSF_Cash_Distribution,
-                             ParentTransExtra^.teSF_AU_Franking_Credits_NZ_Co,
-                             ParentTransExtra^.teSF_Non_Res_Witholding_Tax,
-                             ParentTransExtra^.teSF_LIC_Deductions,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Indexation,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Other_Method,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Capital_Losses,
-                             ParentTransExtra^.teSF_Share_Brokerage,
-                             ParentTransExtra^.teSF_Share_Consideration,
-                             ParentTransExtra^.teSF_Share_GST_Amount,
-                             ParentTrans^.txSF_CGT_Date,
-                             ParentTrans^.txSF_Member_Component,
-                             ParentTrans^.txQuantity,                                        // Units
-                             ParentTrans^.txAccount,
-                             ParentTransExtra^.teSF_Share_GST_Rate,
-                             ParentTransExtra^.teSF_Cash_Date,
-                             ParentTransExtra^.teSF_Accrual_Date,
-                             ParentTransExtra^.teSF_Record_Date
-                           );
-
-          if ParentTrans^.txSF_Super_Fields_Edited then begin
-             ParentTrans^.txHas_Been_Edited := true;
-             ParentTrans^.txCoded_By := cbManualSuper;
-          end else begin
-             ClearSuperFundFields(ParentTrans);
-             ParentTrans^.txCoded_By := cbManual; //Will get cleaned up
-          end;
-
-          if Move in [fnGoForward, fnGoBack] then
-          begin
-            T := SuperForm.Top;
-            L := SuperForm.Left;
-          end;
-          Result := true;
-        end;
-//DN      end;
+      Result := true;
     end;
   finally
     SuperForm.Release;
@@ -1078,152 +1058,132 @@ begin
 end;
 
 //BGL 360 Journal
-function EditBGL360Fields(  BA: TBank_Account; ParentTrans : pTransaction_Rec; pWJ : pWorkJournal_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
+function EditBGL360Fields( ParentTrans : pTransaction_Rec; pWJ : pWorkJournal_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
   iTransaction_Extension : integer;
-  ParentTransExtra : pTransaction_Extension_Rec;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
   try
     SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txGL_Narration, ParentTrans^.txAmount);
-//dn    SuperForm.SetInfo( ParentTrans.txDate_Effective, pWJ^.dtNarration, pWJ^.dtAmount);
     Superform.RevenuePercentage := False;
     Superform.FrankPercentage := False;
 
-    if assigned( BA ) then begin
-(*DN BGL360 Extended Fields
-      // Find the current Transaction_Extension record
-      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
-      //DN The Extra Transaction record exists
-      //DN begin
 
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.Transaction_Extension_At( iTransaction_Extension )
-      else begin
-      //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
-        ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
-        ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
+    SuperForm.SetFields( pWJ^.dtSF_Imputed_Credit,
+                         pWJ^.dtSF_Tax_Free_Dist,                           // Tax Free Amounts
+                         pWJ^.dtSF_Tax_Exempt_Dist,                         // Tax Exempted Amounts
+                         pWJ^.dtSF_Tax_Deferred_Dist,                       // Tax Deferred Amounts
+                         pWJ^.dtSF_TFN_Credits,                             // Witholding Tax
+                         pWJ^.dtSF_Foreign_Income,                          // Assessable Foreign Source Income
+                         pWJ^.dtSF_Foreign_Tax_Credits,
+                         pWJ^.dtSF_Capital_Gains_Indexed,                   // Capital Gains - Indexation Method
+                         pWJ^.dtSF_Capital_Gains_Disc,                      //Discounted Capital Gains (Before Discount)
+                         pWJ^.dtSF_Other_Expenses,
+                         pWJ^.dtSF_Capital_Gains_Other,                     //Capital Gains Other Method
+                         pWJ^.dtSF_Franked,                                 // Franked
+                         pWJ^.dtSF_Unfranked,                               // UnFranked
+
+                         pWJ^.dtSF_Interest,                                // Gross Interest
+                         pWJ^.dtSF_Other_Income,                            // Other Income
+                         pWJ^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
+                         pWJ^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
+                         pWJ^.dtSF_CGT_ForeignCGT_Before_Disc,
+                         pWJ^.dtSF_CGT_ForeignCGT_Indexation,
+                         pWJ^.dtSF_CGT_ForeignCGT_Other_Method,
+                         pWJ^.dtSF_Capital_Gains_Foreign_Disc,              // Tax Paid Capital Gains discounted before Discount
+                         pWJ^.dtSF_CGT_TaxPaid_Indexation,
+                         pWJ^.dtSF_CGT_TaxPaid_Other_Method,
+                         pWJ^.dtSF_Other_Net_Foreign_Income,
+                         pWJ^.dtSF_Cash_Distribution,
+                         pWJ^.dtSF_AU_Franking_Credits_NZ_Co,
+                         pWJ^.dtSF_Non_Res_Witholding_Tax,
+                         pWJ^.dtSF_LIC_Deductions,
+                         pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         pWJ^.dtSF_Non_Cash_CGT_Indexation,
+                         pWJ^.dtSF_Non_Cash_CGT_Other_Method,
+                         pWJ^.dtSF_Non_Cash_CGT_Capital_Losses,
+                         pWJ^.dtSF_Share_Brokerage,
+                         pWJ^.dtSF_Share_Consideration,
+                         pWJ^.dtSF_Share_GST_Amount,
+
+                         pWJ^.dtSF_CGT_Date,
+                         pWJ^.dtSF_Member_Component,
+                         PWJ^.dtQuantity,
+                         PWJ^.dtAccount,
+
+                         pWJ^.dtSF_Share_GST_Rate,
+                         pWJ^.dtSF_Cash_Date,
+                         pWJ^.dtSF_Accrual_Date,
+                         pWJ^.dtSF_Record_Date
+                       );
+
+    SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
+    SuperForm.MoveDirection := Move;
+
+    if T > -999 then
+    begin
+      SuperForm.FormTop := T;
+      SuperForm.FormLeft := L;
+    end
+    else
+      SuperForm.Position := poScreenCenter;
+
+    if SuperForm.ShowModal = mrOK then
+    begin
+      Move := SuperForm.MoveDirection;
+      pWJ^.dtSF_Super_Fields_Edited :=
+        SuperForm.GetFields( pWJ^.dtSF_Imputed_Credit,
+                       pWJ^.dtSF_Tax_Free_Dist,                           // Tax Free Amounts
+                       pWJ^.dtSF_Tax_Exempt_Dist,                         // Tax Exempted Amounts
+                       pWJ^.dtSF_Tax_Deferred_Dist,                       // Tax Deferred Amounts
+                       pWJ^.dtSF_TFN_Credits,                             // Witholding Tax
+                       pWJ^.dtSF_Foreign_Income,                          // Assessable Foreign Source Income
+                       pWJ^.dtSF_Foreign_Tax_Credits,
+                       pWJ^.dtSF_Capital_Gains_Indexed,                   // Capital Gains - Indexation Method
+                       pWJ^.dtSF_Capital_Gains_Disc,                      //Discounted Capital Gains (Before Discount)
+                       pWJ^.dtSF_Other_Expenses,
+                       pWJ^.dtSF_Capital_Gains_Other,                     //Capital Gains Other Method
+                       pWJ^.dtSF_Franked,                                 // Franked
+                       pWJ^.dtSF_Unfranked,                               // Unfranked
+                       pWJ^.dtSF_Interest,                                // Gross Interest
+                       pWJ^.dtSF_Other_Income,                            // Other Income
+                       pWJ^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
+                       pWJ^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
+                       pWJ^.dtSF_CGT_ForeignCGT_Before_Disc,
+                       pWJ^.dtSF_CGT_ForeignCGT_Indexation,
+                       pWJ^.dtSF_CGT_ForeignCGT_Other_Method,
+                       pWJ^.dtSF_Capital_Gains_Foreign_Disc,              // Tax Paid Capital Gains discounted before Discount
+                       pWJ^.dtSF_CGT_TaxPaid_Indexation,
+                       pWJ^.dtSF_CGT_TaxPaid_Other_Method,
+                       pWJ^.dtSF_Other_Net_Foreign_Income,
+                       pWJ^.dtSF_Cash_Distribution,
+                       pWJ^.dtSF_AU_Franking_Credits_NZ_Co,
+                       pWJ^.dtSF_Non_Res_Witholding_Tax,
+                       pWJ^.dtSF_LIC_Deductions,
+                       pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                       pWJ^.dtSF_Non_Cash_CGT_Indexation,
+                       pWJ^.dtSF_Non_Cash_CGT_Other_Method,
+                       pWJ^.dtSF_Non_Cash_CGT_Capital_Losses,
+                       pWJ^.dtSF_Share_Brokerage,
+                       pWJ^.dtSF_Share_Consideration,
+                       pWJ^.dtSF_Share_GST_Amount,
+                       pWJ^.dtSF_CGT_Date,
+                       pWJ^.dtSF_Member_Component,
+                       pWJ^.dtQuantity,                                   // Units
+                       pWJ^.dtAccount,
+                       pWJ^.dtSF_Share_GST_Rate,
+                       pWJ^.dtSF_Cash_Date,
+                       pWJ^.dtSF_Accrual_Date,
+                       pWJ^.dtSF_Record_Date
+                     );
+      if Move in [fnGoForward, fnGoBack] then
+      begin
+        T := SuperForm.Top;
+        L := SuperForm.Left;
       end;
-DN BGL360 Extended Fields *)
-
-        SuperForm.SetFields( pWJ^.dtSF_Imputed_Credit,
-                             pWJ^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
-                             pWJ^.dtSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                             pWJ^.dtSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                             pWJ^.dtSF_TFN_Credits,                                  // Witholding Tax
-                             pWJ^.dtSF_Foreign_Income,                               // Assessable Foreign Source Income
-                             pWJ^.dtSF_Foreign_Tax_Credits,
-                             pWJ^.dtSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                             pWJ^.dtSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                             pWJ^.dtSF_Other_Expenses,
-                             pWJ^.dtSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                             pWJ^.dtSF_Franked,                                      // Franked
-                             pWJ^.dtSF_Unfranked,                                    // UnFranked
-
-                             pWJ^.dtSF_Interest,                                     // Gross Interest
-                             pWJ^.dtSF_Other_Income,                            // Other Income
-                             pWJ^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             pWJ^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             pWJ^.dtSF_CGT_ForeignCGT_Before_Disc,
-                             pWJ^.dtSF_CGT_ForeignCGT_Indexation,
-                             pWJ^.dtSF_CGT_ForeignCGT_Other_Method,
-                             pWJ^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             pWJ^.dtSF_CGT_TaxPaid_Indexation,
-                             pWJ^.dtSF_CGT_TaxPaid_Other_Method,
-                             pWJ^.dtSF_Other_Net_Foreign_Income,
-                             pWJ^.dtSF_Cash_Distribution,
-                             pWJ^.dtSF_AU_Franking_Credits_NZ_Co,
-                             pWJ^.dtSF_Non_Res_Witholding_Tax,
-                             pWJ^.dtSF_LIC_Deductions,
-                             pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             pWJ^.dtSF_Non_Cash_CGT_Indexation,
-                             pWJ^.dtSF_Non_Cash_CGT_Other_Method,
-                             pWJ^.dtSF_Non_Cash_CGT_Capital_Losses,
-                             pWJ^.dtSF_Share_Brokerage,
-                             pWJ^.dtSF_Share_Consideration,
-                             pWJ^.dtSF_Share_GST_Amount,
-
-                             pWJ^.dtSF_CGT_Date,
-                             pWJ^.dtSF_Member_Component,
-                             PWJ^.dtQuantity,
-                             PWJ^.dtAccount,
-
-                             pWJ^.dtSF_Share_GST_Rate,
-                             pWJ^.dtSF_Cash_Date,
-                             pWJ^.dtSF_Accrual_Date,
-                             pWJ^.dtSF_Record_Date
-                           );
-
-        SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
-        SuperForm.MoveDirection := Move;
-
-        if T > -999 then
-        begin
-          SuperForm.FormTop := T;
-          SuperForm.FormLeft := L;
-        end
-        else
-          SuperForm.Position := poScreenCenter;
-
-        if SuperForm.ShowModal = mrOK then
-        begin
-          Move := SuperForm.MoveDirection;
-          pWJ^.dtSF_Super_Fields_Edited :=
-            SuperForm.GetFields( pWJ^.dtSF_Imputed_Credit,
-                           pWJ^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
-                           pWJ^.dtSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                           pWJ^.dtSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                           pWJ^.dtSF_TFN_Credits,                                  // Witholding Tax
-                           pWJ^.dtSF_Foreign_Income,                               // Assessable Foreign Source Income
-                           pWJ^.dtSF_Foreign_Tax_Credits,
-                           pWJ^.dtSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                           pWJ^.dtSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                           pWJ^.dtSF_Other_Expenses,
-                           pWJ^.dtSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                           pWJ^.dtSF_Franked,                                      // Franked
-                           pWJ^.dtSF_Unfranked,                                    // Unfranked
-                           pWJ^.dtSF_Interest,                                     // Gross Interest
-                           pWJ^.dtSF_Other_Income,                            // Other Income
-                           pWJ^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                           pWJ^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                           pWJ^.dtSF_CGT_ForeignCGT_Before_Disc,
-                           pWJ^.dtSF_CGT_ForeignCGT_Indexation,
-                           pWJ^.dtSF_CGT_ForeignCGT_Other_Method,
-                           pWJ^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                           pWJ^.dtSF_CGT_TaxPaid_Indexation,
-                           pWJ^.dtSF_CGT_TaxPaid_Other_Method,
-                           pWJ^.dtSF_Other_Net_Foreign_Income,
-                           pWJ^.dtSF_Cash_Distribution,
-                           pWJ^.dtSF_AU_Franking_Credits_NZ_Co,
-                           pWJ^.dtSF_Non_Res_Witholding_Tax,
-                           pWJ^.dtSF_LIC_Deductions,
-                           pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
-                           pWJ^.dtSF_Non_Cash_CGT_Indexation,
-                           pWJ^.dtSF_Non_Cash_CGT_Other_Method,
-                           pWJ^.dtSF_Non_Cash_CGT_Capital_Losses,
-                           pWJ^.dtSF_Share_Brokerage,
-                           pWJ^.dtSF_Share_Consideration,
-                           pWJ^.dtSF_Share_GST_Amount,
-                           pWJ^.dtSF_CGT_Date,
-                           pWJ^.dtSF_Member_Component,
-                           pWJ^.dtQuantity,                                        // Units
-                           pWJ^.dtAccount,
-                           pWJ^.dtSF_Share_GST_Rate,
-                           pWJ^.dtSF_Cash_Date,
-                           pWJ^.dtSF_Accrual_Date,
-                           pWJ^.dtSF_Record_Date
-                         );
-          if Move in [fnGoForward, fnGoBack] then
-          begin
-            T := SuperForm.Top;
-            L := SuperForm.Left;
-          end;
-          Result := true;
-        end;
-//DN      end;
+      Result := true;
     end;
   finally
     SuperForm.Release;
@@ -1231,222 +1191,129 @@ DN BGL360 Extended Fields *)
 end;
 
 // BGL 360 Disection
-function EditBGL360Fields( BA: TBank_Account; ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
+function EditBGL360Fields( ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
   iTransaction_Extension : integer;
-  ParentTransExtra : pTransaction_Extension_Rec;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
   try
     SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txGL_Narration, ParentTrans^.txAmount);
-//dn    SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txNarration, ParentTrans^.dtAmount);
     Superform.RevenuePercentage := False;
     Superform.FrankPercentage := false;
 
-    if assigned( BA ) then begin
-(*DN BGL360 Extended Fields
-      // Find the current Transaction_Extension record
-      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
-      //DN The Extra Transaction record exists
-      //DN begin
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.Transaction_Extension_At( iTransaction_Extension )
-      else begin
-      //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
-        ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
-        ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
+    SuperForm.SetFields( pWD^.dtSF_Imputed_Credit,
+                         pWD^.dtSF_Tax_Free_Dist,                           // Tax Free Amounts
+                         pWD^.dtSF_Tax_Exempt_Dist,                         // Tax Exempted Amounts
+                         pWD^.dtSF_Tax_Deferred_Dist,                       // Tax Deferred Amounts
+                         pWD^.dtSF_TFN_Credits,                             // Witholding Tax
+                         pWD^.dtSF_Foreign_Income,                          // Assessable Foreign Source Income
+                         pWD^.dtSF_Foreign_Tax_Credits,
+                         pWD^.dtSF_Capital_Gains_Indexed,                   // Capital Gains - Indexation Method
+                         pWD^.dtSF_Capital_Gains_Disc,                      //Discounted Capital Gains (Before Discount)
+                         pWD^.dtSF_Other_Expenses,
+                         pWD^.dtSF_Capital_Gains_Other,                     //Capital Gains Other Method
+                         pWD^.dtSF_Franked,                                 // Franked
+                         pWD^.dtSF_Unfranked,                               // Unfranked
+                         pWD^.dtSF_Interest,                                // Gross Interest
+                         pWD^.dtSF_Other_Income,                            // Other Income
+                         pWD^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
+                         pWD^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
+                         pWD^.dtSF_CGT_ForeignCGT_Before_Disc,
+                         pWD^.dtSF_CGT_ForeignCGT_Indexation,
+                         pWD^.dtSF_CGT_ForeignCGT_Other_Method,
+                         pWD^.dtSF_Capital_Gains_Foreign_Disc,              // Tax Paid Capital Gains discounted before Discount
+                         pWD^.dtSF_CGT_TaxPaid_Indexation,
+                         pWD^.dtSF_CGT_TaxPaid_Other_Method,
+                         pWD^.dtSF_Other_Net_Foreign_Income,
+                         pWD^.dtSF_Cash_Distribution,
+                         pWD^.dtSF_AU_Franking_Credits_NZ_Co,
+                         pWD^.dtSF_Non_Res_Witholding_Tax,
+                         pWD^.dtSF_LIC_Deductions,
+                         pWD^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         pWD^.dtSF_Non_Cash_CGT_Indexation,
+                         pWD^.dtSF_Non_Cash_CGT_Other_Method,
+                         pWD^.dtSF_Non_Cash_CGT_Capital_Losses,
+                         pWD^.dtSF_Share_Brokerage,
+                         pWD^.dtSF_Share_Consideration,
+                         pWD^.dtSF_Share_GST_Amount,
+
+                         pWD^.dtSF_CGT_Date,
+                         pWD^.dtSF_Member_Component,
+                         pWD^.dtQuantity,                                   // Units
+                         pWD^.dtAccount,
+                         pWD^.dtSF_Share_GST_Rate,
+                         pWD^.dtSF_Cash_Date,
+                         pWD^.dtSF_Accrual_Date,
+                         pWD^.dtSF_Record_Date
+                       );
+    SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
+    SuperForm.MoveDirection := Move;
+
+    if T > -999 then
+    begin
+      SuperForm.FormTop := T;
+      SuperForm.FormLeft := L;
+    end
+    else
+      SuperForm.Position := poScreenCenter;
+
+    if SuperForm.ShowModal = mrOK then
+    begin
+      Move := SuperForm.MoveDirection;
+      pWD^.dtSuper_Fields_Edited :=
+        SuperForm.GetFields( pWD^.dtSF_Imputed_Credit,
+                         pWD^.dtSF_Tax_Free_Dist,                           // Tax Free Amounts
+                         pWD^.dtSF_Tax_Exempt_Dist,                         // Tax Exempted Amounts
+                         pWD^.dtSF_Tax_Deferred_Dist,                       // Tax Deferred Amounts
+                         pWD^.dtSF_TFN_Credits,                             // Witholding Tax
+                         pWD^.dtSF_Foreign_Income,                          // Assessable Foreign Source Income
+                         pWD^.dtSF_Foreign_Tax_Credits,
+                         pWD^.dtSF_Capital_Gains_Indexed,                   // Capital Gains - Indexation Method
+                         pWD^.dtSF_Capital_Gains_Disc,                      //Discounted Capital Gains (Before Discount)
+                         pWD^.dtSF_Other_Expenses,
+                         pWD^.dtSF_Capital_Gains_Other,                     //Capital Gains Other Method
+                         pWD^.dtSF_Franked,                                 // Franked
+                         pWD^.dtSF_Unfranked,                               // Unfranked
+                         pWD^.dtSF_Interest,                                // Gross Interest
+                         pWD^.dtSF_Other_Income,                            // Other Income
+                         pWD^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
+                         pWD^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
+                         pWD^.dtSF_CGT_ForeignCGT_Before_Disc,
+                         pWD^.dtSF_CGT_ForeignCGT_Indexation,
+                         pWD^.dtSF_CGT_ForeignCGT_Other_Method,
+                         pWD^.dtSF_Capital_Gains_Foreign_Disc,              // Tax Paid Capital Gains discounted before Discount
+                         pWD^.dtSF_CGT_TaxPaid_Indexation,
+                         pWD^.dtSF_CGT_TaxPaid_Other_Method,
+                         pWD^.dtSF_Other_Net_Foreign_Income,
+                         pWD^.dtSF_Cash_Distribution,
+                         pWD^.dtSF_AU_Franking_Credits_NZ_Co,
+                         pWD^.dtSF_Non_Res_Witholding_Tax,
+                         pWD^.dtSF_LIC_Deductions,
+                         pWD^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         pWD^.dtSF_Non_Cash_CGT_Indexation,
+                         pWD^.dtSF_Non_Cash_CGT_Other_Method,
+                         pWD^.dtSF_Non_Cash_CGT_Capital_Losses,
+                         pWD^.dtSF_Share_Brokerage,
+                         pWD^.dtSF_Share_Consideration,
+                         pWD^.dtSF_Share_GST_Amount,
+                         pWD^.dtSF_CGT_Date,
+                         pWD^.dtSF_Member_Component,
+                         pWD^.dtQuantity,                                   // Units
+                         pWD^.dtAccount,
+                         pWD^.dtSF_Share_GST_Rate,
+                         pWD^.dtSF_Cash_Date,
+                         pWD^.dtSF_Accrual_Date,
+                         pWD^.dtSF_Record_Date
+                     );
+
+      if Move in [fnGoForward, fnGoBack] then
+      begin
+        T := SuperForm.Top;
+        L := SuperForm.Left;
       end;
-DN BGL360 Extended Fields *)
-
-
-        SuperForm.SetFields( pWD^.dtSF_Imputed_Credit,
-                             pWD^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
-                             pWD^.dtSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                             pWD^.dtSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                             pWD^.dtSF_TFN_Credits,                                  // Witholding Tax
-                             pWD^.dtSF_Foreign_Income,                               // Assessable Foreign Source Income
-                             pWD^.dtSF_Foreign_Tax_Credits,
-                             pWD^.dtSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                             pWD^.dtSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                             pWD^.dtSF_Other_Expenses,
-                             pWD^.dtSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                             pWD^.dtSF_Franked,                                      // Franked
-                             pWD^.dtSF_Unfranked,                                    // Unfranked
-                             pWD^.dtSF_Interest,                                     // Gross Interest
-                             pWD^.dtSF_Other_Income,                            // Other Income
-                             pWD^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             pWD^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             pWD^.dtSF_CGT_ForeignCGT_Before_Disc,
-                             pWD^.dtSF_CGT_ForeignCGT_Indexation,
-                             pWD^.dtSF_CGT_ForeignCGT_Other_Method,
-                             pWD^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             pWD^.dtSF_CGT_TaxPaid_Indexation,
-                             pWD^.dtSF_CGT_TaxPaid_Other_Method,
-                             pWD^.dtSF_Other_Net_Foreign_Income,
-                             pWD^.dtSF_Cash_Distribution,
-                             pWD^.dtSF_AU_Franking_Credits_NZ_Co,
-                             pWD^.dtSF_Non_Res_Witholding_Tax,
-                             pWD^.dtSF_LIC_Deductions,
-                             pWD^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             pWD^.dtSF_Non_Cash_CGT_Indexation,
-                             pWD^.dtSF_Non_Cash_CGT_Other_Method,
-                             pWD^.dtSF_Non_Cash_CGT_Capital_Losses,
-                             pWD^.dtSF_Share_Brokerage,
-                             pWD^.dtSF_Share_Consideration,
-                             pWD^.dtSF_Share_GST_Amount,
-
-                             pWD^.dtSF_CGT_Date,
-                             pWD^.dtSF_Member_Component,
-                             pWD^.dtQuantity,                                        // Units
-                             pWD^.dtAccount,
-                             pWD^.dtSF_Share_GST_Rate,
-                             pWD^.dtSF_Cash_Date,
-                             pWD^.dtSF_Accrual_Date,
-                             pWD^.dtSF_Record_Date
-
-(* //DN - ATtempt #1
-                             ParentTransExtra^.teSF_Other_Income,                            // Other Income
-                             ParentTransExtra^.teSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             ParentTransExtra^.teSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Before_Disc,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Indexation,
-                             ParentTransExtra^.teSF_CGT_ForeignCGT_Other_Method,
-                             pWD^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Indexation,
-                             ParentTransExtra^.teSF_CGT_TaxPaid_Other_Method,
-                             ParentTransExtra^.teSF_Other_Net_Foreign_Income,
-                             ParentTransExtra^.teSF_Cash_Distribution,
-                             ParentTransExtra^.teSF_AU_Franking_Credits_NZ_Co,
-                             ParentTransExtra^.teSF_Non_Res_Witholding_Tax,
-                             ParentTransExtra^.teSF_LIC_Deductions,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Indexation,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Other_Method,
-                             ParentTransExtra^.teSF_Non_Cash_CGT_Capital_Losses,
-                             ParentTransExtra^.teSF_Share_Brokerage,
-                             ParentTransExtra^.teSF_Share_Consideration,
-                             ParentTransExtra^.teSF_Share_GST_Amount,
-                             pWD^.dtSF_CGT_Date,
-                             pWD^.dtSF_Member_Component,
-                             pWD^.dtQuantity,                                        // Units
-                             pWD^.dtAccount,
-                             ParentTransExtra^.teSF_Share_GST_Rate
- //DN - ATtempt #1 *)
-                           );
-        SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
-        SuperForm.MoveDirection := Move;
-
-        if T > -999 then
-        begin
-          SuperForm.FormTop := T;
-          SuperForm.FormLeft := L;
-        end
-        else
-          SuperForm.Position := poScreenCenter;
-
-        if SuperForm.ShowModal = mrOK then
-        begin
-          Move := SuperForm.MoveDirection;
-          pWD^.dtSuper_Fields_Edited :=
-            SuperForm.GetFields( pWD^.dtSF_Imputed_Credit,
-                             pWD^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
-                             pWD^.dtSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                             pWD^.dtSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                             pWD^.dtSF_TFN_Credits,                                  // Witholding Tax
-                             pWD^.dtSF_Foreign_Income,                               // Assessable Foreign Source Income
-                             pWD^.dtSF_Foreign_Tax_Credits,
-                             pWD^.dtSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                             pWD^.dtSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                             pWD^.dtSF_Other_Expenses,
-                             pWD^.dtSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                             pWD^.dtSF_Franked,                                      // Franked
-                             pWD^.dtSF_Unfranked,                                    // Unfranked
-                             pWD^.dtSF_Interest,                                     // Gross Interest
-                             pWD^.dtSF_Other_Income,                            // Other Income
-                             pWD^.dtSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             pWD^.dtSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                             pWD^.dtSF_CGT_ForeignCGT_Before_Disc,
-                             pWD^.dtSF_CGT_ForeignCGT_Indexation,
-                             pWD^.dtSF_CGT_ForeignCGT_Other_Method,
-                             pWD^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             pWD^.dtSF_CGT_TaxPaid_Indexation,
-                             pWD^.dtSF_CGT_TaxPaid_Other_Method,
-                             pWD^.dtSF_Other_Net_Foreign_Income,
-                             pWD^.dtSF_Cash_Distribution,
-                             pWD^.dtSF_AU_Franking_Credits_NZ_Co,
-                             pWD^.dtSF_Non_Res_Witholding_Tax,
-                             pWD^.dtSF_LIC_Deductions,
-                             pWD^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
-                             pWD^.dtSF_Non_Cash_CGT_Indexation,
-                             pWD^.dtSF_Non_Cash_CGT_Other_Method,
-                             pWD^.dtSF_Non_Cash_CGT_Capital_Losses,
-                             pWD^.dtSF_Share_Brokerage,
-                             pWD^.dtSF_Share_Consideration,
-                             pWD^.dtSF_Share_GST_Amount,
-                             pWD^.dtSF_CGT_Date,
-                             pWD^.dtSF_Member_Component,
-                             pWD^.dtQuantity,                                        // Units
-                             pWD^.dtAccount,
-                             pWD^.dtSF_Share_GST_Rate,
-                             pWD^.dtSF_Cash_Date,
-                             pWD^.dtSF_Accrual_Date,
-                             pWD^.dtSF_Record_Date
-
-(* //DN - ATtempt #1
-                             pWD^.dtSF_Imputed_Credit,
-                           pWD^.dtSF_Tax_Free_Dist,                                // Tax Free Amounts
-                           pWD^.dtSF_Tax_Exempt_Dist,                              // Tax Exempted Amounts
-                           pWD^.dtSF_Tax_Deferred_Dist,                            // Tax Deferred Amounts
-                           pWD^.dtSF_TFN_Credits,                                  // Witholding Tax
-                           pWD^.dtSF_Foreign_Income,                               // Assessable Foreign Source Income
-                           pWD^.dtSF_Foreign_Tax_Credits,
-                           pWD^.dtSF_Capital_Gains_Indexed,                        // Capital Gains - Indexation Method
-                           pWD^.dtSF_Capital_Gains_Disc,                           //Discounted Capital Gains (Before Discount)
-                           pWD^.dtSF_Other_Expenses,
-                           pWD^.dtSF_Capital_Gains_Other,                          //Capital Gains Other Method
-                           pWD^.dtSF_Franked,                                      // Franked
-                           pWD^.dtSF_Unfranked,                                    // Unfranked
-                           pWD^.dtSF_Interest,                                     // Gross Interest
-                           ParentTransExtra^.teSF_Other_Income,                            // Other Income
-                           ParentTransExtra^.teSF_Other_Trust_Deductions,                  // Other Trust Deductions
-                           ParentTransExtra^.teSF_CGT_Concession_Amount,                   // CGT Concession amounts
-                           ParentTransExtra^.teSF_CGT_ForeignCGT_Before_Disc,
-                           ParentTransExtra^.teSF_CGT_ForeignCGT_Indexation,
-                           ParentTransExtra^.teSF_CGT_ForeignCGT_Other_Method,
-                           pWD^.dtSF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                           ParentTransExtra^.teSF_CGT_TaxPaid_Indexation,
-                           ParentTransExtra^.teSF_CGT_TaxPaid_Other_Method,
-                           ParentTransExtra^.teSF_Other_Net_Foreign_Income,
-                           ParentTransExtra^.teSF_Cash_Distribution,
-                           ParentTransExtra^.teSF_AU_Franking_Credits_NZ_Co,
-                           ParentTransExtra^.teSF_Non_Res_Witholding_Tax,
-                           ParentTransExtra^.teSF_LIC_Deductions,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Indexation,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Other_Method,
-                           ParentTransExtra^.teSF_Non_Cash_CGT_Capital_Losses,
-                           ParentTransExtra^.teSF_Share_Brokerage,
-                           ParentTransExtra^.teSF_Share_Consideration,
-                           ParentTransExtra^.teSF_Share_GST_Amount,
-                           pWD^.dtSF_CGT_Date,
-                           pWD^.dtSF_Member_Component,
-                           pWD^.dtQuantity,                                        // Units
-                           pWD^.dtAccount,
-                           ParentTransExtra^.teSF_Share_GST_Rate
- //DN - ATtempt #1 *)
-                         );
-
-          if Move in [fnGoForward, fnGoBack] then
-          begin
-            T := SuperForm.Top;
-            L := SuperForm.Left;
-          end;
-          Result := true;
-        end;
-//DN      end;
+      Result := true;
     end;
   finally
     SuperForm.Release;
@@ -1455,14 +1322,13 @@ end;
 
 
 // BGL 360 Memorization
-function EditBGL360Fields(BA: TBank_Account; ParentTrans : pTransaction_Rec; var Mem : TmemSplitRec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
+function EditBGL360Fields( ParentTrans : pTransaction_Rec; var Mem : TmemSplitRec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm: TdlgEditBGLSF360Fields;
   ForDate: Integer;
   Narration: string;
   Amount: Money;
   iTransaction_Extension : integer;
-  ParentTransExtra : pTransaction_Extension_Rec;
 
 begin
   Result := false;
@@ -1506,156 +1372,138 @@ begin
 
     Amount := 0; // Just a temp value
 
-    if assigned( BA ) then begin
-(*DN BGL360 Extended Fields
-      // Find the current Transaction_Extension record
-      if BA.baTransaction_List.Transaction_Extension_List.SearchUsingDateandTranSeqNo(
-           ParentTrans^.txDate_Effective, ParentTrans^.txSequence_No, iTransaction_Extension ) then
-      //DN The Extra Transaction record exists
-      //DN begin
 
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.Transaction_Extension_At( iTransaction_Extension )
-      else begin
-      //DN The Transaction does NOT exist, need to create one!!!
-        ParentTransExtra := BA.baTransaction_List.Transaction_Extension_List.New_Transaction_Extension;
-        ParentTransExtra^.teDate_Effective := ParentTrans^.txDate_Effective;
-        ParentTransExtra^.teSequence_No    := ParentTrans^.txSequence_No;
+    SuperForm.SetFields (Amount,
+                         Mem.SF_Tax_Free_Dist,
+                         Mem.SF_Tax_Exempt_Dist,
+                         Mem.SF_Tax_Deferred_Dist,
+                         Mem.SF_TFN_Credits,
+                         Mem.SF_Foreign_Income,
+
+                         Mem.SF_Foreign_Tax_Credits,
+                         Mem.SF_Capital_Gains_Indexed,
+                         Mem.SF_Capital_Gains_Disc,
+                         Mem.SF_Other_Expenses,
+
+                         Mem.SF_Capital_Gains_Other,
+
+                         Mem.SF_PCFranked,
+                         Mem.SF_PCUnFranked,
+                         Mem.SF_Interest,                                // Gross Interest
+
+                         Mem.SF_Other_Income,                            // Other Income
+                         Mem.SF_Other_Trust_Deductions,                  // Other Trust Deductions
+                         Mem.SF_CGT_Concession_Amount,                   // CGT Concession amounts
+
+                         Mem.SF_CGT_ForeignCGT_Before_Disc,
+                         Mem.SF_CGT_ForeignCGT_Indexation,
+                         Mem.SF_CGT_ForeignCGT_Other_Method,
+
+                         Mem.SF_Capital_Gains_Foreign_Disc,              // Tax Paid Capital Gains discounted before Discount
+                         Mem.SF_CGT_TaxPaid_Indexation,
+                         Mem.SF_CGT_TaxPaid_Other_Method,
+
+                         Mem.SF_Other_Net_Foreign_Income,
+                         Mem.SF_Cash_Distribution,
+                         Mem.SF_AU_Franking_Credits_NZ_Co,
+                         Mem.SF_Non_Res_Witholding_Tax,
+                         Mem.SF_LIC_Deductions,
+
+                         Mem.SF_Non_Cash_CGT_Discounted_Before_Discount,
+                         Mem.SF_Non_Cash_CGT_Indexation,
+                         Mem.SF_Non_Cash_CGT_Other_Method,
+                         Mem.SF_Non_Cash_CGT_Capital_Losses,
+
+                         Mem.SF_Share_Brokerage,
+                         Mem.SF_Share_Consideration,
+                         Mem.SF_Share_GST_Amount,
+
+                         mem.SF_GDT_Date,
+
+                         Mem.SF_Member_Component,
+                         Mem.Quantity,
+                         Mem.AcctCode,
+
+                         Mem.SF_Share_GST_Rate,
+                         Mem.SF_Cash_Date,
+                         Mem.SF_Accrual_Date,
+                         Mem.SF_Record_Date
+                        );
+
+    SuperForm.MoveDirection := Move;
+
+    if T > -999 then begin
+        SuperForm.FormTop := T;
+        SuperForm.FormLeft := L;
+    end else
+       SuperForm.Position := poScreenCenter;
+
+    if SuperForm.ShowModal = mrOK then
+    begin
+      Move := SuperForm.MoveDirection;
+
+      Mem.SF_Edited := SuperForm.GetFields(Amount,
+                         Mem.SF_Tax_Free_Dist,
+                         Mem.SF_Tax_Exempt_Dist,
+                         Mem.SF_Tax_Deferred_Dist,
+                         Mem.SF_TFN_Credits,
+                         Mem.SF_Foreign_Income,
+
+                         Mem.SF_Foreign_Tax_Credits,
+                         Mem.SF_Capital_Gains_Indexed,
+                         Mem.SF_Capital_Gains_Disc,
+                         Mem.SF_Other_Expenses,
+
+                         Mem.SF_Capital_Gains_Other,
+
+                         Mem.SF_PCFranked,
+                         Mem.SF_PCUnFranked,
+                         Mem.SF_Interest,                                // Gross Interest
+
+                         Mem.SF_Other_Income,                            // Other Income
+                         Mem.SF_Other_Trust_Deductions,                  // Other Trust Deductions
+                         Mem.SF_CGT_Concession_Amount,                   // CGT Concession amounts
+
+                         Mem.SF_CGT_ForeignCGT_Before_Disc,
+                         Mem.SF_CGT_ForeignCGT_Indexation,
+                         Mem.SF_CGT_ForeignCGT_Other_Method,
+
+                         Mem.SF_Capital_Gains_Foreign_Disc,              // Tax Paid Capital Gains discounted before Discount
+                         Mem.SF_CGT_TaxPaid_Indexation,
+                         Mem.SF_CGT_TaxPaid_Other_Method,
+
+                         Mem.SF_Other_Net_Foreign_Income,
+                         Mem.SF_Cash_Distribution,
+                         Mem.SF_AU_Franking_Credits_NZ_Co,
+                         Mem.SF_Non_Res_Witholding_Tax,
+                         Mem.SF_LIC_Deductions,
+
+                         Mem.SF_Non_Cash_CGT_Discounted_Before_Discount,
+                         Mem.SF_Non_Cash_CGT_Indexation,
+                         Mem.SF_Non_Cash_CGT_Other_Method,
+                         Mem.SF_Non_Cash_CGT_Capital_Losses,
+
+                         Mem.SF_Share_Brokerage,
+                         Mem.SF_Share_Consideration,
+                         Mem.SF_Share_GST_Amount,
+
+                         mem.SF_GDT_Date,
+
+                         Mem.SF_Member_Component,
+                         Mem.Quantity,
+                         Mem.AcctCode,
+
+                         Mem.SF_Share_GST_Rate,
+                         Mem.SF_Cash_Date,
+                         Mem.SF_Accrual_Date,
+                         Mem.SF_Record_Date
+                       );
+
+      if Move in [fnGoForward, fnGoBack] then begin
+         T := SuperForm.Top;
+         L := SuperForm.Left;
       end;
-DN BGL360 Extended Fields *)
-
-        SuperForm.SetFields (Amount,
-                             Mem.SF_Tax_Free_Dist,
-                             Mem.SF_Tax_Exempt_Dist,
-                             Mem.SF_Tax_Deferred_Dist,
-                             Mem.SF_TFN_Credits,
-                             Mem.SF_Foreign_Income,
-
-                             Mem.SF_Foreign_Tax_Credits,
-                             Mem.SF_Capital_Gains_Indexed,
-                             Mem.SF_Capital_Gains_Disc,
-                             Mem.SF_Other_Expenses,
-
-                             Mem.SF_Capital_Gains_Other,
-
-                             Mem.SF_PCFranked,
-                             Mem.SF_PCUnFranked,
-                             Mem.SF_Interest,                                    // Gross Interest
-
-                             Mem.SF_Other_Income,                            // Other Income
-                             Mem.SF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             Mem.SF_CGT_Concession_Amount,                   // CGT Concession amounts
-
-                             Mem.SF_CGT_ForeignCGT_Before_Disc,
-                             Mem.SF_CGT_ForeignCGT_Indexation,
-                             Mem.SF_CGT_ForeignCGT_Other_Method,
-
-                             Mem.SF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             Mem.SF_CGT_TaxPaid_Indexation,
-                             Mem.SF_CGT_TaxPaid_Other_Method,
-
-                             Mem.SF_Other_Net_Foreign_Income,
-                             Mem.SF_Cash_Distribution,
-                             Mem.SF_AU_Franking_Credits_NZ_Co,
-                             Mem.SF_Non_Res_Witholding_Tax,
-                             Mem.SF_LIC_Deductions,
-
-                             Mem.SF_Non_Cash_CGT_Discounted_Before_Discount,
-                             Mem.SF_Non_Cash_CGT_Indexation,
-                             Mem.SF_Non_Cash_CGT_Other_Method,
-                             Mem.SF_Non_Cash_CGT_Capital_Losses,
-
-                             Mem.SF_Share_Brokerage,
-                             Mem.SF_Share_Consideration,
-                             Mem.SF_Share_GST_Amount,
-
-                             mem.SF_GDT_Date,
-
-                             Mem.SF_Member_Component,
-                             Mem.Quantity,
-                             Mem.AcctCode,
-
-                             Mem.SF_Share_GST_Rate,
-                             Mem.SF_Cash_Date,
-                             Mem.SF_Accrual_Date,
-                             Mem.SF_Record_Date
-                            );
-
-        SuperForm.MoveDirection := Move;
-
-        if T > -999 then begin
-            SuperForm.FormTop := T;
-            SuperForm.FormLeft := L;
-        end else
-           SuperForm.Position := poScreenCenter;
-
-        if SuperForm.ShowModal = mrOK then
-        begin
-          Move := SuperForm.MoveDirection;
-
-          Mem.SF_Edited := SuperForm.GetFields(Amount,
-                             Mem.SF_Tax_Free_Dist,
-                             Mem.SF_Tax_Exempt_Dist,
-                             Mem.SF_Tax_Deferred_Dist,
-                             Mem.SF_TFN_Credits,
-                             Mem.SF_Foreign_Income,
-
-                             Mem.SF_Foreign_Tax_Credits,
-                             Mem.SF_Capital_Gains_Indexed,
-                             Mem.SF_Capital_Gains_Disc,
-                             Mem.SF_Other_Expenses,
-
-                             Mem.SF_Capital_Gains_Other,
-
-                             Mem.SF_PCFranked,
-                             Mem.SF_PCUnFranked,
-                             Mem.SF_Interest,                                    // Gross Interest
-
-                             Mem.SF_Other_Income,                            // Other Income
-                             Mem.SF_Other_Trust_Deductions,                  // Other Trust Deductions
-                             Mem.SF_CGT_Concession_Amount,                   // CGT Concession amounts
-
-                             Mem.SF_CGT_ForeignCGT_Before_Disc,
-                             Mem.SF_CGT_ForeignCGT_Indexation,
-                             Mem.SF_CGT_ForeignCGT_Other_Method,
-
-                             Mem.SF_Capital_Gains_Foreign_Disc,                   // Tax Paid Capital Gains discounted before Discount
-                             Mem.SF_CGT_TaxPaid_Indexation,
-                             Mem.SF_CGT_TaxPaid_Other_Method,
-
-                             Mem.SF_Other_Net_Foreign_Income,
-                             Mem.SF_Cash_Distribution,
-                             Mem.SF_AU_Franking_Credits_NZ_Co,
-                             Mem.SF_Non_Res_Witholding_Tax,
-                             Mem.SF_LIC_Deductions,
-
-                             Mem.SF_Non_Cash_CGT_Discounted_Before_Discount,
-                             Mem.SF_Non_Cash_CGT_Indexation,
-                             Mem.SF_Non_Cash_CGT_Other_Method,
-                             Mem.SF_Non_Cash_CGT_Capital_Losses,
-
-                             Mem.SF_Share_Brokerage,
-                             Mem.SF_Share_Consideration,
-                             Mem.SF_Share_GST_Amount,
-
-                             mem.SF_GDT_Date,
-
-                             Mem.SF_Member_Component,
-                             Mem.Quantity,
-                             Mem.AcctCode,
-
-                             Mem.SF_Share_GST_Rate,
-                             Mem.SF_Cash_Date,
-                             Mem.SF_Accrual_Date,
-                             Mem.SF_Record_Date
-                           );
-
-          if Move in [fnGoForward, fnGoBack] then begin
-             T := SuperForm.Top;
-             L := SuperForm.Left;
-          end;
-          Result := True;
-        end;
-//DN      end;
+      Result := True;
     end;
   finally
     SuperForm.Release;
@@ -2752,7 +2600,7 @@ begin
   case MyClient.clFields.clAccounting_System_Used of
     saBGLSimpleFund,
     saBGLSimpleLedger        : result := EditBGLFields(ParentTrans, Move, T, L);
-    saBGL360                 : result := EditBGL360Fields(BA, ParentTrans, Move, T, L);
+    saBGL360                 : result := EditBGL360Fields( ParentTrans, Move, T, L);
     saSupervisor,
     saSolution6SuperFund,
     saSuperMate              : result := EditSupervisorFields(ParentTrans, Move, T, L);
@@ -2770,7 +2618,7 @@ begin
   case MyClient.clFields.clAccounting_System_Used of
     saBGLSimpleFund,
     saBGLSimpleLedger        : result := EditBGLFields(ParentTrans, pWD, Move, T, L);
-    saBGL360                 : result := EditBGL360Fields(BA, ParentTrans, pWD, Move, T, L);
+    saBGL360                 : result := EditBGL360Fields( ParentTrans, pWD, Move, T, L);
     saSupervisor,
     saSolution6SuperFund,
     saSuperMate              : result := EditSupervisorFields(ParentTrans, pWD, Move, T, L);
@@ -2788,7 +2636,7 @@ begin
   case MyClient.clFields.clAccounting_System_Used of
     saBGLSimpleFund,
     saBGLSimpleLedger        : result := EditBGLFields(ParentTrans, pWJ, Move, T, L);
-    saBGL360                 : result := EditBGL360Fields(BA, ParentTrans, pWJ, Move, T, L);
+    saBGL360                 : result := EditBGL360Fields( ParentTrans, pWJ, Move, T, L);
     saSupervisor,
     saSolution6SuperFund,
     saSuperMate              : result := EditSupervisorFields(ParentTrans, pWJ, Move, T, L);
@@ -2813,7 +2661,7 @@ begin
   case MyClient.clFields.clAccounting_System_Used of
     saBGLSimpleFund,
     saBGLSimpleLedger        : result := EditBGLFields(ParentTrans, Mem, Move, T, L);
-    saBGL360                 : result := EditBGL360Fields(BA, ParentTrans, Mem, Move, T, L);
+    saBGL360                 : result := EditBGL360Fields( ParentTrans, Mem, Move, T, L);
     saSupervisor,
     saSolution6SuperFund,
     saSuperMate              : result := EditSupervisorFields(ParentTrans,Mem, Move, T, L);

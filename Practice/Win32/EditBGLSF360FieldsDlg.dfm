@@ -53,7 +53,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsAustralianIncome: TTabSheet
         Caption = 'Australian Income'
         object lblLessOtherAllowableTrustDeductions: TLabel
-          Left = 0
+          Left = 6
           Top = 200
           Width = 224
           Height = 17
@@ -78,10 +78,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           ExplicitTop = 132
           ExplicitWidth = 450
           inherited lblInterest: TLabel
-            Left = 0
+            Left = 6
             Width = 81
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 81
             ExplicitHeight = 17
           end
@@ -98,10 +98,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblOtherIncome: TLabel
-            Left = 0
+            Left = 6
             Width = 79
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 79
             ExplicitHeight = 17
           end
@@ -127,10 +127,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           ExplicitTop = 11
           ExplicitWidth = 450
           inherited lblFranked: TLabel
-            Left = 0
+            Left = 6
             Width = 95
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 95
             ExplicitHeight = 17
           end
@@ -141,10 +141,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblUnfranked: TLabel
-            Left = 0
+            Left = 6
             Width = 109
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 109
             ExplicitHeight = 17
           end
@@ -155,10 +155,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblFrankingCredits: TLabel
-            Left = 0
+            Left = 6
             Width = 94
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 94
             ExplicitHeight = 17
           end
@@ -218,7 +218,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         Caption = 'Capital Gains'
         ImageIndex = 1
         object lblCGTConcession: TLabel
-          Left = 0
+          Left = 6
           Top = 86
           Width = 249
           Height = 17
@@ -249,21 +249,21 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Caption = 'Income Tax Paid'
         end
         object lblBeforeDiscount: TLabel
-          Left = 0
+          Left = 6
           Top = 158
           Width = 92
           Height = 17
           Caption = 'Before Discount'
         end
         object lblIndexationMethod: TLabel
-          Left = 0
+          Left = 6
           Top = 184
           Width = 110
           Height = 17
           Caption = 'Indexation Method'
         end
         object lblOtherMethod: TLabel
-          Left = 0
+          Left = 6
           Top = 210
           Width = 83
           Height = 17
@@ -316,10 +316,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           ExplicitWidth = 450
           ExplicitHeight = 80
           inherited lblCGTDiscounted: TLabel
-            Left = 0
+            Left = 6
             Width = 243
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 243
             ExplicitHeight = 17
           end
@@ -330,11 +330,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblCGTIndexation: TLabel
-            Left = 0
+            Left = 6
             Top = 30
             Width = 149
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitTop = 30
             ExplicitWidth = 149
             ExplicitHeight = 17
@@ -348,11 +348,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblCGTOther: TLabel
-            Left = 0
+            Left = 6
             Top = 57
             Width = 172
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitTop = 57
             ExplicitWidth = 172
             ExplicitHeight = 17
@@ -533,7 +533,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         Caption = 'Foreign Income'
         ImageIndex = 2
         object lblAssessableForeignSourceIncome: TLabel
-          Left = 0
+          Left = 6
           Top = 5
           Width = 202
           Height = 17
@@ -550,7 +550,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Visible = False
         end
         object lblOtherNetForeignSourceIncome: TLabel
-          Left = 0
+          Left = 6
           Top = 31
           Width = 196
           Height = 17
@@ -567,7 +567,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Visible = False
         end
         object lblCashDistribution: TLabel
-          Left = 0
+          Left = 6
           Top = 57
           Width = 99
           Height = 17
@@ -793,10 +793,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           ExplicitWidth = 405
           ExplicitHeight = 144
           inherited lblForeignIncomeTaxOffset: TLabel
-            Left = 0
+            Left = 6
             Width = 153
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 153
             ExplicitHeight = 17
           end
@@ -807,12 +807,12 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblAUFrankingCreditsFromNZCompany: TLabel
-            Left = 0
+            Left = 6
             Top = 31
             Width = 245
             Height = 17
             Caption = 'AU Franking Credits from an NZ Company'
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitTop = 31
             ExplicitWidth = 245
             ExplicitHeight = 17
@@ -826,12 +826,12 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblTFNAmountsWithheld: TLabel
-            Left = 0
+            Left = 6
             Top = 71
             Width = 133
             Height = 17
             Caption = 'TFN Amounts Withheld'
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitTop = 71
             ExplicitWidth = 133
             ExplicitHeight = 17
@@ -845,11 +845,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblNonResidentWithholdingTax: TLabel
-            Left = 0
+            Left = 6
             Top = 97
             Width = 178
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitTop = 97
             ExplicitWidth = 178
             ExplicitHeight = 17
@@ -863,11 +863,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblLICDeductions: TLabel
-            Left = 0
+            Left = 6
             Top = 122
             Width = 86
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitTop = 122
             ExplicitWidth = 86
             ExplicitHeight = 17
@@ -955,7 +955,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Visible = False
         end
         object lblCGTCapitalLosses: TLabel
-          Left = 3
+          Left = 6
           Top = 99
           Width = 83
           Height = 17
@@ -993,10 +993,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           ExplicitTop = 3
           ExplicitWidth = 450
           inherited lblCGTDiscounted: TLabel
-            Left = 0
+            Left = 6
             Width = 243
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 243
             ExplicitHeight = 17
           end
@@ -1007,10 +1007,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblCGTIndexation: TLabel
-            Left = 0
+            Left = 6
             Width = 149
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 149
             ExplicitHeight = 17
           end
@@ -1021,10 +1021,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             ExplicitHeight = 17
           end
           inherited lblCGTOther: TLabel
-            Left = 0
+            Left = 6
             Width = 172
             Height = 17
-            ExplicitLeft = 0
+            ExplicitLeft = 6
             ExplicitWidth = 172
             ExplicitHeight = 17
           end
@@ -1067,7 +1067,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     TabOrder = 4
     Visible = False
     object lblInterest: TLabel
-      Left = 4
+      Left = 10
       Top = 7
       Width = 81
       Height = 17
@@ -1084,7 +1084,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblOtherIncome: TLabel
-      Left = 4
+      Left = 10
       Top = 39
       Width = 79
       Height = 17
@@ -1101,7 +1101,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblTFNAmountsWithheld: TLabel
-      Left = 4
+      Left = 10
       Top = 67
       Width = 133
       Height = 17
@@ -1118,7 +1118,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblNonResidentWithholdingTax: TLabel
-      Left = 4
+      Left = 10
       Top = 97
       Width = 178
       Height = 17
@@ -1243,7 +1243,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     TabOrder = 5
     Visible = False
     object lblShareBrokerage: TLabel
-      Left = 4
+      Left = 10
       Top = 10
       Width = 60
       Height = 17
@@ -1260,7 +1260,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareConsideration: TLabel
-      Left = 4
+      Left = 10
       Top = 38
       Width = 81
       Height = 17
@@ -1277,7 +1277,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareGSTAmount: TLabel
-      Left = 4
+      Left = 10
       Top = 66
       Width = 72
       Height = 17
@@ -1294,7 +1294,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareGSTRate: TLabel
-      Left = 4
+      Left = 10
       Top = 98
       Width = 53
       Height = 17
@@ -1311,7 +1311,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareTradeUnits: TLabel
-      Left = 4
+      Left = 10
       Top = 197
       Width = 29
       Height = 17
@@ -1466,7 +1466,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblForeignIncome: TLabel
-      Left = 4
+      Left = 10
       Top = 90
       Width = 90
       Height = 17
@@ -1492,10 +1492,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       ExplicitWidth = 450
       ExplicitHeight = 81
       inherited lblFranked: TLabel
-        Left = 4
+        Left = 10
         Width = 95
         Height = 17
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitWidth = 95
         ExplicitHeight = 17
       end
@@ -1506,11 +1506,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ExplicitHeight = 17
       end
       inherited lblUnfranked: TLabel
-        Left = 4
+        Left = 10
         Top = 31
         Width = 109
         Height = 17
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 31
         ExplicitWidth = 109
         ExplicitHeight = 17
@@ -1524,11 +1524,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ExplicitHeight = 17
       end
       inherited lblFrankingCredits: TLabel
-        Left = 4
+        Left = 10
         Top = 59
         Width = 94
         Height = 17
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 59
         ExplicitWidth = 94
         ExplicitHeight = 17
@@ -1543,7 +1543,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfFranked: TOvcNumericField
         Left = 260
         Top = 2
-        OnClick = frameFrankingFrankedChange
+        OnChange = frameFrankingFrankedChange
         ExplicitLeft = 260
         ExplicitTop = 2
         RangeHigh = {F6285CFFFFF802952040}
@@ -1552,7 +1552,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfUnfranked: TOvcNumericField
         Left = 260
         Top = 30
-        OnClick = frameFrankingUnfrankedChange
+        OnChange = frameFrankingUnfrankedChange
         ExplicitLeft = 260
         ExplicitTop = 30
         RangeHigh = {F6285CFFFFF802952040}
@@ -1561,7 +1561,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfFrankingCredits: TOvcNumericField
         Left = 260
         Top = 58
-        OnClick = frameFrankingFrankingCreditsChange
+        OnChange = frameFrankingFrankingCreditsChange
         ExplicitLeft = 260
         ExplicitTop = 58
         RangeHigh = {F6285CFFFFF802952040}
@@ -1579,12 +1579,12 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       ExplicitWidth = 450
       ExplicitHeight = 147
       inherited lblForeignIncomeTaxOffset: TLabel
-        Left = 4
+        Left = 10
         Top = 2
         Width = 198
         Height = 17
         Caption = 'Foreign Income Tax Offset Credits'
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 2
         ExplicitWidth = 198
         ExplicitHeight = 17
@@ -1598,11 +1598,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ExplicitHeight = 17
       end
       inherited lblAUFrankingCreditsFromNZCompany: TLabel
-        Left = 4
+        Left = 10
         Top = 31
         Width = 229
         Height = 17
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 31
         ExplicitWidth = 229
         ExplicitHeight = 17
@@ -1616,12 +1616,12 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ExplicitHeight = 17
       end
       inherited lblTFNAmountsWithheld: TLabel
-        Left = 4
+        Left = 10
         Top = 61
         Width = 133
         Height = 17
         Caption = 'TFN Amounts Withheld'
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 61
         ExplicitWidth = 133
         ExplicitHeight = 17
@@ -1635,11 +1635,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ExplicitHeight = 17
       end
       inherited lblNonResidentWithholdingTax: TLabel
-        Left = 4
+        Left = 10
         Top = 91
         Width = 178
         Height = 17
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 91
         ExplicitWidth = 178
         ExplicitHeight = 17
@@ -1653,11 +1653,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         ExplicitHeight = 17
       end
       inherited lblLICDeductions: TLabel
-        Left = 4
+        Left = 10
         Top = 120
         Width = 86
         Height = 17
-        ExplicitLeft = 4
+        ExplicitLeft = 10
         ExplicitTop = 120
         ExplicitWidth = 86
         ExplicitHeight = 17
@@ -1744,7 +1744,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     ParentColor = True
     TabOrder = 1
     object lblAccount: TLabel
-      Left = 4
+      Left = 10
       Top = 9
       Width = 46
       Height = 17
@@ -1818,7 +1818,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblEntryType: TLabel
-      Left = 4
+      Left = 10
       Top = 43
       Width = 61
       Height = 17
@@ -1891,7 +1891,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       StyleHot.LookAndFeel.NativeStyle = True
       TabOrder = 0
       OnKeyDown = cmbxAccountKeyDown
-      Width = 138
+      Width = 140
     end
     object nfUnits: TOvcNumericField
       Left = 357
@@ -2004,7 +2004,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     object sfEntryType: TOvcPictureField
       Left = 74
       Top = 42
-      Width = 138
+      Width = 140
       Height = 20
       Cursor = crIBeam
       DataType = pftString
@@ -2066,7 +2066,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       TabOrder = 1
     end
     object btnClear: TButton
-      Left = 8
+      Left = 10
       Top = 7
       Width = 75
       Height = 25
@@ -2176,14 +2176,14 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       709
       73)
     object lblDate: TLabel
-      Left = 4
+      Left = 10
       Top = 16
       Width = 27
       Height = 17
       Caption = 'Date'
     end
     object lbldispDate: TLabel
-      Left = 4
+      Left = 10
       Top = 40
       Width = 66
       Height = 17
