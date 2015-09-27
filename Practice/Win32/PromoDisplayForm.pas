@@ -23,6 +23,7 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     PurpleImageIndex : Integer;
     {Each fram added to the form will be saved in this list so that it can be freed later}
@@ -168,6 +169,12 @@ begin
   end;
 
   PageNavigation.ResetTop;
+end;
+
+procedure TPromoDisplayFrm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  DisplayPromoContents.DisplayTypes := [ctUpgrade, ctMarketing, ctTechnical];
+  DisplayPromoContents.ListValidContents;
 end;
 
 procedure TPromoDisplayFrm.FormCreate(Sender: TObject);

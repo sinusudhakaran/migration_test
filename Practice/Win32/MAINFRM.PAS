@@ -1629,7 +1629,6 @@ begin
     else
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
-
        if Assigned(AdminSystem) then
        begin
          if AdminSystem.fdFields.fdUse_BankLink_Online then
@@ -1861,7 +1860,7 @@ begin
 
   //allow DDE commands to be processed
   ApplicationIsStarting := false;
-
+  mniPromos.Visible := (DisplayPromoContents.Count > 0);
   if DebugMe then
     LogUtil.LogMsg(lmDebug,unitname,'Form Show Finished');
 end;
