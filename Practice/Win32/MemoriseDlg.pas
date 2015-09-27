@@ -1322,9 +1322,6 @@ begin
   if RowNum = 0 then
     Exit;
 
-  if Data = nil then
-    Exit; 
-
   ReadCellforPaint(RowNum, ColNum, Data);
 end;
 
@@ -2233,6 +2230,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.ReadCellforPaint(RowNum, ColNum: integer; var Data: pointer);
 begin
+  if (RowNum > fMemTranSortedList.ItemCount) then
+    Exit;
+
   case ColNum of
     mtDate : begin
       fTempString := bkDate2Str(fMemTranSortedList.GetPRec(RowNum-1)^.DateEffective);
@@ -4075,7 +4075,7 @@ procedure TdlgMemorise.colTranDateOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
-  if Data=nil then
+  if Data = nil then
     Exit;
 
   DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
@@ -4086,7 +4086,7 @@ procedure TdlgMemorise.colTranAccountOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
-  if Data=nil then
+  if Data = nil then
     Exit;
 
   DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
@@ -4097,7 +4097,7 @@ procedure TdlgMemorise.colTranStatementDetailsOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
-  if Data=nil then
+  if Data = nil then
     Exit;
 
   DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
@@ -4108,7 +4108,7 @@ procedure TdlgMemorise.colTranCodedByOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 begin
-  if Data=nil then
+  if Data = nil then
     Exit;
 
   DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
