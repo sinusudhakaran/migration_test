@@ -66,25 +66,24 @@ begin
   if not Assigned(FundListJSON) then
     Exit;
     
-  sgFunds.RowCount := 2;
+  sgFunds.RowCount := FundListJSON.Count+1;
   sgFunds.Cells[0,0] := 'Fund Code';
   sgFunds.Cells[1,0] := 'Fund Name';
   sgFunds.Cells[2,0] := 'ABN';
-  Index := 0;
+  Index := 1;
   for i := 0 to FundListJSON.Count - 1 do
   begin
     tmpFund:= TFundObj(FundListJSON.Items[i]);
     if ((FSelectedFundID <> '') and (FSelectedFundID =  tmpFund.FundID))  then
-      Index := i;
+      Index := i+1;
       
     sgFunds.Cells[0,i+1] := tmpFund.FundCode;
     sgFunds.Cells[1,i+1] := tmpFund.FundName;
     sgFunds.Cells[2,i+1] := tmpFund.ABN;
-    
-    sgFunds.RowCount := sgFunds.RowCount + 1; 
   end;
-  sgFunds.RowCount := sgFunds.RowCount - 1;
   sgFunds.Row := Index;
+  //sgFunds.Repaint;
+  //sgFunds.SetFocus;
 end;
 
 end.
