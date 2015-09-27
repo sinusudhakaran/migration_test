@@ -312,15 +312,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.ColAcct'
-          'dlgMemorise.ColDesc'
-          'dlgMemorise.colNarration'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.ColAmount'
+          'dlgMemorise.colLineType'
           'dlgMemorise.ColPercent'
-          'dlgMemorise.colLineType')
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           24)
         ColData = (
@@ -605,10 +605,10 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         CellData = (
           'dlgMemorise.tranHeader'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranStatementDetails'
           'dlgMemorise.colTranAmount'
           'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranStatementDetails'
-          'dlgMemorise.colTranCodedBy'
           'dlgMemorise.colTranDate')
         RowData = (
           24)
@@ -642,6 +642,38 @@ object dlgMemorise: TdlgMemorise
         Anchors = [akLeft, akTop, akRight, akBottom]
         Indent = 19
         TabOrder = 1
+      end
+      object pnlMessage: TPanel
+        Left = 12
+        Top = 144
+        Width = 1037
+        Height = 89
+        Anchors = [akLeft, akTop, akRight]
+        BevelOuter = bvNone
+        Color = clWhite
+        ParentBackground = False
+        TabOrder = 2
+        Visible = False
+        DesignSize = (
+          1037
+          89)
+        object lblMessage: TLabel
+          Left = 0
+          Top = 40
+          Width = 1037
+          Height = 16
+          Alignment = taCenter
+          Anchors = [akLeft, akTop, akRight]
+          AutoSize = False
+          Caption = 'Message'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          ExplicitWidth = 225
+        end
       end
     end
   end
@@ -1172,6 +1204,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1307,6 +1340,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1327,7 +1361,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1434,7 +1467,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False

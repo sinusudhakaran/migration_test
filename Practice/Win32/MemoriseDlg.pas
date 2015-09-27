@@ -204,6 +204,8 @@ type
     colTranCodedBy: TOvcTCString;
     colTranAmount: TOvcTCNumericField;
     treView: TTreeView;
+    pnlMessage: TPanel;
+    lblMessage: TLabel;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -386,6 +388,7 @@ type
     procedure UpdateControls();
     procedure RefreshMemTransactions();
     procedure RefreshMasterMemTree();
+    procedure TerminateMasterThread();
   public
     procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; ATempMem: boolean = false);
 
@@ -539,8 +542,8 @@ begin
       for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
       begin
         ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
-
-        if ClientFileRec^.cfArchived then
+        
+        if ClientFileRec^.cfForeign_File then
           Continue;
 
         OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
@@ -548,39 +551,34 @@ begin
         if not Assigned(CltClient) then
           Continue;
 
-        try
-          //Screen.Cursor := crHourglass;
-          FoundFirstClientAccount := false;
+        //Screen.Cursor := crHourglass;
+        FoundFirstClientAccount := false;
 
-          for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
+        for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
+        begin
+          BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+          SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
+
+          if BankPrefix <> SearchPrefix then
+            Continue;
+
+          if not SuggestedMem.IsAccountUsedByMem(BankAcc, TempMem) then
+            Continue;
+
+          if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
           begin
-            BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-            SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
-
-            if BankPrefix <> SearchPrefix then
-              Continue;
-
-            if not SuggestedMem.IsAccountUsedByMem(BankAcc, TempMem) then
-              Continue;
-
-            if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
+            if (not FoundFirstAccount) then
             begin
-              if (not FoundFirstAccount) then
-              begin
-                RootNode := fMasterTreeView.Items.Add( NIL, SysAccRec^.sbInstitution);
+              RootNode := fMasterTreeView.Items.Add( NIL, SysAccRec^.sbInstitution);
 
-                FoundFirstAccount := true;
-              end;
-              ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
-
-              FoundFirstClientAccount := true;
+              FoundFirstAccount := true;
             end;
+            ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
 
-            AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
+            FoundFirstClientAccount := true;
           end;
 
-        finally
-          AbandonAClient(CltClient);
+          AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
         end;
       end;
     finally
@@ -603,7 +601,9 @@ begin
   inherited;
 
   if Assigned(fMasterTreeView) then
+  begin
     RefreshMasterMemTree();
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -865,11 +865,13 @@ begin
     cbAccounting.Enabled := chkAccountSystem.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.cbFromClick(Sender: TObject);
 begin
   eDateFrom.Enabled := cbFrom.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.cbMinusChange(Sender: TObject);
 begin
   case cbMinus.ItemIndex of
@@ -878,11 +880,13 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.cbToClick(Sender: TObject);
 begin
   eDateTo.Enabled := cbTo.Checked;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.cCodeClick(Sender: TObject);
 begin
    eCode.Enabled := cCode.Checked;
@@ -893,7 +897,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cCodeExit(Sender: TObject);
 begin
-  RefreshMemTransactions();
+  if chkMaster.checked = false then
+    RefreshMemTransactions();
 end;
 
 //------------------------------------------------------------------------------
@@ -940,16 +945,20 @@ var
   BA: string;
   EntryType: byte;
 begin      
-   if OKtoPost then
-   begin
-     // If there is a recommended memorisation
-     if chkMaster.Checked then
-       BA := ''
-     else
-       BA := SourceBankAccount.baFields.baBank_Account_Number;
-     EntryType := GetTxTypeFromCmbType;
-     Modalresult := mrOk;
-   end;
+  if OKtoPost then
+  begin
+    // If there is a recommended memorisation
+    if chkMaster.Checked then
+      BA := ''
+    else
+      BA := SourceBankAccount.baFields.baBank_Account_Number;
+
+    EntryType := GetTxTypeFromCmbType;
+
+    TerminateMasterThread();
+
+    Modalresult := mrOk;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -975,8 +984,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
 begin
-   if OKtoPost then
-     Modalresult := mrCopy;
+  if OKtoPost then
+  begin
+    TerminateMasterThread();
+
+    Modalresult := mrCopy;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -987,6 +1000,8 @@ begin
               ' which are yet to be transferred or finalised.' + #13#13 +
               'Please confirm you wish to delete.', DLG_NO, 0) = DLG_YES then
   begin
+    TerminateMasterThread();
+
     modalresult := mrDelete;  // toDelete
   end;
 end;
@@ -994,6 +1009,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCancelClick(Sender: TObject);
 begin
+  TerminateMasterThread();
+      
   modalresult := mrCancel;
 end;
 
@@ -1305,7 +1322,22 @@ begin
   if RowNum = 0 then
     Exit;
 
+  if Data = nil then
+    Exit; 
+
   ReadCellforPaint(RowNum, ColNum, Data);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.TerminateMasterThread;
+var
+  ThreadReturn : Dword;
+begin
+  if Assigned(fMasterTreeThread) then
+  begin
+    GetExitCodeThread(fMasterTreeThread.Handle, ThreadReturn);
+    TerminateThread(fMasterTreeThread.Handle, ThreadReturn);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2248,12 +2280,18 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.RefreshMasterMemTree;
 begin
-  fMasterTreeThread := TMasterTreeThread.Create(true);
-  fMasterTreeThread.MasterTreeView    := treView;
-  fMasterTreeThread.SourceBankAccount := SourceBankAccount;
-  fMasterTreeThread.SourceTransaction := SourceTransaction;
-  fMasterTreeThread.DlgMemorise       := Self;
-  fMasterTreeThread.Resume;
+  pnlMessage.visible := true;
+  try
+    lblMessage.Caption := 'Calculating';
+    fMasterTreeThread := TMasterTreeThread.Create(true);
+    fMasterTreeThread.MasterTreeView    := treView;
+    fMasterTreeThread.SourceBankAccount := SourceBankAccount;
+    fMasterTreeThread.SourceTransaction := SourceTransaction;
+    fMasterTreeThread.DlgMemorise       := Self;
+    fMasterTreeThread.Resume;
+  finally
+    pnlMessage.visible := false;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3269,6 +3307,8 @@ begin
   end
   else
   begin
+    TerminateMasterThread();
+
     treView.Visible := false;
     tblTran.Visible := true;
     lblMatchingTransactions.Caption := 'Matching Transactions';
@@ -3393,7 +3433,8 @@ begin
   if CalledFromRecommendedMems then
     chkStatementDetails.Checked := True;
 
-  RefreshMemTransactions();
+  if not chkMaster.checked then
+    RefreshMemTransactions();
 end;
 
 function TdlgMemorise.GetAccountingSystem: Integer;
