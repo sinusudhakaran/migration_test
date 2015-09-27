@@ -351,47 +351,6 @@ function TdlgEditBGLSF360Fields.GetFields( var mImputedCredit : Money;
                         var dCash_Date : integer;
                         var dAccrual_Date : integer;
                         var dRecord_Date : integer) : boolean;
-(*function TdlgEditBGLSF360Fields.GetFields(var mImputedCredit,
-                         mTaxFreeDist,
-                         mTaxExemptDist,
-                         mTaxDeferredDist,
-                         mTFNCredits,
-                         mForeignIncome,
-                         mForeignTaxCredits,
-                         mCapitalGains,
-                         mDiscountedCapitalGains,
-                         mOtherExpenses,
-                         mCapitalGainsOther,
-                         mFranked,
-                         mUnfranked,
-                         mInterest,
-                         mOtherIncome,
-                         mOtherTrustDeductions,
-                         mCGTConcessionAmount,
-                         mForeignCGTBeforeDiscount,
-                         mForeignCGTIndexationMethod,
-                         mForeignCGTOtherMethod,
-                         mTaxPaidBeforeDiscount,
-                         mTaxPaidIndexationMethod,
-                         mTaxPaidOtherMethod,
-                         {mCapitalGainsForeignDisc,}
-                         mOtherNetForeignSourceIncome,
-                         mCashDistribution,
-                         mAUFrankingCreditsFromNZCompany,
-                         mNonResidentWithholdingTax,
-                         mLICDeductions,
-                         mNon_Cash_CGT_Discounted_Before_Discount,
-                         mNon_Cash_CGT_Indexation,
-                         mNon_Cash_CGT_Other,
-                         mNon_Cash_CGT_Capital_Losses,
-                         mShareBrokerage,
-                         mShareConsideration,
-                         mShareGSTAmount : Money;
-                         var dCGTDate: integer;
-                         var mComponent : byte;
-                         var mUnits: Money;
-                         var mAccount,
-                         mShareGSTRate: shortstring ) : boolean; *)
 //- - - - - - - - - - - - - - - - - - - -
 // Purpose:     take the values from the form and return into vars
 //
@@ -1405,6 +1364,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     ShowAllHeaderFields;
     lblCashDate.Caption   := 'Cash Date';
     lblRecordDate.Caption := 'Record Date';
+    lblCashDate.Left      := 510;
+    lblRecordDate.Left    := 510;
     case Value of
       ttDistribution : begin
         sfEntryType.Text        := 'Distribution';
@@ -1424,6 +1385,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
         sfEntryType.Text      := 'Share Trade';
         lblCashDate.Caption   := 'Contract Date';
         lblRecordDate.Caption := 'Settlement Date';
+        lblCashDate.Left      := 490;
+        lblRecordDate.Left    := 490;
         SetFields( [ lblAccrualDate, eAccrualDate ], false );
         Configure_ShareTrade;
       end;
@@ -1439,13 +1402,6 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
 begin
   try
-(*    case Value of
-      ttDistribution : Configure_Distribution;
-      ttDividend     : Configure_Dividend;
-      ttInterest     : Configure_Interest;
-      ttShareTrade   : Configure_ShareTrade;
-      ttOtherTx      : Configure_OtherTx;
-    end; *)
     SetupFields( Value );
   finally
     fTransactionType := Value;

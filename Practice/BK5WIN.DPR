@@ -67,9 +67,10 @@ uses
   BlopiClient in 'Win32\BlopiClient.pas',
   AcclipseX in 'Extract\AcclipseX.pas',
   INISettings in 'Win32\INISettings.pas',
-  RecommendedMemorisationsFrm in 'Win32\RecommendedMemorisationsFrm.pas' {frmRecommendedMemorisations},
-  MemTranSortedList in 'Win32\MemTranSortedList.pas',
-  PromoWindowObj in 'Win32\PromoWindowObj.pas';
+  BGLFrankingFme in 'Win32\BGLFrankingFme.pas' {fmeBGLFranking: TFrame},
+  BGLInterestIncomeFme in 'Win32\BGLInterestIncomeFme.pas' {fmeBGLInterestIncome: TFrame},
+  BGLCapitalGainsFme in 'Win32\BGLCapitalGainsFme.pas' {fmeBGLCapitalGainsTax: TFrame},
+  BGLForeignTaxFme in 'Win32\BGLForeignTaxFme.pas' {fmeBGLForeignTax: TFrame};
 
 //  ExtractHelpers in '..\Bulk Export\ExtractHelpers.pas';
 
@@ -101,13 +102,6 @@ begin
   Application.CreateForm(TfrmStatus, frmStatus);
   //********************************************
       ApplicationStartUpAndShutDown.AfterFormCreation;
-      while (DisplayPromoContents.ProcessingData) do
-      begin
-        DisplayPromoContents.StartContentfulReadTimer;
-        Application.ProcessMessages;
-      end;
-
-
     except
       On E : Exception do
       begin

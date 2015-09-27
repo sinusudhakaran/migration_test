@@ -1751,8 +1751,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Caption = 'Account'
     end
     object btnChart: TSpeedButton
-      Left = 219
-      Top = 6
+      Left = 218
+      Top = 8
       Width = 28
       Height = 22
       Glyph.Data = {
@@ -1810,7 +1810,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       OnClick = btnChartClick
     end
     object lblUnits: TLabel
-      Left = 289
+      Left = 278
       Top = 9
       Width = 29
       Height = 17
@@ -1834,15 +1834,15 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblCashDate: TLabel
-      Left = 510
+      Left = 490
       Top = 9
-      Width = 59
+      Width = 80
       Height = 17
-      Caption = 'Cash Date'
+      Caption = 'Contract Date'
       Visible = False
     end
     object lblAccrualDate: TLabel
-      Left = 289
+      Left = 278
       Top = 43
       Width = 73
       Height = 17
@@ -1850,11 +1850,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblRecordDate: TLabel
-      Left = 510
+      Left = 490
       Top = 43
-      Width = 73
+      Width = 92
       Height = 17
-      Caption = 'Record Date'
+      Caption = 'Settlement Date'
       Visible = False
     end
     object lineTransactionInfo: TShape
@@ -1894,7 +1894,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Width = 138
     end
     object nfUnits: TOvcNumericField
-      Left = 368
+      Left = 357
       Top = 8
       Width = 121
       Height = 20
@@ -1946,7 +1946,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       RangeLow = {00000000000000000000}
     end
     object eAccrualDate: TOvcPictureField
-      Left = 368
+      Left = 357
       Top = 42
       Width = 121
       Height = 20

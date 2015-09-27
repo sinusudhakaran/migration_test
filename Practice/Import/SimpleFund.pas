@@ -30,7 +30,7 @@ uses
   Globals, sysutils, InfoMoreFrm, bkconst,   bkchio,
   bkdefs, ovcDate, ErrorMoreFrm, dbaseReader, stDateSt, WarningMoreFrm, 
   ChartUtils, GenUtils, bkDateUtils, Progress, LogUtil, bk5Except, WinUtils,
-  Classes, glConst;
+  Classes, glConst, uBGLServer;
 
 const
   SF_FILE  = 'CHART.DBF';
@@ -191,7 +191,8 @@ begin
       UpdateAppStatus('Loading Chart','Reading Chart',0);
       try
         if (clAccounting_System_Used = saBGL360) then
-          ReadCSVFile(ChartFileName, NewChart)
+//DN BGL360-API Call          ReadCSVFile(ChartFileName, NewChart)
+          FetchCOSFromAPI( NewChart )
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
@@ -294,7 +295,62 @@ end;
 
 //------------------------------------------------------------------------------
 procedure FetchCOSFromAPI(NewChart: TChart);
+const
+  ThisMethodName = 'FetchCOSFromAPI';
+var
+  AccountType : string;
+  Msg         : string;
+  NewAccount  : pAccount_Rec;
+  RESTServer : TBGLServer;
+  i          : integer;
 begin
+  RESTServer := TBGLServer.Create( nil, PRACINI_BGL360_Client_ID,
+    PRACINI_BGL360_Client_Secret, PRACINI_BGL360_API_URL );
+  try
+    i := 0;
+    if assigned( MyClient ) then
+      RestServer.Set_Auth_Tokens( MyClient.clExtra.ceBGLAccessToken,
+        MyClient.clExtra.ceBGLTokenType, MyClient.clExtra.ceBGLRefreshToken,
+        MyClient.clExtra.ceBGLTokenExpiresAt );
+
+      if RestServer.CheckForAuthentication then begin
+      
+        if RESTServer.Get_Chart_Of_Accounts( MyClient.clExtra.ceBGLFundSelected ) then begin
+          for i := 0 to pred( RESTServer.Chart_of_Accounts.Count ) do begin
+
+            if (NewChart.FindCode( RESTServer.Chart_of_Accounts[ i ].Code ) <> nil) then
+              LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
+                RESTServer.Chart_of_Accounts[ i ].Code +' found in BGL360 API' )
+            else
+              if ( RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ] in
+                     [ 'C', 'N' ] ) then begin // Sub-Account not handled
+
+                NewAccount := New_Account_Rec;
+
+                NewAccount^.chAccount_Code        :=
+                  RESTServer.Chart_of_Accounts[ i ].Code;
+                AccountType                       :=
+                  RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ];
+                NewAccount^.chAccount_Type        := ord(AccountType[1]);
+                NewAccount^.chPosting_Allowed     := True;
+                NewAccount^.chAccount_Description :=
+                  RESTServer.Chart_of_Accounts[ i ].Name; //FieldList.Strings[2];
+
+                NewChart.Insert(NewAccount);
+              end;
+          end;
+        end;
+      end
+      else begin
+        Msg := 'Error Refreshing Chart the Service could not be reached, please try again later.';
+        LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+        HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+        exit;
+      end;
+
+  finally
+    RESTServer.Free;
+  end;
 end;
 
 Initialization

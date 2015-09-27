@@ -63,25 +63,24 @@ type
 
   TChart_AccountObj = class
   private
-    fcode             : string;
-    fname             : string;
-    faccountClass     : string;
-    fsecurityId       : string;
-    fsecurityCode     : string;
-    fmarketType       : string;
-    fchartAccountType : TChart_AccountTypeObj;
+    fCode             : string;
+    fName             : string;
+    fAccountClass     : string;
+    fSecurityId       : string;
+    fSecurityCode     : string;
+    fMarketType       : string;
+    fChartAccountType : TChart_AccountTypeObj;
   public
-    property code             : string read fcode;
-    property name             : string read fname;
-    property accountClass     : string read faccountClass;
-    property securityId       : string read fsecurityId;
-    property securityCode     : string read fsecurityCode;
-    property marketType       : string read fmarketType;
-    property chartAccountType : TChart_AccountTypeObj read fchartAccountType;
-
+    property Code             : string read fCode;
+    property Name             : string read fName;
+    property AccountClass     : string read fAccountClass;
+    property SecurityId       : string read fSecurityId;
+    property SecurityCode     : string read fSecurityCode;
+    property MarketType       : string read fMarketType;
+    property ChartAccountType : TChart_AccountTypeObj read fChartAccountType;
   end;
 
-  TChar_Of_Accounts_Obj = class(TBaseList_Obj)
+  TChart_Of_Accounts_Obj = class(TBaseList_Obj)
   private
     function GetItems(Index: Integer): TChart_AccountObj;
   public
@@ -135,7 +134,7 @@ type
 
     fAuth_TokenObj : TAuth_TokenObj;
     fFundList_Obj  : TFundList_Obj;
-    fChar_Of_Accounts_Obj : TChar_Of_Accounts_Obj;
+    fChart_Of_Accounts_Obj : TChart_Of_Accounts_Obj;
   protected
     procedure AddAuthHeaders( AuthScheme: TAuthSchemes; Http: TipsHTTPS ); override;
     procedure AddHeaders( Http: TipsHTTPS ); override;
@@ -182,6 +181,7 @@ type
     property Auth_Token             : TAuth_TokenObj read fAuth_TokenObj;
 
     property FundList : TFundList_Obj read fFundList_Obj;
+    property Chart_Of_Accounts : TChart_Of_Accounts_Obj read fChart_Of_Accounts_Obj;
   end;
 
 implementation
@@ -244,10 +244,11 @@ begin
     ( Now < Auth_Token.fWill_Expire_At );
 
   if not result then begin
-  result := {Check if there was ever, a Token}
-    ( trim( Auth_Token.Access_token ) <> '' ) and
-    ( trim( Auth_Token.Token_type ) <> '' ) and
-    ( trim( Auth_Token.Refresh_token ) <> '' );
+    result := {Check if there was ever, a Token}
+      ( trim( Auth_Token.Access_token ) <> '' ) and
+      ( trim( Auth_Token.Token_type ) <> '' ) and
+      ( trim( Auth_Token.Refresh_token ) <> '' );
+
     if not result then begin      // If there has never been a token
       result := Get_Auth_Code;    // Need to Authorise, and retrieve Auth_Code
       if result then
@@ -255,7 +256,8 @@ begin
         if not result then
           exit;
     end
-    else begin // There has been a token previously, let's try and refresh
+    else
+    begin // There has been a token previously, let's try and refresh
       result := Get_Refresh_Tokens; // Try and refresh the tokens
       if not result then begin // something went wrong, let's try and re-authorise
         freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
@@ -272,7 +274,7 @@ begin
   inherited Create;
   fAuth_TokenObj   := TAuth_TokenObj.Create;
   fFundList_Obj    := TFundList_Obj.Create;
-  fChar_Of_Accounts_Obj := TChar_Of_Accounts_Obj.Create;
+  fChart_Of_Accounts_Obj := TChart_Of_Accounts_Obj.Create;
 
 
   Header [ 'Content-Type' ] := 'application/x-www-form-urlencoded';
@@ -289,7 +291,7 @@ end;
 
 destructor TBGLServer.Destroy;
 begin
-  freeAndNil( fChar_Of_Accounts_Obj );
+  freeAndNil( fChart_Of_Accounts_Obj );
   freeAndNil( fFundList_Obj );
   freeAndNil( fAuth_TokenObj );
 
@@ -363,7 +365,7 @@ begin
         [ Auth_Code] ) );
 
     Post( asOAuth, format( ENDPOINT_BGI360_Chart_Of_Accounts, [ aFundID ] ),
-      nil, fChar_Of_Accounts_Obj );
+      nil, fChart_Of_Accounts_Obj );
 
     if DebugMe then
       SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
@@ -450,7 +452,7 @@ procedure TJSONStringList.Assign(List: TStrings);
 var
   Index: Integer;
 begin
-  for Index := 0 to List.Count - 1 do
+  for Index := 0 to pred( List.Count ) do
   begin
     Self.Add(List.Names[Index], List.ValueFromIndex[Index]);
   end;
@@ -495,7 +497,6 @@ end;
 procedure TAuth_TokenObj.Deserialize(Json: String);
 var
   JsonObject: TlkJSONbase;
-//  Authentication: TlkJSONobject;
 begin
   JsonObject := TlkJSON.ParseText(Json);
 
@@ -539,7 +540,7 @@ end;
 
 { TChartList_Obj }
 
-procedure TChar_Of_Accounts_Obj.Deserialize(Json: String);
+procedure TChart_Of_Accounts_Obj.Deserialize(Json: String);
 var
   JsonObject: TlkJSONbase;
   ChartOfAccountsList: TlkJSONlist;
@@ -573,7 +574,7 @@ begin
     OldNullStrictConvert := NullStrictConvert;
     NullStrictConvert := false;
     try
-      for Index := 0 to ChartOfAccountsList.Count - 1 do
+      for Index := 0 to pred( ChartOfAccountsList.Count ) do
       begin
         if ( ChartOfAccountsList.Child[Index] is TlkJSONobject ) then begin
           ChartAccount := ChartOfAccountsList.Child[Index] as TlkJSONobject;
@@ -616,12 +617,12 @@ begin
   end;
 end;
 
-function TChar_Of_Accounts_Obj.GetItems(Index: Integer): TChart_AccountObj;
+function TChart_Of_Accounts_Obj.GetItems(Index: Integer): TChart_AccountObj;
 begin
   Result := FItems[Index] as TChart_AccountObj;
 end;
 
-function TChar_Of_Accounts_Obj.Serialize: String;
+function TChart_Of_Accounts_Obj.Serialize: String;
 begin
 
 end;
@@ -658,7 +659,7 @@ begin
 
     FundList :=  JsonObject.Field['funds'] as TlkJSONlist;
 
-    for Index := 0 to FundList.Count - 1 do
+    for Index := 0 to pred( FundList.Count ) do
     begin
       if ( FundList.Child[Index] is TlkJSONobject ) then begin
         jFund := FundList.Child[Index] as TlkJSONobject;
