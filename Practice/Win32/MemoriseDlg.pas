@@ -3387,7 +3387,7 @@ begin
   if CalledFromRecommendedMems then
     chkStatementDetails.Checked := True;
 
-  if not chkMaster.checked then
+  if fDlgEditMode in ALL_NO_MASTER then
     RefreshMemTransactions();
 
   fDirty := false;
