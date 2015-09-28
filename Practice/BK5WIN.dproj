@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>C:\Testing\DOWDLE_5.29.0.5947\BK5WIN.exe</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>C:\Testing\DOWDLE_5.28.0.5855_UpToDate\BK5WIN.exe</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -46,7 +46,7 @@
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
-    <DCC_ExeOutput>C:\Testing\DOWDLE_5.29.0.5947</DCC_ExeOutput>
+    <DCC_ExeOutput>C:\Testing\DOWDLE_5.28.0.5855_UpToDate</DCC_ExeOutput>
     <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
     <DCC_DebugVN>True</DCC_DebugVN>
     <DCC_Optimize>False</DCC_Optimize>
@@ -58,264 +58,13 @@
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
-<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">5</VersionInfo><VersionInfo Name="MinorVer">29</VersionInfo><VersionInfo Name="Release">1</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">MYOB BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="FileDescription">MYOB BankLink for Windows® application</VersionInfoKeys><VersionInfoKeys Name="FileVersion">5.29.1.0</VersionInfoKeys><VersionInfoKeys Name="InternalName">BK5</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">© 2015 MYOB Technology Pty Ltd</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Windows® is a registered trademark of Microsoft Corporation.</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">BK5WIN.EXE</VersionInfoKeys><VersionInfoKeys Name="ProductName">MYOB BankLink for Windows®</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">5</VersionInfo><VersionInfo Name="MinorVer">18</VersionInfo><VersionInfo Name="Release">2</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName">MYOB BankLink Limited</VersionInfoKeys><VersionInfoKeys Name="FileDescription">MYOB BankLink for Windows® application</VersionInfoKeys><VersionInfoKeys Name="FileVersion">5.18.2.0</VersionInfoKeys><VersionInfoKeys Name="InternalName">BK5</VersionInfoKeys><VersionInfoKeys Name="LegalCopyright">© 2015 MYOB Technology Pty Ltd</VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks">Windows® is a registered trademark of Microsoft Corporation.</VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">BK5WIN.EXE</VersionInfoKeys><VersionInfoKeys Name="ProductName">MYOB BankLink for Windows®</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
       <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\5.0\Bpl\VirtualTreesD9.bpl">Virtual Treeview run time package</Excluded_Packages>
       <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\5.0\Bpl\S403_d70.bpl">TurboPower SysTools 4.03 Design-time package - VCL70</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-    </Excluded_Packages><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+    </Excluded_Packages><Source><Source Name="MainSource">BK5WIN.DPR</Source></Source></Delphi.Personality>  <ModelSupport>False</ModelSupport>
+</BorlandProject></BorlandProject>
   </ProjectExtensions>
   <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
   <ItemGroup>
@@ -349,7 +98,51 @@
       <Form>frmBanklinkOnlineSettings</Form>
     </DCCReference>
     <DCCReference Include="Win32\BAOBJ32.PAS" />
+    <DCCReference Include="Win32\BCapitalGainsFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLCapitalGainsTax</Form>
+    </DCCReference>
     <DCCReference Include="Win32\BDLIST32.PAS" />
+    <DCCReference Include="Win32\BFrankingFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLFranking</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\BGCapitalGainsFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLCapitalGainsTax</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\BGFrankingFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLFranking</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\BGInterstIncomeFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLInterestIncome</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\BGLCapitalGainsFme.pas">
+      <Form>fmeBGLCapitalGainsTax</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Win32\BGLForeignTaxFme.pas">
+      <Form>fmeBGLForeignTax</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Win32\BGLFrankingFme.pas">
+      <Form>fmeBGLFranking</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Win32\BGLInterestIncomeFme.pas">
+      <Form>fmeBGLInterestIncome</Form>
+      <DesignClass>TFrame</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Win32\BGLInterstIncomeFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLInterestIncome</Form>
+    </DCCReference>
+    <DCCReference Include="Win32\BInterstIncomeFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLInterestIncome</Form>
+    </DCCReference>
     <DCCReference Include="Win32\BKAuditValues.pas" />
     <DCCReference Include="Win32\bkBranding.pas" />
     <DCCReference Include="Win32\BKHelp.pas" />
@@ -359,6 +152,10 @@
       <Form>frmBudget</Form>
     </DCCReference>
     <DCCReference Include="Win32\BULIST32.PAS" />
+    <DCCReference Include="Win32\CapitalGainsFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLCapitalGainsTax</Form>
+    </DCCReference>
     <DCCReference Include="Win32\CashbookMigration.pas" />
     <DCCReference Include="Win32\CashbookMigrationRestData.pas" />
     <DCCReference Include="Win32\CashbookWarningFrm.pas">
@@ -398,6 +195,10 @@
     <DCCReference Include="Win32\ForeignCurrencyBalDlg.pas">
       <Form>frmForeignCurrencyBal</Form>
     </DCCReference>
+    <DCCReference Include="Win32\FrankingFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLFranking</Form>
+    </DCCReference>
     <DCCReference Include="Win32\GainLossfrm.pas">
       <Form>frmGainLoss</Form>
     </DCCReference>
@@ -408,13 +209,16 @@
       <Form>AppImages</Form>
     </DCCReference>
     <DCCReference Include="Win32\INISettings.pas" />
+    <DCCReference Include="Win32\InterstIncomeFme.pas">
+      <DesignClass>TFrame</DesignClass>
+      <Form>fmeBGLInterestIncome</Form>
+    </DCCReference>
     <DCCReference Include="Win32\LOGUTIL.PAS" />
     <DCCReference Include="Win32\MAINFRM.PAS">
       <Form>frmMain</Form>
     </DCCReference>
     <DCCReference Include="Win32\MALIST32.PAS" />
     <DCCReference Include="Win32\mcList32.pas" />
-    <DCCReference Include="Win32\MemTranSortedList.pas" />
     <DCCReference Include="Win32\msObj32.pas" />
     <DCCReference Include="Win32\MXLIST32.PAS" />
     <DCCReference Include="Win32\ONEINST.PAS" />
@@ -423,11 +227,7 @@
     <DCCReference Include="Win32\PercentageCalculationFrm.pas">
       <Form>frmPercentageCalculation</Form>
     </DCCReference>
-    <DCCReference Include="Win32\PromoWindowObj.pas" />
     <DCCReference Include="Win32\PYLIST32.PAS" />
-    <DCCReference Include="Win32\RecommendedMemorisationsFrm.pas">
-      <Form>frmRecommendedMemorisations</Form>
-    </DCCReference>
     <DCCReference Include="Win32\RTFEditFme.pas">
       <Form>fmeEditRTF</Form>
       <DesignClass>TFrame</DesignClass>
