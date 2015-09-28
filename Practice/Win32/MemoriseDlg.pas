@@ -903,7 +903,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cCodeExit(Sender: TObject);
 begin
-  if chkMaster.checked = false then
+  if fDlgEditMode in ALL_NO_MASTER then
     RefreshMemTransactions();
 end;
 
@@ -960,7 +960,7 @@ begin
   if OKtoPost then
   begin
     // If there is a recommended memorisation
-    if chkMaster.Checked then
+    if fDlgEditMode in ALL_MASTER then
       BA := ''
     else
       BA := SourceBankAccount.baFields.baBank_Account_Number;
@@ -2566,9 +2566,9 @@ begin
 
          //only use first line
          if Pos( #13, txNotes) > 0 then
-            eNotes.Text := Copy( txNotes, 1, Pos( #13, txNOtes) -1)
+           eNotes.Text := Copy( txNotes, 1, Pos( #13, txNOtes) -1)
          else
-            eNotes.text    := txNotes;
+           eNotes.text    := txNotes;
 
          AmountToMatch := txAmount;
 
@@ -2615,7 +2615,11 @@ begin
          SourceTransaction := Tr;
 
          if Assigned(pM) then
-           FillSplitData(pM);
+           FillSplitData(pM)
+         else
+         begin
+         
+         end;
            
          // Block below is only used when creating a memorisation from the Recommended Mems form
          {if CalledFromRecommendedMems then
