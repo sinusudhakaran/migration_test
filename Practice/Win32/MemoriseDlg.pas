@@ -307,6 +307,8 @@ type
       var CellAttr: TOvcCellAttributes);
     procedure cCodeExit(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
+    procedure cEntryClick(Sender: TObject);
+    procedure eStatementDetailsChange(Sender: TObject);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -345,6 +347,8 @@ type
     fTempAmount : double;
 
     fMasterTreeThread : TMasterTreeThread;
+
+    fDirty : boolean;
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
@@ -390,6 +394,7 @@ type
     procedure RefreshMasterMemTree();
     procedure TerminateMasterThread();
   public
+    procedure FillSplitData(aMem : TMemorisation);
     procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; ATempMem: boolean = false);
 
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
@@ -397,7 +402,7 @@ type
   end;
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
-                         MemLine: pMemorisation_Line_Rec = nil): boolean;
+                         pM: TMemorisation = nil): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; Prefix: string = '';
@@ -862,7 +867,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.chkAccountSystemClick(Sender: TObject);
 begin
-    cbAccounting.Enabled := chkAccountSystem.Checked;
+  fDirty := true;
+  cbAccounting.Enabled := chkAccountSystem.Checked;
 end;
 
 //------------------------------------------------------------------------------
@@ -899,6 +905,12 @@ procedure TdlgMemorise.cCodeExit(Sender: TObject);
 begin
   if chkMaster.checked = false then
     RefreshMemTransactions();
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.cEntryClick(Sender: TObject);
+begin
+  fDirty := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -984,7 +996,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
 begin
-  if OKtoPost then
+  if (not fDirty) or OKtoPost then
   begin
     TerminateMasterThread();
 
@@ -1103,6 +1115,7 @@ var
   tempNo   : integer;
   tempID   : string;
 begin
+  fDirty := true;
   btnCancel.Cancel := false;
 
   tblSplitInEdit := false;
@@ -2501,7 +2514,7 @@ end;
 
 //------------------------------------------------------------------------------
 function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean;
-                       MemLine: pMemorisation_Line_Rec = nil) : boolean;
+                       pM: TMemorisation = nil) : boolean;
 // create a new memorisation based on the transaction
 //
 // parameters: ba   Bank Account that transaction and memorisation belong to
@@ -2529,7 +2542,7 @@ begin
          DlgEditMode := demCreate;
 
          PopulateCmbType(BA, tr.txType);
-         CalledFromRecommendedMems := Assigned(MemLine);
+         CalledFromRecommendedMems := Assigned(pM);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          SourceBankAccount := ba;
          EditMem := nil;
@@ -2601,8 +2614,11 @@ begin
 
          SourceTransaction := Tr;
 
+         if Assigned(pM) then
+           FillSplitData(pM);
+           
          // Block below is only used when creating a memorisation from the Recommended Mems form
-         if CalledFromRecommendedMems then
+         {if CalledFromRecommendedMems then
          begin
            SplitData[1].AcctCode  := MemLine.mlAccount;
            pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
@@ -2614,7 +2630,7 @@ begin
            // Set the ClassNo from the Account Code
            if assigned(pAcct) then
              SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, pAcct.chGST_Class);
-         end;
+         end; }
 
          //**************************
          if ShowModal = mrOK then begin
@@ -2687,15 +2703,15 @@ var
 begin
   // Create new transaction from provided details, which we will pass into EditMemorisation, which
   // has been designed expecting a transaction to provide it with details
-  MemorisationLine := pM.mdLines.MemorisationLine_At(0);
   tr := BKTXIO.New_Transaction_Rec;
 
   try
     tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
     tr.txType               := pM.mdFields.mdType;
 
-    IsAMasterMem := false; // this value is not used
-    result := MemoriseEntry(BA, tr, IsAMasterMem, MemorisationLine);
+    IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
+    
+    result := MemoriseEntry(BA, tr, IsAMasterMem, pM);
   finally
     Free_Transaction_Rec_Dynamic_Fields(tr^);
     FreeMem(tr, sizeof(tr));
@@ -2768,6 +2784,9 @@ var
   SaveSeq: integer;
   pM_SequenceNo: integer;
   Memorised_Trans_SequenceNo: integer;
+  FormResult : Integer;
+  Mems: TMemorisations_List;
+  pMCopy: TMemorisation;
 
 begin
   Result := false;
@@ -2902,105 +2921,7 @@ begin
 
           Loading := false;
           //fill detail
-          for i := pM.mdLines.First to pM.mdLines.Last do
-          begin
-             MemLine := pM.mdLines.MemorisationLine_At(i);
-             SplitData[ i+1].AcctCode         := MemLine^.mlAccount;
-             SplitData[ i+1].GST_Has_Been_Edited := MemLine^.mlGST_Has_Been_Edited;
-             pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
-             if Assigned( pAcct) then begin
-                SplitData[ i+1].Desc   := pAcct^.chAccount_Description;
-             end
-             else begin
-                SplitData[ i+1].Desc  := '';
-             end;
-             SplitData[ i+1].JobCode  := MemLine^.mlJob_Code;
-             //load in the gst class code.  If this is master memorisation and the gst
-             //has not been edited then load in the current default for the account code
-             //There is no need to do this for client memorisations because they will be
-             //updated when the chart is changed
-             if mdFields.mdFrom_Master_List and ( not MemLine^.mlGST_Has_Been_Edited) then begin
-                //load default for chart
-                SplitData[ i+1].GSTClassCode  := GetGSTClassCode( MyClient, MyClient.clChart.GSTClass( MemLine^.mlAccount));
-             end
-             else begin
-                //memorisation stores class no so load in class id
-                SplitData[ i+1].GSTClassCode     := GetGSTClassCode( MyClient, MemLine^.mlGST_Class);
-             end;
-             if MemLine^.mlLine_Type = mltPercentage then
-                SplitData[ i+1].Amount := Percent2Double( MemLine^.mlPercentage)
-             else
-                SplitData[ i+1].Amount := Money2Double( MemLine^.mlPercentage);
-             SplitData[ i+1].Narration := MemLine^.mlGL_Narration;
-
-             if MemLine^.mlAccount <> '' then
-                SplitData[ i+1].LineType := MemLine^.mlLine_Type
-             else
-                SplitData[ i+1].LineType := pltPercentage;
-
-             SplitData[ i+1].Payee := MemLine^.mlPayee;
-
-             SplitData[ i+1].SF_PCFranked := MemLine^.mlSF_PCFranked;
-             SplitData[ i+1].SF_PCUnFranked := MemLine^.mlSF_PCUnFranked;
-
-             SplitData[ i+1].SF_Member_ID := MemLine^.mlSF_Member_ID;
-             SplitData[ i+1].SF_Fund_ID   := MemLine^.mlSF_Fund_ID;
-             SplitData[ i+1].SF_Fund_Code := MemLine^.mlSF_Fund_Code;
-             SplitData[ i+1].SF_Trans_ID  := MemLine^.mlSF_Trans_ID;
-             SplitData[ i+1].SF_Trans_Code  := MemLine^.mlSF_Trans_Code;
-             SplitData[ i+1].SF_Member_Account_ID := MemLine^.mlSF_Member_Account_ID;
-             SplitData[ i+1].SF_Member_Account_Code := MemLine^.mlSF_Member_Account_Code;
-             SplitData[ i+1].SF_Member_Component := MemLine^.mlSF_Member_Component;
-
-            SplitData[ i+1].Quantity := MemLine^.mlQuantity;
-
-            SplitData[ i+1].SF_GDT_Date := MemLine^.mlSF_GDT_Date;
-            SplitData[ i+1].SF_Tax_Free_Dist := MemLine^.mlSF_Tax_Free_Dist;
-            SplitData[ i+1].SF_Tax_Exempt_Dist := MemLine^.mlSF_Tax_Exempt_Dist;
-            SplitData[ i+1].SF_Tax_Deferred_Dist := MemLine^.mlSF_Tax_Deferred_Dist;
-            SplitData[ i+1].SF_TFN_Credits := MemLine^.mlSF_TFN_Credits;
-            SplitData[ i+1].SF_Foreign_Income := MemLine^.mlSF_Foreign_Income;
-            SplitData[ i+1].SF_Foreign_Tax_Credits := MemLine^.mlSF_Foreign_Tax_Credits;
-            SplitData[ i+1].SF_Capital_Gains_Indexed := MemLine^.mlSF_Capital_Gains_Indexed;
-            SplitData[ i+1].SF_Capital_Gains_Disc := MemLine^.mlSF_Capital_Gains_Disc;
-            SplitData[ i+1].SF_Capital_Gains_Other := MemLine^.mlSF_Capital_Gains_Other;
-            SplitData[ i+1].SF_Other_Expenses := MemLine^.mlSF_Other_Expenses;
-            SplitData[ i+1].SF_Interest := MemLine^.mlSF_Interest;
-            SplitData[ i+1].SF_Capital_Gains_Foreign_Disc := MemLine^.mlSF_Capital_Gains_Foreign_Disc;
-            SplitData[ i+1].SF_Rent := MemLine^.mlSF_Rent;
-            SplitData[ i+1].SF_Special_Income := MemLine^.mlSF_Special_Income;
-            SplitData[ i+1].SF_Other_Tax_Credit := MemLine^.mlSF_Other_Tax_Credit;
-            SplitData[ i+1].SF_Non_Resident_Tax := MemLine^.mlSF_Non_Resident_Tax;
-            SplitData[ i+1].SF_Foreign_Capital_Gains_Credit := MemLine^.mlSF_Foreign_Capital_Gains_Credit;
-            SplitData[ i+1].SF_Capital_Gains_Fraction_Half := MemLine^.mlSF_Capital_Gains_Fraction_Half;
-            SplitData[ i+1].SF_Edited := MemLine^.mlSF_Edited;
-
-            //DN BGL360 Extended fields
-            SplitData[ i+1 ].SF_Other_Income                            := MemLine^.mlSF_Other_Income;
-            SplitData[ i+1 ].SF_Other_Trust_Deductions                  := MemLine^.mlSF_Other_Trust_Deductions;
-            SplitData[ i+1 ].SF_CGT_Concession_Amount                   := MemLine^.mlSF_CGT_Concession_Amount;
-            SplitData[ i+1 ].SF_CGT_ForeignCGT_Before_Disc              := MemLine^.mlSF_CGT_ForeignCGT_Before_Disc;
-            SplitData[ i+1 ].SF_CGT_ForeignCGT_Indexation               := MemLine^.mlSF_CGT_ForeignCGT_Indexation;
-            SplitData[ i+1 ].SF_CGT_ForeignCGT_Other_Method             := MemLine^.mlSF_CGT_ForeignCGT_Other_Method;
-            SplitData[ i+1 ].SF_CGT_TaxPaid_Indexation                  := MemLine^.mlSF_CGT_TaxPaid_Indexation;
-            SplitData[ i+1 ].SF_CGT_TaxPaid_Other_Method                := MemLine^.mlSF_CGT_TaxPaid_Other_Method;
-            SplitData[ i+1 ].SF_Other_Net_Foreign_Income                := MemLine^.mlSF_Other_Net_Foreign_Income;
-            SplitData[ i+1 ].SF_Cash_Distribution                       := MemLine^.mlSF_Cash_Distribution;
-            SplitData[ i+1 ].SF_AU_Franking_Credits_NZ_Co               := MemLine^.mlSF_AU_Franking_Credits_NZ_Co;
-            SplitData[ i+1 ].SF_Non_Res_Witholding_Tax                  := MemLine^.mlSF_Non_Res_Witholding_Tax;
-            SplitData[ i+1 ].SF_LIC_Deductions                          := MemLine^.mlSF_LIC_Deductions;
-            SplitData[ i+1 ].SF_Non_Cash_CGT_Discounted_Before_Discount := MemLine^.mlSF_Non_Cash_CGT_Discounted_Before_Discount;
-            SplitData[ i+1 ].SF_Non_Cash_CGT_Indexation                 := MemLine^.mlSF_Non_Cash_CGT_Indexation;
-            SplitData[ i+1 ].SF_Non_Cash_CGT_Other_Method               := MemLine^.mlSF_Non_Cash_CGT_Other_Method;
-            SplitData[ i+1 ].SF_Non_Cash_CGT_Capital_Losses             := MemLine^.mlSF_Non_Cash_CGT_Capital_Losses;
-            SplitData[ i+1 ].SF_Share_Brokerage                         := MemLine^.mlSF_Share_Brokerage;
-            SplitData[ i+1 ].SF_Share_Consideration                     := MemLine^.mlSF_Share_Consideration;
-            SplitData[ i+1 ].SF_Share_GST_Amount                        := MemLine^.mlSF_Share_GST_Amount;
-            SplitData[ i+1 ].SF_Share_GST_Rate                          := MemLine^.mlSF_Share_GST_Rate;
-            SplitData[ i+1 ].SF_Cash_Date                               := MemLine^.mlSF_Cash_Date;
-            SplitData[ i+1 ].SF_Accrual_Date                            := MemLine^.mlSF_Accrual_Date;
-            SplitData[ i+1 ].SF_Record_Date                             := MemLine^.mlSF_Record_Date;
-          end;
+          FillSplitData(pM);
        end;
        //Show Total Line
        UpdateTotal;
@@ -3019,58 +2940,90 @@ begin
 
        SourceTransaction := nil;
 
- //**********************
-       case ShowModal of
-         mrok : begin
-             //save new values back
-             if chkMaster.Checked and Assigned(AdminSystem) then begin
-               //---EDIT MASTER MEM---
-               if CopySaveSeq = -1 then
-                 SaveSeq := pM.mdFields.mdSequence_No
-               else
-                 SaveSeq := CopySaveSeq;
+       //**********************
+       FormResult := ShowModal();
+       
+       case FormResult of
+         mrok, mrCopy : 
+         begin
+           //save new values back
+           if chkMaster.Checked and Assigned(AdminSystem) then 
+           begin
+             //---EDIT MASTER MEM---
+             if CopySaveSeq = -1 then
+               SaveSeq := pM.mdFields.mdSequence_No
+             else
+               SaveSeq := CopySaveSeq;
 
-               // WORKAROUND:
-               pM_SequenceNo := pM.mdFields.mdSequence_No;
+             // WORKAROUND:
+             pM_SequenceNo := pM.mdFields.mdSequence_No;
 
-               if LoadAdminSystem(true, ThisMethodName) then begin
-                 SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
-                 if not Assigned(SystemMemorisation) then begin
-                   UnlockAdmin;
-                   HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
-                   Exit;
-                 end else if not Assigned(SystemMemorisation.smMemorisations) then begin
-                   UnlockAdmin;
-                   HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
-                   Exit;
-                 end else begin
-                   // WORKAROUND:
-                   ReplaceMem(pM, pM_SequenceNo);
+             if LoadAdminSystem(true, ThisMethodName) then 
+             begin
+               SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+               if not Assigned(SystemMemorisation) then 
+               begin
+                 UnlockAdmin;
+                 HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+                 Exit;
+               end 
+               else if not Assigned(SystemMemorisation.smMemorisations) then 
+               begin
+                 UnlockAdmin;
+                 HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+                 Exit;
+               end 
+               else 
+               begin
+                 // WORKAROUND:
+                 ReplaceMem(pM, pM_SequenceNo);
 
-                   EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                   //Find and save memorisation
-                   for i := EditMemorisedList.First to EditMemorisedList.Last do begin
-                     Memorised_Trans := EditMemorisedList.Memorisation_At(i);
-                     if Assigned(Memorised_Trans) then begin
-                       if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then begin
-                         SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
-                         Break;
-                       end;
+                 EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+                 //Find and save memorisation
+                 for i := EditMemorisedList.First to EditMemorisedList.Last do 
+                 begin
+                   Memorised_Trans := EditMemorisedList.Memorisation_At(i);
+                   if Assigned(Memorised_Trans) then begin
+                     if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then 
+                     begin
+                       SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
+                       Break;
                      end;
                    end;
-                   //*** Flag Audit ***
-                   SystemAuditMgr.FlagAudit(arMasterMemorisations);
-                   SaveAdminSystem;
                  end;
-               end else
-                 HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
-               //---END EDIT MASTER MEM---
-             end else begin
-               SaveToMemRec(pM, nil, chkMaster.Checked);
+                 //*** Flag Audit ***
+                 SystemAuditMgr.FlagAudit(arMasterMemorisations);
+                 SaveAdminSystem;
+               end;
+             end 
+             else
+               HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
+             //---END EDIT MASTER MEM---
+           end 
+           else 
+           begin
+             SaveToMemRec(pM, nil, chkMaster.Checked);
+           end;
+           Result := true;
+
+           if FormResult = mrCopy then
+           begin
+             // Create memorisation
+             Mems := BA.baMemorisations_List;
+             pMCopy := TMemorisation.Create(Mems.AuditMgr);
+             try
+               CopyMemorisation(pM, pMCopy);
+
+               FillSplitData(pMCopy);
+               
+               // OK pressed, and insert mem?
+               Result := CreateMemorisation(BA, Mems, pMCopy);
+             finally
+               FreeAndNil(pMCopy);
              end;
-             Result := true;
+           end;
          end;
-         mrCopy : begin
+         {mrCopy : begin
              //{have enough data to create a memorised entry record
              if chkMaster.Checked and Assigned(AdminSystem) then begin
                Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
@@ -3135,7 +3088,7 @@ begin
                    if Assigned(MemorisedList) then
                    begin
                      EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem,
-                                      True, Prefix, {pm}Memorised_Trans.mdFields^.mdSequence_No);
+                                      True, Prefix, Memorised_Trans.mdFields^.mdSequence_No);
                    end;
 
                    // Saving again in case the copy fails the duplicate test, in which case
@@ -3160,7 +3113,7 @@ begin
              end;
 
              Result := true;
-         end;
+         end;   }
          mrDelete : begin
            if pM.mdFields.mdFrom_Master_List then
            begin
@@ -3226,6 +3179,7 @@ var
    i          : integer;
    GSTEdited  : Boolean;
 begin
+  fDirty := true;
   if chkMaster.Checked then
   begin
     if DlgEditMode = demEdit then
@@ -3435,6 +3389,8 @@ begin
 
   if not chkMaster.checked then
     RefreshMemTransactions();
+
+  fDirty := false;
 end;
 
 function TdlgMemorise.GetAccountingSystem: Integer;
@@ -3913,6 +3869,113 @@ begin
     Self.CompleteAmount;
     if Col > -1 then
       ActiveCol := Col;
+  end;
+end;
+
+procedure TdlgMemorise.FillSplitData(aMem : TMemorisation);
+var
+  I : integer;
+  MemLine : pMemorisation_Line_Rec;
+  pAcct : pAccount_Rec;
+begin
+  for i := aMem.mdLines.First to aMem.mdLines.Last do
+  begin
+    MemLine := aMem.mdLines.MemorisationLine_At(i);
+    SplitData[ i+1].AcctCode            := MemLine^.mlAccount;
+    SplitData[ i+1].GST_Has_Been_Edited := MemLine^.mlGST_Has_Been_Edited;
+    pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
+    if Assigned( pAcct) then begin
+      SplitData[ i+1].Desc   := pAcct^.chAccount_Description;
+    end
+    else begin
+      SplitData[ i+1].Desc  := '';
+    end;
+    SplitData[ i+1].JobCode  := MemLine^.mlJob_Code;
+    //load in the gst class code.  If this is master memorisation and the gst
+    //has not been edited then load in the current default for the account code
+    //There is no need to do this for client memorisations because they will be
+    //updated when the chart is changed
+    if aMem.mdFields.mdFrom_Master_List and ( not MemLine^.mlGST_Has_Been_Edited) then begin
+      //load default for chart
+      SplitData[ i+1].GSTClassCode  := GetGSTClassCode( MyClient, MyClient.clChart.GSTClass( MemLine^.mlAccount));
+    end
+    else begin
+      //memorisation stores class no so load in class id
+      SplitData[ i+1].GSTClassCode     := GetGSTClassCode( MyClient, MemLine^.mlGST_Class);
+    end;
+    if MemLine^.mlLine_Type = mltPercentage then
+      SplitData[ i+1].Amount := Percent2Double( MemLine^.mlPercentage)
+    else
+      SplitData[ i+1].Amount := Money2Double( MemLine^.mlPercentage);
+    SplitData[ i+1].Narration := MemLine^.mlGL_Narration;
+
+    if MemLine^.mlAccount <> '' then
+      SplitData[ i+1].LineType := MemLine^.mlLine_Type
+    else
+      SplitData[ i+1].LineType := pltPercentage;
+
+    SplitData[ i+1].Payee := MemLine^.mlPayee;
+
+    SplitData[ i+1].SF_PCFranked := MemLine^.mlSF_PCFranked;
+    SplitData[ i+1].SF_PCUnFranked := MemLine^.mlSF_PCUnFranked;
+
+    SplitData[ i+1].SF_Member_ID := MemLine^.mlSF_Member_ID;
+    SplitData[ i+1].SF_Fund_ID   := MemLine^.mlSF_Fund_ID;
+    SplitData[ i+1].SF_Fund_Code := MemLine^.mlSF_Fund_Code;
+    SplitData[ i+1].SF_Trans_ID  := MemLine^.mlSF_Trans_ID;
+    SplitData[ i+1].SF_Trans_Code  := MemLine^.mlSF_Trans_Code;
+    SplitData[ i+1].SF_Member_Account_ID := MemLine^.mlSF_Member_Account_ID;
+    SplitData[ i+1].SF_Member_Account_Code := MemLine^.mlSF_Member_Account_Code;
+    SplitData[ i+1].SF_Member_Component := MemLine^.mlSF_Member_Component;
+
+    SplitData[ i+1].Quantity := MemLine^.mlQuantity;
+
+    SplitData[ i+1].SF_GDT_Date := MemLine^.mlSF_GDT_Date;
+    SplitData[ i+1].SF_Tax_Free_Dist := MemLine^.mlSF_Tax_Free_Dist;
+    SplitData[ i+1].SF_Tax_Exempt_Dist := MemLine^.mlSF_Tax_Exempt_Dist;
+    SplitData[ i+1].SF_Tax_Deferred_Dist := MemLine^.mlSF_Tax_Deferred_Dist;
+    SplitData[ i+1].SF_TFN_Credits := MemLine^.mlSF_TFN_Credits;
+    SplitData[ i+1].SF_Foreign_Income := MemLine^.mlSF_Foreign_Income;
+    SplitData[ i+1].SF_Foreign_Tax_Credits := MemLine^.mlSF_Foreign_Tax_Credits;
+    SplitData[ i+1].SF_Capital_Gains_Indexed := MemLine^.mlSF_Capital_Gains_Indexed;
+    SplitData[ i+1].SF_Capital_Gains_Disc := MemLine^.mlSF_Capital_Gains_Disc;
+    SplitData[ i+1].SF_Capital_Gains_Other := MemLine^.mlSF_Capital_Gains_Other;
+    SplitData[ i+1].SF_Other_Expenses := MemLine^.mlSF_Other_Expenses;
+    SplitData[ i+1].SF_Interest := MemLine^.mlSF_Interest;
+    SplitData[ i+1].SF_Capital_Gains_Foreign_Disc := MemLine^.mlSF_Capital_Gains_Foreign_Disc;
+    SplitData[ i+1].SF_Rent := MemLine^.mlSF_Rent;
+    SplitData[ i+1].SF_Special_Income := MemLine^.mlSF_Special_Income;
+    SplitData[ i+1].SF_Other_Tax_Credit := MemLine^.mlSF_Other_Tax_Credit;
+    SplitData[ i+1].SF_Non_Resident_Tax := MemLine^.mlSF_Non_Resident_Tax;
+    SplitData[ i+1].SF_Foreign_Capital_Gains_Credit := MemLine^.mlSF_Foreign_Capital_Gains_Credit;
+    SplitData[ i+1].SF_Capital_Gains_Fraction_Half := MemLine^.mlSF_Capital_Gains_Fraction_Half;
+    SplitData[ i+1].SF_Edited := MemLine^.mlSF_Edited;
+
+    //DN BGL360 Extended fields
+    SplitData[ i+1 ].SF_Other_Income                            := MemLine^.mlSF_Other_Income;
+    SplitData[ i+1 ].SF_Other_Trust_Deductions                  := MemLine^.mlSF_Other_Trust_Deductions;
+    SplitData[ i+1 ].SF_CGT_Concession_Amount                   := MemLine^.mlSF_CGT_Concession_Amount;
+    SplitData[ i+1 ].SF_CGT_ForeignCGT_Before_Disc              := MemLine^.mlSF_CGT_ForeignCGT_Before_Disc;
+    SplitData[ i+1 ].SF_CGT_ForeignCGT_Indexation               := MemLine^.mlSF_CGT_ForeignCGT_Indexation;
+    SplitData[ i+1 ].SF_CGT_ForeignCGT_Other_Method             := MemLine^.mlSF_CGT_ForeignCGT_Other_Method;
+    SplitData[ i+1 ].SF_CGT_TaxPaid_Indexation                  := MemLine^.mlSF_CGT_TaxPaid_Indexation;
+    SplitData[ i+1 ].SF_CGT_TaxPaid_Other_Method                := MemLine^.mlSF_CGT_TaxPaid_Other_Method;
+    SplitData[ i+1 ].SF_Other_Net_Foreign_Income                := MemLine^.mlSF_Other_Net_Foreign_Income;
+    SplitData[ i+1 ].SF_Cash_Distribution                       := MemLine^.mlSF_Cash_Distribution;
+    SplitData[ i+1 ].SF_AU_Franking_Credits_NZ_Co               := MemLine^.mlSF_AU_Franking_Credits_NZ_Co;
+    SplitData[ i+1 ].SF_Non_Res_Witholding_Tax                  := MemLine^.mlSF_Non_Res_Witholding_Tax;
+    SplitData[ i+1 ].SF_LIC_Deductions                          := MemLine^.mlSF_LIC_Deductions;
+    SplitData[ i+1 ].SF_Non_Cash_CGT_Discounted_Before_Discount := MemLine^.mlSF_Non_Cash_CGT_Discounted_Before_Discount;
+    SplitData[ i+1 ].SF_Non_Cash_CGT_Indexation                 := MemLine^.mlSF_Non_Cash_CGT_Indexation;
+    SplitData[ i+1 ].SF_Non_Cash_CGT_Other_Method               := MemLine^.mlSF_Non_Cash_CGT_Other_Method;
+    SplitData[ i+1 ].SF_Non_Cash_CGT_Capital_Losses             := MemLine^.mlSF_Non_Cash_CGT_Capital_Losses;
+    SplitData[ i+1 ].SF_Share_Brokerage                         := MemLine^.mlSF_Share_Brokerage;
+    SplitData[ i+1 ].SF_Share_Consideration                     := MemLine^.mlSF_Share_Consideration;
+    SplitData[ i+1 ].SF_Share_GST_Amount                        := MemLine^.mlSF_Share_GST_Amount;
+    SplitData[ i+1 ].SF_Share_GST_Rate                          := MemLine^.mlSF_Share_GST_Rate;
+    SplitData[ i+1 ].SF_Cash_Date                               := MemLine^.mlSF_Cash_Date;
+    SplitData[ i+1 ].SF_Accrual_Date                            := MemLine^.mlSF_Accrual_Date;
+    SplitData[ i+1 ].SF_Record_Date                             := MemLine^.mlSF_Record_Date;
   end;
 end;
 
@@ -4476,6 +4539,11 @@ begin
       PopUpCalendar(TEdit(Sender),ld);
       TOVcPictureField(Sender).AsStDate := ld;
    end;
+end;
+
+procedure TdlgMemorise.eStatementDetailsChange(Sender: TObject);
+begin
+  fDirty := true;
 end;
 
 function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;

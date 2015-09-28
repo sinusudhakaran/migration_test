@@ -202,6 +202,28 @@ begin
   { Note: code taken from MainMemFrm.CopyTo.
     Could perhaps go into TMemorisation itself.
   }
+  {pMCopy.mdFields^.mdType                       := pM.mdFields^.mdType;
+  pMCopy.mdFields^.mdAmount                     := pM.mdFields^.mdAmount;
+  pMCopy.mdFields^.mdReference                  := pM.mdFields^.mdReference;
+  pMCopy.mdFields^.mdParticulars                := pM.mdFields^.mdParticulars;
+  pMCopy.mdFields^.mdAnalysis                   := pM.mdFields^.mdAnalysis;
+  pMCopy.mdFields^.mdOther_Party                := pM.mdFields^.mdOther_Party;
+  pMCopy.mdFields^.mdMatch_on_Amount            := pM.mdFields^.mdMatch_on_Amount;
+  pMCopy.mdFields^.mdMatch_on_Analysis          := pM.mdFields^.mdMatch_on_Analysis;
+  pMCopy.mdFields^.mdMatch_on_Other_Party       := pM.mdFields^.mdMatch_on_Other_Party;
+  pMCopy.mdFields^.mdMatch_on_Notes             := pM.mdFields^.mdMatch_on_Notes;
+  pMCopy.mdFields^.mdMatch_on_Particulars       := pM.mdFields^.mdMatch_on_Particulars;
+  pMCopy.mdFields^.mdMatch_on_Refce             := pM.mdFields^.mdMatch_on_Refce;
+  pMCopy.mdFields^.mdMatch_On_Statement_Details := pM.mdFields^.mdMatch_On_Statement_Details;
+  pMCopy.mdFields^.mdPayee_Number               := pM.mdFields^.mdPayee_Number;
+  pMCopy.mdFields^.mdFrom_Master_List           := pM.mdFields^.mdFrom_Master_List;
+  pMCopy.mdFields^.mdNotes                      := pM.mdFields^.mdNotes;
+  pMCopy.mdFields^.mdDate_Last_Applied          := pM.mdFields^.mdDate_Last_Applied;
+  pMCopy.mdFields^.mdUse_Accounting_System      := pM.mdFields^.mdUse_Accounting_System;
+  pMCopy.mdFields^.mdAccounting_System          := pM.mdFields^.mdAccounting_System;
+  pMCopy.mdFields^.mdFrom_Date                  := pM.mdFields^.mdFrom_Date;
+  pMCopy.mdFields^.mdUntil_Date                 := pM.mdFields^.mdUntil_Date;
+  pMCopy.mdFields^.mdUntil_Date                 := pM.mdFields^.mdUntil_Date;}
 
   aMemTo.mdFields^ := aMemFrom.mdFields^;
 
@@ -210,6 +232,7 @@ begin
     MemLineFrom := aMemFrom.mdLines.MemorisationLine_At(iLine);
     MemLineTo := BKMLIO.New_Memorisation_Line_Rec;
     MemLineTo^ := MemLineFrom^;
+
     aMemTo.mdLines.Insert(MemLineTo);
   end;
 

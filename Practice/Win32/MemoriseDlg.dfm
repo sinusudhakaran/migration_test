@@ -231,6 +231,7 @@ object dlgMemorise: TdlgMemorise
           Caption = '&Memorise to MASTER'
           TabOrder = 0
           OnClick = chkMasterClick
+          ExplicitTop = -3
         end
         object chkAccountSystem: TCheckBox
           AlignWithMargins = True
@@ -258,6 +259,7 @@ object dlgMemorise: TdlgMemorise
           ItemHeight = 16
           Sorted = True
           TabOrder = 2
+          OnChange = eStatementDetailsChange
         end
       end
       object tblSplit: TOvcTable
@@ -718,6 +720,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       State = cbChecked
       TabOrder = 0
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object cmbType: TComboBox
@@ -735,6 +738,7 @@ object dlgMemorise: TdlgMemorise
       ItemHeight = 16
       ParentFont = False
       TabOrder = 1
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object chkStatementDetails: TCheckBox
@@ -751,7 +755,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 2
-      OnClick = chkStatementDetailsClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object eStatementDetails: TEdit
@@ -772,6 +776,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 3
       Text = 'eStatement Details'
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object cRef: TCheckBox
@@ -788,7 +793,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 4
-      OnClick = cRefClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object eRef: TEdit
@@ -808,6 +813,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 5
       Text = 'eRef'
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object eOther: TEdit
@@ -827,6 +833,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 6
       Text = 'eOther'
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object cOther: TCheckBox
@@ -843,7 +850,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 7
-      OnClick = cOtherClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object cCode: TCheckBox
@@ -860,7 +867,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 8
-      OnClick = cCodeClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object eCode: TEdit
@@ -880,6 +887,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 9
       Text = 'eCode'
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object cNotes: TCheckBox
@@ -897,7 +905,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 10
-      OnClick = cNotesClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object cPart: TCheckBox
@@ -915,7 +923,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 11
-      OnClick = cPartClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object cValue: TCheckBox
@@ -933,7 +941,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 12
-      OnClick = cValueClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object cbTo: TCheckBox
@@ -951,7 +959,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 13
-      OnClick = cbToClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object cbFrom: TCheckBox
@@ -969,7 +977,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 14
-      OnClick = cbFromClick
+      OnClick = cEntryClick
       OnExit = cCodeExit
     end
     object eDateFrom: TOvcPictureField
@@ -1005,6 +1013,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       PictureMask = 'DD/mm/yy'
       TabOrder = 15
+      OnChange = eStatementDetailsChange
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
       RangeHigh = {25600D00000000000000}
@@ -1043,6 +1052,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       PictureMask = 'DD/mm/yy'
       TabOrder = 16
+      OnChange = eStatementDetailsChange
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
       RangeHigh = {25600D00000000000000}
@@ -1097,7 +1107,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       PictureMask = '###,###,###.##'
       TabOrder = 18
-      OnChange = nValueChange
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
       OnKeyPress = nValueKeyPress
       RangeHigh = {73B2DBB9838916F2FE43}
@@ -1118,7 +1128,7 @@ object dlgMemorise: TdlgMemorise
       ItemHeight = 16
       ParentFont = False
       TabOrder = 19
-      OnChange = cbMinusChange
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
       Items.Strings = (
         'CR'
@@ -1157,6 +1167,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 21
       Text = 'ePart'
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
     object eNotes: TEdit
@@ -1176,6 +1187,7 @@ object dlgMemorise: TdlgMemorise
       ParentFont = False
       TabOrder = 22
       Text = 'eCode'
+      OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end
   end
