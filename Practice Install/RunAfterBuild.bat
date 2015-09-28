@@ -71,6 +71,7 @@ xcopy "Migrator.exe" "%DirTesting%" /i /y
 xcopy "BooksTokenIO.dll" "%DirTesting%" /i /y
 xcopy "ByteArrayConverter.dll" "%DirTesting%" /i /y
 xcopy "Muddler.*" "%DirTesting%" /i /y
+xcopy "PromoTestApp.exe" "%DirTesting%" /i /y 
 xcopy "ResetPractice.*" "%DirTesting%" /i /y
 xcopy "Books_Update_AU\*" "%DirTesting%\Books_Update_AU" /i /y /e
 xcopy "Books_Update_NZ\*" "%DirTesting%\Books_Update_NZ" /i /y /e
