@@ -3013,10 +3013,10 @@ var
 begin
   ShowRecommendedMemorisations(self, BankAccount, NeedReCoding);
 
+  SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
+
   if NeedReCoding then
     DoRecodeEntries();
-
-  SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
 
   if SuggMemPopup(self).Showing then
     SuggMemPopup(self).Close;

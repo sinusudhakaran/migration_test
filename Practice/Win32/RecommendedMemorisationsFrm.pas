@@ -126,6 +126,7 @@ type
 
     procedure FillSortedList();
     procedure Refresh();
+    procedure MainRefresh();
     procedure SetupForMessage();
 
     procedure ReadCellforPaint(RowNum, ColNum : integer; var Data : pointer);
@@ -230,17 +231,7 @@ begin
 
   lblBankAccount.Caption := StringReplace(lblBankAccount.Caption, '&', '&&', [rfReplaceAll]);
 
-  fMemStatus := SuggestedMem.GetStatus(BankAccount, MyClient.clChart);
-  if fMemStatus = ssFound then
-  begin
-    Refresh();
-    tblSuggMems.SetFocus;
-    RefreshMemControls(tblSuggMems.ActiveRow);
-  end
-  else
-  begin
-    SetupForMessage();
-  end;
+  MainRefresh();
 end;
 
 //------------------------------------------------------------------------------
@@ -268,10 +259,30 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.MainRefresh;
+begin
+  fMemStatus := SuggestedMem.GetStatus(BankAccount, MyClient.clChart);
+  if fMemStatus = ssFound then
+  begin
+    Refresh();
+    tblSuggMems.SetFocus;
+    RefreshMemControls(tblSuggMems.ActiveRow);
+  end
+  else
+  begin
+    Refresh();
+    tblSuggMems.Invalidate;
+    SetupForMessage();
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.FormDestroy(Sender: TObject);
 var
   UserRec : PUser_Rec;
 begin
+  SuggestedMem.DoneProcessingEvent := nil;
+
   FreeAndNil(fSuggMemSortedList);
 
   UserINI_Suggested_Mems_Show_Popup := chkAllowSuggMemPopup.Checked;
@@ -437,8 +448,6 @@ end;
 procedure TRecommendedMemorisationsFrm.btnCreateClick(Sender: TObject);
 begin
   DoCreateNewMemorisation(tblSuggMems.ActiveRow);
-
-  tblSuggMems.Invalidate;
 end;
 
 //------------------------------------------------------------------------------
@@ -707,6 +716,8 @@ begin
       end;
     end;
 
+    tblSuggMems.Invalidate;
+
   finally
     fLoading := false;
   end;
@@ -754,6 +765,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.ReadCellforPaint(RowNum, ColNum: integer; var Data: pointer);
 begin
+  if fSuggMemSortedList.ItemCount < RowNum then
+    Exit;
+
   case ColNum of
     ccEntryType : begin
       fTempByte := fSuggMemSortedList.GetPRec(RowNum-1)^.AccType;
@@ -809,10 +823,8 @@ begin
     // OK pressed, and insert mem?
     if CreateMemorisation(fBankAccount, Mems, Mem) then
     begin
-      Refresh();
       fNeedReCoding := true;
-      RefreshMemControls(aRow);
-      tblSuggMems.SetFocus;
+      MainRefresh();
     end
     else
     begin
@@ -827,17 +839,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.DoSuggestedMemsDoneProcessing;
 begin
-  fMemStatus := SuggestedMem.GetStatus(BankAccount, MyClient.clChart);
-  if fMemStatus = ssFound then
-  begin
-    Refresh();
-    tblSuggMems.SetFocus;
-    RefreshMemControls(tblSuggMems.ActiveRow);
-  end
-  else
-  begin
-    SetupForMessage();
-  end;
+  MainRefresh();
 end;
 
 end.
