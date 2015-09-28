@@ -5,8 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, PromoDisplayForm, StdCtrls, Buttons, OSFont, ExtCtrls,
-  PromoWindowObj, Globals, PromoContentFme, WinUtils, SyDefs,
-  ComCtrls, sysobj32, appuserobj;
+  Globals, PromoContentFme, WinUtils, SyDefs,
+  ComCtrls, sysobj32, appuserobj, INISettings, PromoWindowObj;
 
 type
   TFrmOptionsScreen = class(TForm)
@@ -119,6 +119,9 @@ procedure TFrmOptionsScreen.FormCreate(Sender: TObject);
 begin
   dtDate.Date := Now;
 end;
+
+initialization
+  ReadPracticeINI;
 
 end.
 

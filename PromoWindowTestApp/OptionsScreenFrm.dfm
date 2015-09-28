@@ -5,7 +5,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   ClientHeight = 376
-  ClientWidth = 411
+  ClientWidth = 388
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -41,24 +41,25 @@ object FrmOptionsScreen: TFrmOptionsScreen
   object pnlControls: TPanel
     Left = 0
     Top = 338
-    Width = 411
+    Width = 388
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
     TabOrder = 6
+    ExplicitWidth = 411
     object ShapeBorder: TShape
       Left = 0
       Top = 0
-      Width = 411
+      Width = 388
       Height = 1
       Align = alTop
       Pen.Color = clSilver
       ExplicitWidth = 535
     end
     object btnPromos: TBitBtn
-      Left = 171
+      Left = 147
       Top = 7
       Width = 152
       Height = 25
@@ -67,7 +68,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
       OnClick = btnPromosClick
     end
     object btnClose: TBitBtn
-      Left = 327
+      Left = 305
       Top = 7
       Width = 75
       Height = 25
