@@ -107,7 +107,7 @@ object dlgMemorise: TdlgMemorise
     TabOrder = 1
     object Splitter1: TSplitter
       Left = 0
-      Top = 265
+      Top = 254
       Width = 1069
       Height = 3
       Cursor = crVSplit
@@ -120,7 +120,7 @@ object dlgMemorise: TdlgMemorise
       Left = 0
       Top = 0
       Width = 1069
-      Height = 265
+      Height = 254
       Align = alTop
       BevelOuter = bvNone
       BorderWidth = 5
@@ -133,18 +133,18 @@ object dlgMemorise: TdlgMemorise
       TabOrder = 0
       DesignSize = (
         1069
-        265)
+        254)
       object lblAllocateTo: TLabel
         Left = 14
         Top = 60
-        Width = 64
+        Width = 72
         Height = 16
         Caption = 'Allocate To'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
         Font.Name = 'Tahoma'
-        Font.Style = []
+        Font.Style = [fsBold]
         ParentFont = False
       end
       object ToolBar: TPanel
@@ -231,26 +231,25 @@ object dlgMemorise: TdlgMemorise
           Caption = '&Memorise to MASTER'
           TabOrder = 0
           OnClick = chkMasterClick
-          ExplicitTop = -3
         end
         object chkAccountSystem: TCheckBox
           AlignWithMargins = True
           Left = 434
           Top = 2
-          Width = 114
+          Width = 103
           Height = 22
           Margins.Top = 2
           Margins.Bottom = 2
           Align = alLeft
-          Caption = 'Only Apply to :'
+          Caption = 'Only Apply to'
           TabOrder = 1
           OnClick = chkAccountSystemClick
         end
         object cbAccounting: TComboBox
           AlignWithMargins = True
-          Left = 554
+          Left = 543
           Top = 1
-          Width = 502
+          Width = 513
           Height = 24
           Margins.Top = 1
           Margins.Bottom = 1
@@ -266,7 +265,7 @@ object dlgMemorise: TdlgMemorise
         Left = 8
         Top = 82
         Width = 1054
-        Height = 132
+        Height = 121
         RowLimit = 6
         LockedCols = 0
         LeftCol = 0
@@ -312,17 +311,18 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblSplitGetCellAttributes
         OnMouseDown = tblSplitMouseDown
         OnUserCommand = tblSplitUserCommand
+        ExplicitHeight = 132
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.colLineType'
-          'dlgMemorise.ColPercent'
-          'dlgMemorise.ColAmount'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colNarration'
+          'dlgMemorise.ColAcct'
           'dlgMemorise.ColDesc'
-          'dlgMemorise.ColAcct')
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.colLineType')
         RowData = (
           24)
         ColData = (
@@ -365,7 +365,7 @@ object dlgMemorise: TdlgMemorise
       end
       object Panel4: TPanel
         Left = 540
-        Top = 220
+        Top = 209
         Width = 529
         Height = 39
         Anchors = [akRight, akBottom]
@@ -377,6 +377,7 @@ object dlgMemorise: TdlgMemorise
         Font.Style = []
         ParentFont = False
         TabOrder = 2
+        ExplicitTop = 220
         object lblTotalPerc: TLabel
           Left = 287
           Top = 0
@@ -537,9 +538,9 @@ object dlgMemorise: TdlgMemorise
     end
     object pnlMatchingTransactions: TPanel
       Left = 0
-      Top = 268
+      Top = 257
       Width = 1069
-      Height = 301
+      Height = 312
       Align = alClient
       BevelOuter = bvNone
       Font.Charset = DEFAULT_CHARSET
@@ -549,27 +550,29 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 1
+      ExplicitTop = 268
+      ExplicitHeight = 301
       DesignSize = (
         1069
-        301)
+        312)
       object lblMatchingTransactions: TLabel
         Left = 14
         Top = 8
-        Width = 128
+        Width = 146
         Height = 16
         Caption = 'Matching Transactions'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
         Font.Name = 'Tahoma'
-        Font.Style = []
+        Font.Style = [fsBold]
         ParentFont = False
       end
       object tblTran: TOvcTable
         Left = 8
         Top = 28
         Width = 1054
-        Height = 267
+        Height = 278
         RowLimit = 2
         LockedCols = 0
         LeftCol = 0
@@ -605,13 +608,14 @@ object dlgMemorise: TdlgMemorise
         OnActiveCellChanged = tblTranActiveCellChanged
         OnGetCellData = tblTranGetCellData
         OnGetCellAttributes = tblTranGetCellAttributes
+        ExplicitHeight = 267
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranCodedBy'
-          'dlgMemorise.colTranStatementDetails'
-          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranDate'
           'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranDate')
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranCodedBy')
         RowData = (
           24)
         ColData = (
@@ -640,10 +644,11 @@ object dlgMemorise: TdlgMemorise
         Left = 8
         Top = 28
         Width = 1054
-        Height = 267
+        Height = 278
         Anchors = [akLeft, akTop, akRight, akBottom]
         Indent = 19
         TabOrder = 1
+        ExplicitHeight = 267
       end
       object pnlMessage: TPanel
         Left = 12
@@ -693,14 +698,14 @@ object dlgMemorise: TdlgMemorise
     object lblMatchOn: TLabel
       Left = 14
       Top = 7
-      Width = 54
+      Width = 61
       Height = 16
       Caption = 'Match On'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
       Font.Name = 'Tahoma'
-      Font.Style = []
+      Font.Style = [fsBold]
       ParentFont = False
     end
     object cEntry: TCheckBox
@@ -1216,7 +1221,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1352,7 +1356,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1373,6 +1376,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1479,6 +1483,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False

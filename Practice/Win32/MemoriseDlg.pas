@@ -3396,10 +3396,13 @@ begin
 end;
 
 procedure TdlgMemorise.FormShow(Sender: TObject);
-   procedure AutoSize(value: tCheckBox);
-   begin
-      Value.Width := Canvas.TextWidth(Value.caption) + 15;
-   end;
+var
+  MovedValue : integer;
+
+  procedure AutoSize(value: tCheckBox);
+  begin
+    Value.Width := Canvas.TextWidth(Value.caption) + 15;
+  end;
 begin
   PopulatePayee := True;
   AutoSize(chkMaster);
@@ -3409,6 +3412,12 @@ begin
 
   if fDlgEditMode in ALL_NO_MASTER then
     RefreshMemTransactions();
+
+  btnOk.SetFocus;
+
+  MovedValue := (chkAccountSystem.Left + chkAccountSystem.Width + 16) - cbAccounting.Left;
+  cbAccounting.Left := chkAccountSystem.Left + chkAccountSystem.Width + 16;
+  cbAccounting.Width := cbAccounting.Width - MovedValue;
 
   fDirty := false;
 end;
@@ -4146,6 +4155,7 @@ begin
      C.Brush.Color := clRed
    else
      C.Brush.Color := CellAttr.caColor;
+
    C.FillRect( R );
    DrawText(C.Handle, '', 0, R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    //paint border
@@ -4153,7 +4163,12 @@ begin
    C.Polyline( [ Point( R.Left, R.Bottom-1), Point( R.Right, R.Bottom-1) ]);
    {draw data}
    InflateRect( R, -2, -2 );
-   C.Font.Color := clWhite;
+
+   if Odd(RowNum) then
+     C.Font.Color := clwhite
+   else
+     C.Font.Color := AltLineColor;
+
    if (CellAttr.caColor <> bkBranding.SelectionColor) then
      DrawText(C.Handle, PChar( IntToStr(S) ), StrLen( PChar( IntToStr(S) ) ), R, DT_LEFT or DT_VCENTER or DT_SINGLELINE);
    DoneIt := True;
