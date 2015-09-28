@@ -3962,6 +3962,7 @@ begin
     sIdentityID := CurrUser.Code + AdminSystem.fdFields.fdPractice_Name_for_Reports;
   if not (StartupParam_Action in System_Actions) and
          ((CurrUser.Code <> 'BANKLNK5') and
+          (CurrUser.Code <> 'SUPERUSER') and
           (CurrUser.Code <> 'SUPERVIS' )) then begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug,unitname,
