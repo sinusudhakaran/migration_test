@@ -846,23 +846,29 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cRefClick(Sender: TObject);
 begin
-   eRef.enabled  := cRef.Checked;
-   if not Loading then
-      if eRef.enabled then eRef.SetFocus;
+  fDirty := true;
+
+  eRef.enabled  := cRef.Checked;
+  if not Loading then
+    if eRef.enabled then eRef.SetFocus;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cPartClick(Sender: TObject);
 begin
-   ePart.enabled := cPart.Checked;
-   if not Loading then
-      if ePart.enabled then ePart.setFocus;
+  fDirty := true;
+
+  ePart.enabled := cPart.Checked;
+  if not Loading then
+    if ePart.enabled then ePart.setFocus;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cOtherClick(Sender: TObject);
 begin
-   eOther.Enabled := cOther.Checked;
-   if not Loading then
-      if eOther.enabled then eOther.setFocus;
+  fDirty := true;
+
+  eOther.Enabled := cOther.Checked;
+  if not Loading then
+    if eOther.enabled then eOther.setFocus;
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.chkAccountSystemClick(Sender: TObject);
@@ -874,12 +880,16 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cbFromClick(Sender: TObject);
 begin
+  fDirty := true;
+
   eDateFrom.Enabled := cbFrom.Checked;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cbMinusChange(Sender: TObject);
 begin
+  fDirty := true;
+
   case cbMinus.ItemIndex of
     0: AmountMultiplier := -1;
     1: AmountMultiplier := 1;
@@ -889,15 +899,19 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cbToClick(Sender: TObject);
 begin
+  fDirty := true;
+
   eDateTo.Enabled := cbTo.Checked;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cCodeClick(Sender: TObject);
 begin
-   eCode.Enabled := cCode.Checked;
-   if not Loading then
-      if eCode.enabled then eCode.setFocus;
+  fDirty := true;
+
+  eCode.Enabled := cCode.Checked;
+  if not Loading then
+    if eCode.enabled then eCode.setFocus;
 end;
 
 //------------------------------------------------------------------------------
@@ -3350,9 +3364,11 @@ end;
 
 procedure TdlgMemorise.cNotesClick(Sender: TObject);
 begin
-   eNotes.Enabled := cNOtes.Checked;
-   if not Loading then
-      if eNOtes.enabled then eNotes.setFocus;
+  fDirty := true;
+
+  eNotes.Enabled := cNOtes.Checked;
+  if not Loading then
+    if eNOtes.enabled then eNotes.setFocus;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgMemorise.FormResize(Sender: TObject);
@@ -3404,9 +3420,11 @@ end;
 
 procedure TdlgMemorise.chkStatementDetailsClick(Sender: TObject);
 begin
-   eStatementDetails.Enabled := chkStatementDetails.Checked;
-   if not Loading then
-      if eStatementDetails.enabled then eStatementDetails.setFocus;
+  fDirty := true;
+
+  eStatementDetails.Enabled := chkStatementDetails.Checked;
+  if not Loading then
+    if eStatementDetails.enabled then eStatementDetails.setFocus;
 end;
 
 procedure TdlgMemorise.ClearSuperfundDetails1Click(Sender: TObject);
@@ -3418,26 +3436,30 @@ end;
 
 procedure TdlgMemorise.cValueClick(Sender: TObject);
 begin
-   cmbValue.Enabled := cValue.Checked;
-   nValue.Enabled   := cValue.Checked;
-   cbMinus.Enabled  := cValue.Checked;
+  fDirty := true;
 
-   //set default value
-   if not cValue.Checked then
-     cmbValue.ItemIndex := -1
-   else
-     if cmbValue.ItemIndex = -1 then
-       SetComboIndexByIntObject( mxAmtEqual, cmbValue);
+  cmbValue.Enabled := cValue.Checked;
+  nValue.Enabled   := cValue.Checked;
+  cbMinus.Enabled  := cValue.Checked;
 
-   //set first line
-   SetFirstLineDefaultAmount;
+  //set default value
+  if not cValue.Checked then
+    cmbValue.ItemIndex := -1
+  else
+    if cmbValue.ItemIndex = -1 then
+      SetComboIndexByIntObject( mxAmtEqual, cmbValue);
 
-   if not Loading then
-     if cmbValue.enabled then cmbValue.setFocus;
+  //set first line
+  SetFirstLineDefaultAmount;
+
+  if not Loading then
+    if cmbValue.enabled then cmbValue.setFocus;
 end;
 
 procedure TdlgMemorise.nValueChange(Sender: TObject);
 begin
+  fDirty := true;
+
   AmountToMatch := Double2Money( nValue.AsFloat) * AmountMultiplier;
   UpdateTotal;
 end;
