@@ -85,6 +85,7 @@ type
       const CellRect: TRect; RowNum, ColNum: Integer;
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
   private
+    fNeedReCoding : boolean;
     fHeadingClicked : boolean;
     fLoading : boolean;
     fBankAccount: TBank_Account;
@@ -134,11 +135,12 @@ type
     procedure DoSuggestedMemsDoneProcessing();
 
     property BankAccount: TBank_Account read fBankAccount write fBankAccount;
+    property NeedReCoding: boolean read fNeedReCoding;
   end;
 
   //----------------------------------------------------------------------------
   function  ShowRecommendedMemorisations(const aOwner: TComponent;
-              const aBankAccount: TBank_Account): boolean;
+              const aBankAccount: TBank_Account; var aNeedReCoding : boolean): boolean;
 
 
 //------------------------------------------------------------------------------
@@ -169,7 +171,7 @@ const
   DT_OPTIONS_INT = DT_RIGHT or DT_VCENTER or DT_SINGLELINE;
 
 //------------------------------------------------------------------------------
-function ShowRecommendedMemorisations(const aOwner: TComponent; const aBankAccount: TBank_Account): boolean;
+function ShowRecommendedMemorisations(const aOwner: TComponent; const aBankAccount: TBank_Account; var aNeedReCoding : boolean): boolean;
 var
   varForm: TRecommendedMemorisationsFrm;
   mrResult: TModalResult;
@@ -180,6 +182,8 @@ begin
 
     mrResult := varForm.ShowModal;
     result := (mrResult = mrOk);
+
+    aNeedReCoding := varForm.NeedReCoding;
 
   finally
     FreeAndNil(varForm);
@@ -195,6 +199,7 @@ var
 begin
   inherited;
 
+  fNeedReCoding := false;
   SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
 
   fHeadingClicked := false;
@@ -805,7 +810,7 @@ begin
     if CreateMemorisation(fBankAccount, Mems, Mem) then
     begin
       Refresh();
-
+      fNeedReCoding := true;
       RefreshMemControls(aRow);
       tblSuggMems.SetFocus;
     end

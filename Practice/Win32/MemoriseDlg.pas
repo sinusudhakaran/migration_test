@@ -2701,9 +2701,9 @@ function CreateMemorisation(BA : TBank_Account;
                             MemorisedList : TMemorisations_List;
                             pM: TMemorisation): boolean;
 var
-  IsAMasterMem: boolean;
   MemorisationLine: pMemorisation_Line_Rec;
   tr: pTransaction_Rec;
+  IsAMasterMem : boolean;
 begin
   // Create new transaction from provided details, which we will pass into EditMemorisation, which
   // has been designed expecting a transaction to provide it with details

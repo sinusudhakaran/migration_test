@@ -467,6 +467,9 @@ type
     procedure SetShowUnReadNotesOnly;
     procedure SetShowNotesOnly;
     procedure SetShowNoNotesOnly;
+
+    procedure ApplyMem(aTxType : Byte; aIsAMasterMem : boolean);
+
     procedure DoAccountLookup;
     procedure DoPayeeLookup;
 //    procedure DoRateLookup;
@@ -1498,6 +1501,25 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmCoding.ApplyMem(aTxType: Byte; aIsAMasterMem: boolean);
+var
+  Msg : TWMKey;
+begin
+  SendCmdToAllCodingWindows( ecRecodeTrans);
+
+  if not aIsAMasterMem then
+  begin
+    AutoCodeEntries( MyClient, BankAccount, aTxType, TranDateFrom, TranDateTo);
+    LoadWTLMaintainPos;
+    Refresh;
+  end;
+
+  Msg.CharCode := VK_RIGHT;
+  if ShowAllTran <> SHOW_UNCODED_TX then
+    celAccount.SendKeyToTable(Msg);
+end;
+
+//------------------------------------------------------------------------------
 procedure TfrmCoding.DoAccountLookup;
 {
 Assists the user in coding by allowing selection of Account Codes from
@@ -1888,7 +1910,6 @@ end;
 procedure TfrmCoding.DoMemorise;
 var
   pT                 : pTransaction_Rec;
-  Msg                : TWMKey;
   IsAMasterMem       : boolean;
   MemList            : TMemorisations_List;
   Mem                : TMemorisation;
@@ -1899,20 +1920,7 @@ var
   SystemMemorisation : pSystem_Memorisation_List_Rec;
   i : integer;
   SystemMem: TMemorisation;
-
-  procedure ApplyMem;
-  begin
-    SendCmdToAllCodingWindows( ecRecodeTrans);
-    if not IsAMasterMem then
-    begin
-      AutoCodeEntries( MyClient, BankAccount, pT^.txType, TranDateFrom, TranDateTo);
-      LoadWTLMaintainPos;
-      Refresh;
-    end;
-    Msg.CharCode := VK_RIGHT;
-    if ShowAllTran <> SHOW_UNCODED_TX then
-      celAccount.SendKeyToTable(Msg);
-  end;
+  Msg                : TWMKey;
 
   procedure CreateTempMemUsingTransaction();
   var
@@ -1993,7 +2001,7 @@ begin
             end;
           end
           else
-            ApplyMem;
+            ApplyMem(pT^.txType, IsAMasterMem);
         end;
       end
       else
@@ -2017,7 +2025,7 @@ begin
       try
         CreateTempMemUsingTransaction();
         if MemoriseEntry(BankAccount, pT, IsAMasterMem, Mem) then
-          ApplyMem;
+          ApplyMem(pT^.txType, IsAMasterMem);;
       finally
         FreeAndNil(Mem);
       end;
@@ -3000,8 +3008,13 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.DoRecommendedMems;
+var
+  NeedReCoding : boolean;
 begin
-  ShowRecommendedMemorisations(self, BankAccount);
+  ShowRecommendedMemorisations(self, BankAccount, NeedReCoding);
+
+  if NeedReCoding then
+    DoRecodeEntries();
 
   SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
 
@@ -7826,8 +7839,12 @@ begin
   if ((SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
       Assigned(BankAccount)) then
   begin
-    SuggestedMem.DoCreateNewMemorisation(BankAccount, MyClient.clChart, SelectedSuggestedMemId);
-    RefreshSuggestedMemColumn();
+    if SuggestedMem.DoCreateNewMemorisation(BankAccount, MyClient.clChart, SelectedSuggestedMemId) then
+    begin
+      DoRecodeEntries();
+
+      RefreshSuggestedMemColumn();
+    end;
   end;
 end;
 
