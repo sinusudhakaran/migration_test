@@ -859,8 +859,7 @@ begin
   if ((DisplayPromoContents.TotalContents > 0) and
       (Globals.StartupParam_UserPassword = '') and
       (Globals.StartupParam_UserToLoginAs = '') and
-      ((not Assigned(aUserRec)) or
-      (aUserRec.usCode <> SUPERUSER)) ) then
+      (CurrUser.Code <> SuperUserCode) ) then
   begin
     // Show this after an upgrade or for a new user
     if (LoginType in [ltUpgrade, ltNewUser]) then
