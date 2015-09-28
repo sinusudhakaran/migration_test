@@ -108,7 +108,7 @@ const
    GrpPracFingerTips = 'Fingertips';
    GrpPracLinks  = 'Links';
    GrpPracBankLinkOnline = 'BankLinkOnline';
-
+   GrpPracThirdParty = 'ThirdParty';
    //Mems Ini groups
    GrpMemsSupport = 'Support';
 
@@ -802,9 +802,9 @@ begin
 
         {BGL API URL}
         PRACINI_BGL360_API_URL := ReadString(GrpPracLinks,'BGL360APIURL', TUrls.DefBGL360APIUrl);
-        PRACINI_Random_Key := ReadString(GrpPracInfo,'Key', OpenSSLEncription.GetRandomKey);
-        PRACINI_BGL360_Client_ID := ReadString(GrpPracInfo,'BGL360ClientID', EncryptAToken('bankLinkTest',PRACINI_Random_Key));
-        PRACINI_BGL360_Client_Secret := ReadString(GrpPracInfo,'BGL360ClientSecret', EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
+        PRACINI_Random_Key := ReadString(GrpPracThirdParty,'BGL360Key', OpenSSLEncription.GetRandomKey);
+        PRACINI_BGL360_Client_ID := ReadString(GrpPracThirdParty,'BGL360ClientID', EncryptAToken('bankLinkTest',PRACINI_Random_Key));
+        PRACINI_BGL360_Client_Secret := ReadString(GrpPracThirdParty,'BGL360ClientSecret', EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
         {Contentful API URL}
         PRACINI_Contentful_API_URL := ReadString(GrpPracLinks,'ContentfulAPIURL', TUrls.DefContentfulAPIUrl);
 
@@ -980,9 +980,9 @@ begin
 
           {BGL API URL}
            WriteString(GrpPracLinks,  'BGL360APIURL', PRACINI_BGL360_API_URL);
-           WriteString(GrpPracInfo,  'BGL360ClientID', PRACINI_BGL360_Client_ID);
-           WriteString(GrpPracInfo,  'BGL360ClientSecret', PRACINI_BGL360_Client_Secret);
-           WriteString(GrpPracInfo,  'Key', PRACINI_Random_Key);
+           WriteString(GrpPracThirdParty,  'BGL360ClientID', PRACINI_BGL360_Client_ID);
+           WriteString(GrpPracThirdParty,  'BGL360ClientSecret', PRACINI_BGL360_Client_Secret);
+           WriteString(GrpPracThirdParty,  'BGL360Key', PRACINI_Random_Key);
 
           {Contentful API URL}
            WriteString(GrpPracLinks,  'ContentfulAPIURL', PRACINI_Contentful_API_URL);

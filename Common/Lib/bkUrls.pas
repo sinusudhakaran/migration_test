@@ -233,7 +233,11 @@ end;
 
 class function TUrls.DefBGL360APIUrl: string;
 begin
-  Result := 'https://api-staging.bgl360.com.au/';
+  {$ifdef DEBUG }
+    Result := 'https://api-staging.bgl360.com.au/'
+  {$else}
+    Result := 'https://api-staging.bgl360.com.au/';
+  {$endif}
 end;
 
 class function TUrls.DefContentfulAPIUrl: string;
