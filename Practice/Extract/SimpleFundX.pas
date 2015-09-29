@@ -846,7 +846,6 @@ begin
       sAcctHead := 'Other_Transaction';
       TransType := ttOtherTx;
     end;
-    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Account Code ' + AccountCode);
 
     // Entry_Type
     AddFieldNode(Entry, 'Entry_Type', sAcctHead);
