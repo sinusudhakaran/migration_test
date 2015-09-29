@@ -315,7 +315,7 @@ begin
 
       if RestServer.CheckForAuthentication then begin
       
-        if RESTServer.Get_Chart_Of_Accounts( MyClient.clExtra.ceBGLFundSelected ) then begin
+        if RESTServer.Get_Chart_Of_Accounts( MyClient.clExtra.ceBGLFundIDSelected ) then begin
           for i := 0 to pred( RESTServer.Chart_of_Accounts.Count ) do begin
 
             if (NewChart.FindCode( RESTServer.Chart_of_Accounts[ i ].Code ) <> nil) then

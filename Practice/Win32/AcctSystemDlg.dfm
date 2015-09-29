@@ -120,6 +120,13 @@ object dlgAcctSystem: TdlgAcctSystem
       Caption = '&Account Mask'
       FocusControl = eMask
     end
+    object lblBGL360FundName: TLabel
+      Left = 142
+      Top = 104
+      Width = 345
+      Height = 17
+      AutoSize = False
+    end
     object eFrom: TEdit
       Left = 140
       Top = 141
@@ -155,7 +162,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbSystemChange
@@ -226,10 +233,10 @@ object dlgAcctSystem: TdlgAcctSystem
       end
     end
     object btnConnectBGL: TButton
-      Left = 140
-      Top = 136
+      Left = 358
+      Top = 72
       Width = 129
-      Height = 25
+      Height = 27
       Anchors = [akLeft, akBottom]
       Caption = 'BGL Sign in'
       TabOrder = 8
@@ -260,7 +267,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 215
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 1
     end
     object ckExtract: TCheckBox
@@ -343,7 +350,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbTaxInterfaceChange
@@ -375,7 +382,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbWebFormatsChange

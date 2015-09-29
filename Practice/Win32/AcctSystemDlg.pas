@@ -63,6 +63,7 @@ type
     btnCancel: TButton;
     Shape1: TShape;
     btnConnectBGL: TButton;
+    lblBGL360FundName: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);
@@ -93,7 +94,7 @@ type
     WebFormatChanged : Boolean;
 
     FInWizard: Boolean;
-
+    BGLServerNoSignRequired : Boolean;
     procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
     procedure FillSystemList;
@@ -376,8 +377,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.cmbSystemChange(Sender: TObject);
 var
-   SelectedSystem : integer;
-
+  SelectedSystem : integer;
+  BGLServer: TBGLServer;
+  
    procedure SetSaveToField(Value: Boolean);
    begin
       lblSaveTo.Enabled := Value;
@@ -393,50 +395,81 @@ var
    end;
 
 begin
-   if Assigned(Sender)
-   and Insetup then
-      Exit;
+  if Assigned(Sender)
+  and Insetup then
+    Exit;
 
-   if cmbSystem.ItemIndex < 0 then
-      Exit;
+  if cmbSystem.ItemIndex < 0 then
+    Exit;
 
-   SelectedSystem := Integer( cmbSystem.Items.Objects[ cmbSystem.ItemIndex ] );
+  SelectedSystem := Integer( cmbSystem.Items.Objects[ cmbSystem.ItemIndex ] );
 
-   SetCanRefresh(Software.CanRefreshChart(MyClient.clFields.clCountry, SelectedSystem));
-   SetSaveToField(Software.UseSaveToField(MyClient.clFields.clCountry, SelectedSystem));
+  SetCanRefresh(Software.CanRefreshChart(MyClient.clFields.clCountry, SelectedSystem));
+  SetSaveToField(Software.UseSaveToField(MyClient.clFields.clCountry, SelectedSystem));
 
-   btnCheckBankManID.Visible := Software.CanUseMYOBAO_DLL_Refresh( MyClient.clFields.clCountry, SelectedSystem);
+  btnCheckBankManID.Visible := Software.CanUseMYOBAO_DLL_Refresh( MyClient.clFields.clCountry, SelectedSystem);
 
-   //check current bank path variable
-   if Software.IsMYOBAO_7( MyClient.clFields.clCountry, SelectedSystem) and WinUtils.IsWin2000_or_later then
-   begin
-     //only show button if is not set or is different
-     btnSetBankpath.Visible := not myobao_utils.BankPathIsSet;
-   end
-   else
-     btnSetBankPath.Visible := false;
+  //check current bank path variable
+  if Software.IsMYOBAO_7( MyClient.clFields.clCountry, SelectedSystem) and WinUtils.IsWin2000_or_later then
+  begin
+   //only show button if is not set or is different
+   btnSetBankpath.Visible := not myobao_utils.BankPathIsSet;
+  end
+  else
+   btnSetBankPath.Visible := false;
 
-   if Software.IsSol6_COM_Interface( MyClient.clFields.clCountry, SelectedSystem) then
-   begin
-     if not pnlMASLedgerCode.visible then begin
-       Self.Height := Self.Height + pnlMASLedgerCode.Height;
-       gbxAccounting.Height := gbxAccounting.Height + pnlMASLedgerCode.Height;
-       pnlMASLedgerCode.visible := true;
-     end;
-   end
-   else
-   begin
-     if pnlMASLedgerCode.visible then begin
-       gbxAccounting.Height := gbxAccounting.Height - pnlMASLedgerCode.Height;
-       Self.Height := Self.Height - pnlMASLedgerCode.Height;
-       pnlMASLedgerCode.visible := false;
-     end;
+  if Software.IsSol6_COM_Interface( MyClient.clFields.clCountry, SelectedSystem) then
+  begin
+   if not pnlMASLedgerCode.visible then begin
+     Self.Height := Self.Height + pnlMASLedgerCode.Height;
+     gbxAccounting.Height := gbxAccounting.Height + pnlMASLedgerCode.Height;
+     pnlMASLedgerCode.visible := true;
    end;
-   lblFrom.Visible := (SelectedSystem <> saBGL360);
-   eFrom.Visible := lblFrom.Visible;
-   btnFromFolder.Visible := lblFrom.Visible;
-   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
- end;
+  end
+  else
+  begin
+   if pnlMASLedgerCode.visible then begin
+     gbxAccounting.Height := gbxAccounting.Height - pnlMASLedgerCode.Height;
+     Self.Height := Self.Height - pnlMASLedgerCode.Height;
+     pnlMASLedgerCode.visible := false;
+   end;
+  end;
+  lblFrom.Visible := (SelectedSystem <> saBGL360);
+  eFrom.Visible := lblFrom.Visible;
+  btnFromFolder.Visible := lblFrom.Visible;
+  btnConnectBGL.Visible := (SelectedSystem = saBGL360);
+  lblBGL360FundName.Visible := (SelectedSystem = saBGL360);
+  if SelectedSystem = saBGL360 then
+  begin
+    BGLServerNoSignRequired := True;
+    btnConnectBGL.Caption := 'BGL Sign in';
+    lblBGL360FundName.Caption := 'Fund Selected : <none>';
+    BGLServer := TBGLServer.Create(Nil,
+                        DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
+                        DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
+                        Globals.PRACINI_BGL360_API_URL);
+    try
+      if Assigned(MyClient) then
+      begin
+        // Get all BGL values from client file and
+        BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
+                  MyClient.clExtra.ceBGLTokenType,
+                  MyClient.clExtra.ceBGLRefreshToken,
+                  MyClient.clExtra.ceBGLTokenExpiresAt);
+        if BGLServer.CheckForAuthentication then
+        begin
+          btnConnectBGL.Caption := 'Select Fund';
+          if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
+            lblBGL360FundName.Caption := 'Fund Selected : <' + MyClient.clExtra.ceBGLFundNameSelected + '>';
+        end
+        else
+          BGLServerNoSignRequired := False;
+      end;
+    finally
+      FreeAndNil(BGLServer);
+    end;
+  end;
+end;
 
 //------------------------------------------------------------------------------
 function TdlgAcctSystem.Execute(var AutoRefreshDone : Boolean; InWizard: Boolean = False) : boolean;
@@ -1006,21 +1039,24 @@ begin
                 MyClient.clExtra.ceBGLTokenType,
                 MyClient.clExtra.ceBGLRefreshToken,
                 MyClient.clExtra.ceBGLTokenExpiresAt);
-      if BGLServer.CheckForAuthentication then
+      if (BGLServerNoSignRequired or BGLServer.CheckForAuthentication) then
       begin
         BGLServer.Get_FundList;
         if BGLServer.FundList.Count > 0  then
         begin
           FundFrm.FundListJSON := BGLServer.FundList;
-          FundFrm.SelectedFundID := MyClient.clExtra.ceBGLFundSelected;
+          FundFrm.SelectedFundID := MyClient.clExtra.ceBGLFundIDSelected;
           if ((FundFrm.ShowModal = mrOk) and (Trim(FundFrm.SelectedFundID) <> '')) then
           begin
-            if MyClient.clExtra.ceBGLFundSelected <> FundFrm.SelectedFundID then
+            if MyClient.clExtra.ceBGLFundIDSelected <> FundFrm.SelectedFundID then
             begin
-              MyClient.clExtra.ceBGLFundSelected := FundFrm.SelectedFundID;
+              MyClient.clExtra.ceBGLFundIDSelected := FundFrm.SelectedFundID;
+              MyClient.clExtra.ceBGLFundNameSelected := FundFrm.SelectedFundName;
+              lblBGL360FundName.Caption := 'Fund Selected : <none>';
+              if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
+                lblBGL360FundName.Caption := 'Fund Selected : <' + MyClient.clExtra.ceBGLFundNameSelected + '>';
               SaveClient(false);
             end;
-            //BGLServer.Get_Chart_Of_Accounts(FundFrm.SelectedFundID);
             RefreshChart;
           end;
         end

@@ -104,7 +104,8 @@ CONST
    tkceBGLRefreshToken                  = 97 ;
    tkceBGLTokenType                     = 98 ;
    tkceBGLTokenExpiresAt                = 99 ;
-   tkceBGLFundSelected                  = 100 ;
+   tkceBGLFundIDSelected                = 100 ;
+   tkceBGLFundNameSelected              = 101 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -197,7 +198,8 @@ Begin
       F.WriteStringValue( tkceBGLRefreshToken , ceBGLRefreshToken );
       F.WriteStringValue( tkceBGLTokenType , ceBGLTokenType );
       F.WriteDateTimeValue( tkceBGLTokenExpiresAt , ceBGLTokenExpiresAt );
-      F.WriteStringValue( tkceBGLFundSelected , ceBGLFundSelected );
+      F.WriteStringValue( tkceBGLFundIDSelected , ceBGLFundIDSelected );
+      F.WriteStringValue( tkceBGLFundNameSelected , ceBGLFundNameSelected );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -317,7 +319,8 @@ Begin
          tkceBGLRefreshToken                  : ceBGLRefreshToken := F.ReadStringValue;
          tkceBGLTokenType                     : ceBGLTokenType := F.ReadStringValue;
          tkceBGLTokenExpiresAt                : ceBGLTokenExpiresAt := F.ReadDateTimeValue;
-         tkceBGLFundSelected                  : ceBGLFundSelected := F.ReadStringValue;
+         tkceBGLFundIDSelected                : ceBGLFundIDSelected := F.ReadStringValue;
+         tkceBGLFundNameSelected              : ceBGLFundNameSelected := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -368,7 +371,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceBGLFundSelected do begin
+  for i := tkceTAX_Applies_From to tkceBGLFundNameSelected do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -689,9 +692,14 @@ begin
     ChangedFields[i] := tkceBGLTokenExpiresAt;
     Inc(i);
   end;
-  if (P1.ceBGLFundSelected <> P2.ceBGLFundSelected) then begin
-    P3.ceBGLFundSelected := P1.ceBGLFundSelected;
-    ChangedFields[i] := tkceBGLFundSelected;
+  if (P1.ceBGLFundIDSelected <> P2.ceBGLFundIDSelected) then begin
+    P3.ceBGLFundIDSelected := P1.ceBGLFundIDSelected;
+    ChangedFields[i] := tkceBGLFundIDSelected;
+    Inc(i);
+  end;
+  if (P1.ceBGLFundNameSelected <> P2.ceBGLFundNameSelected) then begin
+    P3.ceBGLFundNameSelected := P1.ceBGLFundNameSelected;
+    ChangedFields[i] := tkceBGLFundNameSelected;
     Inc(i);
   end;
 

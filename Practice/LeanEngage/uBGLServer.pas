@@ -14,16 +14,21 @@ const
   ENDPOINT_BGI360_Chart_Of_Accounts = 'fund/chartAccounts?fundId=%s';
 
 type
+  TSortProc = function (Item1, Item2 : Pointer):Integer;
+
   TBaseList_Obj = class(TJsonObject)
   private
     fItems: TObjectList;
-
+    fSortFunction : TSortProc;
     function GetCount: Integer;
   public
     constructor Create;
     destructor Destroy; override;
 
     property Count: Integer read GetCount;
+    property SortFunction : TSortProc read fSortFunction write fSortFunction;
+
+    procedure SortList;
   end;
 
   TAuth_TokenObj = class(TJsonObject)
@@ -478,6 +483,12 @@ begin
   Result := FItems.Count;
 end;
 
+
+procedure TBaseList_Obj.SortList;
+begin
+  if Assigned(fSortFunction) then
+    fItems.Sort(fSortFunction);
+end;
 
 { TAuth_Tokens }
 

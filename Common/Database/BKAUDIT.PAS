@@ -1000,7 +1000,8 @@ begin
     FAuditNamesArray[40,97] := 'BGLRefreshToken';
     FAuditNamesArray[40,98] := 'BGLTokenType';
     FAuditNamesArray[40,99] := 'BGLTokenExpiresAt';
-    FAuditNamesArray[40,100] := 'BGLFundSelected';
+    FAuditNamesArray[40,100] := 'BGLFundIDSelected';
+    FAuditNamesArray[40,101] := 'BGLFundNameSelected';
 
    FAuditTableArray[233] := 'Deleted_Transaction';
     FAuditNamesArray[233,235] := 'Date_Deleted';
