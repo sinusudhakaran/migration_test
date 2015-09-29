@@ -444,6 +444,8 @@ begin
 end;
 
 Procedure AddShareTradetEntities(var TransactionNode: IXMLNode);
+const
+  ThisMethodName = 'AddShareTradetEntities';
 begin
   // Units
   AddFieldNode(TransactionNode, 'Units',
@@ -475,9 +477,13 @@ begin
     TransactionNode,
     'Consideration',
     FormatFloatForXml((TransactionExtra^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
+
 end;
 
 Procedure AddInterestEntities(var TransactionNode: IXMLNode);
+const
+  ThisMethodName = 'AddInterestEntities';
 begin
   // Interest
   AddFieldNode(
@@ -499,10 +505,13 @@ begin
     TransactionNode,
     'Non_Resident_Withholding_Tax',
     FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 
 end;
 
 Procedure AddDividendEntities(var TransactionNode: IXMLNode);
+const
+  ThisMethodName = 'AddDividendEntities';
 begin
   // Dividends_Franked
   AddFieldNode(
@@ -549,9 +558,12 @@ begin
     TransactionNode,
     'LIC_Deduction',
     FormatFloatForXml(Abs(TransactionExtra^.teSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 end;
 
 Procedure AddDistributionEntities(var TransactionNode: IXMLNode);
+const
+  ThisMethodName = 'AddDistributionEntities';
 begin
   // Dividends_Franked
   AddFieldNode(
@@ -716,6 +728,8 @@ begin
     TransactionNode,
     'Capital_Losses_Non_Cash',
     FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Cash_CGT_Capital_Losses), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 end;
 
 procedure DoClassSuperIPTransaction;
@@ -763,17 +777,28 @@ begin
      ((Transaction^.txAmount <> 0) or Globals.PRACINI_ExtractZeroAmounts) then
   begin // only create node if there are no dissections, DoClassSuperIPTransaction handles dissections
     FTransactionNode := OutputDocument.CreateElement('Transaction');
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Created transaction node element');
     FTransactionsNode.AppendChild(FTransactionNode);
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Added child node');
 
     // Transaction_Type
     AddFieldNode(FTransactionNode, 'Transaction_Type', 'Bank_Transaction');
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Added bank transaction node' );
+
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Check for GUID' );
     // Unique_Reference
     TransactionUtils.CheckExternalGUID(Transaction);
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Received GUID ' + Transaction^.txExternal_GUID );
+
     AddGuid(FTransactionNode, 'Unique_Reference', Uppercase(Transaction^.txExternal_GUID), 15);
     // BSB and Bank_Account_No
     ProcessDiskCode(TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number, BSB, AccountNum);
+
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Process bank Disk Code'  );
+
     AddFieldNode(FTransactionNode, 'BSB', BSB);
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Bank Details ' + BSB + ' ' +  AccountNum );
     // Transaction_Date
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
     // Text
@@ -782,12 +807,18 @@ begin
     AddFieldNode(FTransactionNode, 'Amount',
                  FormatFloatForXml(-Transaction^.txAmount, 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Added transaction date and amount');
+
     // Contra_Entries
     ContraEntries := OutputDocument.CreateElement('Contra_Entries');
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Created node for contra entries');
+
     FTransactionNode.AppendChild(ContraEntries);
     // Entry
     Entry := OutputDocument.CreateElement('Entry');
     ContraEntries.AppendChild(Entry);
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Created node for entry ');
+
     // Transaction Type
     AccountCode := StrToIntDef(Transaction^.txAccount,0);
     if AccountCode = cttanDistribution then
@@ -815,15 +846,21 @@ begin
       sAcctHead := 'Other_Transaction';
       TransType := ttOtherTx;
     end;
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Account Code ' + AccountCode);
 
     // Entry_Type
     AddFieldNode(Entry, 'Entry_Type', sAcctHead);
+
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Entry_Type ' + sAcctHead);
     // Entry_Type_Detail
     EntryTypeDetail := OutputDocument.CreateElement('Entry_Type_Detail');
     Entry.AppendChild(EntryTypeDetail);
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Entry_Type_Detail node added' );
 
     TransactionNode := OutputDocument.CreateElement(sAcctHead);
     EntryTypeDetail.AppendChild(TransactionNode);
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Transaction^.txAccount ' + Transaction^.txAccount);
+
     // Account_Code
     AddAccountCodeNode(TransactionNode, Transaction^.txAccount);
 
@@ -849,6 +886,8 @@ begin
     AddFieldNode(TransactionNode, 'Amount',
                  FormatFloatForXml(Transaction^.txAmount, 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Added dates/amount/bank details for different type of transaction ');
+
     // Output GST?
     if ((TransType= ttOtherTx) and (Transaction.txGST_Amount <> 0)) then
     begin
@@ -864,6 +903,10 @@ begin
         'GST_Amount',
         FormatFloatForXml(Abs(Transaction^.txGST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     end;
+
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed GST details for other transaction ');
+
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' printing specific fields for each type of transaction now');
 
     if TransType = ttDistribution then
       AddDistributionEntities(TransactionNode)
