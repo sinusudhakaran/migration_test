@@ -1026,7 +1026,7 @@ begin
     FRootNode := EnsureNode(OutputDocument, 'BGL_Import_Export');
     SetNodeTextStr(FRootNode, 'Supplier', 'MYOB BankLink');
     SetNodeTextStr(FRootNode, 'Product', 'SF360');
-    SetNodeTextStr(FRootNode, 'Import_Export_Version', '5.1');
+    SetNodeTextStr(FRootNode, 'Import_Export_Version', '5.2');
 
     FDateMask := 'dd/mm/YYYY';
 
