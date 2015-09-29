@@ -1954,6 +1954,7 @@ var
 
       if (pT^.txGL_Narration <> pT^.txStatement_Details) or
          (pT^.txPayee_Number > 0) or
+         (pT^.txAccount = '') or
          (pT^.txJob_Code <> '') then
         MemLine^.mlPercentage          := 1000000
       else
