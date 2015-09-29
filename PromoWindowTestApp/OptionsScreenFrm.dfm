@@ -48,7 +48,6 @@ object FrmOptionsScreen: TFrmOptionsScreen
     Caption = ' '
     ParentBackground = False
     TabOrder = 6
-    ExplicitWidth = 411
     object ShapeBorder: TShape
       Left = 0
       Top = 0
@@ -184,7 +183,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
     Width = 145
     Height = 21
     TabOrder = 4
-    Text = '5.29.1'
+    Text = '5.29.0'
   end
   object dtDate: TDateTimePicker
     Left = 141
