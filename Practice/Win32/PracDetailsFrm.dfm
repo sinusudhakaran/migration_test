@@ -57,7 +57,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 416
-    ActivePage = tbsDetails
+    ActivePage = tsSuperFundSystem
     MultiLine = True
     TabOrder = 0
     OnChange = PageControl1Change
@@ -460,6 +460,9 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 569
         Height = 147
         TabOrder = 0
+        DesignSize = (
+          569
+          147)
         object lblSuperfundSystem: TLabel
           Left = 16
           Top = 20
@@ -550,6 +553,16 @@ object frmPracticeDetails: TfrmPracticeDetails
           MaxLength = 10
           TabOrder = 1
           Text = 'eSuperMask'
+        end
+        object btnConnectBGL: TButton
+          Left = 283
+          Top = 45
+          Width = 129
+          Height = 27
+          Anchors = [akLeft, akBottom]
+          Caption = 'BGL Sign in'
+          TabOrder = 4
+          OnClick = btnConnectBGLClick
         end
       end
     end
@@ -1004,10 +1017,6 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsBGL360: TTabSheet
       Caption = 'BGL 360 Credentials'
       ImageIndex = 7
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblLoginClientID: TLabel
         Left = 16
         Top = 28

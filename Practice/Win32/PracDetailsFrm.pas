@@ -28,7 +28,9 @@ uses
   CheckLst,
   RzLstBox,
   RzChkLst,
-  cxControls, Mask;
+  cxControls,
+  Mask,
+  UBGLServer;
 
 type
   TCheckListHelper = class helper for TCheckListBox
@@ -146,6 +148,7 @@ type
     lblLoginClientID: TLabel;
     edtBGLSecret: TEdit;
     lblLoginSecret: TLabel;
+    btnConnectBGL: TButton;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -188,6 +191,7 @@ type
     procedure FormActivate(Sender: TObject);
     procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
     procedure mskABNClick(Sender: TObject);
+    procedure btnConnectBGLClick(Sender: TObject);
   private
     { Private declarations }
     fLoading : boolean;
@@ -346,7 +350,7 @@ begin
   FEnablingBankLinkOnline := False;
 
   DoRebranding();
-  tsBGL360.TabVisible := (CurrUser.Code = SUPERUSER);
+  tsBGL360.TabVisible := (CurrUser.Code = SuperUserCode);
 end;
 
 //------------------------------------------------------------------------------
@@ -591,6 +595,10 @@ begin
     eSuperLoad.Text := AdminSystem.fdFields.fdLoad_Client_Super_Files_From;
     eSuperSave.Text := AdminSystem.fdFields.fdSave_Client_Super_Files_To;
   end;
+  btnConnectBGL.Visible := (SuperfundSystem = saBGL360);
+  lblSuperLoad.Visible := (SuperfundSystem <> saBGL360);
+  eSuperLoad.Visible := (SuperfundSystem <> saBGL360);
+  btnSuperLoadFolder.Visible := (SuperfundSystem <> saBGL360);
 end;
 
 //------------------------------------------------------------------------------
@@ -641,6 +649,36 @@ procedure TfrmPracticeDetails.btnCancelClick(Sender: TObject);
 begin
   OkPressed := False;
   close;
+end;
+
+procedure TfrmPracticeDetails.btnConnectBGLClick(Sender: TObject);
+var
+  BGLServer : TBGLServer;
+  SelectedSystem : Byte;
+begin
+  SelectedSystem := Byte( cmbSuperSystem.Items.Objects[cmbSuperSystem.ItemIndex ] );
+  if (SelectedSystem = saBGL360) then
+  begin
+    BGLServer := TBGLServer.Create(Nil,
+                        DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
+                        DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
+                        Globals.PRACINI_BGL360_API_URL);
+    try
+      if Assigned(MyClient) then
+      begin
+        // Get all BGL values from client file and
+        BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
+                  MyClient.clExtra.ceBGLTokenType,
+                  MyClient.clExtra.ceBGLRefreshToken,
+                  MyClient.clExtra.ceBGLTokenExpiresAt);
+
+        if BGLServer.CheckForAuthentication then
+          ShowMessage('BGL Server Sign in completed successfully');
+      end;
+    finally
+      FreeAndNil(BGLServer);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
