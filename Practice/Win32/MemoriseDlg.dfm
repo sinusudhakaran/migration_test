@@ -311,18 +311,17 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblSplitGetCellAttributes
         OnMouseDown = tblSplitMouseDown
         OnUserCommand = tblSplitUserCommand
-        ExplicitHeight = 132
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.ColAcct'
-          'dlgMemorise.ColDesc'
-          'dlgMemorise.colNarration'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.ColAmount'
+          'dlgMemorise.colLineType'
           'dlgMemorise.ColPercent'
-          'dlgMemorise.colLineType')
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           24)
         ColData = (
@@ -377,7 +376,6 @@ object dlgMemorise: TdlgMemorise
         Font.Style = []
         ParentFont = False
         TabOrder = 2
-        ExplicitTop = 220
         object lblTotalPerc: TLabel
           Left = 287
           Top = 0
@@ -550,8 +548,6 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ParentFont = False
       TabOrder = 1
-      ExplicitTop = 268
-      ExplicitHeight = 301
       DesignSize = (
         1069
         312)
@@ -608,14 +604,13 @@ object dlgMemorise: TdlgMemorise
         OnActiveCellChanged = tblTranActiveCellChanged
         OnGetCellData = tblTranGetCellData
         OnGetCellAttributes = tblTranGetCellAttributes
-        ExplicitHeight = 267
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranDate'
-          'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranCodedBy'
           'dlgMemorise.colTranStatementDetails'
-          'dlgMemorise.colTranCodedBy')
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colTranDate')
         RowData = (
           24)
         ColData = (
@@ -648,7 +643,6 @@ object dlgMemorise: TdlgMemorise
         Anchors = [akLeft, akTop, akRight, akBottom]
         Indent = 19
         TabOrder = 1
-        ExplicitHeight = 267
       end
       object pnlMessage: TPanel
         Left = 12
@@ -1221,6 +1215,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1356,6 +1351,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1376,7 +1372,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1483,7 +1478,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False

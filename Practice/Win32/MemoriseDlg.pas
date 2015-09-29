@@ -99,6 +99,7 @@ type
     fSourceBankAccount : TBank_Account;
     fdlgMemorise : TdlgMemorise;
     fSourceTransaction : pTransaction_Rec;
+    fEditPrefix : string;
 
     procedure RefreshMasterMemTree();
   public
@@ -108,6 +109,7 @@ type
     property MasterTreeView : TTreeView read fMasterTreeView write fMasterTreeView;
     property SourceBankAccount : TBank_Account read fSourceBankAccount write fSourceBankAccount;
     property SourceTransaction : pTransaction_Rec read fSourceTransaction write fSourceTransaction;
+    property EditPrefix : string read fEditPrefix write fEditPrefix;
   end;
 
   TdlgMemorise = class(TForm)
@@ -399,6 +401,7 @@ type
 
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
+    property EditPrefix : string read fEditPrefix write fEditPrefix;
   end;
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
@@ -531,10 +534,35 @@ var
   TranIndex : integer;
   TranRec : pTransaction_Rec;
   TempMem : TMemorisation;
+  Institution : string;
+  SysIndex : integer;
+  Found : boolean;
 begin
   FoundFirstAccount := false;
-  BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
-  SysAccRec := AdminSystem.fdSystem_Bank_Account_List.FindCode(SourceBankAccount.baFields.baBank_Account_Number);
+
+  if Assigned(SourceBankAccount) then
+  begin
+    BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
+    SysAccRec := AdminSystem.fdSystem_Bank_Account_List.FindCode(SourceBankAccount.baFields.baBank_Account_Number);
+    Institution := SysAccRec^.sbInstitution;
+  end
+  else
+  begin
+    Found := false;
+    BankPrefix := EditPrefix;
+    for SysIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
+    begin
+      if BankPrefix = mxFiles32.GetBankPrefix(AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(SysIndex)^.sbAccount_Number) then
+      begin
+        Institution := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(SysIndex)^.sbInstitution;
+        Found := true;
+        break;
+      end;
+    end;
+
+    if not found then
+      Exit;
+  end;
 
   TempMem := TMemorisation.Create(nil);
   try
@@ -574,7 +602,7 @@ begin
           begin
             if (not FoundFirstAccount) then
             begin
-              RootNode := fMasterTreeView.Items.Add( NIL, SysAccRec^.sbInstitution);
+              RootNode := fMasterTreeView.Items.Add( NIL, Institution);
 
               FoundFirstAccount := true;
             end;
@@ -2309,12 +2337,15 @@ procedure TdlgMemorise.RefreshMasterMemTree;
 begin
   pnlMessage.visible := true;
   try
+    //EditMem.mdFields.mdFrom_Master_List
+
     lblMessage.Caption := 'Calculating';
     fMasterTreeThread := TMasterTreeThread.Create(true);
     fMasterTreeThread.MasterTreeView    := treView;
     fMasterTreeThread.SourceBankAccount := SourceBankAccount;
     fMasterTreeThread.SourceTransaction := SourceTransaction;
     fMasterTreeThread.DlgMemorise       := Self;
+    fMasterTreeThread.EditPrefix        := EditPrefix;
     fMasterTreeThread.Resume;
   finally
     pnlMessage.visible := false;
@@ -2957,6 +2988,7 @@ begin
          ColGSTCode.Font.Color := clGrayText;
 
        SourceTransaction := nil;
+       EditPrefix := Prefix;
 
        //**********************
        FormResult := ShowModal();
@@ -3411,7 +3443,9 @@ begin
     chkStatementDetails.Checked := True;
 
   if fDlgEditMode in ALL_NO_MASTER then
-    RefreshMemTransactions();
+    RefreshMemTransactions()
+  else
+    chkMaster.Checked := true;
 
   btnOk.SetFocus;
 
