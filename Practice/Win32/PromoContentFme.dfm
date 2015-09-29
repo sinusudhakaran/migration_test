@@ -7,6 +7,7 @@ object PromoContentFrame: TPromoContentFrame
   Margins.Top = 10
   Margins.Right = 10
   Margins.Bottom = 10
+  AutoSize = True
   Color = clWindow
   ParentBackground = False
   ParentColor = False
@@ -14,38 +15,47 @@ object PromoContentFrame: TPromoContentFrame
   object lblTitle: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 10
+    Top = 1
     Width = 480
-    Height = 13
+    Height = 25
     Margins.Left = 10
-    Margins.Top = 10
+    Margins.Top = 1
     Margins.Right = 10
-    Margins.Bottom = 10
+    Margins.Bottom = 5
     Align = alTop
     Caption = 'Title comes here'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -19
+    Font.Name = 'Segoe UI'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Layout = tlCenter
+    WordWrap = True
     BorderSides = []
-    ExplicitWidth = 78
+    ExplicitTop = 10
+    ExplicitWidth = 143
   end
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 126
+    Top = 57
     Width = 480
     Height = 13
     Margins.Left = 10
-    Margins.Top = 10
     Margins.Right = 10
-    Margins.Bottom = 10
     Align = alTop
     Caption = 'v xcv xcvxcvxc'
+    WordWrap = True
     BorderSides = []
+    ExplicitTop = 126
     ExplicitWidth = 74
   end
   object imgContainer: TImage
     Left = 0
-    Top = 149
+    Top = 106
     Width = 500
-    Height = 358
+    Height = 401
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16414,14 +16424,33 @@ object PromoContentFrame: TPromoContentFrame
     ExplicitTop = 141
     ExplicitHeight = 342
   end
+  object lblDescResize: TRzLabel
+    AlignWithMargins = True
+    Left = 10
+    Top = 83
+    Width = 480
+    Height = 13
+    Margins.Left = 10
+    Margins.Top = 10
+    Margins.Right = 10
+    Margins.Bottom = 10
+    Align = alTop
+    Caption = 'Title comes here'
+    WordWrap = True
+    BorderSides = []
+    ExplicitLeft = 90
+    ExplicitTop = 363
+  end
   object reDescription: TRichEdit
     AlignWithMargins = True
     Left = 10
-    Top = 36
+    Top = 32
     Width = 480
-    Height = 77
+    Height = 21
     Margins.Left = 10
+    Margins.Top = 1
     Margins.Right = 10
+    Margins.Bottom = 1
     Align = alTop
     BevelInner = bvNone
     BevelOuter = bvNone
@@ -16429,5 +16458,6 @@ object PromoContentFrame: TPromoContentFrame
     Lines.Strings = (
       'reDescription')
     TabOrder = 0
+    ExplicitTop = 36
   end
 end

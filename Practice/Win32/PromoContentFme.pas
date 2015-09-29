@@ -15,6 +15,7 @@ type
     lblURL: TRzLabel;
     imgContainer: TImage;
     reDescription: TRichEdit;
+    lblDescResize: TRzLabel;
   private
     { Private declarations }
   public

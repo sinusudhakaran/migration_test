@@ -42,6 +42,9 @@ type
 
     FMainImageID : string;// This is just to go thru the json to get the original image file from the asset section
     FMainImageBitmap : Graphics.TBitmap;
+
+    // For display purpose
+    FFrameHeightRequired : Integer;
   public
     Constructor Create;
     Destructor Destroy;override;
@@ -67,6 +70,9 @@ type
     property MainImageID : string read FMainImageID write FMainImageID;
     property MainImageBitmap : Graphics.TBitmap read FMainImageBitmap write FMainImageBitmap;
     property ContentIndex : Integer read FContentIndex write FContentIndex;
+
+    //For display Purpose
+    property FrameHeightRequired : Integer read FFrameHeightRequired write FFrameHeightRequired;
   end;
 
   {Represents Content asset object}
@@ -92,7 +98,7 @@ type
   private
     FContentList : TObjectList;
     FipsHTTPS: TipsHTTPS;
-    FContentFulResponseJSON : TStringList;
+    FContentFulResponseJSON : string;
     {If a content type is specified, we can specify order also in the query to contentful site.
     But if we go for all content types, we can not specify the order, so we need our own sorting
     method to sort the data}
@@ -210,7 +216,7 @@ const
 
   CONTENT_HEIGHT_WITHOUTIMAGE = 200;
   CONTENT_HEIGHT_WITHIMAGE = 500;
-  CONTENT_MAINSCREEN_HEIGHT = 800;
+  CONTENT_MAINSCREEN_HEIGHT = 840;
   CONTENT_RETRY_COUNT = 3;
   CONTENT_MAX_PAGES_TODISPLAY = 10;
   CONTENT_READ_TIMEOUT = 5000; //5 SEC
@@ -312,7 +318,7 @@ constructor TContentfulDataList.Create;
 begin
   inherited;
   FContentList:= TObjectList.Create;
-  FContentFulResponseJSON := TStringList.Create;
+  FContentFulResponseJSON := '';
 
   FipsHTTPS:= TipsHTTPS.Create(Nil);
   FipsHTTPS.OnStartTransfer := StartDataTransfer;
@@ -327,9 +333,6 @@ begin
 
   FipsHTTPS.Connected := False;
   FreeAndNil(FipsHTTPS);
-
-  FContentFulResponseJSON.Clear;
-  FreeAndNil(FContentFulResponseJSON);
 
   inherited;
 end;
@@ -412,7 +415,7 @@ begin
   except
     on E: Exception do begin
       // Do Nothing, suppress the error
-      FContentFulResponseJSON.Text := E.Message;
+      FContentFulResponseJSON := E.Message;
       inc( Retries );
       if Retries < RetryCount then
         GetContents(aContentType, RetryCount, Retries );
@@ -512,16 +515,23 @@ var
 
   i : Integer;
   j: Integer;
+  Json : TStringList;
 begin
   ProcessingData := True;
-  FContentFulResponseJSON.Text := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
+  //FContentFulResponseJSON := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
   if DebugMe then
   begin
-    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON.Text);
-    FContentFulResponseJSON.SaveToFile('json.txt');
+    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON);
+    Json := TStringList.Create;
+    try
+      Json.Add(FContentFulResponseJSON);
+      Json.SaveToFile('json.txt');
+    finally
+      FreeAndNil(Json);
+    end;
   end;
 
-  BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON.Text) as TlkJSONobject;
+  BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON) as TlkJSONobject;
   Items := BaseJSONObject.Field['items'];
   Assets := nil;
   if Assigned(BaseJSONObject.Field['includes']) and Assigned(BaseJSONObject.Field['includes'].Field['Asset']) then
@@ -549,7 +559,8 @@ begin
 
         NewContent.Title := VarToStr(Items.Child[i].Field['fields'].Field['title'].Value);
         if Assigned(Items.Child[i].Field['fields'].Field['description'])then
-          NewContent.Description := VarToStr(Items.Child[i].Field['fields'].Field['description'].Value);
+          NewContent.Description := StringReplace(VarToStr(Items.Child[i].Field['fields'].Field['description'].Value),
+                                    '/n', #13#10,[rfReplaceAll,rfIgnoreCase]);
         if Assigned(Items.Child[i].Field['fields'].Field['url'])then
           NewContent.URL := VarToStr(Items.Child[i].Field['fields'].Field['url'].Value);
 
@@ -711,14 +722,14 @@ end;
 
 procedure TContentfulDataList.StartDataTransfer(Sender: TObject; Direction: Integer);
 begin
-  FContentFulResponseJSON.Clear;
+  FContentFulResponseJSON := '';
   ProcessingData := True;
 end;
 
 procedure TContentfulDataList.TransferData(Sender: TObject; Direction,
   BytesTransferred: Integer; Text: String);
 begin
-  FContentFulResponseJSON.Add(Text);
+  FContentFulResponseJSON := FContentFulResponseJSON + Text;
 end;
 
 { TDisplayContents }

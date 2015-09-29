@@ -4,7 +4,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
   BorderIcons = [biMinimize]
   BorderStyle = bsSingle
   Caption = ' '
-  ClientHeight = 772
+  ClientHeight = 811
   ClientWidth = 594
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -19,11 +19,12 @@ object PromoDisplayFrm: TPromoDisplayFrm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pnlControls: TPanel
     Left = 0
-    Top = 734
+    Top = 773
     Width = 594
     Height = 38
     Align = alBottom
@@ -31,6 +32,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Caption = ' '
     ParentBackground = False
     TabOrder = 0
+    ExplicitTop = 734
     DesignSize = (
       594
       38)
@@ -68,6 +70,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Top = 144
     Width = 393
     Height = 209
+    AutoSize = True
     BevelOuter = bvNone
     ParentColor = True
     TabOrder = 1
@@ -78,7 +81,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Left = 32
     Top = 624
     Bitmap = {
-      494C010102004800480020002000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010102004800500020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -610,6 +613,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
       FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000
       FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000
       FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000
-      FFFFFFFFFFFFFFFF0000000000000000}
+      FFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
+      000000000000}
   end
 end
