@@ -255,7 +255,7 @@ begin
   Check(BGLImportExport.NodeName = 'BGL_Import_Export');
   Check(BGLImportExport.SelectSingleNode('Supplier').Text = 'MYOB BankLink');
   Check(BGLImportExport.SelectSingleNode('Product').Text = 'SF360');
-  Check(BGLImportExport.SelectSingleNode('Import_Export_Version').Text = '5.1');
+  Check(BGLImportExport.SelectSingleNode('Import_Export_Version').Text = '5.2');
   Check(BGLImportExport.LastChild.NodeName = 'Entity_Details');
   Check(BGLImportExport.LastChild.FirstChild.XML = '<Entity_Code>UNITTEST</Entity_Code>');
   BankBalances := XmlTestDoc.LastChild.LastChild.ChildNodes.Item[1];
