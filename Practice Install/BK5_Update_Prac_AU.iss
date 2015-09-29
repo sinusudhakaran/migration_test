@@ -24,6 +24,7 @@ Source: "..\Binaries\bkLookup.dll"; DestDir: "{app}"
 Source: "..\Binaries\BKHandler\bkHandlerSetup.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Binaries\bkmap.exe"; DestDir: "{app}"
 
+Source: "Bin\mapi64bit.exe"; DestDir: "{app}"
 Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
 Source: "Bin\BK5WIN.EXE.Manifest"; DestDir: "{app}"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"

@@ -22,6 +22,7 @@ InfoBeforeFile=Books Files\infoBOOKS.txt
 Source: "..\Binaries\BK5WIN.EXE"; DestDir: "{app}"
 Source: "..\Binaries\bkhandlr.exe"; DestDir: "{app}"
 
+Source: "Bin\mapi64bit.exe"; DestDir: "{app}"
 Source: "Bin\bkExtMapi.dll"; DestDir: "{app}"
 Source: "Bin\BK5WIN.EXE.Manifest.Books"; DestDir: "{app}"; DestName: "BK5WIN.EXE.Manifest"
 Source: "Bin\bkinstall.exe"; DestDir: "{app}"
