@@ -1,7 +1,7 @@
 object dlgAdminOptions: TdlgAdminOptions
   Left = 317
   Top = 231
-  ActiveControl = edtInstListLink
+  ActiveControl = chkCopyNarrationDissection
   BorderStyle = bsDialog
   Caption = 'System Options'
   ClientHeight = 471
@@ -60,7 +60,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = tsLinks
+    ActivePage = tsGeneral
     Align = alTop
     MultiLine = True
     TabOrder = 1
@@ -922,6 +922,43 @@ object dlgAdminOptions: TdlgAdminOptions
           Height = 21
           TabOrder = 0
         end
+      end
+    end
+    object tsBGL360: TTabSheet
+      Caption = 'BGL 360 Credentials'
+      ImageIndex = 7
+      ExplicitTop = 29
+      object lblLoginClientID: TLabel
+        Left = 16
+        Top = 28
+        Width = 82
+        Height = 13
+        Caption = 'Banklink Client ID'
+        FocusControl = edtBGLClientID
+      end
+      object lblLoginSecret: TLabel
+        Left = 16
+        Top = 60
+        Width = 72
+        Height = 13
+        Caption = 'Banklink Secret'
+        FocusControl = edtBGLSecret
+      end
+      object edtBGLClientID: TEdit
+        Left = 129
+        Top = 25
+        Width = 383
+        Height = 21
+        TabOrder = 0
+        Text = 'bankLinkTest'
+      end
+      object edtBGLSecret: TEdit
+        Left = 129
+        Top = 57
+        Width = 383
+        Height = 21
+        TabOrder = 1
+        Text = 'bankLinkSecret'
       end
     end
   end

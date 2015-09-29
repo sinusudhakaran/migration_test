@@ -304,6 +304,10 @@ F|Sched Rep Online Custom Doc|B
 F|Last BankLink Online Update|D
 F|Last Agreed To BLOSA|S|32
 F|Banklink Online Suspended|Y
+F|BGLAccessToken|S|64
+F|BGLRefreshToken|S|64
+F|BGLTokenType|S|32
+F|BGLTokenExpiresAt|DT
 E
 
 N|System Disk Log|dl|40

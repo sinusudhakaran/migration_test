@@ -533,13 +533,13 @@ end;
 function TAuth_TokenObj.SaveTokens: Boolean;
 begin
   // Save tokens to client file.
-  if Assigned( MyClient ) then
+  if Assigned( AdminSystem ) then
   begin
-    MyClient.clExtra.ceBGLAccessToken := fAccess_token;
-    MyClient.clExtra.ceBGLRefreshToken := fRefresh_token;
-    MyClient.clExtra.ceBGLTokenType := fToken_type;
-    MyClient.clExtra.ceBGLTokenExpiresAt := fWill_Expire_At;
-    SaveClient(false);
+    AdminSystem.fdFields.fdBGLAccessToken := fAccess_token;
+    AdminSystem.fdFields.fdBGLRefreshToken := fRefresh_token;
+    AdminSystem.fdFields.fdBGLTokenType := fToken_type;
+    AdminSystem.fdFields.fdBGLTokenExpiresAt := fWill_Expire_At;
+    AdminSystem.Save;
   end;
 end;
 

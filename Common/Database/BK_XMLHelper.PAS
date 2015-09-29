@@ -3460,9 +3460,6 @@ begin
 	SetIntAttr(Result, 'AddPrefixForAccountCode', ceAdd_Prefix_For_Account_Code);
 	SetTextAttr(Result, 'CashbookGSTMapFileLocation', ceCashbook_GST_Map_File_Location);
 	SetTextAttr(Result, 'CashbookExportFileLocation', ceCashbook_Export_File_Location);
-	SetTextAttr(Result, 'BGLAccessToken', ceBGLAccessToken);
-	SetTextAttr(Result, 'BGLRefreshToken', ceBGLRefreshToken);
-	SetTextAttr(Result, 'BGLTokenType', ceBGLTokenType);
 	SetTextAttr(Result, 'BGLFundIDSelected', ceBGLFundIDSelected);
 	SetTextAttr(Result, 'BGLFundNameSelected', ceBGLFundNameSelected);
 
@@ -3622,9 +3619,6 @@ begin
 	ceAdd_Prefix_For_Account_Code := GetIntAttr(Result, 'AddPrefixForAccountCode');
 	ceCashbook_GST_Map_File_Location := GetTextAttr(Result, 'CashbookGSTMapFileLocation');
 	ceCashbook_Export_File_Location := GetTextAttr(Result, 'CashbookExportFileLocation');
-	ceBGLAccessToken := GetTextAttr(Result, 'BGLAccessToken');
-	ceBGLRefreshToken := GetTextAttr(Result, 'BGLRefreshToken');
-	ceBGLTokenType := GetTextAttr(Result, 'BGLTokenType');
 	ceBGLFundIDSelected := GetTextAttr(Result, 'BGLFundIDSelected');
 	ceBGLFundNameSelected := GetTextAttr(Result, 'BGLFundNameSelected');
 	except

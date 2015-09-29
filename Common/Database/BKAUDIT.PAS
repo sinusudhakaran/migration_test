@@ -996,12 +996,8 @@ begin
     FAuditNamesArray[40,93] := 'Add_Prefix_For_Account_Code';
     FAuditNamesArray[40,94] := 'Cashbook_GST_Map_File_Location';
     FAuditNamesArray[40,95] := 'Cashbook_Export_File_Location';
-    FAuditNamesArray[40,96] := 'BGLAccessToken';
-    FAuditNamesArray[40,97] := 'BGLRefreshToken';
-    FAuditNamesArray[40,98] := 'BGLTokenType';
-    FAuditNamesArray[40,99] := 'BGLTokenExpiresAt';
-    FAuditNamesArray[40,100] := 'BGLFundIDSelected';
-    FAuditNamesArray[40,101] := 'BGLFundNameSelected';
+    FAuditNamesArray[40,96] := 'BGLFundIDSelected';
+    FAuditNamesArray[40,97] := 'BGLFundNameSelected';
 
    FAuditTableArray[233] := 'Deleted_Transaction';
     FAuditNamesArray[233,235] := 'Date_Deleted';

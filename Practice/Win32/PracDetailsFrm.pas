@@ -143,11 +143,6 @@ type
     lblState: TLabel;
     cmbState: TComboBox;
     mskABN: TMaskEdit;
-    tsBGL360: TTabSheet;
-    edtBGLClientID: TEdit;
-    lblLoginClientID: TLabel;
-    edtBGLSecret: TEdit;
-    lblLoginSecret: TLabel;
     btnConnectBGL: TButton;
     
     procedure btnOKClick(Sender: TObject);
@@ -350,7 +345,6 @@ begin
   FEnablingBankLinkOnline := False;
 
   DoRebranding();
-  tsBGL360.TabVisible := (CurrUser.Code = SuperUserCode);
 end;
 
 //------------------------------------------------------------------------------
@@ -667,10 +661,10 @@ begin
       if Assigned(MyClient) then
       begin
         // Get all BGL values from client file and
-        BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
-                  MyClient.clExtra.ceBGLTokenType,
-                  MyClient.clExtra.ceBGLRefreshToken,
-                  MyClient.clExtra.ceBGLTokenExpiresAt);
+        BGLServer.Set_Auth_Tokens(AdminSystem.fdFields.fdBGLAccessToken,
+                  AdminSystem.fdFields.fdBGLTokenType,
+                  AdminSystem.fdFields.fdBGLRefreshToken,
+                  AdminSystem.fdFields.fdBGLTokenExpiresAt);
 
         if BGLServer.CheckForAuthentication then
           ShowMessage('BGL Server Sign in completed successfully');
@@ -1179,9 +1173,6 @@ begin
 
   end; {with}
 
-  edtBGLClientID.Text := DecryptAToken(PRACINI_BGL360_Client_ID, PRACINI_Random_Key);
-  edtBGLSecret.Text := DecryptAToken(PRACINI_BGL360_Client_Secret, PRACINI_Random_Key);
-  
   fLoading := false;
   InSetup := False;
 
@@ -1270,10 +1261,6 @@ begin
        //*** Flag Audit ***
        SystemAuditMgr.FlagAudit(arPracticeSetup);
 
-       // BGL configs storing encrpted values in system ini file
-       PRACINI_BGL360_Client_ID := EncryptAToken(edtBGLClientID.Text,PRACINI_Random_Key);
-       PRACINI_BGL360_Client_Secret := EncryptAToken(edtBGLSecret.Text, PRACINI_Random_Key);
-       WritePracticeINI;
        SaveAdminSystem;
        UpdateMenus;
 

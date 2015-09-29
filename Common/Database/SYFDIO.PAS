@@ -225,6 +225,10 @@ CONST
    tkfdLast_BankLink_Online_Update      = 188 ;
    tkfdLast_Agreed_To_BLOSA             = 189 ;
    tkfdBanklink_Online_Suspended        = 190 ;
+   tkfdBGLAccessToken                   = 191 ;
+   tkfdBGLRefreshToken                  = 192 ;
+   tkfdBGLTokenType                     = 193 ;
+   tkfdBGLTokenExpiresAt                = 194 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -441,6 +445,10 @@ Begin
       F.WriteDateValue( tkfdLast_BankLink_Online_Update , fdLast_BankLink_Online_Update );
       F.WriteStringValue( tkfdLast_Agreed_To_BLOSA , fdLast_Agreed_To_BLOSA );
       F.WriteBooleanValue( tkfdBanklink_Online_Suspended , fdBanklink_Online_Suspended );
+      F.WriteStringValue( tkfdBGLAccessToken , fdBGLAccessToken );
+      F.WriteStringValue( tkfdBGLRefreshToken , fdBGLRefreshToken );
+      F.WriteStringValue( tkfdBGLTokenType , fdBGLTokenType );
+      F.WriteDateTimeValue( tkfdBGLTokenExpiresAt , fdBGLTokenExpiresAt );
       F.WriteToken( tkEnd_Practice_Details );
    end;
 end; { of Write_Practice_Details_Rec }
@@ -749,6 +757,10 @@ Begin
          tkfdLast_BankLink_Online_Update      : fdLast_BankLink_Online_Update := F.ReadDateValue;
          tkfdLast_Agreed_To_BLOSA             : fdLast_Agreed_To_BLOSA := F.ReadStringValue;
          tkfdBanklink_Online_Suspended        : fdBanklink_Online_Suspended := F.ReadBooleanValue;
+         tkfdBGLAccessToken                   : fdBGLAccessToken := F.ReadStringValue;
+         tkfdBGLRefreshToken                  : fdBGLRefreshToken := F.ReadStringValue;
+         tkfdBGLTokenType                     : fdBGLTokenType := F.ReadStringValue;
+         tkfdBGLTokenExpiresAt                : fdBGLTokenExpiresAt := F.ReadDateTimeValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -829,7 +841,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkfdPractice_Name_for_Reports to tkfdBanklink_Online_Suspended do begin
+  for i := tkfdPractice_Name_for_Reports to tkfdBGLTokenExpiresAt do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -1766,6 +1778,26 @@ begin
   if (P1.fdBanklink_Online_Suspended <> P2.fdBanklink_Online_Suspended) then begin
     P3.fdBanklink_Online_Suspended := P1.fdBanklink_Online_Suspended;
     ChangedFields[i] := tkfdBanklink_Online_Suspended;
+    Inc(i);
+  end;
+  if (P1.fdBGLAccessToken <> P2.fdBGLAccessToken) then begin
+    P3.fdBGLAccessToken := P1.fdBGLAccessToken;
+    ChangedFields[i] := tkfdBGLAccessToken;
+    Inc(i);
+  end;
+  if (P1.fdBGLRefreshToken <> P2.fdBGLRefreshToken) then begin
+    P3.fdBGLRefreshToken := P1.fdBGLRefreshToken;
+    ChangedFields[i] := tkfdBGLRefreshToken;
+    Inc(i);
+  end;
+  if (P1.fdBGLTokenType <> P2.fdBGLTokenType) then begin
+    P3.fdBGLTokenType := P1.fdBGLTokenType;
+    ChangedFields[i] := tkfdBGLTokenType;
+    Inc(i);
+  end;
+  if (P1.fdBGLTokenExpiresAt <> P2.fdBGLTokenExpiresAt) then begin
+    P3.fdBGLTokenExpiresAt := P1.fdBGLTokenExpiresAt;
+    ChangedFields[i] := tkfdBGLTokenExpiresAt;
     Inc(i);
   end;
 

@@ -100,12 +100,8 @@ CONST
    tkceAdd_Prefix_For_Account_Code      = 93 ;
    tkceCashbook_GST_Map_File_Location   = 94 ;
    tkceCashbook_Export_File_Location    = 95 ;
-   tkceBGLAccessToken                   = 96 ;
-   tkceBGLRefreshToken                  = 97 ;
-   tkceBGLTokenType                     = 98 ;
-   tkceBGLTokenExpiresAt                = 99 ;
-   tkceBGLFundIDSelected                = 100 ;
-   tkceBGLFundNameSelected              = 101 ;
+   tkceBGLFundIDSelected                = 96 ;
+   tkceBGLFundNameSelected              = 97 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -194,10 +190,6 @@ Begin
       F.WriteIntegerValue( tkceAdd_Prefix_For_Account_Code , ceAdd_Prefix_For_Account_Code );
       F.WriteStringValue( tkceCashbook_GST_Map_File_Location , ceCashbook_GST_Map_File_Location );
       F.WriteStringValue( tkceCashbook_Export_File_Location , ceCashbook_Export_File_Location );
-      F.WriteStringValue( tkceBGLAccessToken , ceBGLAccessToken );
-      F.WriteStringValue( tkceBGLRefreshToken , ceBGLRefreshToken );
-      F.WriteStringValue( tkceBGLTokenType , ceBGLTokenType );
-      F.WriteDateTimeValue( tkceBGLTokenExpiresAt , ceBGLTokenExpiresAt );
       F.WriteStringValue( tkceBGLFundIDSelected , ceBGLFundIDSelected );
       F.WriteStringValue( tkceBGLFundNameSelected , ceBGLFundNameSelected );
       F.WriteToken( tkEnd_ClientExtra );
@@ -315,10 +307,6 @@ Begin
          tkceAdd_Prefix_For_Account_Code      : ceAdd_Prefix_For_Account_Code := F.ReadIntegerValue;
          tkceCashbook_GST_Map_File_Location   : ceCashbook_GST_Map_File_Location := F.ReadStringValue;
          tkceCashbook_Export_File_Location    : ceCashbook_Export_File_Location := F.ReadStringValue;
-         tkceBGLAccessToken                   : ceBGLAccessToken := F.ReadStringValue;
-         tkceBGLRefreshToken                  : ceBGLRefreshToken := F.ReadStringValue;
-         tkceBGLTokenType                     : ceBGLTokenType := F.ReadStringValue;
-         tkceBGLTokenExpiresAt                : ceBGLTokenExpiresAt := F.ReadDateTimeValue;
          tkceBGLFundIDSelected                : ceBGLFundIDSelected := F.ReadStringValue;
          tkceBGLFundNameSelected              : ceBGLFundNameSelected := F.ReadStringValue;
          else
@@ -670,26 +658,6 @@ begin
   if (P1.ceCashbook_Export_File_Location <> P2.ceCashbook_Export_File_Location) then begin
     P3.ceCashbook_Export_File_Location := P1.ceCashbook_Export_File_Location;
     ChangedFields[i] := tkceCashbook_Export_File_Location;
-    Inc(i);
-  end;
-  if (P1.ceBGLAccessToken <> P2.ceBGLAccessToken) then begin
-    P3.ceBGLAccessToken := P1.ceBGLAccessToken;
-    ChangedFields[i] := tkceBGLAccessToken;
-    Inc(i);
-  end;
-  if (P1.ceBGLRefreshToken <> P2.ceBGLRefreshToken) then begin
-    P3.ceBGLRefreshToken := P1.ceBGLRefreshToken;
-    ChangedFields[i] := tkceBGLRefreshToken;
-    Inc(i);
-  end;
-  if (P1.ceBGLTokenType <> P2.ceBGLTokenType) then begin
-    P3.ceBGLTokenType := P1.ceBGLTokenType;
-    ChangedFields[i] := tkceBGLTokenType;
-    Inc(i);
-  end;
-  if (P1.ceBGLTokenExpiresAt <> P2.ceBGLTokenExpiresAt) then begin
-    P3.ceBGLTokenExpiresAt := P1.ceBGLTokenExpiresAt;
-    ChangedFields[i] := tkceBGLTokenExpiresAt;
     Inc(i);
   end;
   if (P1.ceBGLFundIDSelected <> P2.ceBGLFundIDSelected) then begin

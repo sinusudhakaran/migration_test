@@ -422,6 +422,9 @@ begin
 	SetIntAttr(Result, 'LastBankLinkOnlineUpdate', fdLast_BankLink_Online_Update);
 	SetTextAttr(Result, 'LastAgreedToBLOSA', fdLast_Agreed_To_BLOSA);
 	SetBoolAttr(Result, 'BanklinkOnlineSuspended', fdBanklink_Online_Suspended);
+	SetTextAttr(Result, 'BGLAccessToken', fdBGLAccessToken);
+	SetTextAttr(Result, 'BGLRefreshToken', fdBGLRefreshToken);
+	SetTextAttr(Result, 'BGLTokenType', fdBGLTokenType);
 
 	CNode := nil;
 	CCNode := nil;
@@ -785,6 +788,9 @@ begin
 	fdLast_BankLink_Online_Update := GetIntAttr(Result, 'LastBankLinkOnlineUpdate');
 	fdLast_Agreed_To_BLOSA := GetTextAttr(Result, 'LastAgreedToBLOSA');
 	fdBanklink_Online_Suspended := GetBoolAttr(Result, 'BanklinkOnlineSuspended');
+	fdBGLAccessToken := GetTextAttr(Result, 'BGLAccessToken');
+	fdBGLRefreshToken := GetTextAttr(Result, 'BGLRefreshToken');
+	fdBGLTokenType := GetTextAttr(Result, 'BGLTokenType');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPractice_Details_Rec');
 	end;

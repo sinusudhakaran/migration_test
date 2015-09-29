@@ -309,9 +309,9 @@ begin
   try
     i := 0;
     if assigned( MyClient ) then
-      RestServer.Set_Auth_Tokens( MyClient.clExtra.ceBGLAccessToken,
-        MyClient.clExtra.ceBGLTokenType, MyClient.clExtra.ceBGLRefreshToken,
-        MyClient.clExtra.ceBGLTokenExpiresAt );
+      RestServer.Set_Auth_Tokens( AdminSystem.fdFields.fdBGLAccessToken,
+        AdminSystem.fdFields.fdBGLTokenType, AdminSystem.fdFields.fdBGLRefreshToken,
+        AdminSystem.fdFields.fdBGLTokenExpiresAt );
 
       if RestServer.CheckForAuthentication then begin
       

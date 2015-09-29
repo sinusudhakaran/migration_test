@@ -130,6 +130,11 @@ type
     Label18: TLabel;
     Label31: TLabel;
     ShapeBorder: TShape;
+    tsBGL360: TTabSheet;
+    lblLoginClientID: TLabel;
+    lblLoginSecret: TLabel;
+    edtBGLClientID: TEdit;
+    edtBGLSecret: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
@@ -382,11 +387,12 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAdminOptions.LoadSettingsFromINI;
 begin
+  tsBGL360.TabVisible := (CurrUser.Code = SuperUserCode);
+
   //general tab settings
   chkCopyNarrationDissection.Checked  := (Globals.PRACINI_CopyNarrationDissection);
   rsAutoSaveTime.IntValue             := (Globals.PRACINI_AutoSaveTime);
   rsAutoSaveTimeChange(rsAutoSaveTime);
-
   // Reports
 
   //advance tab settings
@@ -430,12 +436,9 @@ begin
 {$ELSE}
   tsSmartLink.tabVisible := False;
 {$ENDIF}
-
-  
-
-
-
-
+  //BGL client id and secret
+  edtBGLClientID.Text := DecryptAToken(PRACINI_BGL360_Client_ID, PRACINI_Random_Key);
+  edtBGLSecret.Text := DecryptAToken(PRACINI_BGL360_Client_Secret, PRACINI_Random_Key);
 end;
 
 procedure TdlgAdminOptions.SaveSettingsToAdmin;
@@ -598,6 +601,10 @@ begin
       whAustralia : Globals.PRACINI_InstListLinkAU := edtInstListLink.Text;
       whUK        : Globals.PRACINI_InstListLinkUK := edtInstListLink.Text;
     end;
+
+   // BGL configs storing encrpted values in system ini file
+   Globals.PRACINI_BGL360_Client_ID := EncryptAToken(edtBGLClientID.Text,PRACINI_Random_Key);
+   Globals.PRACINI_BGL360_Client_Secret := EncryptAToken(edtBGLSecret.Text, PRACINI_Random_Key);
 
     //*** Flag Audit ***
     SystemAuditMgr.FlagAudit(arSystemOptions);
@@ -938,9 +945,6 @@ begin
   pcOptions.ActivePage := tsGeneral;
   btnReportPwd.Enabled := chkReportPwd.Checked;
 end;
-
-
-
 
 function CountUsersLoggedIn( aAdminSystem : TSystemObj; var UserList : string) : integer;
 var
