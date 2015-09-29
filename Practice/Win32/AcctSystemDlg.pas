@@ -439,31 +439,31 @@ begin
   btnFromFolder.Visible := lblFrom.Visible;
   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
   lblBGL360FundName.Visible := (SelectedSystem = saBGL360);
+
   if SelectedSystem = saBGL360 then
   begin
     BGLServerNoSignRequired := True;
     btnConnectBGL.Caption := 'BGL Sign in';
-    lblBGL360FundName.Caption := 'Fund Selected : <none>';
+    lblBGL360FundName.Caption := 'Fund Selected : <None>';
     BGLServer := TBGLServer.Create(Nil,
                         DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
                         DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
                         Globals.PRACINI_BGL360_API_URL);
     try
-      if Assigned(MyClient) then
+      if Assigned(AdminSystem) then
       begin
         // Get all BGL values from client file and
-        BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
-                  MyClient.clExtra.ceBGLTokenType,
-                  MyClient.clExtra.ceBGLRefreshToken,
-                  MyClient.clExtra.ceBGLTokenExpiresAt);
-        if BGLServer.CheckForAuthentication then
-        begin
-          btnConnectBGL.Caption := 'Select Fund';
-          if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
-            lblBGL360FundName.Caption := 'Fund Selected : <' + MyClient.clExtra.ceBGLFundNameSelected + '>';
-        end
+        BGLServer.Set_Auth_Tokens(AdminSystem.fdFields.fdBGLAccessToken,
+                  AdminSystem.fdFields.fdBGLTokenType,
+                  AdminSystem.fdFields.fdBGLRefreshToken,
+                  AdminSystem.fdFields.fdBGLTokenExpiresAt);
+        if BGLServer.CheckForValidTokens then
+          btnConnectBGL.Caption := 'Select Fund'
         else
           BGLServerNoSignRequired := False;
+
+        if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
+          lblBGL360FundName.Caption := 'Fund Selected : ' + MyClient.clExtra.ceBGLFundNameSelected ;
       end;
     finally
       FreeAndNil(BGLServer);
@@ -1032,13 +1032,13 @@ begin
                       Globals.PRACINI_BGL360_API_URL);
   FundFrm := TFundSelectionFrm.Create(Nil);
   try
-    if Assigned(MyClient) then
+    if Assigned(AdminSystem) then
     begin
       // Get all BGL values from client file and
-      BGLServer.Set_Auth_Tokens(MyClient.clExtra.ceBGLAccessToken,
-                MyClient.clExtra.ceBGLTokenType,
-                MyClient.clExtra.ceBGLRefreshToken,
-                MyClient.clExtra.ceBGLTokenExpiresAt);
+      BGLServer.Set_Auth_Tokens(AdminSystem.fdFields.fdBGLAccessToken,
+                AdminSystem.fdFields.fdBGLTokenType,
+                AdminSystem.fdFields.fdBGLRefreshToken,
+                AdminSystem.fdFields.fdBGLTokenExpiresAt);
       if (BGLServerNoSignRequired or BGLServer.CheckForAuthentication) then
       begin
         BGLServer.Get_FundList;
@@ -1052,9 +1052,9 @@ begin
             begin
               MyClient.clExtra.ceBGLFundIDSelected := FundFrm.SelectedFundID;
               MyClient.clExtra.ceBGLFundNameSelected := FundFrm.SelectedFundName;
-              lblBGL360FundName.Caption := 'Fund Selected : <none>';
+              lblBGL360FundName.Caption := 'Fund Selected : <None>';
               if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
-                lblBGL360FundName.Caption := 'Fund Selected : <' + MyClient.clExtra.ceBGLFundNameSelected + '>';
+                lblBGL360FundName.Caption := 'Fund Selected : ' + MyClient.clExtra.ceBGLFundNameSelected;
               SaveClient(false);
             end;
             RefreshChart;

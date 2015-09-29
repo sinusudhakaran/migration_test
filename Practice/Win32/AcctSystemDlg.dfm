@@ -133,7 +133,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 317
       Height = 21
       Anchors = [akLeft, akBottom]
-      TabOrder = 5
+      TabOrder = 6
       Text = 'eFrom'
       OnChange = eFromChange
     end
@@ -143,7 +143,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 317
       Height = 21
       Anchors = [akLeft, akBottom]
-      TabOrder = 6
+      TabOrder = 7
       Text = 'eTo'
     end
     object btnCheckBankManID: TButton
@@ -153,7 +153,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Set &BankLink ID'
-      TabOrder = 7
+      TabOrder = 8
       OnClick = btnCheckBankManIDClick
     end
     object cmbSystem: TComboBox
@@ -182,7 +182,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 201
       Height = 17
       Caption = 'Loc&k Chart of Accounts'
-      TabOrder = 3
+      TabOrder = 4
     end
     object btnSetBankpath: TButton
       Left = 358
@@ -190,7 +190,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 129
       Height = 25
       Caption = 'Set Bank&Path'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = btnSetBankpathClick
     end
     object pnlMASLedgerCode: TPanel
@@ -199,7 +199,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 486
       Height = 29
       BevelOuter = bvNone
-      TabOrder = 4
+      TabOrder = 5
       DesignSize = (
         486
         29)
@@ -239,7 +239,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 27
       Anchors = [akLeft, akBottom]
       Caption = 'BGL Sign in'
-      TabOrder = 8
+      TabOrder = 2
       OnClick = btnConnectBGLClick
     end
   end

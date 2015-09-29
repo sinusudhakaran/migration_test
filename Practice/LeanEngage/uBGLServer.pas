@@ -169,6 +169,7 @@ type
     procedure Set_Auth_Tokens( aAccess_token : string; aToken_type : string;
       aRefresh_token : string; aWill_Expire_At: TDateTime );
 
+    function CheckForValidTokens: Boolean;
     function CheckForAuthentication : boolean;
 
     function Get_Auth_Code : boolean;
@@ -242,35 +243,40 @@ end;
 
 function TBGLServer.CheckForAuthentication: boolean;
 begin
-  result :=
+
+  if not CheckForValidTokens then begin      // If there has never been a token
+    result := Get_Auth_Code;    // Need to Authorise, and retrieve Auth_Code
+    if result then
+      result := Get_Auth_Tokens; // Now we can ask for the Tokens
+      if not result then
+        exit;
+  end
+  else
+  begin // There has been a token previously, let's try and refresh
+    result := Get_Refresh_Tokens; // Try and refresh the tokens
+    if not result then begin // something went wrong, let's try and re-authorise
+      freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
+      fAuth_TokenObj := TAuth_TokenObj.Create;  // Recreate the Auth Tokens;
+      result := CheckForAuthentication;         // Call this routine recursively
+    end;
+  end;
+end;
+
+function TBGLServer.CheckForValidTokens: Boolean;
+begin
+  Result :=
     ( trim( Auth_Token.Access_token ) <> '' ) and
     ( trim( Auth_Token.Token_type ) <> '' ) and
     ( trim( Auth_Token.Refresh_token ) <> '' ) and
     ( Now < Auth_Token.fWill_Expire_At );
 
-  if not result then begin
-    result := {Check if there was ever, a Token}
+  if not Result then begin
+    Result := {Check if there was ever, a Token}
       ( trim( Auth_Token.Access_token ) <> '' ) and
       ( trim( Auth_Token.Token_type ) <> '' ) and
       ( trim( Auth_Token.Refresh_token ) <> '' );
-
-    if not result then begin      // If there has never been a token
-      result := Get_Auth_Code;    // Need to Authorise, and retrieve Auth_Code
-      if result then
-        result := Get_Auth_Tokens; // Now we can ask for the Tokens
-        if not result then
-          exit;
-    end
-    else
-    begin // There has been a token previously, let's try and refresh
-      result := Get_Refresh_Tokens; // Try and refresh the tokens
-      if not result then begin // something went wrong, let's try and re-authorise
-        freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
-        fAuth_TokenObj := TAuth_TokenObj.Create;  // Recreate the Auth Tokens;
-        result := CheckForAuthentication;         // Call this routine recursively
-      end;
-    end;
   end;
+
 end;
 
 constructor TBGLServer.Create(aOwner : TThread; aAuthenticationKey,
