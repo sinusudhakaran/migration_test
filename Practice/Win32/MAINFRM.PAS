@@ -1470,7 +1470,6 @@ begin
    TutorialsFile := ExecDir + 'tutorial.chm';
    mniTutorialsTOC.Caption := AppTitle + ' &Tutorial';
    mniTutorialsTOC.Visible := BKFileExists(TutorialsFile);
-   //mniPromos.Visible := (DisplayPromoContents.Count > 0);
    
    mniBKHelp.Caption := AppTitle + ' &Help';
    mniBKHelp.Visible := bkHelp.BKHelpFileExists;
@@ -1860,7 +1859,7 @@ begin
 
   //allow DDE commands to be processed
   ApplicationIsStarting := false;
-  //mniPromos.Enabled := (DisplayPromoContents.Count > 0);
+  mniPromos.Enabled := (DisplayPromoContents.Count > 0);
   if DebugMe then
     LogUtil.LogMsg(lmDebug,unitname,'Form Show Finished');
 end;

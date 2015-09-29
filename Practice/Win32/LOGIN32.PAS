@@ -882,6 +882,10 @@ begin
     DisplayPromoContents.ListValidContents;
     if DisplayPromoContents.Count > 0 then
       DisplayPromoScreen;
+
+    // Calling to refresh for promo menu
+    DisplayPromoContents.DisplayTypes := [ctAll,ctUpgrade, ctMarketing, ctTechnical];
+    DisplayPromoContents.ListValidContents;
   end;
 end;
 //------------------------------------------------------------------------------
