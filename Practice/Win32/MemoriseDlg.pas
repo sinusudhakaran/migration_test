@@ -2327,6 +2327,7 @@ begin
     SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList);
 
     tblTran.RowLimit := fMemTranSortedList.ItemCount;
+    tblTran.invalidate;
   finally
     FreeAndNil(TempMem);
   end;
@@ -3443,7 +3444,12 @@ begin
     chkStatementDetails.Checked := True;
 
   if fDlgEditMode in ALL_NO_MASTER then
-    RefreshMemTransactions()
+  begin
+    RefreshMemTransactions();
+    treView.Visible := false;
+    tblTran.Visible := true;
+    lblMatchingTransactions.Caption := 'Matching Transactions';
+  end
   else
     chkMaster.Checked := true;
 
