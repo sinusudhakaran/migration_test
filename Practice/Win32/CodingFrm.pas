@@ -1931,22 +1931,26 @@ var
     Mems := BankAccount.baMemorisations_List;
     Mem  := TMemorisation.Create(Mems.AuditMgr);
 
-    // Create memorisation line
-    MemLine := New_Memorisation_Line_Rec;
+    if pT^.txGL_Narration <> pT^.txStatement_Details then
+    begin
+      // Create memorisation line
+      MemLine := New_Memorisation_Line_Rec;
 
-    MemLine^.mlAccount             := pT^.txAccount;
-    MemLine^.mlGST_Has_Been_Edited := false;
-    MemLine^.mlGL_Narration        := pT^.txGL_Narration;
-    MemLine^.mlLine_Type           := pT^.txType;
-    MemLine^.mlGST_Amount          := pT^.txGST_Amount;
-    MemLine^.mlPayee               := pT^.txPayee_Number;
-    MemLine^.mlJob_Code            := pT^.txJob_Code;
-    MemLine^.mlQuantity            := pT^.txQuantity;
-    MemLine^.mlAudit_Record_ID     := pT^.txAudit_Record_ID;
+      MemLine^.mlAccount             := pT^.txAccount;
+      MemLine^.mlGST_Has_Been_Edited := false;
+      MemLine^.mlGL_Narration        := pT^.txGL_Narration;
+      MemLine^.mlLine_Type           := pT^.txType;
+      MemLine^.mlGST_Amount          := pT^.txGST_Amount;
+      MemLine^.mlPayee               := pT^.txPayee_Number;
+      MemLine^.mlJob_Code            := pT^.txJob_Code;
+      MemLine^.mlQuantity            := pT^.txQuantity;
+      MemLine^.mlAudit_Record_ID     := pT^.txAudit_Record_ID;
+      MemLine^.mlPercentage          := 10000;
 
-    MemLine.mlGST_Class := MyClient.clChart.GSTClass(pT^.txAccount);
+      MemLine.mlGST_Class := MyClient.clChart.GSTClass(pT^.txAccount);
 
-    Mem.mdLines.Insert(MemLine);
+      Mem.mdLines.Insert(MemLine);
+    end;
   end;
 
 begin

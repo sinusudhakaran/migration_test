@@ -158,13 +158,14 @@ object frmCoding: TfrmCoding
       Left = 30
       Top = 1
       Width = 20
-      Height = 13
+      Height = 21
       Margins.Left = 9
       Margins.Top = 0
       Margins.Bottom = 0
       Align = alLeft
       Caption = 'Find'
       Layout = tlCenter
+      ExplicitHeight = 13
     end
     object tbtnClose: TRzToolButton
       Left = 1
