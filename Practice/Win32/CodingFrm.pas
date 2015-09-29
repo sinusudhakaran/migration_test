@@ -10683,6 +10683,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCoding.ActivateCurrentTab(aTabIndex : integer);
 begin
+  SuggMemPopup(self).OnHideClick   := btnHideClick;
+  SuggMemPopup(self).OnLaterClick  := btnLaterClick;
+  SuggMemPopup(self).OnCreateClick := btnCreateClick;
+
   tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
   frmMain.SetActiveMDI(tcWindows, aTabIndex);
 end;
