@@ -1952,14 +1952,7 @@ var
       MemLine^.mlQuantity            := pT^.txQuantity;
       MemLine^.mlAudit_Record_ID     := pT^.txAudit_Record_ID;
 
-      if (pT^.txGL_Narration <> pT^.txStatement_Details) or
-         (pT^.txPayee_Number > 0) or
-         (pT^.txAccount = '') or
-         (pT^.txJob_Code <> '') then
-        MemLine^.mlPercentage          := 1000000
-      else
-        MemLine^.mlPercentage          := 10000;
-
+      MemLine^.mlPercentage          := 1000000;
       MemLine^.mlLine_Type           := mltPercentage;
 
       MemLine.mlGST_Class := MyClient.clChart.GSTClass(pT^.txAccount);
