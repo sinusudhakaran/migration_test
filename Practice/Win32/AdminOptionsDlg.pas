@@ -387,7 +387,9 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgAdminOptions.LoadSettingsFromINI;
 begin
-  tsBGL360.TabVisible := (CurrUser.Code = SuperUserCode);
+  tsBGL360.TabVisible := ((CurrUser.Code = SuperUserCode) and
+  Assigned(AdminSystem) and
+  (AdminSystem.fdFields.fdCountry = whAustralia));
 
   //general tab settings
   chkCopyNarrationDissection.Checked  := (Globals.PRACINI_CopyNarrationDissection);
@@ -540,7 +542,6 @@ begin
   BackupDir   := GenUtils.AddSlash( Trim( edtLogBackupsDir.Text));
   TicksToWait := rsSecToWait.IntValue * 1000;
 
-
   SettingsChanged := (chkCopyNarrationDissection.Checked <> Globals.PRACINI_CopyNarrationDissection) or
                      (rsAutoSaveTime.IntValue <> Globals.PRACINI_AutoSaveTime) or
                      (rsMinLogSize.IntValue <> Globals.PRACINI_MinLogFileSize) or
@@ -555,6 +556,9 @@ begin
                      (edtGST101Link.Text    <> Globals.PRACINI_GST101Link) or
                      (EOnlineLink.Text      <> Globals.PRACINI_OnlineLink) or
                      (chkZeroAmounts.Checked <> Globals.PRACINI_ExtractZeroAmounts) or
+                     (edtBGLSecret.Text <> Globals.PRACINI_BGL360_Client_Secret) or
+                     (edtBGLClientID.Text <> Globals.PRACINI_BGL360_Client_ID);
+
                      (InstListLinkChanged) {or
                      (cbUseStyles.Checked   <> Globals.PRACINI_UseReportStyles)}
 {$IFNDEF SmartLink}
