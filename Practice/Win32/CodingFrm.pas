@@ -9,7 +9,7 @@ uses
   Windows,
   Messages,
   SysUtils,
-  Classes,                   
+  Classes,
   Graphics,
   Controls,
   Forms,
@@ -19,7 +19,7 @@ uses
   OvcTable,
   OvcTCHdr,
   OvcTCPic,
-  OvcTCBEF,                   
+  OvcTCBEF,
   OvcTCNum,
   OvcTCStr,
   OvcTCEdt,
@@ -33,6 +33,7 @@ uses
   bkDefs,
   CodingFormCommands,
   MaintainGroupsFrm,
+  SuggMemPopupFrm,
   ovctcgly,
   ovctcbox,
   StdActns,
@@ -568,6 +569,7 @@ type
     procedure btnCreateClick(Sender: TObject);
 
     procedure SetMDIChildSortedIndex(aIndex : integer);
+    function SuggMemPopup() : TfrmSuggMemPopup;
   public
     procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
     procedure ActivateCurrentTab(aTabIndex : integer);
@@ -707,7 +709,6 @@ uses
   RecommendedMemorisationsFrm,
   MemorisationsObj,
   BudgetFrm,
-  SuggMemPopupFrm,
   sydefs,
   memutils,
   BKmlIO,
@@ -791,7 +792,8 @@ const
 
 var
   DefaultPositions : array[0..ceMax] of integer;
-  DebugMe       : boolean = false;
+  DebugMe          : boolean = false;
+  frmSuggMemPopup  : TfrmSuggMemPopup;
 
 // Redraw main form on minimize
 //------------------------------------------------------------------------------
@@ -1248,10 +1250,6 @@ begin
   FSuperTop := -999;
   FSuperLeft := -999;
   SelectedSuggestedMemId := TRAN_NO_SUGG;
-
-  SuggMemPopup(self).OnHideClick   := btnHideClick;
-  SuggMemPopup(self).OnLaterClick  := btnLaterClick;
-  SuggMemPopup(self).OnCreateClick := btnCreateClick;
 end;
 
 //------------------------------------------------------------------------------
@@ -1399,6 +1397,8 @@ begin
         ecSuggestedMemCount:
           if (not (MEMSINI_SupportOptions = meiDisableSuggestedMems)) then
             LoadWTLNewSort( csSuggestedMemCount);
+        ecRefreshSuggestedMem:
+          RefreshSuggestedMemColumn;
      end;
    finally
      EnableAutoSave;
@@ -3030,8 +3030,8 @@ begin
   if NeedReCoding then
     DoRecodeEntries();
 
-  if SuggMemPopup(self).Showing then
-    SuggMemPopup(self).Close;
+  if SuggMemPopup.Showing then
+    SuggMemPopup.Close;
 
   DoSuggestedMemsDoneProcessing();
 
@@ -4195,7 +4195,8 @@ begin
   ColumnFmtList.Free;
   UEList.Free;
   SetLength( tmpBuffer, 0);   //free memory associated with temp buffer of char
-  FreeSuggestedMemForm();
+
+  FreeAndNil(frmSuggMemPopup);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.InitController;
@@ -7423,7 +7424,7 @@ begin
     pnlSearch.Height := 0;
 
   tblCoding.invalidate();
-  SuggMemPopup(self).Close;
+  SuggMemPopup.Close;
   ShowHintForCell(tblCoding.ActiveRow, tblCoding.ActiveCol);
 
   miSearch.Checked  := Value;
@@ -7553,7 +7554,24 @@ procedure TfrmCoding.DissectionClick(Sender: TObject);
 begin
    DoDissection;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+function TfrmCoding.SuggMemPopup: TfrmSuggMemPopup;
+begin
+  if not Assigned(frmSuggMemPopup) then
+  begin
+    frmSuggMemPopup := TfrmSuggMemPopup.create(self);
+    frmSuggMemPopup.Visible := false;
+    frmSuggMemPopup.PopupParent := self;
+
+    frmSuggMemPopup.OnHideClick   := btnHideClick;
+    frmSuggMemPopup.OnLaterClick  := btnLaterClick;
+    frmSuggMemPopup.OnCreateClick := btnCreateClick;
+  end;
+
+  Result := frmSuggMemPopup;
+end;
+
 procedure TfrmCoding.SuperClick(Sender : TObject);
 begin
   DoEditSuperFields;
@@ -7828,7 +7846,7 @@ procedure TfrmCoding.btnHideClick(Sender: TObject);
 begin
   if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
   begin
-    SuggMemPopup(self).Close;
+    SuggMemPopup.Close;
 
     SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, true);
     SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
@@ -7842,7 +7860,7 @@ end;
 procedure TfrmCoding.btnLaterClick(Sender: TObject);
 begin
   MyClient.SuggMemsHidePopupOnCoding := true;
-  SuggMemPopup(self).Close;
+  SuggMemPopup.Close;
 end;
 
 //------------------------------------------------------------------------------
@@ -8318,38 +8336,38 @@ begin
 
     CellRect := GetCellRect(RowNum, SuggColNum);
 
-    SuggMemPopup(self).Top  := (CellRect.Top + CellRect.Bottom) div 2 + 1;
-    SuggMemPopup(self).left := CellRect.Right - 5;
+    SuggMemPopup.Top  := (CellRect.Top + CellRect.Bottom) div 2 + 1;
+    SuggMemPopup.left := CellRect.Right - 5;
 
-    SuggMemPopup(self).ManualCount   := tmpPaintSuggMemsData.ManualCount;
-    SuggMemPopup(self).UnCodedCount  := tmpPaintSuggMemsData.UnCodedCount;
-    SuggMemPopup(self).MatchedPhrase := tmpPaintSuggMemsData.MatchedPhrase;
-    SuggMemPopup(self).FlipPopup     := ((SuggMemPopup(self).Top + POPUP_MAX_HEIGHT) > (self.ClientHeight + 50) );
+    SuggMemPopup.ManualCount   := tmpPaintSuggMemsData.ManualCount;
+    SuggMemPopup.UnCodedCount  := tmpPaintSuggMemsData.UnCodedCount;
+    SuggMemPopup.MatchedPhrase := tmpPaintSuggMemsData.MatchedPhrase;
+    SuggMemPopup.FlipPopup     := ((SuggMemPopup.Top + POPUP_MAX_HEIGHT) > (self.ClientHeight + 50) );
 
 
 
-    if SuggMemPopup(self).FlipPopup then
-      SuggMemPopup(self).Top := (CellRect.Top + CellRect.Bottom) div 2 - SuggMemPopup(self).Height;
+    if SuggMemPopup.FlipPopup then
+      SuggMemPopup.Top := (CellRect.Top + CellRect.Bottom) div 2 - SuggMemPopup.Height;
 
-    SuggMemPopup(self).Refresh();
+    SuggMemPopup.Refresh();
 
-    if not SuggMemPopup(self).Showing then
+    if not SuggMemPopup.Showing then
     begin
       if UserINI_Suggested_Mems_Show_Popup then
       begin
-        SuggMemPopup(self).visible := true;
-        SuggMemPopup(self).show;
+        SuggMemPopup.visible := true;
+        SuggMemPopup.show;
         tblCoding.SetFocus;
       end;
     end;
   end
   else
   begin
-    if SuggMemPopup(self).Showing then
-      SuggMemPopup(self).Close;
+    if SuggMemPopup.Showing then
+      SuggMemPopup.Close;
   end;
 
-  if not SuggMemPopup(self).Showing then
+  if not SuggMemPopup.Showing then
     ShowNormalHint();
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -10695,10 +10713,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCoding.ActivateCurrentTab(aTabIndex : integer);
 begin
-  SuggMemPopup(self).OnHideClick   := btnHideClick;
-  SuggMemPopup(self).OnLaterClick  := btnLaterClick;
-  SuggMemPopup(self).OnCreateClick := btnCreateClick;
-
   tcWindows.TabIndex := tcWindows.Tabs[aTabIndex].Index;
   frmMain.SetActiveMDI(tcWindows, aTabIndex);
 end;

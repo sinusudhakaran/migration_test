@@ -89,7 +89,8 @@ type
                   ecSortSentToAndAcc,
 
                   ecRecommendedMems,
-                  ecSuggestedMemCount
+                  ecSuggestedMemCount,
+                  ecRefreshSuggestedMem
                   );
 
 implementation

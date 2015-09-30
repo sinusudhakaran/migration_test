@@ -60,37 +60,11 @@ type
     property MatchedPhrase : string read fMatchedPhrase write fMatchedPhrase;
   end;
 
-  //----------------------------------------------------------------------------
-  function SuggMemPopup(aOwner: TCustomForm) : TfrmSuggMemPopup;
-  procedure FreeSuggestedMemForm();
-
 implementation
 {$R *.dfm}
 
 uses
   StrUtils;
-
-var
-  frmSuggMemPopup: TfrmSuggMemPopup;
-
-//------------------------------------------------------------------------------
-function SuggMemPopup(aOwner: TCustomForm) : TfrmSuggMemPopup;
-begin
-  if not Assigned(frmSuggMemPopup) then
-  begin
-    frmSuggMemPopup := TfrmSuggMemPopup.create(aOwner);
-    frmSuggMemPopup.Visible := false;
-    frmSuggMemPopup.PopupParent := aOwner;
-  end;
-
-  Result := frmSuggMemPopup;
-end;
-
-//------------------------------------------------------------------------------
-procedure FreeSuggestedMemForm();
-begin
-  FreeAndNil(frmSuggMemPopup);
-end;
 
 //------------------------------------------------------------------------------
 { TfrmSuggMemPopup }
@@ -284,18 +258,6 @@ begin
     imgBackground.Canvas.CopyRect(DestRect, imgBufferFlip.Canvas, SrcRect)
   else
     imgBackground.Canvas.CopyRect(DestRect, imgBuffer.Canvas, SrcRect);
-end;
-
-//------------------------------------------------------------------------------
-initialization
-begin
-  frmSuggMemPopup := nil;
-end;
-
-//------------------------------------------------------------------------------
-finalization
-begin
-  //FreeAndNil(frmSuggMemPopup);
 end;
 
 end.
