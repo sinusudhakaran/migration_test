@@ -726,7 +726,8 @@ const
   cttanDistribution = 23800;
   cttanDividend     = 23900;
   cttanInterest     = 25000;
-  cttanShareTrade   = 70000;
+  cttanShareTradeRangeStart   = 70000;
+  cttanShareTradeRangeEnd     = 79999;
 
   {$ifdef DEBUG}
     INI_LeanEngage_System_Switch : string = cLeanEngage_TestSwitch;

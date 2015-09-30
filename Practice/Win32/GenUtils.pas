@@ -171,6 +171,8 @@ function TrimLeadZ( const S : ShortString ) : ShortString;
 
 function CombineInt32ToInt64( aHigh, aLow : integer ) : Int64;
 
+function IntRangeToStringPos(aLow, aHigh : integer; InStr :string ) : boolean;
+
 
 //******************************************************************************
 Implementation
@@ -1463,6 +1465,18 @@ begin
 //The CORE dump uses a 62bit Integer (2 most significant bits are lost) split
 //into two 31bit integers
   result := (High shl 31 ) or Low;
+end;
+
+function IntRangeToStringPos(aLow, aHigh : integer; InStr :string ) : boolean;
+var
+  li : integer;
+begin
+  result := false;
+  for li := aLow to aHigh do begin
+    result := pos( intToStr( li ), InStr ) <> 0;
+    if result then
+      exit;
+  end;
 end;
 
 End.

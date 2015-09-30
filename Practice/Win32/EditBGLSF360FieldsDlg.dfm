@@ -52,6 +52,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       TabOrder = 0
       object tsAustralianIncome: TTabSheet
         Caption = 'Australian Income'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblLessOtherAllowableTrustDeductions: TLabel
           Left = 6
           Top = 200
@@ -217,6 +221,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsCapitalGains: TTabSheet
         Caption = 'Capital Gains'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblCGTConcession: TLabel
           Left = 6
           Top = 86
@@ -532,6 +540,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsForeignIncome: TTabSheet
         Caption = 'Foreign Income'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblAssessableForeignSourceIncome: TLabel
           Left = 6
           Top = 5
@@ -945,6 +957,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsNonCashCapitalGains: TTabSheet
         Caption = 'Non-Cash Capital Gains/Losses'
         ImageIndex = 3
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lpCGTCapitalLosses: TLabel
           Left = 393
           Top = 99

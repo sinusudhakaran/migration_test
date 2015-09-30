@@ -847,6 +847,7 @@ begin
   lbldispNarration.Caption := sNarration;
   FActualAmount := mAmount;
   FDate := iDate;
+(* //DN Refactored out
 //DN  cmbMember.Items.Clear;
   if (fdate = 0)
   or (FDate >= mcSwitchDate) then
@@ -855,7 +856,7 @@ begin
   else
     for i := mcOldMin to mcOldMax do
 //DN      cmbMember.Items.AddObject(mcOldNames[i], TObject(i))
-
+*)
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -865,6 +866,19 @@ begin
   ModalResult := mrOk;
 end;
 
+function BGL360AccountsFilter(const pAcct : pAccount_Rec) : boolean;
+begin
+  result := ( pos( intToStr( cttanDistribution ), pAcct.chAccount_Code ) <> 0 ) or
+            ( pos( intToStr( cttanDividend ), pAcct.chAccount_Code ) <> 0  ) or
+            ( pos( intToStr( cttanInterest ), pAcct.chAccount_Code ) <> 0  ) or
+            ( IntRangeToStringPos(
+                cttanShareTradeRangeStart,
+                cttanShareTradeRangeEnd,
+                pAcct.chAccount_Code )
+            );
+end;
+
+
 procedure TdlgEditBGLSF360Fields.btnChartClick(Sender: TObject);
 var
   i: Integer;
@@ -872,7 +886,7 @@ var
   HasChartBeenRefreshed : boolean;
 begin
   SelectedCode := cmbxAccount.Text;
-  if PickAccount(SelectedCode, HasChartBeenRefreshed) then
+  if PickAccount(SelectedCode, HasChartBeenRefreshed, BGL360AccountsFilter, true, true, [ doShowInactive ]) then
   begin
     if HasChartBeenRefreshed then
     begin
@@ -893,199 +907,8 @@ end;
 
 procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
 begin
-(*
-
-  if assigned( fmeFranking ) then begin
-    fmeFranking.nfFrankingCredits.AsFloat := 0;
-    fmeFranking.nfFranked.AsFloat := 0;
-    fmeFranking.nfUnFranked.AsFloat := 0;
-    fmeFrankingnfFrankingCreditsChange(fmeFranking.nfFrankingCredits);
-  end;
-  nfTaxFreeAmounts.AsFloat := 0;
-  nfTaxExemptedAmounts.AsFloat := 0;
-  nfTaxDeferredAmounts.AsFloat := 0;
-//DN  nfTFNCredits.AsFloat := 0;
-  nfForeignIncome.AsFloat := 0;
-//DN  nfForeignTaxCredits.AsFloat := 0;
-//DN  nfCapitalGains.AsFloat := 0;
-  if assigned( fmeBGLCashCapitalGainsTax ) then begin
-    fmeBGLCashCapitalGainsTax.nfCGTDiscounted.AsFloat := 0;
-  end;
-//DN  nfCapitalGainsOther.AsFloat := 0;
-//DN  nfOtherExpenses.AsFloat := 0;
-//DN  cmbMember.ItemIndex := 0;
-//DN  eCGTDate.AsString := '';
-*)
-
   SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0 );
-
-
-
-
-
-
-
-
-(*
-
-
-  if assigned( fmeFranking ) then begin
-    SetNumericValue(fmeFranking.nfFranked,              mFranked, RevenuePercentage);
-    SetNumericValue(fmeFranking.nfUnfranked,            mUnfranked, RevenuePercentage);
-    SetNumericValue(fmeFranking.nfFrankingCredits,      mImputedCredit, RevenuePercentage);
-  end;
-
-  if assigned( fmeInterestIncome ) then begin
-    SetNumericValue(fmeInterestIncome.nfInterest,       mInterest, RevenuePercentage);
-    SetNumericValue(fmeInterestIncome.nfOtherIncome,    mOtherIncome, RevenuePercentage);
-  end;
-  SetNumericValue(nfLessOtherAllowableTrustDeductions,  mOtherTrustDeductions, RevenuePercentage);
-
-  // Capital Gains Tab
-  SetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTIndexation,
-    mCapitalGains, RevenuePercentage);
-  SetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTDiscounted,
-    mDiscountedCapitalGains, RevenuePercentage);
-  SetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTOther,
-    mCapitalGainsOther, RevenuePercentage);
-  SetNumericValue(nfCGTConcession,                      mCGTConcessionAmount, RevenuePercentage);
-
-  SetNumericValue(nfForeignCGTBeforeDiscount,           mForeignCGTBeforeDiscount, RevenuePercentage);
-  SetNumericValue(nfForeignCGTIndexationMethod,         mForeignCGTIndexationMethod, RevenuePercentage);
-  SetNumericValue(nfForeignCGTOtherMethod,              mForeignCGTOtherMethod, RevenuePercentage);
-
-  SetNumericValue(nfTaxPaidBeforeDiscount,              mTaxPaidBeforeDiscount, RevenuePercentage);
-  SetNumericValue(nfTaxPaidIndexationMethod,            mTaxPaidIndexationMethod, RevenuePercentage);
-  SetNumericValue(nfTaxPaidOtherMethod,                 mTaxPaidOtherMethod, RevenuePercentage);
-
-  //Foreign Income Tab
-  SetNumericValue(nfAssessableForeignSourceIncome,      mForeignIncome, RevenuePercentage);
-  SetNumericValue(nfOtherNetForeignSourceIncome,        mOtherNetForeignSourceIncome, RevenuePercentage);
-  SetNumericValue(nfCashDistribution,                   mCashDistribution, RevenuePercentage);
-
-  if assigned( fmeBGLForeignTax1 ) then begin
-    SetNumericValue(fmeBGLForeignTax1.nfForeignIncomeTaxOffset,
-      mForeignTaxCredits, RevenuePercentage);
-    SetNumericValue(fmeBGLForeignTax1.nfAUFrankingCreditsFromNZCompany,
-      mAUFrankingCreditsFromNZCompany, RevenuePercentage);
-    SetNumericValue(fmeBGLForeignTax1.nfTFNAmountsWithheld,
-      mTFNCredits, RevenuePercentage);
-
-    SetNumericValue(fmeBGLForeignTax1.nfNonResidentWithholdingTax,
-      mNonResidentWithholdingTax, RevenuePercentage);
-
-    SetNumericValue(fmeBGLForeignTax1.nfLICDeductions,
-      mLICDeductions, RevenuePercentage);
-
-  end;
-
-  SetNumericValue(nfTaxFreeAmounts,                     mTaxFreeDist, RevenuePercentage);
-  SetNumericValue(nfTaxExemptedAmounts,                 mTaxExemptDist, RevenuePercentage);
-  SetNumericValue(nfTaxDeferredAmounts,                 mTaxDeferredDist, RevenuePercentage);
-  SetNumericValue(nfOtherExpenses,                      mOtherExpenses, RevenuePercentage);
-
-  //Non-Cash Capital Gains/Loses
-  if assigned( fmeBGLNonCashCapitalGainsTax ) then begin
-    SetNumericValue(fmeBGLNonCashCapitalGainsTax.nfCGTDiscounted,
-      mNon_Cash_CGT_Discounted_Before_Discount, RevenuePercentage);
-    SetNumericValue(fmeBGLNonCashCapitalGainsTax.nfCGTIndexation,
-      mNon_Cash_CGT_Indexation, RevenuePercentage);
-    SetNumericValue(fmeBGLNonCashCapitalGainsTax.nfCGTOther,
-      mNon_Cash_CGT_Other, RevenuePercentage);
-  end;
-  SetNumericValue(nfCGTCapitalLosses, mNon_Cash_CGT_Capital_Losses, RevenuePercentage);
-
-// ** Panel Share Trade Panel **
-  SetNumericValue(nfShareBrokerage,     mShareBrokerage, RevenuePercentage);
-  SetNumericValue(nfShareConsideration, mShareConsideration, RevenuePercentage);
-  SetNumericValue(nfShareGSTAmount,     mShareGSTAmount, RevenuePercentage);
-  cmbxShareGSTRate.ItemIndex := cmbxShareGSTRate.Properties.Items.IndexOf(mShareGSTRate);
-
-// ** Panel Interest Panel **
-  SetNumericValue(nfInterest,                  mInterest, RevenuePercentage);
-  SetNumericValue(nfOtherIncome,               mOtherIncome, RevenuePercentage);
-  SetNumericValue(nfTFNAmountsWithheld,        mTFNCredits, RevenuePercentage);
-  SetNumericValue(nfNonResidentWithholdingTax, mNonResidentWithholdingTax, RevenuePercentage);
-
-// ** Panel Dividend Panel **
-  if assigned( fmeBGLFranking ) then begin
-    SetNumericValue(fmeBGLFranking.nfFranked,         mFranked, RevenuePercentage);
-    SetNumericValue(fmeBGLFranking.nfUnfranked,       mUnfranked, RevenuePercentage);
-    SetNumericValue(fmeBGLFranking.nfFrankingCredits, mImputedCredit, RevenuePercentage);
-  end;
-  SetNumericValue(nfForeignIncome,                       mForeignIncome, RevenuePercentage);
-  if assigned( fmeBGLForeignTax2 ) then begin
-    SetNumericValue(fmeBGLForeignTax2.nfForeignIncomeTaxOffset,         mForeignTaxCredits, RevenuePercentage);
-    SetNumericValue(fmeBGLForeignTax2.nfAUFrankingCreditsFromNZCompany, mAUFrankingCreditsFromNZCompany, RevenuePercentage);
-    SetNumericValue(fmeBGLForeignTax2.nfTFNAmountsWithheld,             mTFNCredits, RevenuePercentage);
-    SetNumericValue(fmeBGLForeignTax2.nfNonResidentWithholdingTax,      mNonResidentWithholdingTax, RevenuePercentage);
-    SetNumericValue(fmeBGLForeignTax2.nfLICDeductions,                  mLICDeductions, RevenuePercentage);
-  end;
-
-  TranAccount := mAccount;
-
-
-
-
-  UFModified := ((mFranked <> 0) or (mUnfranked <> 0))
-             and ((mFranked + mUnfranked) <> abs(FActualAmount));
-
-
-  if not MemOnly then  begin
-     SetNumericValue(fmeFranking.nfFrankingCredits, mImputedCredit, False);
-     fmeFrankingnfFrankingCreditsChange(fmeFranking.nfFrankingCredits);
-     SetNumericValue(nfTFNAmountsWithheld,        mTFNCredits, false);
-     if assigned( fmeBGLForeignTax1 ) then begin
-// DN Not sure if these on fmeBGLForeignTax1 and fmeBGLForeignTax2 map?
-       SetNumericValue(fmeBGLForeignTax1.nfTFNAmountsWithheld,      mTFNCredits, RevenuePercentage);
-       SetNumericValue(fmeBGLForeignTax1.nfForeignIncomeTaxOffset,  mForeignTaxCredits, RevenuePercentage);
-     end;
-     if assigned( fmeBGLForeignTax2 ) then begin
-// DN Not sure if these on fmeBGLForeignTax2 and fmeBGLForeignTax1 map?
-       SetNumericValue(fmeBGLForeignTax2.nfTFNAmountsWithheld,      mTFNCredits, RevenuePercentage);
-       SetNumericValue(fmeBGLForeignTax2.nfForeignIncomeTaxOffset,  mForeignTaxCredits, RevenuePercentage);
-     end;
-  end;
-
-
-// DN Not sure about whether these map?
-  eCashDate.AsStDate    := BkNull2St(dCash_Date);
-  eAccrualDate.AsStDate := BkNull2St(dAccrual_Date);
-  eRecordDate.AsStDate  := BkNull2St(dRecord_Date);
-
-
-  nfUnits.AsFloat := mUnits / 10000;
-
-  TranAccount := mAccount;
-  RefreshChartCodeCombo();
-  FCurrentAccountIndex := cmbxAccount.ItemIndex;
-
-  FAutoPressMinus := (FActualAmount < 0) and (mUnits = 0);
-
-*)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   UFModified := False;
 end;
@@ -1175,7 +998,6 @@ begin
   nfTaxExemptedAmounts.Enabled := not Value;
 //DN  nfTaxDeferredDist.Enabled := not Value;
 //DN  nfForeignIncome.Enabled := not Value;
-
 //DN  nfCapitalGains.Enabled := not Value;
 
   if assigned( fmeBGLCashCapitalGainsTax ) then begin
@@ -1267,7 +1089,7 @@ begin
         cttanDistribution      : TransactionType := ttDistribution;
         cttanDividend          : TransactionType := ttDividend;
         cttanInterest          : TransactionType := ttInterest;
-        cttanShareTrade..(cttanShareTrade + 9999) : TransactionType := ttShareTrade;
+        cttanShareTradeRangeStart..cttanShareTradeRangeEnd : TransactionType := ttShareTrade;
         else
           TransactionType := ttOtherTx;
       end;
@@ -1288,22 +1110,6 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     for i := 0 to high( aFields ) do
       aFields[ i ].Visible := aVisible;
   end;
-
-(*  procedure HideFields( Fields : array of TControl );
-  var
-    i : integer;
-  begin
-    lblUnits.Visible         := true;
-    nfUnits.Visible          := true;
-    lblCashDate.Visible      := true;
-    eCashDate.Visible        := true;
-    lblAccrualDate.Visible   := true;
-    eAccrualDate.Visible     := true;
-    lblRecordDate.Visible    := true;
-    eRecordDate.Visible      := true;
-    lblEntryType.Visible     := true;
-    sfEntryType.Visible      := true;
-  end; *)
 
   procedure ShowAllHeaderFields;
   begin
@@ -1429,7 +1235,6 @@ end;
 procedure TdlgEditBGLSF360Fields.frameFrankingbtnCalcClick(Sender: TObject);
 begin
     crModified := False;
-//    if assigned( fmeFranking ) then
     frameFrankingFrankingCreditsChange( Sender );
 end;
 
@@ -1457,23 +1262,6 @@ begin
   begin
     CanClose := false;
 
-(*//DN
-    //verify fields
-    CGTDate := stNull2Bk( eCGTDate.AsStDate);
-
-    if not ( DateIsValid( eCGTDate.AsString) or (CGTDate = 0)) then
-    begin
-      HelpfulWarningMSg( 'Please enter a valid CGT date.', 0);
-      Exit;
-    end;
-
-    if (CGTDate <> 0) and ((CGTDate < MinValidDate) or (CGTDate > MaxValidDate)) then
-    begin
-      HelpfulWarningMsg( 'Please enter a valid CGT date.', 0);
-      Exit;
-    end;
-//DN *)
-
     CGTDate := stNull2Bk( eAccrualDate.AsStDate);
 
     if not ( DateIsValid( eAccrualDate.AsString) or (CGTDate = 0)) then
@@ -1487,9 +1275,6 @@ begin
       HelpfulWarningMsg( 'Please enter a valid Accrual date.', 0);
       Exit;
     end;
-
-
-
 
     if not ValueIsValid( fmeFranking.nfFrankingCredits) then
       Exit;
@@ -1598,8 +1383,9 @@ begin
   begin
     pChartAcc := MyClient.clChart.Account_At(ChartIndex);
 
-    if (pChartAcc.chInactive) and
-       (TranAccount <> pChartAcc.chAccount_Code) then
+    if (pChartAcc.chInactive) and                     // Check the account is not inactive
+       (TranAccount <> pChartAcc.chAccount_Code) or   // Check that this account is not the currently selected account
+       ( not BGL360AccountsFilter( pChartAcc ) ) then // Check if this Account is not supposed to be shown??
       Continue;
 
     cmbxAccount.Properties.Items.AddObject(pChartAcc.chAccount_Code, TObject(ChartIndex));
@@ -1615,9 +1401,6 @@ begin
   if assigned( fmeFranking ) then
     fmeFranking.nfFrankingCredits.Enabled := not FMemOnly;
 // Set the FrankingFme MemorisationsOnly property rather
-
-//DN  nfTFNCredits.Enabled := not FMemOnly;
-//DN  nfForeignTaxCredits.Enabled := not FMemOnly;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetMoveDirection(const Value: TFundNavigation);

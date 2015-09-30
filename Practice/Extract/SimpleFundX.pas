@@ -836,7 +836,8 @@ begin
       sAcctHead := 'Interest_Transaction';
       TransType := ttInterest;
     end
-    else if ((AccountCode >= cttanShareTrade) and (AccountCode <= cttanShareTrade+999)) then
+    else if ( AccountCode >= cttanShareTradeRangeStart ) and
+            ( AccountCode <= cttanShareTradeRangeEnd ) then //DN Refactored out, since range was introduced ((AccountCode >= cttanShareTradeRangeStart) and (AccountCode <= cttanShareTradeRangeEnd)) then
     begin
       sAcctHead := 'Share_Trade_Transaction';
       TransType := ttShareTrade;
