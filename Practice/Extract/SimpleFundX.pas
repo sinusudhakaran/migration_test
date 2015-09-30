@@ -1237,7 +1237,6 @@ var
   ContraEntries: IXMLNode;
   Entry: IXMLNode;
   EntryTypeDetail: IXMLNode;
-  OtherTransaction: IXMLNode;
   Rate: extended;
   sAcctHead : string;
   AccountCode : Integer;
@@ -1348,7 +1347,7 @@ begin
   end;
 
   // Amount
-  AddFieldNode(OtherTransaction, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
+  AddFieldNode(TransactionNode, 'Amount', FormatFloatForXml(Dissection^.dsAmount));
 
   // Output GST?
   if (Dissection.dsGST_Amount <> 0) then
@@ -1356,12 +1355,12 @@ begin
     // GST_Rate
     Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective, Dissection.dsGST_Class);
     AddFieldNode(
-      OtherTransaction,
+      TransactionNode,
       'GST_Rate',
       FormatFloatForXml(Rate, 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
     // GST_Amount
     AddFieldNode(
-      OtherTransaction,
+      TransactionNode,
       'GST_Amount',
       FormatFloatForXml(Abs(Dissection^.dsGST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
