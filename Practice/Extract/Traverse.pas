@@ -32,6 +32,8 @@ Var
    Transaction  : pTransaction_Rec;
    TransactionExtra : pTransaction_Extension_Rec;
    Dissection   : pDissection_Rec;
+   DissectionExtra : pDissection_Extension_Rec;
+   
    Bank_Account : TBank_Account;
    Traverse_From: TstDate;
    Traverse_To  : TstDate;
