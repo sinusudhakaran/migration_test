@@ -533,7 +533,10 @@ end;
 function HasAlternativeChartCode(aCountry, aType : byte) : boolean;
 begin
    case aCountry of
-   whAustralia : Result := (aType in [saBGLSimpleFund, saBGL360])
+//DN BGL360 API - Does not have ASX codes, only check for SimpleFund   whAustralia : Result := (aType in [saBGLSimpleFund , saBGL360 ])
+
+     whAustralia : Result := (aType in [ saBGLSimpleFund ])
+
    else Result := False;
    end;
 end;
@@ -545,7 +548,11 @@ begin
    case aCountry of
    whAustralia :
        case aType of
-          saBGLSimpleFund, saBGL360 : Result := 'ASX Code';
+//DN BGL360 API - Does not have ASX codes, only check for SimpleFund          saBGLSimpleFund, saBGL360 : Result := 'ASX Code';
+
+         saBGLSimpleFund : Result := 'ASX Code';
+
+
        end
    end;
 end;
