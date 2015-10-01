@@ -598,7 +598,16 @@ begin
         DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
         Globals.PRACINI_BGL360_API_URL);
     try
-      btnConnectBGL.Enabled := ( not BGLServer.CheckTokensExist );
+      if Assigned(AdminSystem) then begin
+        // Get all BGL values from client file and
+        BGLServer.Set_Auth_Tokens(AdminSystem.fdFields.fdBGLAccessToken,
+                  AdminSystem.fdFields.fdBGLTokenType,
+                  AdminSystem.fdFields.fdBGLRefreshToken,
+                  AdminSystem.fdFields.fdBGLTokenExpiresAt);
+        btnConnectBGL.Enabled := ( not BGLServer.CheckTokensExist );
+      end
+      else
+        btnConnectBGL.Enabled := false;
     finally
       freeAndNil( BGLServer );
     end;

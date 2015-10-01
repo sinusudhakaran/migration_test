@@ -1,7 +1,7 @@
 object dlgAcctSystem: TdlgAcctSystem
   Left = 473
   Top = 83
-  ActiveControl = edtSaveTaxTo
+  ActiveControl = gbType
   BorderStyle = bsDialog
   Caption = 'Maintain Accounting System'
   ClientHeight = 550
@@ -185,7 +185,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 201
       Height = 17
       Caption = 'Loc&k Chart of Accounts'
-      TabOrder = 4
+      TabOrder = 3
     end
     object btnSetBankpath: TButton
       Left = 358
@@ -193,7 +193,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 129
       Height = 25
       Caption = 'Set Bank&Path'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = btnSetBankpathClick
     end
     object pnlMASLedgerCode: TPanel
@@ -202,7 +202,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 486
       Height = 29
       BevelOuter = bvNone
-      TabOrder = 5
+      TabOrder = 4
       DesignSize = (
         486
         29)
@@ -240,9 +240,12 @@ object dlgAcctSystem: TdlgAcctSystem
       Top = 139
       Width = 129
       Height = 27
+      Hint = 
+        'Sign in and select a Fund to refresh the client'#39's Chart of Accou' +
+        'nts from'
       Anchors = [akLeft, akBottom]
       Caption = 'BGL Sign in'
-      TabOrder = 2
+      TabOrder = 5
       OnClick = btnConnectBGLClick
     end
   end

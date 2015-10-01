@@ -531,7 +531,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Height = 22
           BorderStyle = bsNone
           MaxLength = 128
-          TabOrder = 2
+          TabOrder = 3
           Text = 'eSuperLoad'
         end
         object eSuperSave: TEdit
@@ -541,7 +541,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Height = 22
           BorderStyle = bsNone
           MaxLength = 128
-          TabOrder = 3
+          TabOrder = 4
           Text = 'eSuperSave'
         end
         object eSuperMask: TEdit
@@ -557,11 +557,11 @@ object frmPracticeDetails: TfrmPracticeDetails
         object btnConnectBGL: TButton
           Left = 144
           Top = 77
-          Width = 129
+          Width = 121
           Height = 27
           Anchors = [akLeft, akBottom]
           Caption = 'BGL Sign in'
-          TabOrder = 4
+          TabOrder = 2
           OnClick = btnConnectBGLClick
         end
       end

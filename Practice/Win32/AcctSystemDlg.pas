@@ -447,6 +447,7 @@ begin
   begin
 //DN Not required    BGLServerNoSignRequired := True;
     btnConnectBGL.Caption := 'BGL Sign in';
+    btnConnectBGL.Hint    := 'Sign in and select a Fund to refresh the client''s Chart of Accounts from';
     lblBGL360FundName.Caption := 'No Fund selected';
     lblBGL360FundName.Font.Color := clRed;
     BGLServer := TBGLServer.Create(Nil,
@@ -463,8 +464,10 @@ begin
                   AdminSystem.fdFields.fdBGLTokenExpiresAt);
 //DN Authentication logic flow does not work
         if BGLServer.CheckTokensExist then
-          if BGLServer.CheckForAuthentication then
+          if BGLServer.CheckForAuthentication then begin
             btnConnectBGL.Caption := 'Fund';
+            btnConnectBGL.Hint    := 'Select a Fund to refresh the client''s Chart of Accounts from';
+          end;
 //DN Not required        else
 //DN Not required          BGLServerNoSignRequired := False;
 
