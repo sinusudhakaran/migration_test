@@ -506,7 +506,7 @@ type
     function  FindUncoded(const TheCurrentRow: Integer; IncludeCurrent: Boolean = False): Integer;
     function  FindNote(const TheCurrentRow: Integer): Integer;
     procedure CreateCodingPopup(Journal: Boolean);
-    procedure HideCustomHint;
+    procedure HideCustomHint();
     procedure ShowCodingHint( Const RowNum, ColNum : Integer; HintMsg : String );
 //    function  GetHintPosition( Const RowNum, ColNum : Integer ): TPoint;
     procedure DoReloadEntries;
@@ -564,13 +564,14 @@ type
   protected
     procedure RefreshSuggestedMemColumn();
 
+    procedure SetMDIChildSortedIndex(aIndex : integer);
+    function SuggMemPopup() : TfrmSuggMemPopup;
+  public
     procedure btnHideClick(Sender: TObject);
     procedure btnLaterClick(Sender: TObject);
     procedure btnCreateClick(Sender: TObject);
 
-    procedure SetMDIChildSortedIndex(aIndex : integer);
-    function SuggMemPopup() : TfrmSuggMemPopup;
-  public
+    procedure CloseSuggMemPopup();
     procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
     procedure ActivateCurrentTab(aTabIndex : integer);
     procedure UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string = '');
@@ -1250,6 +1251,10 @@ begin
   FSuperTop := -999;
   FSuperLeft := -999;
   SelectedSuggestedMemId := TRAN_NO_SUGG;
+
+  frmSuggMemPopup := TfrmSuggMemPopup.create(self);
+  frmSuggMemPopup.Visible := false;
+  frmSuggMemPopup.PopupParent := self;
 end;
 
 //------------------------------------------------------------------------------
@@ -5822,7 +5827,7 @@ var
    pT : pTransaction_Rec;
    FieldID   : Integer;
 begin
-   HideCustomHint; // Changing cells, so Hide the Hint window
+   HideCustomHint(); // Changing cells, so Hide the Hint window
    if not ValidDataRow(RowNum) then exit;
 
    //show hints, only long hints appear
@@ -6091,7 +6096,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
 begin
-   HideCustomHint;
+   HideCustomHint();
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SetTranUPCStatus(pT: pTransaction_Rec);
@@ -7558,17 +7563,6 @@ end;
 //------------------------------------------------------------------------------
 function TfrmCoding.SuggMemPopup: TfrmSuggMemPopup;
 begin
-  if not Assigned(frmSuggMemPopup) then
-  begin
-    frmSuggMemPopup := TfrmSuggMemPopup.create(self);
-    frmSuggMemPopup.Visible := false;
-    frmSuggMemPopup.PopupParent := self;
-
-    frmSuggMemPopup.OnHideClick   := btnHideClick;
-    frmSuggMemPopup.OnLaterClick  := btnLaterClick;
-    frmSuggMemPopup.OnCreateClick := btnCreateClick;
-  end;
-
   Result := frmSuggMemPopup;
 end;
 
@@ -7620,6 +7614,14 @@ procedure TfrmCoding.CloseClick(Sender: TObject);
 begin
    Close;
 end;
+procedure TfrmCoding.CloseSuggMemPopup;
+begin
+  if Assigned(frmSuggMemPopup) then
+    if SuggMemPopup.HandleAllocated then
+      if SuggMemPopup.Showing then
+        SuggMemPopup.Close;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.SaveFileClick(Sender: TObject);
 begin
@@ -7797,13 +7799,13 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.CMMouseLeave(var Message: TMessage);
 begin
-   HideCustomHint; // The mouse has moved outside the form, so hide the hint window
+   HideCustomHint(); // The mouse has moved outside the form, so hide the hint window
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.tblCodingTopLeftCellChanging(Sender: TObject;
   var RowNum, ColNum: Integer);
 begin
-   HideCustomHint; // Hide the hint window if the user is scrolling the entries.
+   HideCustomHint(); // Hide the hint window if the user is scrolling the entries.
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.BkMouseWheelHandler(Sender: TObject; Shift: TShiftState;
@@ -8017,7 +8019,7 @@ begin
 
         csByCodedBy : Msg := cbNames[ pT^.txCoded_By];
      end;
-     HideCustomHint;
+     HideCustomHint();
      if Msg <> '' then begin
         CR := ClientToScreen( ClientRect.BottomRight );
         MP := Mouse.CursorPos;
@@ -8176,22 +8178,24 @@ end;
 //   Result  := ClientToScreen( Where );
 //end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TfrmCoding.HideCustomHint;
+procedure TfrmCoding.HideCustomHint();
 var
-   R : TRect;
+  R : TRect;
 begin
-   if Assigned( FHint ) then begin
-      if FHint.HandleAllocated then begin // Find where the Hint is, so we can redraw the cells beneath it.
-         GetWindowRect( FHint.Handle, R );
-         R.TopLeft      := tblCoding.ScreenToClient(R.TopLeft);
-         R.BottomRight  := tblCoding.ScreenToClient(R.BottomRight);
-         FHint.ReleaseHandle;
-         HintShowing    := false;
-         tblCoding.AllowRedraw := False;
-         tblCoding.InvalidateCellsInRect( R );
-         tblCoding.AllowRedraw := True;
-      end;
-   end;
+  if Assigned( FHint ) then
+  begin
+    if FHint.HandleAllocated then
+    begin // Find where the Hint is, so we can redraw the cells beneath it.
+      GetWindowRect( FHint.Handle, R );
+      R.TopLeft      := tblCoding.ScreenToClient(R.TopLeft);
+      R.BottomRight  := tblCoding.ScreenToClient(R.BottomRight);
+      FHint.ReleaseHandle;
+      HintShowing    := false;
+      tblCoding.AllowRedraw := False;
+      tblCoding.InvalidateCellsInRect( R );
+      tblCoding.AllowRedraw := True;
+    end;
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmCoding.GetCellRect(const RowNum, ColNum: Integer): TRect;
@@ -8268,7 +8272,7 @@ procedure TfrmCoding.ShowCodingHint(const RowNum, ColNum: Integer;
 var
    R : TRect;
 begin
-   HideCustomHint; // Hide any existing hint
+   HideCustomHint(); // Hide any existing hint
    If INI_ShowCodeHints and ( HintMsg<>'' ) then
    begin
      // Make sure the mouse is on the form
@@ -8344,8 +8348,6 @@ begin
     SuggMemPopup.MatchedPhrase := tmpPaintSuggMemsData.MatchedPhrase;
     SuggMemPopup.FlipPopup     := ((SuggMemPopup.Top + POPUP_MAX_HEIGHT) > (self.ClientHeight + 50) );
 
-
-
     if SuggMemPopup.FlipPopup then
       SuggMemPopup.Top := (CellRect.Top + CellRect.Bottom) div 2 - SuggMemPopup.Height;
 
@@ -8373,7 +8375,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.WMVScroll(var Msg: TWMScroll);
 begin
-   HideCustomHint;
+   HideCustomHint();
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class function TfrmCoding.CreateAndSetup( aOwner        : Forms.TForm;
@@ -9232,8 +9234,9 @@ begin
       HintStr := 'no other entries are linked to this transaction...';
 
    //display the hint above the status line
-   if HintStr <> '' then begin
-      HideCustomHint;
+   if HintStr <> '' then
+   begin
+      HideCustomHint();
       R := FHint.CalcHintRect( Screen.Width, HintStr, nil);
       with barCodingStatus do begin
          ClientPt.x := Panels[PANELMODE].Width + Panels[PANELLINE].Width + Panels[PANELCODEDCOUNT].Width + 2;
@@ -9843,7 +9846,7 @@ begin
   //decide if active row is visible
   if (tblCoding.ActiveRow < RowNum) or
      (tblCoding.ActiveRow > ( RowNum + tblCoding.VisibleRows - tblCoding.LockedRows)) then
-    HideCustomHint
+    HideCustomHint()
   else
     ShowHintForCell( RowNum, ColNum);
 end;
@@ -10723,6 +10726,14 @@ procedure TfrmCoding.UpdateTabs(aActiveMDIIndex : integer; aActionedPage: string
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
+
+  if aActionedPage <> Caption then
+    if assigned(frmSuggMemPopup) then
+      if SuggMemPopup.HandleAllocated then
+        if SuggMemPopup.Showing then
+          SuggMemPopup.Close;
+
+
 
   frmMain.UpdateTabs(tcWindows, aActionedPage);
   tcWindows.Visible := tcWindows.Tabs.Count > 2;

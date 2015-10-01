@@ -39,20 +39,12 @@ type
     procedure btnLaterClick(Sender: TObject);
     procedure btnCreateClick(Sender: TObject);
   private
-    fOnHideClick   : TNotifyEvent;
-    fOnLaterClick  : TNotifyEvent;
-    fOnCreateClick : TNotifyEvent;
-
     fFlipPopup : boolean;
     fManualCount : integer;
     fUnCodedCount : integer;
     fMatchedPhrase : string;
   public
     procedure Refresh();
-
-    property OnHideClick   : TNotifyEvent read fOnHideClick write fOnHideClick;
-    property OnLaterClick  : TNotifyEvent read fOnLaterClick write fOnLaterClick;
-    property OnCreateClick : TNotifyEvent read fOnCreateClick write fOnCreateClick;
 
     property FlipPopup : boolean read fFlipPopup write fFlipPopup;
     property ManualCount : integer read fManualCount write fManualCount;
@@ -64,28 +56,26 @@ implementation
 {$R *.dfm}
 
 uses
+  CodingFrm,
   StrUtils;
 
 //------------------------------------------------------------------------------
 { TfrmSuggMemPopup }
 procedure TfrmSuggMemPopup.btnHideClick(Sender: TObject);
 begin
-  if assigned(fOnHideClick) then
-    fOnHideClick(Sender);
+  TfrmCoding(Self.Owner).btnHideClick(Sender);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmSuggMemPopup.btnLaterClick(Sender: TObject);
 begin
-  if assigned(fOnLaterClick) then
-    fOnLaterClick(Sender);
+  TfrmCoding(Self.Owner).btnLaterClick(Sender);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmSuggMemPopup.btnCreateClick(Sender: TObject);
 begin
-  if assigned(fOnCreateClick) then
-    fOnCreateClick(Sender);
+  TfrmCoding(Self.Owner).btnCreateClick(Sender);
 end;
 
 //------------------------------------------------------------------------------

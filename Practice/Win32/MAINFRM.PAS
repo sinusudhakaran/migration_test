@@ -4647,21 +4647,30 @@ var HadMenu : Boolean;
 begin
   inherited;
 
-  if FLastActiveMDIChild2 <> FLastActiveMDIChild then begin
+  if FLastActiveMDIChild2 <> FLastActiveMDIChild then
+  begin
+    if Assigned(FLastActiveMDIChild2) then
+      if FLastActiveMDIChild2.HandleAllocated then
+       if FLastActiveMDIChild2 is TfrmCoding then
+         TfrmCoding(FLastActiveMDIChild2).CloseSuggMemPopup();
+
      FLastActiveMDIChild2 := FLastActiveMDIChild;
      LockMainForm;
      try
      HadMenu := rztCoding.Visible or rztBudget.Visible;
 
      if Assigned(FLastActiveMDIChild) then
-        if FLastActiveMDIChild is TfrmCoding then begin
-           rztCoding.Visible := True;
-           rztBudget.Visible := False;
-           UpdateMF.UpdateSortByMenu;
-        end else if FLastActiveMDIChild is tfrmBudget then begin
+        if FLastActiveMDIChild is TfrmCoding then
+        begin
+          rztCoding.Visible := True;
+          rztBudget.Visible := False;
+          UpdateMF.UpdateSortByMenu;
+        end else if FLastActiveMDIChild is tfrmBudget then
+        begin
            rztCoding.Visible := False;
            rztBudget.Visible := True;
-        end else begin
+        end else
+        begin
            rztCoding.Visible := False;
            rztBudget.Visible := False;
         end
