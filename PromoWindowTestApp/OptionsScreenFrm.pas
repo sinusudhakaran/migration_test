@@ -55,7 +55,6 @@ end;
 procedure TFrmOptionsScreen.btnPromosClick(Sender: TObject);
 var
   Promos : TPromoDisplayFrm;
-  UserRec : pUser_Rec;
   procedure DisplayPromoScreen;
   begin
     Promos := TPromoDisplayFrm.Create(Nil);

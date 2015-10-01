@@ -8,9 +8,7 @@ object PromoContentFrame: TPromoContentFrame
   Margins.Right = 10
   Margins.Bottom = 10
   AutoSize = True
-  Color = clWindow
   ParentBackground = False
-  ParentColor = False
   TabOrder = 0
   object lblTitle: TRzLabel
     AlignWithMargins = True
@@ -33,13 +31,12 @@ object PromoContentFrame: TPromoContentFrame
     Layout = tlCenter
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 10
     ExplicitWidth = 143
   end
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 57
+    Top = 34
     Width = 480
     Height = 13
     Margins.Left = 10
@@ -48,14 +45,13 @@ object PromoContentFrame: TPromoContentFrame
     Caption = 'v xcv xcvxcvxc'
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 126
     ExplicitWidth = 74
   end
   object imgContainer: TImage
     Left = 0
-    Top = 106
+    Top = 139
     Width = 500
-    Height = 401
+    Height = 368
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16427,7 +16423,7 @@ object PromoContentFrame: TPromoContentFrame
   object lblDescResize: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 83
+    Top = 116
     Width = 480
     Height = 13
     Margins.Left = 10
@@ -16438,15 +16434,34 @@ object PromoContentFrame: TPromoContentFrame
     Caption = 'Title comes here'
     WordWrap = True
     BorderSides = []
-    ExplicitLeft = 90
-    ExplicitTop = 363
+    ExplicitWidth = 78
   end
-  object reDescription: TRichEdit
+  object reDescription: TcxRichEdit
     AlignWithMargins = True
     Left = 10
-    Top = 32
+    Top = 51
+    Margins.Left = 10
+    Margins.Top = 1
+    Margins.Right = 10
+    Margins.Bottom = 1
+    Align = alTop
+    Properties.AllowObjects = True
+    Properties.AutoURLDetect = True
+    Lines.Strings = (
+      'reDescription')
+    Style.BorderStyle = ebsNone
+    StyleFocused.BorderStyle = ebsNone
+    StyleHot.BorderStyle = ebsNone
+    TabOrder = 0
+    Height = 28
     Width = 480
-    Height = 21
+  end
+  object zczxc: TRichEdit
+    AlignWithMargins = True
+    Left = 10
+    Top = 81
+    Width = 480
+    Height = 24
     Margins.Left = 10
     Margins.Top = 1
     Margins.Right = 10
@@ -16456,8 +16471,8 @@ object PromoContentFrame: TPromoContentFrame
     BevelOuter = bvNone
     BorderStyle = bsNone
     Lines.Strings = (
-      'reDescription')
-    TabOrder = 0
-    ExplicitTop = 36
+      'zczxc')
+    TabOrder = 1
+    Visible = False
   end
 end

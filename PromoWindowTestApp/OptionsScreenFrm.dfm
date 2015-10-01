@@ -183,7 +183,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
     Width = 145
     Height = 21
     TabOrder = 4
-    Text = '5.29.0'
+    Text = '5.29.1'
   end
   object dtDate: TDateTimePicker
     Left = 141

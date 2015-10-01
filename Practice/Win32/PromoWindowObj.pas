@@ -518,7 +518,6 @@ var
   Json : TStringList;
 begin
   ProcessingData := True;
-  //FContentFulResponseJSON := StringReplace(FContentFulResponseJSON.Text,#13#10,'',[rfReplaceAll, rfIgnoreCase]);
   if DebugMe then
   begin
     LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON);
@@ -560,7 +559,7 @@ begin
         NewContent.Title := VarToStr(Items.Child[i].Field['fields'].Field['title'].Value);
         if Assigned(Items.Child[i].Field['fields'].Field['description'])then
           NewContent.Description := StringReplace(VarToStr(Items.Child[i].Field['fields'].Field['description'].Value),
-                                    '/n', #13#10,[rfReplaceAll,rfIgnoreCase]);
+                                    '/n', #13,[rfReplaceAll,rfIgnoreCase]);
         if Assigned(Items.Child[i].Field['fields'].Field['url'])then
           NewContent.URL := VarToStr(Items.Child[i].Field['fields'].Field['url'].Value);
 

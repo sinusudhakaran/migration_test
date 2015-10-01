@@ -32,17 +32,6 @@ type
     {Page navigation component which has left arrow, right arrow and circle images
     equal to the no of pages. This is visible only if the no of pages > 1.}
     PageNavigation : TPageNavigation;
-    {}
-    procedure ImageClick(Sender: TObject);
-    procedure OnArrowMove(Sender:TObject;Shift: TShiftState;X,Y: Integer);
-    procedure OnArrowLeave(Sender : TObject);
-
-    procedure lblRightArrowMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure lblLeftArrowMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure lblRightArrowMouseLeave(Sender: TObject);
-    procedure lblLeftArrowMouseLeave(Sender: TObject);
 
     procedure lblRightArrowClick(Sender: TObject);
     procedure lblLeftArrowClick(Sender: TObject);
@@ -50,7 +39,6 @@ type
     { Private declarations }
     function CalculatePagesRequired: Integer;
     procedure DisplayPage(aPageIndex : Integer);
-    procedure CopyImage(aMoveImg1,aMoveImg2 : TImage);
     procedure OnURLMouseEnter(Sender : TObject);
     procedure OnURLMouseLeave(Sender : TObject);
     procedure OnURLClick(Sender : TObject);
@@ -69,7 +57,6 @@ uses ipshttps, ShellApi, Globals, math;
 
 {$R *.dfm}
 
-
 procedure TPromoDisplayFrm.btnCloseClick(Sender: TObject);
 begin
   //UserINI_Show_Promo_Window := (not cbHidePromo.Checked);
@@ -79,69 +66,40 @@ end;
 
 function TPromoDisplayFrm.CalculatePagesRequired: Integer;
 var
-  i, FrameHeight : Integer;
+  i : Integer;
   Content : TContentfulObj;
   TotalHeight : Integer;
   PageIndex : Integer;
   NewFrame: TPromoContentFrame;
-  Bitmap : TBitmap;
-  NoOfPagesRequired : Integer;
-  t : TObjectList;
 begin
   TotalHeight := 0;
   Result := 1;
-  t := TObjectList.Create;
   for i := 0 to DisplayPromoContents.Count - 1  do
   begin
     Content := TContentfulObj(DisplayPromoContents.Item[i]);
-    FrameHeight := 0;
     if Assigned(Content) then
     begin
-      NewFrame := TPromoContentFrame.Create(Self);
+      NewFrame := TPromoContentFrame.Create(Self,Content);
       try
         NewFrame.Parent := pnlFrames;
-        NewFrame.ParentFont := True;
-        NewFrame.ParentColor := True;
         NewFrame.TabOrder := i;
 
-        NewFrame.lblTitle.Font.Color := HyperLinkColor;
-        NewFrame.lblTitle.Font.Size := 14;
-        NewFrame.lblTitle.Font.Style := [fsBold];
-        NewFrame.lblTitle.Caption := Trim(Content.Title);
-
-        NewFrame.reDescription.Clear;
-        NewFrame.lblDescResize.Caption := Trim(Content.Description);
-
-        NewFrame.reDescription.Lines.Add(Trim(Content.Description));
-        NewFrame.reDescription.Height := NewFrame.lblDescResize.Height ;
-        NewFrame.lblDescResize.Visible := False;
-
-        NewFrame.lblURL.Font.Color := HyperLinkColor;
-        NewFrame.lblURL.Caption := Content.URL;
-
-        NewFrame.imgContainer.Visible := Content.IsImageAvilable;
-        NewFrame.lblURL.Visible := (Trim(Content.URL) <> '');
-
-        FrameHeight := FrameHeight + NewFrame.lblTitle.Height;
-        FrameHeight := FrameHeight + NewFrame.reDescription.Height;
-        if NewFrame.lblURL.Visible then        
-          FrameHeight := FrameHeight + NewFrame.lblURL.Height;
-        if NewFrame.imgContainer.Visible then
-          FrameHeight := FrameHeight + NewFrame.imgContainer.Height;
-
-        TotalHeight := TotalHeight + NewFrame.ClientHeight;
-        Content.FrameHeightRequired := NewFrame.ClientHeight;
+        TotalHeight := TotalHeight + NewFrame.Height+5;
+        Content.FrameHeightRequired := NewFrame.Height+5;
       finally
         FreeAndNil(NewFrame);
       end;
     end;
   end;
+
   if DisplayPromoContents.PromoMainWindowHeight <> 0 then
     Result := Ceil(TotalHeight/DisplayPromoContents.PromoMainWindowHeight);
   DisplayPromoContents.NoOfPagesRequired := Result;
+
   PageIndex := 1;
   TotalHeight := 0;
   DisplayPromoContents.SortContentfulData;
+
   for i := 0 to DisplayPromoContents.Count - 1 do
   begin
     Content := TContentfulObj(DisplayPromoContents.Item[i]);
@@ -164,32 +122,16 @@ begin
   end;
 end;
 
-procedure TPromoDisplayFrm.CopyImage(aMoveImg1, aMoveImg2: TImage);
-var
-  tempPic : TPicture;
-begin
-  tempPic := TPicture.Create;
-  try
-    tempPic.Assign(aMoveImg2.Picture);
-    aMoveImg2.Picture.Assign(aMoveImg1.Picture);
-    aMoveImg1.Picture.Assign(tempPic);
-  finally
-    FreeAndNil(tempPic);
-  end;
-end;
-
 procedure TPromoDisplayFrm.DisplayPage(aPageIndex: Integer);
 var
   i : Integer;
   Content : TContentfulObj;
   NewFrame: TPromoContentFrame;
-  Bitmap : TBitmap;
 begin
   FreeAllExistingFrames;
   if not Assigned(DisplayPromoContents) then
     Exit;
-    
-  NewFrame := Nil;
+
   DisplayPromoContents.SortContentfulData;
   for i := 0 to DisplayPromoContents.Count - 1  do
   begin
@@ -198,39 +140,17 @@ begin
     begin
       if Content.PageIndexWhereToDisplay = aPageIndex then
       begin
-        NewFrame := TPromoContentFrame.Create(Self);
-        FrameList.Add(NewFrame);
-
-        NewFrame.ParentFont := True;
-        NewFrame.ParentColor := True;
+        {Frame is created and the contents will be assigned}
+        NewFrame := TPromoContentFrame.Create(Self, Content);
 
         NewFrame.Parent := pnlFrames;//Self;
         NewFrame.Name := NewFrame.Name + IntToStr(aPageIndex) +  IntToStr(i);
-
-        NewFrame.lblTitle.Font.Color := HyperLinkColor;
-        NewFrame.lblTitle.Font.Size := 14;
-        NewFrame.lblTitle.Font.Style := [fsBold];
-        NewFrame.lblTitle.Caption := Trim(Content.Title);
-
-        NewFrame.reDescription.Clear;
-        NewFrame.lblDescResize.Caption := Trim(Content.Description);
-
-        NewFrame.reDescription.Lines.Add(Trim(Content.Description));
-        NewFrame.reDescription.Height := NewFrame.lblDescResize.Height ;
-        NewFrame.lblDescResize.Visible := False;
-
-        NewFrame.imgContainer.Visible := Content.IsImageAvilable;
-        NewFrame.lblURL.Visible := (Trim(Content.URL) <> '');
-
-        NewFrame.lblURL.Font.Color := HyperLinkColor;
-        NewFrame.lblURL.Caption := Content.URL;
         NewFrame.lblURL.OnMouseEnter := OnURLMouseEnter;
         NewFrame.lblURL.OnMouseLeave := OnURLMouseLeave;
         NewFrame.lblURL.OnClick := OnURLClick;
-
         NewFrame.TabOrder := i;
-        if Content.IsImageAvilable then
-          NewFrame.imgContainer.Picture.Assign(Content.MainImageBitmap);
+
+        FrameList.Add(NewFrame);
       end;
     end;
   end;
@@ -311,54 +231,16 @@ begin
   FrameList.Clear;
 end;
 
-procedure TPromoDisplayFrm.ImageClick(Sender: TObject);
-begin
-  inherited;
-end;
-
 procedure TPromoDisplayFrm.lblLeftArrowClick(Sender: TObject);
 begin
   inherited;
   DisplayPage(PageNavigation.CurrentPage);
 end;
 
-procedure TPromoDisplayFrm.lblLeftArrowMouseLeave(Sender: TObject);
-begin
-  inherited
-end;
-
-procedure TPromoDisplayFrm.lblLeftArrowMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-end;
-
 procedure TPromoDisplayFrm.lblRightArrowClick(Sender: TObject);
 begin
   inherited;
   DisplayPage(PageNavigation.CurrentPage);
-end;
-
-procedure TPromoDisplayFrm.lblRightArrowMouseLeave(Sender: TObject);
-begin
-  inherited;
-end;
-
-procedure TPromoDisplayFrm.lblRightArrowMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-end;
-
-procedure TPromoDisplayFrm.OnArrowLeave(Sender: TObject);
-begin
-  inherited;
-end;
-
-procedure TPromoDisplayFrm.OnArrowMove(Sender: TObject; Shift: TShiftState; X,
-  Y: Integer);
-begin
-  inherited;
 end;
 
 procedure TPromoDisplayFrm.OnURLClick(Sender: TObject);
