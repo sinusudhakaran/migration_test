@@ -1,6 +1,7 @@
 object dlgAcctSystem: TdlgAcctSystem
   Left = 473
   Top = 83
+  ActiveControl = edtSaveTaxTo
   BorderStyle = bsDialog
   Caption = 'Maintain Accounting System'
   ClientHeight = 550
@@ -68,6 +69,15 @@ object dlgAcctSystem: TdlgAcctSystem
     DesignSize = (
       504
       237)
+    object btnFromFolder: TSpeedButton
+      Left = 462
+      Top = 139
+      Width = 25
+      Height = 24
+      Hint = 'Click to Select a Folder'
+      Anchors = [akLeft, akBottom]
+      OnClick = btnFromFolderClick
+    end
     object lblFrom: TLabel
       Left = 16
       Top = 144
@@ -85,15 +95,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Anchors = [akLeft, akBottom]
       Caption = 'Save &Entries To'
       FocusControl = eTo
-    end
-    object btnFromFolder: TSpeedButton
-      Left = 462
-      Top = 139
-      Width = 25
-      Height = 24
-      Hint = 'Click to Select a Folder'
-      Anchors = [akLeft, akBottom]
-      OnClick = btnFromFolderClick
     end
     object btnToFolder: TSpeedButton
       Left = 462
@@ -121,11 +122,13 @@ object dlgAcctSystem: TdlgAcctSystem
       FocusControl = eMask
     end
     object lblBGL360FundName: TLabel
-      Left = 142
-      Top = 104
-      Width = 345
+      Left = 272
+      Top = 144
+      Width = 215
       Height = 17
+      Anchors = [akLeft, akBottom]
       AutoSize = False
+      Caption = 'No Fund selected'
     end
     object eFrom: TEdit
       Left = 140
@@ -162,7 +165,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbSystemChange
@@ -233,8 +236,8 @@ object dlgAcctSystem: TdlgAcctSystem
       end
     end
     object btnConnectBGL: TButton
-      Left = 358
-      Top = 72
+      Left = 137
+      Top = 139
       Width = 129
       Height = 27
       Anchors = [akLeft, akBottom]
@@ -267,7 +270,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 215
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 1
     end
     object ckExtract: TCheckBox
@@ -350,7 +353,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbTaxInterfaceChange
@@ -382,7 +385,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbWebFormatsChange

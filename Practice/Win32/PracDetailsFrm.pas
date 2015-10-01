@@ -567,6 +567,7 @@ procedure TfrmPracticeDetails.SetUpSuper(const SuperfundSystem: Byte);
 var
   CanRefresh : Boolean;
   SuperSystemSelected: Boolean;
+  BGLServer : TBGLServer;
 begin
   CanRefresh := CanRefreshChart( AdminSystem.fdFields.fdCountry, SuperfundSystem);
   SuperSystemSelected := not ( SuperfundSystem = asNone);
@@ -590,7 +591,21 @@ begin
     eSuperSave.Text := AdminSystem.fdFields.fdSave_Client_Super_Files_To;
   end;
   btnConnectBGL.Visible := (SuperfundSystem = saBGL360);
-  lblSuperLoad.Visible := (SuperfundSystem <> saBGL360);
+  if btnConnectBGL.Visible then begin
+    BGLServer :=
+      TBGLServer.Create(Nil,
+        DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
+        DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
+        Globals.PRACINI_BGL360_API_URL);
+    try
+      btnConnectBGL.Enabled := ( not BGLServer.CheckTokensExist );
+    finally
+      freeAndNil( BGLServer );
+    end;
+  end;
+
+//DN BGL360-UI Change  lblSuperLoad.Visible := (SuperfundSystem <> saBGL360);
+  lblSuperLoad.Visible := true; //DN BGL360-UI Change
   eSuperLoad.Visible := (SuperfundSystem <> saBGL360);
   btnSuperLoadFolder.Visible := (SuperfundSystem <> saBGL360);
 end;
@@ -658,7 +673,7 @@ begin
                         DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
                         Globals.PRACINI_BGL360_API_URL);
     try
-      if Assigned(MyClient) then
+      if Assigned(AdminSystem) then
       begin
         // Get all BGL values from client file and
         BGLServer.Set_Auth_Tokens(AdminSystem.fdFields.fdBGLAccessToken,
@@ -668,6 +683,8 @@ begin
 
         if BGLServer.CheckForAuthentication then
           ShowMessage('BGL Server Sign in completed successfully');
+          
+        btnConnectBGL.Enabled := not BGLServer.CheckTokensExist;
       end;
     finally
       FreeAndNil(BGLServer);

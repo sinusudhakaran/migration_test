@@ -57,7 +57,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 416
-    ActivePage = tbsInterfaces
+    ActivePage = tsSuperFundSystem
     MultiLine = True
     TabOrder = 0
     OnChange = PageControl1Change
@@ -555,8 +555,8 @@ object frmPracticeDetails: TfrmPracticeDetails
           Text = 'eSuperMask'
         end
         object btnConnectBGL: TButton
-          Left = 283
-          Top = 45
+          Left = 144
+          Top = 77
           Width = 129
           Height = 27
           Anchors = [akLeft, akBottom]

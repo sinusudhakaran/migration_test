@@ -434,9 +434,12 @@ begin
      pnlMASLedgerCode.visible := false;
    end;
   end;
-  lblFrom.Visible := (SelectedSystem <> saBGL360);
-  eFrom.Visible := lblFrom.Visible;
-  btnFromFolder.Visible := lblFrom.Visible;
+//DN BGL360- UI changes  lblFrom.Visible := (SelectedSystem <> saBGL360);
+//DN BGL360- UI changes    eFrom.Visible := lblFrom.Visible;
+//DN BGL360- UI changes    btnFromFolder.Visible := lblFrom.Visible;
+  eFrom.Visible := (SelectedSystem <> saBGL360); //DN BGL360- UI changes
+  btnFromFolder.Visible := (SelectedSystem <> saBGL360); //DN BGL360- UI changes
+
   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
   lblBGL360FundName.Visible := (SelectedSystem = saBGL360);
 
@@ -444,7 +447,8 @@ begin
   begin
 //DN Not required    BGLServerNoSignRequired := True;
     btnConnectBGL.Caption := 'BGL Sign in';
-    lblBGL360FundName.Caption := 'Fund Selected : <None>';
+    lblBGL360FundName.Caption := 'No Fund selected';
+    lblBGL360FundName.Font.Color := clRed;
     BGLServer := TBGLServer.Create(Nil,
                         DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
                         DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
@@ -460,12 +464,14 @@ begin
 //DN Authentication logic flow does not work
         if BGLServer.CheckTokensExist then
           if BGLServer.CheckForAuthentication then
-            btnConnectBGL.Caption := 'Select Fund';
+            btnConnectBGL.Caption := 'Fund';
 //DN Not required        else
 //DN Not required          BGLServerNoSignRequired := False;
 
-        if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
-          lblBGL360FundName.Caption := 'Fund Selected : ' + MyClient.clExtra.ceBGLFundNameSelected ;
+        if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then begin
+          lblBGL360FundName.Caption := MyClient.clExtra.ceBGLFundNameSelected ;
+          lblBGL360FundName.Font.Color := clWindowText;
+        end;
       end;
     finally
       FreeAndNil(BGLServer);
@@ -1055,9 +1061,11 @@ begin
             begin
               MyClient.clExtra.ceBGLFundIDSelected := FundFrm.SelectedFundID;
               MyClient.clExtra.ceBGLFundNameSelected := FundFrm.SelectedFundName;
-              lblBGL360FundName.Caption := 'Fund Selected : <None>';
-              if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
-                lblBGL360FundName.Caption := 'Fund Selected : ' + MyClient.clExtra.ceBGLFundNameSelected;
+              lblBGL360FundName.Caption := '';
+              if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then begin
+                lblBGL360FundName.Caption := MyClient.clExtra.ceBGLFundNameSelected;
+                lblBGL360FundName.Font.Color := clWindowText;
+              end;
               SaveClient(false);
             end;
             RefreshChart;
