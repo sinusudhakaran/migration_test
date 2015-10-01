@@ -94,7 +94,7 @@ type
     WebFormatChanged : Boolean;
 
     FInWizard: Boolean;
-    BGLServerNoSignRequired : Boolean;
+//DN Not required    BGLServerNoSignRequired : Boolean;
     procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
     procedure FillSystemList;
@@ -442,7 +442,7 @@ begin
 
   if SelectedSystem = saBGL360 then
   begin
-    BGLServerNoSignRequired := True;
+//DN Not required    BGLServerNoSignRequired := True;
     btnConnectBGL.Caption := 'BGL Sign in';
     lblBGL360FundName.Caption := 'Fund Selected : <None>';
     BGLServer := TBGLServer.Create(Nil,
@@ -457,10 +457,12 @@ begin
                   AdminSystem.fdFields.fdBGLTokenType,
                   AdminSystem.fdFields.fdBGLRefreshToken,
                   AdminSystem.fdFields.fdBGLTokenExpiresAt);
-        if BGLServer.CheckForValidTokens then
-          btnConnectBGL.Caption := 'Select Fund'
-        else
-          BGLServerNoSignRequired := False;
+//DN Authentication logic flow does not work
+        if BGLServer.CheckTokensExist then
+          if BGLServer.CheckForAuthentication then
+            btnConnectBGL.Caption := 'Select Fund';
+//DN Not required        else
+//DN Not required          BGLServerNoSignRequired := False;
 
         if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then
           lblBGL360FundName.Caption := 'Fund Selected : ' + MyClient.clExtra.ceBGLFundNameSelected ;
@@ -1039,7 +1041,8 @@ begin
                 AdminSystem.fdFields.fdBGLTokenType,
                 AdminSystem.fdFields.fdBGLRefreshToken,
                 AdminSystem.fdFields.fdBGLTokenExpiresAt);
-      if (BGLServerNoSignRequired or BGLServer.CheckForAuthentication) then
+//DN Not required      if (BGLServerNoSignRequired or BGLServer.CheckForAuthentication) then
+      if (BGLServer.CheckForAuthentication) then
       begin
         BGLServer.Get_FundList;
         if BGLServer.FundList.Count > 0  then

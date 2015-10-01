@@ -68,13 +68,13 @@ type
 
   TChart_AccountObj = class
   private
-    fCode             : string;
-    fName             : string;
-    fAccountClass     : string;
-    fSecurityId       : string;
-    fSecurityCode     : string;
-    fMarketType       : string;
-    fChartAccountType : TChart_AccountTypeObj;
+    fCode                : string;
+    fName                : string;
+    fAccountClass        : string;
+    fSecurityId          : string;
+    fSecurityCode        : string;
+    fMarketType          : string;
+    fChartAccountType    : TChart_AccountTypeObj;
   public
     property Code             : string read fCode;
     property Name             : string read fName;
@@ -169,7 +169,8 @@ type
     procedure Set_Auth_Tokens( aAccess_token : string; aToken_type : string;
       aRefresh_token : string; aWill_Expire_At: TDateTime );
 
-    function CheckForValidTokens: Boolean;
+    function CheckTokensExist: Boolean;
+    function CheckIfTokenExpired : Boolean;
     function CheckForAuthentication : boolean;
 
     function Get_Auth_Code : boolean;
@@ -243,40 +244,40 @@ end;
 
 function TBGLServer.CheckForAuthentication: boolean;
 begin
-
-  if not CheckForValidTokens then begin      // If there has never been a token
+  result := false;
+  if not CheckTokensExist then begin      // If there has never been a token
     result := Get_Auth_Code;    // Need to Authorise, and retrieve Auth_Code
     if result then
       result := Get_Auth_Tokens; // Now we can ask for the Tokens
       if not result then
         exit;
   end
-  else
-  begin // There has been a token previously, let's try and refresh
-    result := Get_Refresh_Tokens; // Try and refresh the tokens
-    if not result then begin // something went wrong, let's try and re-authorise
-      freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
-      fAuth_TokenObj := TAuth_TokenObj.Create;  // Recreate the Auth Tokens;
-      result := CheckForAuthentication;         // Call this routine recursively
-    end;
-  end;
+  else 
+    if CheckIfTokenExpired then                   // If Token has expired, we need to refresh the token
+    begin                                         // There has been a token previously, let's try and refresh
+      result := Get_Refresh_Tokens;               // Try and refresh the tokens;
+      if not result then begin                    // Something went wrong, let's try and re-authorise
+        freeAndNil(fAuth_TokenObj);               // Destroy so that we can clear in the recreate
+        fAuth_TokenObj := TAuth_TokenObj.Create;  // Recreate the Auth Tokens;
+        result := CheckForAuthentication;         // Call this routine recursively
+      end;
+    end
+    else 
+      result := true;                             // The current tokens should still be valid
 end;
 
-function TBGLServer.CheckForValidTokens: Boolean;
+function TBGLServer.CheckIfTokenExpired;
 begin
-  Result :=
+  Result := CheckTokensExist and            // If the Token exists
+    ( Now > Auth_Token.fWill_Expire_At );   // and has already expired
+end;
+
+function TBGLServer.CheckTokensExist: Boolean;
+begin
+  Result := {Check if there was ever, a Token}
     ( trim( Auth_Token.Access_token ) <> '' ) and
     ( trim( Auth_Token.Token_type ) <> '' ) and
-    ( trim( Auth_Token.Refresh_token ) <> '' ) and
-    ( Now < Auth_Token.fWill_Expire_At );
-
-  if not Result then begin
-    Result := {Check if there was ever, a Token}
-      ( trim( Auth_Token.Access_token ) <> '' ) and
-      ( trim( Auth_Token.Token_type ) <> '' ) and
-      ( trim( Auth_Token.Refresh_token ) <> '' );
-  end;
-
+    ( trim( Auth_Token.Refresh_token ) <> '' );
 end;
 
 constructor TBGLServer.Create(aOwner : TThread; aAuthenticationKey,
@@ -539,6 +540,7 @@ end;
 function TAuth_TokenObj.SaveTokens: Boolean;
 begin
   // Save tokens to client file.
+  result := false;
   if Assigned( AdminSystem ) then
   begin
     AdminSystem.fdFields.fdBGLAccessToken := fAccess_token;
@@ -546,6 +548,7 @@ begin
     AdminSystem.fdFields.fdBGLTokenType := fToken_type;
     AdminSystem.fdFields.fdBGLTokenExpiresAt := fWill_Expire_At;
     AdminSystem.Save;
+    result := true;
   end;
 end;
 
@@ -600,6 +603,11 @@ begin
             Account.fcode             := ChartAccount[ 'code' ].Value;
             Account.fname             := ChartAccount[ 'name' ].Value;
             Account.faccountClass     := ChartAccount[ 'accountClass' ].Value;
+            if Account.fAccountClass = 'Sub Account' then begin                 // If Sub Account then we 
+              Temp := ChartAccount[ 'subChartAccountCode' ].Value;              // have to append the 
+              Account.fcode := format( '%s/%s', [ Account.fcode, Temp ] );      // SubChartAccountCode to the Code
+            end;
+            
             Account.fsecurityId       := ChartAccount[ 'securityId' ].Value;
             Account.fsecurityCode     := ChartAccount[ 'securityCode' ].Value;
             Account.fmarketType       := ChartAccount[ 'marketType' ].Value;

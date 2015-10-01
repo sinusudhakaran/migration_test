@@ -52,10 +52,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       TabOrder = 0
       object tsAustralianIncome: TTabSheet
         Caption = 'Australian Income'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblLessOtherAllowableTrustDeductions: TLabel
           Left = 6
           Top = 200

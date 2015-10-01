@@ -160,6 +160,7 @@ begin
      Exit;
 
   with MyClient.clFields do begin
+(*//DN BGL360 - Chart to be fetched from BGL360 API
     if (clAccounting_System_Used = saBGL360) then
     begin
       SFFileName := SF360_File;
@@ -186,19 +187,45 @@ begin
       if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+'*.'+Extn,Extn,HCtx) then
         Exit;
     end;
+//DN BGL360 - Chart to be fetched from BGL360 API *)
+
+    if (clAccounting_System_Used <> saBGL360) then //BGL360 fetches from API and no longer from CSV File
+    begin
+      SFFileName := SF_File;
+      Extn       := SF_EXTN;
+
+      if clLoad_Client_Files_From = '' then
+        ChartFileName := ''
+      else if DirectoryExists(clLoad_Client_Files_From) then
+        ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName
+      else
+        ChartFileName := clLoad_Client_Files_From;
+      //check file exists, ask for a new one if not
+      if not BKFileExists(ChartFileName) then begin
+        HCtx := 0; //hcSFUND001;
+        if clAccounting_System_Used = saBGLSimpleLedger then
+          FileType := 'Simple Ledger File'
+        else
+          FileType := 'Simple Fund File';
+        if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+'*.'+Extn,Extn,HCtx) then
+          Exit;
+      end;
+    end;
+
     try
       NewChart := TChart.Create(MyClient.ClientAuditMgr);
       UpdateAppStatus('Loading Chart','Reading Chart',0);
       try
         if (clAccounting_System_Used = saBGL360) then
-//DN BGL360-API Call          ReadCSVFile(ChartFileName, NewChart)
-          FetchCOSFromAPI( NewChart )
+//BGL360 fetches from API and no longer from CSV File          ReadCSVFile(ChartFileName, NewChart)
+          FetchCOSFromAPI( NewChart ) //DN BGL360-New API Call
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
            UsingBGL360 := clAccounting_System_Used = saBGL360;
            MergeCharts(NewChart,MyClient,false,UsingBGL360,false);
-           clLoad_Client_Files_From := ChartFileName;
+           if not UsingBGL360 then                        //BGL360 fetches from API and no longer from CSV File
+             clLoad_Client_Files_From := ChartFileName;
            clChart_Last_Updated := CurrentDate;
         end
         else begin
@@ -322,17 +349,30 @@ begin
               LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
                 RESTServer.Chart_of_Accounts[ i ].Code +' found in BGL360 API' )
             else
-              if ( RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ] in
-                     [ 'C', 'N' ] ) then begin // Sub-Account not handled
+//DN BGL360-SubAccount Change              if ( RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ] in
+//DN BGL360-SubAccount Change                     [ 'C', 'N' ] ) then begin // Sub-Account not handled
+
+              if ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Control' ) or
+                 ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Normal' ) or
+                 ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Sub Account' ) then begin
 
                 NewAccount := New_Account_Rec;
 
                 NewAccount^.chAccount_Code        :=
                   RESTServer.Chart_of_Accounts[ i ].Code;
+
+(*                if ( RESTServer.Chart_of_Accounts[ i ].accountClass <> 'Sub Account' ) then
+                  NewAccount^.chAccount_Code        :=
+                    RESTServer.Chart_of_Accounts[ i ].Code
+                else
+                  NewAccount^.chAccount_Code        := format( '%s/%s',
+                    ( [ RESTServer.Chart_of_Accounts[ i ].Code,
+                      '' { RESTServer.Chart_of_Accounts[ i ]. } ] ); *)
+
                 AccountType                       :=
                   RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ];
                 NewAccount^.chAccount_Type        := ord(AccountType[1]);
-                NewAccount^.chPosting_Allowed     := True;
+                NewAccount^.chPosting_Allowed     := AccountType[1] <> 'C';
                 NewAccount^.chAccount_Description :=
                   RESTServer.Chart_of_Accounts[ i ].Name; //FieldList.Strings[2];
 

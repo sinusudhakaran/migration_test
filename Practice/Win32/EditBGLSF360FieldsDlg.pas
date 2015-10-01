@@ -1079,13 +1079,19 @@ end;
 
 procedure TdlgEditBGLSF360Fields.SetTranAccount(const Value: string);
 var
-  i : integer;
+  liControlCode,
+  liPos  : integer;
+  lsControlCode : string;
 begin
   fTranAccount := Value;
   try
     if trim( Value ) <> '' then begin
-      i := strToInt( Value );
-      case i of
+      liPos := pos( '/', Value);  // Fetch the control account code, if this is a sub account type
+      if liPos = 0 then           // Not a sub account type, so fetch the whole code
+        liPos := length( Value );
+      lsControlCode := copy( Value, 1, pred( liPos ) ); // Fetch the first characters (or the whole acocunt code if not a sub account)
+      liControlCode := strToInt( lsControlCode );
+      case liControlCode of
         cttanDistribution      : TransactionType := ttDistribution;
         cttanDividend          : TransactionType := ttDividend;
         cttanInterest          : TransactionType := ttInterest;
