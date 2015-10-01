@@ -17,7 +17,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnResize = FormResize
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label7: TLabel
@@ -35,7 +34,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 521
     DesignSize = (
       1103
       50)
@@ -127,7 +125,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
       end>
     ParentFont = True
     UseSystemFont = False
-    ExplicitTop = 571
   end
   object pcPayee: TPageControl
     Left = 0
@@ -138,29 +135,23 @@ object dlgPayeeDetail: TdlgPayeeDetail
     Align = alClient
     TabOrder = 0
     OnChange = pcPayeeChange
-    ExplicitHeight = 521
     object tsPayeeDetails: TTabSheet
       Caption = 'Payee Details'
-      ExplicitHeight = 493
       object pnlMain: TPanel
         AlignWithMargins = True
         Left = 3
-        Top = 88
+        Top = 82
         Width = 1089
-        Height = 404
+        Height = 410
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 0
-        ExplicitTop = 85
-        ExplicitWidth = 1095
-        ExplicitHeight = 408
         object Shape1: TShape
           AlignWithMargins = True
           Left = 0
           Top = 29
           Width = 1
-          Height = 374
+          Height = 380
           Margins.Left = 0
           Margins.Top = 0
           Margins.Right = 0
@@ -175,7 +166,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Left = 1088
           Top = 29
           Width = 1
-          Height = 374
+          Height = 380
           Margins.Left = 0
           Margins.Top = 0
           Margins.Right = 0
@@ -188,7 +179,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         end
         object Shape5: TShape
           Left = 0
-          Top = 403
+          Top = 409
           Width = 1089
           Height = 1
           Align = alBottom
@@ -207,7 +198,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitWidth = 1095
           object sbtnChart: TSpeedButton
             AlignWithMargins = True
             Left = 4
@@ -303,7 +293,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Left = 1
           Top = 29
           Width = 1087
-          Height = 374
+          Height = 380
           Margins.Left = 0
           Margins.Top = 0
           Margins.Right = 0
@@ -321,11 +311,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
           Colors.Editing = clWindow
           Controller = memController
           Ctl3D = False
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
           GridPenSet.NormalGrid.NormalColor = clBtnShadow
           GridPenSet.NormalGrid.Style = psSolid
           GridPenSet.NormalGrid.Effect = ge3D
@@ -338,9 +323,9 @@ object dlgPayeeDetail: TdlgPayeeDetail
           GridPenSet.CellWhenUnfocused.NormalColor = clBlack
           GridPenSet.CellWhenUnfocused.Style = psDash
           GridPenSet.CellWhenUnfocused.Effect = geNone
+          LockedRowsCell = Header
           Options = [otoNoRowResizing, otoEnterToArrow, otoNoSelection]
           ParentCtl3D = False
-          ParentFont = False
           TabOrder = 1
           OnActiveCellChanged = tblSplitActiveCellChanged
           OnActiveCellMoving = tblSplitActiveCellMoving
@@ -354,9 +339,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
           OnGetCellAttributes = tblSplitGetCellAttributes
           OnMouseDown = tblSplitMouseDown
           OnUserCommand = tblSplitUserCommand
-          ExplicitLeft = 7
-          ExplicitWidth = 1081
-          ExplicitHeight = 339
           CellData = (
             'dlgPayeeDetail.Header'
             'dlgPayeeDetail.ColAcct'
@@ -403,7 +385,7 @@ object dlgPayeeDetail: TdlgPayeeDetail
         Left = 0
         Top = 0
         Width = 1095
-        Height = 85
+        Height = 79
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 0
@@ -478,7 +460,6 @@ object dlgPayeeDetail: TdlgPayeeDetail
     object tsContractorDetails: TTabSheet
       Caption = 'Contractor Details'
       ImageIndex = 1
-      ExplicitHeight = 493
       object lblPhoneNumber: TLabel
         Left = 596
         Top = 253
@@ -847,7 +828,9 @@ object dlgPayeeDetail: TdlgPayeeDetail
       '%/$')
     ShowLetters = False
     Adjust = otaCenterLeft
-    Left = 480
+    Table = tblSplit
+    OnClick = HeaderClick
+    Left = 432
   end
   object ColAcct: TOvcTCString
     AutoAdvanceLeftRight = True

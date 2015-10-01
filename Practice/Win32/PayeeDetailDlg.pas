@@ -140,7 +140,6 @@ type
       ColNum: Integer);
     procedure sbtnChartClick(Sender: TObject);
     procedure ColAcctKeyPress(Sender: TObject; var Key: Char);
-    procedure FormShow(Sender: TObject);
     procedure ColAcctOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
       const CellRect: TRect; RowNum, ColNum: Integer;
       const CellAttr: TOvcCellAttributes; Data: Pointer;
@@ -172,6 +171,7 @@ type
     procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
     procedure mskABNClick(Sender: TObject);
     procedure pcPayeeChange(Sender: TObject);
+    procedure HeaderClick(Sender: TObject);
   private
     { Private declarations }
     fLoading : boolean;
@@ -380,8 +380,9 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TdlgPayeeDetail.FormShow(Sender: TObject);
+procedure TdlgPayeeDetail.HeaderClick(Sender: TObject);
 begin
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
