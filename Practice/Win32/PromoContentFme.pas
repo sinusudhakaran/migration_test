@@ -10,14 +10,15 @@ uses
   RzEdit, ExtCtrls, PromoWindowObj, OSFont, RichEdit;
 
 type
-  TPromoStyles = (psHeading1, psHeading2, psHeading3, psBold, psItalics, psStrikeOut);
+  TPromoStyles = (psHeading1, psHeading2, psHeading3, psBold, psItalics,
+                  psStrikeOut, psQuote);
+
   TPromoContentFrame = class(TFrame)
     lblTitle: TRzLabel;
     lblURL: TRzLabel;
     imgContainer: TImage;
     lblDescResize: TRzLabel;
     reDescription: TcxRichEdit;
-    zczxc: TRichEdit;
   private
     FStartPosition : Integer;
     { Private declarations }
@@ -35,7 +36,7 @@ type
   end;
 
 const
-  PromoSpecialChars : array [1..5] of Char = ('#', '_', '~', '*', '[');
+  PromoSpecialChars : array [1..5] of Char = ('#', '_', '~', '*', '>');
 
 implementation
 
@@ -135,7 +136,7 @@ procedure TPromoContentFrame.ProcessSpecialChar(var aCharIndex: Integer;
   SpecialChar: string);
 var
   SubDesc : string;
-  iStartPos, iEndPos : Integer;
+  FoundPos, iStartPos, iEndPos : Integer;
 begin
   if SpecialChar = PromoSpecialChars[1] then
   begin
@@ -168,9 +169,17 @@ begin
       FormatRichText('**', True, psBold)
     else
       FormatRichText('*', True, psItalics);
+  end
+  else if SpecialChar = PromoSpecialChars[5] then // quotes
+  begin
+    if reDescription.Text[aCharIndex+1] = ' ' then // ##
+      FormatRichText('> ', False, psQuote);
   end;
 
-  aCharIndex := aCharIndex + 1;
+  FoundPos := Pos(SpecialChar, reDescription.Text);
+  if FoundPos > 0 then
+    ProcessSpecialChar(FoundPos, reDescription.Text[FoundPos]);
+  //aCharIndex := aCharIndex + 1;
 end;
 
 procedure TPromoContentFrame.FormatRichText(aFormatChar: string; aIsEndCharAvailable:Boolean;PromoStyle: TPromoStyles);
@@ -228,7 +237,7 @@ end;
 
 procedure TPromoContentFrame.ApplyTextFormatting;
 var
-   j : Integer;
+  i, FoundPos: Integer;
   Line : string;
   DoNeedABreak : Boolean;
 begin
@@ -236,7 +245,6 @@ begin
     Exit;
 
   FStartPosition := 0;
-  j := 0;
 
   if ((Pos(PromoSpecialChars[1], reDescription.Text) > 0) or
       (Pos(PromoSpecialChars[2], reDescription.Text) > 0) or
@@ -244,12 +252,20 @@ begin
       (Pos(PromoSpecialChars[4], reDescription.Text) > 0) or
       (Pos(PromoSpecialChars[5], reDescription.Text) > 0) ) then
   begin
-    while (j <= Length(reDescription.Text)-1) do
+
+    for i := 1 to High(PromoSpecialChars) do
+    begin
+      FoundPos := Pos(PromoSpecialChars[i], reDescription.Text);
+      if FoundPos > 0 then
+        ProcessSpecialChar(FoundPos, reDescription.Text[FoundPos]);
+    end;
+
+    {while (j <= Length(reDescription.Text)-1) do
     begin
       if ((reDescription.Text[j] <> #$D) and (IsASpecialChar(reDescription.Text[j]))) then
         ProcessSpecialChar(j, reDescription.Text[j]);
       j := j + 1;
-    end;
+    end;}
   end;
 end;
 

@@ -45,6 +45,8 @@ type
     procedure FreeAllExistingFrames;
   public
     { Public declarations }
+  protected
+    procedure WndProc (var Msg: TMessage);override;
   end;
 
 
@@ -53,9 +55,38 @@ var
 
 implementation
 
-uses ipshttps, ShellApi, Globals, math;
+uses ipshttps, ShellApi, Globals, math,cxGraphics, cxControls, cxLookAndFeels,
+  cxLookAndFeelPainters, cxContainer, cxEdit, cxTextEdit, cxMemo, cxRichEdit,
+  RichEdit;
 
 {$R *.dfm}
+
+procedure TPromoDisplayFrm.WndProc (var Msg: TMessage);
+var
+  p: TENLink;
+  sURL: string;
+  reDesc: TcxRichEdit;
+begin
+  if (Msg.Msg = WM_NOTIFY) then
+  begin
+    if (PNMHDR (Msg.lParam). code = EN_LINK) then
+    begin
+      p := TENLink (Pointer (TWMNotify (Msg). NMHdr) ^);
+      if (p.Msg = WM_LBUTTONDOWN) then
+      begin
+        try
+          reDesc := TcxRichEdit(self.ActiveControl);
+          SendMessage (reDesc.Handle, EM_EXSETSEL, 0, Longint (@ (p.chrg)));
+          sURL := reDesc.SelText;
+          ShellExecute (Handle, 'open', PChar (sURL), 0, 0, SW_SHOWNORMAL);
+        except
+
+        end;
+      end;
+    end;
+  end;
+  inherited;
+end;
 
 procedure TPromoDisplayFrm.btnCloseClick(Sender: TObject);
 begin

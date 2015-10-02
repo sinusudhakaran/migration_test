@@ -49,9 +49,9 @@ object PromoContentFrame: TPromoContentFrame
   end
   object imgContainer: TImage
     Left = 0
-    Top = 139
+    Top = 113
     Width = 500
-    Height = 368
+    Height = 394
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16423,7 +16423,7 @@ object PromoContentFrame: TPromoContentFrame
   object lblDescResize: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 116
+    Top = 90
     Width = 480
     Height = 13
     Margins.Left = 10
@@ -16434,6 +16434,7 @@ object PromoContentFrame: TPromoContentFrame
     Caption = 'Title comes here'
     WordWrap = True
     BorderSides = []
+    ExplicitTop = 116
     ExplicitWidth = 78
   end
   object reDescription: TcxRichEdit
@@ -16455,24 +16456,5 @@ object PromoContentFrame: TPromoContentFrame
     TabOrder = 0
     Height = 28
     Width = 480
-  end
-  object zczxc: TRichEdit
-    AlignWithMargins = True
-    Left = 10
-    Top = 81
-    Width = 480
-    Height = 24
-    Margins.Left = 10
-    Margins.Top = 1
-    Margins.Right = 10
-    Margins.Bottom = 1
-    Align = alTop
-    BevelInner = bvNone
-    BevelOuter = bvNone
-    BorderStyle = bsNone
-    Lines.Strings = (
-      'zczxc')
-    TabOrder = 1
-    Visible = False
   end
 end
