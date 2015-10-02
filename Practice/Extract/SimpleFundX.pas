@@ -38,6 +38,7 @@ uses
 procedure ExtractData( const SuperFundType: byte; const FromDate, ToDate : TStDate; const SaveTo : string );
 procedure ExtractDataBGL(const FromDate, ToDate: TStDate; const SaveTo : string);
 procedure ExtractDataBGL360(const FromDate, ToDate: TStDate; const SaveTo : string; TestAccountList: TStringList = nil);
+function StripBGL360ControlAccountCode( Value : string ) : integer;
 
 //******************************************************************************
 implementation
@@ -469,60 +470,60 @@ begin
   if IsDissection then
   begin
     // Contract_date
-    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(DissectionExtra^.deSF_Accrual_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(Dissection^.dsDissection_Extension^.deSF_Accrual_Date, FDateMask));
     // Settlement_date
-    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(DissectionExtra^.deSF_Cash_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(Dissection^.dsDissection_Extension^.deSF_Cash_Date, FDateMask));
     // Brokerage
     AddFieldNode(
       TransactionNode,
       'Brokerage',
-      FormatFloatForXml((DissectionExtra^.deSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml((Dissection^.dsDissection_Extension^.deSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // GST_Rate
     AddFieldNode(
       TransactionNode,
       'GST_Rate',
-      FormatFloatForXml(Abs(StrToIntDef(DissectionExtra^.deSF_Share_GST_Rate,0)), 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(StrToIntDef(Dissection^.dsDissection_Extension^.deSF_Share_GST_Rate,0)), 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
     // GST_Amount
     AddFieldNode(
       TransactionNode,
       'GST_Amount',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Share_GST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Share_GST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Consideration
     AddFieldNode(
       TransactionNode,
       'Consideration',
-      FormatFloatForXml((DissectionExtra^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml((Dissection^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end
   else
   begin
     // Contract_date
-    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(TransactionExtra^.teSF_Accrual_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(Transaction^.txTransaction_Extension^.teSF_Accrual_Date, FDateMask));
     // Settlement_date
-    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(TransactionExtra^.teSF_Cash_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(Transaction^.txTransaction_Extension^.teSF_Cash_Date, FDateMask));
     // Brokerage
     AddFieldNode(
       TransactionNode,
       'Brokerage',
-      FormatFloatForXml((TransactionExtra^.teSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml((Transaction^.txTransaction_Extension^.teSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // GST_Rate
     AddFieldNode(
       TransactionNode,
       'GST_Rate',
-      FormatFloatForXml(Abs(StrToIntDef(TransactionExtra^.teSF_Share_GST_Rate,0)), 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(StrToIntDef(Transaction^.txTransaction_Extension^.teSF_Share_GST_Rate,0)), 0, 10000, Globals.PRACINI_ExtractZeroAmounts));
     // GST_Amount
     AddFieldNode(
       TransactionNode,
       'GST_Amount',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Share_GST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Share_GST_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Consideration
     AddFieldNode(
       TransactionNode,
       'Consideration',
-      FormatFloatForXml((TransactionExtra^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml((Transaction^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 
@@ -552,7 +553,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Other_Income',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // TFN_Amounts_withheld
     AddFieldNode(
       TransactionNode,
@@ -562,7 +563,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Non_Resident_Withholding_Tax',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end
   else
   begin
@@ -575,7 +576,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Other_Income',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // TFN_Amounts_withheld
     AddFieldNode(
       TransactionNode,
@@ -585,7 +586,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Non_Resident_Withholding_Tax',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 
@@ -635,7 +636,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Australian_Franking_Credits_from_a_New_Zealand_Company',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // TFN_Amounts_withheld
     AddFieldNode(
       TransactionNode,
@@ -645,12 +646,12 @@ begin
     AddFieldNode(
       TransactionNode,
       'Non_Resident_Withholding_Tax',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // LIC_Deduction
     AddFieldNode(
       TransactionNode,
       'LIC_Deduction',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end
   else
   begin
@@ -683,7 +684,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Australian_Franking_Credits_from_a_New_Zealand_Company',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // TFN_Amounts_withheld
     AddFieldNode(
       TransactionNode,
@@ -693,12 +694,12 @@ begin
     AddFieldNode(
       TransactionNode,
       'Non_Resident_Withholding_Tax',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // LIC_Deduction
     AddFieldNode(
       TransactionNode,
       'LIC_Deduction',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 end;
@@ -742,13 +743,13 @@ begin
     AddFieldNode(
       TransactionNode,
       'Other_Income',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Less_Other_Allowable_Trust_Deductions
     AddFieldNode(
       TransactionNode,
       'Less_Other_Allowable_Trust_Deductions',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Other_Trust_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Other_Trust_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Discounted_Capital_Gain_Before_Discount
     AddFieldNode(
       TransactionNode,
@@ -758,7 +759,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Capital_Gains_CGT_Concessional_Amount',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_CGT_Concession_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_CGT_Concession_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Gain_Indexation_Method
     AddFieldNode(
       TransactionNode,
@@ -773,17 +774,17 @@ begin
     AddFieldNode(
       TransactionNode,
       'Foreign_Discounted_Capital_Gains_Before_Discount',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_CGT_ForeignCGT_Before_Disc), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Before_Disc), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Foreign_Capital_Gains_Indexation_Method
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Indexation_Method',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_CGT_ForeignCGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Foreign_Capital_Gains_Other_Method
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Other_Method',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_CGT_ForeignCGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid
     AddFieldNode(
@@ -794,12 +795,12 @@ begin
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Indexation_Method_Tax_Paid',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_CGT_TaxPaid_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_CGT_TaxPaid_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Foreign_Capital_Gains_Other_Method_Tax_Paid
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Other_Method_Tax_Paid',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_CGT_TaxPaid_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_CGT_TaxPaid_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Assessable_Foreign_Source_Income
     AddFieldNode(
@@ -815,17 +816,17 @@ begin
     AddFieldNode(
       TransactionNode,
       'Australian_Franking_Credits_from_a_New_Zealand_Company',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Other_Net_Foreign_Source_Income
     AddFieldNode(
       TransactionNode,
       'Other_Net_Foreign_Source_Income',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Other_Net_Foreign_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Other_Net_Foreign_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Cash_Distribution
     AddFieldNode(
       TransactionNode,
       'Cash_Distribution',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Cash_Distribution), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Cash_Distribution), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Tax_Exempted_Amounts
     AddFieldNode(
       TransactionNode,
@@ -850,7 +851,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Non_Resident_Withholding_Tax',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Other_Expenses
     AddFieldNode(
       TransactionNode,
@@ -860,27 +861,27 @@ begin
     AddFieldNode(
       TransactionNode,
       'LIC_Deduction',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Discounted_Capital_Gain_Before_Discount_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Discounted_Capital_Gain_Before_Discount_Non_Cash',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Cash_CGT_Discounted_Before_Discount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Cash_CGT_Discounted_Before_Discount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Gains_Indexation_Method_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Capital_Gains_Indexation_Method_Non_Cash',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Cash_CGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Cash_CGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Gains_Other_Method_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Capital_Gains_Other_Method_Non_Cash',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Cash_CGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Losses_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Capital_Losses_Non_Cash',
-      FormatFloatForXml(Abs(DissectionExtra^.deSF_Non_Cash_CGT_Capital_Losses), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Dissection^.dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end
   else
   begin
@@ -908,13 +909,13 @@ begin
     AddFieldNode(
       TransactionNode,
       'Other_Income',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Other_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Less_Other_Allowable_Trust_Deductions
     AddFieldNode(
       TransactionNode,
       'Less_Other_Allowable_Trust_Deductions',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Other_Trust_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Other_Trust_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Discounted_Capital_Gain_Before_Discount
     AddFieldNode(
       TransactionNode,
@@ -924,7 +925,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Capital_Gains_CGT_Concessional_Amount',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_CGT_Concession_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_CGT_Concession_Amount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Gain_Indexation_Method
     AddFieldNode(
       TransactionNode,
@@ -939,17 +940,17 @@ begin
     AddFieldNode(
       TransactionNode,
       'Foreign_Discounted_Capital_Gains_Before_Discount',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_CGT_ForeignCGT_Before_Disc), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Foreign_Capital_Gains_Indexation_Method
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Indexation_Method',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_CGT_ForeignCGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Foreign_Capital_Gains_Other_Method
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Other_Method',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_CGT_ForeignCGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid
     AddFieldNode(
@@ -960,12 +961,12 @@ begin
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Indexation_Method_Tax_Paid',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_CGT_TaxPaid_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Foreign_Capital_Gains_Other_Method_Tax_Paid
     AddFieldNode(
       TransactionNode,
       'Foreign_Capital_Gains_Other_Method_Tax_Paid',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_CGT_TaxPaid_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // Assessable_Foreign_Source_Income
     AddFieldNode(
@@ -981,17 +982,17 @@ begin
     AddFieldNode(
       TransactionNode,
       'Australian_Franking_Credits_from_a_New_Zealand_Company',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Other_Net_Foreign_Source_Income
     AddFieldNode(
       TransactionNode,
       'Other_Net_Foreign_Source_Income',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Other_Net_Foreign_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Cash_Distribution
     AddFieldNode(
       TransactionNode,
       'Cash_Distribution',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Cash_Distribution), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Cash_Distribution), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Tax_Exempted_Amounts
     AddFieldNode(
       TransactionNode,
@@ -1016,7 +1017,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Non_Resident_Withholding_Tax',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Other_Expenses
     AddFieldNode(
       TransactionNode,
@@ -1026,30 +1027,46 @@ begin
     AddFieldNode(
       TransactionNode,
       'LIC_Deduction',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_LIC_Deductions), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Discounted_Capital_Gain_Before_Discount_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Discounted_Capital_Gain_Before_Discount_Non_Cash',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Cash_CGT_Discounted_Before_Discount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Gains_Indexation_Method_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Capital_Gains_Indexation_Method_Non_Cash',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Cash_CGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Gains_Other_Method_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Capital_Gains_Other_Method_Non_Cash',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Cash_CGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
     // Capital_Losses_Non_Cash
     AddFieldNode(
       TransactionNode,
       'Capital_Losses_Non_Cash',
-      FormatFloatForXml(Abs(TransactionExtra^.teSF_Non_Cash_CGT_Capital_Losses), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
+end;
+
+function StripBGL360ControlAccountCode( Value : string ) : integer;
+var
+  liPos  : integer;
+  lsControlCode : string;
+begin
+  Value := trim( Value );
+  if Value <> '' then begin
+    liPos := pos( '/', Value);  // Fetch the control account code, if this is a sub account type
+    if liPos = 0 then           // Not a sub account type, so fetch the whole code
+      lsControlCode := Value
+    else
+      lsControlCode := copy( Value, 1, pred( liPos ) ); // Fetch the first characters (or the whole acocunt code if not a sub account)
+    result := StrToIntDef(  lsControlCode ,0 );
+  end;
 end;
 
 procedure DoClassSuperIPTransaction;
@@ -1128,7 +1145,8 @@ begin
     ContraEntries.AppendChild(Entry);
 
     // Transaction Type
-    AccountCode := StrToIntDef(Transaction^.txAccount,0);
+    AccountCode := StripBGL360ControlAccountCode( Transaction^.txAccount );
+//DN BGL360 - Account sub-account fix   AccountCode := StrToIntDef(Transaction^.txAccount,0);
     if AccountCode = cttanDistribution then
     begin
       sAcctHead := 'Distribution_Transaction';
@@ -1172,11 +1190,11 @@ begin
     if TransType in [ ttDividend, ttDistribution] then
     begin
       // AccrualDate
-      AddFieldNode(TransactionNode, 'AccrualDate', Date2Str(TransactionExtra^.teSF_Accrual_Date, FDateMask));
+      AddFieldNode(TransactionNode, 'AccrualDate', Date2Str(Transaction^.txTransaction_Extension^.teSF_Accrual_Date, FDateMask));
       // CashDate
-      AddFieldNode(TransactionNode, 'CashDate', Date2Str(TransactionExtra^.teSF_Cash_Date, FDateMask));
+      AddFieldNode(TransactionNode, 'CashDate', Date2Str(Transaction^.txTransaction_Extension^.teSF_Cash_Date, FDateMask));
       // RecordDate
-      AddFieldNode(TransactionNode, 'RecordDate', Date2Str(TransactionExtra^.teSF_Record_Date, FDateMask));
+      AddFieldNode(TransactionNode, 'RecordDate', Date2Str(Transaction^.txTransaction_Extension^.teSF_Record_Date, FDateMask));
     end
     else if TransType = ttInterest then
     begin
@@ -1288,7 +1306,8 @@ begin
   ContraEntries.AppendChild(Entry);
 
   // Transaction Type
-  AccountCode := StrToIntDef(Dissection^.dsAccount,0);
+  AccountCode := StripBGL360ControlAccountCode( Dissection^.dsAccount );
+//DN BGL360 - Sub-Account fix  AccountCode := StrToIntDef(Dissection^.dsAccount,0);
   if AccountCode = cttanDistribution then
   begin
     sAcctHead := 'Distribution_Transaction';
@@ -1331,11 +1350,11 @@ begin
   if TransType in [ ttDividend, ttDistribution] then
   begin
     // AccrualDate
-    AddFieldNode(TransactionNode, 'AccrualDate', Date2Str(DissectionExtra^.deSF_Accrual_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'AccrualDate', Date2Str(Dissection^.dsDissection_Extension^.deSF_Accrual_Date, FDateMask));
     // CashDate
-    AddFieldNode(TransactionNode, 'CashDate', Date2Str(DissectionExtra^.deSF_Cash_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'CashDate', Date2Str(Dissection^.dsDissection_Extension^.deSF_Cash_Date, FDateMask));
     // RecordDate
-    AddFieldNode(TransactionNode, 'RecordDate', Date2Str(DissectionExtra^.deSF_Record_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'RecordDate', Date2Str(Dissection^.dsDissection_Extension^.deSF_Record_Date, FDateMask));
   end
   else if TransType = ttInterest then
   begin

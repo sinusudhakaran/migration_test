@@ -30,9 +30,9 @@ Procedure SetOnATProc        ( P : ProcPtr );
 
 Var
    Transaction  : pTransaction_Rec;
-   TransactionExtra : pTransaction_Extension_Rec;
+//DN BGL360 - Not required   TransactionExtra : pTransaction_Extension_Rec;
    Dissection   : pDissection_Rec;
-   DissectionExtra : pDissection_Extension_Rec;
+//DN BGL360 - Not required   DissectionExtra : pDissection_Extension_Rec;
    
    Bank_Account : TBank_Account;
    Traverse_From: TstDate;
@@ -435,7 +435,7 @@ Var
    Item              : pTraverseItem;
    Balance           : Money;
    
-   function GetExtraTransctionData:pTransaction_Extension_Rec;
+(*//DN BGL360 - Not required   function GetExtraTransctionData:pTransaction_Extension_Rec;
    begin
     {To get the extra transaction record}
     if not assigned(Transaction^.txTranaction_Extension ) then
@@ -447,6 +447,7 @@ Var
     TransactionExtra := Transaction^.txTranaction_Extension;
 
    end;
+//DN BGL360 - Not required *)
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    
@@ -465,7 +466,7 @@ Begin
         for TNo := Last downto First do
         begin
           Transaction := Transaction_at(TNo);
-          TransactionExtra := GetExtraTransctionData;
+//DN BGL360 - Not required          TransactionExtra := GetExtraTransctionData;
 
           if (Balance <> Unknown) then
           begin
@@ -479,7 +480,7 @@ Begin
         for TNo := Last downto First do
         begin
           Transaction := Transaction_at(TNo);
-          TransactionExtra := GetExtraTransctionData;
+//DN BGL360 - Not required          TransactionExtra := GetExtraTransctionData;
 
           Transaction.txTemp_Balance := Balance;
 
@@ -492,7 +493,7 @@ Begin
          for TNo := 0 to Pred( ItemCount ) do
          Begin
             Transaction := Transaction_At( TNo );
-            TransactionExtra := GetExtraTransctionData;
+//DN BGL360 - Not required            TransactionExtra := GetExtraTransctionData;
             with Transaction^ do
             Begin
                if ( txDate_Effective >=FromDate ) and
@@ -511,7 +512,7 @@ Begin
             for TNo := 0 to Pred( ItemCount ) do
             Begin
                Transaction := Transaction_At( TNo );
-               TransactionExtra := GetExtraTransctionData;
+//DN BGL360 - Not required               TransactionExtra := GetExtraTransctionData;
                
                with Transaction^ do
                Begin

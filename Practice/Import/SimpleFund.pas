@@ -385,11 +385,10 @@ begin
         Msg := 'Error Refreshing Chart the Service could not be reached, please try again later.';
         LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
         HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
-        exit;
       end;
 
   finally
-    RESTServer.Free;
+    freeAndNil( RESTServer );
   end;
 end;
 

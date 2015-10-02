@@ -291,10 +291,10 @@ Begin
       end;
 
       //DN BGL360 Extended Fields
-      if assigned( p^.txTranaction_Extension ) then
-        if BKTEIO.IsATransaction_Extension_Rec( p^.txTranaction_Extension ) then begin
-          BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( p^.txTranaction_Extension^ );
-          MALLOC.SafeFreeMem( p^.txTranaction_Extension, Transaction_Extension_Rec_Size );
+      if assigned( p^.txTransaction_Extension ) then
+        if BKTEIO.IsATransaction_Extension_Rec( p^.txTransaction_Extension ) then begin
+          BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( p^.txTransaction_Extension^ );
+          MALLOC.SafeFreeMem( p^.txTransaction_Extension, Transaction_Extension_Rec_Size );
         end;
       //DN BGL360 Extended Fields
 
@@ -465,13 +465,13 @@ Begin
     if (fBank_Account is TBank_Account) and
        (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
     begin
-      if not assigned( P^.txTranaction_Extension ) then begin
+      if not assigned( P^.txTransaction_Extension ) then begin
         NewTran_Transaction_Extension_Rec := BKTEIO.New_Transaction_Extension_Rec;
         if assigned( NewTran_Transaction_Extension_Rec ) then begin
           NewTran_Transaction_Extension_Rec^.teSequence_No := P^.txSequence_No;
           NewTran_Transaction_Extension_Rec^.teDate_Effective := P^.txDate_Effective;
 
-          P^.txTranaction_Extension := NewTran_Transaction_Extension_Rec;
+          P^.txTransaction_Extension := NewTran_Transaction_Extension_Rec;
         end;
       end;
     end;
@@ -544,9 +544,9 @@ Begin
 
            tkBegin_Transaction_Extension :
              begin
-               if not assigned( PTX^.txTranaction_Extension ) then // The Extension has not beein built yet
-                 PTX^.txTranaction_Extension := New_Transaction_Extension_Rec;
-               Read_Transaction_Extension_Rec( PTX^.txTranaction_Extension^, S )
+               if not assigned( PTX^.txTransaction_Extension ) then // The Extension has not beein built yet
+                 PTX^.txTransaction_Extension := New_Transaction_Extension_Rec;
+               Read_Transaction_Extension_Rec( PTX^.txTransaction_Extension^, S )
              end
 
            else
@@ -656,12 +656,12 @@ Begin
          pDS := pDS^.dsNext;
       end;
 
-      pTXe := pTX^.txTranaction_Extension;
+      pTXe := pTX^.txTransaction_Extension;
       if not assigned( pTXe ) then begin
         pTXe := BKTEIO.New_Transaction_Extension_Rec;
         pTXe^.teSequence_No := pTX^.txSequence_No;
         pTXe^.teDate_Effective := pTX^.txDate_Effective;
-        pTX^.txTranaction_Extension := pTXe;
+        pTX^.txTransaction_Extension := pTXe;
       end;
       BKTEIO.Write_Transaction_Extension_Rec( pTXe^, S );
    end;

@@ -958,7 +958,7 @@ F|IsOnline_Transaction|Y
 F|Suggested Mem State|B
 F|Suggested Mem Index|L
 C|Suggested Manual Count|L
-C|Tranaction_Extension|P|Transaction_Extension_Rec
+C|Transaction_Extension|P|Transaction_Extension_Rec
 E
 N|Transaction Extension|te|162
 F|Sequence No|L

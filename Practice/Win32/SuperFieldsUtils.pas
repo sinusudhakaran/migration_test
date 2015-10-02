@@ -937,39 +937,39 @@ begin
                          ParentTrans^.txSF_Franked,                                              // Franked
                          ParentTrans^.txSF_Unfranked,                                            // Unfranked
                          ParentTrans^.txSF_Interest,                                             // Gross Interest
-                         ParentTrans^.txTranaction_Extension^.teSF_Other_Income,                 // Other Income
-                         ParentTrans^.txTranaction_Extension^.teSF_Other_Trust_Deductions,       // Other Trust Deductions
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_Concession_Amount,        // CGT Concession amounts
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc,
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Indexation,
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Other_Method,
+                         ParentTrans^.txTransaction_Extension^.teSF_Other_Income,                 // Other Income
+                         ParentTrans^.txTransaction_Extension^.teSF_Other_Trust_Deductions,       // Other Trust Deductions
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_Concession_Amount,        // CGT Concession amounts
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method,
 
                          ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                           // Tax Paid Capital Gains discounted before Discount
 
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Indexation,
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Other_Method,
-                         ParentTrans^.txTranaction_Extension^.teSF_Other_Net_Foreign_Income,
-                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Distribution,
-                         ParentTrans^.txTranaction_Extension^.teSF_AU_Franking_Credits_NZ_Co,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Res_Witholding_Tax,
-                         ParentTrans^.txTranaction_Extension^.teSF_LIC_Deductions,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Indexation,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_Brokerage,
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_Consideration,
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Amount,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method,
+                         ParentTrans^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income,
+                         ParentTrans^.txTransaction_Extension^.teSF_Cash_Distribution,
+                         ParentTrans^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax,
+                         ParentTrans^.txTransaction_Extension^.teSF_LIC_Deductions,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_Brokerage,
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_Consideration,
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_GST_Amount,
 
                          ParentTrans^.txSF_CGT_Date,
                          ParentTrans^.txSF_Member_Component,
                          ParentTrans^.txQuantity,                                                // Units
                          ParentTrans^.txAccount,
 
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Rate,
-                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Date,
-                         ParentTrans^.txTranaction_Extension^.teSF_Accrual_Date,
-                         ParentTrans^.txTranaction_Extension^.teSF_Record_Date
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_GST_Rate,
+                         ParentTrans^.txTransaction_Extension^.teSF_Cash_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Accrual_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Record_Date
                        );
     SuperForm.ReadOnly := ( ParentTrans^.txLocked)
                        or ( ParentTrans^.txDate_Transferred <> 0);
@@ -1002,39 +1002,39 @@ begin
                          ParentTrans^.txSF_Unfranked,                                            // Unfranked
                          ParentTrans^.txSF_Interest,                                             // Gross Interest
 
-                         ParentTrans^.txTranaction_Extension^.teSF_Other_Income,                 // Other Income
-                         ParentTrans^.txTranaction_Extension^.teSF_Other_Trust_Deductions,       // Other Trust Deductions
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_Concession_Amount,        // CGT Concession amounts
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc,
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Indexation,
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_ForeignCGT_Other_Method,
+                         ParentTrans^.txTransaction_Extension^.teSF_Other_Income,                 // Other Income
+                         ParentTrans^.txTransaction_Extension^.teSF_Other_Trust_Deductions,       // Other Trust Deductions
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_Concession_Amount,        // CGT Concession amounts
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method,
 
                          ParentTrans^.txSF_Capital_Gains_Foreign_Disc,                           // Tax Paid Capital Gains discounted before Discount
 
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Indexation,
-                         ParentTrans^.txTranaction_Extension^.teSF_CGT_TaxPaid_Other_Method,
-                         ParentTrans^.txTranaction_Extension^.teSF_Other_Net_Foreign_Income,
-                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Distribution,
-                         ParentTrans^.txTranaction_Extension^.teSF_AU_Franking_Credits_NZ_Co,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Res_Witholding_Tax,
-                         ParentTrans^.txTranaction_Extension^.teSF_LIC_Deductions,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Indexation,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
-                         ParentTrans^.txTranaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_Brokerage,
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_Consideration,
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Amount,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation,
+                         ParentTrans^.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method,
+                         ParentTrans^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income,
+                         ParentTrans^.txTransaction_Extension^.teSF_Cash_Distribution,
+                         ParentTrans^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax,
+                         ParentTrans^.txTransaction_Extension^.teSF_LIC_Deductions,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
+                         ParentTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_Brokerage,
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_Consideration,
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_GST_Amount,
 
                          ParentTrans^.txSF_CGT_Date,
                          ParentTrans^.txSF_Member_Component,
                          ParentTrans^.txQuantity,                                                // Units
                          ParentTrans^.txAccount,
 
-                         ParentTrans^.txTranaction_Extension^.teSF_Share_GST_Rate,
-                         ParentTrans^.txTranaction_Extension^.teSF_Cash_Date,
-                         ParentTrans^.txTranaction_Extension^.teSF_Accrual_Date,
-                         ParentTrans^.txTranaction_Extension^.teSF_Record_Date
+                         ParentTrans^.txTransaction_Extension^.teSF_Share_GST_Rate,
+                         ParentTrans^.txTransaction_Extension^.teSF_Cash_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Accrual_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Record_Date
                        );
 
       if ParentTrans^.txSF_Super_Fields_Edited then begin

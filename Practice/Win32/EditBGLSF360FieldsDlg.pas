@@ -301,7 +301,7 @@ uses
   SelectDate,
   WarningMoreFrm,
   SuperFieldsutils,
-  AccountLookupFrm, BKDefs, imagesfrm, bkhelp;
+  AccountLookupFrm, BKDefs, imagesfrm, bkhelp, SimpleFundX;
 
 {$R *.dfm}
 
@@ -871,7 +871,7 @@ begin
   result := ( pos( intToStr( cttanDistribution ), pAcct.chAccount_Code ) <> 0 ) or
             ( pos( intToStr( cttanDividend ), pAcct.chAccount_Code ) <> 0  ) or
             ( pos( intToStr( cttanInterest ), pAcct.chAccount_Code ) <> 0  ) or
-            ( IntRangeToStringPos(
+            ( IsStringNumberInIntegerRange(
                 cttanShareTradeRangeStart,
                 cttanShareTradeRangeEnd,
                 pAcct.chAccount_Code )
@@ -1079,18 +1079,12 @@ end;
 
 procedure TdlgEditBGLSF360Fields.SetTranAccount(const Value: string);
 var
-  liControlCode,
-  liPos  : integer;
-  lsControlCode : string;
+  liControlCode : integer;
 begin
   fTranAccount := Value;
   try
     if trim( Value ) <> '' then begin
-      liPos := pos( '/', Value);  // Fetch the control account code, if this is a sub account type
-      if liPos = 0 then           // Not a sub account type, so fetch the whole code
-        liPos := length( Value );
-      lsControlCode := copy( Value, 1, pred( liPos ) ); // Fetch the first characters (or the whole acocunt code if not a sub account)
-      liControlCode := strToInt( lsControlCode );
+      liControlCode := StripBGL360ControlAccountCode( fTranAccount );
       case liControlCode of
         cttanDistribution      : TransactionType := ttDistribution;
         cttanDividend          : TransactionType := ttDividend;

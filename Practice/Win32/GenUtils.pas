@@ -171,7 +171,7 @@ function TrimLeadZ( const S : ShortString ) : ShortString;
 
 function CombineInt32ToInt64( aHigh, aLow : integer ) : Int64;
 
-function IntRangeToStringPos(aLow, aHigh : integer; InStr :string ) : boolean;
+function IsStringNumberInIntegerRange(aLow, aHigh : integer; InStr :string ) : boolean;
 
 
 //******************************************************************************
@@ -1467,7 +1467,7 @@ begin
   result := (High shl 31 ) or Low;
 end;
 
-function IntRangeToStringPos(aLow, aHigh : integer; InStr :string ) : boolean;
+function IsStringNumberInIntegerRange(aLow, aHigh : integer; InStr :string ) : boolean;
 var
   li : integer;
 begin
