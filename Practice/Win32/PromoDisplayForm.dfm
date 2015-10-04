@@ -4,12 +4,12 @@ object PromoDisplayFrm: TPromoDisplayFrm
   BorderIcons = [biMinimize]
   BorderStyle = bsSingle
   Caption = ' '
-  ClientHeight = 811
-  ClientWidth = 594
+  ClientHeight = 556
+  ClientWidth = 638
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
@@ -20,55 +20,58 @@ object PromoDisplayFrm: TPromoDisplayFrm
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 17
   object pnlControls: TPanel
     Left = 0
-    Top = 773
-    Width = 594
-    Height = 38
+    Top = 514
+    Width = 638
+    Height = 42
     Align = alBottom
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
     TabOrder = 0
+    ExplicitTop = 1019
+    ExplicitWidth = 777
     DesignSize = (
-      594
-      38)
+      638
+      42)
     object ShapeBotBorder: TShape
       Left = 0
       Top = 0
-      Width = 594
+      Width = 638
       Height = 1
       Align = alTop
       Pen.Color = clSilver
-      ExplicitWidth = 645
+      ExplicitWidth = 777
     end
     object btnClose: TBitBtn
-      Left = 510
-      Top = 8
-      Width = 75
-      Height = 25
+      Left = 534
+      Top = 6
+      Width = 98
+      Height = 33
       Anchors = [akRight, akBottom]
       Caption = 'Close'
       TabOrder = 0
       OnClick = btnCloseClick
+      ExplicitLeft = 673
     end
     object cbHidePromo: TCheckBox
-      Left = 8
-      Top = 11
-      Width = 245
-      Height = 17
+      Left = 10
+      Top = 14
+      Width = 321
+      Height = 23
       Caption = 'Dont show this again'
       TabOrder = 1
       Visible = False
     end
   end
   object pnlFrames: TPanel
-    Left = 64
-    Top = 144
-    Width = 393
-    Height = 209
+    Left = 84
+    Top = 188
+    Width = 514
+    Height = 274
     AutoSize = True
     BevelOuter = bvNone
     ParentColor = True
@@ -78,9 +81,9 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Height = 32
     Width = 32
     Left = 32
-    Top = 624
+    Top = 336
     Bitmap = {
-      494C010102004800600020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102004800680020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

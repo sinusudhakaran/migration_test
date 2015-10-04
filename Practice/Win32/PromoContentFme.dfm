@@ -2,7 +2,7 @@ object PromoContentFrame: TPromoContentFrame
   Left = 0
   Top = 0
   Width = 500
-  Height = 507
+  Height = 503
   Margins.Left = 10
   Margins.Top = 10
   Margins.Right = 10
@@ -36,22 +36,22 @@ object PromoContentFrame: TPromoContentFrame
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 34
+    Top = 64
     Width = 480
-    Height = 13
+    Height = 16
     Margins.Left = 10
     Margins.Right = 10
     Align = alTop
     Caption = 'v xcv xcvxcvxc'
     WordWrap = True
     BorderSides = []
-    ExplicitWidth = 74
+    ExplicitTop = 86
   end
   object imgContainer: TImage
     Left = 0
-    Top = 113
+    Top = 119
     Width = 500
-    Height = 394
+    Height = 384
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16423,9 +16423,9 @@ object PromoContentFrame: TPromoContentFrame
   object lblDescResize: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 90
+    Top = 93
     Width = 480
-    Height = 13
+    Height = 16
     Margins.Left = 10
     Margins.Top = 10
     Margins.Right = 10
@@ -16434,13 +16434,12 @@ object PromoContentFrame: TPromoContentFrame
     Caption = 'Title comes here'
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 116
-    ExplicitWidth = 78
+    ExplicitWidth = 96
   end
   object reDescription: TcxRichEdit
     AlignWithMargins = True
     Left = 10
-    Top = 51
+    Top = 32
     Margins.Left = 10
     Margins.Top = 1
     Margins.Right = 10
@@ -16454,6 +16453,7 @@ object PromoContentFrame: TPromoContentFrame
     StyleFocused.BorderStyle = ebsNone
     StyleHot.BorderStyle = ebsNone
     TabOrder = 0
+    ExplicitTop = 54
     Height = 28
     Width = 480
   end

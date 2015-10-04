@@ -32,7 +32,7 @@ type
     {Page navigation component which has left arrow, right arrow and circle images
     equal to the no of pages. This is visible only if the no of pages > 1.}
     PageNavigation : TPageNavigation;
-
+    procedure SetSize;
     procedure lblRightArrowClick(Sender: TObject);
     procedure lblLeftArrowClick(Sender: TObject);
     procedure PageImageClick(Sender: TObject);
@@ -214,11 +214,11 @@ procedure TPromoDisplayFrm.FormCreate(Sender: TObject);
 begin
   FrameList := TObjectList.Create;
   PageNavigation := TPageNavigation.Create(self);
-
+  SetSize;
   PageNavigation.Visible := False;
   PageNavigation.Parent := Self;//pnlMoveControls;
-  PageNavigation.Height := 44;
-  PageNavigation.Width := 600;
+  PageNavigation.Height := 40;
+  PageNavigation.Width := Self.Width;
   PageNavigation.ImageList := PageImages;
   PageNavigation.OnLeftArrowClick := lblRightArrowClick;
   PageNavigation.OnRightArrowClick := lblLeftArrowClick;
@@ -244,10 +244,11 @@ end;
 
 procedure TPromoDisplayFrm.FormShow(Sender: TObject);
 begin
+  SetSize;
   if Assigned(DisplayPromoContents) then
   begin
     DisplayPromoContents.SortContentfulData;
-    DisplayPromoContents.PromoMainWindowHeight := 840-pnlControls.Height - PageNavigation.Height ;//pnlMoveControls.Height;
+    DisplayPromoContents.PromoMainWindowHeight := Self.ClientHeight - pnlControls.Height - PageNavigation.Height ;//pnlMoveControls.Height;
     DisplayPromoContents.NoOfPagesRequired := CalculatePagesRequired;
     DisplayPromoContents.SortContentfulData;
     PageNavigation.NoOfPages := DisplayPromoContents.NoOfPagesRequired;
@@ -298,6 +299,12 @@ procedure TPromoDisplayFrm.PageImageClick(Sender: TObject);
 begin
   inherited;
   DisplayPage(PageNavigation.CurrentPage);
+end;
+
+procedure TPromoDisplayFrm.SetSize;
+begin
+  Self.Width := Screen.Width * 1 div 3;
+  Self.Height := Screen.Height * 3 div 4;
 end;
 
 end.
