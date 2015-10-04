@@ -1788,8 +1788,7 @@ begin
   end
   else
   begin
-    if Assigned(AdminSystem) then
-      result := ssProcessing;
+    result := ssProcessing;
   end;
 end;
 
