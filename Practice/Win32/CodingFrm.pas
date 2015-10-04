@@ -3035,8 +3035,7 @@ begin
   if NeedReCoding then
     DoRecodeEntries();
 
-  if SuggMemPopup.Showing then
-    SuggMemPopup.Close;
+  CloseSuggMemPopup();
 
   DoSuggestedMemsDoneProcessing();
 
@@ -7429,7 +7428,7 @@ begin
     pnlSearch.Height := 0;
 
   tblCoding.invalidate();
-  SuggMemPopup.Close;
+  CloseSuggMemPopup();
   ShowHintForCell(tblCoding.ActiveRow, tblCoding.ActiveCol);
 
   miSearch.Checked  := Value;
@@ -7614,6 +7613,7 @@ procedure TfrmCoding.CloseClick(Sender: TObject);
 begin
    Close;
 end;
+
 procedure TfrmCoding.CloseSuggMemPopup;
 begin
   if Assigned(frmSuggMemPopup) then
@@ -7848,7 +7848,7 @@ procedure TfrmCoding.btnHideClick(Sender: TObject);
 begin
   if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
   begin
-    SuggMemPopup.Close;
+    CloseSuggMemPopup();
 
     SuggestedMem.UpdateSuggestion(BankAccount, SelectedSuggestedMemId, true);
     SelectedSuggestedMemId := TRAN_SUGG_NOT_FOUND;
@@ -7862,7 +7862,7 @@ end;
 procedure TfrmCoding.btnLaterClick(Sender: TObject);
 begin
   MyClient.SuggMemsHidePopupOnCoding := true;
-  SuggMemPopup.Close;
+  CloseSuggMemPopup();
 end;
 
 //------------------------------------------------------------------------------
@@ -8365,8 +8365,7 @@ begin
   end
   else
   begin
-    if SuggMemPopup.Showing then
-      SuggMemPopup.Close;
+    CloseSuggMemPopup();
   end;
 
   if not SuggMemPopup.Showing then
@@ -10728,12 +10727,7 @@ begin
     LogUtil.LogMsg(lmDebug, UnitName, 'Enter UpdateTabs');
 
   if aActionedPage <> Caption then
-    if assigned(frmSuggMemPopup) then
-      if SuggMemPopup.HandleAllocated then
-        if SuggMemPopup.Showing then
-          SuggMemPopup.Close;
-
-
+    CloseSuggMemPopup();
 
   frmMain.UpdateTabs(tcWindows, aActionedPage);
   tcWindows.Visible := tcWindows.Tabs.Count > 2;
