@@ -43,13 +43,15 @@ type
     fManualCount : integer;
     fUnCodedCount : integer;
     fMatchedPhrase : string;
+  protected
+    procedure SetMatchedPhrase(aValue : string);
   public
     procedure Refresh();
 
     property FlipPopup : boolean read fFlipPopup write fFlipPopup;
     property ManualCount : integer read fManualCount write fManualCount;
     property UnCodedCount : integer read fUnCodedCount write fUnCodedCount;
-    property MatchedPhrase : string read fMatchedPhrase write fMatchedPhrase;
+    property MatchedPhrase : string read fMatchedPhrase write SetMatchedPhrase;
   end;
 
 implementation
@@ -248,6 +250,11 @@ begin
     imgBackground.Canvas.CopyRect(DestRect, imgBufferFlip.Canvas, SrcRect)
   else
     imgBackground.Canvas.CopyRect(DestRect, imgBuffer.Canvas, SrcRect);
+end;
+
+procedure TfrmSuggMemPopup.SetMatchedPhrase(aValue: string);
+begin
+  fMatchedPhrase := StringReplace(aValue, '&', '&&', [rfReplaceAll]);;
 end;
 
 end.
