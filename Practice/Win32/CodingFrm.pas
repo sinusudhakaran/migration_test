@@ -8322,7 +8322,7 @@ begin
   FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
   CustomHint := '';
 
-  if (MEMSINI_SupportOptions = meiDisableSuggestedMems) then
+  if (MEMSINI_SupportOptions = meiDisableSuggestedMems) or (Not Assigned(AdminSystem)) then
   begin
     ShowNormalHint();
     Exit;
