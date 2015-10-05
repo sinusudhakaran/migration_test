@@ -5,9 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, WPRTEDefs, WPCTRMemo, WPCTRRich, StdCtrls, RzLabel, ComCtrls,
-  OleCtrls, SHDocVw, cxGraphics, cxControls, cxLookAndFeels,
-  cxLookAndFeelPainters, cxContainer, cxEdit, cxTextEdit, cxMemo, cxRichEdit,
-  RzEdit, ExtCtrls, PromoWindowObj, OSFont, RichEdit;
+  OleCtrls, SHDocVw,  RzEdit, ExtCtrls, PromoWindowObj, OSFont, RichEdit;
 
 type
   TPromoStyles = (psHeading1, psHeading2, psHeading3, psBold, psItalics,
@@ -17,12 +15,8 @@ type
     lblTitle: TRzLabel;
     lblURL: TRzLabel;
     imgContainer: TImage;
-    lblDescResize: TRzLabel;
-    reDescription: TcxRichEdit;
-    procedure reDescriptionPropertiesURLClick(Sender: TcxCustomRichEdit;
-      const URLText: string; Button: TMouseButton);
-    procedure reDescriptionPropertiesResizeRequest(Sender: TObject;
-      Rect: TRect);
+    reDescription: TRichEdit;
+    procedure reDescriptionResizeRequest(Sender: TObject; Rect: TRect);
   private
     { Private declarations }
     FStartPosition : Integer;
@@ -49,58 +43,6 @@ uses ShellAPI;
 {$R *.dfm}
 
 { TPromoContentFrame }
-
-Function GetTextHeightOfRichEdit(Const RichEdit : TcxCustomRichEdit) : Integer;
-Var
-  Range: TFormatRange;
-  LastChar, MaxLen, OldMap, LogX, LogY : Integer;
-  SaveRect: TRect;
-  DC : HDC;
-Begin
-    Result := 0;
-    Application.ProcessMessages;
-    { We want to use the control itself as rendering DC: }
-    DC := GetDC(RichEdit.Handle);
-    LogX := GetDeviceCaps(DC, LOGPIXELSX);
-    LogY := GetDeviceCaps(DC, LOGPIXELSY);
-
-    FillChar(Range, SizeOf(TFormatRange), 0);
-    with Range do
-    begin
-          hdc := DC;
-          hdcTarget := DC;
-          rc.left := 0;
-          rc.top := 0;
-          { The width of RichEdit will stay as it is, we want to know the
-            height of the text that fits in
-            this width (converted to TWIPS): }
-          rc.right := RichEdit.ClientWidth * 1440 div LogX;
-          rc.bottom := 0;
-          rcPage := rc;
-          { Whole text: }
-          chrg.cpMax := -1;
-    End;
-
-    SaveRect := Range.rc;
-    LastChar := 0;
-    MaxLen := RichEdit.GetTextLen;
-
-    OldMap := SetMapMode(Range.hdc, MM_TEXT);
-    SendMessage(RichEdit.Handle, EM_FORMATRANGE, 0, 0);
-    try
-          repeat
-              Range.rc := SaveRect;
-              Range.chrg.cpMin := LastChar;
-              LastChar := SendMessage(RichEdit.Handle, EM_FORMATRANGE, 0,LongInt(@Range));
-              Inc(Result, (Range.rc.Bottom * LogY Div 1440));
-          until (LastChar >= MaxLen) or (LastChar = -1);
-    finally
-          SendMessage(RichEdit.Handle, EM_FORMATRANGE, 0, 0);
-          SetMapMode(Range.hdc, OldMap);
-          ReleaseDC(RichEdit.Handle, DC);
-    end;
-    Application.ProcessMessages;
-End;
 
 constructor TPromoContentFrame.Create(Sender: TComponent; Content: TContentfulObj);
 var
@@ -131,10 +73,8 @@ begin
   Self.Width := TForm(Sender).Width;
   Self.Height := TForm(Sender).Height;
   lblTitle.Width := Self.Width;
-  lblDescResize.Width := Self.Width;
   reDescription.Width := Self.Width;
   lblURL.Width := Self.Width;
-  Self.AutoSize := True;
 
   lblTitle.Font.Color := HyperLinkColor;
   lblTitle.Font.Size := 14;
@@ -142,13 +82,9 @@ begin
   lblTitle.Caption := Trim(Content.Title);
 
   reDescription.Clear;
-  lblDescResize.Caption := Trim(Content.Description);
-
   reDescription.Lines.Add(Trim(Content.Description));
-  //reDescription.Lines.Add('');
-  reDescription.Height := lblDescResize.Height + 5;
   ApplyTextFormatting;
-  lblDescResize.Visible := False;
+
   imgContainer.Visible := Content.IsImageAvilable;
   lblURL.Visible := (Trim(Content.URL) <> '');
 
@@ -158,6 +94,8 @@ begin
   if Content.IsImageAvilable then
     imgContainer.Picture.Assign(Content.MainImageBitmap);
   FStartPosition := 0;
+  
+  Self.AutoSize := True;
 end;
 
 function TPromoContentFrame.DeleteRichText(aStart, aLength: Integer):string;
@@ -248,20 +186,13 @@ begin
   //aCharIndex := aCharIndex + 1;
 end;
 
-procedure TPromoContentFrame.reDescriptionPropertiesResizeRequest(
-  Sender: TObject; Rect: TRect);
-var
-  i, j : Integer;
-begin
-  i := TcxRichEdit(Sender).ClientRect.Left;
-  j := TcxRichEdit(Sender).ClientRect.Bottom;
-end;
+//ShellExecute(0, 'OPEN', PChar(URLText), '', '', SW_SHOWNORMAL);
 
-procedure TPromoContentFrame.reDescriptionPropertiesURLClick(
-  Sender: TcxCustomRichEdit; const URLText: string; Button: TMouseButton);
+procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
+  Rect: TRect);
 begin
-  if Trim(URLText) <> '' then
-    ShellExecute(0, 'OPEN', PChar(URLText), '', '', SW_SHOWNORMAL);
+  reDescription.Height := Rect.Bottom - Rect.Top;
+  reDescription.HideScrollBars := True;
 end;
 
 procedure TPromoContentFrame.FormatRichText(aFormatChar: string; aIsEndCharAvailable:Boolean;PromoStyle: TPromoStyles);
@@ -274,7 +205,7 @@ begin
   if aIsEndCharAvailable then
     iEndPos := reDescription.FindText(aFormatChar,iStartPos,Length(reDescription.Text),[])
   else
-    iEndPos := reDescription.FindText(#$D,iStartPos,Length(reDescription.Text),[]);
+    iEndPos := reDescription.FindText(#$A,iStartPos,Length(reDescription.Text),[]);
 
   SubDesc := GetRichText(iStartPos, iEndPos-iStartPos);
   if aIsEndCharAvailable then
@@ -290,22 +221,22 @@ var
 begin
   FoundPos := reDescription.FindText(AText, FStartPosition, Length(reDescription.Text), []);
   reDescription.SelStart := FoundPos;
-  reDescription.SelLength := Length(Trim(AText))+1;
+  reDescription.SelLength := Length(Trim(AText)) + 1;
   case PromoStyle of
     psHeading1:
     begin
       reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
-      reDescription.SelAttributes.Size := 10;
+      reDescription.SelAttributes.Size := 12;
     end;
     psHeading2:
     begin
       reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
-      reDescription.SelAttributes.Size := 9;
+      reDescription.SelAttributes.Size := 11;
     end;
     psHeading3:
     begin
       reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
-      reDescription.SelAttributes.Size := 8;
+      reDescription.SelAttributes.Size := 10;
     end;
     psBold: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
     psItalics: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsItalic];

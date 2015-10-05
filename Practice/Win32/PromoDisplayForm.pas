@@ -36,9 +36,11 @@ type
     procedure lblRightArrowClick(Sender: TObject);
     procedure lblLeftArrowClick(Sender: TObject);
     procedure PageImageClick(Sender: TObject);
+
     { Private declarations }
     function CalculatePagesRequired: Integer;
     procedure DisplayPage(aPageIndex : Integer);
+
     procedure OnURLMouseEnter(Sender : TObject);
     procedure OnURLMouseLeave(Sender : TObject);
     procedure OnURLClick(Sender : TObject);
@@ -147,7 +149,7 @@ begin
           PageIndex := 0;
 
         Content.PageIndexWhereToDisplay := PageIndex;
-        TotalHeight := 0;
+        TotalHeight := Content.FrameHeightRequired;
       end;
     end;
   end;

@@ -32,8 +32,6 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Caption = ' '
     ParentBackground = False
     TabOrder = 0
-    ExplicitTop = 1019
-    ExplicitWidth = 777
     DesignSize = (
       638
       42)
@@ -44,18 +42,16 @@ object PromoDisplayFrm: TPromoDisplayFrm
       Height = 1
       Align = alTop
       Pen.Color = clSilver
-      ExplicitWidth = 777
     end
     object btnClose: TBitBtn
       Left = 534
-      Top = 6
+      Top = 7
       Width = 98
-      Height = 33
+      Height = 32
       Anchors = [akRight, akBottom]
       Caption = 'Close'
       TabOrder = 0
       OnClick = btnCloseClick
-      ExplicitLeft = 673
     end
     object cbHidePromo: TCheckBox
       Left = 10
@@ -68,10 +64,10 @@ object PromoDisplayFrm: TPromoDisplayFrm
     end
   end
   object pnlFrames: TPanel
-    Left = 84
-    Top = 188
+    Left = 73
+    Top = 94
     Width = 514
-    Height = 274
+    Height = 273
     AutoSize = True
     BevelOuter = bvNone
     ParentColor = True
@@ -83,7 +79,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Left = 32
     Top = 336
     Bitmap = {
-      494C010102004800680020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102004800700020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

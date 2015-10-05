@@ -36,7 +36,7 @@ object PromoContentFrame: TPromoContentFrame
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 64
+    Top = 61
     Width = 480
     Height = 16
     Margins.Left = 10
@@ -45,13 +45,13 @@ object PromoContentFrame: TPromoContentFrame
     Caption = 'v xcv xcvxcvxc'
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 86
+    ExplicitWidth = 80
   end
   object imgContainer: TImage
     Left = 0
-    Top = 119
+    Top = 80
     Width = 500
-    Height = 384
+    Height = 423
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16420,41 +16420,25 @@ object PromoContentFrame: TPromoContentFrame
     ExplicitTop = 141
     ExplicitHeight = 342
   end
-  object lblDescResize: TRzLabel
-    AlignWithMargins = True
-    Left = 10
-    Top = 93
-    Width = 480
-    Height = 16
-    Margins.Left = 10
-    Margins.Top = 10
-    Margins.Right = 10
-    Margins.Bottom = 10
-    Align = alTop
-    Caption = 'Title comes here'
-    WordWrap = True
-    BorderSides = []
-    ExplicitWidth = 96
-  end
-  object reDescription: TcxRichEdit
+  object reDescription: TRichEdit
     AlignWithMargins = True
     Left = 10
     Top = 32
+    Width = 480
+    Height = 25
     Margins.Left = 10
     Margins.Top = 1
     Margins.Right = 10
     Margins.Bottom = 1
     Align = alTop
-    Properties.AllowObjects = True
-    Properties.AutoURLDetect = True
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BorderStyle = bsNone
+    HideScrollBars = False
     Lines.Strings = (
       'reDescription')
-    Style.BorderStyle = ebsNone
-    StyleFocused.BorderStyle = ebsNone
-    StyleHot.BorderStyle = ebsNone
+    ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitTop = 54
-    Height = 28
-    Width = 480
+    OnResizeRequest = reDescriptionResizeRequest
   end
 end
