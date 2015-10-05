@@ -102,10 +102,10 @@ begin
     Result := 0;
 
   if Result = 0 then
-    Result := CompareValue(MemTranItem1.SequenceNo, MemTranItem2.SequenceNo);
+    Result := -CompareValue(MemTranItem1.DateEffective, MemTranItem2.DateEffective);
 
   if Result = 0 then
-    Result := CompareValue(MemTranItem1.DateEffective, MemTranItem2.DateEffective);
+    Result := -CompareValue(MemTranItem1.SequenceNo, MemTranItem2.SequenceNo);
 end;
 
 //------------------------------------------------------------------------------
