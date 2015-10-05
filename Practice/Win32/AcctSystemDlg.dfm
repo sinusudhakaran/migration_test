@@ -1,7 +1,7 @@
 object dlgAcctSystem: TdlgAcctSystem
   Left = 473
   Top = 83
-  ActiveControl = gbType
+  ActiveControl = rbAccounting
   BorderStyle = bsDialog
   Caption = 'Maintain Accounting System'
   ClientHeight = 550
@@ -128,7 +128,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 17
       Anchors = [akLeft, akBottom]
       AutoSize = False
-      Caption = 'No Fund selected'
     end
     object eFrom: TEdit
       Left = 140

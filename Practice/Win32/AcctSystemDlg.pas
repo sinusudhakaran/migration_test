@@ -448,8 +448,8 @@ begin
 //DN Not required    BGLServerNoSignRequired := True;
     btnConnectBGL.Caption := 'BGL Sign in';
     btnConnectBGL.Hint    := 'Sign in and select a Fund to refresh the client''s Chart of Accounts from';
-    lblBGL360FundName.Caption := 'No Fund selected';
-    lblBGL360FundName.Font.Color := clRed;
+    lblBGL360FundName.Caption := '';
+    lblBGL360FundName.Font.Color := clWindowText;
     BGLServer := TBGLServer.Create(Nil,
                         DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
                         DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
@@ -474,6 +474,10 @@ begin
         if Trim(MyClient.clExtra.ceBGLFundNameSelected) <> '' then begin
           lblBGL360FundName.Caption := MyClient.clExtra.ceBGLFundNameSelected ;
           lblBGL360FundName.Font.Color := clWindowText;
+        end
+        else begin
+          lblBGL360FundName.Caption := 'No Fund selected';
+          lblBGL360FundName.Font.Color := clRed;
         end;
       end;
     finally
@@ -574,10 +578,14 @@ begin
             if assigned(AdminSystem)
             and AdminSystem.DualAccountingSystem then begin
                gbType.Visible := True;
-               if software.IsSuperFund(whAustralia,clAccounting_System_Used) then
-                  rbSuper.Checked := True
-               else
+               if software.IsSuperFund(whAustralia,clAccounting_System_Used) then begin
+                  rbSuper.Checked := True;
+                  ActiveControl := rbSuper;
+               end
+               else begin
                   rbAccounting.Checked := True;
+                  ActiveControl := rbAccounting;
+               end;
             end else
                gbType.Visible := False;
             FillSystemList;
