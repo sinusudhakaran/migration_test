@@ -718,6 +718,7 @@ var
   Prefix: string;
   SystemMem: TMemorisation;
   DeleteSelectedMem: boolean;
+  Sequence_No : integer;
 begin
   if(lvMemorised.Selected = nil) then
      Exit; // nothing selected
@@ -748,6 +749,7 @@ begin
        Prefix := AccSel.Text;
      pM := TMemorisation( Selected.SubItems.Objects[0] );
      DeleteSelectedMem := False;
+     Sequence_No := pM.mdFields^.mdSequence_No;
      if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix, -1) then begin
         //Set changed to true so that CES reloads edited transactions
         FMemorisationChanged := True;
@@ -762,13 +764,13 @@ begin
           // See if we can find the last edited one..
           for I := 0 to lvMemorised.items.Count - 1 do
           begin
-             if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = pM.mdFields^.mdSequence_No) then
-             begin
-                lvMemorised.Selected := nil; //Deselect all..
-                lvMemorised.Selected := lvMemorised.Items[I];
-                lvMemorised.Selected.Focused := True;
-                Break;
-             end;
+            if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = Sequence_No) then
+            begin
+              lvMemorised.Selected := nil; //Deselect all..
+              lvMemorised.Selected := lvMemorised.Items[I];
+              lvMemorised.Selected.Focused := True;
+              Break;
+            end;
           end;
         end;
 

@@ -2837,6 +2837,10 @@ var
   FormResult : Integer;
   Mems: TMemorisations_List;
   pMCopy: TMemorisation;
+  LineIndex : integer;
+  CodedTo   : string;
+  MemDesc   : string;
+  CodeType  : string;
 
 begin
   Result := false;
@@ -2995,7 +2999,7 @@ begin
        FormResult := ShowModal();
        
        case FormResult of
-         mrok, mrCopy : 
+         mrok, mrCopy :
          begin
            //save new values back
            if chkMaster.Checked and Assigned(AdminSystem) then 
@@ -3166,6 +3170,21 @@ begin
              Result := true;
          end;   }
          mrDelete : begin
+           CodedTo := '';
+           for LineIndex := pM.mdLines.First to pM.mdLines.Last do
+           begin
+             MemLine := pM.mdLines.MemorisationLine_At(LineIndex);
+             if MemLine^.mlAccount <> '' then
+               CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
+           end;
+           CodeType := MyClient.clFields.clShort_Name[pM.mdFields.mdType];
+           MemDesc := #13 +'Coded To '+CodedTo + #13 + 'Entry Type is '+IntToStr(pM.mdFields.mdType) + ':' + CodeType;
+
+           if pM.mdFields.mdFrom_Master_List then
+             LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Master Memorisation '+ MemDesc)
+           else
+             LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Memorisation '+ MemDesc);
+
            if pM.mdFields.mdFrom_Master_List then
            begin
              MemorisedList.DelFreeItem(pM);
@@ -3175,6 +3194,7 @@ begin
            begin
              ba.baMemorisations_List.DelFreeItem(pM);
            end;
+
            Result := True;
          end
          else if iscopy then begin
