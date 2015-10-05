@@ -1,6 +1,7 @@
 object dlgMemorise: TdlgMemorise
   Left = 345
   Top = 246
+  ActiveControl = cRef
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Memorise Transaction'
   ClientHeight = 812
@@ -10,12 +11,14 @@ object dlgMemorise: TdlgMemorise
   Constraints.MinWidth = 570
   DefaultMonitor = dmMainForm
   ParentFont = True
+  KeyPreview = True
   OldCreateOrder = True
   Position = poScreenCenter
   Scaled = False
   ShowHint = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -686,6 +689,7 @@ object dlgMemorise: TdlgMemorise
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitTop = -1
     DesignSize = (
       1069
       207)

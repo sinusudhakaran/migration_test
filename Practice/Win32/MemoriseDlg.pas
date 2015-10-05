@@ -311,6 +311,7 @@ type
     procedure btnDeleteClick(Sender: TObject);
     procedure cEntryClick(Sender: TObject);
     procedure eStatementDetailsChange(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -796,6 +797,78 @@ begin
   treView.Items.Clear;
   FreeAndNil(fMemTranSortedList);
   FreeAndNil(fMasterTreeThread);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+const
+  VK_R = 82;
+  VK_T = 84;
+  VK_A = 65;
+  VK_P = 80;
+  VK_N = 78;
+  VK_B = 66;
+begin
+  if fShowMoreOptions then
+    Exit;
+
+  if (ssAlt in Shift) then
+  begin
+    if Key = VK_R then
+    begin
+      if not cRef.Visible then
+        Exit;
+
+      fShowMoreOptions := not fShowMoreOptions;
+      UpdateMoreOptions();
+      cRefClick(Sender);
+    end
+    else if Key = VK_T then
+    begin
+      if not cOther.Visible then
+        Exit;
+
+      fShowMoreOptions := not fShowMoreOptions;
+      UpdateMoreOptions();
+      cOtherClick(Sender);
+    end
+    else if (Key = VK_B) and (MyClient.clFields.clCountry = whAustralia) then
+    begin
+      if not cCode.Visible then
+        Exit;
+
+      fShowMoreOptions := not fShowMoreOptions;
+      UpdateMoreOptions();
+      cCodeClick(Sender);
+    end
+    else if (Key = VK_A) and (MyClient.clFields.clCountry = whNewZealand) then
+    begin
+      if not cCode.Visible then
+        Exit;
+
+      fShowMoreOptions := not fShowMoreOptions;
+      UpdateMoreOptions();
+      cCodeClick(Sender);
+    end
+    else if Key = VK_P then
+    begin
+      if not cPart.Visible then
+        Exit;
+
+      fShowMoreOptions := not fShowMoreOptions;
+      UpdateMoreOptions();
+      cPartClick(Sender);
+    end
+    else if Key = VK_N then
+    begin
+      if not cNotes.Visible then
+        Exit;
+
+      fShowMoreOptions := not fShowMoreOptions;
+      UpdateMoreOptions();
+      cNotesClick(Sender);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
