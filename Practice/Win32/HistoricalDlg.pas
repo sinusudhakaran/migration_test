@@ -1031,7 +1031,7 @@ begin
 
    tblHist.AllowRedraw := false;
    try
-      pT := New_Transaction_Rec;
+      pT := New_Transaction;
       pT.txBank_Account := TObject( BankAccount );
       pT.txClient := TObject( MyClient );
       with tblHist do begin
@@ -4035,7 +4035,7 @@ begin
       try
          for ChequeNo := CheqNumberFrom to CheqNumberTo do begin
             if not ( ExistingCheques.ChequeIsThere( ChequeNo) or HistCheques.ChequeIsThere( ChequeNo)) then begin
-               pT := New_Transaction_Rec;
+               pT := New_Transaction;
                pT.txBank_Account := TObject( BankAccount );
                pT.txClient := TObject( MyClient );
 
