@@ -214,30 +214,8 @@ begin
   pT^.txSF_Transaction_ID := -1;
   pT^.txSF_Transaction_Code := '';
   pT^.txSF_Capital_Gains_Fraction_Half := false;
-  pT^.txTransaction_Extension^.teSF_Other_Income := 0;
-  pT^.txTransaction_Extension^.teSF_Other_Trust_Deductions := 0;
-  pT^.txTransaction_Extension^.teSF_CGT_Concession_Amount := 0;
-  pT^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc := 0;
-  pT^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation := 0;
-  pT^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method := 0;
-  pT^.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation := 0;
-  pT^.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method := 0;
-  pT^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income := 0;
-  pT^.txTransaction_Extension^.teSF_Cash_Distribution := 0;
-  pT^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co := 0;
-  pT^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax := 0;
-  pT^.txTransaction_Extension^.teSF_LIC_Deductions := 0;
-  pT^.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount := 0;
-  pT^.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation := 0;
-  pT^.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method := 0;
-  pT^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses := 0;
-  pT^.txTransaction_Extension^.teSF_Share_Brokerage := 0;
-  pT^.txTransaction_Extension^.teSF_Share_Consideration := 0;
-  pT^.txTransaction_Extension^.teSF_Share_GST_Amount := 0;
-  pT^.txTransaction_Extension^.teSF_Share_GST_Rate := '';
-  pT^.txTransaction_Extension^.teSF_Cash_Date := 0;
-  pT^.txTransaction_Extension^.teSF_Accrual_Date := 0;
-  pT^.txTransaction_Extension^.teSF_Record_Date := 0;
+  if assigned( pT^.txTransaction_Extension ) then       // Extension Record has been created, so clear it
+    ClearSuperFundFields( pT^.txTransaction_Extension ); // Clear Extension Record 
 end;
 
 procedure  ClearSuperFundFields( pD : pDissection_Rec); overload;

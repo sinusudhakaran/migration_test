@@ -10,8 +10,7 @@ uses
   bkdefs,
   ecollect,
   iostream,
-  AuditMgr,
-  teList32;
+  AuditMgr;
 
 type
   //----------------------------------------------------------------------------
@@ -105,7 +104,9 @@ type
 
 
     function New_Transaction : pTransaction_Rec;
-    function New_Transaction_Extension_Rec: pTransaction_Extension_Rec;
+    function New_Transaction_Extension: pTransaction_Extension_Rec;
+    function New_Dissection : pDissection_Rec;
+    function New_Dissection_Extension: pDissection_Extension_Rec;
 
     // Effective date
     // Note: returns 0 zero or first/last date of Effective Date
@@ -461,11 +462,16 @@ Begin
       FTran_Transaction_Code_Index.Insert( NewTran_Transaction_Code_Index_Rec );
     end;
 
-    // Build additional BGL360 fields
+    // Set additional BGL360 fields
     if (fBank_Account is TBank_Account) and
        (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
     begin
-      if not assigned( P^.txTransaction_Extension ) then begin
+      if assigned( P^.txTransaction_Extension ) then begin
+        P^.txTransaction_Extension^.teSequence_No := P^.txSequence_No;
+        P^.txTransaction_Extension^.teDate_Effective := P^.txDate_Effective;
+      end;
+(*
+//DN Redundant code      if not assigned( P^.txTransaction_Extension ) then begin
         NewTran_Transaction_Extension_Rec := BKTEIO.New_Transaction_Extension_Rec;
         if assigned( NewTran_Transaction_Extension_Rec ) then begin
           NewTran_Transaction_Extension_Rec^.teSequence_No := P^.txSequence_No;
@@ -473,7 +479,12 @@ Begin
 
           P^.txTransaction_Extension := NewTran_Transaction_Extension_Rec;
         end;
+      end
+      else begin
+          P^.txTransaction_Extension^.teSequence_No := P^.txSequence_No;
+          P^.txTransaction_Extension^.teDate_Effective := P^.txDate_Effective;
       end;
+//DN Redundant code *)
     end;
 
     //Get next audit ID for new transactions
@@ -519,13 +530,13 @@ Begin
 
            tkBegin_Dissection :
               Begin
-                 pDS := New_Dissection_Rec;
+                 pDS := New_Dissection;
                  Read_Dissection_Rec ( pDS^, S );
 
                //DN BGL360 Extended Fields - Check if the Dissection Extended record is there
                  //DN and if so react, else generate a new for saving
-
-                 pDSe := New_Dissection_Extension_Rec;
+                 if not assigned( pDS^.dsDissection_Extension ) then
+                   pDS^.dsDissection_Extension := New_Dissection_Extension;
 
                  Token := S.ReadToken;
                  if Token = tkBegin_Dissection_Extension then //DN This means the Extended record has been stored before
@@ -544,8 +555,8 @@ Begin
 
            tkBegin_Transaction_Extension :
              begin
-               if not assigned( PTX^.txTransaction_Extension ) then // The Extension has not beein built yet
-                 PTX^.txTransaction_Extension := New_Transaction_Extension_Rec;
+               if not assigned( PTX^.txTransaction_Extension ) then             // The Extension has not been built yet
+                 PTX^.txTransaction_Extension := New_Transaction_Extension;
                Read_Transaction_Extension_Rec( PTX^.txTransaction_Extension^, S )
              end
 
@@ -569,6 +580,19 @@ Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+function TTransaction_List.New_Dissection: pDissection_Rec;
+begin
+  result := BKDSIO.New_Dissection_Rec;
+  
+  if not assigned( result.dsDissection_Extension ) then 
+    AppendDissectionExtension( result, New_Dissection_Extension );
+end;
+
+function TTransaction_List.New_Dissection_Extension: pDissection_Extension_Rec;
+begin
+  result := BKDEIO.New_Dissection_Extension_Rec;
+end;
+
 function TTransaction_List.New_Transaction: pTransaction_Rec;
 begin
   // Create a Transaction Rec with Object references
@@ -578,18 +602,21 @@ begin
   Result.txBank_Account := fBank_Account;
   Result.txClient  := fClient;
 
+//DN need to make sure that the Extension record is generated here as well
+  Result.txTransaction_Extension := New_Transaction_Extension;
+//DN need to make sure that the Extension record is generated here as well
+
   ClearSuperFundFields(Result);
 end;
 
 //DN BGL360 Extended Fields 
-function TTransaction_List.New_Transaction_Extension_Rec: pTransaction_Extension_Rec;
+function TTransaction_List.New_Transaction_Extension: pTransaction_Extension_Rec;
 begin
-  // Create a Transaction Rec with Object references
+  // Create a Transaction Extension Rec which is referenced from the main Transaction Rec
   // so we can call Helper Methods on it
   // before it is inserted into the list.
+
   Result := BKTEIO.New_Transaction_Extension_Rec;
-//DN  Result.txBank_Account := fBank_Account;
-//DN  Result.txClient  := fClient;
 
   ClearSuperFundFields(Result);
 end;
@@ -657,12 +684,16 @@ Begin
       end;
 
       pTXe := pTX^.txTransaction_Extension;
+
+      //DN BGL360 Extended Fields - Check if the Dissection Extended record
+      //is there, if so store it
       if not assigned( pTXe ) then begin
         pTXe := BKTEIO.New_Transaction_Extension_Rec;
         pTXe^.teSequence_No := pTX^.txSequence_No;
         pTXe^.teDate_Effective := pTX^.txDate_Effective;
         pTX^.txTransaction_Extension := pTXe;
       end;
+
       BKTEIO.Write_Transaction_Extension_Rec( pTXe^, S );
    end;
    S.WriteToken( tkEndSection );
@@ -1006,7 +1037,7 @@ begin
       P2 := nil;
       if Assigned(ATransactionCopy) then
         P2 := FindDissectionRecordID(ATransactionCopy, P1.dsAudit_Record_ID);
-      AuditInfo.AuditRecord := New_Dissection_Rec;
+      AuditInfo.AuditRecord := New_Dissection;
       try
         AuditInfo.AuditType := FAuditMgr.GetTransactionAuditType(ATransaction^.txSource, AAccountType);
         SetDissectionAuditInfo(P1, P2, ATransaction.txAudit_Record_ID , AuditInfo);
@@ -1026,7 +1057,7 @@ begin
       P1 := nil;
       if Assigned(ATransaction) then
         P1 := FindDissectionRecordID(ATransaction, P2.dsAudit_Record_ID);
-      AuditInfo.AuditRecord := New_Dissection_Rec;
+      AuditInfo.AuditRecord := New_Dissection;
       try
         SetDissectionAuditInfo(P1, P2, ATransactionCopy.txAudit_Record_ID, AuditInfo);
         if (AuditInfo.AuditAction = aaDelete) then

@@ -435,19 +435,6 @@ Var
    Item              : pTraverseItem;
    Balance           : Money;
    
-(*//DN BGL360 - Not required   function GetExtraTransctionData:pTransaction_Extension_Rec;
-   begin
-    {To get the extra transaction record}
-    if not assigned(Transaction^.txTranaction_Extension ) then
-    begin
-      TransactionExtra := ABank_Account.baTransaction_List.New_Transaction_Extension_Rec;
-      TransactionExtra^.teDate_Effective := Transaction^.txDate_Effective;
-      TransactionExtra^.teSequence_No    := Transaction^.txSequence_No;
-    end;
-    TransactionExtra := Transaction^.txTranaction_Extension;
-
-   end;
-//DN BGL360 - Not required *)
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    
