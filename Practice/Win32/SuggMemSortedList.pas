@@ -149,6 +149,9 @@ begin
       csUncodedMatch : Result := CompareValue(SuggItem1.UnCodedCount, SuggItem2.UnCodedCount);
     end;
   end;
+
+  if (Result = 0) and (not (fColSortOrder = csPhrase)) then
+    Result := CompareText(SuggItem1.MatchedPhrase, SuggItem2.MatchedPhrase);
 end;
 
 //------------------------------------------------------------------------------
