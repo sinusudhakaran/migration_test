@@ -30,7 +30,7 @@ object dlgMemorise: TdlgMemorise
     Height = 36
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 0
+    TabOrder = 2
     DesignSize = (
       1069
       36)
@@ -318,15 +318,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.ColAcct'
-          'dlgMemorise.ColDesc'
-          'dlgMemorise.colNarration'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.ColAmount'
+          'dlgMemorise.colLineType'
           'dlgMemorise.ColPercent'
-          'dlgMemorise.colLineType')
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           24)
         ColData = (
@@ -611,11 +611,11 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         CellData = (
           'dlgMemorise.tranHeader'
-          'dlgMemorise.colTranDate'
-          'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranCodedBy'
           'dlgMemorise.colTranStatementDetails'
-          'dlgMemorise.colTranCodedBy')
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colTranDate')
         RowData = (
           24)
         ColData = (
@@ -690,7 +690,8 @@ object dlgMemorise: TdlgMemorise
     Height = 207
     Align = alTop
     BevelOuter = bvNone
-    TabOrder = 2
+    TabOrder = 0
+    ExplicitTop = -1
     DesignSize = (
       1069
       207)
@@ -835,7 +836,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 20
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 7
       Text = 'eOther'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -853,7 +854,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 7
+      TabOrder = 6
       OnClick = cOtherClick
       OnExit = cCodeExit
     end
@@ -908,7 +909,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 20
       OnClick = cNotesClick
       OnExit = cCodeExit
     end
@@ -926,7 +927,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 11
+      TabOrder = 18
       OnClick = cPartClick
       OnExit = cCodeExit
     end
@@ -944,7 +945,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 12
+      TabOrder = 14
       OnClick = cValueClick
       OnExit = cCodeExit
     end
@@ -962,7 +963,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 13
+      TabOrder = 12
       OnClick = cbToClick
       OnExit = cCodeExit
     end
@@ -980,7 +981,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 14
+      TabOrder = 10
       OnClick = cbFromClick
       OnExit = cCodeExit
     end
@@ -1016,7 +1017,7 @@ object dlgMemorise: TdlgMemorise
       Options = [efoCaretToEnd]
       ParentFont = False
       PictureMask = 'DD/mm/yy'
-      TabOrder = 15
+      TabOrder = 11
       OnChange = eStatementDetailsChange
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
@@ -1055,7 +1056,7 @@ object dlgMemorise: TdlgMemorise
       Options = [efoCaretToEnd]
       ParentFont = False
       PictureMask = 'DD/mm/yy'
-      TabOrder = 16
+      TabOrder = 13
       OnChange = eStatementDetailsChange
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
@@ -1079,7 +1080,7 @@ object dlgMemorise: TdlgMemorise
       ItemHeight = 16
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 17
+      TabOrder = 15
       OnChange = cmbValueChange
       OnExit = cCodeExit
     end
@@ -1110,7 +1111,7 @@ object dlgMemorise: TdlgMemorise
       Options = []
       ParentFont = False
       PictureMask = '###,###,###.##'
-      TabOrder = 18
+      TabOrder = 16
       OnChange = nValueChange
       OnExit = cCodeExit
       OnKeyPress = nValueKeyPress
@@ -1131,7 +1132,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ItemHeight = 16
       ParentFont = False
-      TabOrder = 19
+      TabOrder = 17
       OnChange = cbMinusChange
       OnExit = cCodeExit
       Items.Strings = (
@@ -1151,7 +1152,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 20
+      TabOrder = 22
       OnClick = btnShowMoreOptionsClick
     end
     object ePart: TEdit
@@ -1169,7 +1170,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 12
       ParentFont = False
-      TabOrder = 21
+      TabOrder = 19
       Text = 'ePart'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -1189,7 +1190,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 40
       ParentFont = False
-      TabOrder = 22
+      TabOrder = 21
       Text = 'eCode'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -1220,6 +1221,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1355,6 +1357,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1375,7 +1378,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1482,7 +1484,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False

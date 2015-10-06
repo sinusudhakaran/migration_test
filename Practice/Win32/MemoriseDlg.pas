@@ -667,18 +667,19 @@ begin
 
   SourceBankAccount := nil;
 
-  with MyClient, clFields do begin
-
+  with MyClient, clFields do
+  begin
     if Assigned(AdminSystem) then
-       if AdminSystem.DualAccountingSystem then begin
-          // fill the Accounting System dropdown ( Only used in Dual system}
-          // Make sure they are both there;
-          AccountingSystem := AdminSystem.fdFields.fdAccounting_System_Used;
-          AccountingSystem := AdminSystem.fdFields.fdSuperfund_System;
-          AccountingSystem := MyClient.clFields.clAccounting_System_Used;
-       end;
-
-
+    begin
+      if AdminSystem.DualAccountingSystem then
+      begin
+        // fill the Accounting System dropdown ( Only used in Dual system}
+        // Make sure they are both there;
+        AccountingSystem := AdminSystem.fdFields.fdAccounting_System_Used;
+        AccountingSystem := AdminSystem.fdFields.fdSuperfund_System;
+        AccountingSystem := MyClient.clFields.clAccounting_System_Used;
+      end;
+    end;
 
     case clCountry of
       whNewZealand :
@@ -818,16 +819,13 @@ begin
   begin
     if Key = VK_R then
     begin
-      if not cRef.Visible then
-        Exit;
-
       fShowMoreOptions := not fShowMoreOptions;
       UpdateMoreOptions();
       cRefClick(Sender);
     end
     else if Key = VK_T then
     begin
-      if not cOther.Visible then
+      if MyClient.clFields.clCountry = whAustralia then
         Exit;
 
       fShowMoreOptions := not fShowMoreOptions;
@@ -836,25 +834,19 @@ begin
     end
     else if (Key = VK_B) and (MyClient.clFields.clCountry = whAustralia) then
     begin
-      if not cCode.Visible then
-        Exit;
-
       fShowMoreOptions := not fShowMoreOptions;
       UpdateMoreOptions();
       cCodeClick(Sender);
     end
     else if (Key = VK_A) and (MyClient.clFields.clCountry = whNewZealand) then
     begin
-      if not cCode.Visible then
-        Exit;
-
       fShowMoreOptions := not fShowMoreOptions;
       UpdateMoreOptions();
       cCodeClick(Sender);
     end
     else if Key = VK_P then
     begin
-      if not cPart.Visible then
+      if MyClient.clFields.clCountry = whAustralia then
         Exit;
 
       fShowMoreOptions := not fShowMoreOptions;
@@ -863,9 +855,6 @@ begin
     end
     else if Key = VK_N then
     begin
-      if not cNotes.Visible then
-        Exit;
-
       fShowMoreOptions := not fShowMoreOptions;
       UpdateMoreOptions();
       cNotesClick(Sender);
@@ -4221,15 +4210,49 @@ begin
   if fShowMoreOptions then
   begin
     btnShowMoreOptions.Caption := 'Hide more options';
+
+    cRef.Visible   := true;
+    eRef.Visible   := true;
+    cCode.Visible  := true;
+    eCode.Visible  := true;
+    cNotes.Visible := true;
+    eNotes.Visible := true;
+
     case MyClient.clFields.clCountry of
-      whNewZealand : pnlDetails.Height := 207;
-      whAustralia, whUK : pnlDetails.Height := 177;
+      whNewZealand : begin
+        pnlDetails.Height := 207;
+
+        cPart.Visible    := true;
+        ePart.Visible    := true;
+        cOther.Visible   := true;
+        eOther.Visible   := true;
+      end;
+      whAustralia, whUK : begin
+        pnlDetails.Height := 177;
+      end;
     end;
   end
   else
   begin
     btnShowMoreOptions.Caption := 'Show more options';
     pnlDetails.Height := 117;
+
+    cRef.Visible   := false;
+    eRef.Visible   := false;
+    cCode.Visible  := false;
+    eCode.Visible  := false;
+    cNotes.Visible := false;
+    eNotes.Visible := false;
+
+    if MyClient.clFields.clCountry = whNewZealand then
+    begin
+      cPart.Visible    := false;
+      ePart.Visible    := false;
+      cOther.Visible   := false;
+      eOther.Visible   := false;
+
+      pnlDetails.Height := 207;
+    end;
   end;
 end;
 
