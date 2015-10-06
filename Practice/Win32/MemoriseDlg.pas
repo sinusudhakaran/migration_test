@@ -312,6 +312,8 @@ type
     procedure cEntryClick(Sender: TObject);
     procedure eStatementDetailsChange(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer;
+      var Accept: Boolean);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -2347,12 +2349,21 @@ begin
    result := true;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TdlgMemorise.SplitLineIsValid( LineNo : integer) : boolean;
 begin
    Result := (Trim(SplitData[LineNo].AcctCode)<>'')
           or (SplitData[LineNo].Amount <>0)
           or (SplitData[LineNo].SF_Edited);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+begin
+  if (pnlMain.height - NewSize) < 100 then
+    Accept := false
+  else
+    Accept := true;
 end;
 
 //------------------------------------------------------------------------------
