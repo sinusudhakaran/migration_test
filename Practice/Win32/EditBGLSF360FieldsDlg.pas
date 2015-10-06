@@ -46,7 +46,7 @@ type
     tsCapitalGains: TTabSheet;
     tsForeignIncome: TTabSheet;
     tsNonCashCapitalGains: TTabSheet;
-    fmeFranking: TfmeBGLFranking;
+    fmeDistributionFranking: TfmeBGLFranking;
     fmeInterestIncome: TfmeBGLInterestIncome;
     lblLessOtherAllowableTrustDeductions: TLabel;
     nfLessOtherAllowableTrustDeductions: TOvcNumericField;
@@ -90,7 +90,7 @@ type
     lpTaxDeferredAmounts: TLabel;
     fmeBGLForeignTax1: TfmeBGLForeignTax;
     pnlDividend: TPanel;
-    fmeBGLFranking: TfmeBGLFranking;
+    fmeDividendFranking: TfmeBGLFranking;
     fmeBGLForeignTax2: TfmeBGLForeignTax;
     lpForeignIncome: TLabel;
     lblForeignIncome: TLabel;
@@ -366,10 +366,10 @@ begin
     ttDistribution : begin
     // ** Panel Distribution Panel **
       // Australian Income Tab
-      if assigned( fmeFranking ) then begin
-        mFranked := GetNumericValue(fmeFranking.nfFranked,              RevenuePercentage);
-        mUnfranked := GetNumericValue(fmeFranking.nfUnfranked,            RevenuePercentage);
-        mImputedCredit := GetNumericValue(fmeFranking.nfFrankingCredits,      RevenuePercentage);
+      if assigned( fmeDistributionFranking ) then begin
+        mFranked := GetNumericValue(fmeDistributionFranking.nfFranked,              RevenuePercentage);
+        mUnfranked := GetNumericValue(fmeDistributionFranking.nfUnfranked,            RevenuePercentage);
+        mImputedCredit := GetNumericValue(fmeDistributionFranking.nfFrankingCredits,      RevenuePercentage);
       end;
 
       if assigned( fmeInterestIncome ) then begin
@@ -437,10 +437,10 @@ begin
     end;
     ttDividend : begin
     // ** Panel Dividend Panel **
-      if assigned( fmeBGLFranking ) then begin
-        mFranked := GetNumericValue(fmeBGLFranking.nfFranked,         RevenuePercentage);
-        mUnfranked := GetNumericValue(fmeBGLFranking.nfUnfranked,       RevenuePercentage);
-        mImputedCredit := GetNumericValue(fmeBGLFranking.nfFrankingCredits, RevenuePercentage);
+      if assigned( fmeDividendFranking ) then begin
+        mFranked := GetNumericValue(fmeDividendFranking.nfFranked,         RevenuePercentage);
+        mUnfranked := GetNumericValue(fmeDividendFranking.nfUnfranked,       RevenuePercentage);
+        mImputedCredit := GetNumericValue(fmeDividendFranking.nfFrankingCredits, RevenuePercentage);
       end;
       mForeignIncome := GetNumericValue(nfForeignIncome,                       RevenuePercentage);
       if assigned( fmeBGLForeignTax2 ) then begin
@@ -620,10 +620,10 @@ begin
 
 // ** Panel Distribution Panel **
   // Australian Income Tab
-  if assigned( fmeFranking ) then begin
-    SetNumericValue(fmeFranking.nfFranked,              mFranked, RevenuePercentage);
-    SetNumericValue(fmeFranking.nfUnfranked,            mUnfranked, RevenuePercentage);
-    SetNumericValue(fmeFranking.nfFrankingCredits,      mImputedCredit, RevenuePercentage);
+  if assigned( fmeDistributionFranking ) then begin
+    SetNumericValue(fmeDistributionFranking.nfFranked,              mFranked, RevenuePercentage);
+    SetNumericValue(fmeDistributionFranking.nfUnfranked,            mUnfranked, RevenuePercentage);
+    SetNumericValue(fmeDistributionFranking.nfFrankingCredits,      mImputedCredit, RevenuePercentage);
   end;
 
   if assigned( fmeInterestIncome ) then begin
@@ -699,10 +699,10 @@ begin
   SetNumericValue(nfNonResidentWithholdingTax, mNonResidentWithholdingTax, RevenuePercentage);
 
 // ** Panel Dividend Panel **
-  if assigned( fmeBGLFranking ) then begin
-    SetNumericValue(fmeBGLFranking.nfFranked,         mFranked, RevenuePercentage);
-    SetNumericValue(fmeBGLFranking.nfUnfranked,       mUnfranked, RevenuePercentage);
-    SetNumericValue(fmeBGLFranking.nfFrankingCredits, mImputedCredit, RevenuePercentage);
+  if assigned( fmeDividendFranking ) then begin
+    SetNumericValue(fmeDividendFranking.nfFranked,         mFranked, RevenuePercentage);
+    SetNumericValue(fmeDividendFranking.nfUnfranked,       mUnfranked, RevenuePercentage);
+    SetNumericValue(fmeDividendFranking.nfFrankingCredits, mImputedCredit, RevenuePercentage);
   end;
   SetNumericValue(nfForeignIncome,                       mForeignIncome, RevenuePercentage);
   if assigned( fmeBGLForeignTax2 ) then begin
@@ -723,8 +723,8 @@ begin
 
 
   if not MemOnly then  begin
-     SetNumericValue(fmeFranking.nfFrankingCredits, mImputedCredit, False);
-     frameFrankingFrankingCreditsChange(fmeFranking.nfFrankingCredits);
+     SetNumericValue(fmeDistributionFranking.nfFrankingCredits, mImputedCredit, False);
+     frameFrankingFrankingCreditsChange(fmeDistributionFranking.nfFrankingCredits);
      SetNumericValue(nfTFNAmountsWithheld,        mTFNCredits, false);
      if assigned( fmeBGLForeignTax1 ) then begin
 // DN Not sure if these on fmeBGLForeignTax1 and fmeBGLForeignTax2 map?
@@ -757,15 +757,19 @@ end;
 function TdlgEditBGLSF360Fields.GetFrankPercentage: boolean;
 begin
   result := false;
-  if assigned( fmeFranking ) then
-    result := fmeFranking.FrankPercentage;
+  if assigned( fmeDistributionFranking ) then begin
+    result := fmeDistributionFranking.FrankPercentage;
+    if assigned( fmeDividendFranking ) then
+      result := result and fmeDividendFranking.FrankPercentage;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetFrankPercentage(const Value: boolean);
 begin
   FFrankPercentage := Value;
-  if assigned( fmeFranking ) then
-    fmeFranking.FrankPercentage := Value;
+  if assigned( fmeDistributionFranking ) then
+    fmeDistributionFranking.FrankPercentage := Value;
+  if assigned( fmeDividendFranking ) then
+    fmeDividendFranking.FrankPercentage := Value;
 
 (*DN Moved to Frame
 
@@ -994,32 +998,118 @@ procedure TdlgEditBGLSF360Fields.SetReadOnly(const Value: boolean);
 begin
   FReadOnly := Value;
 
+  if assigned( fmeDistributionFranking ) then begin
+    fmeDistributionFranking.nfFranked.Enabled := not Value;
+    fmeDistributionFranking.nfUnfranked.Enabled := not Value;
+    fmeDistributionFranking.nfFrankingCredits.Enabled := not (FReadOnly or MemOnly);
+    fmeDistributionFranking.btnFrankingCredits.Enabled := not Value;
+  end;
+
+  if assigned( fmeInterestIncome ) then begin
+    fmeInterestIncome.nfInterest.Enabled := not Value;
+    fmeInterestIncome.nfOtherIncome.Enabled := not Value;
+  end;
+  nfLessOtherAllowableTrustDeductions.Enabled := not Value;
+
+  // Capital Gains Tab
+  fmeBGLCashCapitalGainsTax.nfCGTIndexation.Enabled := not Value;
+  fmeBGLCashCapitalGainsTax.nfCGTDiscounted.Enabled := not Value;
+  fmeBGLCashCapitalGainsTax.nfCGTOther.Enabled := not Value;
+  nfCGTConcession.Enabled := not Value;
+
+  nfForeignCGTBeforeDiscount.Enabled := not Value;
+  nfForeignCGTIndexationMethod.Enabled := not Value;
+  nfForeignCGTOtherMethod.Enabled := not Value;
+
+  nfTaxPaidBeforeDiscount.Enabled := not Value;
+  nfTaxPaidIndexationMethod.Enabled := not Value;
+  nfTaxPaidOtherMethod.Enabled := not Value;
+
+  //Foreign Income Tab
+  nfAssessableForeignSourceIncome.Enabled := not Value;
+  nfOtherNetForeignSourceIncome.Enabled := not Value;
+  nfCashDistribution.Enabled := not Value;
+
+  if assigned( fmeBGLForeignTax1 ) then begin
+    fmeBGLForeignTax1.nfForeignIncomeTaxOffset.Enabled := not Value;
+    fmeBGLForeignTax1.nfAUFrankingCreditsFromNZCompany.Enabled := not Value;
+    fmeBGLForeignTax1.nfTFNAmountsWithheld.Enabled := not Value;
+
+    fmeBGLForeignTax1.nfNonResidentWithholdingTax.Enabled := not Value;
+
+    fmeBGLForeignTax1.nfLICDeductions.Enabled := not Value;
+  end;
+
   nfTaxFreeAmounts.Enabled := not Value;
   nfTaxExemptedAmounts.Enabled := not Value;
-//DN  nfTaxDeferredDist.Enabled := not Value;
-//DN  nfForeignIncome.Enabled := not Value;
-//DN  nfCapitalGains.Enabled := not Value;
+  nfTaxDeferredAmounts.Enabled := not Value;
+  nfOtherExpenses.Enabled := not Value;
 
-  if assigned( fmeBGLCashCapitalGainsTax ) then begin
-    fmeBGLCashCapitalGainsTax.nfCGTDiscounted.Enabled := not Value;
+  //Non-Cash Capital Gains/Loses
+  if assigned( fmeBGLNonCashCapitalGainsTax ) then begin
+    fmeBGLNonCashCapitalGainsTax.nfCGTDiscounted.Enabled := not Value;
+    fmeBGLNonCashCapitalGainsTax.nfCGTIndexation.Enabled := not Value;
+    fmeBGLNonCashCapitalGainsTax.nfCGTOther.Enabled := not Value;
   end;
-//DN  nfCapitalGainsOther.Enabled := not Value;
-//DN  nfOtherExpenses.Enabled := not Value;
-  cmbxAccount.Enabled := not Value;
-  btnChart.Enabled := not Value;
+  nfCGTCapitalLosses.Enabled := not Value;
+
+// ** Panel Share Trade Panel **
+  nfShareBrokerage.Enabled := not Value;
+  nfShareConsideration.Enabled := not Value;
+  nfShareGSTAmount.Enabled := not Value;
+  cmbxShareGSTRate.Enabled := not Value;
+
+// ** Panel Interest Panel **
+  nfInterest.Enabled := not Value;
+  nfOtherIncome.Enabled := not Value;
+  nfTFNAmountsWithheld.Enabled := not Value;
+  nfNonResidentWithholdingTax.Enabled := not Value;
+
+// ** Panel Dividend Panel **
+  if assigned( fmeDividendFranking ) then begin
+    fmeDividendFranking.nfFranked.Enabled := not Value;
+    fmeDividendFranking.nfUnfranked.Enabled := not Value;
+    fmeDividendFranking.nfFrankingCredits.Enabled := not Value;
+    fmeDividendFranking.btnFrankingCredits.Enabled := not Value;
+  end;
+  nfForeignIncome.Enabled := not Value;
+  if assigned( fmeBGLForeignTax2 ) then begin
+    fmeBGLForeignTax2.nfForeignIncomeTaxOffset.Enabled := not Value;
+    fmeBGLForeignTax2.nfAUFrankingCreditsFromNZCompany.Enabled := not Value;
+    fmeBGLForeignTax2.nfTFNAmountsWithheld.Enabled := not Value;
+    fmeBGLForeignTax2.nfNonResidentWithholdingTax.Enabled := not Value;
+    fmeBGLForeignTax2.nfLICDeductions.Enabled := not Value;
+  end;
+
+
+  if not MemOnly then  begin
+     fmeDistributionFranking.nfFrankingCredits.Enabled := not Value;
+     nfTFNAmountsWithheld.Enabled := not Value;
+     if assigned( fmeBGLForeignTax1 ) then begin
+// DN Not sure if these on fmeBGLForeignTax1 and fmeBGLForeignTax2 map?
+       fmeBGLForeignTax1.nfTFNAmountsWithheld.Enabled := not Value;
+       fmeBGLForeignTax1.nfForeignIncomeTaxOffset.Enabled := not Value;
+     end;
+     if assigned( fmeBGLForeignTax2 ) then begin
+// DN Not sure if these on fmeBGLForeignTax2 and fmeBGLForeignTax1 map?
+       fmeBGLForeignTax2.nfTFNAmountsWithheld.Enabled := not Value;
+       fmeBGLForeignTax2.nfForeignIncomeTaxOffset.Enabled := not Value;
+     end;
+  end;
+
+
+// DN Not sure about whether these map?
+  eCashDate.Enabled := not Value;
+  eAccrualDate.Enabled := not Value;
+  eRecordDate.Enabled := not Value;
+
+
   nfUnits.Enabled := not Value;
-  if assigned( fmeFranking ) then begin
-    fmeFranking.nfFranked.Enabled := not Value;
-    fmeFranking.nfUnFranked.Enabled := not Value;
-  fmeFranking.nfFrankingCredits.Enabled := not (FReadOnly or MemOnly);
-  end;
-//DN  eCGTDate.Enabled := not Value;
-//DN  cmbMember.Enabled := not Value;
 
-//DN  nfTFNCredits.Enabled := not (FReadOnly or MemOnly);
-//DN  nfForeignTaxCredits.Enabled := not (FReadOnly or MemOnly);
+  cmbxAccount.Enabled := not Value;
 
-  btnClear.Enabled := not Value;
+  btnChart.Enabled           := not Value;
+  btnClear.Enabled           := not Value;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetRevenuePercentage(const Value: boolean);
@@ -1046,8 +1136,8 @@ begin
    SetPercentLabel(lpShareTradeUnits, FRevenuePercentage);
    SetPercentLabel(lpOtherExpenses, FRevenuePercentage);
 
-   SetPercentLabel(fmeFranking.lpFranked, FRevenuePercentage);
-   SetPercentLabel(fmeFranking.lpUnfranked, FRevenuePercentage);
+   SetPercentLabel(fmeDistributionFranking.lpFranked, FRevenuePercentage);
+   SetPercentLabel(fmeDistributionFranking.lpUnfranked, FRevenuePercentage);
 
    SetPercentLabel(fmeInterestIncome.lpInterest, FRevenuePercentage);
    SetPercentLabel(fmeInterestIncome.lpOtherIncome, FRevenuePercentage);
@@ -1073,8 +1163,8 @@ begin
    SetPercentLabel(fmeBGLForeignTax2.lpNonResidentWithholdingTax, FRevenuePercentage);
    SetPercentLabel(fmeBGLForeignTax2.lpLICDeductions, FRevenuePercentage);
 
-   SetPercentLabel(fmeBGLFranking.lpFranked, FRevenuePercentage);
-   SetPercentLabel(fmeBGLFranking.lpUnfranked, FRevenuePercentage);
+   SetPercentLabel(fmeDividendFranking.lpFranked, FRevenuePercentage);
+   SetPercentLabel(fmeDividendFranking.lpUnfranked, FRevenuePercentage);
 end;
 
 procedure TdlgEditBGLSF360Fields.SetTranAccount(const Value: string);
@@ -1223,8 +1313,8 @@ begin
   btnNext.Hint := 'Goto next line|' +
                   'Goto next line';
 
-  if assigned( fmeBGLFranking ) then
-    fmeBGLFranking.btnFrankingCredits.Hint := 'Calculate the Imputed Credit|' +
+  if assigned( fmeDividendFranking ) then
+    fmeDividendFranking.btnFrankingCredits.Hint := 'Calculate the Imputed Credit|' +
        'Calculate the Imputed Credit';
 
   btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
@@ -1276,7 +1366,7 @@ begin
       Exit;
     end;
 
-    if not ValueIsValid( fmeFranking.nfFrankingCredits) then
+    if not ValueIsValid( fmeDistributionFranking.nfFrankingCredits) then
       Exit;
     if not ValueIsValid( nfTFNAmountsWithheld) then
       Exit;
@@ -1296,9 +1386,9 @@ begin
       Exit;
     if not ValueIsValid( fmeBGLCashCapitalGainsTax.nfCGTIndexation) then
       Exit;
-    if not ValueIsValid( fmeFranking.nfFranked) then
+    if not ValueIsValid( fmeDistributionFranking.nfFranked) then
       Exit;
-    if not ValueIsValid( fmeFranking.nfUnFranked) then
+    if not ValueIsValid( fmeDistributionFranking.nfUnFranked) then
       Exit;
 
     //no problems, allow close
@@ -1398,8 +1488,8 @@ procedure TdlgEditBGLSF360Fields.SetMemOnly(const Value: boolean);
 begin
   FMemOnly := Value;
 // Set the FrankingFme MemorisationsOnly property rather
-  if assigned( fmeFranking ) then
-    fmeFranking.nfFrankingCredits.Enabled := not FMemOnly;
+  if assigned( fmeDistributionFranking ) then
+    fmeDistributionFranking.nfFrankingCredits.Enabled := not FMemOnly;
 // Set the FrankingFme MemorisationsOnly property rather
 end;
 

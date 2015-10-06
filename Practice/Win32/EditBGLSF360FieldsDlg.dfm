@@ -118,7 +118,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             RangeLow = {00000000000000000000}
           end
         end
-        inline fmeFranking: TfmeBGLFranking
+        inline fmeDistributionFranking: TfmeBGLFranking
           Left = 0
           Top = 11
           Width = 450
@@ -217,10 +217,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsCapitalGains: TTabSheet
         Caption = 'Capital Gains'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblCGTConcession: TLabel
           Left = 6
           Top = 86
@@ -536,10 +532,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsForeignIncome: TTabSheet
         Caption = 'Foreign Income'
         ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblAssessableForeignSourceIncome: TLabel
           Left = 6
           Top = 5
@@ -953,10 +945,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsNonCashCapitalGains: TTabSheet
         Caption = 'Non-Cash Capital Gains/Losses'
         ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lpCGTCapitalLosses: TLabel
           Left = 393
           Top = 99
@@ -1494,7 +1482,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Pen.Color = clSilver
       ExplicitWidth = 720
     end
-    inline fmeBGLFranking: TfmeBGLFranking
+    inline fmeDividendFranking: TfmeBGLFranking
       Left = 0
       Top = 3
       Width = 450
