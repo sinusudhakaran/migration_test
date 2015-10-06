@@ -1186,8 +1186,6 @@ begin
       OnClick := pmiDoDeleteNote;
    end;
    popCoding.Items[NoteIndex].Add(poiCoding[CurrentIndex]);
-   Inc( CurrentIndex);
-
 end;
 
 //------------------------------------------------------------------------------
@@ -1787,10 +1785,7 @@ var
    Msg                    : TWMKey;
    PayeeNotEditable       : Boolean;
    OldPayeeNo             : integer;
-   MaintainMemScanStatus  : boolean;
 begin
-  MaintainMemScanStatus := False;
-
    if not ValidDataRow(tblCoding.ActiveRow) then exit;
    pT   := WorkTranList.Transaction_At( tblCoding.ActiveRow - 1);
    if pT^.txLocked then
@@ -2636,7 +2631,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCoding.DoSuggestedMemsDoneProcessing;
 var
-  WorkTranIndex : integer;
   ActiveRow : integer;
 begin
   UpdateSuggestedMemLabel;
@@ -2893,7 +2887,6 @@ var
    pT          : pTransaction_Rec;
    pU          : pUE;
    Amount      : Double;
-   OldAmount   : Money;
    OldForexAmount : Money;
    NeedPassword : boolean;
 begin
@@ -3725,7 +3718,6 @@ var
    i   : integer;
    bal : Money;
    Amount : Money;
-   pA: pAccount_Rec;
    SuggMemsData : TSuggMemSortedListRec;
 
    function IncludeTrans: Boolean;
@@ -6591,7 +6583,6 @@ var
   S                     : String;
   pT                    : pTransaction_Rec;
   Dissection            : pDissection_Rec;
-  i                     : integer;
   InvalidGSTClassFound  : boolean;
 begin
   If ( data = nil ) then exit;
@@ -8295,8 +8286,6 @@ var
   CustomHint : string;
   CellRect   : TRect;
   SuggColNum : integer;
-  UserRec    : PUser_Rec;
-
   //----------------------------------------------------------------------------
   procedure ShowNormalHint();
   begin
@@ -10289,7 +10278,6 @@ var
   SuggStr : string;
   SuggStrLen : integer;
   SuggPixelLen : integer;
-  CircleHalfHeight : integer;
   CircleHalfWidth : integer;
   MidCircleX, MidCircleY : integer;
 
