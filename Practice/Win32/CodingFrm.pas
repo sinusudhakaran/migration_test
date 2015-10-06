@@ -1976,60 +1976,42 @@ begin
 
     if (pT.txCoded_By in [cbMemorisedC, cbMemorisedM]) and CanDoMems then
     begin
-      if (pT.txCoded_By = cbMemorisedC) then
+      IsAMasterMem := (pT.txCoded_By = cbMemorisedM);
+      MemList := tBank_Account(BankAccount).baMemorisations_List;
+      FindMemorisation(BankAccount, pT, Mem);
+      DeleteSelectedMem := False;
+      BankPrefix := mxFiles32.GetBankPrefix(tBank_Account(BankAccount).baFields.baBank_Account_Number);
+
+      if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem, False, BankPrefix) then
       begin
-        IsAMasterMem := False;
-        MemList := tBank_Account(BankAccount).baMemorisations_List;
-        FindMemorisation(BankAccount, pT, Mem);
-        DeleteSelectedMem := False;
-        BankPrefix := mxFiles32.GetBankPrefix(tBank_Account(BankAccount).baFields.baBank_Account_Number);
-
-        if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem, False, BankPrefix) then
+        if DeleteSelectedMem then
         begin
-          if DeleteSelectedMem then
+          MasterMemToDelete := -1;
+          if Assigned(AdminSystem) then
           begin
-            MasterMemToDelete := -1;
-            if Assigned(AdminSystem) then
+            SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
+            if Assigned(SystemMemorisation) then
             begin
-              SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
-              if Assigned(SystemMemorisation) then
+              for i := 0 to TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount - 1 do
               begin
-                for i := 0 to TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount - 1 do
+                if (TMemorisation(TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i)).mdFields.mdSequence_No =
+                   Mem.mdFields^.mdSequence_No) then
                 begin
-                  if (TMemorisation(TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(i)).mdFields.mdSequence_No =
-                     Mem.mdFields^.mdSequence_No) then
-                  begin
-                    MasterMemToDelete := i;
-                    Break;
-                  end;
-                end;
-
-                if (DeleteSelectedMem and (MasterMemToDelete > -1)) then
-                begin
-                  SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
-                  DeleteMem(MemList, BankAccount, SystemMem, BankPrefix);
+                  MasterMemToDelete := i;
+                  Break;
                 end;
               end;
+
+              if (DeleteSelectedMem and (MasterMemToDelete > -1)) then
+              begin
+                SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
+                DeleteMem(MemList, BankAccount, SystemMem, BankPrefix);
+              end;
             end;
-          end
-          else
-            ApplyMem(pT^.txType, IsAMasterMem);
-        end;
-      end
-      else
-      begin
-        try
-          CreateTempMemUsingTransaction();
-          if MemoriseEntry(BankAccount, pT, IsAMasterMem, Mem) then
-          begin
-            SendCmdToAllCodingWindows( ecRecodeTrans);
-            Msg.CharCode := VK_RIGHT;
-            if ShowAllTran <> SHOW_UNCODED_TX then
-              celAccount.SendKeyToTable(Msg);
           end;
-        finally
-          FreeAndNil(Mem);
-        end;
+        end
+        else
+          ApplyMem(pT^.txType, IsAMasterMem);
       end;
     end
     else
