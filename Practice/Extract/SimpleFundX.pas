@@ -480,10 +480,11 @@ begin
       FormatFloatForXml((Dissection^.dsDissection_Extension^.deSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // GST_Rate
-    AddFieldNode(
+    if Trim(Transaction^.txTransaction_Extension^.teSF_Share_GST_Rate) <> '' then
+      AddFieldNode(
       TransactionNode,
       'GST_Rate',
-      FormatFloatForXml(Abs(StrToIntDef(Dissection^.dsDissection_Extension^.deSF_Share_GST_Rate,0)), 0, 10000, Globals.PRACINI_ExtractZeroAmounts), True);
+      FormatFloatForXml(Abs(StrToIntDef(Dissection^.dsDissection_Extension^.deSF_Share_GST_Rate,0)), 0, 1, True), True);
     // GST_Amount
     AddFieldNode(
       TransactionNode,
@@ -494,7 +495,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Consideration',
-      FormatFloatForXml((Dissection^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml((Dissection^.dsDissection_Extension^.deSF_Share_Consideration), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end
   else
   begin
@@ -508,11 +509,13 @@ begin
       'Brokerage',
       FormatFloatForXml((Transaction^.txTransaction_Extension^.teSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
+
     // GST_Rate
-    AddFieldNode(
+    if Trim(Transaction^.txTransaction_Extension^.teSF_Share_GST_Rate) <> '' then
+      AddFieldNode(
       TransactionNode,
       'GST_Rate',
-      FormatFloatForXml(Abs(StrToIntDef(Transaction^.txTransaction_Extension^.teSF_Share_GST_Rate,0)), 0, 10000, Globals.PRACINI_ExtractZeroAmounts), True);
+      FormatFloatForXml(Abs(StrToIntDef(Transaction^.txTransaction_Extension^.teSF_Share_GST_Rate,0)), 0, 1, True), True);
     // GST_Amount
     AddFieldNode(
       TransactionNode,
@@ -523,7 +526,7 @@ begin
     AddFieldNode(
       TransactionNode,
       'Consideration',
-      FormatFloatForXml((Transaction^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
+      FormatFloatForXml((Transaction^.txTransaction_Extension^.teSF_Share_Consideration), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
 
