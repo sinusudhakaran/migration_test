@@ -200,7 +200,6 @@ type
     PassGenCodeEntered : boolean;
     FViewNotes : Boolean;
     FEnableClientSettings : boolean;
-    FUseClientDetailsForBankLinkOnline: Boolean;
 
     FInWizard: Boolean;
 

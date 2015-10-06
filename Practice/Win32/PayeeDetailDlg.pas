@@ -1812,7 +1812,6 @@ procedure TdlgPayeeDetail.ColAcctOwnerDraw(Sender: TObject;
 // If the code is invalid, show it in red
 var
   R         : TRect;
-  C         : TCanvas;
   S         : String;
   IsActive  : boolean;
 const

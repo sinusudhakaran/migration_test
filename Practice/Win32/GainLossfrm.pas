@@ -168,7 +168,7 @@ var
   BankAccount: TBank_Account;
   PostedEntry: TExchange_Gain_Loss;
   RowsCleared: boolean;
-  i, NumAccountsGainLossNotRun: integer;
+  i: integer;
   Index: Integer;
   MonthEndingBankAccount: TMonthEndingBankAccount;
 
@@ -254,10 +254,8 @@ end;
 procedure TfrmGainLoss.tgGainLossCellLoaded(Sender: TObject; DataCol,
   DataRow: Integer; var Value: Variant);
 var
-  MonthEnding: TMonthEnding;
   MonthEndingBankAccount: TMonthEndingBankAccount;
   BankAccount: TBank_Account;
-  ShowRow: boolean;
 begin
   // NOTE: DataCol and DataRow are 1-based
   MonthEndingBankAccount := FGridMonthEndingBankAccounts[DataRow-1];

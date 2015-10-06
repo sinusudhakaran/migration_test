@@ -494,7 +494,6 @@ var
   S : String;
   LCLRec: pClient_File_Rec;
   NotesId : TBloGuid;
-  ClientChanged : Boolean;
   OldWebExportFormat: Byte;
   BlopiClientDetails: TBloClientReadDetail;
   OffLineSubscription : TBloArrayOfguid;

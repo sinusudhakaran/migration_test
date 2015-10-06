@@ -218,7 +218,7 @@ end;
 procedure TdlgTransferEntries.cmbTempAccountSelect(Sender: TObject);
 var
   baFrom, baTo: TBank_Account;
-  i, FromEntries, ToEntries, D1, D2, D3, D4: Integer;
+  i : Integer;
 begin
   if cmbTempAccount.ItemIndex = -1 then
   begin

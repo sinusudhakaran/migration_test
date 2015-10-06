@@ -3401,7 +3401,6 @@ var
   LEDColor : TColor;
   Dots: Boolean;
   NodeData : pTreeData;
-  ShowOutLine : boolean;
 
   procedure DrawCellImgLED( Const Period, LEDColor : Integer; YearStart: Boolean; aShowOutLine : boolean);
   Var

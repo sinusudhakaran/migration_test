@@ -133,7 +133,6 @@ const
 var
   MyDlg : TdlgOkCancel;
   CapHeight: integer;
-  l: Integer;
 begin
   MyDlg := TdlgOkCancel.Create(Application.MainForm);
   try

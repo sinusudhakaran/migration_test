@@ -530,7 +530,6 @@ Const
 var
   StartDay, StartMonth, StartYear, PeriodIndex : integer;
   CurrentYear : integer;
-  MaxCoded : integer;
   PeriodType : integer;
 
   MaxPeriods : integer;
@@ -616,9 +615,7 @@ end;
 function IsChartCodeABankContra(aCode: string): boolean;
 var
   BankAcc      : TBank_Account;
-  TransRec     : pTransaction_Rec;
   BankAccIndex : Integer;
-  TransIndex   : Integer;
 begin
   Result := false;
 

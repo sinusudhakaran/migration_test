@@ -27,8 +27,6 @@ object fmeSysAccounts: TfmeSysAccounts
       Align = alLeft
       Caption = 'Search'
       Layout = tlCenter
-      ExplicitLeft = 344
-      ExplicitTop = 2
       ExplicitHeight = 13
     end
     object lblCount: TLabel

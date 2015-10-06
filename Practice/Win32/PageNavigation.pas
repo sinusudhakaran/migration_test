@@ -47,7 +47,7 @@ type
     { Protected declarations }
   public
     { Public declarations }
-    constructor Create(AOwner: TComponent);
+    constructor Create(AOwner: TComponent);reintroduce;
     destructor Destroy;override;
     property Page[Index:Integer] : TImage read GetPage;
   published
@@ -221,7 +221,6 @@ begin
   end;
 
   FRightArrow.Left := LeftStart;
-  LeftStart := LeftStart + FPageControlWidth + FPageControlMargin;
   FLeftArrow.Visible := True;
   FLeftArrow.ParentColor := False;
   FLeftArrow.ParentFont := False;
@@ -233,8 +232,6 @@ begin
 end;
 
 procedure TPageNavigation.lblLeftArrowClick(Sender: TObject);
-var
-  SourceImg , DestImg : TImage;
 begin
   if FCurrentPage <= 1 then
     Exit;
@@ -245,22 +242,11 @@ begin
   SetAllPagesToGrey;
   SetPageImageColour(TImage(FPages.Items[FCurrentPage-1]), ctPurple);
 
-  (*SourceImg :=  GetPage(FCurrentPage-2);
-  DestImg := GetPage(FCurrentPage-1);
-  if (Assigned(SourceImg) and Assigned(DestImg)) then
-  begin
-    CopyImage(SourceImg, DestImg);
-    if FCurrentPage <> 1 then
-      Dec(FCurrentPage);
-  end;*)
-
   if Assigned(OnLeftArrowClick) then
     OnLeftArrowClick(Sender);
 end;
 
 procedure TPageNavigation.lblRightArrowClick(Sender: TObject);
-var
-  SourceImg , DestImg : TImage;
 begin
   if FCurrentPage >= FNoOfPages then
     Exit;
@@ -271,20 +257,6 @@ begin
   SetAllPagesToGrey;
 
   SetPageImageColour(TImage(FPages.Items[FCurrentPage-1]), ctPurple);
-
-  (*if i = 1  then
-    SetPageImageColour(PageImage, ctPurple)
-  else
-    SetPageImageColour(PageImage, ctGrey);
-
-  SourceImg :=  GetPage(FCurrentPage-1);
-  DestImg := GetPage(FCurrentPage);
-  if (Assigned(SourceImg) and Assigned(DestImg)) then
-  begin
-    CopyImage(SourceImg, DestImg);
-    if FCurrentPage < FNoOfPages then
-      Inc(FCurrentPage);
-  end;*)
 
   if Assigned(OnRightArrowClick) then
     OnRightArrowClick(Sender);

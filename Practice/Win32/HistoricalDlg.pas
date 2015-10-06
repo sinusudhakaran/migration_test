@@ -2600,10 +2600,10 @@ begin
          ceEffDate :
          begin
            dtEffectiveDate := TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).AsDateTime;
-           if not CheckEffectiveDate(dtEffectiveDate) then
+           if (((not IsManual) or Provisional) and (not CheckEffectiveDate(dtEffectiveDate))) then
            begin
              ErrorSound;
-             HelpfulWarningMsg(Format(rsMsgWrongAffectiveDate, [FormatDateTime('DD/MM/YY',dtEffectiveDate), FormatDateTime('MM/YY',Now)]), 0);
+             HelpfulWarningMsg(Format(rsMsgWrongAffectiveDate, [FormatDateTime('dd/mm/yy',dtEffectiveDate), FormatDateTime('dd/mm/yy',Now)]), 0);
              TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).ClearContents;
              TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).SetFocus;
            end;

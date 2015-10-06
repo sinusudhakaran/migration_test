@@ -250,7 +250,6 @@ end;
 procedure TdlgEditUser.SetOnlineUIMode(var aUIMode : TUI_Modes; aPractice: TBloPracticeRead);
 var
   BloUserRead : TBloUserRead;
-  BloArrayOfUserRead : TBloArrayOfUserRead;
 
   //----------------------------
   procedure CheckForUnlinked;
@@ -725,12 +724,10 @@ End; { TdlgEditUser.OKtoPost }
 //------------------------------------------------------------------------------
 Function TdlgEditUser.PosttoBankLinkOnline : Boolean;
 var
-  RoleNames         : TBloArrayOfstring;
   MsgCreateorUpdate : string;
   UserCode          : string;
   UserEmail         : String;
   BloUserRead       : TBloUserRead;
-  OldPassword       : String;
   UserGuid: TBloGuid;
 begin
   Result := True;
@@ -1105,7 +1102,6 @@ procedure TdlgEditUser.RefreshUnlinkedUserList;
 var
   Index: Integer;
   PracUserRole: String;
-  AddUser: Boolean;
 begin
   if ProductConfigService.OnLine then
   begin
@@ -1445,7 +1441,6 @@ Var
   pu          : pUser_Rec;
   WasLoggedIn : boolean;
   i           : integer;
-  Prac        : TBloPracticeRead;
   Password    : String;
 begin { EditUser }
   Result := false;

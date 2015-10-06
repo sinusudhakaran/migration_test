@@ -80,8 +80,6 @@ var
   aMsg           : string;
   BCode, CCode   : String[3];
   ForeignCurrency: Boolean;
-  Rate           : Extended;
-  Msg            : String;
 begin
   result := false;
   LogMsg( lmInfo, Unitname, 'Importing Update file ' + filename);

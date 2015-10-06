@@ -613,7 +613,6 @@ var
   CurrentVendors : TBloArrayOfGuid;
   IsExportDataEnabledFoAccount : Boolean;
   CoreAccountID: Integer;
-  MaintainMemScanStatus: boolean;
 
   //------------------------------------------------------------------------------
   function AllAccountsHaveOneVendorSelected(aAccVendorIndex : integer;

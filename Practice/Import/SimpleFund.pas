@@ -334,7 +334,6 @@ begin
   RESTServer := TBGLServer.Create( nil, PRACINI_BGL360_Client_ID,
     PRACINI_BGL360_Client_Secret, PRACINI_BGL360_API_URL );
   try
-    i := 0;
     if assigned( MyClient ) then
       RestServer.Set_Auth_Tokens( AdminSystem.fdFields.fdBGLAccessToken,
         AdminSystem.fdFields.fdBGLTokenType, AdminSystem.fdFields.fdBGLRefreshToken,

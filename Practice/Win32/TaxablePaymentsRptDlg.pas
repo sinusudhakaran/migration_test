@@ -137,8 +137,6 @@ uses
 {$R *.dfm}
 
 procedure TfrmTaxablePaymentsRptDlg.FormCreate(Sender: TObject);
-var
-  i: Integer;
 begin
   bkXPThemes.ThemeForm( Self);
 
@@ -575,7 +573,6 @@ const
   t_PayeeList = 'Payees';
 
 procedure TPayeeParameters.ReadFromNode(Value: IXMLNode);
-var s : string;
   function NoCodes : Boolean;
   var NN : IXMLNode;
       LList : IXMLNodeList;

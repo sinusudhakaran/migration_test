@@ -176,10 +176,6 @@ var
   HideViewButtons       : boolean;
   DefaultSort           : TClientLookupCol;
   WidthOfNonNameColumns : integer;
-  WorkArea  : TRect;
-  dskWidth  : integer;
-  dskHeight : integer;
-  vsbWidth  : integer;
 
   // We don't need the Name column to be wider than the maximum length of a clients name (60 characters)
   function GetWidthOfAllVisibleColumns: integer;

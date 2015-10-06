@@ -196,7 +196,6 @@ type
     InSetup: Boolean;
     FPrac: TBloPracticeRead;
     FPreviousPage: integer;
-    FOnlineSettingsChanged: Boolean;
     FPracticeVendorExports: TBloDataPlatformSubscription;
     FVendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount;
 
@@ -803,7 +802,6 @@ end;
 procedure TfrmPracticeDetails.ckUseBankLinkOnlineClick(Sender: TObject);
 var
   i: integer;
-  Index: Integer;
   ServiceAgreementVersion: String;
   SigneeName: String;
   SigneeTitle: String;
@@ -1428,8 +1426,6 @@ var
   PrimaryContact: TBloUserRead;
   ContactName: String;
   ContactEmail: String;
-  ExportItem: Integer;
-  VendorExports: TBloArrayOfGuid;
 begin
   result := false;
 
@@ -1693,7 +1689,6 @@ procedure TfrmPracticeDetails.vtProductsBeforeItemPaint(
 var
   NodeData: pTreeData;
   NodeCaption: string;
-  i: integer;
 begin
   NodeData := Sender.GetNodeData(Node);
   if (NodeData.tdObject = nil) then begin
@@ -1723,7 +1718,6 @@ function TfrmPracticeDetails.CheckProduct(Sender: TBaseVirtualTree;
 var
   Data: PTreeData;
   Cat: TBloCatalogueEntry;
-  Index: Integer;
   ClientCount: Integer;
 begin
   Result := '';
@@ -2453,7 +2447,6 @@ procedure TfrmPracticeDetails.ToggleVendorExportSettings(VendorExportGuid: TBloG
 var
   VendorSettingsTab: TTabsheet;
   VendorExportName: String;
-  PageIndex: Integer;
 begin
   if Assigned(FPracticeVendorExports) then
   begin

@@ -995,7 +995,6 @@ end;
 
 procedure TfmeSysAccounts.MeasureNode(Node: PVirtualNode);
 var
-  Index: Integer;
   NextNode: PVirtualNode;
 begin
   NextNode := Node;

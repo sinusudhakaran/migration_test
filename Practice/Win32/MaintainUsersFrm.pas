@@ -580,8 +580,6 @@ end;
 
 procedure TfrmMaintainUsers.lvUsersMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
-var
-  HintPoint: TPoint;
 begin
   if (X >= ShieldLeft) and (X <= ShieldRight) and (Y >= ShieldTop) and (Y <= ShieldBottom) then
   begin

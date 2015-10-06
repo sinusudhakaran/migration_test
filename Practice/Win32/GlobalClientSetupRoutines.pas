@@ -1514,7 +1514,6 @@ var
   ClientFile : pClient_File_Rec;
   User       : pUser_Rec;
   sUser      : string;
-  msg        : string;
   Filename   : string;
   ClientLRN  : integer;
   pM: pClient_Account_Map_Rec;

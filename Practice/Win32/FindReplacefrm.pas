@@ -79,9 +79,7 @@ uses
 
 procedure FindAndReplace;
 var
-  Index : integer;
   Ldlg: TFindReplaceDlg;
-  ActiveCaption : string;
   OldCaption : string;
 begin
   OldCaption := frmMain.GetMDICurrentChildCaption;
@@ -134,7 +132,6 @@ var
   D1, D2: Integer;
   cFound, cGStSkipped: Integer;
   sFind,sReplace: string;
-  MaintainMemScanStatus: boolean;
 type
   AccCode = string[20];
 

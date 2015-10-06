@@ -151,7 +151,6 @@ type
   TGSTMapClassInfo = class
   private
     fCashbookGstClass : TCashBookGSTClasses;
-    fCashbookGstClassDesc : string;
     procedure GetCashbookGstSeparateClassDesc(var aCashBookGstClassCode, aCashBookGstClassDesc: string);
   protected
     function GetCashbookGstClassDesc() : string;
@@ -1633,7 +1632,6 @@ var
   Res : Boolean;
   ErrorStr : string;
   Filename : string;
-  ErrorStrings : TStringList;
   BalDate : TStDate;
   ShowUI : boolean;
 begin
