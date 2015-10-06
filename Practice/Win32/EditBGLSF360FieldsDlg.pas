@@ -761,6 +761,7 @@ begin
     result := fmeDistributionFranking.FrankPercentage;
     if assigned( fmeDividendFranking ) then
       result := result and fmeDividendFranking.FrankPercentage;
+  end;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetFrankPercentage(const Value: boolean);
@@ -770,22 +771,6 @@ begin
     fmeDistributionFranking.FrankPercentage := Value;
   if assigned( fmeDividendFranking ) then
     fmeDividendFranking.FrankPercentage := Value;
-
-(*DN Moved to Frame
-
-   SetPercentLabel(lp1, FFrankPercentage);
-   SetPercentLabel(lp2, FFrankPercentage);
-
-   btnCalc.Visible := not FFrankPercentage;
-
-   if FFrankPercentage then begin
-      lblFranked.Caption := 'Percentage Franked';
-      lblUnFranked.Caption := 'Percentage Unfranked';
-
-   end else begin
-      lblFranked.Caption := 'Franked Amount';
-      lblUnFranked.Caption := 'Unfranked Amount';
-   end; *)
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -801,8 +786,7 @@ begin
   SetUpHelp;
   FReadOnly := false;
   Self.KeyPreview := True;
-(*//DN  eCGTDate.Epoch       := BKDATEEPOCH;
-  //DN eCGTDate.PictureMask := BKDATEFORMAT; *)
+
   FMoveDirection := fnNothing;
   FormTop := -999;
   FormLeft := -999;
@@ -810,9 +794,6 @@ begin
   FSkip := 0;
   Glyph := TBitMap.Create;
   ImagesFrm.AppImages.Maintain.GetBitmap( MAINTAIN_LOCK_BMP, Glyph );
-
-  // showmember component options
-//DN  cmbMember.Items.Clear;
 end;
 
 procedure TdlgEditBGLSF360Fields.FormDestroy(Sender: TObject);
