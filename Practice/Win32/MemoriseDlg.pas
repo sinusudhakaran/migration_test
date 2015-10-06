@@ -735,15 +735,6 @@ begin
   tblSplitInEdit := false;
   RemovingMask := false;
 
-  if not ( Assigned( AdminSystem) and Assigned( CurrUser )) then
-     AllowMasterMemorised := false
-  else begin
-     AllowMasterMemorised := ( CurrUser.CanMemoriseToMaster ) and
-                             ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
-                             ( MyClient.clFields.clDownload_From = dlAdminSystem );
-  end;
-  chkMaster.Enabled := AllowMasterMemorised;
-
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_CHART_BMP,sbtnChart.Glyph);
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_PAYEE_BMP,sBtnPayee.Glyph);
   ImagesFrm.AppImages.Coding.GetBitmap(CODING_SUPER_BMP,sBtnSuper.Glyph);
@@ -1371,7 +1362,7 @@ begin
         else
            Code := SplitData[tblSplit.ActiveRow].AcctCode;
 
-        if PickAccount(Code, HasChartBeenRefreshed, nil, true, not (chkMaster.Checked and Assigned(AdminSystem))) then
+        if PickAccount(Code, HasChartBeenRefreshed, nil, true, not ((fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem))) then
         begin
            // got a Code
            if (ExistingCode = '') // new row started and previous row had a payee
@@ -1561,7 +1552,7 @@ procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
         Result := false;
         Move := fnNoMove;
 
-        if chkMaster.Checked then
+        if fDlgEditMode in ALL_MASTER then
            BA := nil
         else
            BA := SourceBankAccount;
@@ -2169,10 +2160,10 @@ begin
      //check that this transaction will be coded
      TempMem := TMemorisation.Create(nil);
      try
-       SaveToMemRec( TempMem, SourceTransaction, chkMaster.Checked, True);
+       SaveToMemRec( TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, True);
 
        if Assigned( SourceBankAccount) then begin
-          if chkMaster.Checked and Assigned(AdminSystem) then
+          if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
              begin
                //memorise to relevant master file then reload to get new global list
                BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
@@ -2190,7 +2181,7 @@ begin
        end else begin
           FMemorisationsList := EditMemorisedList;
        end;
-       TempMem.mdFields.mdFrom_Master_List := chkMaster.Checked;
+       TempMem.mdFields.mdFrom_Master_List := fDlgEditMode in ALL_MASTER;
 
        if Assigned( FMemorisationsList) {and Assigned(EditMem)} then
          if (HasDuplicateMem(TempMem, FMemorisationsList, EditMem)) then begin
@@ -2226,7 +2217,7 @@ begin
    begin
       //check to see if this is a master memorisation and add an extra warning
       ExtraMsg := '';
-      if chkMaster.checked then begin
+      if fDlgEditMode in ALL_MASTER then begin
          if not Assigned( AdminSystem) then
             //the memorisation is marked as a MASTER, however there is no valid admin system.
             //therefore we are dealing with a memorisation which has been saving into the client file
@@ -2392,7 +2383,7 @@ var
 begin
   TempMem := TMemorisation.Create(nil);
   try
-    SaveToMemRec(TempMem, SourceTransaction, chkMaster.checked, true);
+    SaveToMemRec(TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, true);
 
     tblTran.RowLimit := 0;
 
@@ -2761,7 +2752,7 @@ begin
             //{have enough data to create a memorised entry record
 
              //have details of the new master memorisation, now need to update to relevant location
-             if chkMaster.Checked and Assigned(AdminSystem) then
+             if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
              begin
                Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
                //memorise to relevant master file then reload to get new global list
@@ -2924,14 +2915,14 @@ begin
   with MemDlg do
   begin
     try
-       PopulateCmbType(BA, pM.mdFields.mdType);
-       BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-
        EditMem := pM;
        if pM.mdFields.mdFrom_Master_List then
          fDlgEditMode := demMasterEdit
        else
          fDlgEditMode := demEdit;
+
+       PopulateCmbType(BA, pM.mdFields.mdType);
+       BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
 
        EditMemorisedList := MemorisedList;
        ExistingCode := '';
@@ -3052,15 +3043,14 @@ begin
        end;
        //Show Total Line
        UpdateTotal;
-       //turn off memorise to master
-       chkMaster.Enabled := FromRecommendedMems;
+
        AllowMasterMemorised := False; // Sounds wrong, but also used for 'Can I Change MasterMem'.. You Cannot ...
        // Don't show 'Copy to New' if we've come from recommended mems
        //turn off editing of gst col if master
        //or if using Ledger Elite
 
        GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
-       if chkMaster.Checked then GSTClassEditable := False;
+       if fDlgEditMode in ALL_MASTER then GSTClassEditable := False;
 
        if not GSTClassEditable then
          ColGSTCode.Font.Color := clGrayText;
@@ -3075,7 +3065,7 @@ begin
          mrok, mrCopy :
          begin
            //save new values back
-           if chkMaster.Checked and Assigned(AdminSystem) then 
+           if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
            begin
              //---EDIT MASTER MEM---
              if CopySaveSeq = -1 then
@@ -3114,7 +3104,7 @@ begin
                    if Assigned(Memorised_Trans) then begin
                      if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then 
                      begin
-                       SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
+                       SaveToMemRec(Memorised_Trans, nil, fDlgEditMode in ALL_MASTER);
                        Break;
                      end;
                    end;
@@ -3130,7 +3120,7 @@ begin
            end 
            else 
            begin
-             SaveToMemRec(pM, nil, chkMaster.Checked);
+             SaveToMemRec(pM, nil, fDlgEditMode in ALL_MASTER);
            end;
            Result := true;
 
@@ -3326,14 +3316,14 @@ begin
   fDirty := true;
   if chkMaster.Checked then
   begin
-    if DlgEditMode = demEdit then
+    if (DlgEditMode in ALL_EDIT) then
       DlgEditMode := demMasterEdit
     else
       DlgEditMode := demMasterCreate;
   end
   else
   begin
-    if DlgEditMode = demMasterEdit then
+    if (DlgEditMode in ALL_EDIT) then
       DlgEditMode := demEdit
     else
       DlgEditMode := demCreate;
@@ -3530,6 +3520,17 @@ var
     Value.Width := Canvas.TextWidth(Value.caption) + 15;
   end;
 begin
+  if not ( Assigned( AdminSystem) and Assigned( CurrUser )) then
+    AllowMasterMemorised := false
+  else
+  begin
+     AllowMasterMemorised := ( CurrUser.CanMemoriseToMaster ) and
+                             ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
+                             ( MyClient.clFields.clDownload_From = dlAdminSystem ) and
+                             ( (DlgEditMode in ALL_CREATE));
+  end;
+  chkMaster.Enabled := AllowMasterMemorised;
+
   PopulatePayee := True;
   AutoSize(chkMaster);
   AutoSize(chkAccountSystem);
@@ -3544,7 +3545,17 @@ begin
     lblMatchingTransactions.Caption := 'Matching Transactions';
   end
   else
+  begin
+    if not AllowMasterMemorised then
+    begin
+      treView.Visible := true;
+      tblTran.Visible := false;
+      lblMatchingTransactions.Caption := 'Matching Accounts';
+      RefreshMasterMemTree();
+    end;
+
     chkMaster.Checked := true;
+  end;
 
   btnOk.SetFocus;
 
@@ -4662,29 +4673,13 @@ begin
        else
           Move := fnNothing;
 
-       if chkMaster.Checked then
+       if fDlgEditMode in ALL_MASTER then
           BA := nil
        else
           BA := SourceBankAccount;
 
        if SuperFieldsUtils.EditSuperFields( SourceTransaction,SplitData[ActiveRow] , Move, FSuperTop, FSuperLeft,sfMem, BA) then
        begin
-          // Confirm if we still can Use MasterMem
-          { Moved to the Tick box to follow GST and Payee
-          if Assigned(SourceBankAccount)
-          and AllowMasterMemorised then begin
-             if (SplitData[ActiveRow].SF_Fund_ID <> -1)
-             or (SplitData[ActiveRow].SF_Member_Account_ID <> -1) then begin
-                if chkMaster.Enabled then begin
-                   chkMaster.Enabled := False;
-                   chkMaster.Checked := False;
-                   chkMasterClick(nil);
-                end;
-             end else begin
-                chkMaster.Enabled := True;
-             end;
-          end;
-          }
           tblSplit.AllowRedraw := false;
           try
              UpdateFields(tblSplit.ActiveRow);
