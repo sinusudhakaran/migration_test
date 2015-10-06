@@ -4830,7 +4830,7 @@ begin
         for i := aPayee.pdLines.First to aPayee.pdLines.Last do
         begin
             PayeeLine := aPayee.pdLines.PayeeLine_At(i);
-            Dissection := New_Dissection_Rec;
+            Dissection := New_Dissection;
             Dissection.dsBank_Account := pT^.txBank_Account;
             ClearSuperFundFields(Dissection);
             with Dissection^ do begin
