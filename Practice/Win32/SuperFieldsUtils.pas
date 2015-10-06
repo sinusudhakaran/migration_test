@@ -1066,7 +1066,7 @@ begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
   try
-    SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txGL_Narration, ParentTrans^.txAmount);
+    SuperForm.SetInfo( ParentTrans^.txDate_Effective, pWJ^.dtNarration, pWJ^.dtAmount);
     Superform.RevenuePercentage := False;
     Superform.FrankPercentage := False;
 
@@ -1199,7 +1199,7 @@ begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
   try
-    SuperForm.SetInfo( ParentTrans^.txDate_Effective, ParentTrans^.txGL_Narration, ParentTrans^.txAmount);
+    SuperForm.SetInfo( ParentTrans^.txDate_Effective, pWD^.dtNarration, pWD^.dtAmount);
     Superform.RevenuePercentage := False;
     Superform.FrankPercentage := false;
 

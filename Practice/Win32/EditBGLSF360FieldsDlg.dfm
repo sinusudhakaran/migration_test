@@ -301,7 +301,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 6
+          TabOrder = 1
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -311,7 +311,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Top = 3
           Width = 450
           Height = 80
-          TabOrder = 7
+          TabOrder = 0
           ExplicitTop = 3
           ExplicitWidth = 450
           ExplicitHeight = 80
@@ -408,7 +408,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 0
+          TabOrder = 2
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -431,7 +431,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 1
+          TabOrder = 3
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -454,7 +454,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 2
+          TabOrder = 4
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -477,7 +477,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 3
+          TabOrder = 5
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -500,7 +500,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 4
+          TabOrder = 6
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
@@ -523,7 +523,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           EFColors.Highlight.TextColor = clHighlightText
           Options = []
           PictureMask = '#,###,###,###.##'
-          TabOrder = 5
+          TabOrder = 7
           OnKeyPress = nfTFNCreditsKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
