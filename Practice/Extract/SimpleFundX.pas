@@ -462,10 +462,10 @@ begin
   // Units
   if IsDissection then
     AddFieldNode(TransactionNode, 'Units',
-             FormatFloatForXml(Dissection^.dsQuantity, 4, 10000, Globals.PRACINI_ExtractZeroAmounts, True), True)
+             FormatFloatForXml(Dissection^.dsQuantity, 4, 10000, Globals.PRACINI_ExtractZeroAmounts), True)
   else
     AddFieldNode(TransactionNode, 'Units',
-             FormatFloatForXml(Transaction^.txQuantity, 4, 10000, Globals.PRACINI_ExtractZeroAmounts, True), True);
+             FormatFloatForXml(Transaction^.txQuantity, 4, 10000, Globals.PRACINI_ExtractZeroAmounts), True);
 
   if IsDissection then
   begin
