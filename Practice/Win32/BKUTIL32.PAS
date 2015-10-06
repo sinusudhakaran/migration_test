@@ -655,7 +655,7 @@ Begin
             end;
          csSuggestedMemCount    :
             begin
-              Result :=    LongToKey( -txSuggested_Manual_Count ) +
+              Result :=    LongToKey( -txSuggested_Mem_Index ) +
                            LongToKey( txDate_Effective ) +
                            LongToKey( txBank_Seq ) +
                            LongToKey( txSequence_No );
