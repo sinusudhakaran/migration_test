@@ -18,6 +18,8 @@ type
     imgContainer: TImage;
     reDescription: TBKRichEdit;
     procedure reDescriptionResizeRequest(Sender: TObject; Rect: TRect);
+    procedure reDescriptionLinkClicked(Sender: TObject; LinkClicked: string;
+      LinkLine: Integer);
   private
     { Private declarations }
     FStartPosition : Integer;
@@ -26,11 +28,10 @@ type
     function DeleteRichText(aStart, aLength : Integer):string;
     function GetRichText(aStart, aLength : Integer): string;
     procedure ProcessSpecialChar(var aCharIndex : Integer; SpecialChar : string);
-    function IsASpecialChar(AChar : Char):Boolean;
   public
     { Public declarations }
     PrevRichEditWndProc: TWndMethod;
-    constructor Create(Sender:TComponent;Content:TContentfulObj);
+    constructor Create(Sender:TComponent;Content:TContentfulObj);reintroduce;
     procedure ApplyTextFormatting;
   end;
 
@@ -44,6 +45,12 @@ uses ShellAPI;
 {$R *.dfm}
 
 { TPromoContentFrame }
+
+procedure TPromoContentFrame.reDescriptionLinkClicked(Sender: TObject;
+  LinkClicked: string; LinkLine: Integer);
+begin
+  ShowMessage(LinkClicked);
+end;
 
 procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
   Rect: TRect);
@@ -125,16 +132,6 @@ begin
   reDescription.SelLength := 0;
 end;
 
-function TPromoContentFrame.IsASpecialChar(AChar: Char): Boolean;
-begin
-  Result := (AChar = PromoSpecialChars[1]) or
-            (AChar = PromoSpecialChars[2]) or
-            (AChar = PromoSpecialChars[3]) or
-            (AChar = PromoSpecialChars[4]) or
-            (AChar = PromoSpecialChars[5]) or
-            (AChar = PromoSpecialChars[6]);
-end;
-
 {process the special chars in the promo content and show the formatting in the rich edit component.
 # means heading 1
 ## means heading 2
@@ -148,8 +145,7 @@ __ means bold
 procedure TPromoContentFrame.ProcessSpecialChar(var aCharIndex: Integer;
   SpecialChar: string);
 var
-  SubDesc : string;
-  FoundPos, iStartPos, iEndPos : Integer;
+  FoundPos : Integer;
 begin
   if SpecialChar = PromoSpecialChars[1] then
   begin
@@ -205,7 +201,7 @@ var
 begin
   iStartPos := reDescription.FindText(aFormatChar,0,Length(reDescription.Text),[]);
   DeleteRichText(iStartPos, Length(aFormatChar));
-
+  iEndURL := 0;
   if PromoStyle = psURL then
   begin
     iEndURL := reDescription.FindText(']',iStartPos, Length(reDescription.Text),[]);
@@ -274,8 +270,6 @@ end;
 procedure TPromoContentFrame.ApplyTextFormatting;
 var
   i, FoundPos: Integer;
-  Line : string;
-  DoNeedABreak : Boolean;
 begin
   if Trim(reDescription.Text) = '' then
     Exit;
@@ -295,13 +289,6 @@ begin
       if FoundPos > 0 then
         ProcessSpecialChar(FoundPos, reDescription.Text[FoundPos]);
     end;
-
-    {while (j <= Length(reDescription.Text)-1) do
-    begin
-      if ((reDescription.Text[j] <> #$D) and (IsASpecialChar(reDescription.Text[j]))) then
-        ProcessSpecialChar(j, reDescription.Text[j]);
-      j := j + 1;
-    end;}
   end;
 end;
 

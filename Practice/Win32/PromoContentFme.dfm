@@ -16434,7 +16434,9 @@ object PromoContentFrame: TPromoContentFrame
     BevelInner = bvNone
     BevelOuter = bvNone
     BorderStyle = bsNone
+    ScrollBars = ssVertical
     TabOrder = 0
     OnResizeRequest = reDescriptionResizeRequest
+    OnLinkClicked = reDescriptionLinkClicked
   end
 end

@@ -71,19 +71,18 @@ var
   RichEdit : TBKRichEdit;
 begin
   PrevRichEditWndProc(Msg);
-
+  RichEdit := TBKRichEdit(Self.ActiveControl);
+  
   case Msg.Msg of
     CN_NOTIFY:
       begin
-        RichEdit := TBKRichEdit(Self.ActiveControl);
-
         if (TWMNotify(Msg).NMHdr^.code = EN_LINK) then
         begin
           p := TENLink(Pointer(TWMNotify(msg).NMHdr)^);
           if (p.msg = WM_LBUTTONDOWN) then
           begin
             SendMessage(RichEdit.Handle, EM_EXSETSEL, 0, LongInt(@p.chrg));
-            ShellExecute(Handle, 'open', PChar(RichEdit.SelText), 0, 0, SW_SHOWNORMAL);
+            ShellExecute(Handle, 'open', PChar(RichEdit.SelText), nil, nil, SW_SHOWNORMAL);
           end;
         end;
         
@@ -165,7 +164,6 @@ var
   i : Integer;
   Content : TContentfulObj;
   NewFrame: TPromoContentFrame;
-  mask: Longint;
 begin
   FreeAllExistingFrames;
   if not Assigned(DisplayPromoContents) then
