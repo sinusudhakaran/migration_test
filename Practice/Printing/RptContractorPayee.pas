@@ -367,9 +367,6 @@ procedure DetailedTaxablePaymentsDetail(Sender : TObject);
     ABNAccountCode: String;
     BankIndex: Integer;
     TransactionIndex: Integer;
-    TransGSTAmount: Money;
-    Reference: String;
-    ChartAccount: pAccount_Rec;
   begin
     ABNAccountCode := FindABNAccountCode;
     
@@ -532,7 +529,6 @@ var
   PayeeDataList: TPayeeDataList;
   PayeeData: TPayeeData;
   Payee: TPayee;
-  Index: Integer;
   RecordLines: TBKReportRecordLines;
   StateCode, StateDesc : string;
   AddressCode : string;
@@ -990,9 +986,7 @@ procedure TTaxablePaymentsReport.DoATOExtractValidation(var aResult : Boolean; v
 var
   PayeeCount : integer;
   PayeeIndex : integer;
-  PayeeLineIndex : integer;
   Payee : TPayee;
-  NoPayeeLines : boolean;
   PayeeDataList: TPayeeDataList;
 begin
   aResult := true;
