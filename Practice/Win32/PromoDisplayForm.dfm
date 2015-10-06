@@ -4,12 +4,12 @@ object PromoDisplayFrm: TPromoDisplayFrm
   BorderIcons = [biMinimize]
   BorderStyle = bsSingle
   Caption = ' '
-  ClientHeight = 556
-  ClientWidth = 638
+  ClientHeight = 425
+  ClientWidth = 488
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
   KeyPreview = True
@@ -20,54 +20,54 @@ object PromoDisplayFrm: TPromoDisplayFrm
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
   OnShow = FormShow
-  PixelsPerInch = 120
-  TextHeight = 17
+  PixelsPerInch = 96
+  TextHeight = 13
   object pnlControls: TPanel
     Left = 0
-    Top = 514
-    Width = 638
-    Height = 42
+    Top = 393
+    Width = 488
+    Height = 32
     Align = alBottom
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
     TabOrder = 0
     DesignSize = (
-      638
-      42)
+      488
+      32)
     object ShapeBotBorder: TShape
       Left = 0
       Top = 0
-      Width = 638
+      Width = 488
       Height = 1
       Align = alTop
       Pen.Color = clSilver
     end
     object btnClose: TBitBtn
-      Left = 534
-      Top = 7
-      Width = 98
-      Height = 32
+      Left = 408
+      Top = 5
+      Width = 75
+      Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'Close'
       TabOrder = 0
       OnClick = btnCloseClick
     end
     object cbHidePromo: TCheckBox
-      Left = 10
-      Top = 14
-      Width = 321
-      Height = 23
+      Left = 8
+      Top = 11
+      Width = 245
+      Height = 17
       Caption = 'Dont show this again'
       TabOrder = 1
       Visible = False
     end
   end
   object pnlFrames: TPanel
-    Left = 73
-    Top = 94
-    Width = 514
-    Height = 273
+    Left = 56
+    Top = 72
+    Width = 393
+    Height = 209
     AutoSize = True
     BevelOuter = bvNone
     ParentColor = True
@@ -79,7 +79,7 @@ object PromoDisplayFrm: TPromoDisplayFrm
     Left = 32
     Top = 336
     Bitmap = {
-      494C010102004800700020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102004800780020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

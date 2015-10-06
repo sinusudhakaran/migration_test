@@ -5,17 +5,18 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, WPRTEDefs, WPCTRMemo, WPCTRRich, StdCtrls, RzLabel, ComCtrls,
-  OleCtrls, SHDocVw,  RzEdit, ExtCtrls, PromoWindowObj, OSFont, RichEdit;
+  OleCtrls, SHDocVw,  RzEdit, ExtCtrls, PromoWindowObj, OSFont, RichEdit,
+  BKRichEdit;
 
 type
   TPromoStyles = (psHeading1, psHeading2, psHeading3, psBold, psItalics,
-                  psStrikeOut, psQuote);
+                  psStrikeOut, psQuote, psURL);
 
   TPromoContentFrame = class(TFrame)
     lblTitle: TRzLabel;
     lblURL: TRzLabel;
     imgContainer: TImage;
-    reDescription: TRichEdit;
+    reDescription: TBKRichEdit;
     procedure reDescriptionResizeRequest(Sender: TObject; Rect: TRect);
   private
     { Private declarations }
@@ -28,13 +29,13 @@ type
     function IsASpecialChar(AChar : Char):Boolean;
   public
     { Public declarations }
-
+    PrevRichEditWndProc: TWndMethod;
     constructor Create(Sender:TComponent;Content:TContentfulObj);
     procedure ApplyTextFormatting;
   end;
 
 const
-  PromoSpecialChars : array [1..5] of Char = ('#', '_', '~', '*', '>');
+  PromoSpecialChars : array [1..6] of Char = ('#', '_', '~', '*', '>' , '[');
 
 implementation
 
@@ -43,6 +44,13 @@ uses ShellAPI;
 {$R *.dfm}
 
 { TPromoContentFrame }
+
+procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
+  Rect: TRect);
+begin
+  reDescription.Height := Rect.Bottom - Rect.Top;
+  reDescription.HideScrollBars := True;
+end;
 
 constructor TPromoContentFrame.Create(Sender: TComponent; Content: TContentfulObj);
 var
@@ -123,7 +131,8 @@ begin
             (AChar = PromoSpecialChars[2]) or
             (AChar = PromoSpecialChars[3]) or
             (AChar = PromoSpecialChars[4]) or
-            (AChar = PromoSpecialChars[5]);
+            (AChar = PromoSpecialChars[5]) or
+            (AChar = PromoSpecialChars[6]);
 end;
 
 {process the special chars in the promo content and show the formatting in the rich edit component.
@@ -178,32 +187,42 @@ begin
   begin
     if reDescription.Text[aCharIndex+1] = ' ' then // ##
       FormatRichText('> ', False, psQuote);
-  end;
+  end
+  else if SpecialChar = PromoSpecialChars[6] then // url then
+    FormatRichText('[', True, psURL);
 
   FoundPos := Pos(SpecialChar, reDescription.Text);
   if FoundPos > 0 then
     ProcessSpecialChar(FoundPos, reDescription.Text[FoundPos]);
-  //aCharIndex := aCharIndex + 1;
 end;
 
 //ShellExecute(0, 'OPEN', PChar(URLText), '', '', SW_SHOWNORMAL);
 
-procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
-  Rect: TRect);
-begin
-  reDescription.Height := Rect.Bottom - Rect.Top;
-  reDescription.HideScrollBars := True;
-end;
-
 procedure TPromoContentFrame.FormatRichText(aFormatChar: string; aIsEndCharAvailable:Boolean;PromoStyle: TPromoStyles);
 var
-  iStartPos, iEndPos : Integer;
+  iStartPos, iEndPos , iEndURL: Integer;
   SubDesc : string;
 begin
   iStartPos := reDescription.FindText(aFormatChar,0,Length(reDescription.Text),[]);
   DeleteRichText(iStartPos, Length(aFormatChar));
+
+  if PromoStyle = psURL then
+  begin
+    iEndURL := reDescription.FindText(']',iStartPos, Length(reDescription.Text),[]);
+    SubDesc := GetRichText(iStartPos, iEndURL-iStartPos);
+    if ((iEndURL < 0) and (Trim(SubDesc) = '')) then
+    begin
+      FStartPosition := FStartPosition + 1;
+      Exit;
+    end;
+  end;
   if aIsEndCharAvailable then
-    iEndPos := reDescription.FindText(aFormatChar,iStartPos,Length(reDescription.Text),[])
+  begin
+    if PromoStyle = psURL then
+      iEndPos := iEndURL
+    else
+      iEndPos := reDescription.FindText(aFormatChar,iStartPos,Length(reDescription.Text),[]);
+  end
   else
     iEndPos := reDescription.FindText(#$A,iStartPos,Length(reDescription.Text),[]);
 
@@ -241,6 +260,11 @@ begin
     psBold: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
     psItalics: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsItalic];
     psStrikeOut: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsStrikeOut];
+    psURL :
+    begin
+      reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsUnderline];
+      reDescription.SelAttributes.Color := HyperLinkColor;
+    end;
   end;
   reDescription.SelLength := 0;
 

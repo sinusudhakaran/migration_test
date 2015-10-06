@@ -36,22 +36,22 @@ object PromoContentFrame: TPromoContentFrame
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 61
+    Top = 63
     Width = 480
-    Height = 16
+    Height = 13
     Margins.Left = 10
     Margins.Right = 10
     Align = alTop
     Caption = 'v xcv xcvxcvxc'
     WordWrap = True
     BorderSides = []
-    ExplicitWidth = 80
+    ExplicitWidth = 74
   end
   object imgContainer: TImage
     Left = 0
-    Top = 80
+    Top = 79
     Width = 500
-    Height = 423
+    Height = 424
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16420,12 +16420,12 @@ object PromoContentFrame: TPromoContentFrame
     ExplicitTop = 141
     ExplicitHeight = 342
   end
-  object reDescription: TRichEdit
+  object reDescription: TBKRichEdit
     AlignWithMargins = True
     Left = 10
     Top = 32
     Width = 480
-    Height = 25
+    Height = 27
     Margins.Left = 10
     Margins.Top = 1
     Margins.Right = 10
@@ -16434,10 +16434,6 @@ object PromoContentFrame: TPromoContentFrame
     BevelInner = bvNone
     BevelOuter = bvNone
     BorderStyle = bsNone
-    HideScrollBars = False
-    Lines.Strings = (
-      'reDescription')
-    ScrollBars = ssVertical
     TabOrder = 0
     OnResizeRequest = reDescriptionResizeRequest
   end

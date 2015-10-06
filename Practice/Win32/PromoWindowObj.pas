@@ -247,26 +247,19 @@ begin
     Result := 1
   else
   begin
-    {if TContentfulObj(Item1).PageIndexWhereToDisplay < TContentfulObj(Item2).PageIndexWhereToDisplay then
+    if TContentfulObj(Item1).Priority < TContentfulObj(Item2).Priority then
       Result := -1
-    else if TContentfulObj(Item1).PageIndexWhereToDisplay > TContentfulObj(Item2).PageIndexWhereToDisplay then
-      Result := 1
-    else // if  on same page}
+    else if TContentfulObj(Item1).Priority = TContentfulObj(Item2).Priority then
     begin
-      if TContentfulObj(Item1).Priority < TContentfulObj(Item2).Priority then
-        Result := -1
-      else if TContentfulObj(Item1).Priority = TContentfulObj(Item2).Priority then
-      begin
-        if TContentfulObj(Item1).CreatedAt < TContentfulObj(Item2).CreatedAt then
-          Result := 1
-        else if TContentfulObj(Item1).CreatedAt = TContentfulObj(Item2).CreatedAt then
-          Result := 0
-        else
-         Result := -1;
-      end
+      if TContentfulObj(Item1).CreatedAt < TContentfulObj(Item2).CreatedAt then
+        Result := 1
+      else if TContentfulObj(Item1).CreatedAt = TContentfulObj(Item2).CreatedAt then
+        Result := 0
       else
-        Result := 1;
-    end;
+       Result := -1;
+    end
+    else
+      Result := 1;
   end;
 end;
 
