@@ -956,15 +956,11 @@ procedure TFinancialReportBase.PrintSectionWithSubGroupAndControlAccnt(
   ReportGroupsSet: ATTypeSet; SectionHeadingId, SectionTotalId: Integer;
   DefaultSign: TSign; Style: TStyleTypes);
 var
-  HasSubAccounts: boolean;
   i, j: integer;
   LinesPrinted: integer;
   NumOfTotals: integer;
-  pAcct, pCtrlAcct, pLastCtrlAcct: pAccount_Rec;
-  PeriodNo: integer;
-  SectionHeading, SubGroupHeading, SubGroupTotal, SectionTotal: string;
+  SubGroupHeading, SubGroupTotal, SectionTotal: string;
   TotalsArray: TValuesArray;
-  TotalsArrayPos: integer;
   ValuesArray: TValuesArray;
   SubGroupNo: integer;
 begin
@@ -1004,7 +1000,6 @@ begin
       for i := Low(TotalsArray) to High(TotalsArray) do
         TotalsArray[i] := 0;
 
-      HasSubAccounts := False;
       LinesPrinted := 0;
 
       PrintCtrlAcctsAndAccounts(ReportGroupsSet, SubGroupNo, DefaultSign, LinesPrinted);
