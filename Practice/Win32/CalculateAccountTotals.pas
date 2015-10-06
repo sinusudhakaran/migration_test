@@ -1074,8 +1074,6 @@ var
   pAcct   : pAccount_Rec;
   NewCode : bk5CodeStr;
   ClassNo : integer;
-  BankAccount : TBank_Account;
-  b           : integer;
 begin
   //add an account for each valid gst type
   for ClassNo := 1 to Max_GST_Class do
@@ -1146,7 +1144,6 @@ var
    NewAcct : pAccount_Rec;
    pAcct   : pAccount_Rec;
    NewCode : bk5CodeStr;
-   ClassNo : integer;
    BankAccount : TBank_Account;
    b           : integer;
 begin
