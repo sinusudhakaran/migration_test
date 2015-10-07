@@ -2289,28 +2289,31 @@ end;
 procedure TImportHist.vsOutGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
 begin
-   if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate)
-   or (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate) then
-       CellText := 'Cannot import, date out of range'
-   else
-       case TTransMatch(TOutItem(FOutList[Node.Index]).Objects[oiMatch]) of
-          tmDate      : CellText := 'Date matches existing transactions';
-          tmAmount    : CellText := 'Date and amount matches existing transactions';
-          tmReference : CellText := 'Date, amount and reference matches existing transactions';
-          tmAnalysis  :
-          begin
-            if tsAnalysis.TabVisible then
-            begin
-              CellText := 'Date, amount, reference and analysis matches existing transactions';
-            end
-            else
-            begin
-              CellText := 'Date, amount and reference matches existing transactions';
-            end;
-          end;
-          tmNarration : CellText := 'Matches existing transactions';
-       end;
-
+  if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate)
+  or (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate) then
+     CellText := 'Cannot import, date out of range'
+  else
+  begin
+    case TTransMatch(TOutItem(FOutList[Node.Index]).Objects[oiMatch]) of
+      tmDate      : CellText := 'Date matches existing transactions';
+      tmAmount    : CellText := 'Date and amount matches existing transactions';
+      tmReference : CellText := 'Date, amount and reference matches existing transactions';
+      tmAnalysis  :
+      begin
+        if tsAnalysis.TabVisible then
+        begin
+          CellText := 'Date, amount, reference and analysis matches existing transactions';
+        end
+        else
+        begin
+          CellText := 'Date, amount and reference matches existing transactions';
+        end;
+      end;
+      tmNarration : CellText := 'Matches existing transactions';
+    end;
+    if Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > Today  then
+      CellText := 'Future date';
+  end;
 end;
 
 procedure TImportHist.vsOutGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;

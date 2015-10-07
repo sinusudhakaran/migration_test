@@ -1,6 +1,7 @@
 object dlgHistorical: TdlgHistorical
   Left = 381
   Top = 274
+  ActiveControl = tblHist
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Add Historical Entries'
   ClientHeight = 531
@@ -137,11 +138,17 @@ object dlgHistorical: TdlgHistorical
     LockedRowsCell = hdrColumnHeadings
     Options = [otoEnterToArrow, otoNoSelection, otoThumbTrack]
     TabOrder = 0
+    OnBeginEdit = tblHistBeginEdit
+    OnDoneEdit = tblHistDoneEdit
+    OnEndEdit = tblHistEndEdit
     OnEnter = tblHistEnter
     OnExit = tblHistExit
+    OnGetCellData = tblHistGetCellData
+    OnGetCellAttributes = tblHistGetCellAttributes
     OnKeyDown = tblHistKeyDown
     OnMouseDown = tblHistMouseDown
     OnMouseUp = tblHistMouseUp
+    ExplicitLeft = 2
     CellData = (
       'dlgHistorical.hdrColumnHeadings')
     RowData = (
@@ -603,7 +610,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblHist
@@ -623,7 +629,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblHist
@@ -643,7 +648,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblHist
@@ -756,6 +760,7 @@ object dlgHistorical: TdlgHistorical
     Options = [efoForceOvertype]
     Table = tblHist
     OnEnter = celDateEnter
+    OnError = celDateError
     OnExit = celDateExit
     Left = 64
     Top = 112
@@ -783,7 +788,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     ShowHint = True
     Table = tblHist
@@ -1018,7 +1022,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblHist
     OnOwnerDraw = celForexAmountOwnerDraw
@@ -1035,7 +1038,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblHist
     Left = 336
@@ -1051,6 +1053,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblHist
     OnOwnerDraw = celLocalAmountOwnerDraw

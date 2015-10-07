@@ -285,6 +285,7 @@ type
     procedure mniSortByAltCodeClick(Sender: TObject);
     procedure ConvertAmount1Click(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
+    procedure celDateError(Sender: TObject; ErrorCode: Word; ErrorMsg: string);
   private
     { Private declarations }
     AltLineColor                  : integer;
@@ -397,7 +398,7 @@ type
     function AccountType: string;
     procedure UpdatePanelWidth;
   public
-    class function CreateAndSetup(aBankAccount: TBank_Account; 
+    class function CreateAndSetup(aBankAccount: TBank_Account;
                                   AProvisional: Boolean = false): TdlgHistorical;
     property CurrentSortOrder : Integer read TranSortOrder;
     function GetComboIndexForEntryType(EntryType: Integer): Byte;
@@ -1109,7 +1110,7 @@ begin
          //no trans in current list, position at top
          tblHist.ActiveRow := 1
       end;
-      CalculateBalanceColumn;      
+      CalculateBalanceColumn;
       InvalidateTable;
       AllowRedraw := true;
    end;
@@ -1720,13 +1721,23 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.tblHistGetCellAttributes(Sender: TObject;
   RowNum, ColNum: Integer; var CellAttr: TOvcCellAttributes);
+var
+  dtDate : Integer;
 begin
-   if (CellAttr.caColor = tblHist.Color) and (RowNum >= tblHist.LockedRows) then begin
-      if Odd(RowNum) then
-         CellAttr.caColor := clStdLineLight
-      else
-         CellAttr.caColor := AltLineColor;
-   end;
+  if (CellAttr.caColor = tblHist.Color) and (RowNum >= tblHist.LockedRows) then begin
+    if Odd(RowNum) then
+       CellAttr.caColor := clStdLineLight
+    else
+       CellAttr.caColor := AltLineColor;
+
+    if (Provisional and (HistTranList.ItemCount > 1) and (RowNum > 0)) then
+    begin
+      dtDate := HistTranList.Transaction_At(RowNum-1).txDate_Effective;//TOvcNumericField(tblHist.Cells.Cell[RowNum, 1].CellEditor).AsDateTime;
+      CellAttr.caFontColor := clBlack;
+      if (Provisional and  not (CheckEffectiveDate(dtDate))) then
+        CellAttr.caFontColor := clRed;
+    end;
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.tblHistEnteringRow(Sender: TObject; RowNum: Integer);
@@ -2000,8 +2011,29 @@ begin
    end;
 end;
 procedure TdlgHistorical.btnOKClick(Sender: TObject);
-begin
+  //inline function to be called only for provisional data to check any future date is available
+  function IsNoFutureTransactionsAvailable : Boolean;
+  var
+    i: integer;
+  begin
+    Result := True;
+    for i := BankAccount.baTransaction_List.First to BankAccount.baTransaction_List.Last do
+    with BankAccount.baTransaction_List.Transaction_At(i)^ do
+    begin
+      if txDate_Presented > Today then
+      begin
+        Result := False;
+        Exit;
+      end;
+    end;
+  end;
 
+begin
+  if Provisional and (not IsNoFutureTransactionsAvailable) then
+  begin
+    HelpfulWarningMsg('Transactions has future date. Please fix that before proceed ',0);
+    Exit;
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2606,6 +2638,7 @@ begin
              HelpfulWarningMsg(Format(rsMsgWrongAffectiveDate, [FormatDateTime('dd/mm/yy',dtEffectiveDate), FormatDateTime('dd/mm/yy',Now)]), 0);
              TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).ClearContents;
              TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).SetFocus;
+             AllowIt := False;
            end;
          end;
 
@@ -3444,11 +3477,22 @@ procedure TdlgHistorical.celDateEnter(Sender: TObject);
 begin
    cntController.EntryOptions := cntController.EntryOptions - [efoAutoSelect];
 end;
+procedure TdlgHistorical.celDateError(Sender: TObject; ErrorCode: Word;
+  ErrorMsg: string);
+var
+  Msg : string;
+begin
+  ValidDate(-1,@Msg);
+  HelpfulWarningMsg(Msg,0);
+  ErrorCode := 0;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.celDateExit(Sender: TObject);
 begin
   cntController.EntryOptions := cntController.EntryOptions + [efoAutoSelect];
 end;
+
 procedure TdlgHistorical.celForexAmountOwnerDraw(Sender: TObject;
   TableCanvas: TCanvas; const CellRect: TRect; RowNum, ColNum: Integer;
   const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
@@ -4169,8 +4213,10 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.tblHistExit(Sender: TObject);
 begin
-   btnOk.Default    := true;
-   btnCancel.Cancel := true;
+ if not tblHist.StopEditingState(true) then
+    Exit;
+  btnOk.Default    := true;
+  btnCancel.Cancel := true;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.RemindUserToSave(Imported: Boolean = False);
