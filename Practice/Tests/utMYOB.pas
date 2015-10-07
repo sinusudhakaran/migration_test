@@ -116,7 +116,7 @@ begin
   bk5testClient.clBank_Account_List.Insert( ba);
 
   //create transactions
-  pT := ba.baTransaction_List.New_Transaction;
+  pT := ba.baTransaction_List.Setup_New_Transaction;
 
   pT^.txDate_Presented  := Apr01_2004;
   pT.txDate_Effective   := Apr01_2004;
@@ -134,7 +134,7 @@ begin
   ba.baTransaction_List.Insert_Transaction_Rec( pT);
 
   //create dissected
-  pT := ba.baTransaction_List.New_Transaction;
+  pT := ba.baTransaction_List.Setup_New_Transaction;
 
   pT^.txDate_Presented  := Apr02_2004;
   pT.txDate_Effective   := Apr02_2004;
@@ -177,7 +177,7 @@ begin
   ba.baFields.baCurrency_Code := 'NZD';
   bk5testClient.clBank_Account_List.Insert( ba);
 
-  pT := ba.baTransaction_List.New_Transaction;
+  pT := ba.baTransaction_List.Setup_New_Transaction;
 
   pT^.txDate_Presented  := Apr03_2004;
   pT.txDate_Effective   := Apr03_2004;
@@ -195,7 +195,7 @@ begin
   ba.baTransaction_List.Insert_Transaction_Rec( pT);
 
   //create dissected
-  pT := ba.baTransaction_List.New_Transaction;
+  pT := ba.baTransaction_List.Setup_New_Transaction;
 
   pT^.txDate_Presented  := Apr04_2004;
   pT.txDate_Effective   := Apr04_2004;
