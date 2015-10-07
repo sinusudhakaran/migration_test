@@ -238,7 +238,7 @@ begin
     end;
     {post data}
     with BA do begin
-       Transaction := baTransaction_List.New_Transaction;
+       Transaction := baTransaction_List.Setup_New_Transaction;
        with Transaction^ do
        begin
           If FType = upUPW then

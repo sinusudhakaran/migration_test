@@ -3815,7 +3815,7 @@ begin
                 if ((j = 0) and (pD.dtPercent_Amount <> 0))
                   or ((j = 1) and (pD.dtPercent_Amount = 0)) then
                    Continue;
-                pDissection := New_Dissection_Rec;
+                pDissection := Create_New_Dissection;
                 with pDissection^, pD^ do
                 begin
                    dsTransaction     := pTran;

@@ -210,7 +210,7 @@ begin
             ( CheckedTotal = pT^.Local_Amount) and
             ( CheckedForexTotal = pT^.txOriginal_Amount ) then
          begin
-            NewTrans := BankAccount.baTransaction_List.New_Transaction;
+            NewTrans := BankAccount.baTransaction_List.Setup_New_Transaction;
             with NewTrans^ do begin
                txDate_Presented        := pT^.txDate_Presented;
                txDate_Effective        := pT^.txDate_Presented;
@@ -245,7 +245,7 @@ begin
          end
          else begin
             //original entry still needed, recreate balancing transaction.
-            NewTrans := BankAccount.baTransaction_List.New_Transaction;
+            NewTrans := BankAccount.baTransaction_List.Setup_New_Transaction;
             with NewTrans^ do begin
                txDate_Effective  := pT^.txDate_Presented;
                txDate_Presented  := pT^.txDate_Presented;

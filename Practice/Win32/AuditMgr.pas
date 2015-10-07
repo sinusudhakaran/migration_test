@@ -292,7 +292,7 @@ uses
   SYAUDIT, SYATIO, SYUSIO, SYFDIO, SYDLIO, SYSBIO, SYAMIO, SYCFIO, SYSMIO,
   BKAUDIT, BKPDIO, BKCLIO, BKCEIO, BKBAIO, BKCHIO, BKTXIO, BKMDIO, BKMLIO,
   BKPLIO, BKHDIO, BKDSIO, BKglIO,
-  MCAUDIT, MCEHIO, MCERIO, bkProduct;
+  MCAUDIT, MCEHIO, MCERIO, bkProduct, BKTEIO, BKDEIO, trxList32;
 
 const
   //Audit type strings
@@ -1032,9 +1032,19 @@ begin
         P2 := New_Transaction_Rec;
         Copy_Transaction_Rec(P1, P2);
       end;
+    tkBegin_Transaction_Extension:
+      begin
+        P2 := New_Transaction_Extension_Rec;
+        Copy_Transaction_Rec(P1, P2);
+      end;
     tkBegin_Dissection:
       begin
         P2 := New_Dissection_Rec;
+        Copy_Dissection_Rec(P1, P2);
+      end;
+    tkBegin_Dissection_Extension:
+      begin
+        P2 := New_Dissection_Extension_Rec;
         Copy_Dissection_Rec(P1, P2);
       end;
     tkBegin_Account:
@@ -1110,10 +1120,12 @@ begin
           tkBegin_Payee_Line  :         ;//Done in payee detail
           tkBegin_Payee_Detail: clPayee_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                      ClientCopy.clPayee_List, 0, fAuditTable);
-          tkBegin_Transaction :         ;//Done in bank account
-          tkBegin_Dissection:           ;//Done in bank account
-          tkBegin_Memorisation_Detail:  ;//Done in bank account
-          tkBegin_Memorisation_Line:    ;//Done in bank account
+          tkBegin_Transaction           :         ;//Done in bank account
+          tkBegin_Transaction_Extension :         ;//Done in bank account
+          tkBegin_Dissection            :         ;//Done in bank account
+          tkBegin_Dissection_Extension  :         ;//Done in bank account
+          tkBegin_Memorisation_Detail   :         ;//Done in bank account
+          tkBegin_Memorisation_Line     :         ;//Done in bank account
           tkBegin_Bank_Account: clBank_Account_List.DoAudit(ClientCopy.clBank_Account_List,
                                                             0, fAuditTable);
           tkBegin_Account: clChart.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
@@ -1122,7 +1134,7 @@ begin
           tkBegin_Custom_Heading: clCustom_Headings_List.DoAudit(PScopeInfo(FAuditScope.Items[i]).AuditType,
                                                                  ClientCopy.clCustom_Headings_List,
                                                                  0, fAuditTable);
-          tkBegin_Exchange_Gain_Loss:   ;//Done in bank account
+          tkBegin_Exchange_Gain_Loss    :         ;//Done in bank account
         end;
       end;
     end;
@@ -1150,7 +1162,11 @@ begin
     tkBegin_Payee_Line          : Free_Payee_Line_Rec_Dynamic_Fields(TPayee_Line_Rec(AuditRec.atAudit_Record^));
     tkBegin_Bank_Account        : Free_Bank_Account_Rec_Dynamic_Fields(TBank_Account_Rec(AuditRec.atAudit_Record^));
     tkBegin_Transaction         : Free_Transaction_Rec_Dynamic_Fields(TTransaction_Rec(AuditRec.atAudit_Record^));
+//DN    tkBegin_Transaction_Extension :
+//DN      Free_Transaction_Extension_Rec_Dynamic_Fields(TTransaction_Rec(AuditRec.atAudit_Record^));
     tkBegin_Dissection          : Free_Dissection_Rec_Dynamic_Fields(TDissection_Rec(AuditRec.atAudit_Record^));
+//DN    tkBegin_Dissection_Extension  :
+//DN      Free_Dissection_Extension_Rec_Dynamic_Fields(TDissection_Rec(AuditRec.atAudit_Record^));
     tkBegin_Account             : Free_Account_Rec_Dynamic_Fields(TAccount_Rec(AuditRec.atAudit_Record^));
     tkBegin_Custom_Heading      : Free_Custom_Heading_Rec_Dynamic_Fields(TCustom_Heading_Rec(AuditRec.atAudit_Record^));
     tkBegin_Memorisation_Detail : Free_Memorisation_Detail_Rec_Dynamic_Fields(TMemorisation_Detail_Rec(AuditRec.atAudit_Record^));
@@ -1186,18 +1202,20 @@ function TClientAuditManager.GetRecordSize(AuditRec: TAudit_Trail_Rec): integer;
 begin
 {$IFNDEF LOOKUPDLL}
   case AuditRec.atAudit_Record_Type  of
-    tkBegin_Client              : Result := Client_Rec_Size;
-    tkBegin_ClientExtra         : Result := ClientExtra_Rec_Size;
-    tkBegin_Payee_Detail        : Result := Payee_Detail_Rec_Size;
-    tkBegin_Payee_Line          : Result := Payee_Line_Rec_Size;
-    tkBegin_Bank_Account        : Result := Bank_Account_Rec_Size;
-    tkBegin_Transaction         : Result := Transaction_Rec_Size;
-    tkBegin_Dissection          : Result := Dissection_Rec_Size;
-    tkBegin_Account             : Result := Account_Rec_Size;
-    tkBegin_Custom_Heading      : Result := Custom_Heading_Rec_Size;
-    tkBegin_Memorisation_Detail : Result := Memorisation_Detail_Rec_Size;
-    tkBegin_Memorisation_Line   : Result := Memorisation_Line_Rec_Size;
-    tkBegin_Exchange_Gain_Loss  : Result := Exchange_Gain_Loss_Rec_Size;
+    tkBegin_Client                : Result := Client_Rec_Size;
+    tkBegin_ClientExtra           : Result := ClientExtra_Rec_Size;
+    tkBegin_Payee_Detail          : Result := Payee_Detail_Rec_Size;
+    tkBegin_Payee_Line            : Result := Payee_Line_Rec_Size;
+    tkBegin_Bank_Account          : Result := Bank_Account_Rec_Size;
+    tkBegin_Transaction           : Result := Transaction_Rec_Size;
+    tkBegin_Transaction_Extension : Result := Transaction_Extension_Rec_Size;
+    tkBegin_Dissection            : Result := Dissection_Rec_Size;
+    tkBegin_Dissection_Extension  : Result := Dissection_Extension_Rec_Size;
+    tkBegin_Account               : Result := Account_Rec_Size;
+    tkBegin_Custom_Heading        : Result := Custom_Heading_Rec_Size;
+    tkBegin_Memorisation_Detail   : Result := Memorisation_Detail_Rec_Size;
+    tkBegin_Memorisation_Line     : Result := Memorisation_Line_Rec_Size;
+    tkBegin_Exchange_Gain_Loss    : Result := Exchange_Gain_Loss_Rec_Size;
   else
     Result := 0;
   end;
@@ -1319,12 +1337,12 @@ begin
     tkBegin_Transaction:
       begin
         ARecord := New_Transaction_Rec;
-        Read_Transaction_Rec(TTransaction_Rec(ARecord^), AStream);
+        Safe_Read_Transaction_Rec( TTransaction_Rec(ARecord^), AStream);
       end;
     tkBegin_Dissection:
       begin
         ARecord := New_Dissection_Rec;
-        Read_Dissection_Rec(TDissection_Rec(ARecord^), AStream);
+        Safe_Read_Dissection_Rec(TDissection_Rec(ARecord^), AStream);
       end;
     tkBegin_Account:
       begin

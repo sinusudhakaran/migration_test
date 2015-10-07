@@ -61,7 +61,7 @@ VAR
 Begin
    With aClient, clFields, B do
    Begin
-      NewJNL :=  baTransaction_List.New_Transaction;
+      NewJNL :=  baTransaction_List.Setup_New_Transaction;
       With NewJNL^ do
       Begin
          Case clCountry of
@@ -262,7 +262,7 @@ Begin
             while jThis<>NIL do With jThis^ do begin
                If ( dsJournal_Type = jtReversing )
                and ( dsAmount<>0 ) then begin // Copy this over
-                  jNew := BKDSIO.New_Dissection_Rec;
+                  jNew := Create_New_Dissection;
                   With jNew^ do Begin
                      dsAccount             :=  jThis^.dsAccount;
                      dsAmount              := -jThis^.dsAmount;
@@ -296,7 +296,7 @@ Begin
                While jThis<>NIL do With jThis^ do Begin
                   If ( dsJournal_Type = jtReversing )
                   and ( dsAmount<>0 ) then Begin { Copy this over }
-                     jNew := BKDSIO.New_Dissection_Rec;
+                     jNew := Create_New_Dissection;
                      With jNew^ do Begin
                         dsAccount             := jThis^.dsAccount;
                         dsAmount              := 0;
@@ -330,7 +330,7 @@ Begin
          while (jThis<>NIL ) do With jThis^ do begin
             if (dsJournal_Type = jtStanding)
             and (dsAmount <> 0) then begin { Copy this over }
-               jNew := BKDSIO.New_Dissection_Rec;
+               jNew := Create_New_Dissection;
                with jNew^ do begin
                   dsAccount             := jThis^.dsAccount;
                   dsAmount              := jThis^.dsAmount;

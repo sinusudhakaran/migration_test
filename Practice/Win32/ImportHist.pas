@@ -373,7 +373,7 @@ begin
         oCSVParser.ExtractFields(HFileSL[LineNo], FileLine);
 
         //cycle through fields, creating transactions
-        pT := bktxio.New_Transaction_Rec;
+        pT := New_Transaction;
         //Set Some defaults
         ClearSuperFundFields(Pt);
         PT^.txSource := orHistorical;

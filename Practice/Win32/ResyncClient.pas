@@ -170,7 +170,7 @@ Begin
 
            if ( TrxDate = PresDate ) then begin
               //found a transaction to add to the transaction list
-              Transaction := aBankAccount.baTransaction_List.New_Transaction;
+              Transaction := aBankAccount.baTransaction_List.Setup_New_Transaction;
               With Transaction^, T do
               Begin
                  txTemp_Admin_LRN     := aLrn;

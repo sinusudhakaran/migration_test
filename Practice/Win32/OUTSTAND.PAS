@@ -267,7 +267,7 @@ begin
        number := psNo;
        if ( psPtr = nil) then begin
           //not there at all, so !! ADD !! the missing Cheques}
-          Transaction := BA.baTransaction_List.New_Transaction;
+          Transaction := BA.baTransaction_List.Setup_New_Transaction;
           with Transaction^ do begin
              txType := BKConst.whChequeEntryType[ MyClient.clFields.clCountry ];
              txSource         := orGenerated;
@@ -525,7 +525,7 @@ begin
     for i := pred(SeqList.ItemCount) downto 0 do with SeqList.SeqInfo_At(i)^ do begin
       number := psNo;
       if psPtr = nil then begin  {not there at all}
-         Transaction := BA.baTransaction_List.New_Transaction;
+         Transaction := BA.baTransaction_List.Setup_New_Transaction;
          with Transaction^ do begin
             txType := BKConst.whChequeEntryType[ MyClient.clFields.clCountry ];
             txSource         := orGenerated;

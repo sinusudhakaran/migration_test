@@ -165,9 +165,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
     OnMouseMove = tgBalancesMouseMove
     OnPaintCell = tgBalancesPaintCell
     OnStartCellEdit = tgBalancesStartCellEdit
-    ExplicitLeft = -8
-    ExplicitTop = 204
-    ExplicitHeight = 229
     ColProperties = <
       item
         DataCol = 1
@@ -210,7 +207,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
     Caption = ' '
     ParentBackground = False
     TabOrder = 3
-    ExplicitTop = 490
     DesignSize = (
       622
       42)
@@ -231,7 +227,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Caption = '&OK'
       ModalResult = 1
       TabOrder = 0
-      ExplicitTop = 24
     end
     object btnCancel: TButton
       Left = 536
@@ -243,7 +238,6 @@ object dlgOpeningBalances: TdlgOpeningBalances
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 1
-      ExplicitTop = 24
     end
   end
   object tsMaskDefs1: TtsMaskDefs

@@ -306,7 +306,7 @@ function AddDissection(value: PTransaction_rec): pDissection_Rec;
 var
   Seq : Integer;
 begin
-  Result := New_Dissection_Rec;
+  Result := New_Dissection;
   Seq := 0;
   If value.txLast_Dissection <> nil then
      Seq := value.txLast_Dissection^.dsSequence_No;
@@ -347,7 +347,7 @@ end;
 
 procedure TXML_Helper.ReadFromNode(var value: PTransaction_rec; Node: IXMLNode);
 var LNode : IXMLNode;
-    new: PDissection_Rec;
+    Dissection_Rec: PDissection_Rec;
 begin
    LNode := value^.ReadRecFromNode(Node);
    if not assigned(lnode) then exit;
@@ -355,8 +355,8 @@ begin
    if not assigned(lnode) then Exit;
    lnode := lnode.ChildNodes.First;
    while Assigned(LNode) do begin
-       new := AddDissection(value);
-       new.ReadRecFromNode(LNode);
+       Dissection_Rec := AddDissection(value);
+       Dissection_Rec.ReadRecFromNode(LNode);
        //pendDissection(value, new);
        LNode := LNode.NextSibling;
    end;
@@ -387,7 +387,7 @@ end;
 
 procedure TXML_Helper.ReadFromNode(var value: TBank_Account; Node: IXMLNode);
 var LNode : IXMLNode;
-    new: pTransaction_Rec;
+    Transaction_Rec: pTransaction_Rec;
     NMem: Tmemorisation;
 begin
 
@@ -398,10 +398,10 @@ begin
    if Assigned(lnode) then begin
       lnode := lnode.ChildNodes.First;
       while Assigned(LNode) do begin
-         new := new_Transaction_Rec;
-         ReadFromNode(new, LNode);
+         Transaction_Rec := New_Transaction;
+         ReadFromNode(Transaction_Rec, LNode);
          
-         value.baTransaction_List.Insert_Transaction_Rec(new);
+         value.baTransaction_List.Insert_Transaction_Rec(Transaction_Rec);
 
          LNode := LNode.NextSibling;
       end;

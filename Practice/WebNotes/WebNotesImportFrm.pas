@@ -310,7 +310,7 @@ begin
 
    while Assigned(DNode) do begin
       //create a new dissection line for the bk5 transaction
-      BKD := bkdsio.New_Dissection_Rec;
+      BKD := Create_New_Dissection;
       ClearSuperFundFields(BKD);
       // add the basics
       BKD.dsAmount := GetMoneyAttr(DNode, nAmount);
@@ -960,7 +960,7 @@ begin
   lState := GetUPIStateAttr(FromNode,nUPIState);
   if lState in [upUPD, upUPC, upUPW] then begin
     //set up a new blank transaction, fill cheque details
-    BKT := bktxio.New_Transaction_Rec;
+    BKT := Create_New_Transaction;
     ClearSuperFundFields(BKT);
 
     //determine if the UPC matches an existing bk5 transaction

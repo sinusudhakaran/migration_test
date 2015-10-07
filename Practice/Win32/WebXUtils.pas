@@ -159,7 +159,7 @@ begin
       end;
       uid := R.getField(i, 'TRANSACTION_UID');
       // Now fill in txn info using the info from the WDDX file
-      TR :=  BA.baTransaction_List.New_Transaction;
+      TR :=  BA.baTransaction_List.Setup_New_Transaction;
       TR.txECoding_Transaction_UID := uid;
       MoneyVal := R.getField(i, 'QUANTITY');
       TR.txQuantity := MoneyVal * 10000;
@@ -188,7 +188,7 @@ begin
           while DRbk <> nil do
           begin
             // add the dissection lines
-            DR := bkdsio.New_Dissection_Rec;
+            DR := Create_New_Dissection;
             DR.dsAccount := DRbk.dsAccount;
             DR.dsAmount := DRbk.dsAmount;
             DR.dsGL_Narration := DRbk.dsGL_Narration;
@@ -242,7 +242,7 @@ begin
         begin
           if DR = nil then
           begin
-            DR := bkdsio.New_Dissection_Rec;
+            DR := Create_New_Dissection;
             trxlist32.AppendDissection( TR, DR);
           end;
           if j < Pred(line) then
@@ -1032,7 +1032,7 @@ begin
   while ( ECD <> nil) do
   begin
     //create a new dissection line for the bk5 transaction
-    BKD := bkdsio.New_Dissection_Rec;
+    BKD := Create_New_Dissection;
     BKD.dsECoding_Import_Notes  := '';
 
     BKD.dsAmount            := ECD.dsAmount;
@@ -1163,7 +1163,7 @@ begin
   while ( ECD <> nil) do
   begin
     //create a new dissection line for the bk5 transaction
-    BKD := bkdsio.New_Dissection_Rec;
+    BKD := Create_New_Dissection;
     BKD.dsECoding_Import_Notes  := '';
 
 
@@ -1287,7 +1287,7 @@ begin
   while ( ECD <> nil) do
   begin
     //create a new dissection line for the bk5 transaction
-    BKD := bkdsio.New_Dissection_Rec;
+    BKD := Create_New_Dissection;
     BKD.dsECoding_Import_Notes  := '';
 
     BKD.dsAmount := ECD.dsAmount;

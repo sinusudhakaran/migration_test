@@ -90,7 +90,8 @@ uses
    BKConst,
    BKDSIO,
    Globals,
-   BaList32;
+   BaList32,
+   trxList32;
 
 { TTransactionHelper }
 
@@ -202,7 +203,7 @@ function TTransactionHelper.AddDissection: pDissection_Rec;
 var
   Seq : Integer;
 begin
-  Result := New_Dissection_Rec;
+  Result := Create_New_Dissection;
   Seq := 0;
   If txLast_Dissection <> nil then
      Seq := txLast_Dissection^.dsSequence_No;

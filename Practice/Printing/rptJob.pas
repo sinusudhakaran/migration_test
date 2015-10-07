@@ -149,7 +149,7 @@ begin
       OldTransaction := BankAccount.baTransaction_List.Transaction_At(TransactionIndex);
       if (OldTransaction^.txDate_Effective >= Params.Fromdate) and (OldTransaction^.txDate_Effective <= Params.Todate) then
       begin
-        NewTransaction := BankAccount.baTransaction_List.New_Transaction;
+        NewTransaction := BankAccount.baTransaction_List.Setup_New_Transaction;
         //with OldTransaction^ do
         //begin
         NewTransaction.txType := OldTransaction.txType;
@@ -177,7 +177,7 @@ begin
             if DissectionJobCode <> '' then
               if SameText(DissectionJobCode, OldDissection.dsJob_Code) then
                 DissectionJobCode := '';
-            NewDissection := bkdsio.New_Dissection_Rec;
+            NewDissection := Create_New_Dissection;
             NewDissection.dsAccount := OldDissection.dsAccount;
             NewDissection.dsReference := OldDissection.dsReference;
             NewDissection.dsAmount := OldDissection.dsAmount;

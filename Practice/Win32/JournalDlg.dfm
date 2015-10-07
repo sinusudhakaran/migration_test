@@ -85,8 +85,6 @@ object dlgJournal: TdlgJournal
     ParentFont = True
     UseSystemFont = False
     OnMouseUp = stbJournalMouseUp
-    ExplicitLeft = 0
-    ExplicitWidth = 799
   end
   object tblJournal: TOvcTable
     Left = 4
@@ -126,10 +124,6 @@ object dlgJournal: TdlgJournal
     OnMouseDown = tblJournalMouseDown
     OnMouseUp = tblJournalMouseUp
     OnTopLeftCellChanging = tblJournalTopLeftCellChanging
-    ExplicitLeft = 0
-    ExplicitTop = 80
-    ExplicitWidth = 799
-    ExplicitHeight = 329
     CellData = (
       'dlgJournal.hdrColumnHeadings')
     RowData = (
@@ -308,7 +302,6 @@ object dlgJournal: TdlgJournal
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitLeft = 593
       DesignSize = (
         202
         25)
@@ -395,8 +388,6 @@ object dlgJournal: TdlgJournal
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
-    ExplicitLeft = 0
-    ExplicitWidth = 799
     DesignSize = (
       793
       80)
@@ -501,7 +492,7 @@ object dlgJournal: TdlgJournal
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akBottom]
-      ItemHeight = 13
+      ItemHeight = 0
       TabOrder = 2
     end
     object eDateUntil: TOvcPictureField
@@ -557,7 +548,6 @@ object dlgJournal: TdlgJournal
       ShowHint = True
       TabOrder = 5
       OnClick = btnOKClick
-      ExplicitLeft = 636
     end
     object btnCancel: TButton
       Left = 711
@@ -571,7 +561,6 @@ object dlgJournal: TdlgJournal
       ParentShowHint = False
       ShowHint = True
       TabOrder = 6
-      ExplicitLeft = 717
     end
     object BtnCal: TButton
       Left = 480

@@ -465,7 +465,8 @@ uses
   SuggestedMems,
   clObj32,
   Files,
-  bkBranding;
+  bkBranding,
+  trxList32;
 
 {$R *.DFM}
 
@@ -2817,7 +2818,7 @@ var
 begin
   // Create new transaction from provided details, which we will pass into EditMemorisation, which
   // has been designed expecting a transaction to provide it with details
-  tr := BKTXIO.New_Transaction_Rec;
+  tr := Create_New_Transaction;
 
   try
     tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
@@ -2827,8 +2828,9 @@ begin
     
     result := MemoriseEntry(BA, tr, IsAMasterMem, pM);
   finally
-    Free_Transaction_Rec_Dynamic_Fields(tr^);
-    FreeMem(tr, sizeof(tr));
+    Dispose_Transaction_Rec( tr );
+//DN    Free_Transaction_Rec_Dynamic_Fields(tr^);
+//DN    FreeMem(tr, sizeof(tr));
   end;
 end;
 

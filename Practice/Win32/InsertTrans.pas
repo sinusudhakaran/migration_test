@@ -134,7 +134,7 @@ begin
            ptr^.txOriginal_Cheque_Number := TempTransaction^.txCheque_Number;
         end
         else begin
-           NewTransaction :=  BankAccount.baTransaction_List.New_Transaction;
+           NewTransaction :=  BankAccount.baTransaction_List.Setup_New_Transaction;
            With NewTransaction^ do Begin
               txType                     := TempTransaction.txType;
               txSource                   := TempTransaction.txSource;

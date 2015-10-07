@@ -146,7 +146,7 @@ begin
       for dTNo := DiskAccount.dbTransaction_List.First to DiskAccount.dbTransaction_List.Last do
       begin
         DiskTxn := DiskAccount.dbTransaction_List.Disk_Transaction_At( dtNo);
-        pT := TempTransList.New_Transaction;
+        pT := TempTransList.Setup_New_Transaction;
         pT^.txType              := DiskTxn^.dtEntry_Type;
         pT^.txSource            := BKCONST.orBank;
         pT^.txDate_Presented    := DiskTxn.dtEffective_Date;

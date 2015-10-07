@@ -638,7 +638,7 @@ begin
       if (Integer(TOutItem(fOutlist[R]).objects[oiDate]) >= FValidDateRange.FromDate)
      and (Integer(TOutItem(fOutlist[R]).objects[oiDate]) <= FValidDateRange.ToDate) then begin
 
-        pT := BankAccount.baTransaction_List.New_Transaction;
+        pT := BankAccount.baTransaction_List.Setup_New_Transaction;
         //Set Some defaults
         ClearSuperFundFields(Pt);
         if FHDEForm.Provisional then

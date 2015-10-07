@@ -710,7 +710,7 @@ begin
 
      if TempAmount <> 0 then begin
         //need to write a dissection line for this account
-        pJournalLine        :=  New_Dissection_Rec;
+        pJournalLine        :=  Create_New_Dissection;
         with pJournalLine^ do begin
           dsTransaction         := TempYEAdjustment;
           dsAccount             := pAccount.chAccount_Code;
@@ -1763,7 +1763,7 @@ begin
     pAcct := ThisClient.clChart.Account_At( i);
     if pAcct.chTemp_Money_Value <> 0 then begin
       //need to write a dissection line for this account
-      pJournalLine        :=  New_Dissection_Rec;
+      pJournalLine        :=  Create_New_Dissection;
       with pJournalLine^ do begin
         dsTransaction         := OpeningBalanceRec;
         dsAccount             := pAcct.chAccount_Code;

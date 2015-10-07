@@ -19,8 +19,9 @@ unit TransactionUtils;
 interface
   uses  bkdefs, bkAuditUtils, baObj32, clobj32;
 
-procedure  ClearSuperFundFields( pT : pTransaction_Rec); overload;
-procedure  ClearSuperFundFields( pD : pDissection_Rec); overload;
+procedure ClearSuperFundFields( pT : pTransaction_Rec); overload;
+procedure ClearSuperFundFields( pD : pDissection_Rec); overload;
+procedure ClearSuperFundFields( Dissection_Extension_Rec : pDissection_Extension_Rec); overload;
 procedure ClearSuperFundFields( Transaction_Extension_Rec : pTransaction_Extension_Rec); overload;
 
 procedure  ClearGSTFields( pT : pTransaction_Rec);
@@ -181,7 +182,7 @@ begin
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure  ClearSuperFundFields( pT : pTransaction_Rec);
+procedure ClearSuperFundFields( pT : pTransaction_Rec);
 begin
   pT^.txSF_Imputed_Credit := 0;
   pT^.txSF_Tax_Free_Dist := 0;
@@ -215,10 +216,10 @@ begin
   pT^.txSF_Transaction_Code := '';
   pT^.txSF_Capital_Gains_Fraction_Half := false;
   if assigned( pT^.txTransaction_Extension ) then       // Extension Record has been created, so clear it
-    ClearSuperFundFields( pT^.txTransaction_Extension ); // Clear Extension Record 
+    ClearSuperFundFields( pT^.txTransaction_Extension ); // Clear Extension Record
 end;
 
-procedure  ClearSuperFundFields( pD : pDissection_Rec); overload;
+procedure ClearSuperFundFields( pD : pDissection_Rec); overload;
 begin
   pd^.dsSF_Imputed_Credit := 0;
   pd^.dsSF_Tax_Free_Dist := 0;
@@ -251,30 +252,36 @@ begin
   pd^.dsSF_Transaction_ID := -1;
   pd^.dsSF_Transaction_Code := '';
   pd^.dsSF_Capital_Gains_Fraction_Half := false;
-  pd^.dsDissection_Extension^.deSF_Other_Income := 0;
-  pd^.dsDissection_Extension^.deSF_Other_Trust_Deductions := 0;
-  pd^.dsDissection_Extension^.deSF_CGT_Concession_Amount := 0;
-  pd^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Before_Disc := 0;
-  pd^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Indexation := 0;
-  pd^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Other_Method := 0;
-  pd^.dsDissection_Extension^.deSF_CGT_TaxPaid_Indexation := 0;
-  pd^.dsDissection_Extension^.deSF_CGT_TaxPaid_Other_Method := 0;
-  pd^.dsDissection_Extension^.deSF_Other_Net_Foreign_Income := 0;
-  pd^.dsDissection_Extension^.deSF_Cash_Distribution := 0;
-  pd^.dsDissection_Extension^.deSF_AU_Franking_Credits_NZ_Co := 0;
-  pd^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax := 0;
-  pd^.dsDissection_Extension^.deSF_LIC_Deductions := 0;
-  pd^.dsDissection_Extension^.deSF_Non_Cash_CGT_Discounted_Before_Discount := 0;
-  pd^.dsDissection_Extension^.deSF_Non_Cash_CGT_Indexation := 0;
-  pd^.dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method := 0;
-  pd^.dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses := 0;
-  pd^.dsDissection_Extension^.deSF_Share_Brokerage := 0;
-  pd^.dsDissection_Extension^.deSF_Share_Consideration := 0;
-  pd^.dsDissection_Extension^.deSF_Share_GST_Amount := 0;
-  pd^.dsDissection_Extension^.deSF_Share_GST_Rate := '';
-  pd^.dsDissection_Extension^.deSF_Cash_Date := 0;
-  pd^.dsDissection_Extension^.deSF_Accrual_Date := 0;
-  pd^.dsDissection_Extension^.deSF_Record_Date := 0;
+  if assigned( pd^.dsDissection_Extension ) then
+    ClearSuperFundFields(pd^.dsDissection_Extension );
+end;
+
+procedure ClearSuperFundFields( Dissection_Extension_Rec : pDissection_Extension_Rec); overload;
+begin
+  Dissection_Extension_Rec^.deSF_Other_Income := 0;
+  Dissection_Extension_Rec^.deSF_Other_Trust_Deductions := 0;
+  Dissection_Extension_Rec^.deSF_CGT_Concession_Amount := 0;
+  Dissection_Extension_Rec^.deSF_CGT_ForeignCGT_Before_Disc := 0;
+  Dissection_Extension_Rec^.deSF_CGT_ForeignCGT_Indexation := 0;
+  Dissection_Extension_Rec^.deSF_CGT_ForeignCGT_Other_Method := 0;
+  Dissection_Extension_Rec^.deSF_CGT_TaxPaid_Indexation := 0;
+  Dissection_Extension_Rec^.deSF_CGT_TaxPaid_Other_Method := 0;
+  Dissection_Extension_Rec^.deSF_Other_Net_Foreign_Income := 0;
+  Dissection_Extension_Rec^.deSF_Cash_Distribution := 0;
+  Dissection_Extension_Rec^.deSF_AU_Franking_Credits_NZ_Co := 0;
+  Dissection_Extension_Rec^.deSF_Non_Res_Witholding_Tax := 0;
+  Dissection_Extension_Rec^.deSF_LIC_Deductions := 0;
+  Dissection_Extension_Rec^.deSF_Non_Cash_CGT_Discounted_Before_Discount := 0;
+  Dissection_Extension_Rec^.deSF_Non_Cash_CGT_Indexation := 0;
+  Dissection_Extension_Rec^.deSF_Non_Cash_CGT_Other_Method := 0;
+  Dissection_Extension_Rec^.deSF_Non_Cash_CGT_Capital_Losses := 0;
+  Dissection_Extension_Rec^.deSF_Share_Brokerage := 0;
+  Dissection_Extension_Rec^.deSF_Share_Consideration := 0;
+  Dissection_Extension_Rec^.deSF_Share_GST_Amount := 0;
+  Dissection_Extension_Rec^.deSF_Share_GST_Rate := '';
+  Dissection_Extension_Rec^.deSF_Cash_Date := 0;
+  Dissection_Extension_Rec^.deSF_Accrual_Date := 0;
+  Dissection_Extension_Rec^.deSF_Record_Date := 0;
 end;
 
 procedure ClearSuperFundFields( Transaction_Extension_Rec : pTransaction_Extension_Rec); overload;

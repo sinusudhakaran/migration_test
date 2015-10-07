@@ -2461,7 +2461,7 @@ begin
     //this bnotes file
 
     //set up a new blank transaction, fill cheque details
-    BKT := bktxio.New_Transaction_Rec;
+    BKT := Create_New_Transaction;
 
     //set up the new transaction
     BKT^.txType               := ECT^.txType;

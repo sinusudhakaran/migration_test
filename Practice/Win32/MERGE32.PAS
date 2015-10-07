@@ -363,7 +363,7 @@ Begin
                                if ( ( aCoreTransactionID + aCoreTransactionIDHigh) = 0 ) or // Provisional Transaction
                                   ( not baTransaction_List.TransactionCoreIDExists(
                                       aCoreTransactionID, aCoreTransactionIDHigh ) ) then begin
-                                 Transaction := baTransaction_List.New_Transaction;
+                                 Transaction := baTransaction_List.Setup_New_Transaction;
                                  With Transaction^ do
                                  Begin
                                     txType               := aType;

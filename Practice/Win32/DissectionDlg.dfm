@@ -331,9 +331,6 @@ object dlgDissection: TdlgDissection
     ParentFont = True
     UseSystemFont = False
     OnMouseUp = stbDissectMouseUp
-    ExplicitLeft = 0
-    ExplicitTop = 727
-    ExplicitWidth = 956
   end
   object tblDissect: TOvcTable
     AlignWithMargins = True
@@ -381,7 +378,6 @@ object dlgDissection: TdlgDissection
     OnMouseDown = tblDissectMouseDown
     OnMouseUp = tblDissectMouseUp
     OnTopLeftCellChanging = tblDissectTopLeftCellChanging
-    ExplicitLeft = 5
     CellData = (
       'dlgDissection.hdrColumnHeadings')
     RowData = (
@@ -792,9 +788,6 @@ object dlgDissection: TdlgDissection
     TabOrder = 2
     VisualStyle = vsGradient
     OnResize = pNotesResize
-    ExplicitLeft = 0
-    ExplicitTop = 577
-    ExplicitWidth = 956
     object Shape10: TShape
       Left = 0
       Top = 89
@@ -836,9 +829,6 @@ object dlgDissection: TdlgDissection
       TabOrder = 0
       OnEnter = pnlNotesEnter
       OnExit = pnlNotesExit
-      ExplicitLeft = 0
-      ExplicitWidth = 956
-      ExplicitHeight = 80
       object Panel2: TPanel
         Left = 21
         Top = 0
@@ -848,8 +838,6 @@ object dlgDissection: TdlgDissection
         BevelOuter = bvNone
         Caption = 'Panel2'
         TabOrder = 0
-        ExplicitWidth = 935
-        ExplicitHeight = 80
         object memImportNotes: TMemo
           Left = 0
           Top = 0
@@ -866,7 +854,6 @@ object dlgDissection: TdlgDissection
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 0
-          ExplicitWidth = 935
         end
         object memNotes: TMemo
           Left = 0
@@ -898,7 +885,6 @@ object dlgDissection: TdlgDissection
         Ctl3D = False
         ParentCtl3D = False
         TabOrder = 1
-        ExplicitHeight = 80
         object rzPinBtn: TRzBmpButton
           Left = 1
           Top = 3

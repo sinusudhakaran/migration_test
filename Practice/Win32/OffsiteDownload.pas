@@ -512,7 +512,7 @@ begin
                      ( not ClientAccount.baTransaction_List.TransactionCoreIDExists(
                        DiskTxn.dtBankLink_ID, DiskTxn.dtBankLink_ID_H ) ) then begin
 
-                    pT := ClientAccount.baTransaction_List.New_Transaction;
+                    pT := ClientAccount.baTransaction_List.Setup_New_Transaction;
 
                     pT^.txType               := TrxType;
                     pT^.txSource             := BKCONST.orBank;

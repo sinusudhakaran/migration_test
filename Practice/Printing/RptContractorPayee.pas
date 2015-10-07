@@ -1061,7 +1061,7 @@ begin
       If (pTranRec^.txDate_Effective >= Params.Fromdate) and
          (pTranRec^.txDate_Effective <= Params.Todate) then
       begin
-        pNewTranRec := aTransactions.New_Transaction;
+        pNewTranRec := aTransactions.Setup_New_Transaction;
 
         pNewTranRec^.txType                  := pTranRec^.txType;
         pNewTranRec^.txDate_Presented        := pTranRec^.txDate_Presented;
@@ -1102,7 +1102,7 @@ begin
               if PayeeNum <> pDisRec^.dsPayee_Number then
                 PayeeNum := 0;
 
-            pNewDisRec := bkdsio.New_Dissection_Rec;
+            pNewDisRec := Create_New_Dissection;
             pNewDisRec^.dsAccount          := pDisRec^.dsAccount;
             pNewDisRec^.dsReference        := pDisRec^.dsReference;
             pNewDisRec^.dsAmount           := pDisRec^.dsAmount;

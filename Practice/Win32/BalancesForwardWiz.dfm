@@ -600,6 +600,10 @@ object wizBalancesForward: TwizBalancesForward
       object tbsAdjustments: TTabSheet
         Caption = 'Page1'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object tgBalances: TtsGrid
           Left = 0
           Top = 43
@@ -759,6 +763,10 @@ object wizBalancesForward: TwizBalancesForward
         Tag = 1
         Caption = 'Page2'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object tgEarnings: TtsGrid
           Left = 0
           Top = 35
@@ -890,6 +898,10 @@ object wizBalancesForward: TwizBalancesForward
       object tbsReports: TTabSheet
         Caption = 'tbsReports'
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblReportYearStart: TLabel
           Left = 4
           Top = 9
@@ -930,6 +942,10 @@ object wizBalancesForward: TwizBalancesForward
       object tbsOpeningBalancesFound: TTabSheet
         Caption = 'tbsOpeningBalancesFound'
         ImageIndex = 3
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblOpeningBalancesFound: TLabel
           Left = 3
           Top = 13
@@ -1080,6 +1096,10 @@ object wizBalancesForward: TwizBalancesForward
       object tbsFinshed: TTabSheet
         Caption = 'tbsFinshed'
         ImageIndex = 4
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         DesignSize = (
           585
           297)
@@ -1114,6 +1134,10 @@ object wizBalancesForward: TwizBalancesForward
       object tbsCreateOpening: TTabSheet
         Caption = 'tbsCreateOpening'
         ImageIndex = 5
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblAddOpeningBalances: TLabel
           Left = 7
           Top = 33
@@ -1204,7 +1228,6 @@ object wizBalancesForward: TwizBalancesForward
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 2
-      ExplicitTop = 12
     end
   end
   object tsMaskDefs1: TtsMaskDefs

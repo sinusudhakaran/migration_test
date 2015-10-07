@@ -1031,7 +1031,7 @@ begin
 
    tblHist.AllowRedraw := false;
    try
-      pT := New_Transaction;
+      pT := Create_New_Transaction;
       pT.txBank_Account := TObject( BankAccount );
       pT.txClient := TObject( MyClient );
       with tblHist do begin
@@ -2133,7 +2133,7 @@ begin
         for i := aPayee.pdLines.First to aPayee.pdLines.Last do
         begin
             PayeeLine := aPayee.pdLines.PayeeLine_At(i);
-            Dissection := New_Dissection_Rec;
+            Dissection := Create_New_Dissection;
             with Dissection^ do
               begin
                  dsTransaction         := pT;
@@ -3487,7 +3487,7 @@ begin
   pD := pFrom.txFirst_Dissection;
   while Assigned(pD) do
   begin
-    pDC := bkdsio.New_Dissection_Rec;
+    pDC := Create_New_Dissection;
     pDC.dsRecord_Type := pD.dsRecord_Type;
     pDC.dsSequence_No := pD.dsSequence_No;
     pDC.dsAccount := pD.dsAccount;
@@ -4035,7 +4035,7 @@ begin
       try
          for ChequeNo := CheqNumberFrom to CheqNumberTo do begin
             if not ( ExistingCheques.ChequeIsThere( ChequeNo) or HistCheques.ChequeIsThere( ChequeNo)) then begin
-               pT := New_Transaction;
+               pT := Create_New_Transaction;
                pT.txBank_Account := TObject( BankAccount );
                pT.txClient := TObject( MyClient );
 

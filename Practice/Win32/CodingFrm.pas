@@ -3097,7 +3097,7 @@ begin
 
                   //create reversing transaction
 
-                  pNewTrans                    := BankAccount.baTransaction_List.New_Transaction;
+                  pNewTrans                    := BankAccount.baTransaction_List.Setup_New_Transaction;
 
                   pNewTrans^.txType            := txType;
                   pNewTrans^.txSource          := orGeneratedRev;
@@ -3324,7 +3324,7 @@ begin
                                               sMsg);
             //recreate the bank entry
 
-            pNewTrans := BankAccount.baTransaction_List.New_Transaction;
+            pNewTrans := BankAccount.baTransaction_List.Setup_New_Transaction;
             pNewTrans^.txType           := txOriginal_Type;
             pNewTrans^.txSource         := txOriginal_Source;
             pNewTrans^.txDate_Effective := txDate_Presented;
@@ -4812,7 +4812,7 @@ begin
         for i := aPayee.pdLines.First to aPayee.pdLines.Last do
         begin
             PayeeLine := aPayee.pdLines.PayeeLine_At(i);
-            Dissection := New_Dissection;
+            Dissection := Create_New_Dissection;
             Dissection.dsBank_Account := pT^.txBank_Account;
             ClearSuperFundFields(Dissection);
             with Dissection^ do begin
@@ -8112,7 +8112,7 @@ begin
               // If date has changed we must remove and re-insert into the tx list
               tblCoding.AllowRedraw := False;
               try
-                 pNew := BankAccount.baTransaction_List.New_Transaction;
+                 pNew := BankAccount.baTransaction_List.Setup_New_Transaction;
                  Move( pT^, pNew^, SizeOf( TTransaction_Rec));
                  WorkTranList.DelFreeItem(WorkTranList.Transaction_At(tblCoding.ActiveRow-1));
 

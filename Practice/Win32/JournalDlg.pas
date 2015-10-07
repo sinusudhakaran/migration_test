@@ -4423,7 +4423,7 @@ begin
 
      // Store dissection lines
      for i := 0 to Pred( Count ) do begin
-       pDissection := New_Dissection_Rec;
+       pDissection := Create_New_Dissection;
        pJ := WorkJournal.Items[i];
        with pDissection^, pJ^ do begin
           dsTransaction     := pTran;
