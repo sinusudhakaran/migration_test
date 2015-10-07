@@ -226,6 +226,9 @@ begin
   if aIsEndCharAvailable then
     DeleteRichText(iEndPos, Length(aFormatChar));
 
+  if FStartPosition > iStartPos then
+    FStartPosition := iStartPos;
+    
   SetTextFormat(SubDesc, PromoStyle);
 end;
 
