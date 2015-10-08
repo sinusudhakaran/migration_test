@@ -480,7 +480,7 @@ begin
       FormatFloatForXml((Dissection^.dsDissection_Extension^.deSF_Share_Brokerage), 2, 100, Globals.PRACINI_ExtractZeroAmounts));
 
     // GST_Rate
-    if Trim(Transaction^.txTransaction_Extension^.teSF_Share_GST_Rate) <> '' then
+    if Trim(Dissection^.dsDissection_Extension^.deSF_Share_GST_Rate) <> '' then
       AddFieldNode(
       TransactionNode,
       'GST_Rate',
