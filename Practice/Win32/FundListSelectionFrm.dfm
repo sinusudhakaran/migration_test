@@ -1,7 +1,7 @@
 object FundSelectionFrm: TFundSelectionFrm
   Left = 0
   Top = 0
-  ActiveControl = btnYes
+  ActiveControl = edtSearch
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Select a Fund'
@@ -27,9 +27,7 @@ object FundSelectionFrm: TFundSelectionFrm
     Align = alBottom
     BevelOuter = bvNone
     ParentBackground = False
-    TabOrder = 0
-    ExplicitTop = 446
-    ExplicitWidth = 808
+    TabOrder = 2
     DesignSize = (
       910
       41)
@@ -49,9 +47,9 @@ object FundSelectionFrm: TFundSelectionFrm
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = '&OK'
+      Default = True
       TabOrder = 0
       OnClick = btnYesClick
-      ExplicitLeft = 636
     end
     object btnNo: TButton
       Left = 827
@@ -61,10 +59,8 @@ object FundSelectionFrm: TFundSelectionFrm
       Anchors = [akRight, akBottom]
       Cancel = True
       Caption = '&Cancel'
-      Default = True
       TabOrder = 1
       OnClick = btnNoClick
-      ExplicitLeft = 725
     end
   end
   object pnlSearch: TPanel
@@ -75,8 +71,7 @@ object FundSelectionFrm: TFundSelectionFrm
     Align = alTop
     BevelOuter = bvNone
     ParentBackground = False
-    TabOrder = 1
-    ExplicitWidth = 808
+    TabOrder = 0
     object Shape1: TShape
       Left = 0
       Top = 0
@@ -86,9 +81,9 @@ object FundSelectionFrm: TFundSelectionFrm
       Pen.Color = clSilver
       ExplicitWidth = 788
     end
-    object Label2: TLabel
+    object lblFind: TLabel
       Left = 11
-      Top = 12
+      Top = 9
       Width = 20
       Height = 13
       Caption = 'Find'
@@ -105,7 +100,7 @@ object FundSelectionFrm: TFundSelectionFrm
     end
     object edtSearch: TEdit
       Left = 48
-      Top = 9
+      Top = 8
       Width = 241
       Height = 21
       BevelInner = bvNone
@@ -127,11 +122,7 @@ object FundSelectionFrm: TFundSelectionFrm
     Margins.Bottom = 0
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 2
-    ExplicitLeft = 5
-    ExplicitTop = 34
-    ExplicitWidth = 798
-    ExplicitHeight = 409
+    TabOrder = 1
     object sgFunds: TStringGrid
       Left = 0
       Top = 0
@@ -147,6 +138,7 @@ object FundSelectionFrm: TFundSelectionFrm
       ColCount = 3
       Ctl3D = False
       DefaultColWidth = 10
+      DefaultRowHeight = 22
       FixedCols = 0
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected, goRowSelect, goThumbTracking]
       ParentCtl3D = False
@@ -154,11 +146,6 @@ object FundSelectionFrm: TFundSelectionFrm
       TabOrder = 0
       OnDrawCell = sgFundsDrawCell
       OnMouseUp = sgFundsMouseUp
-      OnMouseWheelUp = sgFundsMouseWheelUp
-      ExplicitLeft = 24
-      ExplicitTop = 4
-      ExplicitWidth = 808
-      ExplicitHeight = 409
       ColWidths = (
         164
         514

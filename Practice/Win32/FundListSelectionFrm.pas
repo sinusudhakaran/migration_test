@@ -16,7 +16,7 @@ type
     btnNo: TButton;
     pnlSearch: TPanel;
     Shape1: TShape;
-    Label2: TLabel;
+    lblFind: TLabel;
     edtSearch: TEdit;
     ShapeBorderTop: TShape;
     pnlGridContainer: TPanel;
@@ -28,8 +28,6 @@ type
     procedure sgFundsDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
       State: TGridDrawState);
     procedure edtSearchChange(Sender: TObject);
-    procedure sgFundsMouseWheelUp(Sender: TObject; Shift: TShiftState;
-      MousePos: TPoint; var Handled: Boolean);
     procedure sgFundsMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
   private
@@ -40,6 +38,7 @@ type
     FCurrentCol : Integer;
     FCurrentRow : Integer;
     procedure LoadFunds(aFilterFund : string);
+    procedure ClearHeaderTriangle(ACol, ARow : Integer);
   public
     { Public declarations }
     property FundListJSON: TFundList_Obj read  FFundListJSON write FFundListJSON;
@@ -104,6 +103,18 @@ begin
   ModalResult := mrOk;
 end;
 
+procedure TFundSelectionFrm.ClearHeaderTriangle(ACol, ARow: Integer);
+var
+  Rect : TRect;
+begin
+  sgFunds.Canvas.Brush.Color := clBtnFace;
+  sgFunds.Canvas.Pen.Color := clBlack;
+  Rect := sgFunds.CellRect(ACol, ARow);
+  sgFunds.Canvas.FillRect(Rect);
+  sgFunds.Canvas.Font.Color := clBlack;
+  sgFunds.Canvas.TextRect(Rect,Rect.Left + 1,Rect.Top + 2,sgFunds.Cells[ACol,ARow]);
+end;
+
 procedure TFundSelectionFrm.edtSearchChange(Sender: TObject);
 begin
   LoadFunds(edtSearch.Text);
@@ -111,6 +122,8 @@ end;
 
 procedure TFundSelectionFrm.FormCreate(Sender: TObject);
 begin
+  inherited;
+
   FSelectedFundID := '';
   FFundListJSON := Nil;
   SortColumn := 0;
@@ -122,14 +135,13 @@ begin
   if not Assigned(FundListJSON) then
     Exit;
 
-  sgFunds.Cells[0,0] := 'Fund Code';
-  sgFunds.Cells[1,0] := 'Fund Name';
-  sgFunds.Cells[2,0] := 'ABN';
+  sgFunds.Cells[0,0] := ' Fund Code';
+  sgFunds.Cells[1,0] := ' Fund Name';
+  sgFunds.Cells[2,0] := ' ABN';
   edtSearch.Text := '';
 
   FundListJSON.SortFunction := CompareFunds;
   FundListJSON.SortList;
-
   LoadFunds('');
 end;
 
@@ -139,7 +151,12 @@ var
   tmpFund: TFundObj;
   NeedFund : Boolean;
 begin
+  // set row count and clear the first row. keep heading
   sgFunds.RowCount := 2;
+  sgFunds.Cells[0, 1] := '';
+  sgFunds.Cells[1, 1] := '';
+  sgFunds.Cells[2, 1] := '';
+
   Index := 1;
   Row := 1;
   aFilterFund := UpperCase(aFilterFund);
@@ -148,6 +165,7 @@ begin
   begin
     tmpFund:= TFundObj(FundListJSON.Items[i]);
     NeedFund := True;
+
     if Trim(aFilterFund) <> '' then
     begin
       NeedFund := False;
@@ -172,7 +190,7 @@ begin
   end;
 
   //To remove the extra row added
-  if FundListJSON.Count > 0 then
+  if (FundListJSON.Count > 0) and (sgFunds.RowCount > 2) then
     sgFunds.RowCount := sgFunds.RowCount - 1;
 
   sgFunds.Row := Index;
@@ -180,19 +198,67 @@ end;
 
 procedure TFundSelectionFrm.sgFundsDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
+var
+  Triangle: array [0..2] of TPoint;
+  aCanvas: TCanvas;
+  oldColor: TColor;
+const
+  Spacing = 10;
+  TriSize = 3;
 begin
-
   if ARow = 0 then
   begin
-    sgFunds.Canvas.Brush.Color := clBtnFace;
-    sgFunds.Canvas.FillRect(Rect);
-    sgFunds.Canvas.TextRect(Rect,Rect.Left,Rect.Top,sgFunds.Cells[ACol,ARow]);
+    aCanvas := sgFunds.Canvas;
+    oldColor := aCanvas.Brush.Color;
+    sgFunds.Canvas.Pen.Color := clBlack;
+    aCanvas.Brush.Color := clBtnFace;
+    aCanvas.FillRect(Rect);
+    sgFunds.Canvas.Font.Color := clBlack;
+    sgFunds.Canvas.TextRect(Rect,Rect.Left ,Rect.Top + 2, sgFunds.Cells[ACol,ARow]);
+
+    if (ACol = SortColumn) then
+    begin
+      // Shape the triangle top to bottom
+      if SortDirection = soDescending then
+      begin
+        // Centre
+        Triangle[0].X := Rect.Right - Spacing;
+        Triangle[0].Y := Rect.Bottom * 2 div 4;
+        // left
+        Triangle[1].X := Triangle[0].X - TriSize;
+        Triangle[1].Y := Rect.Bottom * 3 div 4;
+        //right
+        Triangle[2].X := Triangle[0].X + TriSize;
+        Triangle[2].Y := Rect.Bottom * 3 div 4;
+      end
+      else
+      begin // bottom to top
+        // Centre
+        Triangle[0].X := Rect.Right - Spacing;
+        Triangle[0].Y := Rect.Bottom * 3 div 4;
+        // left
+        Triangle[1].X := Triangle[0].X - TriSize;
+        Triangle[1].Y := Rect.Bottom * 2 div 4;
+        //right
+        Triangle[2].X := Triangle[0].X + TriSize;
+        Triangle[2].Y := Rect.Bottom * 2 div 4;
+      end;
+
+      // Draw the triangle
+      aCanvas.Pen.Color := clGray;
+      aCanvas.Brush.Color := clGray;
+      aCanvas.Polygon(Triangle);
+      aCanvas.Brush.Color := clBtnFace;
+      aCanvas.Pen.Color := clBlack;
+      aCanvas.FloodFill(Rect.Left + Rect.Right div 2, Rect.Top - 2 + Rect.Bottom div 2, clGray, fsSurface);
+    end;
   end
   else if (gdSelected in State) then
   begin
     sgFunds.Canvas.Brush.Color := HyperLinkColor;
+    sgFunds.Canvas.Font.Color := clWhite;
     sgFunds.Canvas.FillRect(Rect);
-    sgFunds.Canvas.TextRect(Rect,Rect.Left,Rect.Top,sgFunds.Cells[ACol,ARow]);
+    sgFunds.Canvas.TextRect(Rect,Rect.Left + 2,Rect.Top + 2 ,sgFunds.Cells[ACol,ARow]);
   end;
 end;
 
@@ -217,15 +283,11 @@ begin
     FundListJSON.SortFunction := CompareFunds;
     FundListJSON.SortList;
     LoadFunds(edtSearch.Text);
+    ClearHeaderTriangle(0,0);
+    ClearHeaderTriangle(1,0);
+    ClearHeaderTriangle(2,0);
+    sgFundsDrawCell(Sender, SortColumn, 0 , sgFunds.CellRect(SortColumn, 0), [gdFixed]);
   end;
-end;
-
-procedure TFundSelectionFrm.sgFundsMouseWheelUp(Sender: TObject;
-  Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
-begin
-  //
-  //if FCurrentRow = 0 then
-    //sgFunds.Row := 1;
 end;
 
 end.
