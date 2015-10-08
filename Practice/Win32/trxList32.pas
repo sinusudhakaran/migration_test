@@ -266,6 +266,7 @@ begin
       if BKDEIO.IsADissection_Extension_Rec( p^.dsDissection_Extension ) then begin
         BKDEIO.Free_Dissection_Extension_Rec_Dynamic_Fields( p^.dsDissection_Extension^ );
         MALLOC.SafeFreeMem( p^.dsDissection_Extension, Dissection_Extension_Rec_Size );
+        p^.dsDissection_Extension := nil;
       end; 
     //DN BGL360 Extended Fields
 
@@ -300,6 +301,7 @@ Begin
         if BKTEIO.IsATransaction_Extension_Rec( p^.txTransaction_Extension ) then begin
           BKTEIO.Free_Transaction_Extension_Rec_Dynamic_Fields( p^.txTransaction_Extension^ );
           MALLOC.SafeFreeMem( p^.txTransaction_Extension, Transaction_Extension_Rec_Size );
+          p^.txTransaction_Extension := nil; 
         end;
       //DN BGL360 Extended Fields
 
