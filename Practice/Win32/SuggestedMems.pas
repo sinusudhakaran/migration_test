@@ -414,6 +414,7 @@ var
   Tran : pTransaction_Rec;
   NewSuggMemSortedItem : TMemTranSortedListRec;
 begin
+  Result := false;
   for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
   begin
     Tran := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
@@ -446,6 +447,7 @@ begin
       NewSuggMemSortedItem.HasPotentialIssue := false;
 
       aMemTranSortedList.AddItem(NewSuggMemSortedItem);
+      Result := true;
     end;
   end;
 end;
@@ -992,6 +994,7 @@ begin
     CreateSuggestion(aBankAccount, aScanTrans^.tiType, PhraseId, aStartData, aEndData, Suggested_Mem_Rec);
 
   // Account or Accounts if code not the same
+  ScanAccountCreated := false;
   if AccountsNotTheSame then
     ScanAccountCreated := (FindAccountOrCreate(aBankAccount, aScanTrans^.tiAccount, ScanAccountId) = fcCreated);
 
@@ -1191,9 +1194,9 @@ begin
     // Get Account
     BankAccount := MyClient.clBank_Account_List.Bank_Account_At(fAccountIndex);
 
+    RunMems2 := true;
     if fNewAccount then
     begin
-      RunMems2 := true;
       if fAccountIndex = 0 then
       begin
         if Mainstate = mtsMems2NoScan then

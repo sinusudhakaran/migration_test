@@ -1061,6 +1061,7 @@ var
   liPos  : integer;
   lsControlCode : string;
 begin
+  Result := 0;
   Value := trim( Value );
   if Value <> '' then begin
     liPos := pos( '/', Value);  // Fetch the control account code, if this is a sub account type

@@ -81,6 +81,7 @@ procedure FindAndReplace;
 var
   Ldlg: TFindReplaceDlg;
   OldCaption : string;
+  MDIIndex : integer;
 begin
   OldCaption := frmMain.GetMDICurrentChildCaption;
 
@@ -92,7 +93,10 @@ begin
       ReloadCodingScreens(false);
 
       frmMain.UpdateAllWindowTabs('');
-      frmMain.ActivateMDIChild(frmMain.GetMDIIndexFromCaption(OldCaption));
+      MDIIndex := frmMain.GetMDIIndexFromCaption(OldCaption);
+
+      if MDIIndex >= 0 then
+        frmMain.ActivateMDIChild(MDIIndex);
     end;
   finally
     ldlg.Free;

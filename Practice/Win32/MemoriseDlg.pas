@@ -548,6 +548,8 @@ var
   SysIndex : integer;
   Found : boolean;
 begin
+  RootNode := nil;
+  ClientNode := nil;
   FoundFirstAccount := false;
 
   if Assigned(SourceBankAccount) then
@@ -585,7 +587,7 @@ begin
       for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
       begin
         ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
-        
+
         if ClientFileRec^.cfForeign_File then
           Continue;
 
@@ -616,12 +618,15 @@ begin
 
               FoundFirstAccount := true;
             end;
-            ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
+
+            if FoundFirstAccount then
+              ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
 
             FoundFirstClientAccount := true;
           end;
 
-          AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
+          if (FoundFirstAccount and FoundFirstClientAccount) then
+            AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
         end;
       end;
     finally

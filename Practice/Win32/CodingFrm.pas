@@ -1920,7 +1920,6 @@ var
   SystemMemorisation : pSystem_Memorisation_List_Rec;
   i : integer;
   SystemMem: TMemorisation;
-  Msg                : TWMKey;
 
   procedure CreateTempMemUsingTransaction();
   var
@@ -1930,6 +1929,7 @@ var
     // Create memorisation
     Mems := BankAccount.baMemorisations_List;
     Mem  := TMemorisation.Create(Mems.AuditMgr);
+    MemLine := nil;
 
     if (pT^.txGL_Narration <> pT^.txStatement_Details) or
        (pT^.txPayee_Number > 0) or

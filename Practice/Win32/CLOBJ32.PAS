@@ -629,7 +629,6 @@ const
   ThisMethodName = 'TClientObj.Open';
 var
   bk5filename      : string;
-  SavFilename      : string;  //name of internal file in zip
   DataStream       : TIOStream;
   ZipStream        : TBigMemoryStream;
  // UnZipper         : TVCLZip;

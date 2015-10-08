@@ -3502,6 +3502,7 @@ function TfrmMain.GetMDIIndexFromCaption(aCaption: string): integer;
 var
   MDIIndex : integer;
 begin
+  Result := -1;
   for MDIIndex := 0 to MDIChildSortedList.Count-1 do
   begin
     if MDIChildSortedList.Strings[MDIIndex] = aCaption then

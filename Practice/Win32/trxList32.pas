@@ -375,8 +375,6 @@ end;
 procedure AppendDissectionExtension( D : pDissection_Rec; DE : pDissection_Extension_Rec );
 const
   ThisMethodName = 'AppendDissectionExtension';
-Var
-   Seq : Integer;
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -486,8 +484,6 @@ const
 var
   NewTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
   NewTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
-  NewTran_Transaction_Extension_Rec : pTransaction_Extension_Rec;
-
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   If BKTXIO.IsATransaction_Rec( P ) then
@@ -575,7 +571,6 @@ Var
    pDS         : pDissection_Rec;
 //   pDSe        : pDissection_Extension_Rec;
    msg         : string;
-   iTransactionIndex : integer;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    FLoading := True;

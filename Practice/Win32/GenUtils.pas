@@ -1437,7 +1437,6 @@ end;
 function FixJsonString(inString : string) : string;
 var
   Index : integer;
-  ClearNext : boolean;
   LenStr : integer;
 begin
   LenStr := Length(inString);

@@ -30,10 +30,11 @@ type
   private
     fIdentity: TLEIdentity;
     fServer: TNPSServer;
-    fOnCompleted: TNotifyEvent;
     fSynchroniseLogMessage : string;
 
   protected
+    fOnCompleted: TNotifyEvent;
+
     property Identity: TLEIdentity read FIdentity;
     property Server: TNPSServer read fServer;
     procedure SetAndSynchroniseLogMessage( aLogMessage : string );
@@ -266,6 +267,7 @@ end;
 
 function TNPSLeanEngage.GetHasFeedbackURL: boolean;
 begin
+  result := false;
   if assigned( FLETriggeredActionThread ) then
     result := FLETriggeredActionThread.FHasFeedbackURL;
 end;
@@ -279,6 +281,7 @@ end;
 
 function TNPSLeanEngage.GetSurveys: TNPSSurveys;
 begin
+  Result := nil;
   if assigned( FLENPSSurveyThread ) then
     result := FLENPSSurveyThread.fSurveys;
 end;
