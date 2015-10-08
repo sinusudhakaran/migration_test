@@ -92,7 +92,7 @@ begin
   lblURL.Width := Self.Width;
 
   lblTitle.Font.Color := HyperLinkColor;
-  lblTitle.Font.Size := 14;
+  lblTitle.Font.Size := 16;
   lblTitle.Font.Style := [fsBold];
   lblTitle.Caption := Trim(Content.Title);
 
@@ -244,17 +244,17 @@ begin
     psHeading1:
     begin
       reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
-      reDescription.SelAttributes.Size := 12;
+      reDescription.SelAttributes.Size := 13;
     end;
     psHeading2:
     begin
       reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
-      reDescription.SelAttributes.Size := 11;
+      reDescription.SelAttributes.Size := 12;
     end;
     psHeading3:
     begin
       reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
-      reDescription.SelAttributes.Size := 10;
+      reDescription.SelAttributes.Size := 11;
     end;
     psBold: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsBold];
     psItalics: reDescription.SelAttributes.Style := reDescription.SelAttributes.Style + [fsItalic];
