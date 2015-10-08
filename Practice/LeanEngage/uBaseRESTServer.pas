@@ -20,33 +20,42 @@ type
 //    fTransferredJSON : TStringlist;
     fTransferredJSONData : string;
     FProcessingData : Boolean;
+    fRaiseExceptions : boolean;
 
-    constructor Create; virtual;
+    constructor Create( aRaiseExceptions : boolean = false ); virtual;
     destructor Destroy; override;
     function Base64Encode( aString : string ) : string;
     function Base64Decode( aString : string ) : string;
 
-    procedure SetDataTransferEvents( Http: TipsHTTPS );
+    procedure SetDataTransferEvents( aHttp: TipsHTTPS );
     {Start of the data transfer function, clear the storage list and make it
     ready for the data receives}
-    procedure StartDataTransfer(Sender: TObject;Direction: Integer);
+    procedure StartDataTransfer(aSender: TObject; aDirection: Integer);
     {End of the data transfer function- This procedure process all data received}
-    procedure EndDataTransfer(Sender: TObject;Direction: Integer);
+    procedure EndDataTransfer(aSender: TObject; aDirection: Integer);
     {This procedure stores each set of data receives}
-    procedure TransferData(Sender: TObject;
-                            Direction: Integer;
-                            BytesTransferred: LongInt;
-                            Text: String);
+    procedure TransferData(aSender: TObject;
+                            aDirection: Integer;
+                            aBytesTransferred: LongInt;
+                            aText: String);
 
 
-    function MakeAddress(BaseUrl, EndPoint: String): string;
-    procedure AddAuthHeaders( AuthScheme: TAuthSchemes; Http: TipsHTTPS ); virtual;
-    procedure AddHeaders( Http: TipsHTTPS ); virtual;
+    function MakeAddress(aBaseUrl, aEndPoint: String): string;
+    procedure AddAuthHeaders( aAuthScheme: TAuthSchemes; aHttp: TipsHTTPS ); virtual;
+    procedure AddHeaders( aHttp: TipsHTTPS ); virtual;
 
-    procedure PostFormData(AuthScheme: TAuthSchemes; EndPoint: String; FormFields: TStrings; ResponseContent: TStream = nil);
-    procedure Post(AuthScheme: TAuthSchemes; Endpoint: String; RequestObject: TJsonObject; ResponseObject: TJsonObject = nil);
-    procedure Get(AuthScheme: TAuthSchemes; EndPoint: String; UrlParams: TUrlParams; ResponseContent: TJsonObject; RetryCount : integer; var Retries : integer);overload;
-    function Get(AuthScheme: TAuthSchemes; EndPoint: String; UrlParams: TUrlParams): TlkJSONobject;overload;
+    function PostFormData(aAuthScheme: TAuthSchemes; aEndPoint: String;
+               aFormFields: TStrings; var aResponseString : string;
+               var aExceptString : string ) : boolean;
+    function Post(aAuthScheme: TAuthSchemes; aEndpoint: String;
+               aRequestObject: TJsonObject; var aExceptString : string;
+               aResponseObject: TJsonObject = nil ) : boolean;
+    function Get( aAuthScheme: TAuthSchemes; aEndPoint: String;
+               aUrlParams: TUrlParams; aResponseObject: TJsonObject;
+               var aRetriesLeft : integer; var aExceptString : string ) : boolean; overload;
+    function Get( aAuthScheme: TAuthSchemes; aEndPoint: String;
+               aUrlParams: TUrlParams; aResponseObject: TlkJSONobject;
+               var aExceptString : string ) : boolean; overload;
 
     function GetHeader(aName : string) : string;
     procedure SetHeader(aName, aValue : string);
@@ -62,41 +71,41 @@ uses
   idCoder,
   idCoderMIME;
 
-function URLEncode(const ASrc: String): String;
+function URLEncode(const aSrc: String): String;
 var
-  i: Integer;
+  li: Integer;
 const
   UnsafeChars = ['*', '#', '%', '<', '>', ' ','[',']'];  {do not localize}
 begin
   Result := '';    {Do not Localize}
-  for i := 1 to Length(ASrc) do
+  for li := 1 to Length(aSrc) do
   begin
-    if (ASrc[i] in UnsafeChars) or (not (ord(ASrc[i])in [33..128])) then
+    if (aSrc[li] in UnsafeChars) or (not (ord(aSrc[li])in [33..128])) then
     begin {do not localize}
-      Result := Result + '%' + IntToHex(Ord(ASrc[i]), 2);  {do not localize}
+      Result := Result + '%' + IntToHex(Ord(aSrc[li]), 2);  {do not localize}
     end
     else
     begin
-      Result := Result + ASrc[i];
+      Result := Result + aSrc[li];
     end;
   end;
 end;
 
 { TBaseRESTServer }
 
-procedure TBaseRESTServer.AddAuthHeaders(AuthScheme: TAuthSchemes; Http: TipsHTTPS);
+procedure TBaseRESTServer.AddAuthHeaders(aAuthScheme: TAuthSchemes; aHttp: TipsHTTPS);
 begin
   //
 end;
 
-procedure TBaseRESTServer.AddHeaders(Http: TipsHTTPS);
+procedure TBaseRESTServer.AddHeaders(aHttp: TipsHTTPS);
 var
   li : integer;
 begin
   inherited;
-  Http.OtherHeaders := '';
+  aHttp.OtherHeaders := '';
   for li := 0 to fHeaders.Count - 1 do begin
-    Http.OtherHeaders := format('%s: %s'#13#10,
+    aHttp.OtherHeaders := format('%s: %s'#13#10,
       [ fHeaders.Names[ li ], fHeaders.Values[ fHeaders.Names[ li ] ] ] );
   end;
 end;
@@ -119,14 +128,17 @@ begin
     fHeaders.Clear;
 end;
 
-constructor TBaseRESTServer.Create;
+constructor TBaseRESTServer.Create( aRaiseExceptions : boolean = false );
 begin
-  inherited;
+  inherited Create;
 
   fHeaders := tStringlist.Create;
   fHeaders.NameValueSeparator := ':';
 
   fTransferredJSONData := '';
+
+  fRaiseExceptions := aRaiseExceptions;
+
 //  fTransferredJSON := TStringlist.Create;
 //  fTransferredJSON.Clear;
 end;
@@ -140,34 +152,46 @@ begin
 end;
 
 
-function TBaseRESTServer.Get(AuthScheme: TAuthSchemes; EndPoint: String; UrlParams: TUrlParams): TlkJSONobject;
+function TBaseRESTServer.Get(aAuthScheme: TAuthSchemes; aEndPoint: String;
+           aUrlParams: TUrlParams; aResponseObject: TlkJSONobject;
+           var aExceptString : string) : boolean;
 var
-  HttpRequester: TipsHTTPS;
-  aResponse: String;
-  JSONObj: TlkJSONbase;
+  loHttpRequester: TipsHTTPS;
+  lsResponse: String;
+  loJSON: TlkJSONbase;
 begin
-  Result := nil;
-  HttpRequester := TipsHTTPS.Create(nil);
+  Result := false;
+  aResponseObject := nil;
+  loHttpRequester := TipsHTTPS.Create(nil);
   try
-    aResponse := '';
+    lsResponse := '';
     try
-      SetDataTransferEvents( HttpRequester );
+      SetDataTransferEvents( loHttpRequester );
 
-      AddAuthHeaders( AuthScheme, HttpRequester );
-      AddHeaders( HttpRequester );
+      AddAuthHeaders( aAuthScheme, loHttpRequester );
+      AddHeaders( loHttpRequester );
 
-      HttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, EndPoint, UrlParams));
-      aResponse := HttpRequester.TransferredData;
+      loHttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, aEndPoint, aUrlParams));
+      lsResponse := loHttpRequester.TransferredData;
 
-      JsonObj := TlkJSON.ParseText(aResponse);
-      if JSONObj is TlkJSONobject then
-        Result := TlkJSONobject(JSONObj)
+      loJSON := TlkJSON.ParseText(lsResponse);
+      if loJSON is TlkJSONobject then
+        aResponseObject := TlkJSONobject(loJSON)
       else
-        JSONObj.Free;
-    finally
+        loJSON.Free;
+      Result := true;   
+    except
+      on E: Exception do begin
+      // Swallow the exception
+
+        aExceptString := e.Message; // Send back exception message
+        Result := false;
+        if fRaiseExceptions then
+          raise; // Raise if becessary
+      end;
     end;
   finally
-    HttpRequester.Free;
+    loHttpRequester.Free;
   end;
 end;
 
@@ -178,148 +202,170 @@ begin
     result := fHeaders.Values[ aName ];
 end;
 
-procedure TBaseRESTServer.Get(AuthScheme: TAuthSchemes; EndPoint: String; UrlParams: TUrlParams;
-  ResponseContent: TJsonObject; RetryCount : integer; var Retries : integer);
+function TBaseRESTServer.Get(aAuthScheme: TAuthSchemes; aEndPoint: String;
+            aUrlParams: TUrlParams; aResponseObject: TJsonObject;
+            var aRetriesLeft : integer; var aExceptString : string ) : boolean;
 var
-  HttpRequester: TipsHTTPS;
-  aResponse: String;
+  loHttpRequester: TipsHTTPS;
+  lsResponse: String;
 begin
-  HttpRequester := TipsHTTPS.Create(nil);
+  result := false;
+  loHttpRequester := TipsHTTPS.Create(nil);
 
   try
-    aResponse := '';
+    lsResponse := '';
 
     try
-      SetDataTransferEvents( HttpRequester );
+      SetDataTransferEvents( loHttpRequester );
 
-      AddAuthHeaders( AuthScheme, HttpRequester );
-      AddHeaders( HttpRequester );
+      AddAuthHeaders( aAuthScheme, loHttpRequester );
+      AddHeaders( loHttpRequester );
 
-      HttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, EndPoint, UrlParams));
+      loHttpRequester.Get(THttpLib.MakeUrl(fServerBaseUrl, aEndPoint, aUrlParams));
       if not ProcessingData then
-        aResponse := fTransferredJSONData;
-//       aResponse := HttpRequester.TransferredData;
-      if assigned( ResponseContent ) then
-        ResponseContent.Deserialize(aResponse);
+        lsResponse := fTransferredJSONData;
+
+      if assigned( aResponseObject ) then
+        aResponseObject.Deserialize(lsResponse);
+      result := true;  
     except
       on E: Exception do begin
-        // Do Nothing, suppress the error
-        aResponse := E.Message;
-        inc( Retries );
-        if Retries < RetryCount then
-          Get( AuthScheme, EndPoint, UrlParams, ResponseContent, RetryCount, Retries );
+        // Do Nothing, suppress the exception
+        result := false;
+        aExceptString := E.Message; // Send back the Exception message
+        if not fRaiseExceptions then begin // If not allow exceptions then retry "Retries" times
+          dec( aRetriesLeft );
+          if aRetriesLeft > 0 then
+            result := Get( aAuthScheme, aEndPoint, aUrlParams, aResponseObject, aRetriesLeft, aExceptString );
+        end
+        else
+          raise; // Else raise exception if necessary   
       end;
     end;
   finally
-    HttpRequester.Free;
+    loHttpRequester.Free;
   end;
 end;
 
 
-function TBaseRESTServer.MakeAddress(BaseUrl, EndPoint: String): String;
+function TBaseRESTServer.MakeAddress(aBaseUrl, aEndPoint: String): String;
 begin
-  if (EndsStr('/', BaseUrl)) then
+  if (EndsStr('/', aBaseUrl)) then
   begin
-    BaseUrl := LeftStr(BaseUrl, Length(BaseUrl) -1);
+    aBaseUrl := LeftStr(aBaseUrl, Length(aBaseUrl) -1);
   end;
 
-  Result := BaseUrl + EndPoint;
+  Result := aBaseUrl + aEndPoint;
 end;
 
-procedure TBaseRESTServer.Post(AuthScheme: TAuthSchemes; Endpoint: String; RequestObject,
-  ResponseObject: TJsonObject);
+function TBaseRESTServer.Post(aAuthScheme: TAuthSchemes; aEndpoint: String;
+           aRequestObject: TJsonObject; var aExceptString : string;
+           aResponseObject: TJsonObject = nil ) : boolean;
 var
-  HttpRequester: TipsHTTPS;
-  TempS,
-  aResponse: String;
-  i : integer;
+  loHttpRequester: TipsHTTPS;
+  lsResponse: String;
 begin
-  HttpRequester := TipsHTTPS.Create(nil);
+  result := false;
+  loHttpRequester := TipsHTTPS.Create(nil);
 
   try
-    SetDataTransferEvents( HttpRequester );
+    SetDataTransferEvents( loHttpRequester );
 
-    AddAuthHeaders( AuthScheme, HttpRequester );
-    AddHeaders( HttpRequester );
+    AddAuthHeaders( aAuthScheme, loHttpRequester );
+    AddHeaders( loHttpRequester );
 
 
-    aResponse := '';
+    lsResponse := '';
 
     try
-      if assigned( RequestObject ) then
-        HttpRequester.PostData := RequestObject.Serialize;
+      if assigned( aRequestObject ) then
+        loHttpRequester.PostData := aRequestObject.Serialize;
 
-      HttpRequester.Post(THttpLib.MakeUrl(fServerBaseUrl, EndPoint));
+      loHttpRequester.Post(THttpLib.MakeUrl(fServerBaseUrl, aEndpoint));
 
       if not ProcessingData then
-        aResponse := fTransferredJSONData;
+        lsResponse := fTransferredJSONData;
 
-      if ResponseObject <> nil then
+      if aResponseObject <> nil then
       begin
-        ResponseObject.Deserialize(aResponse);
+        aResponseObject.Deserialize(lsResponse);
       end;
+      result := true;
     except
       on E: Exception do begin
-//        raise; Swallow the exception
-        aResponse := e.Message;
+      // Swallow the exception
+
+        result := false;
+        aExceptString := e.Message;
+        if fRaiseExceptions then
+          raise; // Raise if becessary
       end;
     end;
 
   finally
-    HttpRequester.Free;
+    loHttpRequester.Free;
   end;
 end;
 
-procedure TBaseRESTServer.PostFormData(AuthScheme: TAuthSchemes; EndPoint: String; FormFields: TStrings;
-  ResponseContent: TStream);
+function TBaseRESTServer.PostFormData(aAuthScheme: TAuthSchemes; aEndPoint: String;
+           aFormFields: TStrings; var aResponseString : string;
+           var aExceptString : string ) : boolean;
 var
-  HttpRequester: TipsHTTPS;
-  aResponse : string;
-  sFormData : string;
-  Index: Integer;
+  loHttpRequester: TipsHTTPS;
+  lsFormData : string;
+  li: Integer;
 begin
-  HttpRequester := TipsHTTPS.Create(nil);
+  result := false;
+  
+  loHttpRequester := TipsHTTPS.Create(nil);
   try
-    SetDataTransferEvents( HttpRequester );
+    SetDataTransferEvents( loHttpRequester );
 
-    AddAuthHeaders( AuthScheme, HttpRequester );
-    AddHeaders( HttpRequester );
+    AddAuthHeaders( aAuthScheme, loHttpRequester );
+    AddHeaders( loHttpRequester );
 
-    sFormData := '';
+    lsFormData := '';
     try
-      for Index := 0 to FormFields.Count - 1 do
+      for li := 0 to aFormFields.Count - 1 do
       begin
-        if Index + 1 < FormFields.Count then
+        if li + 1 < aFormFields.Count then
         begin
-          sFormData := URLEncode(FormFields[Index] + '&')
+          lsFormData := URLEncode(aFormFields[li] + '&')
         end
         else
         begin
-          sFormData := URLEncode(FormFields[Index]);
+          lsFormData := URLEncode(aFormFields[li]);
         end;
       end;
 
-      HttpRequester.PostData := sFormData;
-        HttpRequester.Post(MakeAddress(fServerBaseUrl, EndPoint));
-//        aResponse := HttpRequester.TransferredData;
-      if not ProcessingData then
-        aResponse := fTransferredJSONData;
+      loHttpRequester.PostData := lsFormData;
 
+      loHttpRequester.Post(MakeAddress(fServerBaseUrl, aEndPoint));
+
+      if not ProcessingData then
+        aResponseString := fTransferredJSONData;
+
+      result := true;
     except
       on E: Exception do begin
-//        raise; Swallow the exception
+//      Swallow the exception
+        result := false;
+        aExceptString := E.Message;
+
+        if fRaiseExceptions then
+          raise;
       end;
     end;
   finally
-    HttpRequester.Free;
+    loHttpRequester.Free;
   end;
 end;
 
-procedure TBaseRESTServer.SetDataTransferEvents(Http: TipsHTTPS);
+procedure TBaseRESTServer.SetDataTransferEvents(aHttp: TipsHTTPS);
 begin
-  HTTP.OnStartTransfer := StartDataTransfer;
-  HTTP.OnEndTransfer := EndDataTransfer;
-  HTTP.OnTransfer := TransferData;
+  aHttp.OnStartTransfer := StartDataTransfer;
+  aHttp.OnEndTransfer := EndDataTransfer;
+  aHttp.OnTransfer := TransferData;
 end;
 
 procedure TBaseRESTServer.SetHeader(aName, aValue: string);
@@ -328,22 +374,22 @@ begin
     fHeaders.Values[ aName ] := aValue;
 end;
 
-procedure TBaseRESTServer.EndDataTransfer(Sender: TObject; Direction: Integer);
+procedure TBaseRESTServer.EndDataTransfer(aSender: TObject; aDirection: Integer);
 begin
   fProcessingData := false;
 end;
 
-procedure TBaseRESTServer.StartDataTransfer(Sender: TObject; Direction: Integer);
+procedure TBaseRESTServer.StartDataTransfer(aSender: TObject; aDirection: Integer);
 begin
 //  fTransferredJSON.Clear;
   fProcessingData := True;
   fTransferredJSONData := '';
 end;
 
-procedure TBaseRESTServer.TransferData(Sender: TObject; Direction,
-  BytesTransferred: Integer; Text: String);
+procedure TBaseRESTServer.TransferData(aSender: TObject; aDirection,
+  aBytesTransferred: Integer; aText: String);
 begin
-  fTransferredJSONData := fTransferredJSONData + Text;
+  fTransferredJSONData := fTransferredJSONData + aText;
 end;
 
 end.

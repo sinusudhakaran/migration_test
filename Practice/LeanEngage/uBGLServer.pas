@@ -7,14 +7,14 @@ uses
   uBaseRESTServer, ipshttps, Contnrs, Files;
 
 const
-  ENDPOINT_BGI360_Authorise  = '/oauth/authorize?response_type=code&client_id=%s&scope=%s';
-  ENDPOINT_BGI360_Auth_Token = '/oauth/token?grant_type=authorization_code&code=%s&scope=fundList';
-  ENDPOINT_BGI360_Refresh_Token = '/oauth/token?grant_type=refresh_token&refresh_token=%s&client_id=%s&scope=fundList';
-  ENDPOINT_BGI360_Fund_List = '/fund/list';
+  ENDPOINT_BGI360_Authorise         = '/oauth/authorize?response_type=code&client_id=%s&scope=%s';
+  ENDPOINT_BGI360_Auth_Token        = '/oauth/token?grant_type=authorization_code&code=%s&scope=fundList';
+  ENDPOINT_BGI360_Refresh_Token     = '/oauth/token?grant_type=refresh_token&refresh_token=%s&client_id=%s&scope=fundList';
+  ENDPOINT_BGI360_Fund_List         = '/fund/list';
   ENDPOINT_BGI360_Chart_Of_Accounts = 'fund/chartAccounts?fundId=%s';
 
 type
-  TSortProc = function (Item1, Item2 : Pointer):Integer;
+  TSortProc = function (aItem1, aItem2 : Pointer):Integer;
 
   TBaseList_Obj = class(TJsonObject)
   private
@@ -41,7 +41,7 @@ type
     fWill_Expire_At: TDateTime;
   public
     constructor Create; virtual;
-    procedure Deserialize(Json: String); override;
+    procedure Deserialize(aJson: String); override;
     function Serialize: String; override;
     function SaveTokens: Boolean;
 
@@ -87,9 +87,9 @@ type
 
   TChart_Of_Accounts_Obj = class(TBaseList_Obj)
   private
-    function GetItems(Index: Integer): TChart_AccountObj;
+    function GetItems(aIndex: Integer): TChart_AccountObj;
   public
-    procedure Deserialize(Json: String); override;
+    procedure Deserialize(aJson: String); override;
     function Serialize: String; override;
 
     property Items[Index: Integer]: TChart_AccountObj read GetItems; default;
@@ -118,9 +118,9 @@ type
 
   TFundList_Obj = class(TBaseList_Obj)
   private
-    function GetItems(Index: Integer): TFundObj;
+    function GetItems(aIndex: Integer): TFundObj;
   public
-    procedure Deserialize(Json: String); override;
+    procedure Deserialize(aJson: String); override;
     function Serialize: String; override;
 
     property Items[Index: Integer]: TFundObj read GetItems; default;
@@ -141,14 +141,14 @@ type
     fFundList_Obj  : TFundList_Obj;
     fChart_Of_Accounts_Obj : TChart_Of_Accounts_Obj;
   protected
-    procedure AddAuthHeaders( AuthScheme: TAuthSchemes; Http: TipsHTTPS ); override;
-    procedure AddHeaders( Http: TipsHTTPS ); override;
-    procedure AddOAuthAuthenticationHeader( Http: TipsHTTPS );
-    procedure AddBasicAuthenticationHeader( Http: TipsHTTPS );
+    procedure AddAuthHeaders( aAuthScheme: TAuthSchemes; aHttp: TipsHTTPS ); override;
+    procedure AddHeaders( aHttp: TipsHTTPS ); override;
+    procedure AddOAuthAuthenticationHeader( aHttp: TipsHTTPS );
+    procedure AddBasicAuthenticationHeader( aHttp: TipsHTTPS );
 
 
     function GetAuthorization : string;
-    procedure SetAuthorization( Value : string );
+    procedure SetAuthorization( aValue : string );
   public
   // Creates the BGL Communication Object
   // OAuth:
@@ -215,13 +215,13 @@ type
 
 { TNPSServer }
 
-procedure TBGLServer.AddBasicAuthenticationHeader( Http: TipsHTTPS );
+procedure TBGLServer.AddBasicAuthenticationHeader( aHttp: TipsHTTPS );
 begin
   Authorization := 'Basic ' + Base64Encode(fAuthenticationKey + ':' +
                                 fAuthenticationPassword)
 end;
 
-procedure TBGLServer.AddOAuthAuthenticationHeader(Http: TipsHTTPS);
+procedure TBGLServer.AddOAuthAuthenticationHeader(aHttp: TipsHTTPS);
 var
   TempS : string;
 begin
@@ -229,17 +229,17 @@ begin
                      [ fAuth_TokenObj.fToken_type, fAuth_TokenObj.fAccess_token]);
 end;
 
-procedure TBGLServer.AddHeaders(Http: TipsHTTPS);
+procedure TBGLServer.AddHeaders(aHttp: TipsHTTPS);
 begin
   inherited;
 end;
 
-procedure TBGLServer.AddAuthHeaders(AuthScheme: TAuthSchemes; Http: TipsHTTPS );
+procedure TBGLServer.AddAuthHeaders(aAuthScheme: TAuthSchemes; aHttp: TipsHTTPS );
 begin
-  if AuthScheme = asBasic then
-    AddBasicAuthenticationHeader( Http )
+  if aAuthScheme = asBasic then
+    AddBasicAuthenticationHeader( aHttp )
   else
-    AddOAuthAuthenticationHeader( Http );
+    AddOAuthAuthenticationHeader( aHttp );
 end;
 
 function TBGLServer.CheckForAuthentication: boolean;
@@ -252,7 +252,7 @@ begin
       if not result then
         exit;
   end
-  else 
+  else
     if CheckIfTokenExpired then                   // If Token has expired, we need to refresh the token
     begin                                         // There has been a token previously, let's try and refresh
       result := Get_Refresh_Tokens;               // Try and refresh the tokens;
@@ -262,7 +262,7 @@ begin
         result := CheckForAuthentication;         // Call this routine recursively
       end;
     end
-    else 
+    else
       result := true;                             // The current tokens should still be valid
 end;
 
@@ -284,19 +284,20 @@ constructor TBGLServer.Create(aOwner : TThread; aAuthenticationKey,
               aAuthenticationPassword, aServerBaseUrl: String);
 begin
   inherited Create;
-  fAuth_TokenObj   := TAuth_TokenObj.Create;
-  fFundList_Obj    := TFundList_Obj.Create;
+
+  fAuth_TokenObj         := TAuth_TokenObj.Create;
+  fFundList_Obj          := TFundList_Obj.Create;
   fChart_Of_Accounts_Obj := TChart_Of_Accounts_Obj.Create;
 
 
   Header [ 'Content-Type' ] := 'application/x-www-form-urlencoded';
-  Header [ 'Accept' ] := 'application/json';
+  Header [ 'Accept' ]       := 'application/json';
 
 
-  fAuthenticationKey := aAuthenticationKey;
+  fAuthenticationKey      := aAuthenticationKey;
   fAuthenticationPassword := aAuthenticationPassword;
-  fServerBaseUrl  := aServerBaseUrl;
-  fHasFeedbackURL := false;
+  fServerBaseUrl          := aServerBaseUrl;
+  fHasFeedbackURL         := false;
 
   fOwner := aOwner;
 end;
@@ -319,10 +320,10 @@ begin
     result := fHeaders.Values[ cAuth ];
 end;
 
-procedure TBGLServer.SetAuthorization(Value: string);
+procedure TBGLServer.SetAuthorization(aValue: string);
 begin
   if assigned( fHeaders ) then
-    fHeaders.Values[ cAuth ] := Value;
+    fHeaders.Values[ cAuth ] := aValue;
 end;
 
 function TBGLServer.Get_Auth_Code: boolean;
@@ -346,6 +347,8 @@ begin
 end;
 
 function TBGLServer.Get_Auth_Tokens: boolean;
+var
+  lsTemp : string;
 begin
   result:= true;
   try
@@ -353,9 +356,9 @@ begin
       SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
         [ Auth_Code] ) );
 
-    Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code ]), nil,
+    result := Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code ]), nil, lsTemp,
       fAuth_TokenObj );
-      
+
 
     result := fAuth_TokenObj.SaveTokens;
 
@@ -369,6 +372,8 @@ begin
 end;
 
 function TBGLServer.Get_Chart_Of_Accounts( aFundID : string ) : boolean;
+var
+  lsTemp : string;
 begin
   result:= true;
   try
@@ -376,8 +381,8 @@ begin
       SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
         [ Auth_Code] ) );
 
-    Post( asOAuth, format( ENDPOINT_BGI360_Chart_Of_Accounts, [ aFundID ] ),
-      nil, fChart_Of_Accounts_Obj );
+    result := Post( asOAuth, format( ENDPOINT_BGI360_Chart_Of_Accounts, [ aFundID ] ),
+      nil, lsTemp, fChart_Of_Accounts_Obj );
 
     if DebugMe then
       SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
@@ -390,6 +395,8 @@ begin
 end;
 
 function TBGLServer.Get_FundList: boolean;
+var
+  lsTemp : string;
 begin
   result := true;
   try
@@ -397,7 +404,7 @@ begin
       SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
         [ Auth_Code] ) );
 
-    Post( asOAuth, ENDPOINT_BGI360_Fund_List, nil, fFundList_Obj );
+    result := Post( asOAuth, ENDPOINT_BGI360_Fund_List, nil, lsTemp, fFundList_Obj );
 
     if DebugMe then
       SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
@@ -408,6 +415,8 @@ begin
 end;
 
 function TBGLServer.Get_Refresh_Tokens: boolean;
+var
+  lsTemp : string;
 begin
   result:= true;
   try
@@ -415,8 +424,8 @@ begin
       SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
         [ Auth_Code] ) );
 
-    Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
-      [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey ]), nil,
+    result := Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
+      [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey ]), nil, lsTemp,
       fAuth_TokenObj );
 
     result := fAuth_TokenObj.SaveTokens;
@@ -512,11 +521,11 @@ begin
   fWill_Expire_At :=  0;
 end;
 
-procedure TAuth_TokenObj.Deserialize(Json: String);
+procedure TAuth_TokenObj.Deserialize(aJson: String);
 var
   JsonObject: TlkJSONbase;
 begin
-  JsonObject := TlkJSON.ParseText(Json);
+  JsonObject := TlkJSON.ParseText(aJson);
 
   if (JsonObject = nil) then
   begin
@@ -560,7 +569,7 @@ end;
 
 { TChartList_Obj }
 
-procedure TChart_Of_Accounts_Obj.Deserialize(Json: String);
+procedure TChart_Of_Accounts_Obj.Deserialize(aJson: String);
 var
   JsonObject: TlkJSONbase;
   ChartOfAccountsList: TlkJSONlist;
@@ -573,7 +582,7 @@ var
 begin
   FItems.Clear;
 
-  JsonObject := TlkJSON.ParseText(Json);
+  JsonObject := TlkJSON.ParseText(aJson);
 
   if (JsonObject = nil) then
   begin
@@ -642,9 +651,9 @@ begin
   end;
 end;
 
-function TChart_Of_Accounts_Obj.GetItems(Index: Integer): TChart_AccountObj;
+function TChart_Of_Accounts_Obj.GetItems(aIndex: Integer): TChart_AccountObj;
 begin
-  Result := FItems[Index] as TChart_AccountObj;
+  Result := FItems[aIndex] as TChart_AccountObj;
 end;
 
 function TChart_Of_Accounts_Obj.Serialize: String;
@@ -655,7 +664,7 @@ end;
 { TFundList_Obj }
 
 
-procedure TFundList_Obj.Deserialize(Json: String);
+procedure TFundList_Obj.Deserialize(aJson: String);
 var
   JsonObject: TlkJSONbase;
   FundList: TlkJSONlist;
@@ -666,7 +675,7 @@ var
 begin
   FItems.Clear;
 
-  JsonObject := TlkJSON.ParseText(Json);
+  JsonObject := TlkJSON.ParseText(aJson);
 
   if (JsonObject = nil) then
   begin
@@ -710,9 +719,9 @@ begin
   end;
 end;
 
-function TFundList_Obj.GetItems(Index: Integer): TFundObj;
+function TFundList_Obj.GetItems(aIndex: Integer): TFundObj;
 begin
-  Result := FItems[Index] as TFundObj;
+  Result := FItems[aIndex] as TFundObj;
 end;
 
 function TFundList_Obj.Serialize: String;

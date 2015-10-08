@@ -22,7 +22,7 @@ uses
 
 procedure RefreshChart;
 procedure ReadCSVFile(FilePath: string; NewChart: TChart);
-procedure FetchCOSFromAPI(NewChart: TChart);
+function FetchCOSFromAPI(NewChart: TChart) : boolean;
 //******************************************************************************
 implementation
 
@@ -218,7 +218,15 @@ begin
       try
         if (clAccounting_System_Used = saBGL360) then
 //BGL360 fetches from API and no longer from CSV File          ReadCSVFile(ChartFileName, NewChart)
-          FetchCOSFromAPI( NewChart ) //DN BGL360-New API Call
+          if not FetchCOSFromAPI( NewChart ) then begin // Could not retreive the chart
+            Msg := 'Please select a Fund to refresh the chart from, via Other Functions | Accounting System';
+            LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : Fund not selected.'  );
+            HelpfulErrorMsg( 'Please select a Fund to refresh the chart from, ' +
+              'via Other Functions | Accounting System' + #13+#13+
+              'The existing chart has not been modified.', 0 );
+            exit;
+          end
+          else
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
@@ -321,7 +329,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure FetchCOSFromAPI(NewChart: TChart);
+function FetchCOSFromAPI(NewChart: TChart) : boolean;
 const
   ThisMethodName = 'FetchCOSFromAPI';
 var
@@ -331,6 +339,7 @@ var
   RESTServer : TBGLServer;
   i          : integer;
 begin
+  result := false;
   RESTServer := TBGLServer.Create( nil, PRACINI_BGL360_Client_ID,
     PRACINI_BGL360_Client_Secret, PRACINI_BGL360_API_URL );
   try
@@ -378,6 +387,7 @@ begin
                 NewChart.Insert(NewAccount);
               end;
           end;
+          result := true;
         end;
       end
       else begin
