@@ -136,6 +136,7 @@ Var
   OldTranAccount : string;
   OldCoded_By : byte;
   SuggestionChanged : boolean;
+  SuggMemsRunning : boolean;
 begin
   SuggestionChanged := false;
   if DebugMe then
@@ -149,8 +150,13 @@ begin
     StartTickCount := GetTickCount();
   end;
 
+   SuggMemsRunning := SuggestedMem.IsSuggMemsScanning();
+
    IsActive := True;
-   SuggestedMem.StopMemScan();
+
+   if SuggMemsRunning then
+     SuggestedMem.StopMemScan();
+
    try
 
      With aClient, BA do
@@ -802,9 +808,13 @@ begin
        TimeTaken := (GetTickCount - StartTickCount)/1000;
        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
      end;
-     SuggestedMem.StartMemScan();
-     if SuggestionChanged then
-       SuggestedMem.DoProcessingComplete();
+
+     if SuggestedMem.IsSuggMemsScanning then
+     begin
+       SuggestedMem.StartMemScan();
+       if SuggestionChanged then
+         SuggestedMem.DoProcessingComplete();
+     end;
    end;
 end; { of AUTOCODE }
 
