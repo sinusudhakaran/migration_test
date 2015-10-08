@@ -949,11 +949,9 @@ end;
 
 procedure StyleAltRowColor(var aLineColor : integer);
 begin
-  aLineColor := UserINI_GS_Grid_Alternate_Color;
-  {if TProduct.ProductBrand = btMYOBBankLink then
-    aLineColor := BUDGET_COLOR_ROW
-  else
-    aLineColor := BKCOLOR_CREAM;}
+  {$IFNDEF LOOKUPDLL}
+    aLineColor := UserINI_GS_Grid_Alternate_Color;
+  {$ENDIF}
 end;
 
 procedure StyleSelectionColor(aStringTree : TVirtualStringTree);
