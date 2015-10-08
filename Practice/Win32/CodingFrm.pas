@@ -5780,7 +5780,7 @@ Procedure TfrmCoding.tblCodingGetCellAttributes(Sender: TObject; RowNum,
   ColNum: Integer; var CellAttr: TOvcCellAttributes);
 begin
    if not ValidDataRow(RowNum) then exit;
-
+   bkBranding.StyleAltRowColor(AltLineColor);
    //check that the current cell color is the default color so that
    //dont change color if the cell is highlighted ie. active cell
    if (CellAttr.caColor = tblCoding.Color) then begin

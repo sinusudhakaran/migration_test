@@ -530,6 +530,7 @@ var
     //global setup settings
     UserINI_GS_Column_Widths : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of integer;
     UserINI_GS_Column_Positions : Array[ 0..MAX_CLIENT_MANAGER_COLUMNS] of integer;
+    UserINI_GS_Grid_Alternate_Color : Integer;
 
     // System Pactice Accounts
     UserINI_SPA_Columns: string;

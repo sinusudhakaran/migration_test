@@ -102,6 +102,7 @@ var
   procedure StyleBudgetAllExclusiveText(AllExclusiveText: TLabel);
   procedure StyleBudgetReminderNote(ReminderNoteText: TLabel);
   procedure StyleAltRowColor(var aLineColor : integer);
+  procedure StyleAltDefaultRowColor(var aLineColor : integer);
   procedure StyleTableHeading(aTableHeader: TOvcTCColHead);
   procedure StyleGroupBar(aGroupBar : TRzGroupBar);
 
@@ -938,13 +939,21 @@ begin
     aGroupBar.GradientColorStart := bkBranding.GroupBackGroundStartColor;
   end;
 end;
-
-procedure StyleAltRowColor(var aLineColor : integer);
+procedure StyleAltDefaultRowColor(var aLineColor : integer);
 begin
   if TProduct.ProductBrand = btMYOBBankLink then
     aLineColor := BUDGET_COLOR_ROW
   else
     aLineColor := BKCOLOR_CREAM;
+end;
+
+procedure StyleAltRowColor(var aLineColor : integer);
+begin
+  aLineColor := UserINI_GS_Grid_Alternate_Color;
+  {if TProduct.ProductBrand = btMYOBBankLink then
+    aLineColor := BUDGET_COLOR_ROW
+  else
+    aLineColor := BKCOLOR_CREAM;}
 end;
 
 procedure StyleSelectionColor(aStringTree : TVirtualStringTree);

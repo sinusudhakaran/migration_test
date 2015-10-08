@@ -83,6 +83,10 @@ type
     Label12: TLabel;
     rbGUIStandard: TRadioButton;
     rbGUISimple: TRadioButton;
+    pnlAlternateColor: TPanel;
+    lblAltCol: TLabel;
+    ceAlternateColour: TRzColorEdit;
+    btnResetAlternateCol: TButton;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);
@@ -102,6 +106,7 @@ type
     procedure cbSizeChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure cbceFontChange(Sender: TObject);
+    procedure btnResetAlternateColClick(Sender: TObject);
   private
     { Private declarations }
     CESFont: TFont;
@@ -143,7 +148,10 @@ uses
   GenUtils,
   NewReportUtils,
   bkProduct,
-  bkBranding;
+  bkBranding,
+  INISettings,
+  CodingFrm,
+  BudgetFrm;
 
 const
   Unitname = 'OptionsFrm';
@@ -346,11 +354,23 @@ begin
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmOptions.btnOkClick(Sender: TObject);
-var OutPortNo: Integer;
+var
+  OutPortNo: Integer;
+  ActiveForm: Forms.TForm;
 begin
   {toolbars}
   INI_ShowToolbarCaptions := chkCaptions.checked;
   INI_ShowFormHints       := chkShowHint.Checked;
+
+  if UserINI_GS_Grid_Alternate_Color <> ceAlternateColour.SelectedColor then
+  begin
+    UserINI_GS_Grid_Alternate_Color := ceAlternateColour.SelectedColor;
+    INISettings.WriteUsersINI(CurrUser.Code);
+
+    ActiveForm := GetActiveForm;
+    if ((ActiveForm is TfrmCoding) or (ActiveForm is TfrmBudget)) then
+       ActiveForm.Repaint;
+  end;
 
 {$IFNDEF SmartBooks}
   INI_ShowCodeHints       := chkShowCodeHint.Checked;
@@ -563,6 +583,14 @@ begin
 //  ResetCodingColumns;
 end;
 
+procedure TfrmOptions.btnResetAlternateColClick(Sender: TObject);
+var
+  DefColour : Integer;
+begin
+  StyleAltDefaultRowColor(DefColour);
+  ceAlternateColour.SelectedColor := DefColour;
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmOptions.chkShowHintClick(Sender: TObject);
 begin
@@ -601,12 +629,14 @@ begin
       MyDlg.lblFont.Visible := False;
       MyDlg.pnlCESFont.Visible := False;
       MyDlg.pnlUIStyle.Visible := false;
+      MyDlg.pnlAlternateColor.Top := 120;
     end
     else
     begin
       //hide links tab if not NZ
       if assigned( myClient) then
       begin
+        MyDlg.pnlAlternateColor.Top := 326;
         if ( myClient.clFields.clCountry <> whNewZealand) then
           MyDlg.tsLinks.TabVisible := false;
       end
@@ -616,9 +646,15 @@ begin
         if (WinUtils.GetDefaultCountryCode <> '64') then
           MyDlg.tsLinks.TabVisible := false;
       end;
-       MyDlg.pnlUIStyle.Visible := ThirdPartyDLLDetected;
+      MyDlg.pnlUIStyle.Visible := ThirdPartyDLLDetected;
+      if MyDlg.pnlUIStyle.Visible then
+      begin
+        MyDlg.pnlAlternateColor.Top := MyDlg.pnlUIStyle.Top + MyDlg.pnlUIStyle.Height + 5;
+        MyDlg.Height := MyDlg.pnlAlternateColor.Top + MyDlg.pnlAlternateColor.height + 5;
+      end;
     end;
-
+    MyDlg.ceAlternateColour.SelectedColor := UserINI_GS_Grid_Alternate_Color;
+    
     //only show the file association tab if relevant
     //both the trf handler and bnotes need to be installed, otherwise the user
     //gets to choose irrelevant options

@@ -61,7 +61,8 @@ uses
   StrUtils,
   dbCreate,
   BKIniFiles,
-  EncryptOpenSSL;
+  EncryptOpenSSL,
+  BkBranding;
 
 const
    GrpMainForm = 'MainForm';
@@ -1061,6 +1062,7 @@ var
   i: integer;
   S: string;
   EncryptedPassword: string;
+  DefColour : Integer;
 begin
   Filename := ExecDir + UserCode + '.INI';
 
@@ -1146,6 +1148,8 @@ begin
         UserINI_GS_Column_Positions[ i] := IniFile.ReadInteger( GrpGlobalSetup, 'ColPosition' + inttostr( i), -1);
         UserINI_GS_Column_Widths[ i] := IniFile.ReadInteger( GrpGlobalSetup, 'ColWidth' + inttostr( i), -1);
       end;
+      StyleAltDefaultRowColor(DefColour);
+      UserINI_GS_Grid_Alternate_Color := IniFile.ReadInteger( GrpGlobalSetup, 'GridAlternateColour', DefColour);
 
       UserINI_SPA_Columns := IniFile.ReadString(GrpSysAccounts,'PracticeAccounts','');
       UserINI_Show_Interim_Reports := ReadBool(GrpUserOptions,'ShowInterimReports', False);
@@ -1262,6 +1266,7 @@ begin
         IniFile.WriteInteger( GrpGlobalSetup, 'ColPosition' + inttostr( i), UserINI_GS_Column_Positions[ i]);
         IniFile.WriteInteger( GrpGlobalSetup, 'ColWidth' + inttostr( i), UserINI_GS_Column_Widths[ i]);
       end;
+      IniFile.WriteInteger( GrpGlobalSetup, 'GridAlternateColour' , UserINI_GS_Grid_Alternate_Color);
 
       IniFile.WriteString(GrpSysAccounts,'PracticeAccounts', UserINI_SPA_Columns);
       IniFile.WriteBool( GrpUserOptions, 'ShowInterimReports', UserINI_Show_Interim_Reports);
