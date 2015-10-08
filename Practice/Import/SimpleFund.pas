@@ -160,35 +160,6 @@ begin
      Exit;
 
   with MyClient.clFields do begin
-(*//DN BGL360 - Chart to be fetched from BGL360 API
-    if (clAccounting_System_Used = saBGL360) then
-    begin
-      SFFileName := SF360_File;
-      Extn       := SF360_EXTN;
-    end else
-    begin
-      SFFileName := SF_File;
-      Extn       := SF_EXTN;
-    end;
-
-    if clLoad_Client_Files_From = '' then
-      ChartFileName := ''
-    else if DirectoryExists(clLoad_Client_Files_From) then
-      ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName
-    else
-      ChartFileName := clLoad_Client_Files_From;
-    //check file exists, ask for a new one if not
-    if not BKFileExists(ChartFileName) then begin
-      HCtx := 0; //hcSFUND001;
-      if clAccounting_System_Used = saBGLSimpleLedger then
-        FileType := 'Simple Ledger File'
-      else
-        FileType := 'Simple Fund File';
-      if not ChartUtils.LoadChartFrom(clCode,ChartFileName,clLoad_Client_Files_From,FileType + '|'+'*.'+Extn,Extn,HCtx) then
-        Exit;
-    end;
-//DN BGL360 - Chart to be fetched from BGL360 API *)
-
     if (clAccounting_System_Used <> saBGL360) then //BGL360 fetches from API and no longer from CSV File
     begin
       SFFileName := SF_File;
@@ -226,7 +197,7 @@ begin
               'The existing chart has not been modified.', 0 );
             exit;
           end
-          else
+          else 
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
@@ -368,14 +339,6 @@ begin
 
                 NewAccount^.chAccount_Code        :=
                   RESTServer.Chart_of_Accounts[ i ].Code;
-
-(*                if ( RESTServer.Chart_of_Accounts[ i ].accountClass <> 'Sub Account' ) then
-                  NewAccount^.chAccount_Code        :=
-                    RESTServer.Chart_of_Accounts[ i ].Code
-                else
-                  NewAccount^.chAccount_Code        := format( '%s/%s',
-                    ( [ RESTServer.Chart_of_Accounts[ i ].Code,
-                      '' { RESTServer.Chart_of_Accounts[ i ]. } ] ); *)
 
                 AccountType                       :=
                   RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ];
