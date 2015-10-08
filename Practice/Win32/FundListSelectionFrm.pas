@@ -39,6 +39,7 @@ type
     FCurrentRow : Integer;
     procedure LoadFunds(aFilterFund : string);
     procedure ClearHeaderTriangle(ACol, ARow : Integer);
+    function GetFundIndex(aFundCode: string):Integer;
   public
     { Public declarations }
     property FundListJSON: TFundList_Obj read  FFundListJSON write FFundListJSON;
@@ -90,14 +91,22 @@ end;
 procedure TFundSelectionFrm.btnYesClick(Sender: TObject);
 var
   tmpFund: TFundObj;
+  Index: Integer;
 begin
   if FundListJSON.Count > 0 then
   begin
-    tmpFund:= TFundObj(FundListJSON.Items[sgFunds.Row-1]);
-    if Assigned(tmpFund) then
+    if Trim(sgFunds.Cells[sgFunds.Col, sgFunds.Row]) <> '' then
     begin
-      FSelectedFundID := tmpFund.FundID;
-      FSelectedFundName := tmpFund.FundName;
+      Index := GetFundIndex(sgFunds.Cells[sgFunds.Col, sgFunds.Row]);
+      if Index >= 0 then
+      begin
+        tmpFund := TFundObj(FundListJSON.Items[Index]);
+        if Assigned(tmpFund) then
+        begin
+          FSelectedFundID := tmpFund.FundID;
+          FSelectedFundName := tmpFund.FundName;
+        end;
+      end;
     end;
   end;
   ModalResult := mrOk;
@@ -143,6 +152,23 @@ begin
   FundListJSON.SortFunction := CompareFunds;
   FundListJSON.SortList;
   LoadFunds('');
+end;
+
+function TFundSelectionFrm.GetFundIndex(aFundCode: string): Integer;
+var
+  i : Integer;
+  tmpFund: TFundObj;
+begin
+  Result := -1;
+  for i  := 0 to FundListJSON.Count - 1 do
+  begin
+    tmpFund:= TFundObj(FundListJSON.Items[i]);
+    if tmpFund.FundCode = aFundCode then
+    begin
+      Result := i;
+      Break;
+    end;
+  end;
 end;
 
 procedure TFundSelectionFrm.LoadFunds(aFilterFund:string);
