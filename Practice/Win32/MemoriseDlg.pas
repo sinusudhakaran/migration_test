@@ -72,6 +72,7 @@ uses
   SuperFieldsutils,
   OsFont,
   MemTranSortedList,
+  SpinnerFrm,
   ovcpf;
 
 type
@@ -92,6 +93,8 @@ const
 type
   TdlgMemorise = class;
 
+  TDoneThreadEvent = procedure() of object;
+
     //----------------------------------------------------------------------------
   TMasterTreeThread = class(TThread)
   private
@@ -100,6 +103,7 @@ type
     fdlgMemorise : TdlgMemorise;
     fSourceTransaction : pTransaction_Rec;
     fEditPrefix : string;
+    fDoneThreadEvent : TDoneThreadEvent;
 
     procedure RefreshMasterMemTree();
   public
@@ -110,6 +114,7 @@ type
     property SourceBankAccount : TBank_Account read fSourceBankAccount write fSourceBankAccount;
     property SourceTransaction : pTransaction_Rec read fSourceTransaction write fSourceTransaction;
     property EditPrefix : string read fEditPrefix write fEditPrefix;
+    property DoneThreadEvent : TDoneThreadEvent read fDoneThreadEvent write fDoneThreadEvent;
   end;
 
   TdlgMemorise = class(TForm)
@@ -207,7 +212,6 @@ type
     colTranAmount: TOvcTCNumericField;
     treView: TTreeView;
     pnlMessage: TPanel;
-    lblMessage: TLabel;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -354,6 +358,7 @@ type
     fMasterTreeThread : TMasterTreeThread;
 
     fDirty : boolean;
+    ffrmSpinner : TfrmSpinner;
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
@@ -397,6 +402,7 @@ type
     procedure UpdateControls();
     procedure RefreshMemTransactions();
     procedure RefreshMasterMemTree();
+    procedure AfterRefreshMasterMemTreeEvent();
     procedure TerminateMasterThread();
   public
     procedure FillSplitData(aMem : TMemorisation);
@@ -640,6 +646,8 @@ begin
   if Assigned(fMasterTreeView) then
   begin
     RefreshMasterMemTree();
+    if Assigned(fDoneThreadEvent) then
+      fDoneThreadEvent();
   end;
 end;
 
@@ -784,6 +792,8 @@ begin
 
   FsuperTop := -999;
   FSuperLeft := -999;
+
+  ffrmSpinner := TfrmSpinner.Create(self);
 end;
 
 //------------------------------------------------------------------------------
@@ -792,6 +802,7 @@ begin
   treView.Items.Clear;
   FreeAndNil(fMemTranSortedList);
   FreeAndNil(fMasterTreeThread);
+  FreeAndNil(ffrmSpinner);
 end;
 
 //------------------------------------------------------------------------------
@@ -1445,6 +1456,7 @@ begin
   begin
     GetExitCodeThread(fMasterTreeThread.Handle, ThreadReturn);
     TerminateThread(fMasterTreeThread.Handle, ThreadReturn);
+    AfterRefreshMasterMemTreeEvent();
   end;
 end;
 
@@ -2400,22 +2412,33 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.RefreshMasterMemTree;
+var
+  screenPos : TPoint;
 begin
-  pnlMessage.visible := true;
-  try
-    //EditMem.mdFields.mdFrom_Master_List
+  ffrmSpinner.ShowSpinner('Calculating',
+                          pnlMain.Top + pnlMatchingTransactions.Top +
+                          (pnlMatchingTransactions.Height div 2) - (ffrmSpinner.Height div 2),
+                          (Self.Width div 2) - (ffrmSpinner.Width div 2));
 
-    lblMessage.Caption := 'Calculating';
-    fMasterTreeThread := TMasterTreeThread.Create(true);
-    fMasterTreeThread.MasterTreeView    := treView;
-    fMasterTreeThread.SourceBankAccount := SourceBankAccount;
-    fMasterTreeThread.SourceTransaction := SourceTransaction;
-    fMasterTreeThread.DlgMemorise       := Self;
-    fMasterTreeThread.EditPrefix        := EditPrefix;
-    fMasterTreeThread.Resume;
-  finally
-    pnlMessage.visible := false;
-  end;
+  Setfocus();
+
+  treView.Items.Clear;
+  fMasterTreeThread := TMasterTreeThread.Create(true);
+  fMasterTreeThread.MasterTreeView    := treView;
+  fMasterTreeThread.SourceBankAccount := SourceBankAccount;
+  fMasterTreeThread.SourceTransaction := SourceTransaction;
+  fMasterTreeThread.DlgMemorise       := Self;
+  fMasterTreeThread.EditPrefix        := EditPrefix;
+  fMasterTreeThread.DoneThreadEvent   := AfterRefreshMasterMemTreeEvent;
+  fMasterTreeThread.Resume;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.AfterRefreshMasterMemTreeEvent;
+begin
+  if (Assigned(ffrmSpinner)) and
+     (ffrmSpinner.HandleAllocated) then
+    ffrmSpinner.CloseSpinner;
 end;
 
 //------------------------------------------------------------------------------
@@ -3511,6 +3534,12 @@ begin
         Columns[DescCol].Width := Columns[DescCol].Width - 75;
       end;
    end;
+
+  if (Assigned(ffrmSpinner)) and
+     (ffrmSpinner.HandleAllocated) then
+    ffrmSpinner.UpdateSpinner(pnlMain.Top + pnlMatchingTransactions.Top +
+                              (pnlMatchingTransactions.Height div 2) - (ffrmSpinner.Height div 2),
+                              (Self.Width div 2) - (ffrmSpinner.Width div 2));
 end;
 
 procedure TdlgMemorise.FormShow(Sender: TObject);

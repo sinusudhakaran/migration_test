@@ -24,6 +24,7 @@ uses
   baObj32,
   Graphics,
   SuggestedMems,
+  SpinnerFrm,
   SuggMemSortedList;
 
 type
@@ -84,6 +85,7 @@ type
     procedure hdrSuggMemsOwnerDraw(Sender: TObject; TableCanvas: TCanvas;
       const CellRect: TRect; RowNum, ColNum: Integer;
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     fNeedReCoding : boolean;
     fHeadingClicked : boolean;
@@ -96,6 +98,8 @@ type
     fTempInteger : integer;
     fTempString : string;
     fMemStatus : TSuggMemStatus;
+    ffrmSpinner : TfrmSpinner;
+
 
     procedure DrawEntryTypeOnCell(TableCanvas: TCanvas;
                                   const CellRect: TRect;
@@ -132,6 +136,7 @@ type
     procedure ReadCellforPaint(RowNum, ColNum : integer; var Data : pointer);
     procedure RefreshMemControls(aRow: integer);
     procedure DoCreateNewMemorisation(aRow: integer);
+    procedure CloseCalculatingSpinner();
   public
     procedure DoSuggestedMemsDoneProcessing();
 
@@ -194,6 +199,13 @@ end;
 //------------------------------------------------------------------------------
 // TRecommendedMemorisationsFrm
 //------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  CloseCalculatingSpinner();
+end;
+
+//------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.FormCreate(Sender: TObject);
 var
   UserRec : PUser_Rec;
@@ -216,6 +228,8 @@ begin
   chkAllowSuggMemPopup.Checked := UserINI_Suggested_Mems_Show_Popup;
 
   fSuggMemSortedList := TSuggMemSortedList.create;
+
+  ffrmSpinner := TfrmSpinner.Create(self);
 end;
 
 //------------------------------------------------------------------------------
@@ -287,6 +301,8 @@ begin
 
   UserINI_Suggested_Mems_Show_Popup := chkAllowSuggMemPopup.Checked;
 
+  FreeAndNil(ffrmSpinner);
+
   inherited;
 end;
 
@@ -313,6 +329,9 @@ begin
 
   iDetails := tblSuggMems.Width - iTotal - 25 - 10;
   tblSuggMems.Columns.Width[ccStatementDetails] := iDetails;
+
+  ffrmSpinner.UpdateSpinner((Self.Height div 2) - (ffrmSpinner.Height div 2),
+                            (Self.Width div 2) - (ffrmSpinner.Width div 2));
 end;
 
 //------------------------------------------------------------------------------
@@ -465,6 +484,14 @@ begin
   Refresh();
   RefreshMemControls(tblSuggMems.ActiveRow);
   tblSuggMems.Invalidate;
+end;
+
+//------------------------------------------------------------------------------
+procedure TRecommendedMemorisationsFrm.CloseCalculatingSpinner;
+begin
+  if (Assigned(ffrmSpinner)) and
+     (ffrmSpinner.HandleAllocated) then
+    ffrmSpinner.CloseSpinner;
 end;
 
 //------------------------------------------------------------------------------
@@ -637,17 +664,21 @@ begin
   chkAllowSuggMemPopup.Enabled := false;
   btnCreate.Enabled := false;
 
-  pnlMessage.Visible := true;
-
   case fMemStatus of
     ssNoFound : begin
+      pnlMessage.Visible := true;
       lblMessage.Caption := 'There are no Suggested Memorisations at this time.';
     end;
     ssDisabled : begin
+      pnlMessage.Visible := true;
       lblMessage.Caption := 'Suggested Memorisations have been disabled, please contact Support.';
     end;
     ssProcessing : begin
-      lblMessage.Caption := 'Calculating';
+      pnlMessage.Visible := false;
+      ffrmSpinner.ShowSpinner('Calculating',
+                              (Self.Height div 2) - (ffrmSpinner.Height div 2),
+                              (Self.Width div 2) - (ffrmSpinner.Width div 2));
+      Setfocus();
     end;
   end;
 end;
@@ -839,6 +870,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TRecommendedMemorisationsFrm.DoSuggestedMemsDoneProcessing;
 begin
+  CloseCalculatingSpinner();
   MainRefresh();
 end;
 

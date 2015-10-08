@@ -660,26 +660,6 @@ object dlgMemorise: TdlgMemorise
         ParentBackground = False
         TabOrder = 2
         Visible = False
-        DesignSize = (
-          1037
-          89)
-        object lblMessage: TLabel
-          Left = 0
-          Top = 40
-          Width = 1037
-          Height = 16
-          Alignment = taCenter
-          Anchors = [akLeft, akTop, akRight]
-          AutoSize = False
-          Caption = 'Message'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -13
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
-          ExplicitWidth = 225
-        end
       end
     end
   end
@@ -691,7 +671,6 @@ object dlgMemorise: TdlgMemorise
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = -1
     DesignSize = (
       1069
       207)
