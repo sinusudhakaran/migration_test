@@ -1933,8 +1933,7 @@ var
 
     if (pT^.txGL_Narration <> pT^.txStatement_Details) or
        (pT^.txPayee_Number > 0) or
-       (pT^.txJob_Code <> '') or
-       (MemLine^.mlAccount <> '') then
+       (pT^.txJob_Code <> '') then
     begin
       // Create memorisation line
       MemLine := New_Memorisation_Line_Rec;

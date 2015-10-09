@@ -75,6 +75,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TMemTranSortedList.FreeItem(Item: Pointer);
 begin
+  pMemTranSortedListRec(Item)^.Statement_Details := '';
+
   SafeFreeMem(Item, MemTranSortedListRecSize);
 end;
 

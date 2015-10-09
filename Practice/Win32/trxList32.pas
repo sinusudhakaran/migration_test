@@ -199,7 +199,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TTran_Suggested_Index.FreeItem(Item: Pointer);
 begin
-  pTran_Suggested_Index_Rec(Item)^.tiAccount := '';
   pTran_Suggested_Index_Rec(Item)^.tiStatement_Details := '';
 
   SafeFreeMem(Item, Tran_Suggested_Index_Rec_Size);

@@ -556,7 +556,11 @@ begin
   begin
     BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
     SysAccRec := AdminSystem.fdSystem_Bank_Account_List.FindCode(SourceBankAccount.baFields.baBank_Account_Number);
-    Institution := SysAccRec^.sbInstitution;
+
+    if not Assigned(SysAccRec) then
+      Institution := ''
+    else
+      Institution := SysAccRec^.sbInstitution;
   end
   else
   begin
@@ -592,41 +596,45 @@ begin
           Continue;
 
         OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
-
-        if not Assigned(CltClient) then
-          Continue;
-
-        //Screen.Cursor := crHourglass;
-        FoundFirstClientAccount := false;
-
-        for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
-        begin
-          BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-          SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
-
-          if BankPrefix <> SearchPrefix then
+        try
+          if not Assigned(CltClient) then
             Continue;
 
-          if not SuggestedMem.IsAccountUsedByMem(BankAcc, TempMem) then
-            Continue;
+          //Screen.Cursor := crHourglass;
+          FoundFirstClientAccount := false;
 
-          if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
+          for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
           begin
-            if (not FoundFirstAccount) then
-            begin
-              RootNode := fMasterTreeView.Items.Add( NIL, Institution);
+            BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+            SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
 
-              FoundFirstAccount := true;
+            if BankPrefix <> SearchPrefix then
+              Continue;
+
+            if not SuggestedMem.IsAccountUsedByMem(BankAcc, TempMem) then
+              Continue;
+
+            if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
+            begin
+              if (not FoundFirstAccount) then
+              begin
+                RootNode := fMasterTreeView.Items.Add( NIL, Institution);
+
+                FoundFirstAccount := true;
+              end;
+
+              if FoundFirstAccount then
+                ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
+
+              FoundFirstClientAccount := true;
             end;
 
-            if FoundFirstAccount then
-              ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
-
-            FoundFirstClientAccount := true;
+            if (FoundFirstAccount and FoundFirstClientAccount) then
+              AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
           end;
 
-          if (FoundFirstAccount and FoundFirstClientAccount) then
-            AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
+        finally
+          FreeAndNil(CltClient);
         end;
       end;
     finally
@@ -2428,6 +2436,7 @@ begin
   Setfocus();
 
   treView.Items.Clear;
+  FreeAndNil(fMasterTreeThread);
   fMasterTreeThread := TMasterTreeThread.Create(true);
   fMasterTreeThread.MasterTreeView    := treView;
   fMasterTreeThread.SourceBankAccount := SourceBankAccount;
