@@ -167,10 +167,11 @@ begin
 
       if clLoad_Client_Files_From = '' then
         ChartFileName := ''
-      else if DirectoryExists(clLoad_Client_Files_From) then
-        ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName
       else
-        ChartFileName := clLoad_Client_Files_From;
+        if DirectoryExists(clLoad_Client_Files_From) then
+          ChartFileName := AddSlash(clLoad_Client_Files_From) + SFFileName
+        else
+          ChartFileName := clLoad_Client_Files_From;
       //check file exists, ask for a new one if not
       if not BKFileExists(ChartFileName) then begin
         HCtx := 0; //hcSFUND001;
@@ -187,7 +188,7 @@ begin
       NewChart := TChart.Create(MyClient.ClientAuditMgr);
       UpdateAppStatus('Loading Chart','Reading Chart',0);
       try
-        if (clAccounting_System_Used = saBGL360) then
+        if (clAccounting_System_Used = saBGL360) then begin
 //BGL360 fetches from API and no longer from CSV File          ReadCSVFile(ChartFileName, NewChart)
           if not FetchCOSFromAPI( NewChart ) then begin // Could not retreive the chart
             Msg := 'Please select a Fund to refresh the chart from, via Other Functions | Accounting System';
@@ -196,10 +197,11 @@ begin
               'via Other Functions | Accounting System' + #13+#13+
               'The existing chart has not been modified.', 0 );
             exit;
-          end
-          else 
+          end;
+        end
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
+
         If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
            UsingBGL360 := clAccounting_System_Used = saBGL360;
            MergeCharts(NewChart,MyClient,false,UsingBGL360,false);
