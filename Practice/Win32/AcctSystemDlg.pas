@@ -698,7 +698,7 @@ begin
            if ( clLoad_Client_Files_From <> '' ) and
               ( clLoad_Client_Files_From <> OldLoadFrom ) and
               ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then begin
-              RefreshChart;
+              Import32.RefreshChart;
               AutoRefreshFlag := True;
            end;
         end
