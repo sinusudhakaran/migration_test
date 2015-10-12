@@ -46,53 +46,24 @@ type
     procedure OnURLMouseLeave(Sender : TObject);
     procedure OnURLClick(Sender : TObject);
     procedure FreeAllExistingFrames;
-
-    procedure SetRichEditMasks(RichEdit : TBKRichEdit);
   public
-    PrevRichEditWndProc: TWndMethod;
     { Public declarations }
-  protected
-    procedure RichEditWndProc (var Msg: TMessage);
   end;
-
 
 var
   PromoDisplayFrm: TPromoDisplayFrm;
 
+const
+  UnitName = 'PromoContentFme';
+var
+  DebugMe : Boolean = False;
+
 implementation
 
-uses ipshttps, ShellApi, Globals, math, RichEdit;
+uses ipshttps, ShellApi, Globals, math, RichEdit, LogUtil;
 
 {$R *.dfm}
 
-procedure TPromoDisplayFrm.RichEditWndProc (var Msg: TMessage);
-var
-  p: TENLink;
-  RichEdit : TBKRichEdit;
-begin
-  PrevRichEditWndProc(Msg);
-  RichEdit := TBKRichEdit(Self.ActiveControl);
-  
-  case Msg.Msg of
-    CN_NOTIFY:
-      begin
-        if (TWMNotify(Msg).NMHdr^.code = EN_LINK) then
-        begin
-          p := TENLink(Pointer(TWMNotify(msg).NMHdr)^);
-          if (p.msg = WM_LBUTTONDOWN) then
-          begin
-            SendMessage(RichEdit.Handle, EM_EXSETSEL, 0, LongInt(@p.chrg));
-            ShellExecute(Handle, 'open', PChar(RichEdit.SelText), nil, nil, SW_SHOWNORMAL);
-          end;
-        end;
-        
-      end;
-    CM_RECREATEWND:
-      begin
-        SetRichEditMasks(RichEdit);
-      end;
-  end;
-end;
 
 procedure TPromoDisplayFrm.btnCloseClick(Sender: TObject);
 begin
@@ -182,10 +153,6 @@ begin
 
         NewFrame.Parent := pnlFrames;//Self;
         NewFrame.Name := NewFrame.Name + IntToStr(aPageIndex) +  IntToStr(i);
-
-        {PrevRichEditWndProc := NewFrame.reDescription.WindowProc;
-        NewFrame.reDescription.WindowProc := RichEditWndProc;
-        SetRichEditMasks(NewFrame.reDescription);}
 
         NewFrame.lblURL.OnMouseEnter := OnURLMouseEnter;
         NewFrame.lblURL.OnMouseLeave := OnURLMouseLeave;
@@ -312,23 +279,13 @@ begin
   DisplayPage(PageNavigation.CurrentPage);
 end;
 
-procedure TPromoDisplayFrm.SetRichEditMasks(RichEdit: TBKRichEdit);
-var
-  Mask: Word;
-  CharRange: TCharRange;
-begin
-  Mask := SendMessage(RichEdit.Handle, EM_GETEVENTMASK, 0, 0);
-  SendMessage(RichEdit.Handle, EM_SETEVENTMASK, 0, Mask or ENM_LINK);
-  SendMessage(RichEdit.Handle, EM_AUTOURLDETECT, Integer(True), 0);  //WB_Set3DBorderStyle(WebBrowser);
-  SendMessage(RichEdit.Handle, EM_EXGETSEL, 0, LPARAM(@CharRange));
-  SendMessage(RichEdit.Handle, WM_SETTEXT, 0, LPARAM(RichEdit.Text));
-  SendMessage(RichEdit.Handle, EM_EXSETSEL, 0, LPARAM(@CharRange));
-end;
-
 procedure TPromoDisplayFrm.SetSize;
 begin
-  Self.Width := Screen.Width * 1 div 3;
+  Self.Width := 600;//Screen.Width * 1 div 3;
   Self.Height := Screen.Height * 3 div 4;
 end;
 
+initialization
+  DebugMe := DebugUnit(UnitName);
+  
 end.

@@ -23,24 +23,32 @@ type
   private
     { Private declarations }
     FStartPosition : Integer;
+    FPrevRichEditWndProc: TWndMethod;
+
     procedure SetTextFormat(AText: string; PromoStyle : TPromoStyles);
     procedure FormatRichText(aFormatChar: string; aIsEndCharAvailable:Boolean;PromoStyle: TPromoStyles);
     function DeleteRichText(aStart, aLength : Integer):string;
     function GetRichText(aStart, aLength : Integer): string;
     procedure ProcessSpecialChar(var aCharIndex : Integer; SpecialChar : string);
+    procedure SetRichEditMasks(RichEdit : TBKRichEdit);
+
   public
     { Public declarations }
-    PrevRichEditWndProc: TWndMethod;
     constructor Create(Sender:TComponent;Content:TContentfulObj);reintroduce;
     procedure ApplyTextFormatting;
+  protected
+    procedure RichEditWndProc (var Msg: TMessage);
   end;
 
 const
   PromoSpecialChars : array [1..6] of Char = ('#', '_', '~', '*', '>' , '[');
+  UnitName = 'PromoContentFme';
+var
+  DebugMe : Boolean = False;
 
 implementation
 
-uses ShellAPI;
+uses ShellAPI, LogUtil;
 
 {$R *.dfm}
 
@@ -57,6 +65,35 @@ procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
 begin
   reDescription.Height := Rect.Bottom - Rect.Top;
   reDescription.HideScrollBars := True;
+end;
+
+procedure TPromoContentFrame.RichEditWndProc(var Msg: TMessage);
+var
+  p: TENLink;
+  RichEdit : TBKRichEdit;
+begin
+  FPrevRichEditWndProc(Msg);
+  RichEdit := reDescription;
+
+  case Msg.Msg of
+    CN_NOTIFY:
+      begin
+        if (TWMNotify(Msg).NMHdr^.code = EN_LINK) then
+        begin
+          p := TENLink(Pointer(TWMNotify(msg).NMHdr)^);
+          if (p.msg = WM_LBUTTONDOWN) then
+          begin
+            SendMessage(RichEdit.Handle, EM_EXSETSEL, 0, LongInt(@p.chrg));
+            ShellExecute(Handle, 'open', PChar(RichEdit.SelText), nil, nil, SW_SHOWNORMAL);
+          end;
+        end;
+
+      end;
+    CM_RECREATEWND:
+      begin
+        SetRichEditMasks(RichEdit);
+      end;
+  end;
 end;
 
 constructor TPromoContentFrame.Create(Sender: TComponent; Content: TContentfulObj);
@@ -109,8 +146,12 @@ begin
   if Content.IsImageAvilable then
     imgContainer.Picture.Assign(Content.MainImageBitmap);
   FStartPosition := 0;
-  
+
   Self.AutoSize := True;
+
+  {FPrevRichEditWndProc := reDescription.WindowProc;
+  reDescription.WindowProc := RichEditWndProc;
+  SetRichEditMasks(reDescription);}
 end;
 
 function TPromoContentFrame.DeleteRichText(aStart, aLength: Integer):string;
@@ -232,6 +273,19 @@ begin
   SetTextFormat(SubDesc, PromoStyle);
 end;
 
+procedure TPromoContentFrame.SetRichEditMasks(RichEdit: TBKRichEdit);
+var
+  Mask: Word;
+  CharRange: TCharRange;
+begin
+  Mask := SendMessage(RichEdit.Handle, EM_GETEVENTMASK, 0, 0);
+  SendMessage(RichEdit.Handle, EM_SETEVENTMASK, 0, Mask or ENM_LINK);
+  SendMessage(RichEdit.Handle, EM_AUTOURLDETECT, Integer(True), 0);  //WB_Set3DBorderStyle(WebBrowser);
+  SendMessage(RichEdit.Handle, EM_EXGETSEL, 0, LPARAM(@CharRange));
+  SendMessage(RichEdit.Handle, WM_SETTEXT, 0, LPARAM(RichEdit.Text));
+  SendMessage(RichEdit.Handle, EM_EXSETSEL, 0, LPARAM(@CharRange));
+end;
+
 procedure TPromoContentFrame.SetTextFormat(AText: string;
   PromoStyle: TPromoStyles);
 var
@@ -294,5 +348,8 @@ begin
     end;
   end;
 end;
+
+initialization
+  DebugMe := DebugUnit(UnitName);
 
 end.

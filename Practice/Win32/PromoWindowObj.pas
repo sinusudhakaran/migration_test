@@ -408,6 +408,8 @@ begin
   except
     on E: Exception do begin
       // Do Nothing, suppress the error
+      LogUtil.LogMsg(lmError, UnitName, ' Error in connecting to Contentful site, tried ' + IntToStr(Retries)+ ' time(s)');
+      LogUtil.LogMsg(lmError, UnitName, E.Message);
       FContentFulResponseJSON := E.Message;
       inc( Retries );
       if Retries < RetryCount then
