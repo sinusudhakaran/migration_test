@@ -49,7 +49,8 @@ uses
   gstcalc32,
   SageHandisoftSuperConst,
   ForexHelpers,
-  MoneyUtils;
+  MoneyUtils,
+  SimpleFundX;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 CONST
@@ -146,7 +147,8 @@ begin
   end;
 end ;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure AddIfNotZero( aMsg : string; aAmount : Money; aHint : TStringList);
+procedure AddIfNotZero( aMsg : string; aAmount : Money; aHint : TStringList;
+            aValuePadLength, aMsgPadLength : integer );
 var
   VS : string;  //value string
 begin
@@ -154,20 +156,56 @@ begin
   if aAmount < 0 then
     VS := '(' + VS + ')';
 
-  VS := LeftPadS( VS, 6) ;
+  VS := LeftPadS( VS, aValuePadLength ) ;
   if aAmount <> 0 then
-    aHint.Add( PadS( aMsg, 31) + VS);
+    aHint.Add( PadS( aMsg, aMsgPadLength) + VS);
 end;
 
-procedure AddIfNotBlank( aMsg : string; aValue : string; aHint : TStringList);
+procedure AddIfNotBlank( aMsg : string; aValue : string; aHint : TStringList;
+            aValuePadLength, aMsgPadLength : integer );
 var
   VS : string;  //value string
 begin
   VS := Trim( aValue ) ;
-  VS := LeftPadS( VS, 6) ;
+  VS := LeftPadS( VS, aValuePadLength) ;
   if Trim(aValue) <> '' then
-    aHint.Add( PadS( aMsg, 31) + VS);
+    aHint.Add( PadS( aMsg, aMsgPadLength) + VS);
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetBGL360TransActionType(const Value: string) : TTransactionTypes;
+var
+  liControlCode : integer;
+begin
+  try
+    Result := ttOtherTx;
+    if trim( Value ) <> '' then begin
+      liControlCode := StripBGL360ControlAccountCode( Value );
+      case liControlCode of
+        cttanDistribution      : Result := ttDistribution;
+        cttanDividend          : Result := ttDividend;
+        cttanInterest          : Result := ttInterest;
+        cttanShareTradeRangeStart..cttanShareTradeRangeEnd : Result := ttShareTrade;
+      end;
+    end;
+  except
+    on e:Exception do
+      raise Exception.Create( 'Invalid Account Code: '  + Value );
+  end;
+end;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetBGL360TransActionTypeLabel( const Value: TTransactionTypes ) : string;
+begin
+  case Value of
+    ttDistribution      : Result := 'Distribution';
+    ttDividend          : Result := 'Dividend';
+    ttInterest          : Result := 'Interest';
+    ttShareTrade        : Result := 'Share Trade';
+    else
+      Result                     := 'Other Transaction';
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCodeEntriesHint( Const Bank_Account : TBank_Account; const T : pTransaction_Rec; Const OptionalHintsOn : Boolean) : string ;
 //returns a hint message for use in the coding screen
@@ -181,6 +219,10 @@ function GetCodeEntriesHint( Const Bank_Account : TBank_Account; const T : pTran
 //
 //                    show the following for a dissection
 //                         code, description, amount, notes
+const
+  ValuePadLength  = 6;
+  MsgPadLength    = 31;
+  bglMsgPadLength = 42;
 var
   D             : pDissection_Rec ;
   A             : pAccount_Rec ;
@@ -202,6 +244,9 @@ var
   HintSL        : TStringList;
   SL            : TStringList;
   Forex         : Boolean;
+  BGL360TransactionType : TTransactionTypes;
+
+
 begin
   Result := '';
     
@@ -437,99 +482,286 @@ begin
           HintSL.Add('');
 
         case MyClient.clFields.clAccounting_System_Used of
-        saSupervisor,
-        saSuperMate,
-        saSolution6SuperFund :
-        begin
-          AddIfNotBlank( sffNamesSupervis[ sff_Member_ID],                T^.txSF_Member_ID, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Franked],                   T^.txSF_Franked, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Unfranked],                 T^.txSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Interest],                  T^.txSF_Interest, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_Income] ,           T^.txSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Capital_Gains_Other],       T^.txSF_Capital_Gains_Other, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_CG_Foreign_Disc],           T^.txSF_Capital_Gains_Foreign_Disc, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Rent],                      T^.txSF_Rent, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Capital_Gains] ,            T^.txSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Discounted_Capital_Gains],  T^.txSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Other_Expenses],            T^.txSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Deferred_Dist] ,        T^.txSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Free_Dist] ,            T^.txSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Exempt_Dist] ,          T^.txSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Special_Income],            T^.txSF_Special_Income, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Imputed_Credit],            T^.txSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_Tax_Credits] ,      T^.txSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_CG_Credits] ,       T^.txSF_Foreign_Capital_Gains_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_TFN_Credits] ,              T^.txSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Other_Tax_Credit],          T^.txSF_Other_Tax_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Non_Resident_Tax],          T^.txSF_Non_Resident_Tax, HintSL);
-        end;
+          saSupervisor,
+          saSuperMate,
+          saSolution6SuperFund :
+          begin
+            AddIfNotBlank( sffNamesSupervis[ sffIdxSupervis_Member_ID],                T^.txSF_Member_ID, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Franked],                   T^.txSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Unfranked],                 T^.txSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Interest],                  T^.txSF_Interest, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_Income] ,           T^.txSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Capital_Gains_Other],       T^.txSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_CG_Foreign_Disc],           T^.txSF_Capital_Gains_Foreign_Disc, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Rent],                      T^.txSF_Rent, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Capital_Gains] ,            T^.txSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Discounted_Capital_Gains],  T^.txSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Other_Expenses],            T^.txSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Deferred_Dist] ,        T^.txSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Free_Dist] ,            T^.txSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Exempt_Dist] ,          T^.txSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Special_Income],            T^.txSF_Special_Income, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Imputed_Credit],            T^.txSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_Tax_Credits] ,      T^.txSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_CG_Credits] ,       T^.txSF_Foreign_Capital_Gains_Credit, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_TFN_Credits] ,              T^.txSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Other_Tax_Credit],          T^.txSF_Other_Tax_Credit, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Non_Resident_Tax],          T^.txSF_Non_Resident_Tax, HintSL, ValuePadLength, MsgPadLength);
+          end;
 
-        saDesktopSuper,
-        saClassSuperIP
-         :  begin
-          if MyClient.clFields.clAccounting_System_Used = saDesktopSuper then
-             AddIfNotBlank(sffNamesDesktop[ sff_Transaction_Type], T^.txSF_Transaction_Code, HintSL);
-          AddIfNotBlank(sffNamesDesktop[ sff_Member_Component], T^.txSF_Fund_Code, HintSL);
-          AddIfNotBlank(sffNamesDesktop[ sff_Member_ID], T^.txSF_Member_Account_Code, HintSL);
-          if T^.txSF_CGT_Date <> 0 then
-            HintSL.Add( PadS( sffNamesDesktop[sff_CGT_Date], 31) + bkDate2Str( T^.txsf_CGT_Date));
-          AddIfNotZero( sffNamesDesktop[ sff_Special_Income],            T^.txSF_Special_Income, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Franked],                   T^.txSF_Franked, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Unfranked],                 T^.txSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_Income] ,           T^.txSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Other_Expenses],            T^.txSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Capital_Gains_Other],       T^.txSF_Capital_Gains_Other, HintSL);
-          if T^.txSF_Capital_Gains_Fraction_Half then
-            HintSL.Add( PadS( sffNamesDesktop[sff_Discounted_Capital_Gains], 31) + '1/2')
+          saDesktopSuper,
+          saClassSuperIP
+           :  begin
+            if MyClient.clFields.clAccounting_System_Used = saDesktopSuper then
+               AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Transaction_Type], T^.txSF_Transaction_Code, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Member_Component], T^.txSF_Fund_Code, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Member_ID], T^.txSF_Member_Account_Code, HintSL, ValuePadLength, MsgPadLength);
+            if T^.txSF_CGT_Date <> 0 then
+              HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_CGT_Date], MsgPadLength) + bkDate2Str( T^.txsf_CGT_Date));
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Special_Income],            T^.txSF_Special_Income, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Franked],                   T^.txSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Unfranked],                 T^.txSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_Income] ,           T^.txSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Other_Expenses],            T^.txSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Capital_Gains_Other],       T^.txSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+            if T^.txSF_Capital_Gains_Fraction_Half then
+              HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_Discounted_Capital_Gains], MsgPadLength) + '1/2')
+            else
+              HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_Discounted_Capital_Gains], MsgPadLength) + '2/3');
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Discounted_Capital_Gains],  T^.txSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Capital_Gains] ,            T^.txSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Deferred_Dist] ,        T^.txSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Free_Dist] ,            T^.txSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Exempt_Dist] ,          T^.txSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Imputed_Credit],            T^.txSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_TFN_Credits] ,              T^.txSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_Tax_Credits] ,      T^.txSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_CG_Credits] ,       T^.txSF_Foreign_Capital_Gains_Credit, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Other_Tax_Credit],          T^.txSF_Other_Tax_Credit, HintSL, ValuePadLength, MsgPadLength);
+          end;
+
+          saSageHandisoftSuperfund:
+          begin
+            //Type
+            if T^.txSF_Transaction_ID >= 0 then
+              HintSL.Add('Type: ' + TypesArray[TTxnTypes(T^.txSF_Transaction_ID)]);
+            //Transaction
+            if T^.txSF_Transaction_Code <> '' then
+              HintSL.Add('Transaction: ' + T^.txSF_Transaction_Code);
+            //Number Issued
+            if T^.txQuantity > 0 then
+              AddIfNotBlank( 'Number Issued', FormatFloat('#,##0', (T^.txQuantity / 10000)), HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Unfranked],       T^.txSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Franked],         T^.txSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Imputed_Credit],  T^.txSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          end;
+
+          saBGL360:
+          begin
+            BGL360TransactionType := GetBGL360TransActionType( T^.txAccount );
+          // Entry Type
+            HintSL.Add( PadS( sffNamesBGL360[ sffIdxBGL360_Entry_Type ], BGLMsgPadLength ) + GetBGL360TransActionTypeLabel( BGL360TransactionType ) );
+            case BGL360TransactionType  of
+              ttDistribution, ttDividend : begin
+              // Cash Date
+                if T^.txTransaction_Extension^.teSF_Cash_Date <> 0 then
+                  HintSL.Add ( PadS( sffNamesBGL360[sffIdxBGL360_Cash_Date], BGLMsgPadLength) +
+                  bkDate2Str( T^.txTransaction_Extension^.teSF_Cash_Date ));
+              // Accrual Date
+                if T^.txTransAction_Extension^.teSF_Accrual_Date <> 0 then
+                  HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Accrual_Date ], BGLMsgPadLength) +
+                  bkDate2Str( T^.txTransAction_Extension^.teSF_Accrual_Date ));
+              // Record Date
+                if T^.txTransAction_Extension^.teSF_Record_Date <> 0 then
+                  HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Record_Date], BGLMsgPadLength) +
+                  bkDate2Str( T^.txTransAction_Extension^.teSF_Record_Date ));
+
+            // Australian Income Tab
+              // Franked Amount
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Franked_Amount ],
+                  T^.txSF_Franked, HintSL, ValuePadLength, BGLMsgPadLength);
+              // Unfranked Amount
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Unfranked_Amount ],
+                  T^.txSF_Unfranked, HintSL, ValuePadLength, BGLMsgPadLength);
+              // Franking Credits
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Franking_Credits],
+                  T^.txSF_Imputed_Credit, HintSL, ValuePadLength, BGLMsgPadLength);
+                case BGL360TransactionType  of
+                  ttDistribution : begin
+               // Australian Income Tab
+                  // Gross Interest
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Gross_Interest ],
+                      T^.txSF_Interest, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Other Income
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Income ],
+                      T^.txTransAction_Extension^.teSF_Other_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Less Other Allowable Trust Deductions
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Less_Other_Allowable_Trust_Deductions ],
+                      T^.txTransAction_Extension^.teSF_Other_Trust_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+
+               // Capital Gains Tab
+                  // Discounted Capital Gain (Before Discount)
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Discounted_Capital_Gain_Before_Discount ],
+                      T^.txSF_Capital_Gains_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Capital Gains - Indexation
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Indexation ],
+                      T^.txSF_Capital_Gains_Indexed, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Capital Gains - Other Method
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Other_Method ],
+                      T^.txSF_Capital_Gains_Other, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Capital Gains Concession amount
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount ],
+                      T^.txTransAction_Extension^.teSF_CGT_Concession_Amount, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Foreign Capital Gains Before Discount
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Before_Discount ],
+                      T^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Foreign Capital Gains Indexation Method
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method ],
+                      T^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Foreign Capital Gains Other Method
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Other_Method ],
+                      T^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Income Tax Paid Before Discount
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Before_Discount ],
+                      T^.txSF_Capital_Gains_Foreign_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Income Tax Paid Indexation Method
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Indexation_Method ],
+                      T^.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Income Tax Paid Other Method
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Other_Method ],
+                      T^.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+
+               // Foreign Income Tab
+                  // Assessable Foreign Source Income
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Assessable_Foreign_Source_Income ],
+                      T^.txSF_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Other Net Foreign Source Income
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Net_Foreign_Source_Income ],
+                      T^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Cash Distribution
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Cash_Distribution ],
+                      T^.txTransaction_Extension^.teSF_Cash_Distribution, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Foreign Income Tax Offset
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income_Tax_Offset ],
+                      T^.txSF_Foreign_Tax_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // AU Franking Credits from an NZ Company
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company ],
+                      T^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // TFN Amounts Withheld
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                      T^.txSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Non-Resident Withholding Tax
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                      T^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // LIC Deductions
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_LIC_Deductions ],
+                      T^.txTransaction_Extension^.teSF_LIC_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Tax Exempted Amounts
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Exempted_Amounts ],
+                      T^.txSF_Tax_Exempt_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Tax Free Amounts
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Free_Amounts ],
+                      T^.txSF_Tax_Free_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Tax Deffered Amounts
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Deferred_Amounts ],
+                      T^.txSF_Tax_Deferred_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Other Expenses
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Expenses ],
+                      T^.txSF_Other_Expenses, HintSL, ValuePadLength, BGLMsgPadLength);
+
+               // Non-Cash Capital Gains/Losses Tab
+                  // Discounted Capital Gains (Before_Discount)
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Discounted_Capital_Gain_Before_Discount ],
+                      T^.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Capital Gains - Indexation
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Indexation ],
+                      T^.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Capital Gains - Other Method
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Other_Method ],
+                      T^.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Capital Losses
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Losses ],
+                      T^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses, HintSL, ValuePadLength, BGLMsgPadLength);
+                  end;
+                  ttDividend : begin
+                  // Foreign Income
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income ],
+                      T^.txSF_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Foreign Income Tax Offset Credits
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income_Tax_Offset_Credits ],
+                      T^.txSF_Foreign_Tax_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // AU FRanking Credits from NZ Company
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company ],
+                      T^.txTransAction_Extension^.teSF_AU_Franking_Credits_NZ_Co, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // TFN Amounts Withheld
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                      T^.txSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // Non Resident Withholding Tax
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                      T^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+                  // LIC Deductions
+                    AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_LIC_Deductions ],
+                      T^.txTransaction_Extension^.teSF_LIC_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+                  end;
+                end;
+              end;
+              ttInterest : begin
+              // Gross Interest
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Gross_Interest ],
+                  T^.txSF_Interest, HintSL, ValuePadLength, BGLMsgPadLength);
+              // Other Income
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Income ],
+                  T^.txTransAction_Extension^.teSF_Other_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+              // TFN Amounts Withheld
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                  T^.txSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+              // GST Rate
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                  T^.txTransAction_Extension^.teSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+              end;
+              ttShareTrade : begin
+              // Contract Date
+                if T^.txTransAction_Extension^.teSF_Cash_Date <> 0 then
+                  HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Contract_Date ], BGLMsgPadLength) +
+                  bkDate2Str( T^.txTransAction_Extension^.teSF_Cash_Date ));
+              // Settlement Date
+                if T^.txTransAction_Extension^.teSF_Record_Date <> 0 then
+                  HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Settlement_Date], BGLMsgPadLength) +
+                  bkDate2Str( T^.txTransAction_Extension^.teSF_Record_Date ));
+              // Brokerage
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Brokerage ],
+                  T^.txTransAction_Extension^.teSF_Share_Brokerage, HintSL, ValuePadLength, BGLMsgPadLength);
+              // Consideration
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Consideration ],
+                  T^.txTransAction_Extension^.teSF_Share_Consideration, HintSL, ValuePadLength, BGLMsgPadLength);
+              // GST Amount
+                AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_GST_Amount ],
+                  T^.txTransAction_Extension^.teSF_Share_GST_Amount, HintSL, ValuePadLength, BGLMsgPadLength);
+              // GST Rate
+                AddIfNotBlank( sffNamesBGL360[ sffIdxBGL360_GST_Rate ],
+                  T^.txTransAction_Extension^.teSF_Share_GST_Rate, HintSL, ValuePadLength, BGLMsgPadLength);
+              end;
+            end;
+          end;
           else
-            HintSL.Add( PadS( sffNamesDesktop[sff_Discounted_Capital_Gains], 31) + '2/3');
-          AddIfNotZero( sffNamesDesktop[ sff_Discounted_Capital_Gains],  T^.txSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Capital_Gains] ,            T^.txSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Deferred_Dist] ,        T^.txSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Free_Dist] ,            T^.txSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Exempt_Dist] ,          T^.txSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Imputed_Credit],            T^.txSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_TFN_Credits] ,              T^.txSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_Tax_Credits] ,      T^.txSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_CG_Credits] ,       T^.txSF_Foreign_Capital_Gains_Credit, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Other_Tax_Credit],          T^.txSF_Other_Tax_Credit, HintSL);
-        end;
-
-        saSageHandisoftSuperfund:
-        begin
-          //Type
-          if T^.txSF_Transaction_ID >= 0 then
-            HintSL.Add('Type: ' + TypesArray[TTxnTypes(T^.txSF_Transaction_ID)]);
-          //Transaction
-          if T^.txSF_Transaction_Code <> '' then
-            HintSL.Add('Transaction: ' + T^.txSF_Transaction_Code);
-          //Number Issued
-          if T^.txQuantity > 0 then
-            AddIfNotBlank( 'Number Issued', FormatFloat('#,##0', (T^.txQuantity / 10000)), HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Unfranked],       T^.txSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Franked],         T^.txSF_Franked, HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Imputed_Credit],  T^.txSF_Imputed_Credit, HintSL);
-        end;
-
-        else
-        begin
-          if T^.txSF_CGT_Date <> 0 then
-            HintSL.Add( PadS( sffNames[sff_CGT_Date], 31) + bkDate2Str( T^.txsf_CGT_Date));
-          AddIfNotZero( sffNames[ sff_Imputed_Credit],            T^.txSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Free_Dist] ,            T^.txSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Exempt_Dist] ,          T^.txSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Deferred_Dist] ,        T^.txSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Franked],                   T^.txSF_Franked, HintSL);
-          AddIfNotZero( sffNames[ sff_Unfranked],                 T^.txSF_Unfranked, HintSL);
-          AddIfNotZero( sffNames[ sff_TFN_Credits] ,              T^.txSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNames[ sff_Foreign_Income] ,           T^.txSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNames[ sff_Foreign_Tax_Credits] ,      T^.txSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNames[ sff_Other_Expenses],            T^.txSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNames[ sff_Capital_Gains] ,            T^.txSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNames[ sff_Discounted_Capital_Gains],  T^.txSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNames[ sff_Capital_Gains_Other],       T^.txSF_Capital_Gains_Other, HintSL);
-          AddIfNotBlank (sffNames[ sff_Member_Component],         GetSFMemberText(T.txDate_Effective, T^.txSF_Member_Component, false), HintSL);
-        end;
+          begin
+            if T^.txSF_CGT_Date <> 0 then
+              HintSL.Add( PadS( sffNames[sffIdx_CGT_Date], MsgPadLength) + bkDate2Str( T^.txsf_CGT_Date));
+            AddIfNotZero( sffNames[ sffIdx_Imputed_Credit],            T^.txSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Tax_Free_Dist] ,            T^.txSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Tax_Exempt_Dist] ,          T^.txSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Tax_Deferred_Dist] ,        T^.txSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Franked],                   T^.txSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Unfranked],                 T^.txSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_TFN_Credits] ,              T^.txSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Foreign_Income] ,           T^.txSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Foreign_Tax_Credits] ,      T^.txSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Other_Expenses],            T^.txSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Capital_Gains] ,            T^.txSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Discounted_Capital_Gains],  T^.txSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotZero( sffNames[ sffIdx_Capital_Gains_Other],       T^.txSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+            AddIfNotBlank (sffNames[ sffIdx_Member_Component],         GetSFMemberText(T.txDate_Effective, T^.txSF_Member_Component, false), HintSL, ValuePadLength, MsgPadLength);
+          end;
         end;
       end;
 
@@ -554,8 +786,13 @@ begin
 end ;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetSuperHint( const pWJ : pWorkJournal_Rec; Const OptionalHintsOn : Boolean) : string;
+const
+  ValuePadLength  = 6;
+  MsgPadLength    = 31;
+  bglMsgPadLength = 42;
 var
   HintSL : TStringList;
+  BGL360TransactionType : TTransactionTypes;
 begin
   Result    := '' ;
 
@@ -571,59 +808,59 @@ begin
 
         saSupervisor ,saSuperMate,saSolution6SuperFund:
         begin
-          AddIfNotBlank( sffNamesSupervis[ sff_Member_ID],                pWJ^.dtSF_Member_ID, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Franked],                   pWJ^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Unfranked],                 pWJ^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Imputed_Credit],            pWJ^.dtSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Interest],                  pWJ^.dtSF_Interest, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_Income] ,           pWJ^.dtSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Capital_Gains_Other],       pWJ^.dtSF_Capital_Gains_Other, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_CG_Foreign_Disc],           pWJ^.dtSF_Capital_Gains_Foreign_Disc, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Rent],                      pWJ^.dtSF_Rent, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Capital_Gains] ,            pWJ^.dtSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Discounted_Capital_Gains],  pWJ^.dtSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Other_Expenses],            pWJ^.dtSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Deferred_Dist] ,        pWJ^.dtSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Free_Dist] ,            pWJ^.dtSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Exempt_Dist] ,          pWJ^.dtSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Special_Income],            pWJ^.dtSF_Special_Income, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_Tax_Credits] ,      pWJ^.dtSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_CG_Credits] ,       pWJ^.dtSF_Foreign_Capital_Gains_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_TFN_Credits] ,              pWJ^.dtSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Other_Tax_Credit],          pWJ^.dtSF_Other_Tax_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Non_Resident_Tax],          pWJ^.dtSF_Non_Resident_Tax, HintSL);
+          AddIfNotBlank( sffNamesSupervis[ sffIdxSupervis_Member_ID],                pWJ^.dtSF_Member_ID, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Franked],                   pWJ^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Unfranked],                 pWJ^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Imputed_Credit],            pWJ^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Interest],                  pWJ^.dtSF_Interest, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_Income] ,           pWJ^.dtSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Capital_Gains_Other],       pWJ^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_CG_Foreign_Disc],           pWJ^.dtSF_Capital_Gains_Foreign_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Rent],                      pWJ^.dtSF_Rent, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Capital_Gains] ,            pWJ^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Discounted_Capital_Gains],  pWJ^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Other_Expenses],            pWJ^.dtSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Deferred_Dist] ,        pWJ^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Free_Dist] ,            pWJ^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Exempt_Dist] ,          pWJ^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Special_Income],            pWJ^.dtSF_Special_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_Tax_Credits] ,      pWJ^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_CG_Credits] ,       pWJ^.dtSF_Foreign_Capital_Gains_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_TFN_Credits] ,              pWJ^.dtSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Other_Tax_Credit],          pWJ^.dtSF_Other_Tax_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Non_Resident_Tax],          pWJ^.dtSF_Non_Resident_Tax, HintSL, ValuePadLength, MsgPadLength);
         end;
 
         saDesktopSuper,
         saClassSuperIP :
         begin
           if MyClient.clFields.clAccounting_System_Used = saDesktopSuper then
-             AddIfNotBlank(sffNamesDesktop[ sff_Transaction_Type], pWJ^.dtSF_Transaction_Type_Code, HintSL);
+             AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Transaction_Type], pWJ^.dtSF_Transaction_Type_Code, HintSL, ValuePadLength, MsgPadLength);
 
-          AddIfNotBlank(sffNamesDesktop[ sff_Member_Component], pWJ^.dtSF_Fund_Code, HintSL);
-          AddIfNotBlank(sffNamesDesktop[ sff_Member_ID], pWJ^.dtSF_Member_Account_Code, HintSL);
+          AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Member_Component], pWJ^.dtSF_Fund_Code, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Member_ID], pWJ^.dtSF_Member_Account_Code, HintSL, ValuePadLength, MsgPadLength);
           if pWJ^.dtSF_CGT_Date <> 0 then
-            HintSL.Add( PadS( sffNamesDesktop[sff_CGT_Date], 31) + bkDate2Str( pWJ^.dtSF_CGT_Date));
-          AddIfNotZero( sffNamesDesktop[ sff_Special_Income],            pWJ^.dtSF_Special_Income, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Franked],                   pWJ^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Unfranked],                 pWJ^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Imputed_Credit],            pWJ^.dtSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_Income] ,           pWJ^.dtSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Other_Expenses],            pWJ^.dtSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Capital_Gains_Other],       pWJ^.dtSF_Capital_Gains_Other, HintSL);
+            HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_CGT_Date], MsgPadLength) + bkDate2Str( pWJ^.dtSF_CGT_Date));
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Special_Income],            pWJ^.dtSF_Special_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Franked],                   pWJ^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Unfranked],                 pWJ^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Imputed_Credit],            pWJ^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_Income] ,           pWJ^.dtSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Other_Expenses],            pWJ^.dtSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Capital_Gains_Other],       pWJ^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
           if pWJ^.dtSF_Capital_Gains_Fraction_Half then
-            HintSL.Add( PadS( sffNamesDesktop[sff_Discounted_Capital_Gains], 31) + '1/2')
+            HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_Discounted_Capital_Gains], MsgPadLength) + '1/2')
           else
-            HintSL.Add( PadS( sffNamesDesktop[sff_Discounted_Capital_Gains], 31) + '2/3');
-          AddIfNotZero( sffNamesDesktop[ sff_Discounted_Capital_Gains],  pWJ^.dtSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Capital_Gains] ,            pWJ^.dtSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Deferred_Dist] ,        pWJ^.dtSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Free_Dist] ,            pWJ^.dtSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Exempt_Dist] ,          pWJ^.dtSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_TFN_Credits] ,              pWJ^.dtSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_Tax_Credits] ,      pWJ^.dtSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_CG_Credits] ,       pWJ^.dtSF_Foreign_Capital_Gains_Credit, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Other_Tax_Credit],          pWJ^.dtSF_Other_Tax_Credit, HintSL);
+            HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_Discounted_Capital_Gains], MsgPadLength) + '2/3');
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Discounted_Capital_Gains],  pWJ^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Capital_Gains] ,            pWJ^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Deferred_Dist] ,        pWJ^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Free_Dist] ,            pWJ^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Exempt_Dist] ,          pWJ^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_TFN_Credits] ,              pWJ^.dtSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_Tax_Credits] ,      pWJ^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_CG_Credits] ,       pWJ^.dtSF_Foreign_Capital_Gains_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Other_Tax_Credit],          pWJ^.dtSF_Other_Tax_Credit, HintSL, ValuePadLength, MsgPadLength);
         end;
 
         saSageHandisoftSuperfund :
@@ -636,30 +873,217 @@ begin
             HintSL.Add('Transaction: ' + pWJ^.dtSF_Transaction_Type_Code);
           //Number Issued
           if pWJ^.dtQuantity > 0 then
-            AddIfNotBlank( 'Number Issued', FormatFloat('#,##0', (pWJ^.dtQuantity / 10000)), HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Unfranked],       pWJ^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Franked],         pWJ^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Imputed_Credit],  pWJ^.dtSF_Imputed_Credit, HintSL);
+            AddIfNotBlank( 'Number Issued', FormatFloat('#,##0', (pWJ^.dtQuantity / 10000)), HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Unfranked],       pWJ^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Franked],         pWJ^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Imputed_Credit],  pWJ^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
         end;
 
+        saBGL360:
+        begin
+          BGL360TransactionType := GetBGL360TransActionType( pWJ^.dtAccount );
+        // Entry Type
+          HintSL.Add( PadS( sffNamesBGL360[ sffIdxBGL360_Entry_Type ], BGLMsgPadLength ) + GetBGL360TransActionTypeLabel( BGL360TransactionType ) );
+          case BGL360TransactionType  of
+            ttDistribution, ttDividend : begin
+            // Cash Date
+              if pWJ^.dtSF_Cash_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[sffIdxBGL360_Cash_Date], BGLMsgPadLength) +
+                bkDate2Str( pWJ^.dtSF_Cash_Date ));
+            // Accrual Date
+              if pWJ^.dtSF_Accrual_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Accrual_Date ], BGLMsgPadLength) +
+                bkDate2Str( pWJ^.dtSF_Accrual_Date ));
+            // Record Date
+              if pWJ^.dtSF_Record_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Record_Date], BGLMsgPadLength) +
+                bkDate2Str( pWJ^.dtSF_Record_Date ));
+
+          // Australian Income Tab
+            // Franked Amount
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Franked_Amount ],
+                pWJ^.dtSF_Franked, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Unfranked Amount
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Unfranked_Amount ],
+                pWJ^.dtSF_Unfranked, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Franking Credits
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Franking_Credits],
+                pWJ^.dtSF_Imputed_Credit, HintSL, ValuePadLength, BGLMsgPadLength);
+              case BGL360TransactionType  of
+                ttDistribution : begin
+             // Australian Income Tab
+                // Gross Interest
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Gross_Interest ],
+                    pWJ^.dtSF_Interest, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Other Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Income ],
+                    pWJ^.dtSF_Other_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Less Other Allowable Trust Deductions
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Less_Other_Allowable_Trust_Deductions ],
+                    pWJ^.dtSF_Other_Trust_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+
+             // Capital Gains Tab
+                // Discounted Capital Gain (Before Discount)
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Discounted_Capital_Gain_Before_Discount ],
+                    pWJ^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Indexation
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Indexation ],
+                    pWJ^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Other_Method ],
+                    pWJ^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains Concession amount
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount ],
+                    pWJ^.dtSF_CGT_Concession_Amount, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Capital Gains Before Discount
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Before_Discount ],
+                    pWJ^.dtSF_CGT_ForeignCGT_Before_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Capital Gains Indexation Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method ],
+                    pWJ^.dtSF_CGT_ForeignCGT_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Capital Gains Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Other_Method ],
+                    pWJ^.dtSF_CGT_ForeignCGT_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Income Tax Paid Before Discount
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Before_Discount ],
+                    pWJ^.dtSF_Capital_Gains_Foreign_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Income Tax Paid Indexation Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Indexation_Method ],
+                    pWJ^.dtSF_CGT_TaxPaid_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Income Tax Paid Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Other_Method ],
+                    pWJ^.dtSF_CGT_TaxPaid_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+
+             // Foreign Income Tab
+                // Assessable Foreign Source Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Assessable_Foreign_Source_Income ],
+                    pWJ^.dtSF_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Other Net Foreign Source Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Net_Foreign_Source_Income ],
+                    pWJ^.dtSF_Other_Net_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Cash Distribution
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Cash_Distribution ],
+                    pWJ^.dtSF_Cash_Distribution, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Income Tax Offset
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income_Tax_Offset ],
+                    pWJ^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // AU Franking Credits from an NZ Company
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company ],
+                    pWJ^.dtSF_AU_Franking_Credits_NZ_Co, HintSL, ValuePadLength, BGLMsgPadLength);
+                // TFN Amounts Withheld
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                    pWJ^.dtSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Non-Resident Withholding Tax
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                    pWJ^.dtSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+                // LIC Deductions
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_LIC_Deductions ],
+                    pWJ^.dtSF_LIC_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Tax Exempted Amounts
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Exempted_Amounts ],
+                    pWJ^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Tax Free Amounts
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Free_Amounts ],
+                    pWJ^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Tax Deffered Amounts
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Deferred_Amounts ],
+                    pWJ^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Other Expenses
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Expenses ],
+                    pWJ^.dtSF_Other_Expenses, HintSL, ValuePadLength, BGLMsgPadLength);
+
+             // Non-Cash Capital Gains/Losses Tab
+                // Discounted Capital Gains (Before_Discount)
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Discounted_Capital_Gain_Before_Discount ],
+                    pWJ^.dtSF_Non_Cash_CGT_Discounted_Before_Discount, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Indexation
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Indexation ],
+                    pWJ^.dtSF_Non_Cash_CGT_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Other_Method ],
+                    pWJ^.dtSF_Non_Cash_CGT_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Losses
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Losses ],
+                    pWJ^.dtSF_Non_Cash_CGT_Capital_Losses, HintSL, ValuePadLength, BGLMsgPadLength);
+                end;
+                ttDividend : begin
+                // Foreign Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income ],
+                    pWJ^.dtSF_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Income Tax Offset Credits
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income_Tax_Offset_Credits ],
+                    pWJ^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // AU FRanking Credits from NZ Company
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company ],
+                    pWJ^.dtSF_AU_Franking_Credits_NZ_Co, HintSL, ValuePadLength, BGLMsgPadLength);
+                // TFN Amounts Withheld
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                    pWJ^.dtSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Non Resident Withholding Tax
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                    pWJ^.dtSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+                // LIC Deductions
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_LIC_Deductions ],
+                    pWJ^.dtSF_LIC_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+                end;
+              end;
+            end;
+            ttInterest : begin
+            // Gross Interest
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Gross_Interest ],
+                pWJ^.dtSF_Interest, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Other Income
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Income ],
+                pWJ^.dtSF_Other_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+            // TFN Amounts Withheld
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                pWJ^.dtSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+            // GST Rate
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                pWJ^.dtSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+            end;
+            ttShareTrade : begin
+            // Contract Date
+              if pWJ^.dtSF_Cash_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Contract_Date ], BGLMsgPadLength) +
+                bkDate2Str( pWJ^.dtSF_Cash_Date ));
+            // Settlement Date
+              if pWJ^.dtSF_Record_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Settlement_Date], BGLMsgPadLength) +
+                bkDate2Str( pWJ^.dtSF_Record_Date ));
+            // Brokerage
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Brokerage ],
+                pWJ^.dtSF_Share_Brokerage, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Consideration
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Consideration ],
+                pWJ^.dtSF_Share_Consideration, HintSL, ValuePadLength, BGLMsgPadLength);
+            // GST Amount
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_GST_Amount ],
+                pWJ^.dtSF_Share_GST_Amount, HintSL, ValuePadLength, BGLMsgPadLength);
+            // GST Rate
+              AddIfNotBlank( sffNamesBGL360[ sffIdxBGL360_GST_Rate ],
+                pWJ^.dtSF_Share_GST_Rate, HintSL, ValuePadLength, BGLMsgPadLength);
+            end;
+          end;
+        end;
         else
         begin
           if pWJ^.dtSF_CGT_Date <> 0 then
-            HintSL.Add( PadS( sffNames[sff_CGT_Date], 31) + bkDate2Str( pWJ^.dtSF_CGT_Date));
-          AddIfNotZero( sffNames[ sff_Franked],                  pWJ^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNames[ sff_Unfranked],                pWJ^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNames[ sff_Imputed_Credit],           pWJ^.dtSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Free_Dist] ,           pWJ^.dtSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Exempt_Dist] ,         pWJ^.dtSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Deferred_Dist] ,       pWJ^.dtSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_TFN_Credits] ,             pWJ^.dtSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNames[ sff_Foreign_Income] ,          pWJ^.dtSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNames[ sff_Foreign_Tax_Credits] ,     pWJ^.dtSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNames[ sff_Other_Expenses],           pWJ^.dtSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNames[ sff_Capital_Gains] ,           pWJ^.dtSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNames[ sff_Discounted_Capital_Gains], pWJ^.dtSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNames[ sff_Capital_Gains_Other],      pWJ^.dtSF_Capital_Gains_Other, HintSL);
-          AddIfNotBlank (sffNames[ sff_Member_Component],        GetSFMemberText(pWJ.dtdate, pWJ^.dtSF_Member_Component, false), HintSL);
+            HintSL.Add( PadS( sffNames[sffIdx_CGT_Date], MsgPadLength) + bkDate2Str( pWJ^.dtSF_CGT_Date));
+          AddIfNotZero( sffNames[ sffIdx_Franked],                  pWJ^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Unfranked],                pWJ^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Imputed_Credit],           pWJ^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Tax_Free_Dist] ,           pWJ^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Tax_Exempt_Dist] ,         pWJ^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Tax_Deferred_Dist] ,       pWJ^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_TFN_Credits] ,             pWJ^.dtSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Foreign_Income] ,          pWJ^.dtSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Foreign_Tax_Credits] ,     pWJ^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Other_Expenses],           pWJ^.dtSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Capital_Gains] ,           pWJ^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Discounted_Capital_Gains], pWJ^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Capital_Gains_Other],      pWJ^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotBlank (sffNames[ sffIdx_Member_Component],        GetSFMemberText(pWJ.dtdate, pWJ^.dtSF_Member_Component, false), HintSL, ValuePadLength, MsgPadLength);
         end;
         end;
       end;
@@ -678,8 +1102,13 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetSuperHint( const pWD : pWorkDissect_Rec; Const OptionalHintsOn : Boolean) : string;
+const
+  ValuePadLength  = 6;
+  MsgPadLength    = 31;
+  bglMsgPadLength = 42;
 var
   HintSL : TStringList;
+  BGL360TransactionType : TTransactionTypes;
 begin
   Result    := '' ;
 
@@ -695,56 +1124,56 @@ begin
         saSupervisor,
         saSuperMate,saSolution6SuperFund :
         begin
-          AddIfNotBlank( sffNamesSupervis[ sff_Member_ID],                pWD^.dtSF_Member_ID, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Franked],                   pWD^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Unfranked],                 pWD^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Interest],                  pWD^.dtSF_Interest, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_Income] ,           pWD^.dtSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_CG_Foreign_Disc],           pWD^.dtSF_Capital_Gains_Foreign_Disc, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Rent],                      pWD^.dtSF_Rent, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Capital_Gains] ,            pWD^.dtSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Discounted_Capital_Gains],  pWD^.dtSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Other_Expenses],            pWD^.dtSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Deferred_Dist] ,        pWD^.dtSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Free_Dist] ,            pWD^.dtSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Tax_Exempt_Dist] ,          pWD^.dtSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Special_Income],            pWD^.dtSF_Special_Income, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Imputed_Credit],            pWD^.dtSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Foreign_CG_Credits] ,       pWD^.dtSF_Foreign_Capital_Gains_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Other_Tax_Credit],          pWD^.dtSF_Other_Tax_Credit, HintSL);
-          AddIfNotZero( sffNamesSupervis[ sff_Non_Resident_Tax],          pWD^.dtSF_Non_Resident_Tax, HintSL);
+          AddIfNotBlank( sffNamesSupervis[ sffIdxSupervis_Member_ID],                pWD^.dtSF_Member_ID, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Franked],                   pWD^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Unfranked],                 pWD^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Interest],                  pWD^.dtSF_Interest, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_Income] ,           pWD^.dtSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_CG_Foreign_Disc],           pWD^.dtSF_Capital_Gains_Foreign_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Rent],                      pWD^.dtSF_Rent, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Capital_Gains] ,            pWD^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Discounted_Capital_Gains],  pWD^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Other_Expenses],            pWD^.dtSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Deferred_Dist] ,        pWD^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Free_Dist] ,            pWD^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Tax_Exempt_Dist] ,          pWD^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Special_Income],            pWD^.dtSF_Special_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Imputed_Credit],            pWD^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Foreign_CG_Credits] ,       pWD^.dtSF_Foreign_Capital_Gains_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Other_Tax_Credit],          pWD^.dtSF_Other_Tax_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesSupervis[ sffIdxSupervis_Non_Resident_Tax],          pWD^.dtSF_Non_Resident_Tax, HintSL, ValuePadLength, MsgPadLength);
         end;
         saDesktopSuper,
         saClassSuperIP:
         begin
-          AddIfNotBlank(sffNamesDesktop[ sff_Transaction_Type], pWD^.dtSF_Transaction_Type_Code, HintSL);
-          AddIfNotBlank(sffNamesDesktop[ sff_Member_Component], pWD^.dtSF_Fund_Code, HintSL);
-          AddIfNotBlank(sffNamesDesktop[ sff_Member_ID], pWD^.dtSF_Member_Account_Code, HintSL);
+          AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Transaction_Type], pWD^.dtSF_Transaction_Type_Code, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Member_Component], pWD^.dtSF_Fund_Code, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotBlank(sffNamesDesktop[ sffIdxDesktop_Member_ID], pWD^.dtSF_Member_Account_Code, HintSL, ValuePadLength, MsgPadLength);
           if pWD^.dtSF_CGT_Date <> 0 then
-            HintSL.Add( PadS( sffNamesDesktop[sff_CGT_Date], 31) + bkDate2Str( pWD^.dtSF_CGT_Date));
-          AddIfNotZero( sffNamesDesktop[ sff_Special_Income],            pWD^.dtSF_Special_Income, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Franked],                   pWD^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Unfranked],                 pWD^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_Income] ,           pWD^.dtSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Other_Expenses],            pWD^.dtSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL);
+            HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_CGT_Date], MsgPadLength) + bkDate2Str( pWD^.dtSF_CGT_Date));
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Special_Income],            pWD^.dtSF_Special_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Franked],                   pWD^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Unfranked],                 pWD^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_Income] ,           pWD^.dtSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Other_Expenses],            pWD^.dtSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
           if pWD^.dtSF_Capital_Gains_Fraction_Half then
-            HintSL.Add( PadS( sffNamesDesktop[sff_Discounted_Capital_Gains], 31) + '1/2')
+            HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_Discounted_Capital_Gains], MsgPadLength) + '1/2')
           else
-            HintSL.Add( PadS( sffNamesDesktop[sff_Discounted_Capital_Gains], 31) + '2/3');
-          AddIfNotZero( sffNamesDesktop[ sff_Discounted_Capital_Gains],  pWD^.dtSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Capital_Gains] ,            pWD^.dtSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Deferred_Dist] ,        pWD^.dtSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Free_Dist] ,            pWD^.dtSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Tax_Exempt_Dist] ,          pWD^.dtSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Imputed_Credit],            pWD^.dtSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Foreign_CG_Credits] ,       pWD^.dtSF_Foreign_Capital_Gains_Credit, HintSL);
-          AddIfNotZero( sffNamesDesktop[ sff_Other_Tax_Credit],          pWD^.dtSF_Other_Tax_Credit, HintSL);
+            HintSL.Add( PadS( sffNamesDesktop[sffIdxDesktop_Discounted_Capital_Gains], MsgPadLength) + '2/3');
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Discounted_Capital_Gains],  pWD^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Capital_Gains] ,            pWD^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Deferred_Dist] ,        pWD^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Free_Dist] ,            pWD^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Tax_Exempt_Dist] ,          pWD^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Imputed_Credit],            pWD^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Foreign_CG_Credits] ,       pWD^.dtSF_Foreign_Capital_Gains_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesDesktop[ sffIdxDesktop_Other_Tax_Credit],          pWD^.dtSF_Other_Tax_Credit, HintSL, ValuePadLength, MsgPadLength);
         end;
 
         saSageHandisoftSuperfund :
@@ -757,30 +1186,217 @@ begin
             HintSL.Add('Transaction: ' + pWD^.dtSF_Transaction_Type_Code);
           //Number Issued
           if pWD^.dtQuantity > 0 then
-            AddIfNotBlank( 'Number Issued', FormatFloat('#,##0', (pWD^.dtQuantity / 10000)), HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Unfranked],       pWD^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Franked],         pWD^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNamesHandisoftSuperfund[ sff_Imputed_Credit],  pWD^.dtSF_Imputed_Credit, HintSL);
+            AddIfNotBlank( 'Number Issued', FormatFloat('#,##0', (pWD^.dtQuantity / 10000)), HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Unfranked],       pWD^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Franked],         pWD^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNamesHandisoftSuperfund[ sffIdxHandisoftSuperfund_Imputed_Credit],  pWD^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
         end;
 
+        saBGL360:
+        begin
+          BGL360TransactionType := GetBGL360TransActionType( pWD^.dtAccount );
+        // Entry Type
+          HintSL.Add( PadS( sffNamesBGL360[ sffIdxBGL360_Entry_Type ], BGLMsgPadLength ) + GetBGL360TransActionTypeLabel( BGL360TransactionType ) );
+          case BGL360TransactionType  of
+            ttDistribution, ttDividend : begin
+            // Cash Date
+              if pWD^.dtSF_Cash_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[sffIdxBGL360_Cash_Date], BGLMsgPadLength) +
+                bkDate2Str( pWD^.dtSF_Cash_Date ));
+            // Accrual Date
+              if pWD^.dtSF_Accrual_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Accrual_Date ], BGLMsgPadLength) +
+                bkDate2Str( pWD^.dtSF_Accrual_Date ));
+            // Record Date
+              if pWD^.dtSF_Record_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Record_Date], BGLMsgPadLength) +
+                bkDate2Str( pWD^.dtSF_Record_Date ));
+
+          // Australian Income Tab
+            // Franked Amount
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Franked_Amount ],
+                pWD^.dtSF_Franked, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Unfranked Amount
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Unfranked_Amount ],
+                pWD^.dtSF_Unfranked, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Franking Credits
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Franking_Credits],
+                pWD^.dtSF_Imputed_Credit, HintSL, ValuePadLength, BGLMsgPadLength);
+              case BGL360TransactionType  of
+                ttDistribution : begin
+             // Australian Income Tab
+                // Gross Interest
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Gross_Interest ],
+                    pWD^.dtSF_Interest, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Other Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Income ],
+                    pWD^.dtSF_Other_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Less Other Allowable Trust Deductions
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Less_Other_Allowable_Trust_Deductions ],
+                    pWD^.dtSF_Other_Trust_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+
+             // Capital Gains Tab
+                // Discounted Capital Gain (Before Discount)
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Discounted_Capital_Gain_Before_Discount ],
+                    pWD^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Indexation
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Indexation ],
+                    pWD^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Other_Method ],
+                    pWD^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains Concession amount
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount ],
+                    pWD^.dtSF_CGT_Concession_Amount, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Capital Gains Before Discount
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Before_Discount ],
+                    pWD^.dtSF_CGT_ForeignCGT_Before_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Capital Gains Indexation Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method ],
+                    pWD^.dtSF_CGT_ForeignCGT_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Capital Gains Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Capital_Gains_Other_Method ],
+                    pWD^.dtSF_CGT_ForeignCGT_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Income Tax Paid Before Discount
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Before_Discount ],
+                    pWD^.dtSF_Capital_Gains_Foreign_Disc, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Income Tax Paid Indexation Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Indexation_Method ],
+                    pWD^.dtSF_CGT_TaxPaid_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Income Tax Paid Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Income_Tax_Paid_Other_Method ],
+                    pWD^.dtSF_CGT_TaxPaid_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+
+             // Foreign Income Tab
+                // Assessable Foreign Source Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Assessable_Foreign_Source_Income ],
+                    pWD^.dtSF_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Other Net Foreign Source Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Net_Foreign_Source_Income ],
+                    pWD^.dtSF_Other_Net_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Cash Distribution
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Cash_Distribution ],
+                    pWD^.dtSF_Cash_Distribution, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Income Tax Offset
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income_Tax_Offset ],
+                    pWD^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // AU Franking Credits from an NZ Company
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company ],
+                    pWD^.dtSF_AU_Franking_Credits_NZ_Co, HintSL, ValuePadLength, BGLMsgPadLength);
+                // TFN Amounts Withheld
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                    pWD^.dtSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Non-Resident Withholding Tax
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                    pWD^.dtSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+                // LIC Deductions
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_LIC_Deductions ],
+                    pWD^.dtSF_LIC_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Tax Exempted Amounts
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Exempted_Amounts ],
+                    pWD^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Tax Free Amounts
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Free_Amounts ],
+                    pWD^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Tax Deffered Amounts
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Tax_Deferred_Amounts ],
+                    pWD^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Other Expenses
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Expenses ],
+                    pWD^.dtSF_Other_Expenses, HintSL, ValuePadLength, BGLMsgPadLength);
+
+             // Non-Cash Capital Gains/Losses Tab
+                // Discounted Capital Gains (Before_Discount)
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Discounted_Capital_Gain_Before_Discount ],
+                    pWD^.dtSF_Non_Cash_CGT_Discounted_Before_Discount, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Indexation
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Indexation ],
+                    pWD^.dtSF_Non_Cash_CGT_Indexation, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Gains - Other Method
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Gains_Other_Method ],
+                    pWD^.dtSF_Non_Cash_CGT_Other_Method, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Capital Losses
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Capital_Losses ],
+                    pWD^.dtSF_Non_Cash_CGT_Capital_Losses, HintSL, ValuePadLength, BGLMsgPadLength);
+                end;
+                ttDividend : begin
+                // Foreign Income
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income ],
+                    pWD^.dtSF_Foreign_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Foreign Income Tax Offset Credits
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Foreign_Income_Tax_Offset_Credits ],
+                    pWD^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // AU FRanking Credits from NZ Company
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company ],
+                    pWD^.dtSF_AU_Franking_Credits_NZ_Co, HintSL, ValuePadLength, BGLMsgPadLength);
+                // TFN Amounts Withheld
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                    pWD^.dtSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+                // Non Resident Withholding Tax
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                    pWD^.dtSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+                // LIC Deductions
+                  AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_LIC_Deductions ],
+                    pWD^.dtSF_LIC_Deductions, HintSL, ValuePadLength, BGLMsgPadLength);
+                end;
+              end;
+            end;
+            ttInterest : begin
+            // Gross Interest
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Gross_Interest ],
+                pWD^.dtSF_Interest, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Other Income
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Other_Income ],
+                pWD^.dtSF_Other_Income, HintSL, ValuePadLength, BGLMsgPadLength);
+            // TFN Amounts Withheld
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_TFN_Amounts_Withheld ],
+                pWD^.dtSF_TFN_Credits, HintSL, ValuePadLength, BGLMsgPadLength);
+            // GST Rate
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Non_Resident_Withholding_Tax ],
+                pWD^.dtSF_Non_Res_Witholding_Tax, HintSL, ValuePadLength, BGLMsgPadLength);
+            end;
+            ttShareTrade : begin
+            // Contract Date
+              if pWD^.dtSF_Cash_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Contract_Date ], BGLMsgPadLength) +
+                bkDate2Str( pWD^.dtSF_Cash_Date ));
+            // Settlement Date
+              if pWD^.dtSF_Record_Date <> 0 then
+                HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Settlement_Date], BGLMsgPadLength) +
+                bkDate2Str( pWD^.dtSF_Record_Date ));
+            // Brokerage
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Brokerage ],
+                pWD^.dtSF_Share_Brokerage, HintSL, ValuePadLength, BGLMsgPadLength);
+            // Consideration
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Consideration ],
+                pWD^.dtSF_Share_Consideration, HintSL, ValuePadLength, BGLMsgPadLength);
+            // GST Amount
+              AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_GST_Amount ],
+                pWD^.dtSF_Share_GST_Amount, HintSL, ValuePadLength, BGLMsgPadLength);
+            // GST Rate
+              AddIfNotBlank( sffNamesBGL360[ sffIdxBGL360_GST_Rate ],
+                pWD^.dtSF_Share_GST_Rate, HintSL, ValuePadLength, BGLMsgPadLength);
+            end;
+          end;
+        end;
         else
         begin
           if pWD^.dtSF_CGT_Date <> 0 then
-            HintSL.Add( PadS( sffNames[sff_CGT_Date], 31) + bkDate2Str( pWD^.dtSF_CGT_Date));
-          AddIfNotZero( sffNames[ sff_Imputed_Credit],            pWD^.dtSF_Imputed_Credit, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Free_Dist] ,            pWD^.dtSF_Tax_Free_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Exempt_Dist] ,          pWD^.dtSF_Tax_Exempt_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Tax_Deferred_Dist] ,        pWD^.dtSF_Tax_Deferred_Dist, HintSL);
-          AddIfNotZero( sffNames[ sff_Franked],                   pWD^.dtSF_Franked, HintSL);
-          AddIfNotZero( sffNames[ sff_Unfranked],                 pWD^.dtSF_Unfranked, HintSL);
-          AddIfNotZero( sffNames[ sff_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL);
-          AddIfNotZero( sffNames[ sff_Foreign_Income] ,           pWD^.dtSF_Foreign_Income, HintSL);
-          AddIfNotZero( sffNames[ sff_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL);
-          AddIfNotZero( sffNames[ sff_Other_Expenses],            pWD^.dtSF_Other_Expenses, HintSL);
-          AddIfNotZero( sffNames[ sff_Capital_Gains] ,            pWD^.dtSF_Capital_Gains_Indexed, HintSL);
-          AddIfNotZero( sffNames[ sff_Discounted_Capital_Gains],  pWD^.dtSF_Capital_Gains_Disc, HintSL);
-          AddIfNotZero( sffNames[ sff_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL);
-          AddIfNotBlank (sffNames[ sff_Member_Component],         GetSFMemberText(pWD.dtDate,  pWD^.dtSF_Member_Component, false), HintSL);
+            HintSL.Add( PadS( sffNames[sffIdx_CGT_Date], MsgPadLength) + bkDate2Str( pWD^.dtSF_CGT_Date));
+          AddIfNotZero( sffNames[ sffIdx_Imputed_Credit],            pWD^.dtSF_Imputed_Credit, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Tax_Free_Dist] ,            pWD^.dtSF_Tax_Free_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Tax_Exempt_Dist] ,          pWD^.dtSF_Tax_Exempt_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Tax_Deferred_Dist] ,        pWD^.dtSF_Tax_Deferred_Dist, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Franked],                   pWD^.dtSF_Franked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Unfranked],                 pWD^.dtSF_Unfranked, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_TFN_Credits] ,              pWD^.dtSF_TFN_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Foreign_Income] ,           pWD^.dtSF_Foreign_Income, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Foreign_Tax_Credits] ,      pWD^.dtSF_Foreign_Tax_Credits, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Other_Expenses],            pWD^.dtSF_Other_Expenses, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Capital_Gains] ,            pWD^.dtSF_Capital_Gains_Indexed, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Discounted_Capital_Gains],  pWD^.dtSF_Capital_Gains_Disc, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotZero( sffNames[ sffIdx_Capital_Gains_Other],       pWD^.dtSF_Capital_Gains_Other, HintSL, ValuePadLength, MsgPadLength);
+          AddIfNotBlank (sffNames[ sffIdx_Member_Component],         GetSFMemberText(pWD.dtDate,  pWD^.dtSF_Member_Component, false), HintSL, ValuePadLength, MsgPadLength);
         end;
        end;//Case
       end;

@@ -811,7 +811,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Top = 31
             Width = 245
             Height = 17
-            Caption = 'AU Franking Credits from an NZ Company'
             ExplicitLeft = 6
             ExplicitTop = 31
             ExplicitWidth = 245

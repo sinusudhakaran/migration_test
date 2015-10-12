@@ -1807,7 +1807,7 @@ const
     ttyQueryEmail       = 6; ttyAutoMax = 6;
     //Leave Room for more Automatic Tasks
     ttyMailMergePrint   = 100; //Mail Merge is handled seperatly from normal task settings
-    ttyMailMergeEmail   = 101; 
+    ttyMailMergeEmail   = 101;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Analysis Coding Level
@@ -1820,33 +1820,39 @@ const
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // sff Super Fund Fieldnames
+// sffIdx Generic Index
+   sffIdx_Imputed_Credit             = 0;  sffIdx_Min = 0;
+   sffIdx_Tax_Free_Dist              = 1;
+   sffIdx_Tax_Exempt_Dist            = 2;
+   sffIdx_Tax_Deferred_Dist          = 3;
+   sffIdx_TFN_Credits                = 4;
+   sffIdx_Foreign_Income             = 5;
+   sffIdx_Foreign_Tax_Credits        = 6;
+   sffIdx_Capital_Gains              = 7;
+   sffIdx_Discounted_Capital_Gains   = 8;
+   sffIdx_Capital_Gains_Other        = 9;
+   sffIdx_Other_Expenses             = 10;
+   sffIdx_CGT_Date                   = 11;
+   sffIdx_Franked                    = 12;
+   sffIdx_Unfranked                  = 13;
+   sffIdx_Interest                   = 14;
+   sffIdx_CG_Foreign_Disc            = 15;
+   sffIdx_Rent                       = 16;
+   sffIdx_Special_Income             = 17;
+   sffIdx_Other_Tax_Credit           = 18;
+   sffIdx_Non_Resident_Tax           = 19;
+   sffIdx_Foreign_CG_Credits         = 20;
+   sffIdx_Member_ID                  = 21;
+   sffIdx_Member_Component           = 22;
+   sffIdx_Transaction_Type           = 23; sffIdx_Max = 23;
 
-   sff_Imputed_Credit             = 0;  sff_Min = 0;
-   sff_Tax_Free_Dist              = 1;
-   sff_Tax_Exempt_Dist            = 2;
-   sff_Tax_Deferred_Dist          = 3;
-   sff_TFN_Credits                = 4;
-   sff_Foreign_Income             = 5;
-   sff_Foreign_Tax_Credits        = 6;
-   sff_Capital_Gains              = 7;
-   sff_Discounted_Capital_Gains   = 8;
-   sff_Capital_Gains_Other        = 9;
-   sff_Other_Expenses             = 10;
-   sff_CGT_Date                   = 11;
-   sff_Franked                    = 12;
-   sff_Unfranked                  = 13;
-   sff_Interest                   = 14;
-   sff_CG_Foreign_Disc            = 15;
-   sff_Rent                       = 16;
-   sff_Special_Income             = 17;
-   sff_Other_Tax_Credit           = 18;
-   sff_Non_Resident_Tax           = 19;
-   sff_Foreign_CG_Credits         = 20;
-   sff_Member_ID                  = 21;
-   sff_Member_Component           = 22;
-   sff_Transaction_Type           = 23; sff_Max = 23;
-
-   sffNames : Array[ sff_Min..sff_Max] of String[ 20] =
+(*
+   sffIdx_WithHolding_Tax            = 24;
+   sffIdx_Assessable_Foreign_Income  = 25;
+   sffIdx_TFN_Amounts_WithHeld       = 26;
+   sffIdx_Accrual_Date               = 27;
+*)
+   sffNames : Array[ sffIdx_Min..sffIdx_Max] of String[ 20] =
      ( 'Imputed Credits',
        'Tax Free Dist',
        'Tax Exempt Dist',
@@ -1860,9 +1866,38 @@ const
        'Other Expenses',
        'CGT Date',
        'Franked',
-       'Unfranked', '', '', '', '', '', '', '', '', 'Member Component', '');
+       'Unfranked',
+       '', '', '', '', '', '', '', '',   // x8
+       'Member Component',
+       '');                  
 
-   sffNamesSupervis : Array[ sff_Min..sff_Max] of String[ 30] =
+// sffIdx Supervis Index
+   sffIdxSupervis_Imputed_Credit             = 0;  sffSupervis_Min = 0;
+   sffIdxSupervis_Tax_Free_Dist              = 1;
+   sffIdxSupervis_Tax_Exempt_Dist            = 2;
+   sffIdxSupervis_Tax_Deferred_Dist          = 3;
+   sffIdxSupervis_TFN_Credits                = 4;
+   sffIdxSupervis_Foreign_Income             = 5;
+   sffIdxSupervis_Foreign_Tax_Credits        = 6;
+   sffIdxSupervis_Capital_Gains              = 7;
+   sffIdxSupervis_Discounted_Capital_Gains   = 8;
+   sffIdxSupervis_Capital_Gains_Other        = 9;
+   sffIdxSupervis_Other_Expenses             = 10;
+   sffIdxSupervis_CGT_Date                   = 11;
+   sffIdxSupervis_Franked                    = 12;
+   sffIdxSupervis_Unfranked                  = 13;
+   sffIdxSupervis_Interest                   = 14;
+   sffIdxSupervis_CG_Foreign_Disc            = 15;
+   sffIdxSupervis_Rent                       = 16;
+   sffIdxSupervis_Special_Income             = 17;
+   sffIdxSupervis_Other_Tax_Credit           = 18;
+   sffIdxSupervis_Non_Resident_Tax           = 19;
+   sffIdxSupervis_Foreign_CG_Credits         = 20;
+   sffIdxSupervis_Member_ID                  = 21;
+   sffIdxSupervis_Member_Component           = 22;
+   sffIdxSupervis_Transaction_Type           = 23; sffSupervis_Max = 23;
+
+   sffNamesSupervis : Array[ sffSupervis_Min..sffSupervis_Max] of String[ 30] =
      ( 'Imputation Credit',
        'Tax Free Trust',
        'Non-Taxable',
@@ -1884,9 +1919,36 @@ const
        'Other Tax Credit',
        'Non-resident Tax',
        'Foreign Capital Gain Credit',
-       'Member ID', '', '');
+       'Member ID',
+       '', '' ); 
 
-   sffNamesDesktop : Array[ sff_Min..sff_Max] of String[ 30] =
+// sffIdx Desktop Index
+   sffIdxDesktop_Imputed_Credit             = 0;  sffDesktop_Min = 0;
+   sffIdxDesktop_Tax_Free_Dist              = 1;
+   sffIdxDesktop_Tax_Exempt_Dist            = 2;
+   sffIdxDesktop_Tax_Deferred_Dist          = 3;
+   sffIdxDesktop_TFN_Credits                = 4;
+   sffIdxDesktop_Foreign_Income             = 5;
+   sffIdxDesktop_Foreign_Tax_Credits        = 6;
+   sffIdxDesktop_Capital_Gains              = 7;
+   sffIdxDesktop_Discounted_Capital_Gains   = 8;
+   sffIdxDesktop_Capital_Gains_Other        = 9;
+   sffIdxDesktop_Other_Expenses             = 10;
+   sffIdxDesktop_CGT_Date                   = 11;
+   sffIdxDesktop_Franked                    = 12;
+   sffIdxDesktop_Unfranked                  = 13;
+   sffIdxDesktop_Interest                   = 14;
+   sffIdxDesktop_CG_Foreign_Disc            = 15;
+   sffIdxDesktop_Rent                       = 16;
+   sffIdxDesktop_Special_Income             = 17;
+   sffIdxDesktop_Other_Tax_Credit           = 18;
+   sffIdxDesktop_Non_Resident_Tax           = 19;
+   sffIdxDesktop_Foreign_CG_Credits         = 20;
+   sffIdxDesktop_Member_ID                  = 21;
+   sffIdxDesktop_Member_Component           = 22;
+   sffIdxDesktop_Transaction_Type           = 23; sffDesktop_Max = 23;
+
+   sffNamesDesktop : Array[ sffDesktop_Min..sffDesktop_Max] of String[ 30] =
      ( 'Franking Credit',
        'Tax Free Trust',
        'Non-Taxable',
@@ -1901,21 +1963,274 @@ const
        'CGT / Tax Date',
        'Franked',
        'Unfranked',
-       '',
-       '',
-       '',
+       '', '', '',        // x3
        'Undeducted Contrib',
        'ABN credit',
        '',
        'Foreign Tax Credit',
-       'Member Account', 'Investment Code', 'Transaction Type');
+       'Member Account', 'Investment Code', 'Transaction Type' );  
 
-   sffNamesHandisoftSuperfund : array[sff_Min..sff_Max] of string[ 30] =
+// sffIdx HandisoftSuperfund Index
+   sffIdxHandisoftSuperfund_Imputed_Credit             = 0;  sffHandisoftSuperfund_Min = 0;
+   sffIdxHandisoftSuperfund_Tax_Free_Dist              = 1;
+   sffIdxHandisoftSuperfund_Tax_Exempt_Dist            = 2;
+   sffIdxHandisoftSuperfund_Tax_Deferred_Dist          = 3;
+   sffIdxHandisoftSuperfund_TFN_Credits                = 4;
+   sffIdxHandisoftSuperfund_Foreign_Income             = 5;
+   sffIdxHandisoftSuperfund_Foreign_Tax_Credits        = 6;
+   sffIdxHandisoftSuperfund_Capital_Gains              = 7;
+   sffIdxHandisoftSuperfund_Discounted_Capital_Gains   = 8;
+   sffIdxHandisoftSuperfund_Capital_Gains_Other        = 9;
+   sffIdxHandisoftSuperfund_Other_Expenses             = 10;
+   sffIdxHandisoftSuperfund_CGT_Date                   = 11;
+   sffIdxHandisoftSuperfund_Franked                    = 12;
+   sffIdxHandisoftSuperfund_Unfranked                  = 13;
+   sffIdxHandisoftSuperfund_Interest                   = 14;
+   sffIdxHandisoftSuperfund_CG_Foreign_Disc            = 15;
+   sffIdxHandisoftSuperfund_Rent                       = 16;
+   sffIdxHandisoftSuperfund_Special_Income             = 17;
+   sffIdxHandisoftSuperfund_Other_Tax_Credit           = 18;
+   sffIdxHandisoftSuperfund_Non_Resident_Tax           = 19;
+   sffIdxHandisoftSuperfund_Foreign_CG_Credits         = 20;
+   sffIdxHandisoftSuperfund_Member_ID                  = 21;
+   sffIdxHandisoftSuperfund_Member_Component           = 22;
+   sffIdxHandisoftSuperfund_Transaction_Type           = 23; sffHandisoftSuperfund_Max = 23;
+
+   sffNamesHandisoftSuperfund : array[sffHandisoftSuperfund_Min..sffHandisoftSuperfund_Max] of string[ 30] =
       ( 'Franking Credit',
-        '', '', '', '', '', '', '', '', '', '', '',
+        '', '', '', '', '', '', '', '', '', '', '',     //x11
         'Franked Amount',
-        'Unfranked Amount', '', '', '', '', '', '', '', '', '',
+        'Unfranked Amount',
+        '', '', '', '', '', '', '', '', '', //x9
         'Transaction' );
+
+// sffIdx BGL360 Index
+   // Header Fields
+       sffIdxBGL360_Entry_Type                              = 0; sffBGL360_Min = 0;
+       sffIdxBGL360_Units                                   = 1;
+       sffIdxBGL360_Cash_Date                               = 2;
+       sffIdxBGL360_Accrual_Date                            = 3;
+       sffIdxBGL360_Record_Date                             = 4;
+       sffIdxBGL360_Contract_Date                           = 5;
+       sffIdxBGL360_Settlement_Date                         = 6;
+
+   //Distribution Entry Type
+       // sffIdxBGL360_Entry_Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Cash_Date
+       // sffIdxBGL360_Accrual_Date
+       // sffIdxBGL360_Record_Date
+     //Australian Income Tab
+       sffIdxBGL360_Franked_Amount                          = 7;
+       sffIdxBGL360_Unfranked_Amount                        = 8;
+
+       sffIdxBGL360_Franking_Credits                        = 9;
+
+       sffIdxBGL360_Gross_Interest                          = 10;
+       sffIdxBGL360_Other_Income                            = 11;
+       sffIdxBGL360_Less_Other_Allowable_Trust_Deductions   = 12;
+     //Australian Income Tab
+
+     //Capital Gains Tab
+       sffIdxBGL360_Discounted_Capital_Gain_Before_Discount = 13;
+       sffIdxBGL360_Capital_Gains_Indexation                = 14;
+       sffIdxBGL360_Capital_Gains_Other_Method              = 15;
+       sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount  = 16;
+
+       sffIdxBGL360_Foreign_Capital_Gains_Before_Discount   = 17;
+       sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method = 18;
+       sffIdxBGL360_Foreign_Capital_Gains_Other_Method      = 19;
+
+       sffIdxBGL360_Income_Tax_Paid_Before_Discount         = 20;
+       sffIdxBGL360_Income_Tax_Paid_Indexation_Method       = 21;
+       sffIdxBGL360_Income_Tax_Paid_Other_Method            = 22;
+     //Capital Gains Tab
+
+     //ForeignIncome Tab
+       sffIdxBGL360_Assessable_Foreign_Source_Income        = 23;
+       sffIdxBGL360_Other_Net_Foreign_Source_Income         = 24;
+       sffIdxBGL360_Cash_Distribution                       = 25;
+
+       sffIdxBGL360_Foreign_Income_Tax_Offset               = 26;
+       sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company  = 27;
+
+       sffIdxBGL360_TFN_Amounts_Withheld                    = 28;
+       sffIdxBGL360_Non_Resident_Withholding_Tax            = 29;
+       sffIdxBGL360_LIC_Deductions                          = 30;
+
+       sffIdxBGL360_Tax_Exempted_Amounts                    = 31;
+       sffIdxBGL360_Tax_Free_Amounts                        = 32;
+       sffIdxBGL360_Tax_Deferred_Amounts                    = 33;
+       sffIdxBGL360_Other_Expenses                          = 34;
+     //ForeignIncome Tab
+
+     //Non-Cash Capital Gains Tab
+       // sffIdxBGL360_Discounted_Capital_Gain_Before_Discount
+       // sffIdxBGL360_Capital_Gains_Indexation
+       // sffIdxBGL360_Capital_Gains_Other Method
+
+       sffIdxBGL360_Capital_Losses                          = 35;
+     //Non-Cash Capital Gains Tab
+
+   //Dividend Entry Type
+       // sffIdxBGL360_Entry Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Cash_Date
+       // sffIdxBGL360_Accrual Date
+       // sffIdxBGL360_Record_Date
+       // sffIdxBGL360_Franked_Amount
+       // sffIdxBGL360_Unfranked_Amount
+
+       // sffIdxBGL360_Franking_Credits
+
+       sffIdxBGL360_Foreign_Income                           = 36;
+
+       sffIdxBGL360_Foreign_Income_Tax_Offset_Credits        = 37;
+
+       // sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company
+       // sffIdxBGL360_TFN_Amounts_Withheld
+       // sffIdxBGL360_Non_Resident_Withholding_Tax
+       // sffIdxBGL360_LIC_Deductions
+   //Dividend Entry Type
+
+   //Interest Entry Type
+       // sffIdxBGL360_Entry Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Gross_Interest
+       // sffIdxBGL360_Other_Income
+       // sffIdxBGL360_TFN_Amounts_Withheld
+       // sffIdxBGL360_Non_Resident_Withholding_Tax
+   //Interest Entry Type
+
+   //Share Trade Entry Type
+       // sffIdxBGL360_Entry Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Contract_Date
+       // sffIdxBGL360_Settlement_Date
+
+       sffIdxBGL360_Brokerage                                = 38;
+       sffIdxBGL360_Consideration                            = 39;
+       sffIdxBGL360_GST_Amount                               = 40;
+       sffIdxBGL360_GST_Rate                                 = 41; sffBGL360_Max = 41;
+   //Share Trade Entry Type
+
+
+
+   sffNamesBGL360 : Array[ sffBGL360_Min..sffBGL360_Max] of String[ 50 ] =
+     (
+//////////////////////////////////////////
+       'Entry Type',                                // sffIdxBGL360_Entry_Type
+       'Units',                                     // sffIdxBGL360_Units
+       'Cash Date',                                 // sffIdxBGL360_Cash_Date
+       'Accrual Date',                              // sffIdxBGL360_Accrual_Date
+       'Record Date',                               // sffIdxBGL360_Record_Date
+       'Contract Date',                             // sffIdxBGL360_Contract_Date
+       'Settlement Date',                           // sffIdxBGL360_Settlement_Date
+
+   //Distribution Entry Type
+       // sffIdxBGL360_Entry Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Cash_Date
+       // sffIdxBGL360_Accrual Date
+       // sffIdxBGL360_Record_Date
+     //Australian Income Tab
+       'Franked Amount',                            // sffIdxBGL360_Franked_Amount
+       'Unfranked Amount',                          // sffIdxBGL360_Unfranked_Amount
+
+       'Franking Credits',                          // sffIdxBGL360_Franking_Credits
+
+       'Gross Interest',                            // sffIdxBGL360_Gross_Interest
+       'Other Income',                              // sffIdxBGL360_Other_Income
+       'Less Other Allowable Trust Deductions',     // sffIdxBGL360_Less_Other_Allowable_Trust_Deductions
+     //Australian Income Tab
+
+     //Capital Gains Tab
+       'Discounted Capital Gain (Before Discount)', // sffIdxBGL360_Discounted_Capital_Gain_Before_Discount
+       'Capital Gains - Indexation',                // sffIdxBGL360_Capital_Gains_Indexation
+       'Capital Gains - Other Method',              // sffIdxBGL360_Capital_Gains_Other Method
+       'Capital Gain Tax (CGT) Concession Amount',  // sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount
+
+       'Foreign Capital Gains Before Discount',     // sffIdxBGL360_Foreign_Capital_Gains_Before_Discount
+       'Foreign Capital Gains Indexation Method',   // sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method
+       'Foreign Capital Gains Other Method',        // sffIdxBGL360_Foreign_Capital_Gains_Other_Method
+
+       'Income Tax Paid Before Discount',           // sffIdxBGL360_Income_Tax_Paid_Before_Discount
+       'Income Tax Paid Indexation Method',         // sffIdxBGL360_Income_Tax_Paid_Indexation_Method
+       'Income Tax Paid Other Method',              // sffIdxBGL360_Income_Tax_Paid_Other_Method
+     //Capital Gains Tab
+
+     //ForeignIncome Tab
+       'Assessable Foreign Source Income',          // sffIdxBGL360_Assessable_Foreign_Source_Income
+       'Other Net Foreign Source Income',           // sffIdxBGL360_Other_Net_Foreign_Source_Income
+       'Cash Distribution',                         // sffIdxBGL360_Cash_Distribution
+
+       'Foreign Income Tax Offset',                 // sffIdxBGL360_Foreign_Income_Tax_Offset
+       'AU Franking Credits from an NZ Company',    // sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company
+
+       'TFN Amounts Withheld',                      // sffIdxBGL360_TFN_Amounts_Withheld
+       'Non-Resident Withholding Tax',              // sffIdxBGL360_Non_Resident_Withholding_Tax
+       'LIC Deductions',                            // sffIdxBGL360_LIC_Deductions
+
+       'Tax Exempted Amounts',                      // sffIdxBGL360_Tax_Exempted_Amounts
+       'Tax Free Amounts',                          // sffIdxBGL360_Tax_Free_Amounts
+       'Tax Deferred Amounts',                      // sffIdxBGL360_Tax_Deferred_Amounts
+       'Other Expenses',                            // sffIdxBGL360_Other_Expenses
+     //ForeignIncome Tab
+
+     //Non-Cash Capital Gains Tab
+       // sffIdxBGL360_Discounted_Capital_Gain_Before_Discount
+       // sffIdxBGL360_Capital_Gains_Indexation
+       // sffIdxBGL360_Capital_Gains_Other_Method
+
+       'Capital Losses',                            // sffIdxBGL360_Capital Losses
+     //Non-Cash Capital Gains Tab
+
+   //Dividend Entry Type
+       // sffIdxBGL360_Entry_Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Cash_Date
+       // sffIdxBGL360_Accrual_Date
+       // sffIdxBGL360_Record_Date
+
+       // sffIdxBGL360_Franked_Amount
+       // sffIdxBGL360_Unfranked_Amount
+
+       // sffIdxBGL360_Franking_Credits
+
+       'Foreign Income',                           // sffIdxBGL360_Foreign_Income
+
+       'Foreign Income Tax Offset Credits',        // sffIdxBGL360_Foreign_Income_Tax_Offset_Credits
+
+       // sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company
+       // sffIdxBGL360_TFN_Amounts_Withheld
+       // sffIdxBGL360_Non_Resident_Withholding_Tax
+       // sffIdxBGL360_LIC_Deductions
+   //Dividend Entry Type
+
+   //Interest Entry Type
+       // sffIdxBGL360_Entry_Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Gross_Interest
+       // sffIdxBGL360_Other_Income
+       // sffIdxBGL360_TFN_Amounts_Withheld
+       // sffIdxBGL360_Non_Resident_Withholding_Tax
+   //Interest Entry Type
+
+   //Share Trade Entry Type
+       // sffIdxBGL360_Entry_Type
+       // sffIdxBGL360_Units
+       // sffIdxBGL360_Contract_Date
+       // sffIdxBGL360_Settlement_Date
+
+       'Brokerage',                                // sffIdxBGL360_Brokerage
+       'Consideration',                            // sffIdxBGL360_Consideration
+       'GST Amount',                               // sffIdxBGL360_GST_Amount
+       'GST Rate'                                  // sffIdxBGL360_GST_Rate
+   //Share Trade Entry Type
+
+     );
+
+
 
 CONST
    MaxChequeLength    = 6;          //would like to extend this to 8 digits
