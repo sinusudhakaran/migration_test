@@ -383,12 +383,13 @@ object frmClientManager: TfrmClientManager
             Left = 23
             Top = 1
             Width = 39
-            Height = 13
+            Height = 26
             Margins.Top = 0
             Margins.Bottom = 0
             Align = alLeft
             Caption = 'Legend:'
             Layout = tlCenter
+            ExplicitHeight = 13
           end
           object tbtnClose: TRzToolButton
             Left = 0
@@ -488,26 +489,28 @@ object frmClientManager: TfrmClientManager
           Left = 631
           Top = 1
           Width = 96
-          Height = 13
+          Height = 21
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = '99999 Clients Listed'
           Layout = tlCenter
           Visible = False
+          ExplicitHeight = 13
         end
         object Label1: TLabel
           AlignWithMargins = True
           Left = 344
           Top = 1
           Width = 33
-          Height = 13
+          Height = 21
           Margins.Left = 9
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Search'
           Layout = tlCenter
+          ExplicitHeight = 13
         end
         object imgCannotConnect: TImage
           AlignWithMargins = True
@@ -534,7 +537,7 @@ object frmClientManager: TfrmClientManager
           Left = 755
           Top = 1
           Width = 163
-          Height = 13
+          Height = 21
           Hint = 
             'BankLink Practice will not display any BankLink Online related s' +
             'ettings or functions'
@@ -546,6 +549,7 @@ object frmClientManager: TfrmClientManager
           ShowHint = True
           Layout = tlCenter
           Visible = False
+          ExplicitHeight = 13
         end
         object Shape2: TShape
           Left = 0
@@ -585,7 +589,7 @@ object frmClientManager: TfrmClientManager
           Margins.Bottom = 0
           Align = alLeft
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = cmbFilterChange
         end

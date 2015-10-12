@@ -4160,7 +4160,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormDestroy(Sender: TObject);
 begin
-  frmMain.UpdateAllWindowTabs(Caption);
+  frmMain.UpdateAllWindowTabs(Self, Caption, True);
 
   if Assigned( FHint ) then
   begin

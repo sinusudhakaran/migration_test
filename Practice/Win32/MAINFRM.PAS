@@ -847,6 +847,7 @@ type
     SavedAutoSaveInterval : Integer;
     SavedAutoSaveClient : string;
     UsingCustomPracticeLogo : boolean;
+    property LastActiveMDIChild2 :Forms.TForm read FLastActiveMDIChild2 write FLastActiveMDIChild2;
 
     function GetTabIndex(aTabWindow : TRzTabControl; aMDIIndex: integer): integer;
     procedure SetActiveMDI(aTabWindow : TRzTabControl; aTabIndex: integer);
@@ -858,7 +859,7 @@ type
     function GetMDIIndexFromCaption(aCaption : string) : integer;
     procedure ActivateMDIChild(aMDIIndex: integer);
     procedure UpdateTabs(aTabWindow : TRzTabControl; aActionedPage: string = '');
-    procedure UpdateAllWindowTabs(aActionedPage: string = '');
+    procedure UpdateAllWindowTabs(Sender: TObject;aActionedPage: string = '';Destroying:Boolean=False);
 
     procedure DoMainFormCommand( command : byte; Modal : boolean = true); overload;
     procedure DoMainFormCommand( command : byte; Sender : TObject; Modal : boolean = true); overload;
@@ -1347,7 +1348,7 @@ end;
 
 procedure TfrmMain.ActiveFormChange(Sender: TObject);
 begin
-   LastActiveMDIChild := OsFont.TForm (ActiveMDIChild);
+  LastActiveMDIChild := OsFont.TForm (ActiveMDIChild);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4647,12 +4648,12 @@ procedure TfrmMain.UpdateActions;
 var HadMenu : Boolean;
 begin
   inherited;
-
+  
   if FLastActiveMDIChild2 <> FLastActiveMDIChild then
   begin
     if Assigned(FLastActiveMDIChild2) then
       if FLastActiveMDIChild2.HandleAllocated then
-       if FLastActiveMDIChild2 is TfrmCoding then
+       if (FLastActiveMDIChild2 is TfrmCoding) and (not (csDestroying in FLastActiveMDIChild2.ComponentState)) then
          TfrmCoding(FLastActiveMDIChild2).CloseSuggMemPopup();
 
      FLastActiveMDIChild2 := FLastActiveMDIChild;
@@ -4896,7 +4897,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmMain.UpdateAllWindowTabs(aActionedPage: string = '');
+procedure TfrmMain.UpdateAllWindowTabs(Sender:TObject; aActionedPage: string = '';Destroying:Boolean=False);
 var
   MDIIndex : Integer;
 begin
@@ -4931,6 +4932,14 @@ begin
 
     if (MDIChildSortedList.Objects[MDIIndex] is TfrmClientHomePage) then
       TfrmClientHomePage(MDIChildSortedList.Objects[MDIIndex]).MDIChildSortedIndex := MDIIndex;
+  end;
+
+  if Destroying then
+  begin
+    if ((LastActiveMDIChild2 is TfrmCoding) or
+        (LastActiveMDIChild2 is TfrmBudget) or
+        (LastActiveMDIChild2 is TfrmClientHomePage)) then
+      FLastActiveMDIChild2 := Nil;
   end;
 end;
 

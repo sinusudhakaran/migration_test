@@ -2669,7 +2669,7 @@ const
   ThisMethodName = 'FormDestroy';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-  frmMain.UpdateAllWindowTabs(Caption);
+  frmMain.UpdateAllWindowTabs(Self, Caption, True);
 
    FreeAndNil(FChart);
    if Assigned(ExceptionsToHideUnused) then

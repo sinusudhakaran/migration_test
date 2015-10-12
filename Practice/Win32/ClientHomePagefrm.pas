@@ -368,7 +368,7 @@ begin
       begin
         //TfrmClientHomePage(FClientHomePage).UpdateTabs(aActionedPage);
         TfrmClientHomePage(FClientHomePage).RefreshCoding(True);
-        frmMain.UpdateAllWindowTabs(aActionedPage);
+        frmMain.UpdateAllWindowTabs(FclientHomePage, aActionedPage, False);
       end;
     end;
   end
@@ -846,13 +846,13 @@ begin
     ActivateCurrentTabUsingMDI(MDIChildSortedIndex);
 
   if assigned(FLEFeedbackForm) then
-    FLEFeedbackForm.Show; 
+    FLEFeedbackForm.Show;
 end;
 
 procedure TfrmClientHomePage.FormDeactivate(Sender: TObject);
 begin
   if assigned(FLEFeedbackForm) then
-    FLEFeedbackForm.Hide; 
+    FLEFeedbackForm.Hide;
 end;
 
 procedure TfrmClientHomePage.FormClose(Sender: TObject;
@@ -962,7 +962,7 @@ procedure TfrmClientHomePage.FormDestroy(Sender: TObject);
 var
   I : Integer;
 begin
-  frmMain.UpdateAllWindowTabs(Caption);
+  frmMain.UpdateAllWindowTabs(Self, Caption, True);
 
   UnRegisterWebNotesUpdate(Self.Handle);
 

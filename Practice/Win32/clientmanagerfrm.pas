@@ -537,7 +537,7 @@ procedure TfrmClientManager.FormActivate(Sender: TObject);
       end;
    end;
 begin
-  if (not FileLocking.LockMessageDisplaying) then
+  if (Assigned(FileLocking) and (not FileLocking.LockMessageDisplaying)) then
     RefreshLookup('');  //Do This first, gets a Admin Snapshot.
 
   UpdateActions(Assigned(AdminSystem)

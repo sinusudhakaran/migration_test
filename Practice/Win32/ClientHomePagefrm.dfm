@@ -256,8 +256,6 @@ object frmClientHomePage: TfrmClientHomePage
         OnHeaderClick = ClientTreeHeaderClick
         OnHeaderDraw = ClientTreeHeaderDraw
         OnKeyDown = ClientTreeKeyDown
-        ExplicitLeft = -2
-        ExplicitTop = -2
         Columns = <
           item
             MinWidth = 100
@@ -363,13 +361,12 @@ object frmClientHomePage: TfrmClientHomePage
           Left = 29
           Top = 1
           Width = 39
-          Height = 26
+          Height = 13
           Margins.Top = 0
           Margins.Bottom = 0
           Align = alLeft
           Caption = 'Legend:'
           Layout = tlCenter
-          ExplicitHeight = 13
         end
         object tbtnClose: TRzToolButton
           Left = 1
@@ -505,8 +502,8 @@ object frmClientHomePage: TfrmClientHomePage
     object lblClientName: TLabel
       Left = 134
       Top = 1
-      Width = 995
-      Height = 30
+      Width = 95
+      Height = 21
       Margins.Left = 0
       Margins.Top = 0
       Margins.Right = 0
@@ -526,8 +523,6 @@ object frmClientHomePage: TfrmClientHomePage
       Transparent = True
       Layout = tlCenter
       WordWrap = True
-      ExplicitWidth = 95
-      ExplicitHeight = 21
     end
     object imgRight: TImage
       Left = 1129

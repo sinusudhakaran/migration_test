@@ -92,7 +92,7 @@ begin
       RefreshHomepage;
       ReloadCodingScreens(false);
 
-      frmMain.UpdateAllWindowTabs('');
+      frmMain.UpdateAllWindowTabs(Ldlg, '', False);
       MDIIndex := frmMain.GetMDIIndexFromCaption(OldCaption);
 
       if MDIIndex >= 0 then
