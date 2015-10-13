@@ -750,7 +750,14 @@ begin
      pM := TMemorisation( Selected.SubItems.Objects[0] );
      DeleteSelectedMem := False;
      Sequence_No := pM.mdFields^.mdSequence_No;
-     if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix, -1) then begin
+     if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix, -1) then
+     begin
+        if DeleteSelectedMem then
+        begin
+          if pM.mdFields.mdFrom_Master_List then
+            MemorisedList.DelFreeItem(pM);
+        end;
+
         //Set changed to true so that CES reloads edited transactions
         FMemorisationChanged := True;
         //if the edit was succesful we need to reload the memorisations to display them

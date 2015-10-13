@@ -3180,97 +3180,6 @@ begin
              end;
            end;
          end;
-         {mrCopy : begin
-             //{have enough data to create a memorised entry record
-             if chkMaster.Checked and Assigned(AdminSystem) then begin
-               Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
-               Memorised_Trans.mdFields.mdFrom_Master_List := pM.mdFields.mdFrom_Master_List;
-
-               // Saving any changes made to the original memorisation
-               SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
-               LockAdmin('MemoriseDlg.EditMemorisation');
-               SaveAdminSystem;
-
-               SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
-               Memorised_Trans.mdFields.mdType := pm.mdFields.mdType;
-               //---COPY MASTER MEM---
-
-               // WORKAROUND:
-               pM_SequenceNo := pM.mdFields.mdSequence_No;
-               Memorised_Trans_SequenceNo := Memorised_Trans.mdFields.mdSequence_No;
-
-               if LoadAdminSystem(true, ThisMethodName) then begin
-                 SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
-                 if not Assigned(SystemMemorisation) then begin
-                   UnlockAdmin;
-                   HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
-                   Exit;
-                 end else if not Assigned(SystemMemorisation.smMemorisations) then begin
-                   UnlockAdmin;
-                   HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
-                   Exit;
-                 end else begin
-                   // WORKAROUND:
-                   ReplaceMem(pM, pM_SequenceNo);
-                   ReplaceMem(Memorised_Trans, Memorised_Trans_SequenceNo);
-
-                   Memorised_Trans.mdFields.mdFrom_Master_List := True;
-                   EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                   Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) *
-                                                            AmountMultiplier;
-                   EditMemorisedList.Insert_Memorisation(Memorised_Trans, True);
-                   //*** Flag Audit ***
-                   SystemAuditMgr.FlagAudit(arMasterMemorisations);
-                   SaveAdminSystem;
-
-                   // WORKAROUND:
-                   pM_SequenceNo := pM.mdFields.mdSequence_No;
-                   Memorised_Trans_SequenceNo := Memorised_Trans.mdFields.mdSequence_No;
-
-                   LoadAdminSystem(true, ThisMethodName);
-                   UnlockAdmin;
-
-                   //Have to get list again after save
-                   SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
-
-                   // WORKAROUND:
-                   ReplaceMem(pM, pM_SequenceNo);
-                   ReplaceMem(Memorised_Trans, Memorised_Trans_SequenceNo);
-
-                   if Assigned(SystemMemorisation) then
-                     MemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
-
-
-                   //Edit copy
-                   if Assigned(MemorisedList) then
-                   begin
-                     EditMemorisation(ba, MemorisedList, Memorised_Trans, DeleteSelectedMem,
-                                      True, Prefix, Memorised_Trans.mdFields^.mdSequence_No);
-                   end;
-
-                   // Saving again in case the copy fails the duplicate test, in which case
-                   // it will have been deleted, so we need to save the deletion
-                   LockAdmin('MemoriseDlg.EditMemorisation');
-                   SaveAdminSystem;
-                 end;
-               end else
-                 HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
-               //---END COPY MASTER MEM---
-             end
-             else
-             begin
-               SaveToMemRec(pM, nil, chkMaster.Checked);// Save this one..
-
-               Memorised_Trans := TMemorisation.Create(BA.AuditMgr);
-               SaveToMemRec(Memorised_Trans, nil, chkMaster.Checked);
-               Memorised_Trans.mdFields.mdType := pM.mdFields.mdType;
-               Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
-               MemorisedList.Insert_Memorisation(Memorised_Trans);
-               EditMemorisation(ba,ba.baMemorisations_List,Memorised_Trans, DeleteSelectedMem, True);
-             end;
-
-             Result := true;
-         end;   }
          mrDelete : begin
            CodedTo := '';
            for LineIndex := pM.mdLines.First to pM.mdLines.Last do
@@ -3288,14 +3197,9 @@ begin
              LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Memorisation '+ MemDesc);
 
            if pM.mdFields.mdFrom_Master_List then
-           begin
-             MemorisedList.DelFreeItem(pM);
-             DeleteSelectedMem := True;
-           end
+             DeleteSelectedMem := True
            else
-           begin
              ba.baMemorisations_List.DelFreeItem(pM);
-           end;
 
            Result := True;
          end

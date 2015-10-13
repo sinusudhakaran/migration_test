@@ -713,6 +713,7 @@ uses
   sydefs,
   memutils,
   BKmlIO,
+  Admin32,
   mxFiles32;
 
 const
@@ -2009,9 +2010,9 @@ begin
               end;
             end;
           end;
-        end
-        else
-          ApplyMem(pT^.txType, IsAMasterMem);
+        end;
+
+        ApplyMem(pT^.txType, IsAMasterMem);
       end;
     end
     else
