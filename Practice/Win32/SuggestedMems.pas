@@ -298,6 +298,7 @@ var
   AccountLinkIndex : integer;
   ManualCount : integer;
   TotalCount : integer;
+  UncodedCount : integer;
   ManualAccountCount : integer;
   PhraseIndex : integer;
   MatchedPhrase : string;
@@ -323,6 +324,7 @@ begin
   NoSuggestion := false;
   SearchAccountId := -1;
   TotalCount := 0;
+  UncodedCount := 0;
 
   // Search for transactions linked to Suggestion
   if aBankAccount.baTran_Suggested_Link_List.SearchUsingSuggestedId(SuggestedId, LowAccountIndex, HighAccountIndex)  then
@@ -356,7 +358,10 @@ begin
         TotalCount := TotalCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
 
         if aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slIsUncoded then
+        begin
+          UncodedCount := UncodedCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
           Continue;
+        end;
 
         AccountId := aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slAccountId;
         if aBankAccount.baSuggested_Account_List.SearchUsingAccountId(AccountId, AccountIndex) then
@@ -395,8 +400,8 @@ begin
           aSuggMemItem.Account            := aBankAccount.baSuggested_Account_List.GetPRec(SearchAccountIndex)^.saAccount;
           aSuggMemItem.TotalCount         := TotalCount;
           aSuggMemItem.ManualAcountCount  := ManualAccountCount;
-          aSuggMemItem.ManualCount        := ManualCount;
-          aSuggMemItem.UnCodedCount       := aSuggMemItem.TotalCount - aSuggMemItem.ManualCount;
+          aSuggMemItem.ManualCount        := TotalCount - UncodedCount;
+          aSuggMemItem.UnCodedCount       := UncodedCount;
           aSuggMemItem.IsExactMatch       := (not aSuggestion^.smStart_Data) and (not aSuggestion^.smEnd_Data);
           aSuggMemItem.IsHidden           := aSuggestion^.smHidden;
 
