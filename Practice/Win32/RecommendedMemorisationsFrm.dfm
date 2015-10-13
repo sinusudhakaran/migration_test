@@ -189,12 +189,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         OnLeavingRow = tblSuggMemsLeavingRow
         OnLockedCellClick = tblSuggMemsLockedCellClick
         CellData = (
-          'RecommendedMemorisationsFrm.hdrSuggMems'
-          'RecommendedMemorisationsFrm.spi'
-          'RecommendedMemorisationsFrm.colCodedMatch'
-          'RecommendedMemorisationsFrm.colCode'
-          'RecommendedMemorisationsFrm.colStatementDetails'
-          'RecommendedMemorisationsFrm.colEntryType')
+          'RecommendedMemorisationsFrm.hdrSuggMems')
         RowData = (
           21
           0
@@ -259,7 +254,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800E80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800EC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

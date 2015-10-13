@@ -279,8 +279,9 @@ begin
   if fMemStatus = ssFound then
   begin
     Refresh();
-    tblSuggMems.SetFocus;
+    tblSuggMems.Enabled := true;
     RefreshMemControls(tblSuggMems.ActiveRow);
+    tblSuggMems.SetFocus;
   end
   else
   begin
