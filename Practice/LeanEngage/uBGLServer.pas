@@ -76,6 +76,8 @@ type
     fMarketType          : string;
     fChartAccountType    : TChart_AccountTypeObj;
   public
+    destructor Destroy; override;
+
     property Code             : string read fCode;
     property Name             : string read fName;
     property AccountClass     : string read fAccountClass;
@@ -727,6 +729,14 @@ end;
 function TFundList_Obj.Serialize: String;
 begin
 
+end;
+
+{ TChart_AccountObj }
+
+destructor TChart_AccountObj.Destroy;
+begin
+  freeAndNil( fChartAccountType );
+  inherited;
 end;
 
 initialization

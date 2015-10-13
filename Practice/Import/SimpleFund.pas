@@ -22,7 +22,7 @@ uses
 
 procedure RefreshChart;
 procedure ReadCSVFile(FilePath: string; NewChart: TChart);
-function FetchCOSFromAPI(NewChart: TChart) : boolean;
+function FetchCOAFromAPI(NewChart: TChart) : boolean;
 //******************************************************************************
 implementation
 
@@ -154,7 +154,7 @@ var
    Extn              : string;
    UsingBGL360       : boolean;
 begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
   if not Assigned(MyClient) then
      Exit;
@@ -190,7 +190,7 @@ begin
       try
         if (clAccounting_System_Used = saBGL360) then begin
 //BGL360 fetches from API and no longer from CSV File          ReadCSVFile(ChartFileName, NewChart)
-          if not FetchCOSFromAPI( NewChart ) then begin // Could not retreive the chart
+          if not FetchCOAFromAPI( NewChart ) then begin // Could not retreive the chart
             Msg := 'Please select a Fund to refresh the chart from, via Other Functions | Accounting System';
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : Fund not selected.'  );
             HelpfulErrorMsg( 'Please select a Fund to refresh the chart from, ' +
@@ -202,7 +202,7 @@ begin
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
 
-        If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then  {new chart will be nil if no accounts or an error occured}
+        If NewChart.ItemCount > 0 then begin              //  Assigned( NewChart ) then //new chart will be nil if no accounts or an error occured
            UsingBGL360 := clAccounting_System_Used = saBGL360;
            MergeCharts(NewChart,MyClient,false,UsingBGL360,false);
            if not UsingBGL360 then                        //BGL360 fetches from API and no longer from CSV File
@@ -220,15 +220,15 @@ begin
         ClearStatus(True);
         NewChart.Free;
       end;
-   except
+    except
       on E : EInOutError do begin //Normally EExtractData but File I/O only
           Msg := Format( 'Error Refreshing Chart %s. %s', [ChartFileName, E.Message ] );
           LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
           HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
           exit;
       end;
-   end;
- end;  {with}
+    end;
+  end;  {with}  
 end;
 
 procedure ReadCSVFile(FilePath: string; NewChart: TChart);
@@ -302,7 +302,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function FetchCOSFromAPI(NewChart: TChart) : boolean;
+function FetchCOAFromAPI(NewChart: TChart) : boolean;
 const
   ThisMethodName = 'FetchCOSFromAPI';
 var
