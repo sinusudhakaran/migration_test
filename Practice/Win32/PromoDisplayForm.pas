@@ -37,6 +37,7 @@ type
     procedure lblRightArrowClick(Sender: TObject);
     procedure lblLeftArrowClick(Sender: TObject);
     procedure PageImageClick(Sender: TObject);
+    function GetTaskbarHeight:Integer;
 
     { Private declarations }
     function  CalculatePagesRequired: Integer;
@@ -241,6 +242,18 @@ begin
   FrameList.Clear;
 end;
 
+function TPromoDisplayFrm.GetTaskbarHeight: Integer;
+var
+  Data: TAppBarData;
+begin
+  Data.hWnd := FindWindow('Shell_TrayWnd', nil);
+  Data.cbSize := SizeOf(TAppBarData);
+  Result := 10;
+  if ((Data.hWnd <> 0) and
+      (SHAppBarMessage(ABM_GETTASKBARPOS, Data) = 1)) then
+    Result := Data.rc.Bottom - Data.rc.Top;
+end;
+
 procedure TPromoDisplayFrm.lblLeftArrowClick(Sender: TObject);
 begin
   inherited;
@@ -282,7 +295,10 @@ end;
 procedure TPromoDisplayFrm.SetSize;
 begin
   Self.Width := 600;//Screen.Width * 1 div 3;
-  Self.Height := Screen.Height * 3 div 4;
+  Self.Height := 830;
+  if Screen.Height < 830 then
+    Self.Height := Screen.Height * 3 div 4;
+  Self.Height := Self.Height - GetTaskbarHeight;
 end;
 
 initialization
