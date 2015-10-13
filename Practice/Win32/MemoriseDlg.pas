@@ -2416,7 +2416,7 @@ begin
     fMemTranSortedList.FreeAll;
     SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList);
 
-    tblTran.RowLimit := fMemTranSortedList.ItemCount;
+    tblTran.RowLimit := fMemTranSortedList.ItemCount + 1;
     tblTran.invalidate;
   finally
     FreeAndNil(TempMem);
