@@ -1184,14 +1184,14 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure ShowAllHeaderFields;
   begin
-    SetFields( [ lblUnits, nfUnits, lblCashDate, eCashDate,
+    SetFields( [ (*lUnits, nfUnits, *)lblCashDate, eCashDate,
       lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
       sfEntryType ], true );
   end;
 
   procedure HideAllHeaderFields;
   begin
-    SetFields( [ lblUnits, nfUnits, lblCashDate, eCashDate,
+    SetFields( [ (*lblUnits, nfUnits, *)lblCashDate, eCashDate,
       lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
       sfEntryType ], false );
   end;

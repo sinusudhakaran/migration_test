@@ -1599,11 +1599,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited lblAUFrankingCreditsFromNZCompany: TLabel
         Left = 10
         Top = 31
-        Width = 229
+        Width = 245
         Height = 17
         ExplicitLeft = 10
         ExplicitTop = 31
-        ExplicitWidth = 229
+        ExplicitWidth = 245
         ExplicitHeight = 17
       end
       inherited lpAUFrankingCreditsFromNZCompany: TLabel
@@ -1750,7 +1750,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Caption = 'Account'
     end
     object btnChart: TSpeedButton
-      Left = 218
+      Left = 267
       Top = 8
       Width = 28
       Height = 22
@@ -1890,7 +1890,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       StyleHot.LookAndFeel.NativeStyle = True
       TabOrder = 0
       OnKeyDown = cmbxAccountKeyDown
-      Width = 140
+      Width = 185
     end
     object nfUnits: TOvcNumericField
       Left = 357
@@ -2003,7 +2003,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     object sfEntryType: TOvcPictureField
       Left = 74
       Top = 42
-      Width = 140
+      Width = 185
       Height = 20
       Cursor = crIBeam
       DataType = pftString
