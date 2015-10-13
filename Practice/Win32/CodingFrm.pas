@@ -1926,8 +1926,11 @@ var
   var
     Mems : TMemorisations_List;
     MemLine : pMemorisation_Line_Rec;
+    pDissection : pDissection_Rec;
+    First : boolean;
   begin
     // Create memorisation
+    First := true;
     Mems := BankAccount.baMemorisations_List;
     Mem  := TMemorisation.Create(Mems.AuditMgr);
     MemLine := nil;
@@ -1937,6 +1940,46 @@ var
        (pT^.txAccount <> '') or
        (pT^.txJob_Code <> '') then
     begin
+      if pT^.txFirst_Dissection <> NIL then
+      begin
+        pDissection := pT^.txFirst_Dissection;
+        while ( pDissection <> nil) do
+        begin
+          MemLine := New_Memorisation_Line_Rec;
+
+          MemLine^.mlAccount             := pDissection^.dsAccount;
+          MemLine^.mlGST_Has_Been_Edited := false;
+
+          if (pDissection^.dsGL_Narration <> pT^.txStatement_Details) then
+            MemLine^.mlGL_Narration      := pDissection^.dsGL_Narration;
+
+          MemLine^.mlLine_Type           := pT^.txType;
+          MemLine^.mlGST_Amount          := pDissection^.dsGST_Amount;
+          MemLine^.mlPayee               := pDissection^.dsPayee_Number;
+          MemLine^.mlJob_Code            := pDissection^.dsJob_Code;
+          MemLine^.mlQuantity            := pDissection^.dsQuantity;
+          MemLine^.mlAudit_Record_ID     := pDissection^.dsAudit_Record_ID;
+
+          if First then
+          begin
+            MemLine^.mlPercentage          := 1000000;
+            First := false;
+          end
+          else
+            MemLine^.mlPercentage          := 0;
+
+          MemLine^.mlLine_Type           := mltPercentage;
+
+          MemLine.mlGST_Class := MyClient.clChart.GSTClass(pDissection^.dsAccount);
+
+          Mem.mdLines.Insert(MemLine);
+
+          pDissection := pDissection^.dsNext;
+        end;
+
+        Exit;
+      end;
+
       // Create memorisation line
       MemLine := New_Memorisation_Line_Rec;
 

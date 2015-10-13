@@ -773,7 +773,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     OnKeyDown = celPayeeKeyDown
@@ -792,7 +791,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     OnChange = celGstAmtChange
@@ -812,7 +810,6 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     OnChange = celQuantityChange
@@ -1170,6 +1167,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Left = 624
     Top = 48
@@ -1184,6 +1182,7 @@ object frmCoding: TfrmCoding
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '########.##'
     OnChange = celLocalCurrencyAmountChange
     OnExit = celAmountExit
