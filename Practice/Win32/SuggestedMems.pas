@@ -35,7 +35,8 @@ const
   TRAN_NO_SUGG = -2;
 
   MSG_NO_MEMORISATIONS = 'There are no Suggested Memorisations at this time.';
-  MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled, please contact Support.';
+  MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled. ' + #13 +
+                               'Please contact Support if you wish to enable this.';
   MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
 
 type
