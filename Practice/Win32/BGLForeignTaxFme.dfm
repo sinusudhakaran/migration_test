@@ -24,9 +24,9 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object lblAUFrankingCreditsFromNZCompany: TLabel
     Left = 3
     Top = 37
-    Width = 186
+    Width = 184
     Height = 13
-    Caption = 'AU Franking Credits from an NZ Company'
+    Caption = 'AU Franking Credits from NZ Company'
     FocusControl = nfAUFrankingCreditsFromNZCompany
   end
   object lpAUFrankingCreditsFromNZCompany: TLabel

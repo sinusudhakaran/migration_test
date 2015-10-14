@@ -7,9 +7,9 @@ object fmeBGLFranking: TfmeBGLFranking
   object lblFranked: TLabel
     Left = 3
     Top = 3
-    Width = 79
+    Width = 39
     Height = 13
-    Caption = 'Franked Amount'
+    Caption = 'Franked'
     FocusControl = nfFranked
   end
   object lpFranked: TLabel
@@ -24,9 +24,9 @@ object fmeBGLFranking: TfmeBGLFranking
   object lblUnfranked: TLabel
     Left = 3
     Top = 35
-    Width = 90
+    Width = 50
     Height = 13
-    Caption = 'Unfranked Amount'
+    Caption = 'Unfranked'
     FocusControl = nfUnfranked
   end
   object lpUnfranked: TLabel
@@ -48,7 +48,7 @@ object fmeBGLFranking: TfmeBGLFranking
   end
   object btnFrankingCredits: TSpeedButton
     Left = 382
-    Top = 63
+    Top = 53
     Width = 28
     Height = 22
     Glyph.Data = {

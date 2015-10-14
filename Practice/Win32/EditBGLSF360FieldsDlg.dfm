@@ -128,10 +128,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           ExplicitWidth = 450
           inherited lblFranked: TLabel
             Left = 6
-            Width = 95
+            Width = 46
             Height = 17
             ExplicitLeft = 6
-            ExplicitWidth = 95
+            ExplicitWidth = 46
             ExplicitHeight = 17
           end
           inherited lpFranked: TLabel
@@ -142,10 +142,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           end
           inherited lblUnfranked: TLabel
             Left = 6
-            Width = 109
+            Width = 60
             Height = 17
             ExplicitLeft = 6
-            ExplicitWidth = 109
+            ExplicitWidth = 60
             ExplicitHeight = 17
           end
           inherited lpUnfranked: TLabel
@@ -164,10 +164,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           end
           inherited btnFrankingCredits: TSpeedButton
             Left = 393
-            Top = 65
+            Top = 64
             OnClick = frameFrankingbtnCalcClick
             ExplicitLeft = 393
-            ExplicitTop = 65
+            ExplicitTop = 64
           end
           inherited nfFranked: TOvcNumericField
             Left = 260
@@ -242,7 +242,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Caption = 'Foreign Capital Gains'
         end
         object lblTaxPaid: TLabel
-          Left = 560
+          Left = 450
           Top = 114
           Width = 95
           Height = 17
@@ -277,7 +277,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           Pen.Color = clSilver
         end
         object Label1: TLabel
-          Left = 560
+          Left = 450
           Top = 133
           Width = 81
           Height = 17
@@ -332,11 +332,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           inherited lblCGTIndexation: TLabel
             Left = 6
             Top = 30
-            Width = 149
+            Width = 199
             Height = 17
             ExplicitLeft = 6
             ExplicitTop = 30
-            ExplicitWidth = 149
+            ExplicitWidth = 199
             ExplicitHeight = 17
           end
           inherited lpCGTIndexation: TLabel
@@ -460,7 +460,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfTaxPaidBeforeDiscount: TOvcNumericField
-          Left = 542
+          Left = 432
           Top = 156
           Width = 132
           Height = 20
@@ -483,7 +483,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfTaxPaidIndexationMethod: TOvcNumericField
-          Left = 542
+          Left = 432
           Top = 182
           Width = 132
           Height = 20
@@ -506,7 +506,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           RangeLow = {00000000000000000000}
         end
         object nfTaxPaidOtherMethod: TOvcNumericField
-          Left = 542
+          Left = 432
           Top = 208
           Width = 132
           Height = 20
@@ -809,11 +809,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           inherited lblAUFrankingCreditsFromNZCompany: TLabel
             Left = 6
             Top = 31
-            Width = 245
+            Width = 227
             Height = 17
             ExplicitLeft = 6
             ExplicitTop = 31
-            ExplicitWidth = 245
+            ExplicitWidth = 227
             ExplicitHeight = 17
           end
           inherited lpAUFrankingCreditsFromNZCompany: TLabel
@@ -1007,10 +1007,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           end
           inherited lblCGTIndexation: TLabel
             Left = 6
-            Width = 149
+            Width = 199
             Height = 17
             ExplicitLeft = 6
-            ExplicitWidth = 149
+            ExplicitWidth = 199
             ExplicitHeight = 17
           end
           inherited lpCGTIndexation: TLabel
@@ -1241,17 +1241,19 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     ParentColor = True
     TabOrder = 5
     Visible = False
+    ExplicitLeft = -169
+    ExplicitTop = 118
     object lblShareBrokerage: TLabel
       Left = 10
-      Top = 10
+      Top = 48
       Width = 60
       Height = 17
       Caption = 'Brokerage'
       FocusControl = fmeInterestIncome.nfInterest
     end
     object lpShareBrokerage: TLabel
-      Left = 393
-      Top = 10
+      Left = 280
+      Top = 46
       Width = 11
       Height = 17
       Caption = '%'
@@ -1260,15 +1262,15 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object lblShareConsideration: TLabel
       Left = 10
-      Top = 38
+      Top = 77
       Width = 81
       Height = 17
       Caption = 'Consideration'
       FocusControl = fmeInterestIncome.nfOtherIncome
     end
     object lpShareConsideration: TLabel
-      Left = 393
-      Top = 38
+      Left = 280
+      Top = 75
       Width = 11
       Height = 17
       Caption = '%'
@@ -1276,16 +1278,16 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareGSTAmount: TLabel
-      Left = 10
-      Top = 66
+      Left = 417
+      Top = 18
       Width = 72
       Height = 17
       Caption = 'GST Amount'
       FocusControl = fmeBGLForeignTax2.nfTFNAmountsWithheld
     end
     object lpShareGSTAmount: TLabel
-      Left = 393
-      Top = 66
+      Left = 684
+      Top = 17
       Width = 11
       Height = 17
       Caption = '%'
@@ -1293,16 +1295,16 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareGSTRate: TLabel
-      Left = 10
-      Top = 98
+      Left = 417
+      Top = 50
       Width = 53
       Height = 17
       Caption = 'GST Rate'
       FocusControl = fmeBGLForeignTax2.nfNonResidentWithholdingTax
     end
     object lpShareTradeUnits: TLabel
-      Left = 393
-      Top = 197
+      Left = 392
+      Top = 223
       Width = 11
       Height = 17
       Caption = '%'
@@ -1310,8 +1312,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblShareTradeUnits: TLabel
-      Left = 10
-      Top = 197
+      Left = 9
+      Top = 223
       Width = 29
       Height = 17
       Caption = 'Units'
@@ -1327,9 +1329,16 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Pen.Color = clSilver
       ExplicitWidth = 720
     end
+    object lblUnits: TLabel
+      Left = 10
+      Top = 17
+      Width = 29
+      Height = 17
+      Caption = 'Units'
+    end
     object nfShareBrokerage: TOvcNumericField
-      Left = 260
-      Top = 8
+      Left = 147
+      Top = 46
       Width = 132
       Height = 20
       Cursor = crIBeam
@@ -1350,8 +1359,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       RangeLow = {00000000000000000000}
     end
     object nfShareConsideration: TOvcNumericField
-      Left = 260
-      Top = 36
+      Left = 147
+      Top = 75
       Width = 132
       Height = 20
       Cursor = crIBeam
@@ -1372,8 +1381,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       RangeLow = {00000000000000000000}
     end
     object nfShareGSTAmount: TOvcNumericField
-      Left = 260
-      Top = 64
+      Left = 551
+      Top = 16
       Width = 132
       Height = 20
       Cursor = crIBeam
@@ -1394,8 +1403,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
     object cmbxShareGSTRate: TcxComboBox
-      Left = 260
-      Top = 94
+      Left = 551
+      Top = 46
       Properties.Alignment.Horz = taLeftJustify
       Properties.DropDownAutoWidth = False
       Properties.DropDownListStyle = lsFixedList
@@ -1419,11 +1428,11 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       StyleHot.LookAndFeel.Kind = lfStandard
       StyleHot.LookAndFeel.NativeStyle = True
       TabOrder = 4
-      Width = 130
+      Width = 132
     end
     object nfShareTradeUnits: TOvcNumericField
-      Left = 260
-      Top = 195
+      Left = 259
+      Top = 221
       Width = 132
       Height = 20
       Cursor = crIBeam
@@ -1444,6 +1453,29 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
+    object nfUnits: TOvcNumericField
+      Left = 147
+      Top = 16
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '###,###,###.####'
+      TabOrder = 5
+      OnKeyDown = nfUnitsKeyDown
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {5C8FC2F5FF276BEE1CC0}
+    end
   end
   object pnlDividend: TPanel
     Left = 0
@@ -1455,23 +1487,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     ParentColor = True
     TabOrder = 3
     Visible = False
-    object lpForeignIncome: TLabel
-      Left = 393
-      Top = 90
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = fmeBGLForeignTax2.nfForeignIncomeTaxOffset
-      Visible = False
-    end
-    object lblForeignIncome: TLabel
-      Left = 10
-      Top = 90
-      Width = 90
-      Height = 17
-      Caption = 'Foreign Income'
-      FocusControl = nfForeignIncome
-    end
     object lineDividend: TShape
       Left = 0
       Top = 0
@@ -1481,238 +1496,255 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Pen.Color = clSilver
       ExplicitWidth = 720
     end
-    inline fmeDividendFranking: TfmeBGLFranking
-      Left = 0
-      Top = 3
-      Width = 450
-      Height = 81
-      TabOrder = 0
-      ExplicitTop = 3
-      ExplicitWidth = 450
-      ExplicitHeight = 81
-      inherited lblFranked: TLabel
-        Left = 10
-        Width = 95
-        Height = 17
-        ExplicitLeft = 10
-        ExplicitWidth = 95
-        ExplicitHeight = 17
-      end
-      inherited lpFranked: TLabel
-        Left = 393
-        Height = 17
-        ExplicitLeft = 393
-        ExplicitHeight = 17
-      end
-      inherited lblUnfranked: TLabel
-        Left = 10
-        Top = 31
-        Width = 109
-        Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 31
-        ExplicitWidth = 109
-        ExplicitHeight = 17
-      end
-      inherited lpUnfranked: TLabel
-        Left = 393
-        Top = 31
-        Height = 17
-        ExplicitLeft = 393
-        ExplicitTop = 31
-        ExplicitHeight = 17
-      end
-      inherited lblFrankingCredits: TLabel
-        Left = 10
-        Top = 59
-        Width = 94
-        Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 59
-        ExplicitWidth = 94
-        ExplicitHeight = 17
-      end
-      inherited btnFrankingCredits: TSpeedButton
-        Left = 393
-        Top = 56
-        OnClick = frameFrankingbtnCalcClick
-        ExplicitLeft = 393
-        ExplicitTop = 56
-      end
-      inherited nfFranked: TOvcNumericField
-        Left = 260
-        Top = 2
-        OnChange = frameFrankingFrankedChange
-        ExplicitLeft = 260
-        ExplicitTop = 2
-        RangeHigh = {F6285CFFFFF802952040}
-        RangeLow = {00000000000000000000}
-      end
-      inherited nfUnfranked: TOvcNumericField
-        Left = 260
-        Top = 30
-        OnChange = frameFrankingUnfrankedChange
-        ExplicitLeft = 260
-        ExplicitTop = 30
-        RangeHigh = {F6285CFFFFF802952040}
-        RangeLow = {00000000000000000000}
-      end
-      inherited nfFrankingCredits: TOvcNumericField
-        Left = 260
-        Top = 58
-        OnChange = frameFrankingFrankingCreditsChange
-        ExplicitLeft = 260
-        ExplicitTop = 58
-        RangeHigh = {F6285CFFFFF802952040}
-        RangeLow = {00000000000000000000}
-      end
+    object lpForeignIncome: TLabel
+      Left = 540
+      Top = 125
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfForeignIncome
+      Visible = False
+    end
+    object lblForeignIncome: TLabel
+      Left = 157
+      Top = 128
+      Width = 90
+      Height = 17
+      Caption = 'Foreign Income'
+      FocusControl = nfForeignIncome
     end
     inline fmeBGLForeignTax2: TfmeBGLForeignTax
-      Left = 1
-      Top = 117
-      Width = 450
-      Height = 147
-      TabOrder = 2
-      ExplicitLeft = 1
-      ExplicitTop = 117
-      ExplicitWidth = 450
-      ExplicitHeight = 147
+      Left = 0
+      Top = 1
+      Width = 709
+      Height = 266
+      Align = alClient
+      TabOrder = 1
+      ExplicitTop = 1
+      ExplicitWidth = 709
+      ExplicitHeight = 266
       inherited lblForeignIncomeTaxOffset: TLabel
-        Left = 10
-        Top = 2
+        Left = 157
+        Top = 154
         Width = 198
         Height = 17
         Caption = 'Foreign Income Tax Offset Credits'
-        ExplicitLeft = 10
-        ExplicitTop = 2
+        ExplicitLeft = 157
+        ExplicitTop = 154
         ExplicitWidth = 198
         ExplicitHeight = 17
       end
       inherited lpForeignIncomeTaxOffset: TLabel
-        Left = 393
-        Top = 2
+        Left = 540
+        Top = 153
         Height = 17
-        ExplicitLeft = 393
-        ExplicitTop = 2
+        ExplicitLeft = 540
+        ExplicitTop = 153
         ExplicitHeight = 17
       end
       inherited lblAUFrankingCreditsFromNZCompany: TLabel
-        Left = 10
-        Top = 31
-        Width = 245
+        Left = 157
+        Top = 183
+        Width = 227
         Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 31
-        ExplicitWidth = 245
+        ExplicitLeft = 157
+        ExplicitTop = 183
+        ExplicitWidth = 227
         ExplicitHeight = 17
       end
       inherited lpAUFrankingCreditsFromNZCompany: TLabel
-        Left = 393
-        Top = 31
+        Left = 540
+        Top = 183
         Height = 17
-        ExplicitLeft = 393
-        ExplicitTop = 31
+        ExplicitLeft = 540
+        ExplicitTop = 183
         ExplicitHeight = 17
       end
       inherited lblTFNAmountsWithheld: TLabel
-        Left = 10
-        Top = 61
+        Left = 357
+        Top = 9
         Width = 133
         Height = 17
         Caption = 'TFN Amounts Withheld'
-        ExplicitLeft = 10
-        ExplicitTop = 61
+        ExplicitLeft = 357
+        ExplicitTop = 9
         ExplicitWidth = 133
         ExplicitHeight = 17
       end
       inherited lpTFNAmountsWithheld: TLabel
-        Left = 393
-        Top = 61
+        Left = 684
+        Top = 9
         Height = 17
-        ExplicitLeft = 393
-        ExplicitTop = 61
+        ExplicitLeft = 684
+        ExplicitTop = 9
         ExplicitHeight = 17
       end
       inherited lblNonResidentWithholdingTax: TLabel
-        Left = 10
-        Top = 91
+        Left = 357
+        Top = 39
         Width = 178
         Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 91
+        ExplicitLeft = 357
+        ExplicitTop = 39
         ExplicitWidth = 178
         ExplicitHeight = 17
       end
       inherited lpNonResidentWithholdingTax: TLabel
-        Left = 393
-        Top = 91
+        Left = 684
+        Top = 39
         Height = 17
-        ExplicitLeft = 393
-        ExplicitTop = 91
+        ExplicitLeft = 684
+        ExplicitTop = 39
         ExplicitHeight = 17
       end
       inherited lblLICDeductions: TLabel
-        Left = 10
-        Top = 120
-        Width = 86
+        Left = 357
+        Top = 68
+        Width = 80
         Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 120
-        ExplicitWidth = 86
+        Caption = 'LIC Deduction'
+        ExplicitLeft = 357
+        ExplicitTop = 68
+        ExplicitWidth = 80
         ExplicitHeight = 17
       end
       inherited lpLICDeductions: TLabel
-        Left = 393
-        Top = 120
+        Left = 684
+        Top = 68
         Height = 17
-        ExplicitLeft = 393
-        ExplicitTop = 120
+        ExplicitLeft = 684
+        ExplicitTop = 68
         ExplicitHeight = 17
       end
       inherited nfForeignIncomeTaxOffset: TOvcNumericField
-        Left = 260
-        Top = 1
-        ExplicitLeft = 260
-        ExplicitTop = 1
+        Left = 407
+        Top = 153
+        ExplicitLeft = 407
+        ExplicitTop = 153
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfAUFrankingCreditsFromNZCompany: TOvcNumericField
-        Left = 260
-        Top = 30
-        ExplicitLeft = 260
-        ExplicitTop = 30
+        Left = 407
+        Top = 182
+        ExplicitLeft = 407
+        ExplicitTop = 182
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfTFNAmountsWithheld: TOvcNumericField
-        Left = 260
-        Top = 60
-        ExplicitLeft = 260
-        ExplicitTop = 60
+        Left = 551
+        Top = 8
+        ExplicitLeft = 551
+        ExplicitTop = 8
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfNonResidentWithholdingTax: TOvcNumericField
-        Left = 260
-        Top = 90
-        ExplicitLeft = 260
-        ExplicitTop = 90
+        Left = 551
+        Top = 38
+        ExplicitLeft = 551
+        ExplicitTop = 38
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfLICDeductions: TOvcNumericField
-        Left = 260
-        Top = 119
-        ExplicitLeft = 260
-        ExplicitTop = 119
+        Left = 551
+        Top = 67
+        ExplicitLeft = 551
+        ExplicitTop = 67
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
     end
+    inline fmeDividendFranking: TfmeBGLFranking
+      Left = 0
+      Top = 3
+      Width = 329
+      Height = 90
+      TabOrder = 0
+      ExplicitTop = 3
+      ExplicitWidth = 329
+      inherited lblFranked: TLabel
+        Left = 10
+        Top = 7
+        Width = 46
+        Height = 17
+        ExplicitLeft = 10
+        ExplicitTop = 7
+        ExplicitWidth = 46
+        ExplicitHeight = 17
+      end
+      inherited lpFranked: TLabel
+        Left = 281
+        Top = 7
+        Height = 17
+        ExplicitLeft = 281
+        ExplicitTop = 7
+        ExplicitHeight = 17
+      end
+      inherited lblUnfranked: TLabel
+        Left = 10
+        Width = 60
+        Height = 17
+        ExplicitLeft = 10
+        ExplicitWidth = 60
+        ExplicitHeight = 17
+      end
+      inherited lpUnfranked: TLabel
+        Left = 281
+        Height = 17
+        ExplicitLeft = 281
+        ExplicitHeight = 17
+      end
+      inherited lblFrankingCredits: TLabel
+        Left = 10
+        Top = 63
+        Width = 94
+        Height = 17
+        ExplicitLeft = 10
+        ExplicitTop = 63
+        ExplicitWidth = 94
+        ExplicitHeight = 17
+      end
+      inherited btnFrankingCredits: TSpeedButton
+        Left = 281
+        Top = 61
+        OnClick = frameFrankingbtnCalcClick
+        ExplicitLeft = 281
+        ExplicitTop = 61
+      end
+      inherited nfFranked: TOvcNumericField
+        Left = 148
+        Top = 6
+        OnChange = frameFrankingFrankedChange
+        ExplicitLeft = 148
+        ExplicitTop = 6
+        RangeHigh = {F6285CFFFFF802952040}
+        RangeLow = {00000000000000000000}
+      end
+      inherited nfUnfranked: TOvcNumericField
+        Left = 148
+        Top = 34
+        OnChange = frameFrankingUnfrankedChange
+        ExplicitLeft = 148
+        ExplicitTop = 34
+        RangeHigh = {F6285CFFFFF802952040}
+        RangeLow = {00000000000000000000}
+      end
+      inherited nfFrankingCredits: TOvcNumericField
+        Left = 148
+        Top = 62
+        OnChange = frameFrankingFrankingCreditsChange
+        ExplicitLeft = 148
+        ExplicitTop = 62
+        RangeHigh = {F6285CFFFFF802952040}
+        RangeLow = {00000000000000000000}
+      end
+    end
     object nfForeignIncome: TOvcNumericField
-      Left = 260
-      Top = 89
+      Left = 407
+      Top = 125
       Width = 132
       Height = 20
       Cursor = crIBeam
@@ -1728,7 +1760,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
       PictureMask = '#,###,###,###.##'
-      TabOrder = 1
+      TabOrder = 2
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -1750,10 +1782,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Caption = 'Account'
     end
     object btnChart: TSpeedButton
-      Left = 267
-      Top = 8
+      Left = 261
+      Top = 7
       Width = 28
-      Height = 22
+      Height = 23
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FF00FF844200
@@ -1808,14 +1840,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       NumGlyphs = 2
       OnClick = btnChartClick
     end
-    object lblUnits: TLabel
-      Left = 278
-      Top = 9
-      Width = 29
-      Height = 17
-      Caption = 'Units'
-      Visible = False
-    end
     object lblEntryType: TLabel
       Left = 10
       Top = 43
@@ -1833,7 +1857,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblCashDate: TLabel
-      Left = 490
+      Left = 504
       Top = 9
       Width = 80
       Height = 17
@@ -1841,7 +1865,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblAccrualDate: TLabel
-      Left = 278
+      Left = 305
       Top = 43
       Width = 73
       Height = 17
@@ -1849,7 +1873,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Visible = False
     end
     object lblRecordDate: TLabel
-      Left = 490
+      Left = 504
       Top = 43
       Width = 92
       Height = 17
@@ -1889,65 +1913,14 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       StyleHot.LookAndFeel.Kind = lfStandard
       StyleHot.LookAndFeel.NativeStyle = True
       TabOrder = 0
-      OnKeyDown = cmbxAccountKeyDown
-      Width = 185
-    end
-    object nfUnits: TOvcNumericField
-      Left = 357
-      Top = 8
-      Width = 121
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '###,###,###.####'
-      TabOrder = 1
       Visible = False
-      OnKeyDown = nfUnitsKeyDown
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {5C8FC2F5FF276BEE1CC0}
+      OnKeyDown = cmbxAccountKeyDown
+      Width = 184
     end
     object eCashDate: TOvcPictureField
-      Left = 589
+      Left = 603
       Top = 8
-      Width = 107
-      Height = 20
-      Cursor = crIBeam
-      DataType = pftDate
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      ControlCharColor = clRed
-      DecimalPlaces = 0
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Epoch = 1970
-      InitDateTime = False
-      MaxLength = 8
-      Options = [efoCaretToEnd]
-      PictureMask = 'DD/mm/yy'
-      TabOrder = 3
-      Visible = False
-      RangeHigh = {25600D00000000000000}
-      RangeLow = {00000000000000000000}
-    end
-    object eAccrualDate: TOvcPictureField
-      Left = 357
-      Top = 42
-      Width = 121
+      Width = 80
       Height = 20
       Cursor = crIBeam
       DataType = pftDate
@@ -1972,10 +1945,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
     end
-    object eRecordDate: TOvcPictureField
-      Left = 589
+    object eAccrualDate: TOvcPictureField
+      Left = 384
       Top = 42
-      Width = 107
+      Width = 80
       Height = 20
       Cursor = crIBeam
       DataType = pftDate
@@ -1995,7 +1968,35 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       MaxLength = 8
       Options = [efoCaretToEnd]
       PictureMask = 'DD/mm/yy'
-      TabOrder = 4
+      TabOrder = 1
+      Visible = False
+      RangeHigh = {25600D00000000000000}
+      RangeLow = {00000000000000000000}
+    end
+    object eRecordDate: TOvcPictureField
+      Left = 603
+      Top = 42
+      Width = 80
+      Height = 20
+      Cursor = crIBeam
+      DataType = pftDate
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      ControlCharColor = clRed
+      DecimalPlaces = 0
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Epoch = 1970
+      InitDateTime = False
+      MaxLength = 8
+      Options = [efoCaretToEnd]
+      PictureMask = 'DD/mm/yy'
+      TabOrder = 3
       Visible = False
       RangeHigh = {25600D00000000000000}
       RangeLow = {00000000000000000000}
@@ -2023,8 +2024,22 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       InitDateTime = False
       Options = [efoCaretToEnd]
       PictureMask = 'XXXXXXXXXXXXXXX'
-      TabOrder = 5
+      TabOrder = 4
       Visible = False
+    end
+    object edtAccount: TEdit
+      Left = 74
+      Top = 8
+      Width = 186
+      Height = 21
+      Ctl3D = True
+      ParentCtl3D = False
+      TabOrder = 5
+      Text = 'edtAccount'
+      OnChange = edtAccountChange
+      OnKeyDown = edtAccountKeyDown
+      OnKeyPress = edtAccountKeyPress
+      OnKeyUp = edtAccountKeyUp
     end
   end
   object pnlFooters: TPanel

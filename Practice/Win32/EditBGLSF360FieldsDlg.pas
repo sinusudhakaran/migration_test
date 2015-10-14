@@ -8,7 +8,8 @@ uses
   ovcpf, bkconst, Buttons, cxGraphics, cxControls, cxContainer, cxEdit,
   cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont, cxLookAndFeels,
   cxLookAndFeelPainters, ComCtrls, Globals,
-  BGLCapitalGainsFme, BGLFrankingFme, BGLInterestIncomeFme, BGLForeignTaxFme;
+  BGLCapitalGainsFme, BGLFrankingFme, BGLInterestIncomeFme, BGLForeignTaxFme,
+  bkMaskUtils;
 
 type
 
@@ -30,8 +31,6 @@ type
     lblAccount: TLabel;
     cmbxAccount: TcxComboBox;
     btnChart: TSpeedButton;
-    lblUnits: TLabel;
-    nfUnits: TOvcNumericField;
     lblEntryType: TLabel;
     lbldispEntryType: TLabel;
     lblCashDate: TLabel;
@@ -92,9 +91,6 @@ type
     pnlDividend: TPanel;
     fmeDividendFranking: TfmeBGLFranking;
     fmeBGLForeignTax2: TfmeBGLForeignTax;
-    lpForeignIncome: TLabel;
-    lblForeignIncome: TLabel;
-    nfForeignIncome: TOvcNumericField;
     pnlInterest: TPanel;
     lblInterest: TLabel;
     nfInterest: TOvcNumericField;
@@ -135,6 +131,12 @@ type
     lineDistribution: TShape;
     lineCapitalGainsTab: TShape;
     Label1: TLabel;
+    lpForeignIncome: TLabel;
+    nfForeignIncome: TOvcNumericField;
+    lblForeignIncome: TLabel;
+    lblUnits: TLabel;
+    nfUnits: TOvcNumericField;
+    edtAccount: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -157,6 +159,12 @@ type
     procedure frameFrankingbtnCalcClick(Sender: TObject);
     procedure frameFrankingUnfrankedChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure edtAccountKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure edtAccountKeyPress(Sender: TObject; var Key: Char);
+    procedure edtAccountKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure edtAccountChange(Sender: TObject);
   private
     FReadOnly, FAutoPresSMinus: boolean;
     FMoveDirection: TFundNavigation;
@@ -171,6 +179,7 @@ type
     FMemOnly: Boolean;
     fTranAccount : string;
     fTransactionType : TTransactionTypes;
+    RemovingMask      : boolean;
 
     procedure SetReadOnly(const Value: boolean);
     procedure SetMoveDirection(const Value: TFundNavigation);
@@ -185,7 +194,6 @@ type
     { Private declarations }
   public
     { Public declarations }
-//    procedure InitializeForm( aTranAccount : string );
 
     procedure SetFields( mImputedCredit,
                          mTaxFreeDist,
@@ -210,7 +218,6 @@ type
                          mTaxPaidBeforeDiscount,
                          mTaxPaidIndexationMethod,
                          mTaxPaidOtherMethod,
-                         (* mCapitalGainsForeignDisc, *)
                          mOtherNetForeignSourceIncome,
                          mCashDistribution,
                          mAUFrankingCreditsFromNZCompany,
@@ -258,7 +265,6 @@ type
                         var mTaxPaidBeforeDiscount : Money;
                         var mTaxPaidIndexationMethod : Money;
                         var mTaxPaidOtherMethod : Money;
-                         (* mCapitalGainsForeignDisc, *)
                         var mOtherNetForeignSourceIncome : Money;
                         var mCashDistribution : Money;
                         var mAUFrankingCreditsFromNZCompany : Money;
@@ -452,13 +458,17 @@ begin
       end;
     end;
   end;
-  if cmbxAccount.ItemIndex > 0 then
+(*DN Redundant Code  if cmbxAccount.ItemIndex > 0 then
   begin
     ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
     mAccount := MyClient.clChart.Account_At(ChartIndex).chAccount_Code;
   end
   else
-    mAccount := '';
+    mAccount := ''; (*DN Redundant Code *)
+
+  mAccount := edtAccount.Text;
+
+(*DN Redundant Code *)
 
   mUnits := nfUnits.AsFloat * 10000;
 
@@ -510,64 +520,8 @@ begin
             ( dCash_Date <> 0) or
             ( dAccrual_Date <> 0) or
             ( dRecord_Date <> 0);
-
-
-            
-(*  mTaxFreeDist := GetNumericValue(nfTaxFreeAmounts, RevenuePercentage);
-  mTaxExemptDist := GetNumericValue(nfTaxExemptedAmounts, RevenuePercentage);
-  mTaxDeferredDist := GetNumericValue(nfTaxDeferredAmounts, RevenuePercentage);
-  mTFNCredits := GetNumericValue(nfTFNCredits, RevenuePercentage);
-  mForeignIncome := GetNumericValue(nfForeignIncome, RevenuePercentage);
-  mForeignTaxCredits := GetNumericValue(nfForeignTaxCredits, RevenuePercentage);
-  mCapitalGains := GetNumericValue(nfCapitalGains, RevenuePercentage);
-  mDiscountedCapitalGains := GetNumericValue(fmeBGLCashCapitalGainsTax.nfCGTDiscounted, RevenuePercentage);
-
-  mOtherExpenses := GetNumericValue(nfOtherExpenses, RevenuePercentage);
-  mCapitalGainsOther := GetNumericValue(nfCapitalGainsOther, RevenuePercentage);
-
-  dCGTDate := stNull2Bk(eCGTDate.AsStDate);
-
-  mFranked := GetNumericValue(fmeFranking.nfFranked, FrankPercentage);
-  mUnfranked := GetNumericValue(fmeFranking.nfUnFranked, FrankPercentage);
-
-  mImputedCredit := Double2Money(fmeFranking.nfFrankingCredits.AsFloat);
-
-  mComponent := cmbMember.ItemIndex;
-
-  if cmbxAccount.ItemIndex > 0 then
-  begin
-    ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
-    mAccount := MyClient.clChart.Account_At(ChartIndex).chAccount_Code;
-  end
-  else
-    mAccount := '';
-
-  mUnits := nfUnits.AsFloat * 10000;
-
-  if ((FActualAmount < 0) and (mUnits > 0)) or
-     ((FActualAmount > 0) and (mUnits < 0)) then
-    mUnits := -mUnits;
-
-  Result := ( mImputedCredit <> 0) or
-            ( mTaxFreeDist <> 0) or
-            ( mTaxExemptDist <> 0) or
-            ( mTaxDeferredDist <> 0) or
-            ( mTFNCredits <> 0) or
-            ( mForeignIncome <> 0) or
-            ( mForeignTaxCredits <> 0) or
-            ( mCapitalGains <> 0) or
-            ( mDiscountedCapitalGains <> 0) or
-            ( mCapitalGainsOther <> 0) or
-            ( mOtherExpenses <> 0) or
-            ( mFranked <> 0) or
-            ( mUnfranked <> 0) or
-            ( dCGTDate <> 0) or
-            ( mComponent <> 0); *)
 end;
 
-//procedure TdlgEditBGLSF360Fields.InitializeForm( aTranAccount : string );
-//begin
-//end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgEditBGLSF360Fields.SetFields(
@@ -715,7 +669,8 @@ begin
 
   TranAccount := mAccount;
 
-
+  edtAccount.Text := mAccount;
+  edtAccount.Hint := MyClient.clChart.FindDesc( mAccount );
 
 
   UFModified := ((mFranked <> 0) or (mUnfranked <> 0))
@@ -748,8 +703,8 @@ begin
   nfUnits.AsFloat := mUnits / 10000;
 
   TranAccount := mAccount;
-  RefreshChartCodeCombo();
-  FCurrentAccountIndex := cmbxAccount.ItemIndex;
+//DN Redundant Code  RefreshChartCodeCombo();
+//DN Redundant Code  FCurrentAccountIndex := cmbxAccount.ItemIndex;
 
   FAutoPressMinus := (FActualAmount < 0) and (mUnits = 0);
 end;
@@ -775,6 +730,9 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgEditBGLSF360Fields.FormCreate(Sender: TObject);
+{///////////////////////////////////////////////////////////////////////////////
+!!!!  NB!! Active panel must NOT be set to Distribution, as it causes an AV !!!!
+///////////////////////////////////////////////////////////////////////////////}
 begin
   ThemeForm( Self);
   Self.HelpContext := BKH_Coding_transactions_for_BGL_Simple_Ledger;
@@ -832,16 +790,6 @@ begin
   lbldispNarration.Caption := sNarration;
   FActualAmount := mAmount;
   FDate := iDate;
-(* //DN Refactored out
-//DN  cmbMember.Items.Clear;
-  if (fdate = 0)
-  or (FDate >= mcSwitchDate) then
-    for i := mcnewMin to mcnewMax do
-//DN      cmbMember.Items.AddObject(mcNewNames[i], TObject(i))
-  else
-    for i := mcOldMin to mcOldMax do
-//DN      cmbMember.Items.AddObject(mcOldNames[i], TObject(i))
-*)
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -870,10 +818,17 @@ var
   SelectedCode: string;
   HasChartBeenRefreshed : boolean;
 begin
-  SelectedCode := cmbxAccount.Text;
+(*DN Redundant Code*) //  SelectedCode := cmbxAccount.Text;
+  SelectedCode := edtAccount.Text;
+(*DN Redundant Code*)
+
   if PickAccount(SelectedCode, HasChartBeenRefreshed, BGL360AccountsFilter, true, true, [ doShowInactive ]) then
   begin
-    if HasChartBeenRefreshed then
+    edtAccount.Text := SelectedCode;
+    edtAccount.Hint := MyClient.clChart.FindDesc( SelectedCode );
+    TranAccount := SelectedCode;
+
+(*DN Redundant Code    if HasChartBeenRefreshed then
     begin
       cmbxAccount.Properties.Items.Clear;
       RefreshChartCodeCombo();
@@ -886,7 +841,7 @@ begin
         cmbxAccount.ItemIndex := i;
         Break;
       end;
-    end;
+    end; (*DN Redundant Code*)
   end;
 end;
 
@@ -904,6 +859,63 @@ begin
   ModalResult := mrOk;
 end;
 
+procedure TdlgEditBGLSF360Fields.edtAccountChange(Sender: TObject);
+var
+  Edit: TEdit;
+  pAcct: pAccount_Rec;
+begin
+  CheckforMaskChar( TEdit( Sender),RemovingMask);
+(*DN Redundant Code*)//DN Redundant  UpdateLinkedAccounts;
+
+  // Set background color
+  Edit := (Sender as TEdit);
+  pAcct := MyClient.clChart.FindCode(Edit.Text);
+  if assigned(pAcct) and pAcct.chInactive then
+    Edit.Color := clYellow
+  else
+    Edit.Color := clWindow;
+end;
+
+procedure TdlgEditBGLSF360Fields.edtAccountKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  if key = vk_back then CheckRemoveMaskChar( TEdit(Sender),RemovingMask);
+end;
+
+procedure TdlgEditBGLSF360Fields.edtAccountKeyPress(Sender: TObject;
+  var Key: Char);
+var
+  aType : Integer;
+begin
+  if ((key='-') and (myClient.clFields.clUse_Minus_As_Lookup_Key)) then
+  begin
+    key := #0;
+(*DN Redundant Code    aType := GetCurrentlySelectedGroup;
+    case aType of
+      atOpeningStock : PickCodeForEdit(Sender, ClosingStockFilter, False);
+      atClosingStock : PickCodeForEdit(Sender, OpeningStockFilter, False);
+      atStockOnHand  : PickCodeForEdit(Sender, OpeningStockFilter, False);
+    end; DN*)
+  end;
+end;
+
+procedure TdlgEditBGLSF360Fields.edtAccountKeyUp(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+var
+  aType : Integer;
+begin
+  if (key = VK_F2) or ((key=40) and (Shift = [ssAlt])) then
+  begin
+(*DN Redundant Code    aType := GetCurrentlySelectedGroup;
+    case aType of
+      atOpeningStock : PickCodeForEdit(Sender, ClosingStockFilter, False);
+      atClosingStock : PickCodeForEdit(Sender, OpeningStockFilter, False);
+      atStockOnHand  : PickCodeForEdit(Sender, OpeningStockFilter, False);
+    end; DN*)
+  end;
+end;
+
+
 procedure TdlgEditBGLSF360Fields.cmbxAccountKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -920,7 +932,12 @@ var
   p: pAccount_Rec;
   ChartIndex : integer;
 begin
-  if cmbxAccount.ItemIndex < 1 then exit;
+  if cmbxAccount.ItemIndex < 1 then
+    if cmbxAccount.ItemIndex = 0 then begin
+      TranAccount := '';
+    end
+    else
+      exit;
 
   ChartIndex := Integer(cmbxAccount.Properties.Items.Objects[cmbxAccount.ItemIndex]);
 
@@ -968,10 +985,12 @@ begin
     l := 15;
   end;
   R.Left := R.Left + l;
-  R.Right := R.Right + l;
+  R.Right := R.Right - l;
   ACanvas.DrawText(p.chAccount_Code, R, 0, p.chPosting_Allowed);
+//  R.Left := R.Left + 135 - l;
+//  R.Right := R.Right + 135 - l;
   R.Left := R.Left + 135 - l;
-  R.Right := R.Right + 135 - l;
+  R.Right := R.Right - l;
   ACanvas.DrawText('(' + p.chAccount_Description + ')', R, 0, p.chPosting_Allowed);
 end;
 
@@ -1154,16 +1173,17 @@ var
 begin
   fTranAccount := Value;
   try
-    if trim( Value ) <> '' then begin
-      liControlCode := StripBGL360ControlAccountCode( fTranAccount );
-      case liControlCode of
-        cttanDistribution      : TransactionType := ttDistribution;
-        cttanDividend          : TransactionType := ttDividend;
-        cttanInterest          : TransactionType := ttInterest;
-        cttanShareTradeRangeStart..cttanShareTradeRangeEnd : TransactionType := ttShareTrade;
-        else
-          TransactionType := ttOtherTx;
-      end;
+    if trim( Value ) <> '' then
+      liControlCode := StripBGL360ControlAccountCode( fTranAccount )
+    else
+      liControlCode := -1;
+    case liControlCode of
+      cttanDistribution      : TransactionType := ttDistribution;
+      cttanDividend          : TransactionType := ttDividend;
+      cttanInterest          : TransactionType := ttInterest;
+      cttanShareTradeRangeStart..cttanShareTradeRangeEnd : TransactionType := ttShareTrade;
+      else
+        TransactionType := ttOtherTx;
     end;
   except
     on e:Exception do
@@ -1184,14 +1204,14 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure ShowAllHeaderFields;
   begin
-    SetFields( [ (*lUnits, nfUnits, *)lblCashDate, eCashDate,
+    SetFields( [ lblCashDate, eCashDate,
       lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
       sfEntryType ], true );
   end;
 
   procedure HideAllHeaderFields;
   begin
-    SetFields( [ (*lblUnits, nfUnits, *)lblCashDate, eCashDate,
+    SetFields( [ lblCashDate, eCashDate,
       lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
       sfEntryType ], false );
   end;
@@ -1301,6 +1321,7 @@ begin
   btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
 
   cmbxAccount.Hint := 'Select Chart code|Select Chart code';
+  edtAccount.Hint := 'Select Chart code|Select Chart code';
 end;
 
 procedure TdlgEditBGLSF360Fields.frameFrankingbtnCalcClick(Sender: TObject);

@@ -24,9 +24,9 @@ object fmeBGLCapitalGainsTax: TfmeBGLCapitalGainsTax
   object lblCGTIndexation: TLabel
     Left = 3
     Top = 35
-    Width = 124
+    Width = 163
     Height = 13
-    Caption = 'Capital Gains - Indexation'
+    Caption = 'Capital Gains - Indexation Method'
     FocusControl = nfCGTIndexation
   end
   object lpCGTIndexation: TLabel
