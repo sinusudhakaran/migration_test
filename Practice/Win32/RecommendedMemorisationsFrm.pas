@@ -668,11 +668,11 @@ begin
   case fMemStatus of
     ssNoFound : begin
       pnlMessage.Visible := true;
-      lblMessage.Caption := 'There are no Suggested Memorisations at this time.';
+      lblMessage.Caption := MSG_NO_MEMORISATIONS;
     end;
     ssDisabled : begin
       pnlMessage.Visible := true;
-      lblMessage.Caption := 'Suggested Memorisations have been disabled, please contact Support.';
+      lblMessage.Caption := MSG_DISABLED_MEMORISATIONS;
     end;
     ssProcessing : begin
       pnlMessage.Visible := false;

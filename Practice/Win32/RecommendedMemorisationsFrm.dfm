@@ -189,7 +189,12 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         OnLeavingRow = tblSuggMemsLeavingRow
         OnLockedCellClick = tblSuggMemsLockedCellClick
         CellData = (
-          'RecommendedMemorisationsFrm.hdrSuggMems')
+          'RecommendedMemorisationsFrm.hdrSuggMems'
+          'RecommendedMemorisationsFrm.spi'
+          'RecommendedMemorisationsFrm.colCodedMatch'
+          'RecommendedMemorisationsFrm.colCode'
+          'RecommendedMemorisationsFrm.colStatementDetails'
+          'RecommendedMemorisationsFrm.colEntryType')
         RowData = (
           21
           0
@@ -222,22 +227,19 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
         Top = 143
         Width = 696
         Height = 90
-        Anchors = [akLeft, akTop, akRight]
+        Anchors = [akLeft, akTop, akRight, akBottom]
         BevelOuter = bvNone
         Color = clWhite
         ParentBackground = False
         TabOrder = 1
         Visible = False
-        DesignSize = (
-          696
-          90)
         object lblMessage: TLabel
           Left = 0
-          Top = 40
+          Top = 0
           Width = 696
-          Height = 16
+          Height = 90
+          Align = alClient
           Alignment = taCenter
-          Anchors = [akLeft, akTop, akRight]
           AutoSize = False
           Caption = 'Message'
           Font.Charset = DEFAULT_CHARSET
@@ -246,7 +248,11 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
           Font.Name = 'Tahoma'
           Font.Style = []
           ParentFont = False
-          ExplicitWidth = 225
+          Layout = tlCenter
+          WordWrap = True
+          ExplicitLeft = 8
+          ExplicitTop = 24
+          ExplicitHeight = 57
         end
       end
     end
@@ -254,7 +260,7 @@ object RecommendedMemorisationsFrm: TRecommendedMemorisationsFrm
   object Images: TImageList
     Left = 480
     Bitmap = {
-      494C010101000800EC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010101000800F00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
