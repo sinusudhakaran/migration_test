@@ -130,7 +130,6 @@ type
     lineDividend: TShape;
     lineDistribution: TShape;
     lineCapitalGainsTab: TShape;
-    Label1: TLabel;
     lpForeignIncome: TLabel;
     nfForeignIncome: TOvcNumericField;
     lblForeignIncome: TLabel;
@@ -165,6 +164,8 @@ type
     procedure edtAccountKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure edtAccountChange(Sender: TObject);
+    procedure nfShareBrokerageChange(Sender: TObject);
+    procedure nfShareConsiderationChange(Sender: TObject);
   private
     FReadOnly, FAutoPresSMinus: boolean;
     FMoveDirection: TFundNavigation;
@@ -173,8 +174,9 @@ type
     FActualAmount: Money;
     FDate: Integer;
     FFrankPercentage: Boolean;
-    crModified: Boolean;
-    UFModified: Boolean;
+    FrankingCreditsModified: Boolean;
+    UnfrankedModified: Boolean;
+    ShareConsiderationModified: Boolean;
     FRevenuePercentage: Boolean;
     FMemOnly: Boolean;
     fTranAccount : string;
@@ -642,7 +644,12 @@ begin
 
 // ** Panel Share Trade Panel **
   SetNumericValue(nfShareBrokerage,     mShareBrokerage, RevenuePercentage);
-  SetNumericValue(nfShareConsideration, mShareConsideration, RevenuePercentage);
+
+  if mShareConsideration <> 0 then // If mShareConsideration is already set, leave alone
+    SetNumericValue(nfShareConsideration, mShareConsideration, RevenuePercentage)
+  else                             // else make the Amount the default
+    SetNumericValue(nfShareConsideration, abs( FActualAmount ), RevenuePercentage);
+
   SetNumericValue(nfShareGSTAmount,     mShareGSTAmount, RevenuePercentage);
   cmbxShareGSTRate.ItemIndex := cmbxShareGSTRate.Properties.Items.IndexOf(mShareGSTRate);
 
@@ -673,9 +680,11 @@ begin
   edtAccount.Hint := MyClient.clChart.FindDesc( mAccount );
 
 
-  UFModified := ((mFranked <> 0) or (mUnfranked <> 0))
+  UnfrankedModified := ((mFranked <> 0) or (mUnfranked <> 0))
              and ((mFranked + mUnfranked) <> abs(FActualAmount));
 
+  ShareConsiderationModified := (mShareConsideration <> 0) and
+    (mShareConsideration <> abs( FActualAmount ) ); 
 
   if not MemOnly then  begin
      SetNumericValue(fmeDistributionFranking.nfFrankingCredits, mImputedCredit, False);
@@ -748,7 +757,8 @@ begin
   FMoveDirection := fnNothing;
   FormTop := -999;
   FormLeft := -999;
-  UFModified := False;
+  UnfrankedModified := False;
+  ShareConsiderationModified := False;
   FSkip := 0;
   Glyph := TBitMap.Create;
   ImagesFrm.AppImages.Maintain.GetBitmap( MAINTAIN_LOCK_BMP, Glyph );
@@ -850,7 +860,8 @@ begin
   SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0 );
 
-  UFModified := False;
+  UnfrankedModified := False;
+  ShareConsiderationModified := false;
 end;
 
 procedure TdlgEditBGLSF360Fields.btnNextClick(Sender: TObject);
@@ -1326,7 +1337,7 @@ end;
 
 procedure TdlgEditBGLSF360Fields.frameFrankingbtnCalcClick(Sender: TObject);
 begin
-    crModified := False;
+    FrankingCreditsModified := False;
     frameFrankingFrankingCreditsChange( Sender );
 end;
 
@@ -1412,9 +1423,23 @@ begin
       else
         Frank := FrankingFrame.nfFranked.asFloat;
 
-      crModified := CheckFrankingCredit( Frank, fDate, FrankingFrame.nfFrankingCredits,
-                      not((Sender = FrankingFrame.nfFrankingCredits) or crModified));
+      FrankingCreditsModified := CheckFrankingCredit( Frank, fDate, FrankingFrame.nfFrankingCredits,
+                      not((Sender = FrankingFrame.nfFrankingCredits) or FrankingCreditsModified));
     end;
+end;
+
+procedure TdlgEditBGLSF360Fields.nfShareBrokerageChange(Sender: TObject);
+begin
+  if not ShareConsiderationModified then
+    if FActualAmount <= 0 then // Transaction is a disposal
+      nfShareConsideration.AsFloat := Money2Double( FActualAmount ) + nfShareBrokerage.AsFloat
+    else                       // Transaction is a purchase
+      nfShareConsideration.AsFloat := Money2Double( FActualAmount ) - nfShareBrokerage.AsFloat
+end;
+
+procedure TdlgEditBGLSF360Fields.nfShareConsiderationChange(Sender: TObject);
+begin
+  ShareConsiderationModified := true;
 end;
 
 procedure TdlgEditBGLSF360Fields.nfTFNCreditsKeyPress(Sender: TObject;
@@ -1437,7 +1462,7 @@ begin
   if ( Sender is TComponent ) then
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
-      if not UFModified then begin
+      if not UnfrankedModified then begin
         if FrankPercentage then
           Actual := 100.0
         else
@@ -1453,7 +1478,7 @@ end;
 
 procedure TdlgEditBGLSF360Fields.frameFrankingUnfrankedChange(Sender: TObject);
 begin
-  UFModified := True;
+  UnfrankedModified := True;
 end;
 
 procedure TdlgEditBGLSF360Fields.nfUnitsKeyDown(Sender: TObject; var Key: Word;
