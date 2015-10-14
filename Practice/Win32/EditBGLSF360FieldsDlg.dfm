@@ -1241,8 +1241,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     ParentColor = True
     TabOrder = 5
     Visible = False
-    ExplicitLeft = -169
-    ExplicitTop = 118
     object lblShareBrokerage: TLabel
       Left = 10
       Top = 48
@@ -1785,7 +1783,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Left = 261
       Top = 7
       Width = 28
-      Height = 23
+      Height = 26
       Glyph.Data = {
         36060000424D3606000000000000360000002800000020000000100000000100
         18000000000000060000C21E0000C21E00000000000000000000FF00FF844200
@@ -2031,7 +2029,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Left = 74
       Top = 8
       Width = 186
-      Height = 21
+      Height = 20
       Ctl3D = True
       ParentCtl3D = False
       TabOrder = 5
