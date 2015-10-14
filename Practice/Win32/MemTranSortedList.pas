@@ -18,6 +18,8 @@ type
     Amount : Money;
     Statement_Details : AnsiString;
     CodedBy : Byte;
+    Reference : string;
+    Analysis : string;
     HasPotentialIssue : boolean;
   end;
 
@@ -76,6 +78,8 @@ end;
 procedure TMemTranSortedList.FreeItem(Item: Pointer);
 begin
   pMemTranSortedListRec(Item)^.Statement_Details := '';
+  pMemTranSortedListRec(Item)^.Reference := '';
+  pMemTranSortedListRec(Item)^.Analysis := '';
 
   SafeFreeMem(Item, MemTranSortedListRecSize);
 end;
@@ -123,6 +127,8 @@ begin
   NewSuggMem^.Amount            := aSuggMemSortedItem.Amount;
   NewSuggMem^.Statement_Details := aSuggMemSortedItem.Statement_Details;
   NewSuggMem^.CodedBy           := aSuggMemSortedItem.CodedBy;
+  NewSuggMem^.Reference         := aSuggMemSortedItem.Reference;
+  NewSuggMem^.Analysis          := aSuggMemSortedItem.Analysis;
   NewSuggMem^.HasPotentialIssue := aSuggMemSortedItem.HasPotentialIssue;
 
   Insert(NewSuggMem);

@@ -212,6 +212,8 @@ type
     colTranAmount: TOvcTCNumericField;
     treView: TTreeView;
     pnlMessage: TPanel;
+    colReference: TOvcTCString;
+    colAnalysis: TOvcTCString;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -490,10 +492,12 @@ CONST
 
   {Mem Tran Table Consts}
   mtDate             = 0;
-  mtAccount          = 1;
-  mtAmount           = 2;
-  mtStatementDetails = 3;
-  mtCodedBy          = 4;
+  mtReference        = 1;
+  mtAnalysis         = 2;
+  mtAccount          = 3;
+  mtAmount           = 4;
+  mtStatementDetails = 5;
+  mtCodedBy          = 6;
 
   //Column Nos
   AcctCol      = 0;
@@ -710,6 +714,7 @@ begin
       end;
       whAustralia, whUK :
       Begin
+        tblTran.Columns.List[mtAnalysis].Hidden := true;
         cCode.Caption    := '&Bank Type';
         eCode.MaxLength  := 12;
 
@@ -2383,6 +2388,14 @@ begin
       fTempString := bkDate2Str(fMemTranSortedList.GetPRec(RowNum-1)^.DateEffective);
       Data := @fTempString;
     end;
+    mtReference : begin
+      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Reference;
+      Data := @fTempString;
+    end;
+    mtAnalysis : begin
+      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Reference;
+      Data := @fTempString;
+    end;
     mtAccount : begin
       fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Account;
       Data := @fTempString;
@@ -2391,11 +2404,11 @@ begin
       fTempAmount := fMemTranSortedList.GetPRec(RowNum-1)^.Amount/100;
       Data := @fTempAmount;
     end;
-    mtStatementDetails: begin
+    mtStatementDetails : begin
       fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Statement_Details;
       Data := @fTempString;
     end;
-    mtCodedBy: begin
+    mtCodedBy : begin
       fTempString := cbNames[fMemTranSortedList.GetPRec(RowNum-1)^.CodedBy];
       Data := @fTempString;
     end;
@@ -2417,6 +2430,7 @@ begin
     SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList);
 
     tblTran.RowLimit := fMemTranSortedList.ItemCount + 1;
+
     tblTran.invalidate;
   finally
     FreeAndNil(TempMem);

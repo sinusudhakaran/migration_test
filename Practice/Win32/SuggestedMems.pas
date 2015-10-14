@@ -450,6 +450,8 @@ begin
       NewSuggMemSortedItem.Amount            := Tran^.txAmount;
       NewSuggMemSortedItem.Statement_Details := Tran^.txStatement_Details;
       NewSuggMemSortedItem.CodedBy           := Tran^.txCoded_By;
+      NewSuggMemSortedItem.Reference         := Tran^.txReference;
+      NewSuggMemSortedItem.Analysis          := Tran^.txAnalysis;
       NewSuggMemSortedItem.HasPotentialIssue := false;
 
       aMemTranSortedList.AddItem(NewSuggMemSortedItem);

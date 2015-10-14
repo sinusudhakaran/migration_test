@@ -318,15 +318,15 @@ object dlgMemorise: TdlgMemorise
         OnUserCommand = tblSplitUserCommand
         CellData = (
           'dlgMemorise.Header'
-          'dlgMemorise.ColAcct'
-          'dlgMemorise.ColDesc'
-          'dlgMemorise.colNarration'
-          'dlgMemorise.ColPayee'
-          'dlgMemorise.colJob'
-          'dlgMemorise.ColGSTCode'
-          'dlgMemorise.ColAmount'
+          'dlgMemorise.colLineType'
           'dlgMemorise.ColPercent'
-          'dlgMemorise.colLineType')
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           24)
         ColData = (
@@ -612,10 +612,12 @@ object dlgMemorise: TdlgMemorise
         CellData = (
           'dlgMemorise.tranHeader'
           'dlgMemorise.colTranDate'
+          'dlgMemorise.colReference'
+          'dlgMemorise.colAnalysis'
           'dlgMemorise.colTranAccount'
-          'dlgMemorise.colTranAmount'
           'dlgMemorise.colTranStatementDetails'
-          'dlgMemorise.colTranCodedBy')
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranAmount')
         RowData = (
           24)
         ColData = (
@@ -623,6 +625,14 @@ object dlgMemorise: TdlgMemorise
           False
           True
           'dlgMemorise.colTranDate'
+          125
+          False
+          True
+          'dlgMemorise.colReference'
+          125
+          False
+          True
+          'dlgMemorise.colAnalysis'
           75
           False
           True
@@ -1200,7 +1210,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1336,7 +1345,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1357,6 +1365,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1403,6 +1412,8 @@ object dlgMemorise: TdlgMemorise
   object tranHeader: TOvcTCColHead
     Headings.Strings = (
       'Date'
+      'Reference'
+      'Analysis'
       'Account'
       'Amount'
       'Statement Details'
@@ -1429,7 +1440,7 @@ object dlgMemorise: TdlgMemorise
     MaxLength = 10
     Table = tblTran
     OnOwnerDraw = colTranAccountOwnerDraw
-    Left = 304
+    Left = 384
     Top = 632
   end
   object colTranStatementDetails: TOvcTCString
@@ -1439,7 +1450,7 @@ object dlgMemorise: TdlgMemorise
     MaxLength = 10
     Table = tblTran
     OnOwnerDraw = colTranStatementDetailsOwnerDraw
-    Left = 384
+    Left = 464
     Top = 632
   end
   object colTranCodedBy: TOvcTCString
@@ -1449,7 +1460,7 @@ object dlgMemorise: TdlgMemorise
     MaxLength = 10
     Table = tblTran
     OnOwnerDraw = colTranCodedByOwnerDraw
-    Left = 424
+    Left = 504
     Top = 632
   end
   object colTranAmount: TOvcTCNumericField
@@ -1463,12 +1474,33 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False
-    Left = 344
+    Left = 424
     Top = 632
     RangeHigh = {73B2DBB9838916F2FE43}
     RangeLow = {73B2DBB9838916F2FEC3}
+  end
+  object colReference: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    AutoAdvanceLeftRight = True
+    MaxLength = 10
+    Table = tblTran
+    OnOwnerDraw = colTranStatementDetailsOwnerDraw
+    Left = 304
+    Top = 632
+  end
+  object colAnalysis: TOvcTCString
+    Access = otxReadOnly
+    Adjust = otaCenterLeft
+    AutoAdvanceLeftRight = True
+    MaxLength = 10
+    Table = tblTran
+    OnOwnerDraw = colTranStatementDetailsOwnerDraw
+    Left = 344
+    Top = 632
   end
 end
