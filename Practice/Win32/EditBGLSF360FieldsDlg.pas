@@ -638,6 +638,7 @@ begin
     tsAustralianIncome.ImageIndex := 0
   else
     tsAustralianIncome.ImageIndex := -1;
+  pcDistribution.Repaint;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetCapitalGainsTabModified(aValue: boolean);
@@ -651,6 +652,7 @@ begin
     tsCapitalGains.ImageIndex := 0
   else
     tsCapitalGains.ImageIndex := -1;
+  pcDistribution.Repaint;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetForeignIncomeTabModified(aValue: boolean);
@@ -664,6 +666,8 @@ begin
     tsForeignIncome.ImageIndex := 0
   else
     tsForeignIncome.ImageIndex := -1;
+
+  pcDistribution.Repaint;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetNonCashCapitalGainsTabModified(
@@ -679,6 +683,8 @@ begin
     tsNonCashCapitalGains.ImageIndex := 0
   else
     tsNonCashCapitalGains.ImageIndex := -1;
+
+  pcDistribution.Repaint;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetFields(
@@ -1587,8 +1593,8 @@ begin
   if ( Sender is TComponent ) then
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
-      if FrankingFrame.Owner = tsAustralianIncome then
-          fmeAustralianIncomeTabOnChange( Sender );
+      if FrankingFrame.Owner = tsAustralianIncome THEN
+          tsAustralianIncomeTabOnChange( Sender );
 
       if FrankPercentage then
         Frank := FrankingFrame.nfFranked.asFloat{ * Money2Double(FActualAmount) / 100}
@@ -1635,7 +1641,7 @@ begin
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
       if FrankingFrame.Owner = tsAustralianIncome then
-        fmeAustralianIncomeTabOnChange( Sender );
+        tsAustralianIncomeTabOnChange( Sender );
       if not UnfrankedModified then begin
         if FrankPercentage then
           Actual := 100.0
@@ -1658,7 +1664,7 @@ begin
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
       if FrankingFrame.Owner = tsAustralianIncome then
-        fmeAustralianIncomeTabOnChange( Sender );
+        tsAustralianIncomeTabOnChange( Sender );
     end;
 
   UnfrankedModified := True;
@@ -1676,24 +1682,24 @@ end;
 procedure TdlgEditBGLSF360Fields.tsAustralianIncomeTabOnChange(
   Sender: TObject);
 begin
-  isAustralianIncomeTabModified := true;
+  isAustralianIncomeTabModified := isAustralianIncomeTabModified; // Force the Get to reevaluate and the set to reset 
 end;
 
 procedure TdlgEditBGLSF360Fields.tsCapitalGainsTabOnChange(Sender: TObject);
 begin
-  isCapitalGainsTabModified := true;
+  isCapitalGainsTabModified := isCapitalGainsTabModified; // Force the Get to reevaluate and the set to reset
 end;
 
 procedure TdlgEditBGLSF360Fields.tsNonCashCapitalGainsTabOnChange(
   Sender: TObject);
 begin
-  isNonCashCapitalGainsTabModified := true;
+  isNonCashCapitalGainsTabModified := isNonCashCapitalGainsTabModified; // Force the Get to reevaluate and the set to reset
 end;
 
 procedure TdlgEditBGLSF360Fields.tsForeignIncomeTabOnChange(
   Sender: TObject);
 begin
-  isForeignIncomeTabModified := true;
+  isForeignIncomeTabModified := isForeignIncomeTabModified; // Force the Get to reevaluate and the set to reset
 end;
 
 procedure TdlgEditBGLSF360Fields.RefreshChartCodeCombo();
