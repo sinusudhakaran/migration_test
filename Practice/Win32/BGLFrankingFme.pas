@@ -36,11 +36,13 @@ implementation
 uses
   SuperFieldsUtils;
 
+(*
 const
   cFrankPerc   = 'Percentage Franked';
   cUnFrankPerc = 'Percentage Unfranked';
   cFrankAmnt   = 'Franked Amount';
   cUnFrankAmnt = 'Unfranked Amount';
+*)
 
 {$R *.dfm}
 
@@ -70,14 +72,14 @@ begin
 
    btnFrankingCredits.Visible := not FrankPercentage;
 
-   if FrankPercentage then begin
+(*   if FrankPercentage then begin
       lblFranked.Caption := cFrankPerc;
       lblUnFranked.Caption := cUnFrankPerc;
 
    end else begin
       lblFranked.Caption := cFrankAmnt;
       lblUnFranked.Caption := cUnFrankAmnt;
-   end;
+   end; *)
 end;
 
 end.

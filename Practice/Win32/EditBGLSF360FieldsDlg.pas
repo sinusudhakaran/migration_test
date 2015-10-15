@@ -346,6 +346,11 @@ uses
 
 {$R *.dfm}
 
+const
+  clTabNotModifiedIdx = -1;
+  clTabModifiedIdx    =  3;
+
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TdlgEditBGLSF360Fields.anyValuesModified( aInValues : array of double ) : boolean;
@@ -475,88 +480,140 @@ begin
     // ** Panel Distribution Panel **
       // Australian Income Tab
       if assigned( fmeDist_AU_Income_Franking ) then begin
-        mFranked := GetNumericValue(fmeDist_AU_Income_Franking.nfFranked,              RevenuePercentage);
-        mUnfranked := GetNumericValue(fmeDist_AU_Income_Franking.nfUnfranked,            RevenuePercentage);
-        mImputedCredit := GetNumericValue(fmeDist_AU_Income_Franking.nfFrankingCredits,      RevenuePercentage);
+        mFranked := GetNumericValue(
+          fmeDist_AU_Income_Franking.nfFranked, RevenuePercentage);
+        mUnfranked := GetNumericValue(
+          fmeDist_AU_Income_Franking.nfUnfranked, RevenuePercentage);
+        mImputedCredit := GetNumericValue(
+          fmeDist_AU_Income_Franking.nfFrankingCredits, RevenuePercentage);
       end;
 
       if assigned( fmeDist_AU_Income_InterestIncome ) then begin
-        mInterest := GetNumericValue(fmeDist_AU_Income_InterestIncome.nfInterest,       RevenuePercentage);
-        mOtherIncome := GetNumericValue(fmeDist_AU_Income_InterestIncome.nfOtherIncome,    RevenuePercentage);
+        mInterest := GetNumericValue(
+          fmeDist_AU_Income_InterestIncome.nfInterest, RevenuePercentage);
+        mOtherIncome := GetNumericValue(
+          fmeDist_AU_Income_InterestIncome.nfOtherIncome, RevenuePercentage);
       end;
-      mOtherTrustDeductions := GetNumericValue(nfLessOtherAllowableTrustDeductions,  RevenuePercentage);
+      mOtherTrustDeductions := GetNumericValue(
+        nfLessOtherAllowableTrustDeductions, RevenuePercentage);
+
       // Capital Gains Tab
-      mCapitalGains := GetNumericValue(fmeDist_CashCapitalGains_CGT.nfCGTIndexation, RevenuePercentage);
-      mDiscountedCapitalGains := GetNumericValue(fmeDist_CashCapitalGains_CGT.nfCGTDiscounted, RevenuePercentage);
-      mCapitalGainsOther := GetNumericValue(fmeDist_CashCapitalGains_CGT.nfCGTOther, RevenuePercentage);
-      mCGTConcessionAmount := GetNumericValue(nfCGTConcession,                      RevenuePercentage);
+      mCapitalGains := GetNumericValue(
+        fmeDist_CashCapitalGains_CGT.nfCGTIndexation, RevenuePercentage);
+      mDiscountedCapitalGains := GetNumericValue(
+        fmeDist_CashCapitalGains_CGT.nfCGTDiscounted, RevenuePercentage);
+      mCapitalGainsOther := GetNumericValue(
+        fmeDist_CashCapitalGains_CGT.nfCGTOther, RevenuePercentage);
+      mCGTConcessionAmount := GetNumericValue(
+        nfCGTConcession, RevenuePercentage);
 
-      mForeignCGTBeforeDiscount := GetNumericValue(nfForeignCGTBeforeDiscount,           RevenuePercentage);
-      mForeignCGTIndexationMethod := GetNumericValue(nfForeignCGTIndexationMethod,         RevenuePercentage);
-      mForeignCGTOtherMethod := GetNumericValue(nfForeignCGTOtherMethod,              RevenuePercentage);
+      mForeignCGTBeforeDiscount := GetNumericValue(
+        nfForeignCGTBeforeDiscount, RevenuePercentage);
+      mForeignCGTIndexationMethod := GetNumericValue(
+        nfForeignCGTIndexationMethod, RevenuePercentage);
+      mForeignCGTOtherMethod := GetNumericValue(
+        nfForeignCGTOtherMethod, RevenuePercentage);
 
-      mTaxPaidBeforeDiscount := GetNumericValue(nfTaxPaidBeforeDiscount,              RevenuePercentage);
-      mTaxPaidIndexationMethod := GetNumericValue(nfTaxPaidIndexationMethod,            RevenuePercentage);
-      mTaxPaidOtherMethod := GetNumericValue(nfTaxPaidOtherMethod,                 RevenuePercentage);
+      mTaxPaidBeforeDiscount := GetNumericValue(
+        nfTaxPaidBeforeDiscount, RevenuePercentage);
+      mTaxPaidIndexationMethod := GetNumericValue(
+        nfTaxPaidIndexationMethod, RevenuePercentage);
+      mTaxPaidOtherMethod := GetNumericValue(
+        nfTaxPaidOtherMethod, RevenuePercentage);
 
       //Foreign Income Tab
-      mForeignIncome := GetNumericValue(nfAssessableForeignSourceIncome,      RevenuePercentage);
-      mOtherNetForeignSourceIncome := GetNumericValue(nfOtherNetForeignSourceIncome,        RevenuePercentage);
-      mCashDistribution := GetNumericValue(nfCashDistribution,                   RevenuePercentage);
+      mForeignIncome := GetNumericValue(
+        nfAssessableForeignSourceIncome, RevenuePercentage);
+      mOtherNetForeignSourceIncome := GetNumericValue(
+        nfOtherNetForeignSourceIncome, RevenuePercentage);
+      mCashDistribution := GetNumericValue(
+        nfCashDistribution, RevenuePercentage);
 
       if assigned( fmeDist_ForeignIncome_Tax ) then begin
-        mForeignTaxCredits := GetNumericValue(fmeDist_ForeignIncome_Tax.nfForeignIncomeTaxOffset, RevenuePercentage);
-        mAUFrankingCreditsFromNZCompany := GetNumericValue(fmeDist_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany, RevenuePercentage);
-        mTFNCredits := GetNumericValue(fmeDist_ForeignIncome_Tax.nfTFNAmountsWithheld, RevenuePercentage);
+        mForeignTaxCredits := GetNumericValue(
+          fmeDist_ForeignIncome_Tax.nfForeignIncomeTaxOffset,
+          RevenuePercentage);
+        mAUFrankingCreditsFromNZCompany := GetNumericValue(
+          fmeDist_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany,
+          RevenuePercentage);
+        mTFNCredits := GetNumericValue(
+          fmeDist_ForeignIncome_Tax.nfTFNAmountsWithheld,
+          RevenuePercentage);
 
-        mNonResidentWithholdingTax := GetNumericValue(fmeDist_ForeignIncome_Tax.nfNonResidentWithholdingTax, RevenuePercentage);
+        mNonResidentWithholdingTax := GetNumericValue(
+          fmeDist_ForeignIncome_Tax.nfNonResidentWithholdingTax,
+          RevenuePercentage);
 
-        mLICDeductions := GetNumericValue(fmeDist_ForeignIncome_Tax.nfLICDeductions, RevenuePercentage);
-
+        mLICDeductions := GetNumericValue(
+          fmeDist_ForeignIncome_Tax.nfLICDeductions, RevenuePercentage);
       end;
 
-      mTaxFreeDist := GetNumericValue(nfTaxFreeAmounts,                     RevenuePercentage);
-      mTaxExemptDist := GetNumericValue(nfTaxExemptedAmounts,                 RevenuePercentage);
-      mTaxDeferredDist := GetNumericValue(nfTaxDeferredAmounts,                 RevenuePercentage);
-      mOtherExpenses := GetNumericValue(nfOtherExpenses,                      RevenuePercentage);
+      mTaxFreeDist := GetNumericValue(
+        nfTaxFreeAmounts, RevenuePercentage);
+      mTaxExemptDist := GetNumericValue(
+        nfTaxExemptedAmounts, RevenuePercentage);
+      mTaxDeferredDist := GetNumericValue(
+        nfTaxDeferredAmounts, RevenuePercentage);
+      mOtherExpenses := GetNumericValue(
+        nfOtherExpenses, RevenuePercentage);
 
       //Non-Cash Capital Gains/Loses
       if assigned( fmeDist_NonCashCapitalGains_CGT ) then begin
-        mNon_Cash_CGT_Discounted_Before_Discount := GetNumericValue(fmeDist_NonCashCapitalGains_CGT.nfCGTDiscounted, RevenuePercentage);
-        mNon_Cash_CGT_Indexation := GetNumericValue(fmeDist_NonCashCapitalGains_CGT.nfCGTIndexation, RevenuePercentage);
-        mNon_Cash_CGT_Other := GetNumericValue(fmeDist_NonCashCapitalGains_CGT.nfCGTOther, RevenuePercentage);
+        mNon_Cash_CGT_Discounted_Before_Discount := GetNumericValue(
+          fmeDist_NonCashCapitalGains_CGT.nfCGTDiscounted, RevenuePercentage);
+        mNon_Cash_CGT_Indexation := GetNumericValue(
+          fmeDist_NonCashCapitalGains_CGT.nfCGTIndexation, RevenuePercentage);
+        mNon_Cash_CGT_Other := GetNumericValue(
+          fmeDist_NonCashCapitalGains_CGT.nfCGTOther, RevenuePercentage);
       end;
-      mNon_Cash_CGT_Capital_Losses := GetNumericValue(nfCGTCapitalLosses, RevenuePercentage);
+      mNon_Cash_CGT_Capital_Losses := GetNumericValue(
+        nfCGTCapitalLosses, RevenuePercentage);
     end;
     ttShareTrade : begin
     // ** Panel Share Trade Panel **
-      mShareBrokerage := GetNumericValue(nfShareBrokerage,     RevenuePercentage);
-      mShareConsideration := GetNumericValue(nfShareConsideration, RevenuePercentage);
-      mShareGSTAmount := GetNumericValue(nfShareGSTAmount,     RevenuePercentage);
+      mShareBrokerage := GetNumericValue(
+        nfShareBrokerage, RevenuePercentage);
+      mShareConsideration := GetNumericValue(
+        nfShareConsideration, RevenuePercentage);
+      mShareGSTAmount := GetNumericValue(
+        nfShareGSTAmount, RevenuePercentage);
 
       mShareGSTRate := cmbxShareGSTRate.Properties.Items[ cmbxShareGSTRate.ItemIndex ];
     end;
     ttInterest : begin
     // ** Panel Interest Panel **
-      mInterest := GetNumericValue(nfInterest,                  RevenuePercentage);
-      mOtherIncome := GetNumericValue(nfOtherIncome,               RevenuePercentage);
-      mTFNCredits := GetNumericValue(nfTFNAmountsWithheld,        RevenuePercentage);
-      mNonResidentWithholdingTax := GetNumericValue(nfNonResidentWithholdingTax, RevenuePercentage);
+      mInterest := GetNumericValue(
+        nfInterest, RevenuePercentage);
+      mOtherIncome := GetNumericValue(
+        nfOtherIncome, RevenuePercentage);
+      mTFNCredits := GetNumericValue(
+        nfTFNAmountsWithheld, RevenuePercentage);
+      mNonResidentWithholdingTax := GetNumericValue(
+        nfNonResidentWithholdingTax, RevenuePercentage);
     end;
     ttDividend : begin
     // ** Panel Dividend Panel **
       if assigned( fmeDividend_Franking ) then begin
-        mFranked := GetNumericValue(fmeDividend_Franking.nfFranked,         RevenuePercentage);
-        mUnfranked := GetNumericValue(fmeDividend_Franking.nfUnfranked,       RevenuePercentage);
-        mImputedCredit := GetNumericValue(fmeDividend_Franking.nfFrankingCredits, RevenuePercentage);
+        mFranked := GetNumericValue(
+          fmeDividend_Franking.nfFranked, RevenuePercentage);
+        mUnfranked := GetNumericValue(
+          fmeDividend_Franking.nfUnfranked, RevenuePercentage);
+        mImputedCredit := GetNumericValue(
+          fmeDividend_Franking.nfFrankingCredits, RevenuePercentage);
       end;
-      mForeignIncome := GetNumericValue(nfForeignIncome,                       RevenuePercentage);
+      mForeignIncome := GetNumericValue(
+        nfForeignIncome, RevenuePercentage);
       if assigned( fmeDividend_ForeignIncome_Tax ) then begin
-        mForeignTaxCredits := GetNumericValue(fmeDividend_ForeignIncome_Tax.nfForeignIncomeTaxOffset,         RevenuePercentage);
-        mAUFrankingCreditsFromNZCompany := GetNumericValue(fmeDividend_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany, RevenuePercentage);
-        mTFNCredits := GetNumericValue(fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld,             RevenuePercentage);
-        mNonResidentWithholdingTax := GetNumericValue(fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax,      RevenuePercentage);
-        mLICDeductions := GetNumericValue(fmeDividend_ForeignIncome_Tax.nfLICDeductions,                  RevenuePercentage);
+        mForeignTaxCredits := GetNumericValue(
+          fmeDividend_ForeignIncome_Tax.nfForeignIncomeTaxOffset, RevenuePercentage);
+        mAUFrankingCreditsFromNZCompany := GetNumericValue(
+          fmeDividend_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany, RevenuePercentage);
+        mTFNCredits := GetNumericValue(
+          fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld, RevenuePercentage);
+        mNonResidentWithholdingTax := GetNumericValue(
+          fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax, RevenuePercentage);
+        mLICDeductions := GetNumericValue(
+          fmeDividend_ForeignIncome_Tax.nfLICDeductions, RevenuePercentage);
       end;
     end;
   end;
@@ -629,43 +686,31 @@ end;
 procedure TdlgEditBGLSF360Fields.SetAustralianIncomeTabModified(
   aValue: boolean);
 begin
-(*  if aValue then
-    tsAustralianIncome.Font.Color := BankLinkColor
-  else
-    tsAustralianIncome.Font.Color := clWindowText; *)
   tsAustralianIncome.Highlighted := aValue;
   if aValue then
-    tsAustralianIncome.ImageIndex := 0
+    tsAustralianIncome.ImageIndex := clTabModifiedIdx
   else
-    tsAustralianIncome.ImageIndex := -1;
+    tsAustralianIncome.ImageIndex := clTabNotModifiedIdx;
   pcDistribution.Repaint;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetCapitalGainsTabModified(aValue: boolean);
 begin
-(*  if aValue then
-    tsCapitalGains.Font.Color := BankLinkColor
-  else
-    tsCapitalGains.Font.Color := clWindowText; *)
   tsCapitalGains.Highlighted := aValue;
   if aValue then
-    tsCapitalGains.ImageIndex := 0
+    tsCapitalGains.ImageIndex := clTabModifiedIdx
   else
-    tsCapitalGains.ImageIndex := -1;
+    tsCapitalGains.ImageIndex := clTabNotModifiedIdx;
   pcDistribution.Repaint;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetForeignIncomeTabModified(aValue: boolean);
 begin
-(*  if aValue then
-    tsForeignIncome.Font.Color := BankLinkColor
-  else
-    tsForeignIncome.Font.Color := clWindowText; *)
   tsForeignIncome.Highlighted := aValue;
   if aValue then
-    tsForeignIncome.ImageIndex := 0
+    tsForeignIncome.ImageIndex := clTabModifiedIdx
   else
-    tsForeignIncome.ImageIndex := -1;
+    tsForeignIncome.ImageIndex := clTabNotModifiedIdx;
 
   pcDistribution.Repaint;
 end;
@@ -673,16 +718,11 @@ end;
 procedure TdlgEditBGLSF360Fields.SetNonCashCapitalGainsTabModified(
   aValue: boolean);
 begin
-(*  if aValue then
-    tsNonCashCapitalGains.Font.Color := BankLinkColor
-  else
-    tsNonCashCapitalGains.Font.Color := clWindowText;
-*)
   tsNonCashCapitalGains.Highlighted := aValue;
   if aValue then
-    tsNonCashCapitalGains.ImageIndex := 0
+    tsNonCashCapitalGains.ImageIndex := 1
   else
-    tsNonCashCapitalGains.ImageIndex := -1;
+    tsNonCashCapitalGains.ImageIndex := clTabNotModifiedIdx;
 
   pcDistribution.Repaint;
 end;

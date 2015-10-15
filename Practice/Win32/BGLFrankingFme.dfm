@@ -5,7 +5,7 @@ object fmeBGLFranking: TfmeBGLFranking
   Height = 90
   TabOrder = 0
   object lblFranked: TLabel
-    Left = 3
+    Left = 6
     Top = 3
     Width = 39
     Height = 13
@@ -13,7 +13,7 @@ object fmeBGLFranking: TfmeBGLFranking
     FocusControl = nfFranked
   end
   object lpFranked: TLabel
-    Left = 380
+    Left = 393
     Top = 3
     Width = 11
     Height = 13
@@ -22,16 +22,16 @@ object fmeBGLFranking: TfmeBGLFranking
     Visible = False
   end
   object lblUnfranked: TLabel
-    Left = 3
-    Top = 35
+    Left = 6
+    Top = 30
     Width = 50
     Height = 13
     Caption = 'Unfranked'
     FocusControl = nfUnfranked
   end
   object lpUnfranked: TLabel
-    Left = 380
-    Top = 35
+    Left = 393
+    Top = 30
     Width = 11
     Height = 13
     Caption = '%'
@@ -39,16 +39,16 @@ object fmeBGLFranking: TfmeBGLFranking
     Visible = False
   end
   object lblFrankingCredits: TLabel
-    Left = 3
-    Top = 67
+    Left = 6
+    Top = 58
     Width = 78
     Height = 13
     Caption = 'Franking Credits'
     FocusControl = nfFrankingCredits
   end
   object btnFrankingCredits: TSpeedButton
-    Left = 382
-    Top = 53
+    Left = 393
+    Top = 55
     Width = 28
     Height = 22
     Glyph.Data = {
@@ -88,7 +88,7 @@ object fmeBGLFranking: TfmeBGLFranking
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00}
   end
   object nfFranked: TOvcNumericField
-    Left = 250
+    Left = 260
     Top = 1
     Width = 132
     Height = 20
@@ -110,8 +110,8 @@ object fmeBGLFranking: TfmeBGLFranking
     RangeLow = {00000000000000000000}
   end
   object nfUnfranked: TOvcNumericField
-    Left = 250
-    Top = 33
+    Left = 260
+    Top = 28
     Width = 132
     Height = 20
     Cursor = crIBeam
@@ -132,8 +132,8 @@ object fmeBGLFranking: TfmeBGLFranking
     RangeLow = {00000000000000000000}
   end
   object nfFrankingCredits: TOvcNumericField
-    Left = 250
-    Top = 65
+    Left = 260
+    Top = 55
     Width = 132
     Height = 20
     Cursor = crIBeam

@@ -23,6 +23,1059 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 17
+  object pnlDistribution: TPanel
+    Left = 0
+    Top = 145
+    Width = 709
+    Height = 267
+    Align = alClient
+    BevelOuter = bvNone
+    ParentColor = True
+    TabOrder = 2
+    Visible = False
+    object lineDistribution: TShape
+      Left = 0
+      Top = 0
+      Width = 709
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 720
+    end
+    object pcDistribution: TPageControl
+      Left = 0
+      Top = 1
+      Width = 709
+      Height = 266
+      ActivePage = tsAustralianIncome
+      Align = alClient
+      Images = EditedTabImageList
+      TabOrder = 0
+      object tsAustralianIncome: TTabSheet
+        Caption = 'Australian Income'
+        ImageIndex = -1
+        object lblLessOtherAllowableTrustDeductions: TLabel
+          Left = 6
+          Top = 163
+          Width = 224
+          Height = 17
+          Caption = 'Less Other Allowable Trust Deductions'
+          FocusControl = nfLessOtherAllowableTrustDeductions
+        end
+        object lpLessOtherAllowableTrustDeductions: TLabel
+          Left = 393
+          Top = 163
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfLessOtherAllowableTrustDeductions
+          Visible = False
+        end
+        inline fmeDist_AU_Income_InterestIncome: TfmeBGLInterestIncome
+          Left = 0
+          Top = 105
+          Width = 450
+          Height = 54
+          TabOrder = 1
+          ExplicitTop = 105
+          ExplicitWidth = 450
+          inherited lblInterest: TLabel
+            Left = 6
+            Width = 81
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitWidth = 81
+            ExplicitHeight = 17
+          end
+          inherited lpInterest: TLabel
+            Left = 393
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitHeight = 17
+          end
+          inherited lpOtherIncome: TLabel
+            Left = 393
+            Top = 31
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitTop = 31
+            ExplicitHeight = 17
+          end
+          inherited lblOtherIncome: TLabel
+            Left = 6
+            Top = 31
+            Width = 79
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 31
+            ExplicitWidth = 79
+            ExplicitHeight = 17
+          end
+          inherited nfInterest: TOvcNumericField
+            Left = 260
+            Top = 2
+            OnChange = tsAustralianIncomeTabOnChange
+            ExplicitLeft = 260
+            ExplicitTop = 2
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfOtherIncome: TOvcNumericField
+            Left = 260
+            Top = 29
+            OnChange = tsAustralianIncomeTabOnChange
+            ExplicitLeft = 260
+            ExplicitTop = 29
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+        end
+        inline fmeDist_AU_Income_Franking: TfmeBGLFranking
+          Left = 0
+          Top = 3
+          Width = 450
+          Height = 80
+          TabOrder = 0
+          ExplicitTop = 3
+          ExplicitWidth = 450
+          ExplicitHeight = 80
+          inherited lblFranked: TLabel
+            Width = 46
+            Height = 17
+            ExplicitWidth = 46
+            ExplicitHeight = 17
+          end
+          inherited lpFranked: TLabel
+            Height = 17
+            ExplicitHeight = 17
+          end
+          inherited lblUnfranked: TLabel
+            Width = 60
+            Height = 17
+            ExplicitWidth = 60
+            ExplicitHeight = 17
+          end
+          inherited lpUnfranked: TLabel
+            Height = 17
+            ExplicitHeight = 17
+          end
+          inherited lblFrankingCredits: TLabel
+            Width = 94
+            Height = 17
+            ExplicitWidth = 94
+            ExplicitHeight = 17
+          end
+          inherited btnFrankingCredits: TSpeedButton
+            OnClick = frameFrankingbtnCalcClick
+          end
+          inherited nfFranked: TOvcNumericField
+            OnChange = frameFrankingFrankedChange
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfUnfranked: TOvcNumericField
+            OnChange = frameFrankingUnfrankedChange
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfFrankingCredits: TOvcNumericField
+            OnChange = frameFrankingFrankingCreditsChange
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+        end
+        object nfLessOtherAllowableTrustDeductions: TOvcNumericField
+          Left = 260
+          Top = 161
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 2
+          OnChange = tsAustralianIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+      end
+      object tsCapitalGains: TTabSheet
+        Caption = 'Capital Gains'
+        ImageIndex = -1
+        object lblCGTConcession: TLabel
+          Left = 6
+          Top = 86
+          Width = 249
+          Height = 17
+          Caption = 'Capital Gain Tax (CGT) Concession Amount'
+          FocusControl = nfCGTConcession
+        end
+        object lpCGTConcession: TLabel
+          Left = 393
+          Top = 86
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfCGTConcession
+          Visible = False
+        end
+        object lblForeignCGT: TLabel
+          Left = 264
+          Top = 133
+          Width = 124
+          Height = 17
+          Caption = 'Foreign Capital Gains'
+        end
+        object lblTaxPaid: TLabel
+          Left = 451
+          Top = 114
+          Width = 95
+          Height = 17
+          Caption = 'Income Tax Paid'
+        end
+        object lblBeforeDiscount: TLabel
+          Left = 6
+          Top = 158
+          Width = 92
+          Height = 17
+          Caption = 'Before Discount'
+        end
+        object lblIndexationMethod: TLabel
+          Left = 6
+          Top = 184
+          Width = 110
+          Height = 17
+          Caption = 'Indexation Method'
+        end
+        object lblOtherMethod: TLabel
+          Left = 6
+          Top = 210
+          Width = 83
+          Height = 17
+          Caption = 'Other Method'
+        end
+        object lineCapitalGainsTab: TShape
+          Left = 0
+          Top = 113
+          Width = 720
+          Height = 1
+          Pen.Color = clSilver
+        end
+        object lblOffset_Credits: TLabel
+          Left = 458
+          Top = 130
+          Width = 81
+          Height = 17
+          Caption = 'Offset/Credits'
+        end
+        object nfCGTConcession: TOvcNumericField
+          Left = 260
+          Top = 84
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 1
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        inline fmeDist_CashCapitalGains_CGT: TfmeBGLCapitalGainsTax
+          Left = 0
+          Top = 3
+          Width = 450
+          Height = 80
+          TabOrder = 0
+          ExplicitTop = 3
+          ExplicitWidth = 450
+          ExplicitHeight = 80
+          inherited lblCGTDiscounted: TLabel
+            Left = 6
+            Width = 243
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitWidth = 243
+            ExplicitHeight = 17
+          end
+          inherited lpCGTDiscounted: TLabel
+            Left = 393
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitHeight = 17
+          end
+          inherited lblCGTIndexation: TLabel
+            Left = 6
+            Top = 30
+            Width = 199
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 30
+            ExplicitWidth = 199
+            ExplicitHeight = 17
+          end
+          inherited lpCGTIndexation: TLabel
+            Left = 393
+            Top = 30
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitTop = 30
+            ExplicitHeight = 17
+          end
+          inherited lblCGTOther: TLabel
+            Left = 6
+            Top = 57
+            Width = 172
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 57
+            ExplicitWidth = 172
+            ExplicitHeight = 17
+          end
+          inherited lpCGTOther: TLabel
+            Left = 393
+            Top = 57
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitTop = 57
+            ExplicitHeight = 17
+          end
+          inherited nfCGTDiscounted: TOvcNumericField
+            Left = 260
+            OnChange = tsCapitalGainsTabOnChange
+            ExplicitLeft = 260
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfCGTIndexation: TOvcNumericField
+            Left = 260
+            Top = 28
+            OnChange = tsCapitalGainsTabOnChange
+            ExplicitLeft = 260
+            ExplicitTop = 28
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfCGTOther: TOvcNumericField
+            Left = 260
+            Top = 55
+            OnChange = tsCapitalGainsTabOnChange
+            ExplicitLeft = 260
+            ExplicitTop = 55
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+        end
+        object nfForeignCGTBeforeDiscount: TOvcNumericField
+          Left = 260
+          Top = 156
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 2
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        object nfForeignCGTIndexationMethod: TOvcNumericField
+          Left = 260
+          Top = 182
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 3
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        object nfForeignCGTOtherMethod: TOvcNumericField
+          Left = 260
+          Top = 208
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 4
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        object nfTaxPaidBeforeDiscount: TOvcNumericField
+          Left = 432
+          Top = 156
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 5
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        object nfTaxPaidIndexationMethod: TOvcNumericField
+          Left = 432
+          Top = 182
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 6
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        object nfTaxPaidOtherMethod: TOvcNumericField
+          Left = 432
+          Top = 208
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 7
+          OnChange = tsCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+      end
+      object tsForeignIncome: TTabSheet
+        Caption = 'Foreign Income'
+        ImageIndex = -1
+        object lblAssessableForeignSourceIncome: TLabel
+          Left = 6
+          Top = 6
+          Width = 202
+          Height = 17
+          Caption = 'Assessable Foreign Source Income'
+          FocusControl = nfAssessableForeignSourceIncome
+        end
+        object lpAssessableForeignSourceIncome: TLabel
+          Left = 380
+          Top = 6
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfAssessableForeignSourceIncome
+          Visible = False
+        end
+        object lblOtherNetForeignSourceIncome: TLabel
+          Left = 6
+          Top = 32
+          Width = 196
+          Height = 17
+          Caption = 'Other Net Foreign Source Income'
+          FocusControl = nfOtherNetForeignSourceIncome
+        end
+        object lpOtherNetForeignSourceIncome: TLabel
+          Left = 380
+          Top = 32
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfOtherNetForeignSourceIncome
+          Visible = False
+        end
+        object lblCashDistribution: TLabel
+          Left = 6
+          Top = 58
+          Width = 99
+          Height = 17
+          Caption = 'Cash Distribution'
+          FocusControl = nfCashDistribution
+        end
+        object lpCashDistribution: TLabel
+          Left = 380
+          Top = 58
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfCashDistribution
+          Visible = False
+        end
+        object lblTaxExemptedAmounts: TLabel
+          Left = 407
+          Top = 6
+          Width = 137
+          Height = 17
+          Caption = 'Tax Exempted Amounts'
+          FocusControl = nfTaxExemptedAmounts
+        end
+        object lpTaxExemptedAmounts: TLabel
+          Left = 688
+          Top = 6
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfTaxExemptedAmounts
+          Visible = False
+        end
+        object lblTaxFreeAmounts: TLabel
+          Left = 407
+          Top = 32
+          Width = 104
+          Height = 17
+          Caption = 'Tax Free Amounts'
+          FocusControl = nfTaxFreeAmounts
+        end
+        object lpTaxFreeAmounts: TLabel
+          Left = 688
+          Top = 32
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfTaxFreeAmounts
+          Visible = False
+        end
+        object lblTaxDeferredAmounts: TLabel
+          Left = 407
+          Top = 58
+          Width = 131
+          Height = 17
+          Caption = 'Tax Deferred Amounts'
+          FocusControl = nfTaxDeferredAmounts
+        end
+        object lpTaxDeferredAmounts: TLabel
+          Left = 688
+          Top = 58
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfTaxDeferredAmounts
+          Visible = False
+        end
+        object lblOtherExpenses: TLabel
+          Left = 407
+          Top = 84
+          Width = 91
+          Height = 17
+          Caption = 'Other Expenses'
+          FocusControl = nfOtherExpenses
+        end
+        object lpOtherExpenses: TLabel
+          Left = 688
+          Top = 84
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfOtherExpenses
+          Visible = False
+        end
+        object nfAssessableForeignSourceIncome: TOvcNumericField
+          Left = 245
+          Top = 4
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 0
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {5C8FC2F5FF276BEE1CC0}
+        end
+        object nfOtherNetForeignSourceIncome: TOvcNumericField
+          Left = 245
+          Top = 30
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 1
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {5C8FC2F5FF276BEE1CC0}
+        end
+        object nfCashDistribution: TOvcNumericField
+          Left = 245
+          Top = 56
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 2
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {5C8FC2F5FF276BEE1CC0}
+        end
+        object nfTaxExemptedAmounts: TOvcNumericField
+          Left = 555
+          Top = 4
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 4
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {5C8FC2F5FF276BEE1CC0}
+        end
+        object nfTaxFreeAmounts: TOvcNumericField
+          Left = 555
+          Top = 30
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 5
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {5C8FC2F5FF276BEE1CC0}
+        end
+        object nfTaxDeferredAmounts: TOvcNumericField
+          Left = 555
+          Top = 56
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 6
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {5C8FC2F5FF276BEE1CC0}
+        end
+        inline fmeDist_ForeignIncome_Tax: TfmeBGLForeignTax
+          Left = 0
+          Top = 92
+          Width = 405
+          Height = 144
+          TabOrder = 3
+          ExplicitTop = 92
+          ExplicitWidth = 405
+          ExplicitHeight = 144
+          inherited lblForeignIncomeTaxOffset: TLabel
+            Left = 6
+            Width = 153
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitWidth = 153
+            ExplicitHeight = 17
+          end
+          inherited lpForeignIncomeTaxOffset: TLabel
+            Height = 17
+            ExplicitHeight = 17
+          end
+          inherited lblAUFrankingCreditsFromNZCompany: TLabel
+            Left = 6
+            Top = 31
+            Width = 227
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 31
+            ExplicitWidth = 227
+            ExplicitHeight = 17
+          end
+          inherited lpAUFrankingCreditsFromNZCompany: TLabel
+            Top = 31
+            Height = 17
+            ExplicitTop = 31
+            ExplicitHeight = 17
+          end
+          inherited lblTFNAmountsWithheld: TLabel
+            Left = 6
+            Top = 68
+            Width = 133
+            Height = 17
+            Caption = 'TFN Amounts Withheld'
+            ExplicitLeft = 6
+            ExplicitTop = 68
+            ExplicitWidth = 133
+            ExplicitHeight = 17
+          end
+          inherited lpTFNAmountsWithheld: TLabel
+            Top = 68
+            Height = 17
+            ExplicitTop = 68
+            ExplicitHeight = 17
+          end
+          inherited lblNonResidentWithholdingTax: TLabel
+            Left = 6
+            Top = 94
+            Width = 178
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 94
+            ExplicitWidth = 178
+            ExplicitHeight = 17
+          end
+          inherited lpNonResidentWithholdingTax: TLabel
+            Top = 94
+            Height = 17
+            ExplicitTop = 94
+            ExplicitHeight = 17
+          end
+          inherited lblLICDeductions: TLabel
+            Left = 6
+            Top = 119
+            Width = 80
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 119
+            ExplicitWidth = 80
+            ExplicitHeight = 17
+          end
+          inherited lpLICDeductions: TLabel
+            Top = 119
+            Height = 17
+            ExplicitTop = 119
+            ExplicitHeight = 17
+          end
+          inherited nfForeignIncomeTaxOffset: TOvcNumericField
+            Left = 245
+            OnChange = tsForeignIncomeTabOnChange
+            ExplicitLeft = 245
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {5C8FC2F5FF276BEE1CC0}
+          end
+          inherited nfAUFrankingCreditsFromNZCompany: TOvcNumericField
+            Left = 245
+            Top = 29
+            OnChange = tsForeignIncomeTabOnChange
+            ExplicitLeft = 245
+            ExplicitTop = 29
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {5C8FC2F5FF276BEE1CC0}
+          end
+          inherited nfTFNAmountsWithheld: TOvcNumericField
+            Left = 245
+            Top = 66
+            OnChange = tsForeignIncomeTabOnChange
+            ExplicitLeft = 245
+            ExplicitTop = 66
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {5C8FC2F5FF276BEE1CC0}
+          end
+          inherited nfNonResidentWithholdingTax: TOvcNumericField
+            Left = 245
+            Top = 92
+            OnChange = tsForeignIncomeTabOnChange
+            ExplicitLeft = 245
+            ExplicitTop = 92
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {5C8FC2F5FF276BEE1CC0}
+          end
+          inherited nfLICDeductions: TOvcNumericField
+            Left = 245
+            Top = 117
+            OnChange = tsForeignIncomeTabOnChange
+            ExplicitLeft = 245
+            ExplicitTop = 117
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {5C8FC2F5FF276BEE1CC0}
+          end
+        end
+        object nfOtherExpenses: TOvcNumericField
+          Left = 555
+          Top = 82
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 7
+          OnChange = tsForeignIncomeTabOnChange
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+      end
+      object tsNonCashCapitalGains: TTabSheet
+        Caption = 'Non-Cash Capital Gains/Losses'
+        ImageIndex = -1
+        object lpCGTCapitalLosses: TLabel
+          Left = 393
+          Top = 84
+          Width = 11
+          Height = 17
+          Caption = '%'
+          FocusControl = nfCGTCapitalLosses
+          Visible = False
+        end
+        object lblCGTCapitalLosses: TLabel
+          Left = 6
+          Top = 84
+          Width = 83
+          Height = 17
+          Caption = 'Capital Losses'
+        end
+        object nfCGTCapitalLosses: TOvcNumericField
+          Left = 260
+          Top = 82
+          Width = 132
+          Height = 20
+          Cursor = crIBeam
+          DataType = nftDouble
+          AutoSize = False
+          BorderStyle = bsNone
+          CaretOvr.Shape = csBlock
+          EFColors.Disabled.BackColor = clWindow
+          EFColors.Disabled.TextColor = clGrayText
+          EFColors.Error.BackColor = clRed
+          EFColors.Error.TextColor = clBlack
+          EFColors.Highlight.BackColor = clHighlight
+          EFColors.Highlight.TextColor = clHighlightText
+          Options = []
+          PictureMask = '#,###,###,###.##'
+          TabOrder = 1
+          OnChange = tsNonCashCapitalGainsTabOnChange
+          OnKeyPress = nfTFNCreditsKeyPress
+          RangeHigh = {F6285CFFFFF802952040}
+          RangeLow = {00000000000000000000}
+        end
+        inline fmeDist_NonCashCapitalGains_CGT: TfmeBGLCapitalGainsTax
+          Left = 0
+          Top = 3
+          Width = 450
+          Height = 78
+          TabOrder = 0
+          ExplicitTop = 3
+          ExplicitWidth = 450
+          ExplicitHeight = 78
+          inherited lblCGTDiscounted: TLabel
+            Left = 6
+            Width = 243
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitWidth = 243
+            ExplicitHeight = 17
+          end
+          inherited lpCGTDiscounted: TLabel
+            Left = 393
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitHeight = 17
+          end
+          inherited lblCGTIndexation: TLabel
+            Left = 6
+            Top = 29
+            Width = 199
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 29
+            ExplicitWidth = 199
+            ExplicitHeight = 17
+          end
+          inherited lpCGTIndexation: TLabel
+            Left = 393
+            Top = 29
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitTop = 29
+            ExplicitHeight = 17
+          end
+          inherited lblCGTOther: TLabel
+            Left = 6
+            Top = 55
+            Width = 172
+            Height = 17
+            ExplicitLeft = 6
+            ExplicitTop = 55
+            ExplicitWidth = 172
+            ExplicitHeight = 17
+          end
+          inherited lpCGTOther: TLabel
+            Left = 393
+            Top = 55
+            Height = 17
+            ExplicitLeft = 393
+            ExplicitTop = 55
+            ExplicitHeight = 17
+          end
+          inherited nfCGTDiscounted: TOvcNumericField
+            Left = 260
+            OnChange = tsNonCashCapitalGainsTabOnChange
+            ExplicitLeft = 260
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfCGTIndexation: TOvcNumericField
+            Left = 260
+            Top = 27
+            OnChange = tsNonCashCapitalGainsTabOnChange
+            ExplicitLeft = 260
+            ExplicitTop = 27
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+          inherited nfCGTOther: TOvcNumericField
+            Left = 260
+            Top = 53
+            OnChange = tsNonCashCapitalGainsTabOnChange
+            ExplicitLeft = 260
+            ExplicitTop = 53
+            RangeHigh = {F6285CFFFFF802952040}
+            RangeLow = {00000000000000000000}
+          end
+        end
+      end
+    end
+  end
   object pnlInterest: TPanel
     Left = 0
     Top = 145
@@ -466,7 +1519,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object lpForeignIncome: TLabel
       Left = 540
-      Top = 125
+      Top = 127
       Width = 11
       Height = 17
       Caption = '%'
@@ -475,7 +1528,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     end
     object lblForeignIncome: TLabel
       Left = 157
-      Top = 128
+      Top = 127
       Width = 90
       Height = 17
       Caption = 'Foreign Income'
@@ -487,18 +1540,18 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Width = 709
       Height = 266
       Align = alClient
+      Enabled = False
       TabOrder = 2
-      ExplicitTop = 1
       ExplicitWidth = 709
       ExplicitHeight = 266
       inherited lblForeignIncomeTaxOffset: TLabel
         Left = 157
-        Top = 154
+        Top = 153
         Width = 198
         Height = 17
         Caption = 'Foreign Income Tax Offset Credits'
         ExplicitLeft = 157
-        ExplicitTop = 154
+        ExplicitTop = 153
         ExplicitWidth = 198
         ExplicitHeight = 17
       end
@@ -530,96 +1583,96 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       end
       inherited lblTFNAmountsWithheld: TLabel
         Left = 357
-        Top = 9
+        Top = 6
         Width = 133
         Height = 17
         Caption = 'TFN Amounts Withheld'
         ExplicitLeft = 357
-        ExplicitTop = 9
+        ExplicitTop = 6
         ExplicitWidth = 133
         ExplicitHeight = 17
       end
       inherited lpTFNAmountsWithheld: TLabel
         Left = 684
-        Top = 9
+        Top = 6
         Height = 17
         ExplicitLeft = 684
-        ExplicitTop = 9
+        ExplicitTop = 6
         ExplicitHeight = 17
       end
       inherited lblNonResidentWithholdingTax: TLabel
         Left = 357
-        Top = 39
+        Top = 33
         Width = 178
         Height = 17
         ExplicitLeft = 357
-        ExplicitTop = 39
+        ExplicitTop = 33
         ExplicitWidth = 178
         ExplicitHeight = 17
       end
       inherited lpNonResidentWithholdingTax: TLabel
         Left = 684
-        Top = 39
+        Top = 33
         Height = 17
         ExplicitLeft = 684
-        ExplicitTop = 39
+        ExplicitTop = 33
         ExplicitHeight = 17
       end
       inherited lblLICDeductions: TLabel
         Left = 357
-        Top = 68
+        Top = 61
         Width = 80
         Height = 17
         ExplicitLeft = 357
-        ExplicitTop = 68
+        ExplicitTop = 61
         ExplicitWidth = 80
         ExplicitHeight = 17
       end
       inherited lpLICDeductions: TLabel
         Left = 684
-        Top = 68
+        Top = 61
         Height = 17
         ExplicitLeft = 684
-        ExplicitTop = 68
+        ExplicitTop = 61
         ExplicitHeight = 17
       end
       inherited nfForeignIncomeTaxOffset: TOvcNumericField
         Left = 407
-        Top = 153
+        Top = 151
         ExplicitLeft = 407
-        ExplicitTop = 153
+        ExplicitTop = 151
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfAUFrankingCreditsFromNZCompany: TOvcNumericField
         Left = 407
-        Top = 182
+        Top = 181
         ExplicitLeft = 407
-        ExplicitTop = 182
+        ExplicitTop = 181
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfTFNAmountsWithheld: TOvcNumericField
         Left = 551
-        Top = 8
+        Top = 4
         ExplicitLeft = 551
-        ExplicitTop = 8
+        ExplicitTop = 4
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfNonResidentWithholdingTax: TOvcNumericField
         Left = 551
-        Top = 38
+        Top = 31
         ExplicitLeft = 551
-        ExplicitTop = 38
+        ExplicitTop = 31
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
       inherited nfLICDeductions: TOvcNumericField
         Left = 551
-        Top = 67
+        Top = 59
         ExplicitLeft = 551
-        ExplicitTop = 67
+        ExplicitTop = 59
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
@@ -627,84 +1680,70 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     inline fmeDividend_Franking: TfmeBGLFranking
       Left = 0
       Top = 3
-      Width = 329
+      Width = 318
       Height = 90
+      Enabled = False
       TabOrder = 0
       ExplicitTop = 3
-      ExplicitWidth = 329
+      ExplicitWidth = 318
       inherited lblFranked: TLabel
-        Left = 10
-        Top = 7
         Width = 46
         Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 7
+        Enabled = False
         ExplicitWidth = 46
         ExplicitHeight = 17
       end
       inherited lpFranked: TLabel
-        Left = 281
-        Top = 7
+        Left = 261
         Height = 17
-        ExplicitLeft = 281
-        ExplicitTop = 7
+        Enabled = False
+        ExplicitLeft = 261
         ExplicitHeight = 17
       end
       inherited lblUnfranked: TLabel
-        Left = 10
         Width = 60
         Height = 17
-        ExplicitLeft = 10
         ExplicitWidth = 60
         ExplicitHeight = 17
       end
       inherited lpUnfranked: TLabel
-        Left = 281
+        Left = 261
         Height = 17
-        ExplicitLeft = 281
+        ExplicitLeft = 261
         ExplicitHeight = 17
       end
       inherited lblFrankingCredits: TLabel
-        Left = 10
-        Top = 63
         Width = 94
         Height = 17
-        ExplicitLeft = 10
-        ExplicitTop = 63
         ExplicitWidth = 94
         ExplicitHeight = 17
       end
       inherited btnFrankingCredits: TSpeedButton
-        Left = 281
-        Top = 61
+        Left = 261
         OnClick = frameFrankingbtnCalcClick
-        ExplicitLeft = 281
-        ExplicitTop = 61
+        ExplicitLeft = 261
       end
       inherited nfFranked: TOvcNumericField
-        Left = 148
-        Top = 6
+        Left = 128
+        Enabled = False
         OnChange = frameFrankingFrankedChange
-        ExplicitLeft = 148
-        ExplicitTop = 6
+        ExplicitLeft = 128
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
       end
       inherited nfUnfranked: TOvcNumericField
-        Left = 148
-        Top = 34
+        Left = 128
         OnChange = frameFrankingUnfrankedChange
-        ExplicitLeft = 148
-        ExplicitTop = 34
+        ExplicitLeft = 128
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
       end
       inherited nfFrankingCredits: TOvcNumericField
-        Left = 148
-        Top = 62
+        Left = 128
+        Top = 56
         OnChange = frameFrankingFrankingCreditsChange
-        ExplicitLeft = 148
-        ExplicitTop = 62
+        ExplicitLeft = 128
+        ExplicitTop = 56
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
       end
@@ -730,1088 +1769,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       TabOrder = 1
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
-    end
-  end
-  object pnlDistribution: TPanel
-    Left = 0
-    Top = 145
-    Width = 709
-    Height = 267
-    Align = alClient
-    BevelOuter = bvNone
-    ParentColor = True
-    TabOrder = 2
-    Visible = False
-    object lineDistribution: TShape
-      Left = 0
-      Top = 0
-      Width = 709
-      Height = 1
-      Align = alTop
-      Pen.Color = clSilver
-      ExplicitWidth = 720
-    end
-    object pcDistribution: TPageControl
-      Left = 0
-      Top = 1
-      Width = 709
-      Height = 266
-      ActivePage = tsAustralianIncome
-      Align = alClient
-      Images = EditedTabImageList
-      TabOrder = 0
-      object tsAustralianIncome: TTabSheet
-        Caption = 'Australian Income'
-        ImageIndex = -1
-        object lblLessOtherAllowableTrustDeductions: TLabel
-          Left = 6
-          Top = 146
-          Width = 224
-          Height = 17
-          Caption = 'Less Other Allowable Trust Deductions'
-          FocusControl = nfLessOtherAllowableTrustDeductions
-        end
-        object lpLessOtherAllowableTrustDeductions: TLabel
-          Left = 393
-          Top = 146
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfLessOtherAllowableTrustDeductions
-          Visible = False
-        end
-        inline fmeDist_AU_Income_InterestIncome: TfmeBGLInterestIncome
-          Left = 0
-          Top = 92
-          Width = 450
-          Height = 54
-          TabOrder = 1
-          ExplicitTop = 92
-          ExplicitWidth = 450
-          inherited lblInterest: TLabel
-            Left = 6
-            Width = 81
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 81
-            ExplicitHeight = 17
-          end
-          inherited lpInterest: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited lpOtherIncome: TLabel
-            Left = 393
-            Top = 29
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 29
-            ExplicitHeight = 17
-          end
-          inherited lblOtherIncome: TLabel
-            Left = 6
-            Top = 29
-            Width = 79
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 29
-            ExplicitWidth = 79
-            ExplicitHeight = 17
-          end
-          inherited nfInterest: TOvcNumericField
-            Left = 260
-            Top = 2
-            OnChange = tsAustralianIncomeTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 2
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfOtherIncome: TOvcNumericField
-            Left = 260
-            Top = 27
-            OnChange = tsAustralianIncomeTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 27
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-        end
-        inline fmeDist_AU_Income_Franking: TfmeBGLFranking
-          Left = 0
-          Top = 11
-          Width = 450
-          Height = 75
-          TabOrder = 0
-          ExplicitTop = 11
-          ExplicitWidth = 450
-          ExplicitHeight = 75
-          inherited lblFranked: TLabel
-            Left = 6
-            Width = 46
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 46
-            ExplicitHeight = 17
-          end
-          inherited lpFranked: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited lblUnfranked: TLabel
-            Left = 6
-            Top = 29
-            Width = 60
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 29
-            ExplicitWidth = 60
-            ExplicitHeight = 17
-          end
-          inherited lpUnfranked: TLabel
-            Left = 393
-            Top = 29
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 29
-            ExplicitHeight = 17
-          end
-          inherited lblFrankingCredits: TLabel
-            Left = 6
-            Top = 54
-            Width = 94
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 54
-            ExplicitWidth = 94
-            ExplicitHeight = 17
-          end
-          inherited btnFrankingCredits: TSpeedButton
-            Left = 393
-            Top = 51
-            OnClick = frameFrankingbtnCalcClick
-            ExplicitLeft = 393
-            ExplicitTop = 51
-          end
-          inherited nfFranked: TOvcNumericField
-            Left = 260
-            OnChange = frameFrankingFrankedChange
-            ExplicitLeft = 260
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfUnfranked: TOvcNumericField
-            Left = 260
-            Top = 27
-            OnChange = frameFrankingUnfrankedChange
-            ExplicitLeft = 260
-            ExplicitTop = 27
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfFrankingCredits: TOvcNumericField
-            Left = 260
-            Top = 52
-            OnChange = frameFrankingFrankingCreditsChange
-            ExplicitLeft = 260
-            ExplicitTop = 52
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-        end
-        object nfLessOtherAllowableTrustDeductions: TOvcNumericField
-          Left = 260
-          Top = 144
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 2
-          OnChange = tsAustralianIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-      end
-      object tsCapitalGains: TTabSheet
-        Caption = 'Capital Gains'
-        ImageIndex = -1
-        object lblCGTConcession: TLabel
-          Left = 6
-          Top = 86
-          Width = 249
-          Height = 17
-          Caption = 'Capital Gain Tax (CGT) Concession Amount'
-          FocusControl = nfCGTConcession
-        end
-        object lpCGTConcession: TLabel
-          Left = 393
-          Top = 86
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfCGTConcession
-          Visible = False
-        end
-        object lblForeignCGT: TLabel
-          Left = 264
-          Top = 133
-          Width = 124
-          Height = 17
-          Caption = 'Foreign Capital Gains'
-        end
-        object lblTaxPaid: TLabel
-          Left = 451
-          Top = 114
-          Width = 95
-          Height = 17
-          Caption = 'Income Tax Paid'
-        end
-        object lblBeforeDiscount: TLabel
-          Left = 6
-          Top = 158
-          Width = 92
-          Height = 17
-          Caption = 'Before Discount'
-        end
-        object lblIndexationMethod: TLabel
-          Left = 6
-          Top = 184
-          Width = 110
-          Height = 17
-          Caption = 'Indexation Method'
-        end
-        object lblOtherMethod: TLabel
-          Left = 6
-          Top = 210
-          Width = 83
-          Height = 17
-          Caption = 'Other Method'
-        end
-        object lineCapitalGainsTab: TShape
-          Left = 0
-          Top = 113
-          Width = 720
-          Height = 1
-          Pen.Color = clSilver
-        end
-        object lblOffset_Credits: TLabel
-          Left = 458
-          Top = 130
-          Width = 81
-          Height = 17
-          Caption = 'Offset/Credits'
-        end
-        object nfCGTConcession: TOvcNumericField
-          Left = 260
-          Top = 85
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 1
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        inline fmeDist_CashCapitalGains_CGT: TfmeBGLCapitalGainsTax
-          Left = 0
-          Top = 3
-          Width = 450
-          Height = 80
-          TabOrder = 0
-          ExplicitTop = 3
-          ExplicitWidth = 450
-          ExplicitHeight = 80
-          inherited lblCGTDiscounted: TLabel
-            Left = 6
-            Width = 243
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 243
-            ExplicitHeight = 17
-          end
-          inherited lpCGTDiscounted: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited lblCGTIndexation: TLabel
-            Left = 6
-            Top = 30
-            Width = 199
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 30
-            ExplicitWidth = 199
-            ExplicitHeight = 17
-          end
-          inherited lpCGTIndexation: TLabel
-            Left = 393
-            Top = 30
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 30
-            ExplicitHeight = 17
-          end
-          inherited lblCGTOther: TLabel
-            Left = 6
-            Top = 57
-            Width = 172
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 57
-            ExplicitWidth = 172
-            ExplicitHeight = 17
-          end
-          inherited lpCGTOther: TLabel
-            Left = 393
-            Top = 57
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 57
-            ExplicitHeight = 17
-          end
-          inherited nfCGTDiscounted: TOvcNumericField
-            Left = 260
-            Top = 2
-            OnChange = tsCapitalGainsTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 2
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfCGTIndexation: TOvcNumericField
-            Left = 260
-            Top = 29
-            OnChange = tsCapitalGainsTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 29
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfCGTOther: TOvcNumericField
-            Left = 260
-            Top = 56
-            OnChange = tsCapitalGainsTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 56
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-        end
-        object nfForeignCGTBeforeDiscount: TOvcNumericField
-          Left = 260
-          Top = 156
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 2
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        object nfForeignCGTIndexationMethod: TOvcNumericField
-          Left = 260
-          Top = 182
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 3
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        object nfForeignCGTOtherMethod: TOvcNumericField
-          Left = 260
-          Top = 208
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 4
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        object nfTaxPaidBeforeDiscount: TOvcNumericField
-          Left = 432
-          Top = 156
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 5
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        object nfTaxPaidIndexationMethod: TOvcNumericField
-          Left = 432
-          Top = 182
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 6
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        object nfTaxPaidOtherMethod: TOvcNumericField
-          Left = 432
-          Top = 208
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 7
-          OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-      end
-      object tsForeignIncome: TTabSheet
-        Caption = 'Foreign Income'
-        ImageIndex = -1
-        object lblAssessableForeignSourceIncome: TLabel
-          Left = 6
-          Top = 5
-          Width = 202
-          Height = 17
-          Caption = 'Assessable Foreign Source Income'
-          FocusControl = nfAssessableForeignSourceIncome
-        end
-        object lpAssessableForeignSourceIncome: TLabel
-          Left = 393
-          Top = 5
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfAssessableForeignSourceIncome
-          Visible = False
-        end
-        object lblOtherNetForeignSourceIncome: TLabel
-          Left = 6
-          Top = 31
-          Width = 196
-          Height = 17
-          Caption = 'Other Net Foreign Source Income'
-          FocusControl = nfOtherNetForeignSourceIncome
-        end
-        object lpOtherNetForeignSourceIncome: TLabel
-          Left = 393
-          Top = 31
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfOtherNetForeignSourceIncome
-          Visible = False
-        end
-        object lblCashDistribution: TLabel
-          Left = 6
-          Top = 57
-          Width = 99
-          Height = 17
-          Caption = 'Cash Distribution'
-          FocusControl = nfCashDistribution
-        end
-        object lpCashDistribution: TLabel
-          Left = 393
-          Top = 57
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfCashDistribution
-          Visible = False
-        end
-        object lblTaxExemptedAmounts: TLabel
-          Left = 407
-          Top = 5
-          Width = 137
-          Height = 17
-          Caption = 'Tax Exempted Amounts'
-          FocusControl = nfTaxExemptedAmounts
-        end
-        object lpTaxExemptedAmounts: TLabel
-          Left = 688
-          Top = 5
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfTaxExemptedAmounts
-          Visible = False
-        end
-        object lblTaxFreeAmounts: TLabel
-          Left = 407
-          Top = 31
-          Width = 104
-          Height = 17
-          Caption = 'Tax Free Amounts'
-          FocusControl = nfTaxFreeAmounts
-        end
-        object lpTaxFreeAmounts: TLabel
-          Left = 688
-          Top = 31
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfTaxFreeAmounts
-          Visible = False
-        end
-        object lblTaxDeferredAmounts: TLabel
-          Left = 407
-          Top = 57
-          Width = 131
-          Height = 17
-          Caption = 'Tax Deferred Amounts'
-          FocusControl = nfTaxDeferredAmounts
-        end
-        object lpTaxDeferredAmounts: TLabel
-          Left = 688
-          Top = 57
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfTaxDeferredAmounts
-          Visible = False
-        end
-        object lblOtherExpenses: TLabel
-          Left = 407
-          Top = 82
-          Width = 91
-          Height = 17
-          Caption = 'Other Expenses'
-          FocusControl = nfOtherExpenses
-        end
-        object lpOtherExpenses: TLabel
-          Left = 688
-          Top = 82
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfOtherExpenses
-          Visible = False
-        end
-        object nfAssessableForeignSourceIncome: TOvcNumericField
-          Left = 260
-          Top = 3
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 0
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {5C8FC2F5FF276BEE1CC0}
-        end
-        object nfOtherNetForeignSourceIncome: TOvcNumericField
-          Left = 260
-          Top = 29
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 1
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {5C8FC2F5FF276BEE1CC0}
-        end
-        object nfCashDistribution: TOvcNumericField
-          Left = 260
-          Top = 55
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 2
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {5C8FC2F5FF276BEE1CC0}
-        end
-        object nfTaxExemptedAmounts: TOvcNumericField
-          Left = 555
-          Top = 3
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 4
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {5C8FC2F5FF276BEE1CC0}
-        end
-        object nfTaxFreeAmounts: TOvcNumericField
-          Left = 555
-          Top = 29
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 5
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {5C8FC2F5FF276BEE1CC0}
-        end
-        object nfTaxDeferredAmounts: TOvcNumericField
-          Left = 555
-          Top = 55
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 6
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {5C8FC2F5FF276BEE1CC0}
-        end
-        inline fmeDist_ForeignIncome_Tax: TfmeBGLForeignTax
-          Left = 0
-          Top = 90
-          Width = 405
-          Height = 144
-          TabOrder = 3
-          ExplicitTop = 90
-          ExplicitWidth = 405
-          ExplicitHeight = 144
-          inherited lblForeignIncomeTaxOffset: TLabel
-            Left = 6
-            Width = 153
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 153
-            ExplicitHeight = 17
-          end
-          inherited lpForeignIncomeTaxOffset: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited lblAUFrankingCreditsFromNZCompany: TLabel
-            Left = 6
-            Top = 31
-            Width = 227
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 31
-            ExplicitWidth = 227
-            ExplicitHeight = 17
-          end
-          inherited lpAUFrankingCreditsFromNZCompany: TLabel
-            Left = 393
-            Top = 31
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 31
-            ExplicitHeight = 17
-          end
-          inherited lblTFNAmountsWithheld: TLabel
-            Left = 6
-            Top = 68
-            Width = 133
-            Height = 17
-            Caption = 'TFN Amounts Withheld'
-            ExplicitLeft = 6
-            ExplicitTop = 68
-            ExplicitWidth = 133
-            ExplicitHeight = 17
-          end
-          inherited lpTFNAmountsWithheld: TLabel
-            Left = 393
-            Top = 68
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 68
-            ExplicitHeight = 17
-          end
-          inherited lblNonResidentWithholdingTax: TLabel
-            Left = 6
-            Top = 94
-            Width = 178
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 94
-            ExplicitWidth = 178
-            ExplicitHeight = 17
-          end
-          inherited lpNonResidentWithholdingTax: TLabel
-            Left = 393
-            Top = 94
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 94
-            ExplicitHeight = 17
-          end
-          inherited lblLICDeductions: TLabel
-            Left = 6
-            Top = 119
-            Width = 80
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitTop = 119
-            ExplicitWidth = 80
-            ExplicitHeight = 17
-          end
-          inherited lpLICDeductions: TLabel
-            Left = 393
-            Top = 119
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitTop = 119
-            ExplicitHeight = 17
-          end
-          inherited nfForeignIncomeTaxOffset: TOvcNumericField
-            Left = 260
-            OnChange = tsForeignIncomeTabOnChange
-            ExplicitLeft = 260
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {5C8FC2F5FF276BEE1CC0}
-          end
-          inherited nfAUFrankingCreditsFromNZCompany: TOvcNumericField
-            Left = 260
-            Top = 29
-            OnChange = tsForeignIncomeTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 29
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {5C8FC2F5FF276BEE1CC0}
-          end
-          inherited nfTFNAmountsWithheld: TOvcNumericField
-            Left = 260
-            Top = 66
-            OnChange = tsForeignIncomeTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 66
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {5C8FC2F5FF276BEE1CC0}
-          end
-          inherited nfNonResidentWithholdingTax: TOvcNumericField
-            Left = 260
-            Top = 92
-            OnChange = tsForeignIncomeTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 92
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {5C8FC2F5FF276BEE1CC0}
-          end
-          inherited nfLICDeductions: TOvcNumericField
-            Left = 260
-            Top = 117
-            OnChange = tsForeignIncomeTabOnChange
-            ExplicitLeft = 260
-            ExplicitTop = 117
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {5C8FC2F5FF276BEE1CC0}
-          end
-        end
-        object nfOtherExpenses: TOvcNumericField
-          Left = 555
-          Top = 80
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 7
-          OnChange = tsForeignIncomeTabOnChange
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-      end
-      object tsNonCashCapitalGains: TTabSheet
-        Caption = 'Non-Cash Capital Gains/Losses'
-        ImageIndex = -1
-        object lpCGTCapitalLosses: TLabel
-          Left = 393
-          Top = 99
-          Width = 11
-          Height = 17
-          Caption = '%'
-          FocusControl = nfCGTCapitalLosses
-          Visible = False
-        end
-        object lblCGTCapitalLosses: TLabel
-          Left = 6
-          Top = 99
-          Width = 83
-          Height = 17
-          Caption = 'Capital Losses'
-        end
-        object nfCGTCapitalLosses: TOvcNumericField
-          Left = 260
-          Top = 97
-          Width = 132
-          Height = 20
-          Cursor = crIBeam
-          DataType = nftDouble
-          AutoSize = False
-          BorderStyle = bsNone
-          CaretOvr.Shape = csBlock
-          EFColors.Disabled.BackColor = clWindow
-          EFColors.Disabled.TextColor = clGrayText
-          EFColors.Error.BackColor = clRed
-          EFColors.Error.TextColor = clBlack
-          EFColors.Highlight.BackColor = clHighlight
-          EFColors.Highlight.TextColor = clHighlightText
-          Options = []
-          PictureMask = '#,###,###,###.##'
-          TabOrder = 1
-          OnChange = tsNonCashCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
-          RangeHigh = {F6285CFFFFF802952040}
-          RangeLow = {00000000000000000000}
-        end
-        inline fmeDist_NonCashCapitalGains_CGT: TfmeBGLCapitalGainsTax
-          Left = 0
-          Top = 3
-          Width = 450
-          Height = 90
-          TabOrder = 0
-          ExplicitTop = 3
-          ExplicitWidth = 450
-          inherited lblCGTDiscounted: TLabel
-            Left = 6
-            Width = 243
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 243
-            ExplicitHeight = 17
-          end
-          inherited lpCGTDiscounted: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited lblCGTIndexation: TLabel
-            Left = 6
-            Width = 199
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 199
-            ExplicitHeight = 17
-          end
-          inherited lpCGTIndexation: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited lblCGTOther: TLabel
-            Left = 6
-            Width = 172
-            Height = 17
-            ExplicitLeft = 6
-            ExplicitWidth = 172
-            ExplicitHeight = 17
-          end
-          inherited lpCGTOther: TLabel
-            Left = 393
-            Height = 17
-            ExplicitLeft = 393
-            ExplicitHeight = 17
-          end
-          inherited nfCGTDiscounted: TOvcNumericField
-            Left = 260
-            OnChange = tsNonCashCapitalGainsTabOnChange
-            ExplicitLeft = 260
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfCGTIndexation: TOvcNumericField
-            Left = 260
-            OnChange = tsNonCashCapitalGainsTabOnChange
-            ExplicitLeft = 260
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-          inherited nfCGTOther: TOvcNumericField
-            Left = 260
-            OnChange = tsNonCashCapitalGainsTabOnChange
-            ExplicitLeft = 260
-            RangeHigh = {F6285CFFFFF802952040}
-            RangeLow = {00000000000000000000}
-          end
-        end
-      end
     end
   end
   object pnlTransactionInfo: TPanel
@@ -2290,8 +2247,136 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     Left = 672
     Top = 8
     Bitmap = {
-      494C010101000800080010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
-      0000000000003600000028000000400000001000000001002000000000000010
+      494C010104001400140010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      0000000000003600000028000000400000002000000001002000000000000020
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2329,61 +2414,61 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       6000404040004060600000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      000000000000C0A0A000C040400080000000C0404000C0A0A000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000C0A0A000C040400080000000C0404000C0A0A000000000000000
       000000000000000000000000000000000000A4A0A00040606000804000008040
       0000804000008040000080400000804000008040000080400000804000004020
       00004020000040404000A4A0A000000000000000000000000000000000000000
+      000000000000C0A0A000C040400080000000C0404000C0A0A000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000C0A0A000C0000000C000000080600000C0000000C0000000C0A0A0000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000C0A0A000C0000000C000000080600000C0000000C0000000C0A0A0000000
       0000000000000000000000000000000000008060600080400000804000008040
       0000804000008040000080400000804000008040000080400000804000008040
       0000402000004060600040606000000000000000000000000000000000000000
+      0000C0A0A000C0000000C0000000FF000000C0000000C0000000C0A0A0000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000C0404000C0000000806000008060000080600000C0000000C04040000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000C0404000C0000000806000008060000080600000C0000000C04040000000
       0000000000000000000000000000000000004060600080400000806000008060
       0000804000008040000080400000804000008040000080400000804000008040
       0000804000004020000040404000000000000000000000000000000000000000
+      0000C0404000C0000000FF000000FF000000FF000000C0000000C04040000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000800000008060000080600000806000008060000080600000800000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000800000008060000080600000806000008060000080600000800000000000
       0000000000000000000000000000000000008060600080600000806000008060
       0000806000008060000080600000804000008040000080400000804000008040
       0000804000008040000040404000000000000000000000000000000000000000
+      000080000000FF000000FF000000FF000000FF000000FF000000800000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000C0004000C0A00000806000008060000080600000C0000000C04040000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000C0004000C0A00000806000008060000080600000C0000000C04040000000
       0000000000000000000000000000000000008080800080600000806000008060
       0000806000008060000080600000806000008060000080400000804000008040
       0000804000008040000040404000000000000000000000000000000000000000
+      0000C0004000FFFF0000FF000000FF000000FF000000C0000000C04040000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000C0A0A000C0004000C0A0000080600000C0000000C0004000C0A0A0000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000C0A0A000C0004000C0A0000080600000C0000000C0004000C0A0A0000000
       0000000000000000000000000000000000008080800080600000806000008060
       0000806000008060000080600000806000008060000080600000804000008040
       0000804000008040000040606000000000000000000000000000000000000000
+      0000C0A0A000C0004000FFFF0000FF000000C0000000C0004000C0A0A0000000
       0000000000000000000000000000000000000000000000000000000000000000
+      000000000000C0A0A000C000400080000000C0404000C0A0A000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000C0A0A000C000400080000000C0404000C0A0A000000000000000
       000000000000000000000000000000000000A4A0A00080600000806000008060
       0000806000008060000080600000806000008060000080600000806000008040
       0000804000004060600080808000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000C0A0A000C000400080000000C0404000C0A0A000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2403,7 +2488,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000008060
       000000000000000000000000000000000000000000000000000000000000C0C0
       C000000000008060000080600000806000008060000080600000804000008080
       8000000000000000000000000000000000000000000000000000000000000000
@@ -2421,11 +2506,15 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000000000000000000000000000424D3E000000000000003E000000
-      2800000040000000100000000100010000000000800000000000000000000000
-      000000000000000000000000FFFFFF00FFFF000000000000F01F000000000000
-      E00F000000000000C00700000000000080030000000000000001000000000000
-      0001000000000000000100000000000000010000000000000001000000000000
-      000100000000000000010000000000008003000000000000C007000000000000
-      E80F000000000000F01F000000000000}
+      2800000040000000200000000100010000000000000100000000000000000000
+      000000000000000000000000FFFFFF0000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000FFFFFFFFFFFFFFFFF01FFFFFFFFFFFFF
+      E00FFFFFFFFFFFFFC007FFFFFFFFFFFF8003FFFFF83FF83F0001F83FF01FF01F
+      0001F01FF01FF01F0001F01FF01FF01F0001F01FF01FF01F0001F01FF01FF01F
+      0001F01FF83FF83F0001F83FFFFFFFFF8003FFFFFFFFFFFFC007FFFFFFFFFFEF
+      E80FFFFFFFFFFFFFF01FFFFFFFFFFFFF}
   end
 end
