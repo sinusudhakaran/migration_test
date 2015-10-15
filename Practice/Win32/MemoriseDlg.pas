@@ -4224,8 +4224,6 @@ begin
       ePart.Visible    := false;
       cOther.Visible   := false;
       eOther.Visible   := false;
-
-      pnlDetails.Height := 207;
     end;
   end;
 end;
