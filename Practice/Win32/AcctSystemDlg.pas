@@ -498,6 +498,7 @@ var
   BlopiClientDetails: TBloClientReadDetail;
   OffLineSubscription : TBloArrayOfguid;
   SubIndex : integer;
+  OldFirmID, OldFundID : string;
 begin
   LCLRec := nil;
   FInWizard := InWizard;
@@ -665,6 +666,8 @@ begin
      eTo.text    := clSave_Client_Files_To;
 
      OldLoadFrom := clLoad_Client_Files_From;
+
+     OldFundID := MyClient.clExtra.ceBGLFundIDSelected;
      Insetup := False;
 
      Self.ClientHeight := gbxWebExport.Top + 96;
@@ -685,22 +688,44 @@ begin
         clAlternate_Extract_ID      := Trim(edtExtractID.Text);
         clUse_Alterate_ID_for_extract := chkUseCustomLedgerCode.Checked;
         clTax_Ledger_Code           := eTaxLedger.Text;
-        if CanRefreshChart( clCountry, clAccounting_System_Used ) then begin
-           clLoad_Client_Files_From := Trim( eFrom.text);
-           // Set Dialog Question
-           if ( OldLoadFrom = '' ) then begin
-              S := 'Do you want to Load the Chart Now?';
-           end
-           else begin
-              S := 'You have changed the Folder where the Chart is Loaded From.'#13+
-                   'Do you want to Refresh the Chart Now?';
-           end;
-           if ( clLoad_Client_Files_From <> '' ) and
-              ( clLoad_Client_Files_From <> OldLoadFrom ) and
-              ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then begin
+        if CanRefreshChart( clCountry, clAccounting_System_Used ) then
+        begin
+          clLoad_Client_Files_From := Trim( eFrom.text);
+          // Set Dialog Question
+          if ( OldLoadFrom = '' ) then begin
+            S := 'Do you want to Load the Chart now?';
+          end
+          else begin
+            S := 'You have changed the Folder where the Chart is Loaded From.'#13+
+                 'Do you want to Refresh the Chart now?';
+          end;
+
+          if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
+          begin
+            if ( OldFundID = '' ) then
+              S := 'Do you want to Load the Chart now?'
+            else
+              S := 'You have changed the Fund where the Chart is Loaded From.'#13+
+                   'Do you want to Refresh the Chart now?';
+
+            if ( MyClient.clExtra.ceBGLFundIDSelected <> '' ) and
+                    ( MyClient.clExtra.ceBGLFundIDSelected <> OldFundID ) and
+                    ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
+            begin
+              RefreshChart;
+              AutoRefreshFlag := True;
+            end;
+          end
+          else
+          begin
+            if ( clLoad_Client_Files_From <> '' ) and
+                ( clLoad_Client_Files_From <> OldLoadFrom ) and
+                 ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
+            begin
               Import32.RefreshChart;
               AutoRefreshFlag := True;
-           end;
+            end;
+          end;
         end
         else begin
            clLoad_Client_Files_From := '';
@@ -1057,7 +1082,7 @@ begin
                 AdminSystem.fdFields.fdBGLTokenType,
                 AdminSystem.fdFields.fdBGLRefreshToken,
                 AdminSystem.fdFields.fdBGLTokenExpiresAt);
-//DN Not required      if (BGLServerNoSignRequired or BGLServer.CheckForAuthentication) then
+     //DN Not required      if (BGLServerNoSignRequired or BGLServer.CheckForAuthentication) then
       if (BGLServer.CheckForAuthentication) then
       begin
         BGLServer.Get_FundList;
@@ -1078,7 +1103,6 @@ begin
               end;
               SaveClient(false);
             end;
-            RefreshChart;
           end;
         end
         else
