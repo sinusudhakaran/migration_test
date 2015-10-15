@@ -286,6 +286,7 @@ type
     procedure ConvertAmount1Click(Sender: TObject);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
     procedure celDateError(Sender: TObject; ErrorCode: Word; ErrorMsg: string);
+    procedure btnCancelClick(Sender: TObject);
   private
     { Private declarations }
     AltLineColor                  : integer;
@@ -553,8 +554,7 @@ const
   MinSize = 350;
 
 resourcestring
-  rsMsgWrongAffectiveDate = 'Entered date %s is not a valid date.'#13#10+
-                            'Please enter a date on or before %s.';
+  rsMsgWrongAffectiveDate = 'Please enter a date on or before %s.';
 
 type
   TMyPanel = class( TPanel)
@@ -2010,6 +2010,11 @@ begin
       CalcClosingBal;
    end;
 end;
+procedure TdlgHistorical.btnCancelClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
+
 procedure TdlgHistorical.btnOKClick(Sender: TObject);
   //inline function to be called only for provisional data to check any future date is available
   function IsNoFutureTransactionsAvailable : Boolean;
@@ -2017,13 +2022,15 @@ procedure TdlgHistorical.btnOKClick(Sender: TObject);
     i: integer;
   begin
     Result := True;
-    for i := BankAccount.baTransaction_List.First to BankAccount.baTransaction_List.Last do
-    with BankAccount.baTransaction_List.Transaction_At(i)^ do
+    for i := HistTranList.First to HistTranList.Last do
     begin
-      if txDate_Presented > Today then
+      with HistTranList.Transaction_At( i)^ do
       begin
-        Result := False;
-        Exit;
+        if txDate_Effective > GetLastDayOfMonth(CurrentDate) then
+        begin
+          Result := False;
+          Exit;
+        end;
       end;
     end;
   end;
@@ -2031,9 +2038,11 @@ procedure TdlgHistorical.btnOKClick(Sender: TObject);
 begin
   if Provisional and (not IsNoFutureTransactionsAvailable) then
   begin
-    HelpfulWarningMsg('Transactions has future date. Please fix that before proceed ',0);
+    HelpfulWarningMsg('Transaction(s) has future date. Please fix that before proceed ',0);
     Exit;
-  end;
+  end
+  else
+    ModalResult := mrOk;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2603,6 +2612,8 @@ var
    Payee    : integer;
    IsActive : boolean;
    dtEffectiveDate : TDateTime;
+   Day, Month, Year : Integer;
+   LastDay : TDate;
 //   ChequeNo : longint;
 //   S        : string;
 //   l        : integer;
@@ -2635,7 +2646,10 @@ begin
            if (((not IsManual) or Provisional) and (not CheckEffectiveDate(dtEffectiveDate))) then
            begin
              ErrorSound;
-             HelpfulWarningMsg(Format(rsMsgWrongAffectiveDate, [FormatDateTime('dd/mm/yy',dtEffectiveDate), FormatDateTime('dd/mm/yy',Now)]), 0);
+             StDateToDMY(GetLastDayOfMonth(CurrentDate), Day, Month, Year);
+             LastDay :=   EncodeDate(Year, Month, Day);
+             HelpfulWarningMsg(Format(rsMsgWrongAffectiveDate,
+                    [FormatDateTime('dd/mm/yy',LastDay)]), 0);
              TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).ClearContents;
              TOvcNumericField( TOvcTCNumericField( Cell ).CellEditor).SetFocus;
              AllowIt := False;

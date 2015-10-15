@@ -148,7 +148,6 @@ object dlgHistorical: TdlgHistorical
     OnKeyDown = tblHistKeyDown
     OnMouseDown = tblHistMouseDown
     OnMouseUp = tblHistMouseUp
-    ExplicitLeft = 2
     CellData = (
       'dlgHistorical.hdrColumnHeadings')
     RowData = (
@@ -511,7 +510,6 @@ object dlgHistorical: TdlgHistorical
       Anchors = [akRight, akBottom]
       Caption = '&Post'
       Default = True
-      ModalResult = 1
       TabOrder = 2
       OnClick = btnOKClick
     end
@@ -525,6 +523,7 @@ object dlgHistorical: TdlgHistorical
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 3
+      OnClick = btnCancelClick
     end
     object nfOpeningBal: TOvcNumericField
       Left = 260

@@ -2289,9 +2289,11 @@ end;
 procedure TImportHist.vsOutGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
 begin
-  if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate)
-  or (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate) then
-     CellText := 'Cannot import, date out of range'
+  if (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > FValidDateRange.ToDate) or
+      (Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) < FValidDateRange.FromDate) then
+    CellText := 'Cannot import, date out of range'
+  else if Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > GetLastDayOfMonth(CurrentDate)  then
+    CellText := 'Future date'
   else
   begin
     case TTransMatch(TOutItem(FOutList[Node.Index]).Objects[oiMatch]) of
@@ -2311,8 +2313,6 @@ begin
       end;
       tmNarration : CellText := 'Matches existing transactions';
     end;
-    if Integer(TOutItem(FOutList[Node.Index]).Objects[oiDate]) > Today  then
-      CellText := 'Future date';
   end;
 end;
 
