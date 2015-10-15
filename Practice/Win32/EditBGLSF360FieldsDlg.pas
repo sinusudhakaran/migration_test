@@ -348,7 +348,7 @@ uses
 
 const
   clTabNotModifiedIdx = -1;
-  clTabModifiedIdx    =  3;
+  clTabModifiedIdx    =  4;
 
 
 
