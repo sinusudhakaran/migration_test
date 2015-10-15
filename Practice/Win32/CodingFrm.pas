@@ -567,9 +567,9 @@ type
     procedure SetMDIChildSortedIndex(aIndex : integer);
     function SuggMemPopup() : TfrmSuggMemPopup;
   public
-    procedure btnHideClick(Sender: TObject);
-    procedure btnLaterClick(Sender: TObject);
-    procedure btnCreateClick(Sender: TObject);
+    procedure DoHideClick(Sender: TObject);
+    procedure DoLaterClick(Sender: TObject);
+    procedure DoCreateClick(Sender: TObject);
 
     procedure CloseSuggMemPopup();
     procedure ActivateCurrentTabUsingMDI(aMDIIndex: integer);
@@ -1254,6 +1254,10 @@ begin
   frmSuggMemPopup := TfrmSuggMemPopup.create(self);
   frmSuggMemPopup.Visible := false;
   frmSuggMemPopup.PopupParent := self;
+
+  frmSuggMemPopup.OnHideClick := DoHideClick;
+  frmSuggMemPopup.OnLaterClick := DoLaterClick;
+  frmSuggMemPopup.OnCreateClick := DoCreateClick;
 end;
 
 //------------------------------------------------------------------------------
@@ -7861,7 +7865,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCoding.btnHideClick(Sender: TObject);
+procedure TfrmCoding.DoHideClick(Sender: TObject);
 begin
   if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) then
   begin
@@ -7876,14 +7880,14 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCoding.btnLaterClick(Sender: TObject);
+procedure TfrmCoding.DoLaterClick(Sender: TObject);
 begin
   MyClient.SuggMemsHidePopupOnCoding := true;
   CloseSuggMemPopup();
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCoding.btnCreateClick(Sender: TObject);
+procedure TfrmCoding.DoCreateClick(Sender: TObject);
 begin
   if ((SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
       Assigned(BankAccount)) then

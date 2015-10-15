@@ -22,6 +22,9 @@ uses
   osfont;
 
 type
+    //----------------------------------------------------------------------------
+  TPopupButtonClickEvent = procedure(Sender: TObject) of object;
+
   //----------------------------------------------------------------------------
   TfrmSuggMemPopup = class(TForm)
     imgBackground: TImage;
@@ -43,6 +46,10 @@ type
     fManualCount : integer;
     fUnCodedCount : integer;
     fMatchedPhrase : string;
+
+    fOnHideClick : TPopupButtonClickEvent;
+    fOnLaterClick : TPopupButtonClickEvent;
+    fOnCreateClick : TPopupButtonClickEvent;
   protected
     procedure SetMatchedPhrase(aValue : string);
   public
@@ -52,6 +59,10 @@ type
     property ManualCount : integer read fManualCount write fManualCount;
     property UnCodedCount : integer read fUnCodedCount write fUnCodedCount;
     property MatchedPhrase : string read fMatchedPhrase write SetMatchedPhrase;
+
+    property OnHideClick : TPopupButtonClickEvent read fOnHideClick write fOnHideClick;
+    property OnLaterClick : TPopupButtonClickEvent read fOnLaterClick write fOnLaterClick;
+    property OnCreateClick : TPopupButtonClickEvent read fOnCreateClick write fOnCreateClick;
   end;
 
 implementation
@@ -65,19 +76,22 @@ uses
 { TfrmSuggMemPopup }
 procedure TfrmSuggMemPopup.btnHideClick(Sender: TObject);
 begin
-  TfrmCoding(Self.Owner).btnHideClick(Sender);
+  if Assigned(fOnHideClick) then
+    fOnHideClick(Sender);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmSuggMemPopup.btnLaterClick(Sender: TObject);
 begin
-  TfrmCoding(Self.Owner).btnLaterClick(Sender);
+  if Assigned(fOnLaterClick) then
+    fOnLaterClick(Sender);
 end;
 
 //------------------------------------------------------------------------------
 procedure TfrmSuggMemPopup.btnCreateClick(Sender: TObject);
 begin
-  TfrmCoding(Self.Owner).btnCreateClick(Sender);
+  if Assigned(fOnCreateClick) then
+    fOnCreateClick(Sender);
 end;
 
 //------------------------------------------------------------------------------
