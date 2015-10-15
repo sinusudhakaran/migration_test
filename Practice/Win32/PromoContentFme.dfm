@@ -1,8 +1,8 @@
 object PromoContentFrame: TPromoContentFrame
   Left = 0
   Top = 0
-  Width = 500
-  Height = 503
+  Width = 600
+  Height = 830
   Margins.Left = 10
   Margins.Top = 10
   Margins.Right = 10
@@ -14,7 +14,7 @@ object PromoContentFrame: TPromoContentFrame
     AlignWithMargins = True
     Left = 10
     Top = 1
-    Width = 480
+    Width = 580
     Height = 25
     Margins.Left = 10
     Margins.Top = 1
@@ -37,7 +37,7 @@ object PromoContentFrame: TPromoContentFrame
     AlignWithMargins = True
     Left = 10
     Top = 63
-    Width = 480
+    Width = 580
     Height = 13
     Margins.Left = 10
     Margins.Right = 10
@@ -50,8 +50,8 @@ object PromoContentFrame: TPromoContentFrame
   object imgContainer: TImage
     Left = 0
     Top = 79
-    Width = 500
-    Height = 424
+    Width = 600
+    Height = 751
     Align = alClient
     Picture.Data = {
       07544269746D617022FD0700424D22FD0700000000003600000028000000F401
@@ -16418,13 +16418,14 @@ object PromoContentFrame: TPromoContentFrame
       FFFFFFFFFFFFFFFFFFFFFFFFFFFF}
     Stretch = True
     ExplicitTop = 141
+    ExplicitWidth = 500
     ExplicitHeight = 342
   end
   object reDescription: TBKRichEdit
     AlignWithMargins = True
     Left = 10
     Top = 32
-    Width = 480
+    Width = 580
     Height = 27
     Margins.Left = 10
     Margins.Top = 1
@@ -16438,5 +16439,6 @@ object PromoContentFrame: TPromoContentFrame
     TabOrder = 0
     OnResizeRequest = reDescriptionResizeRequest
     OnLinkClicked = reDescriptionLinkClicked
+    ExplicitWidth = 480
   end
 end

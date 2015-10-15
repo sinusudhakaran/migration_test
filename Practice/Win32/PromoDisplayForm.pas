@@ -93,8 +93,8 @@ begin
         NewFrame.Parent := pnlFrames;
         NewFrame.TabOrder := i;
 
-        TotalHeight := TotalHeight + NewFrame.Height+5;
-        Content.FrameHeightRequired := NewFrame.Height+5;
+        TotalHeight := TotalHeight + NewFrame.Height;
+        Content.FrameHeightRequired := NewFrame.Height;
       finally
         FreeAndNil(NewFrame);
       end;
