@@ -2709,6 +2709,7 @@ begin
          SourceBankAccount := ba;
          EditMem := nil;
          EditMemorisedList := nil;
+
          if ((ba.IsManual) and chkMaster.Enabled) or SourceBankAccount.IsAForexAccount then begin
             chkMaster.Enabled := False;
             AllowMasterMemorised := False;
@@ -3477,6 +3478,7 @@ end;
 procedure TdlgMemorise.FormShow(Sender: TObject);
 var
   MovedValue : integer;
+  ClientFileRec : pClient_File_Rec;
 
   procedure AutoSize(value: tCheckBox);
   begin
@@ -3487,10 +3489,16 @@ begin
     AllowMasterMemorised := false
   else
   begin
-     AllowMasterMemorised := ( CurrUser.CanMemoriseToMaster ) and
-                             ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
-                             ( MyClient.clFields.clDownload_From = dlAdminSystem ) and
-                             ( (DlgEditMode in ALL_CREATE));
+    ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+    if Assigned(ClientFileRec) then
+      AllowMasterMemorised := false
+    else
+      AllowMasterMemorised := ( CurrUser.CanMemoriseToMaster ) and
+                              ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
+                              ( MyClient.clFields.clDownload_From = dlAdminSystem ) and
+                              ( (DlgEditMode in ALL_CREATE)) and
+                              ( not SourceBankAccount.baFields.baIs_A_Manual_Account ) and
+                              ( not ClientFileRec^.cfForeign_File );
   end;
   chkMaster.Enabled := AllowMasterMemorised;
 
