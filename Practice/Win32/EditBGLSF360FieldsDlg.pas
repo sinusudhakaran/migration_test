@@ -9,7 +9,7 @@ uses
   cxTextEdit, cxMaskEdit, cxDropDownEdit, OsFont, cxLookAndFeels,
   cxLookAndFeelPainters, ComCtrls, Globals,
   BGLCapitalGainsFme, BGLFrankingFme, BGLInterestIncomeFme, BGLForeignTaxFme,
-  bkMaskUtils;
+  bkMaskUtils, ImgList, RzTabs;
 
 type
 
@@ -137,6 +137,7 @@ type
     nfUnits: TOvcNumericField;
     edtAccount: TEdit;
     lblOffset_Credits: TLabel;
+    EditedTabImageList: TImageList;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -167,7 +168,11 @@ type
     procedure edtAccountChange(Sender: TObject);
     procedure nfShareBrokerageChange(Sender: TObject);
     procedure nfShareConsiderationChange(Sender: TObject);
-    procedure OnFmeInterestIncomeFieldChange(Sender: TObject);
+    procedure tsAustralianIncomeTabOnChange(Sender: TObject);
+    procedure tsCapitalGainsTabOnChange(Sender: TObject);
+    procedure tsNonCashCapitalGainsTabOnChange(
+      Sender: TObject);
+    procedure tsForeignIncomeTabOnChange(Sender: TObject);
 (*    procedure pcDistributionDrawTab(Control: TCustomTabControl;
       TabIndex: Integer; const Rect: TRect; Active: Boolean); *)
   private
@@ -629,6 +634,10 @@ begin
   else
     tsAustralianIncome.Font.Color := clWindowText; *)
   tsAustralianIncome.Highlighted := aValue;
+  if aValue then
+    tsAustralianIncome.ImageIndex := 0
+  else
+    tsAustralianIncome.ImageIndex := -1;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetCapitalGainsTabModified(aValue: boolean);
@@ -638,6 +647,10 @@ begin
   else
     tsCapitalGains.Font.Color := clWindowText; *)
   tsCapitalGains.Highlighted := aValue;
+  if aValue then
+    tsCapitalGains.ImageIndex := 0
+  else
+    tsCapitalGains.ImageIndex := -1;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetForeignIncomeTabModified(aValue: boolean);
@@ -647,6 +660,10 @@ begin
   else
     tsForeignIncome.Font.Color := clWindowText; *)
   tsForeignIncome.Highlighted := aValue;
+  if aValue then
+    tsForeignIncome.ImageIndex := 0
+  else
+    tsForeignIncome.ImageIndex := -1;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetNonCashCapitalGainsTabModified(
@@ -658,6 +675,10 @@ begin
     tsNonCashCapitalGains.Font.Color := clWindowText;
 *)
   tsNonCashCapitalGains.Highlighted := aValue;
+  if aValue then
+    tsNonCashCapitalGains.ImageIndex := 0
+  else
+    tsNonCashCapitalGains.ImageIndex := -1;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetFields(
@@ -1567,7 +1588,7 @@ begin
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
       if FrankingFrame.Owner = tsAustralianIncome then
-          isAustralianIncomeTabModified := true;
+          fmeAustralianIncomeTabOnChange( Sender );
 
       if FrankPercentage then
         Frank := FrankingFrame.nfFranked.asFloat{ * Money2Double(FActualAmount) / 100}
@@ -1614,7 +1635,7 @@ begin
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
       if FrankingFrame.Owner = tsAustralianIncome then
-        isAustralianIncomeTabModified := true;
+        fmeAustralianIncomeTabOnChange( Sender );
       if not UnfrankedModified then begin
         if FrankPercentage then
           Actual := 100.0
@@ -1637,7 +1658,7 @@ begin
     if ( ( Sender as TComponent ).Owner is TfmeBGLFranking ) then begin
       FrankingFrame := ( ( Sender as TComponent ).Owner as TfmeBGLFranking );
       if FrankingFrame.Owner = tsAustralianIncome then
-        isAustralianIncomeTabModified := true;
+        fmeAustralianIncomeTabOnChange( Sender );
     end;
 
   UnfrankedModified := True;
@@ -1652,49 +1673,28 @@ begin
 end;
 
 
-procedure TdlgEditBGLSF360Fields.OnFmeInterestIncomeFieldChange(
+procedure TdlgEditBGLSF360Fields.tsAustralianIncomeTabOnChange(
   Sender: TObject);
 begin
   isAustralianIncomeTabModified := true;
 end;
 
-(*
-procedure TdlgEditBGLSF360Fields.pcDistributionDrawTab(
-  Control: TCustomTabControl; TabIndex: Integer; const Rect: TRect;
-  Active: Boolean);
-var
-  Page : TPageControl;
-  Tab : TTabSheet;
-  Canvas: TCanvas;
-  liLoop : integer;
+procedure TdlgEditBGLSF360Fields.tsCapitalGainsTabOnChange(Sender: TObject);
 begin
-  Page   := (Control as TPageControl);
-//  Page.TabPosition
-  Canvas := Page.Canvas;
-{{{{{//  if TabIndex = tsAustralianIncome.TabIndex then
-
-  //  case TabIndex of
-//    tsAustralianIncome.TabIndex: ;
-//
-//  end;
-
-//  for liLoop := 0 to pred( Page.PageCount ) do begin
-//    Tab := Page.Pages[ liLoop ];
-//  end; }}}}}
-  Tab := Page.Pages[ TabIndex ];
-  if Tab.Highlighted then
-    Canvas.Font.Color:= BankLinkColor
-  else
-    Canvas.Font.Color:= clWindowText;;
-//  if Active then
-//    Canvas.Brush.Color:= clBlue
-//  else
-  Canvas.Brush.Color:= clWhite;
-  Canvas.FillRect(Page.TabRect( TabIndex ) );
-//  Canvas.TextOut( Page.TabRect( TabIndex ).Left, Page.TabRect( TabIndex ).Top, Tab.Caption );
-  Canvas.TextRect( Page.TabRect( TabIndex ), 0, 0, Tab.Caption );
+  isCapitalGainsTabModified := true;
 end;
-*)
+
+procedure TdlgEditBGLSF360Fields.tsNonCashCapitalGainsTabOnChange(
+  Sender: TObject);
+begin
+  isNonCashCapitalGainsTabModified := true;
+end;
+
+procedure TdlgEditBGLSF360Fields.tsForeignIncomeTabOnChange(
+  Sender: TObject);
+begin
+  isForeignIncomeTabModified := true;
+end;
 
 procedure TdlgEditBGLSF360Fields.RefreshChartCodeCombo();
 var

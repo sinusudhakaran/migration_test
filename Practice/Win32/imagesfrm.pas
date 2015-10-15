@@ -81,6 +81,7 @@ type
     imgBlueSuggMemCircle: TImage;
     imgGraySuggMemCircle: TImage;
     imgGridColArrow: TImage;
+    BlueLightBmp: TImage;
     procedure FormCreate(Sender: TObject);
   private
 
