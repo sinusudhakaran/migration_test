@@ -3490,7 +3490,7 @@ begin
   else
   begin
     ClientFileRec := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
-    if Assigned(ClientFileRec) then
+    if not Assigned(ClientFileRec) then
       AllowMasterMemorised := false
     else
       AllowMasterMemorised := ( CurrUser.CanMemoriseToMaster ) and
