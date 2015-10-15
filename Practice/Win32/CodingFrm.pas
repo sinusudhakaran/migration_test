@@ -8349,12 +8349,13 @@ begin
           ( RowNum > ( tblCoding.TopRow + tblCoding.VisibleRows - tblCoding.LockedRows))) and
      (pT^.txSuggested_Mem_Index > TRAN_SUGG_NOT_FOUND) and
      (not ColumnFmtList.ColumnDefn_At(SuggColNum)^.cdHidden) and
+     (not tblCoding.Columns.List[SuggColNum].Hidden) and
+     (tblCoding.ColOffset[ SuggColNum ] > -1) and // checks if column is visible
      (not MyClient.SuggMemsHidePopupOnCoding) then
   begin
     SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
 
     CellRect := GetCellRect(RowNum, SuggColNum);
-
     SuggMemPopup.Top  := (CellRect.Top + CellRect.Bottom) div 2 + 1;
     SuggMemPopup.left := CellRect.Right - 5;
 
