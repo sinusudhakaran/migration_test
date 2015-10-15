@@ -75,9 +75,9 @@ object fmeBGLForeignTax: TfmeBGLForeignTax
   object lblLICDeductions: TLabel
     Left = 3
     Top = 133
-    Width = 72
+    Width = 67
     Height = 13
-    Caption = 'LIC Deductions'
+    Caption = 'LIC Deduction'
     FocusControl = nfLICDeductions
   end
   object lpLICDeductions: TLabel
