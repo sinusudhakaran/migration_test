@@ -368,6 +368,7 @@ type
       const CellAttr: TOvcCellAttributes; Data: Pointer; var DoneIt: Boolean);
 
   private
+    frmSuggMemPopup  : TfrmSuggMemPopup;
     fSearchVisible : boolean;
     AltLineColor : integer;
     Temp_Column_Order             : Array[ 0..32 ] of Byte;
@@ -579,6 +580,7 @@ type
     { Public declarations }
     function GetLastKeyPress: TDateTime;
     procedure ProcessExternalCmd(Command : TExternalCmd);
+    procedure ShowCustomHint();
 
     class function CreateAndSetup( aOwner              : Forms.TForm;
                                    aBankAccount        : TBank_Account;
@@ -795,7 +797,6 @@ const
 var
   DefaultPositions : array[0..ceMax] of integer;
   DebugMe          : boolean = false;
-  frmSuggMemPopup  : TfrmSuggMemPopup;
 
 // Redraw main form on minimize
 //------------------------------------------------------------------------------
@@ -1191,7 +1192,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TfrmCoding.FormCreate(Sender: TObject);
-
 begin
   bkXPThemes.ThemeForm( Self);
   MDIChildSortedIndex := -1;
@@ -1255,8 +1255,8 @@ begin
   frmSuggMemPopup.Visible := false;
   frmSuggMemPopup.PopupParent := self;
 
-  frmSuggMemPopup.OnHideClick := DoHideClick;
-  frmSuggMemPopup.OnLaterClick := DoLaterClick;
+  frmSuggMemPopup.OnHideClick   := DoHideClick;
+  frmSuggMemPopup.OnLaterClick  := DoLaterClick;
   frmSuggMemPopup.OnCreateClick := DoCreateClick;
 end;
 
@@ -8307,6 +8307,30 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TfrmCoding.ShowCustomHint;
+var
+  RowNum, ColNum : integer;
+begin
+  if not tblCoding.Focused then
+    exit;
+
+  if HintShowing then
+    exit;
+
+  //see if active row is off screen, if so dont show the hint
+  RowNum := tblCoding.ActiveRow;
+  if ( RowNum < tblCoding.TopRow) or ( RowNum > ( tblCoding.TopRow + tblCoding.VisibleRows - tblCoding.LockedRows)) then
+    Exit;
+
+  //only show the hint if the current cell is not being edited
+  if not tblCoding.InEditingState then
+  begin
+    ColNum := tblCoding.ActiveCol;
+
+    ShowHintForCell( RowNum, ColNum);
+  end;
+end;
+
 procedure TfrmCoding.ShowHintForCell( const RowNum, ColNum : integer);
 const
   POPUP_MAX_HEIGHT = 153;
@@ -8347,6 +8371,9 @@ begin
     Exit;
   end;
 
+  if not assigned(frmSuggMemPopup) then
+    Exit;
+
   SuggColNum := ColumnFmtList.GetColNumOfField(ceSuggestedMemCount);
 
   if not (( RowNum < tblCoding.TopRow) or
@@ -8360,6 +8387,7 @@ begin
     SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
 
     CellRect := GetCellRect(RowNum, SuggColNum);
+
     SuggMemPopup.Top  := (CellRect.Top + CellRect.Bottom) div 2 + 1;
     SuggMemPopup.left := CellRect.Right - 5;
 
@@ -9831,28 +9859,8 @@ begin
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.CMMouseEnter(var Message: TMessage);
-//capture mouse enter message and show hint
-var
-  RowNum, ColNum : integer;
 begin
-  if not tblCoding.Focused then
-    exit;
-
-  if HintShowing then
-    exit;
-
-  //see if active row is off screen, if so dont show the hint
-  RowNum := tblCoding.ActiveRow;
-  if ( RowNum < tblCoding.TopRow) or ( RowNum > ( tblCoding.TopRow + tblCoding.VisibleRows - tblCoding.LockedRows)) then
-    Exit;
-
-  //only show the hint if the current cell is not being edited
-  if not tblCoding.InEditingState then
-  begin
-    ColNum := tblCoding.ActiveCol;
-
-    ShowHintForCell( RowNum, ColNum);
-  end;
+  ShowCustomHint;
 end;
 
 //------------------------------------------------------------------------------
@@ -10764,10 +10772,20 @@ begin
   obj := TObject(tcWindows.Tabs[tcWindows.TabIndex].Tag);
   if obj is TForm then
   begin
+    if (not (obj is TfrmCoding)) or
+       (TfrmCoding(obj) <> Self) then
+    begin
+      CloseSuggMemPopup();
+    end;
+
     TForm(obj).BringToFront;
 
     if (obj is TfrmCoding) then
+    begin
       TfrmCoding(obj).ActivateCurrentTab(tcWindows.TabIndex);
+      if (TfrmCoding(obj) <> Self) then
+        TfrmCoding(obj).ShowCustomHint();
+    end;
 
     if (obj is TfrmBudget) then
       TfrmBudget(obj).ActivateCurrentTab(tcWindows.TabIndex);
@@ -10782,5 +10800,3 @@ initialization
    DebugMe := DebugUnit(UnitName);
 
 end.
-
-
