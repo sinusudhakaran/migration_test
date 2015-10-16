@@ -429,8 +429,8 @@ begin
     result := Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
       [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey ]), nil, lsTemp,
       fAuth_TokenObj );
-
-    result := fAuth_TokenObj.SaveTokens;
+    if result then
+      result := fAuth_TokenObj.SaveTokens;
 
     if DebugMe then
       SetAndSynchroniseLogMessage( format( 'After Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',

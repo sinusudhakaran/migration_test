@@ -322,35 +322,39 @@ begin
         AdminSystem.fdFields.fdBGLTokenExpiresAt );
 
       if RestServer.CheckForAuthentication then begin
-      
+
         if RESTServer.Get_Chart_Of_Accounts( MyClient.clExtra.ceBGLFundIDSelected ) then begin
           for i := 0 to pred( RESTServer.Chart_of_Accounts.Count ) do begin
-
-            if (NewChart.FindCode( RESTServer.Chart_of_Accounts[ i ].Code ) <> nil) then
-              LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
-                RESTServer.Chart_of_Accounts[ i ].Code +' found in BGL360 API' )
+            if (length( RESTServer.Chart_of_Accounts[ i ].Code ) > 20) then
+              LogUtil.LogMsg( lmError, UnitName, format( 'The "Account Code/Sub ' +
+                'account" (%s) from BGL360 API is too long to be imported. Account skipped.',
+                [ RESTServer.Chart_of_Accounts[ i ].Code ] ) )
             else
-//DN BGL360-SubAccount Change              if ( RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ] in
-//DN BGL360-SubAccount Change                     [ 'C', 'N' ] ) then begin // Sub-Account not handled
+              if (NewChart.FindCode( RESTServer.Chart_of_Accounts[ i ].Code ) <> nil) then
+                LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
+                  RESTServer.Chart_of_Accounts[ i ].Code +' found in BGL360 API' )
+              else
+  //DN BGL360-SubAccount Change              if ( RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ] in
+  //DN BGL360-SubAccount Change                     [ 'C', 'N' ] ) then begin // Sub-Account not handled
 
-              if ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Control' ) or
-                 ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Normal' ) or
-                 ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Sub Account' ) then begin
+                if ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Control' ) or
+                   ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Normal' ) or
+                   ( RESTServer.Chart_of_Accounts[ i ].accountClass = 'Sub Account' ) then begin
 
-                NewAccount := New_Account_Rec;
+                  NewAccount := New_Account_Rec;
 
-                NewAccount^.chAccount_Code        :=
-                  RESTServer.Chart_of_Accounts[ i ].Code;
+                  NewAccount^.chAccount_Code        :=
+                    RESTServer.Chart_of_Accounts[ i ].Code;
 
-                AccountType                       :=
-                  RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ];
-                NewAccount^.chAccount_Type        := ord(AccountType[1]);
-                NewAccount^.chPosting_Allowed     := AccountType[1] <> 'C';
-                NewAccount^.chAccount_Description :=
-                  RESTServer.Chart_of_Accounts[ i ].Name; //FieldList.Strings[2];
+                  AccountType                       :=
+                    RESTServer.Chart_of_Accounts[ i ].accountClass[ 1 ];
+                  NewAccount^.chAccount_Type        := ord(AccountType[1]);
+                  NewAccount^.chPosting_Allowed     := AccountType[1] <> 'C';
+                  NewAccount^.chAccount_Description :=
+                    RESTServer.Chart_of_Accounts[ i ].Name; //FieldList.Strings[2];
 
-                NewChart.Insert(NewAccount);
-              end;
+                  NewChart.Insert(NewAccount);
+                end;
           end;
           result := true;
         end;
