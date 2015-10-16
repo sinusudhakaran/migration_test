@@ -1322,8 +1322,8 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       FocusControl = fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax
     end
     object lpShareTradeUnits: TLabel
-      Left = 392
-      Top = 223
+      Left = 280
+      Top = 18
       Width = 11
       Height = 17
       Caption = '%'
@@ -1540,7 +1540,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Width = 709
       Height = 266
       Align = alClient
-      Enabled = False
       TabOrder = 2
       ExplicitWidth = 709
       ExplicitHeight = 266
@@ -1677,26 +1676,45 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         RangeLow = {5C8FC2F5FF276BEE1CC0}
       end
     end
+    object nfForeignIncome: TOvcNumericField
+      Left = 407
+      Top = 125
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 1
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {5C8FC2F5FF276BEE1CC0}
+    end
     inline fmeDividend_Franking: TfmeBGLFranking
       Left = 0
       Top = 3
       Width = 318
       Height = 90
-      Enabled = False
       TabOrder = 0
       ExplicitTop = 3
       ExplicitWidth = 318
       inherited lblFranked: TLabel
         Width = 46
         Height = 17
-        Enabled = False
         ExplicitWidth = 46
         ExplicitHeight = 17
       end
       inherited lpFranked: TLabel
         Left = 261
         Height = 17
-        Enabled = False
         ExplicitLeft = 261
         ExplicitHeight = 17
       end
@@ -1725,7 +1743,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       end
       inherited nfFranked: TOvcNumericField
         Left = 128
-        Enabled = False
         OnChange = frameFrankingFrankedChange
         ExplicitLeft = 128
         RangeHigh = {F6285CFFFFF802952040}
@@ -1747,28 +1764,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
       end
-    end
-    object nfForeignIncome: TOvcNumericField
-      Left = 407
-      Top = 125
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 1
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
   end
   object pnlTransactionInfo: TPanel

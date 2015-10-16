@@ -1226,117 +1226,119 @@ begin
   FReadOnly := Value;
 
   if assigned( fmeDist_AU_Income_Franking ) then begin
-    fmeDist_AU_Income_Franking.nfFranked.Enabled := not Value;
-    fmeDist_AU_Income_Franking.nfUnfranked.Enabled := not Value;
-    fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not (FReadOnly or MemOnly);
-    fmeDist_AU_Income_Franking.btnFrankingCredits.Enabled := not Value;
+    fmeDist_AU_Income_Franking.nfFranked.Enabled := Value;
+    fmeDist_AU_Income_Franking.nfUnfranked.Enabled := Value;
+    fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := Value;
+    fmeDist_AU_Income_Franking.btnFrankingCredits.Enabled := Value;
   end;
 
   if assigned( fmeDist_AU_Income_InterestIncome ) then begin
-    fmeDist_AU_Income_InterestIncome.nfInterest.Enabled := not Value;
-    fmeDist_AU_Income_InterestIncome.nfOtherIncome.Enabled := not Value;
+    fmeDist_AU_Income_InterestIncome.nfInterest.Enabled := Value;
+    fmeDist_AU_Income_InterestIncome.nfOtherIncome.Enabled := Value;
   end;
-  nfLessOtherAllowableTrustDeductions.Enabled := not Value;
+  nfLessOtherAllowableTrustDeductions.Enabled := Value;
 
   // Capital Gains Tab
-  fmeDist_CashCapitalGains_CGT.nfCGTIndexation.Enabled := not Value;
-  fmeDist_CashCapitalGains_CGT.nfCGTDiscounted.Enabled := not Value;
-  fmeDist_CashCapitalGains_CGT.nfCGTOther.Enabled := not Value;
-  nfCGTConcession.Enabled := not Value;
+  fmeDist_CashCapitalGains_CGT.nfCGTIndexation.Enabled := Value;
+  fmeDist_CashCapitalGains_CGT.nfCGTDiscounted.Enabled := Value;
+  fmeDist_CashCapitalGains_CGT.nfCGTOther.Enabled := Value;
+  nfCGTConcession.Enabled := Value;
 
-  nfForeignCGTBeforeDiscount.Enabled := not Value;
-  nfForeignCGTIndexationMethod.Enabled := not Value;
-  nfForeignCGTOtherMethod.Enabled := not Value;
+  nfForeignCGTBeforeDiscount.Enabled := Value;
+  nfForeignCGTIndexationMethod.Enabled := Value;
+  nfForeignCGTOtherMethod.Enabled := Value;
 
-  nfTaxPaidBeforeDiscount.Enabled := not Value;
-  nfTaxPaidIndexationMethod.Enabled := not Value;
-  nfTaxPaidOtherMethod.Enabled := not Value;
+  nfTaxPaidBeforeDiscount.Enabled := Value;
+  nfTaxPaidIndexationMethod.Enabled := Value;
+  nfTaxPaidOtherMethod.Enabled := Value;
 
   //Foreign Income Tab
-  nfAssessableForeignSourceIncome.Enabled := not Value;
-  nfOtherNetForeignSourceIncome.Enabled := not Value;
-  nfCashDistribution.Enabled := not Value;
+  nfAssessableForeignSourceIncome.Enabled := Value;
+  nfOtherNetForeignSourceIncome.Enabled := Value;
+  nfCashDistribution.Enabled := Value;
 
   if assigned( fmeDist_ForeignIncome_Tax ) then begin
-    fmeDist_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := not Value;
-    fmeDist_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany.Enabled := not Value;
-    fmeDist_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := not Value;
+    fmeDist_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := Value;
+    fmeDist_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany.Enabled := Value;
+    fmeDist_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := Value;
 
-    fmeDist_ForeignIncome_Tax.nfNonResidentWithholdingTax.Enabled := not Value;
+    fmeDist_ForeignIncome_Tax.nfNonResidentWithholdingTax.Enabled := Value;
 
-    fmeDist_ForeignIncome_Tax.nfLICDeductions.Enabled := not Value;
+    fmeDist_ForeignIncome_Tax.nfLICDeductions.Enabled := Value;
   end;
 
-  nfTaxFreeAmounts.Enabled := not Value;
-  nfTaxExemptedAmounts.Enabled := not Value;
-  nfTaxDeferredAmounts.Enabled := not Value;
-  nfOtherExpenses.Enabled := not Value;
+  nfTaxFreeAmounts.Enabled := Value;
+  nfTaxExemptedAmounts.Enabled := Value;
+  nfTaxDeferredAmounts.Enabled := Value;
+  nfOtherExpenses.Enabled := Value;
 
   //Non-Cash Capital Gains/Loses
   if assigned( fmeDist_NonCashCapitalGains_CGT ) then begin
-    fmeDist_NonCashCapitalGains_CGT.nfCGTDiscounted.Enabled := not Value;
-    fmeDist_NonCashCapitalGains_CGT.nfCGTIndexation.Enabled := not Value;
-    fmeDist_NonCashCapitalGains_CGT.nfCGTOther.Enabled := not Value;
+    fmeDist_NonCashCapitalGains_CGT.nfCGTDiscounted.Enabled := Value;
+    fmeDist_NonCashCapitalGains_CGT.nfCGTIndexation.Enabled := Value;
+    fmeDist_NonCashCapitalGains_CGT.nfCGTOther.Enabled := Value;
   end;
-  nfCGTCapitalLosses.Enabled := not Value;
+  nfCGTCapitalLosses.Enabled := Value;
 
 // ** Panel Share Trade Panel **
-  nfShareBrokerage.Enabled := not Value;
-  nfShareConsideration.Enabled := not Value;
-  nfShareGSTAmount.Enabled := not Value;
-  cmbxShareGSTRate.Enabled := not Value;
+  nfShareBrokerage.Enabled := Value;
+  nfShareConsideration.Enabled := Value;
+  nfShareGSTAmount.Enabled := Value;
+  cmbxShareGSTRate.Enabled := Value;
 
 // ** Panel Interest Panel **
-  nfInterest.Enabled := not Value;
-  nfOtherIncome.Enabled := not Value;
-  nfTFNAmountsWithheld.Enabled := not Value;
-  nfNonResidentWithholdingTax.Enabled := not Value;
+  nfInterest.Enabled := Value;
+  nfOtherIncome.Enabled := Value;
+  nfTFNAmountsWithheld.Enabled := Value;
+  nfNonResidentWithholdingTax.Enabled := Value;
 
 // ** Panel Dividend Panel **
   if assigned( fmeDividend_Franking ) then begin
-    fmeDividend_Franking.nfFranked.Enabled := not Value;
-    fmeDividend_Franking.nfUnfranked.Enabled := not Value;
-    fmeDividend_Franking.nfFrankingCredits.Enabled := not Value;
-    fmeDividend_Franking.btnFrankingCredits.Enabled := not Value;
+    fmeDividend_Franking.nfFranked.Enabled := Value;
+    fmeDividend_Franking.nfUnfranked.Enabled := Value;
+    fmeDividend_Franking.nfFrankingCredits.Enabled := Value;
+    fmeDividend_Franking.btnFrankingCredits.Enabled := Value;
+    fmeDividend_Franking.nfFrankingCredits.Enabled := (Value and ( not MemOnly ) );
+    fmeDividend_Franking.btnFrankingCredits.Enabled := (Value and ( not MemOnly ) );
   end;
-  nfForeignIncome.Enabled := not Value;
+  nfForeignIncome.Enabled := Value;
   if assigned( fmeDividend_ForeignIncome_Tax ) then begin
-    fmeDividend_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := not Value;
-    fmeDividend_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany.Enabled := not Value;
-    fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := not Value;
-    fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax.Enabled := not Value;
-    fmeDividend_ForeignIncome_Tax.nfLICDeductions.Enabled := not Value;
+    fmeDividend_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := Value;
+    fmeDividend_ForeignIncome_Tax.nfAUFrankingCreditsFromNZCompany.Enabled := Value;
+    fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := Value;
+    fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax.Enabled := Value;
+    fmeDividend_ForeignIncome_Tax.nfLICDeductions.Enabled := Value;
   end;
 
 
   if not MemOnly then  begin
-     fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not Value;
-     nfTFNAmountsWithheld.Enabled := not Value;
+     fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := Value;
+     nfTFNAmountsWithheld.Enabled := Value;
      if assigned( fmeDist_ForeignIncome_Tax ) then begin
 // DN Not sure if these on fmeDist_ForeignIncome_Tax and fmeDividend_ForeignIncome_Tax map?
-       fmeDist_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := not Value;
-       fmeDist_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := not Value;
+       fmeDist_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := Value;
+       fmeDist_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := Value;
      end;
      if assigned( fmeDividend_ForeignIncome_Tax ) then begin
 // DN Not sure if these on fmeDividend_ForeignIncome_Tax and fmeDist_ForeignIncome_Tax map?
-       fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := not Value;
-       fmeDividend_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := not Value;
+       fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld.Enabled := Value;
+       fmeDividend_ForeignIncome_Tax.nfForeignIncomeTaxOffset.Enabled := Value;
      end;
   end;
 
 
 // DN Not sure about whether these map?
-  eCashDate.Enabled := not Value;
-  eAccrualDate.Enabled := not Value;
-  eRecordDate.Enabled := not Value;
+  eCashDate.Enabled := Value;
+  eAccrualDate.Enabled := Value;
+  eRecordDate.Enabled := Value;
 
 
-  nfUnits.Enabled := not Value;
+  nfUnits.Enabled := Value;
 
-  cmbxAccount.Enabled := not Value;
+  cmbxAccount.Enabled := Value;
 
-  btnChart.Enabled           := not Value;
-  btnClear.Enabled           := not Value;
+  btnChart.Enabled           := Value;
+  btnClear.Enabled           := Value;
 end;
 
 procedure TdlgEditBGLSF360Fields.SetRevenuePercentage(const Value: boolean);
@@ -1767,8 +1769,10 @@ procedure TdlgEditBGLSF360Fields.SetMemOnly(const Value: boolean);
 begin
   FMemOnly := Value;
 // Set the FrankingFme MemorisationsOnly property rather
-  if assigned( fmeDist_AU_Income_Franking ) then
-    fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not FMemOnly;
+  if assigned( fmeDividend_Franking ) then begin
+    fmeDividend_Franking.lblFrankingCredits.Enabled := not FMemOnly;
+    fmeDividend_Franking.nfFrankingCredits.Enabled := not FMemOnly;
+  end;
 // Set the FrankingFme MemorisationsOnly property rather
 end;
 
