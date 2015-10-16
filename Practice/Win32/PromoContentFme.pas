@@ -15,8 +15,10 @@ type
   TPromoContentFrame = class(TFrame)
     lblTitle: TRzLabel;
     lblURL: TRzLabel;
-    imgContainer: TImage;
     reDescription: TBKRichEdit;
+    pnlImageContainer: TPanel;
+    imgContainer: TImage;
+    lblBorder: TRzLabel;
     procedure reDescriptionResizeRequest(Sender: TObject; Rect: TRect);
     procedure reDescriptionLinkClicked(Sender: TObject; LinkClicked: string;
       LinkLine: Integer);
@@ -63,7 +65,7 @@ end;
 procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
   Rect: TRect);
 begin
-  reDescription.Height := Rect.Bottom - Rect.Top;
+  reDescription.Height := Rect.Bottom - Rect.Top + 1;
   reDescription.HideScrollBars := True;
 end;
 
@@ -122,6 +124,7 @@ begin
   ParentFont := True;
   ParentColor := True;
   Self.AutoSize := False;
+
   Self.Width := TForm(Sender).Width;
   Self.Height := TForm(Sender).Height;
   lblTitle.Width := Self.Width;
@@ -133,21 +136,39 @@ begin
   lblTitle.Font.Style := [fsBold];
   lblTitle.Caption := Trim(Content.Title);
 
+  reDescription.HideScrollBars := False;
   reDescription.Clear;
   reDescription.Lines.Add(Trim(Content.Description));
+  reDescription.Perform(WM_KEYDOWN, VK_BACK, 0);
   ApplyTextFormatting;
 
   imgContainer.Visible := Content.IsImageAvilable;
+  pnlImageContainer.Visible := Content.IsImageAvilable;
   lblURL.Visible := (Trim(Content.URL) <> '');
 
   lblURL.Font.Color := HyperLinkColor;
   lblURL.Caption := Content.URL;
 
   if Content.IsImageAvilable then
+  begin
+    if Content.MainImageBitmap.Height > 300 then
+      Content.MainImageBitmap.Height := 300;
+    if Content.MainImageBitmap.Width > 600 then
+      Content.MainImageBitmap.Height := 600;
+    pnlImageContainer.AutoSize := False;
     imgContainer.Picture.Assign(Content.MainImageBitmap);
-  FStartPosition := 0;
+    pnlImageContainer.Height := Content.MainImageBitmap.Height;
+    pnlImageContainer.Width := Self.Width;
+    imgContainer.Height := Content.MainImageBitmap.Height;
+    imgContainer.Width := Content.MainImageBitmap.Width;
+    imgContainer.Left := (Self.Width div 2) - (imgContainer.Width div 2);
+    pnlImageContainer.AutoSize := True;
+    imgContainer.Top := 0;
+    imgContainer.Stretch := False;
+  end;
 
   Self.AutoSize := True;
+  FStartPosition := 0;
 
   {FPrevRichEditWndProc := reDescription.WindowProc;
   reDescription.WindowProc := RichEditWndProc;
