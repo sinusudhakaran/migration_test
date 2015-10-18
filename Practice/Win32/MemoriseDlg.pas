@@ -2529,7 +2529,16 @@ begin
     fMemTranSortedList.FreeAll;
     SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList);
 
-    tblTran.RowLimit := fMemTranSortedList.ItemCount + 1;
+    if fMemTranSortedList.ItemCount = 0 then
+    begin
+      tblTran.RowLimit := 1;
+      pnlMessage.Visible := true;
+    end
+    else
+    begin
+      tblTran.RowLimit := fMemTranSortedList.ItemCount + 1;
+      pnlMessage.Visible := false;
+    end;
 
     tblTran.invalidate;
   finally
@@ -2542,6 +2551,7 @@ procedure TdlgMemorise.RefreshMasterMemTree;
 var
   screenPos : TPoint;
 begin
+  pnlMessage.Visible := false;
   ffrmSpinner.ShowSpinner('Calculating',
                           pnlMain.Top + pnlMatchingTransactions.Top +
                           (pnlMatchingTransactions.Height div 2) - (ffrmSpinner.Height div 2),
