@@ -419,6 +419,8 @@ var
   TranIndex : integer;
   Tran : pTransaction_Rec;
   NewSuggMemSortedItem : TMemTranSortedListRec;
+  MemLine : pMemorisation_Line_Rec;
+  MemLineIndex : integer;
 begin
   Result := false;
   for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
@@ -452,7 +454,24 @@ begin
       NewSuggMemSortedItem.CodedBy           := Tran^.txCoded_By;
       NewSuggMemSortedItem.Reference         := Tran^.txReference;
       NewSuggMemSortedItem.Analysis          := Tran^.txAnalysis;
-      NewSuggMemSortedItem.HasPotentialIssue := false;
+
+      NewSuggMemSortedItem.HasPotentialIssue := true;
+      for MemLineIndex := 0 to aTempMem.mdLines.ItemCount-1 do
+      begin
+        if ((MemLineIndex = 0) and (MemLine^.mlAccount = '')) or
+           (Tran^.txAccount = '') then
+        begin
+          NewSuggMemSortedItem.HasPotentialIssue := false;
+          break;
+        end;
+
+        MemLine := aTempMem.mdLines.MemorisationLine_At(MemLineIndex);
+        if MemLine^.mlAccount = Tran^.txAccount then
+        begin
+          NewSuggMemSortedItem.HasPotentialIssue := false;
+          break;
+        end;
+      end;
 
       aMemTranSortedList.AddItem(NewSuggMemSortedItem);
       Result := true;

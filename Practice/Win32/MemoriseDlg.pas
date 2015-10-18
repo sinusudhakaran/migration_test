@@ -356,11 +356,18 @@ type
     fTempInteger : integer;
     fTempString : string;
     fTempAmount : double;
+    fTempSuggMem : pMemTranSortedListRec;
 
     fMasterTreeThread : TMasterTreeThread;
 
     fDirty : boolean;
     ffrmSpinner : TfrmSpinner;
+    FIssueHint : THintWindow;
+
+    function GetCellRect(const RowNum, ColNum: Integer): TRect;
+
+    procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
+    procedure WMVScroll(var Msg : TWMScroll); message WM_VSCROLL;
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
@@ -392,12 +399,19 @@ type
     function GetTxTypeFromCmbType(ItemIndex: integer = -1): byte;
 
     procedure ReadCellforPaint(RowNum, ColNum : integer; var Data : pointer);
+    procedure DrawtAccountOnTranCell(TableCanvas: TCanvas;
+                                     const CellRect: TRect;
+                                     RowNum, ColNum: Integer;
+                                     const CellAttr: TOvcCellAttributes;
+                                     aValue : pMemTranSortedListRec;
+                                     var DoneIt: Boolean);
     procedure DrawTextOnTranCell(TableCanvas: TCanvas;
                                  const CellRect: TRect;
                                  RowNum, ColNum: Integer;
                                  const CellAttr: TOvcCellAttributes;
                                  aValue : string;
-                                 var DoneIt: Boolean);
+                                 var DoneIt: Boolean;
+                                 aHasPotentialIssue : boolean = false);
   protected
     procedure SetDlgEditMode(aValue : TDlgEditMode);
     procedure UpdateMoreOptions();
@@ -406,6 +420,9 @@ type
     procedure RefreshMasterMemTree();
     procedure AfterRefreshMasterMemTreeEvent();
     procedure TerminateMasterThread();
+
+    procedure ShowIssueHint(const RowNum, ColNum: Integer);
+    procedure HideIssueHint();
   public
     procedure FillSplitData(aMem : TMemorisation);
     procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; ATempMem: boolean = false);
@@ -474,6 +491,7 @@ uses
   clObj32,
   Files,
   bkBranding,
+  NewHints,
   trxList32;
 
 {$R *.DFM}
@@ -812,12 +830,32 @@ begin
   FSuperLeft := -999;
 
   ffrmSpinner := TfrmSpinner.Create(self);
+
+  FIssueHint := THintWindow.Create( Self );
+  if Assigned(AdminSystem) and (AdminSystem.fdFields.fdCoding_Font <> '') then
+    StrToFont(AdminSystem.fdFields.fdCoding_Font, FIssueHint.Canvas.Font)
+  else if (not Assigned(AdminSystem)) and (INI_Coding_Font <> '') then
+    StrToFont(INI_Coding_Font, FIssueHint.Canvas.Font)
+  else
+  begin
+    FIssueHint.Canvas.Font.Name := 'Courier';
+    FIssueHint.Canvas.Font.Size := 5;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.FormDestroy(Sender: TObject);
 begin
+  if Assigned( FIssueHint ) then
+  begin
+    if FIssueHint.HandleAllocated then
+      FIssueHint.ReleaseHandle;
+
+    FreeAndNil(FIssueHint);
+  end;
+
   treView.Items.Clear;
+
   FreeAndNil(fMemTranSortedList);
   FreeAndNil(fMasterTreeThread);
   FreeAndNil(ffrmSpinner);
@@ -1433,10 +1471,19 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgMemorise.tblTranActiveCellChanged(Sender: TObject; RowNum,
-  ColNum: Integer);
+procedure TdlgMemorise.tblTranActiveCellChanged(Sender: TObject; RowNum, ColNum: Integer);
 begin
+  HideIssueHint();
   tblTran.Invalidate;
+
+  if (ColNum = mtAccount) then
+  begin
+    if (RowNum > fMemTranSortedList.ItemCount) then
+      Exit;
+
+    if fMemTranSortedList.GetPRec(RowNum-1)^.HasPotentialIssue then
+      ShowIssueHint(RowNum, ColNum);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1479,11 +1526,51 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgMemorise.ShowIssueHint(const RowNum, ColNum: Integer);
+var
+  R : TRect;
+begin
+  HideIssueHint(); // Hide any existing hint
+
+  R := tblTran.BoundsRect;
+  R.Top := R.Top + pnlMain.Top + pnlMatchingTransactions.Top;;
+  R.Bottom := R.Bottom + pnlMain.Top + pnlMatchingTransactions.Top;;
+
+  // Make sure the mouse is on the form
+  if PtInRect( R, ScreenToClient( Mouse.CursorPos ) ) then
+  begin
+    R := GetCellRect( RowNum, ColNum );
+    NewHints.ShowCustomHint( FIssueHint, R, 'Potentially invalid match' );
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.HideIssueHint;
+var
+  R : TRect;
+begin
+  if Assigned( FIssueHint ) then
+  begin
+    if FIssueHint.HandleAllocated then
+    begin // Find where the Hint is, so we can redraw the cells beneath it.
+      GetWindowRect( FIssueHint.Handle, R );
+      R.TopLeft      := tblTran.ScreenToClient(R.TopLeft);
+      R.BottomRight  := tblTran.ScreenToClient(R.BottomRight);
+      FIssueHint.ReleaseHandle;
+      tblTran.AllowRedraw := False;
+      tblTran.InvalidateCellsInRect( R );
+      tblTran.AllowRedraw := True;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.tmrPayeeTimer(Sender: TObject);
 begin
   PopulatePayee := True;
 end;
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
 
   type
@@ -1921,6 +2008,19 @@ procedure TdlgMemorise.cmbValueChange(Sender: TObject);
 begin
   SetFirstLineDefaultAmount;
 end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.CMMouseLeave(var Message: TMessage);
+begin
+  HideIssueHint();
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.WMVScroll(var Msg: TWMScroll);
+begin
+  HideIssueHint();
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.CalcRemaining(var Fixed, TotalPerc, RemainingPerc, RemainingDollar : Money;
                                      var HasDollarLines, HasPercentLines : boolean);
@@ -2397,8 +2497,8 @@ begin
       Data := @fTempString;
     end;
     mtAccount : begin
-      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Account;
-      Data := @fTempString;
+      fTempSuggMem := fMemTranSortedList.GetPRec(RowNum-1);
+      Data := fTempSuggMem;
     end;
     mtAmount : begin
       fTempAmount := fMemTranSortedList.GetPRec(RowNum-1)^.Amount/100;
@@ -3542,6 +3642,18 @@ begin
    Result := GetComboCurrentIntObject(cbAccounting, snother);
 end;
 
+function TdlgMemorise.GetCellRect(const RowNum, ColNum: Integer): TRect;
+begin
+  Result.Top    := pnlMain.Top + pnlMatchingTransactions.Top +
+                   tblTran.Top + tblTran.RowOffset[ RowNum ];
+  Result.Bottom := pnlMain.Top + pnlMatchingTransactions.Top +
+                   tblTran.Top + tblTran.RowOffset[ RowNum ] + tblTran.Rows[ RowNum ].Height;
+  Result.Left   := tblTran.Left + tblTran.ColOffset[ ColNum ];
+  Result.Right  := tblTran.Left + tblTran.ColOffset[ ColNum ] + tblTran.Columns[ ColNum ].Width;
+  Result.TopLeft := ClientToScreen( Result.TopLeft );
+  Result.BottomRight := ClientToScreen( Result.BottomRight );
+end;
+
 procedure TdlgMemorise.chkStatementDetailsClick(Sender: TObject);
 begin
   fDirty := true;
@@ -4340,7 +4452,7 @@ begin
   if Data = nil then
     Exit;
 
-  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, String(Data^), DoneIt);
+  DrawtAccountOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr, Data, DoneIt);
 end;
 
 //------------------------------------------------------------------------------
@@ -4674,12 +4786,24 @@ begin
    end;
 end;
 
+procedure TdlgMemorise.DrawtAccountOnTranCell(TableCanvas: TCanvas;
+                                              const CellRect: TRect;
+                                              RowNum, ColNum: Integer;
+                                              const CellAttr: TOvcCellAttributes;
+                                              aValue: pMemTranSortedListRec;
+                                              var DoneIt: Boolean);
+begin
+  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr,
+                     aValue^.Account, DoneIt, aValue^.HasPotentialIssue);
+end;
+
 procedure TdlgMemorise.DrawTextOnTranCell(TableCanvas: TCanvas;
                                           const CellRect: TRect;
                                           RowNum, ColNum: Integer;
                                           const CellAttr: TOvcCellAttributes;
                                           aValue: string;
-                                          var DoneIt: Boolean);
+                                          var DoneIt: Boolean;
+                                          aHasPotentialIssue : boolean);
 var
   DataRect : TRect;
 begin
@@ -4687,11 +4811,12 @@ begin
   TableCanvas.Font.Color       := CellAttr.caFontColor;
   TableCanvas.Brush.Color      := CellAttr.caColor;
 
-  {if tblTran.ActiveRow = RowNum then
+  if aHasPotentialIssue then
   begin
-    TableCanvas.Font.Color  := clWhite;
-    TableCanvas.Brush.Color := bkBranding.SelectionColor;
-  end;}
+    if (RowNum <> TblTran.ActiveRow) or
+       (ColNum <> TblTran.ActiveCol) then
+      TableCanvas.Brush.Color := clYellow;
+  end;
 
   TableCanvas.FillRect( CellRect );
 
