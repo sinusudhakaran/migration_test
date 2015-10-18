@@ -181,18 +181,28 @@ function ShowRecommendedMemorisations(const aOwner: TComponent; const aBankAccou
 var
   varForm: TRecommendedMemorisationsFrm;
   mrResult: TModalResult;
+  MemStatus : TSuggMemStatus;
 begin
-  varForm := TRecommendedMemorisationsFrm.Create(aOwner);
-  try
-    varForm.BankAccount := aBankAccount;
+  MemStatus := SuggestedMem.GetStatus(aBankAccount, MyClient.clChart);
 
-    mrResult := varForm.ShowModal;
-    result := (mrResult = mrOk);
+  if not (MemStatus = ssDisabled) then
+  begin
 
-    aNeedReCoding := varForm.NeedReCoding;
+    varForm := TRecommendedMemorisationsFrm.Create(aOwner);
+    try
+      varForm.BankAccount := aBankAccount;
 
-  finally
-    FreeAndNil(varForm);
+      mrResult := varForm.ShowModal;
+      result := (mrResult = mrOk);
+
+      aNeedReCoding := varForm.NeedReCoding;
+    finally
+      FreeAndNil(varForm);
+    end;
+  end
+  else
+  begin
+    HelpfulInfoMsg( MSG_DISABLED_MEMORISATIONS, 0 );
   end;
 end;
 
@@ -669,10 +679,6 @@ begin
     ssNoFound : begin
       pnlMessage.Visible := true;
       lblMessage.Caption := MSG_NO_MEMORISATIONS;
-    end;
-    ssDisabled : begin
-      pnlMessage.Visible := true;
-      lblMessage.Caption := MSG_DISABLED_MEMORISATIONS;
     end;
     ssProcessing : begin
       pnlMessage.Visible := false;
