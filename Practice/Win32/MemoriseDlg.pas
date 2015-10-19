@@ -330,7 +330,7 @@ type
     ExistingCode: string;
     Loading : boolean; //set to true when loading values into form.  Stop onClick events being fired
     GSTClassEditable       : Boolean;
-    CalledFromRecommendedMems: boolean;
+    fCalledFromRecommendedMems: boolean;
     PayeeUsed: boolean;
 
     AmountToMatch : Money;
@@ -430,18 +430,19 @@ type
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
     property EditPrefix : string read fEditPrefix write fEditPrefix;
+    property CalledFromRecommendedMems: boolean read fCalledFromRecommendedMems write fCalledFromRecommendedMems;
   end;
 
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
-                         pM: TMemorisation = nil): boolean;
+                         pM: TMemorisation = nil; FromRecommendedMems: boolean = false): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; Prefix: string = '';
-                            CopySaveSeq: integer = -1;
-                            FromRecommendedMems: boolean = false): boolean;
+                            CopySaveSeq: integer = -1): boolean;
   function CreateMemorisation(BA : TBank_Account;
                               MemorisedList : TMemorisations_List;
-                              pM : TMemorisation): boolean;
+                              pM : TMemorisation;
+                              FromRecommendedMems: boolean = false): boolean;
   function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
 
 
@@ -693,7 +694,7 @@ var
   W : Integer;
 begin
   fMemTranSortedList := TMemTranSortedList.Create();
-  CalledFromRecommendedMems := False;
+  fCalledFromRecommendedMems := False;
   PayeeUsed := False;
   bkXPThemes.ThemeForm(Self);
 
@@ -2328,14 +2329,15 @@ begin
          end;
 
        //Warn the user if the selected transaction does not match the criteria
-       if assigned(SourceTransaction) then
-       if (not mxUtils.CanMemorise( SourceTransaction, TempMem)) then
-         begin
-           if AskYesNo( 'Confirm Criteria',
-                        'The transaction you have selected will NOT be memorised because "Match On" criteria you have used do not result in a match.'#13#13+
-                        'Please confirm you want to continue.', DLG_NO, 0) <> DLG_YES then
-             Exit;
-         end;
+       if (assigned(SourceTransaction)) and
+          (not CalledFromRecommendedMems) and
+          (not mxUtils.CanMemorise( SourceTransaction, TempMem)) then
+       begin
+         if AskYesNo( 'Confirm Criteria',
+                      'The currently selected transaction will NOT be memorised because the "Match On" criteria does not match it. Any other transactions that match the criteria WILL be memorised.'#13#13+
+                      'Please confirm you want to continue.', DLG_NO, 0) <> DLG_YES then
+           Exit;
+       end;
 
      finally
        //free the memory associated with this memorisation
@@ -2786,7 +2788,7 @@ end;
 
 //------------------------------------------------------------------------------
 function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean;
-                       pM: TMemorisation = nil) : boolean;
+                       pM: TMemorisation = nil; FromRecommendedMems: boolean = false) : boolean;
 // create a new memorisation based on the transaction
 //
 // parameters: ba   Bank Account that transaction and memorisation belong to
@@ -2812,9 +2814,9 @@ begin
       with MemDlg,tr^ do
       begin
          DlgEditMode := demCreate;
+         CalledFromRecommendedMems := FromRecommendedMems;
 
          PopulateCmbType(BA, tr.txType);
-         CalledFromRecommendedMems := Assigned(pM);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
          SourceBankAccount := ba;
          EditMem := nil;
@@ -2891,23 +2893,8 @@ begin
            FillSplitData(pM)
          else
          begin
-         
-         end;
-           
-         // Block below is only used when creating a memorisation from the Recommended Mems form
-         {if CalledFromRecommendedMems then
-         begin
-           SplitData[1].AcctCode  := MemLine.mlAccount;
-           pAcct := MyClient.clChart.FindCode( MemLine^.mlAccount);
-           if Assigned(pAcct) then
-             SplitData[1].Desc := pAcct^.chAccount_Description
-           else
-             SplitData[1].Desc := '';
 
-           // Set the ClassNo from the Account Code
-           if assigned(pAcct) then
-             SplitData[1].GSTClassCode := GetGSTClassCode(MyClient, pAcct.chGST_Class);
-         end; }
+         end;
 
          //**************************
          if ShowModal = mrOK then begin
@@ -2972,7 +2959,8 @@ end;
 //------------------------------------------------------------------------------
 function CreateMemorisation(BA : TBank_Account;
                             MemorisedList : TMemorisations_List;
-                            pM: TMemorisation): boolean;
+                            pM: TMemorisation;
+                            FromRecommendedMems: boolean): boolean;
 var
   MemorisationLine: pMemorisation_Line_Rec;
   tr: pTransaction_Rec;
@@ -2987,8 +2975,8 @@ begin
     tr.txType               := pM.mdFields.mdType;
 
     IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
-    
-    result := MemoriseEntry(BA, tr, IsAMasterMem, pM);
+
+    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems);
   finally
     Dispose_Transaction_Rec( tr );
 //DN    Free_Transaction_Rec_Dynamic_Fields(tr^);
@@ -2999,8 +2987,7 @@ end;
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   var pM: TMemorisation; var DeleteSelectedMem: boolean;
-  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1;
-  FromRecommendedMems: boolean = false): boolean;
+  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -3615,8 +3602,10 @@ begin
   PopulatePayee := True;
   AutoSize(chkMaster);
   AutoSize(chkAccountSystem);
-  if CalledFromRecommendedMems then
-    chkStatementDetails.Checked := True;
+
+  if (not (eStatementDetails.Text = '')) and
+    (DlgEditMode in ALL_CREATE) then
+    chkStatementDetails.checked := true;
 
   if fDlgEditMode in ALL_NO_MASTER then
   begin
