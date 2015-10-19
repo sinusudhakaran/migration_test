@@ -455,7 +455,7 @@ begin
       NewSuggMemSortedItem.Reference         := Tran^.txReference;
       NewSuggMemSortedItem.Analysis          := Tran^.txAnalysis;
 
-      NewSuggMemSortedItem.HasPotentialIssue := true;
+      {NewSuggMemSortedItem.HasPotentialIssue := true;
       for MemLineIndex := 0 to aTempMem.mdLines.ItemCount-1 do
       begin
         if ((MemLineIndex = 0) and (MemLine^.mlAccount = '')) or
@@ -471,7 +471,7 @@ begin
           NewSuggMemSortedItem.HasPotentialIssue := false;
           break;
         end;
-      end;
+      end; }
 
       aMemTranSortedList.AddItem(NewSuggMemSortedItem);
       Result := true;
