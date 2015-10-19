@@ -455,23 +455,23 @@ begin
       NewSuggMemSortedItem.Reference         := Tran^.txReference;
       NewSuggMemSortedItem.Analysis          := Tran^.txAnalysis;
 
-      {NewSuggMemSortedItem.HasPotentialIssue := true;
+      NewSuggMemSortedItem.HasPotentialIssue := true;
       for MemLineIndex := 0 to aTempMem.mdLines.ItemCount-1 do
       begin
-        if ((MemLineIndex = 0) and (MemLine^.mlAccount = '')) or
+        MemLine := aTempMem.mdLines.MemorisationLine_At(MemLineIndex);
+        if ((Assigned(MemLine)) and (MemLineIndex = 0) and (MemLine^.mlAccount = '')) or
            (Tran^.txAccount = '') then
         begin
           NewSuggMemSortedItem.HasPotentialIssue := false;
           break;
         end;
 
-        MemLine := aTempMem.mdLines.MemorisationLine_At(MemLineIndex);
-        if MemLine^.mlAccount = Tran^.txAccount then
+        if (Assigned(MemLine)) and (MemLine^.mlAccount = Tran^.txAccount) then
         begin
           NewSuggMemSortedItem.HasPotentialIssue := false;
           break;
         end;
-      end; }
+      end;
 
       aMemTranSortedList.AddItem(NewSuggMemSortedItem);
       Result := true;
