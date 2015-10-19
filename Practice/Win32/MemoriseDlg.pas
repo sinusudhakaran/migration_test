@@ -2499,8 +2499,8 @@ begin
       Data := @fTempString;
     end;
     mtAccount : begin
-      fTempSuggMem := fMemTranSortedList.GetPRec(RowNum-1);
-      Data := fTempSuggMem;
+      //fTempSuggMem := fMemTranSortedList.GetPRec(RowNum-1);
+      //Data := fTempSuggMem;
     end;
     mtAmount : begin
       fTempAmount := fMemTranSortedList.GetPRec(RowNum-1)^.Amount/100;
@@ -4792,8 +4792,8 @@ procedure TdlgMemorise.DrawtAccountOnTranCell(TableCanvas: TCanvas;
                                               aValue: pMemTranSortedListRec;
                                               var DoneIt: Boolean);
 begin
-  DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr,
-                     aValue^.Account, DoneIt, aValue^.HasPotentialIssue);
+  //DrawTextOnTranCell(TableCanvas, CellRect, RowNum, ColNum, CellAttr,
+  //                   aValue^.Account, DoneIt, aValue^.HasPotentialIssue);
 end;
 
 procedure TdlgMemorise.DrawTextOnTranCell(TableCanvas: TCanvas;
