@@ -832,7 +832,7 @@ begin
 
   ffrmSpinner := TfrmSpinner.Create(self);
 
-  FIssueHint := THintWindow.Create( Self );
+  {FIssueHint := THintWindow.Create( Self );
   if Assigned(AdminSystem) and (AdminSystem.fdFields.fdCoding_Font <> '') then
     StrToFont(AdminSystem.fdFields.fdCoding_Font, FIssueHint.Canvas.Font)
   else if (not Assigned(AdminSystem)) and (INI_Coding_Font <> '') then
@@ -841,19 +841,19 @@ begin
   begin
     FIssueHint.Canvas.Font.Name := 'Courier';
     FIssueHint.Canvas.Font.Size := 5;
-  end;
+  end;}
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.FormDestroy(Sender: TObject);
 begin
-  if Assigned( FIssueHint ) then
+  {if Assigned( FIssueHint ) then
   begin
     if FIssueHint.HandleAllocated then
       FIssueHint.ReleaseHandle;
 
     FreeAndNil(FIssueHint);
-  end;
+  end; }
 
   treView.Items.Clear;
 
@@ -1531,7 +1531,7 @@ procedure TdlgMemorise.ShowIssueHint(const RowNum, ColNum: Integer);
 var
   R : TRect;
 begin
-  HideIssueHint(); // Hide any existing hint
+  {HideIssueHint(); // Hide any existing hint
 
   R := tblTran.BoundsRect;
   R.Top := R.Top + pnlMain.Top + pnlMatchingTransactions.Top;;
@@ -1542,7 +1542,7 @@ begin
   begin
     R := GetCellRect( RowNum, ColNum );
     NewHints.ShowCustomHint( FIssueHint, R, 'Potentially invalid match' );
-  end;
+  end; }
 end;
 
 //------------------------------------------------------------------------------
@@ -1550,7 +1550,7 @@ procedure TdlgMemorise.HideIssueHint;
 var
   R : TRect;
 begin
-  if Assigned( FIssueHint ) then
+  {if Assigned( FIssueHint ) then
   begin
     if FIssueHint.HandleAllocated then
     begin // Find where the Hint is, so we can redraw the cells beneath it.
@@ -1562,7 +1562,7 @@ begin
       tblTran.InvalidateCellsInRect( R );
       tblTran.AllowRedraw := True;
     end;
-  end;
+  end;  }
 end;
 
 //------------------------------------------------------------------------------
