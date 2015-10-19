@@ -138,7 +138,7 @@ begin
 
   reDescription.HideScrollBars := False;
   reDescription.Clear;
-  reDescription.Lines.Add(Trim(Content.Description));
+  reDescription.Lines.Text := Trim(Content.Description);
   reDescription.Perform(WM_KEYDOWN, VK_BACK, 0);
   ApplyTextFormatting;
 

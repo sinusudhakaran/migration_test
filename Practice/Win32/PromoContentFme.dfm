@@ -2,7 +2,7 @@ object PromoContentFrame: TPromoContentFrame
   Left = 0
   Top = 0
   Width = 784
-  Height = 119
+  Height = 123
   Margins.Left = 0
   Margins.Top = 0
   Margins.Right = 0
@@ -36,11 +36,11 @@ object PromoContentFrame: TPromoContentFrame
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 48
+    Top = 52
     Width = 764
     Height = 13
     Margins.Left = 10
-    Margins.Top = 1
+    Margins.Top = 5
     Margins.Right = 10
     Margins.Bottom = 1
     Align = alTop
@@ -48,13 +48,13 @@ object PromoContentFrame: TPromoContentFrame
     Visible = False
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 47
+    ExplicitTop = 48
     ExplicitWidth = 74
   end
   object lblBorder: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 106
+    Top = 110
     Width = 764
     Height = 13
     Margins.Left = 10
@@ -64,7 +64,7 @@ object PromoContentFrame: TPromoContentFrame
     Align = alTop
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 104
+    ExplicitTop = 106
     ExplicitWidth = 3
   end
   object reDescription: TBKRichEdit
@@ -90,7 +90,7 @@ object PromoContentFrame: TPromoContentFrame
   object pnlImageContainer: TPanel
     AlignWithMargins = True
     Left = 10
-    Top = 63
+    Top = 67
     Width = 764
     Height = 43
     Margins.Left = 10
@@ -102,7 +102,7 @@ object PromoContentFrame: TPromoContentFrame
     Caption = ' '
     TabOrder = 1
     Visible = False
-    ExplicitTop = 61
+    ExplicitTop = 63
     object imgContainer: TImage
       Left = 260
       Top = 0
