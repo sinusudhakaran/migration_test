@@ -1474,17 +1474,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblTranActiveCellChanged(Sender: TObject; RowNum, ColNum: Integer);
 begin
-  HideIssueHint();
+  //HideIssueHint();
   tblTran.Invalidate;
 
-  if (ColNum = mtAccount) then
+  {if (ColNum = mtAccount) then
   begin
     if (RowNum > fMemTranSortedList.ItemCount) then
       Exit;
 
     if fMemTranSortedList.GetPRec(RowNum-1)^.HasPotentialIssue then
       ShowIssueHint(RowNum, ColNum);
-  end;
+  end; }
 end;
 
 //------------------------------------------------------------------------------
