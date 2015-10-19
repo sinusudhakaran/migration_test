@@ -137,6 +137,7 @@ uses
   yesnodlg, clObj32, ECollect, AppUserObj, MoneyDef, WinUtils,
   AuditMgr,
   SYDEFS,
+  memutils,
   SystemMemorisationList, MAINFRM;
 
 
@@ -743,49 +744,24 @@ begin
   if ( MemorisedList = nil ) then
      Exit;
 
-  with lvMemorised do begin
-     Prefix := '';
-     if AccSel.OverlayIndex = 1 then 
-       Prefix := AccSel.Text;
-     pM := TMemorisation( Selected.SubItems.Objects[0] );
-     DeleteSelectedMem := False;
-     Sequence_No := pM.mdFields^.mdSequence_No;
-     if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix, -1) then
-     begin
-        if DeleteSelectedMem then
-        begin
-          if pM.mdFields.mdFrom_Master_List then
-            MemorisedList.DelFreeItem(pM);
-        end;
+  with lvMemorised do
+  begin
+    Prefix := '';
+    if AccSel.OverlayIndex = 1 then
+      Prefix := AccSel.Text;
+    pM := TMemorisation( Selected.SubItems.Objects[0] );
+    DeleteSelectedMem := False;
+    Sequence_No := pM.mdFields^.mdSequence_No;
 
-        //Set changed to true so that CES reloads edited transactions
-        FMemorisationChanged := True;
-        //if the edit was succesful we need to reload the memorisations to display them
-        //correctly in the list view
-        case AccSel.OverlayIndex of
-           0: AccSel.StateIndex := LoadMemorisations(tBank_Account(AccSel.Data));
-           1: LoadMasters(AccSel.Text);
-        end; //case
-        if Assigned(lvMemorised.Selected) then
-        begin
-          // See if we can find the last edited one..
-          for I := 0 to lvMemorised.items.Count - 1 do
-          begin
-            if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = Sequence_No) then
-            begin
-              lvMemorised.Selected := nil; //Deselect all..
-              lvMemorised.Selected := lvMemorised.Items[I];
-              lvMemorised.Selected.Focused := True;
-              Break;
-            end;
-          end;
-        end;
-
+    if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix, -1) then
+    begin
+      if DeleteSelectedMem then
+      begin
         MasterMemToDelete := -1;
         if Assigned(AdminSystem) then
         begin
-          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(AccSel.Text);
-          if Assigned(SystemMemorisation) and Assigned(lvMemorised.Selected) then
+          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+          if Assigned(SystemMemorisation) then
           begin
             for i := 0 to TMemorisations_List(SystemMemorisation.smMemorisations).ItemCount - 1 do
             begin
@@ -800,14 +776,39 @@ begin
             if (DeleteSelectedMem and (MasterMemToDelete > -1)) then
             begin
               SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
-              DeleteMemorised(MemorisedList, SystemMem, False, Prefix, False);
+              DeleteMem(MemorisedList, BA, SystemMem, Prefix);
             end;
           end;
-
-          if (AccSel.OverlayIndex = 1) then
-            LoadMasters(Prefix);
         end;
-     end;
+      end;
+
+      //Set changed to true so that CES reloads edited transactions
+      FMemorisationChanged := True;
+      //if the edit was succesful we need to reload the memorisations to display them
+      //correctly in the list view
+      case AccSel.OverlayIndex of
+         0: AccSel.StateIndex := LoadMemorisations(tBank_Account(AccSel.Data));
+         1: LoadMasters(AccSel.Text);
+      end; //case
+
+      if Assigned(lvMemorised.Selected) then
+      begin
+        // See if we can find the last edited one..
+        for I := 0 to lvMemorised.items.Count - 1 do
+        begin
+          if (TMemorisation(lvMemorised.Items[I].SubItems.Objects[0]).mdFields^.mdSequence_No = Sequence_No) then
+          begin
+            lvMemorised.Selected := nil; //Deselect all..
+            lvMemorised.Selected := lvMemorised.Items[I];
+            lvMemorised.Selected.Focused := True;
+            Break;
+          end;
+        end;
+      end;
+
+      if (AccSel.OverlayIndex = 1) then
+        LoadMasters(Prefix);
+    end;
   end;
 end;
 
