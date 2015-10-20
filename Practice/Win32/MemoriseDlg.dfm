@@ -260,7 +260,7 @@ object dlgMemorise: TdlgMemorise
           Margins.Bottom = 1
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 16
           Sorted = True
           TabOrder = 2
           OnChange = eStatementDetailsChange
@@ -317,7 +317,16 @@ object dlgMemorise: TdlgMemorise
         OnMouseDown = tblSplitMouseDown
         OnUserCommand = tblSplitUserCommand
         CellData = (
-          'dlgMemorise.Header')
+          'dlgMemorise.Header'
+          'dlgMemorise.colLineType'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           24)
         ColData = (
@@ -401,12 +410,13 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
         end
         object lblRemPercHdr: TLabel
-          Left = 341
+          Left = 359
           Top = 0
-          Width = 76
+          Width = 60
           Height = 16
           Alignment = taRightJustify
-          Caption = 'Remaining %'
+          AutoSize = False
+          Caption = 'Remaining'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -415,12 +425,13 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
         end
         object lblTotalPercHdr: TLabel
-          Left = 175
+          Left = 185
           Top = 0
-          Width = 45
+          Width = 40
           Height = 16
           Alignment = taRightJustify
-          Caption = 'Total %'
+          AutoSize = False
+          Caption = 'Total'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -429,10 +440,11 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
         end
         object lblAmount: TLabel
-          Left = 70
+          Left = 68
           Top = 0
           Width = 96
           Height = 16
+          Alignment = taRightJustify
           Caption = '$999,999,999.00'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -442,7 +454,7 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
         end
         object lblAmountHdr: TLabel
-          Left = 0
+          Left = 18
           Top = 0
           Width = 44
           Height = 16
@@ -469,11 +481,13 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
         end
         object lblFixedHdr: TLabel
-          Left = 175
-          Top = 22
-          Width = 41
+          Left = 185
+          Top = 20
+          Width = 40
           Height = 16
-          Caption = 'Fixed $'
+          Alignment = taRightJustify
+          AutoSize = False
+          Caption = 'Fixed'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -496,11 +510,13 @@ object dlgMemorise: TdlgMemorise
           ParentFont = False
         end
         object lblRemDollarHdr: TLabel
-          Left = 341
+          Left = 359
           Top = 20
-          Width = 71
+          Width = 60
           Height = 16
-          Caption = 'Remaining $'
+          Alignment = taRightJustify
+          AutoSize = False
+          Caption = 'Remaining'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -601,7 +617,14 @@ object dlgMemorise: TdlgMemorise
         OnGetCellData = tblTranGetCellData
         OnGetCellAttributes = tblTranGetCellAttributes
         CellData = (
-          'dlgMemorise.tranHeader')
+          'dlgMemorise.tranHeader'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colAnalysis'
+          'dlgMemorise.colReference'
+          'dlgMemorise.colTranDate')
         RowData = (
           24)
         ColData = (
@@ -714,7 +737,7 @@ object dlgMemorise: TdlgMemorise
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 1
       OnChange = eStatementDetailsChange
@@ -1051,7 +1074,7 @@ object dlgMemorise: TdlgMemorise
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentCtl3D = False
       ParentFont = False
       TabOrder = 15

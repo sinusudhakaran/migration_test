@@ -2078,6 +2078,9 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.UpdateTotal;
+Const
+  LINE1_HEIGHT = 0;
+  LINE2_HEIGHT = 20;
 var
   Fixed  : Money;
   TotalPerc  : Money;
@@ -2106,30 +2109,39 @@ begin
 
   MatchOnEquals := GetComboCurrentIntObject(cmbValue) = mxAmtEqual;
 
-{
-  lblFixed.Enabled := MatchOnEquals or HasDollarLines;
-  lblFixedHdr.Enabled := lblFixed.Enabled;
+  lblTotalPerc.Visible := ( not MatchOnEquals) or HasPercentLines;
+  lblTotalPercHdr.Visible := lblTotalPerc.Visible;
 
-  lblRemDollar.Enabled := MatchOnEquals;
-  lblRemDollarHdr.Enabled := lblRemDollar.Enabled;
-
-  lblTotalPerc.Enabled := ( not MatchOnEquals) or HasPercentLines;
-  lblTotalPercHdr.Enabled := lblTotalPerc.Enabled;
-
-  lblRemPerc.Enabled   := ( not MatchOnEquals) or HasPercentLines;
-  lblRemPercHdr.Enabled := lblRemPerc.Enabled;
-}
   lblFixed.Visible := MatchOnEquals or HasDollarLines;
   lblFixedHdr.Visible := lblFixed.Visible;
+
+  if (lblFixed.Visible and not lblTotalPerc.Visible) then
+  begin
+    lblFixed.Top := LINE1_HEIGHT;
+    lblFixedHdr.Top := LINE1_HEIGHT;
+  end
+  else
+  begin
+    lblFixed.Top := LINE2_HEIGHT;
+    lblFixedHdr.Top := LINE2_HEIGHT;
+  end;
+
+  lblRemPerc.Visible   := ( not MatchOnEquals) or HasPercentLines;
+  lblRemPercHdr.Visible := lblRemPerc.Visible;
 
   lblRemDollar.Visible := MatchOnEquals;
   lblRemDollarHdr.Visible := lblRemDollar.Visible;
 
-  lblTotalPerc.Visible := ( not MatchOnEquals) or HasPercentLines;
-  lblTotalPercHdr.Visible := lblTotalPerc.Visible;
-
-  lblRemPerc.Visible   := ( not MatchOnEquals) or HasPercentLines;
-  lblRemPercHdr.Visible := lblRemPerc.Visible;
+  if (lblRemDollar.Visible and not lblRemPerc.Visible) then
+  begin
+    lblRemDollar.Top := LINE1_HEIGHT;
+    lblRemDollarHdr.Top := LINE1_HEIGHT;
+  end
+  else
+  begin
+    lblRemDollar.Top := LINE2_HEIGHT;
+    lblRemDollarHdr.Top := LINE2_HEIGHT;
+  end;
 
   if RemainingPerc = 0 then
     lblRemPerc.Font.Color := clGreen
@@ -4091,10 +4103,6 @@ begin
   FTaxName := MyClient.TaxSystemNameUC;
   Header.Headings[ GSTCodeCol ] := FTaxName;
   Header.Headings[ TypeCol ] := '%' + '/' + LCur;
-
-
-  lblFixedHdr.Caption := 'Fixed ' + LCur;
-  lblRemDollarHdr.Caption := 'Remaining ' + LCur;
 
   With FixedAmount1 do
       Caption := 'Apply &fixed amount                             ' + LCur;
