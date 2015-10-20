@@ -1619,6 +1619,31 @@ begin
         SplitData[SplitIndex].SF_Foreign_Capital_Gains_Credit := PayeeLine.plSF_Foreign_Capital_Gains_Credit;
         SplitData[SplitIndex].SF_Capital_Gains_Fraction_Half := PayeeLine.plSF_Capital_Gains_Fraction_Half;
 
+        SplitData[SplitIndex].SF_Other_Income := PayeeLine.plSF_Other_Income;
+        SplitData[SplitIndex].SF_Other_Trust_Deductions := PayeeLine.plSF_Other_Trust_Deductions;
+        SplitData[SplitIndex].SF_CGT_Concession_Amount := PayeeLine.plSF_CGT_Concession_Amount;
+        SplitData[SplitIndex].SF_CGT_ForeignCGT_Before_Disc := PayeeLine.plSF_CGT_ForeignCGT_Before_Disc;
+        SplitData[SplitIndex].SF_CGT_ForeignCGT_Indexation := PayeeLine.plSF_CGT_ForeignCGT_Indexation;
+        SplitData[SplitIndex].SF_CGT_ForeignCGT_Other_Method := PayeeLine.plSF_CGT_ForeignCGT_Other_Method;
+        SplitData[SplitIndex].SF_CGT_TaxPaid_Indexation := PayeeLine.plSF_CGT_TaxPaid_Indexation;
+        SplitData[SplitIndex].SF_CGT_TaxPaid_Other_Method := PayeeLine.plSF_CGT_TaxPaid_Other_Method;
+        SplitData[SplitIndex].SF_Other_Net_Foreign_Income := PayeeLine.plSF_Other_Net_Foreign_Income;
+        SplitData[SplitIndex].SF_Cash_Distribution := PayeeLine.plSF_Cash_Distribution;
+        SplitData[SplitIndex].SF_AU_Franking_Credits_NZ_Co := PayeeLine.plSF_AU_Franking_Credits_NZ_Co;
+        SplitData[SplitIndex].SF_Non_Res_Witholding_Tax := PayeeLine.plSF_Non_Res_Witholding_Tax;
+        SplitData[SplitIndex].SF_LIC_Deductions := PayeeLine.plSF_LIC_Deductions;
+        SplitData[SplitIndex].SF_Non_Cash_CGT_Discounted_Before_Discount := PayeeLine.plSF_Non_Cash_CGT_Discounted_Before_Discount;
+        SplitData[SplitIndex].SF_Non_Cash_CGT_Indexation := PayeeLine.plSF_Non_Cash_CGT_Indexation;
+        SplitData[SplitIndex].SF_Non_Cash_CGT_Other_Method := PayeeLine.plSF_Non_Cash_CGT_Other_Method;
+        SplitData[SplitIndex].SF_Non_Cash_CGT_Capital_Losses := PayeeLine.plSF_Non_Cash_CGT_Capital_Losses;
+        SplitData[SplitIndex].SF_Share_Brokerage := PayeeLine.plSF_Share_Brokerage;
+        SplitData[SplitIndex].SF_Share_Consideration := PayeeLine.plSF_Share_Consideration;
+        SplitData[SplitIndex].SF_Share_GST_Amount := PayeeLine.plSF_Share_GST_Amount;
+        SplitData[SplitIndex].SF_Share_GST_Rate := PayeeLine.plSF_Share_GST_Rate;
+        SplitData[SplitIndex].SF_Cash_Date := PayeeLine.plSF_Cash_Date;
+        SplitData[SplitIndex].SF_Accrual_Date := PayeeLine.plSF_Accrual_Date;
+        SplitData[SplitIndex].SF_Record_Date := PayeeLine.plSF_Record_Date;
+
         SplitData[SplitIndex].SF_Edited := PayeeLine.plSF_Edited;
 
         Inc(SplitIndex);
@@ -2014,6 +2039,33 @@ begin
         PayeeLine.plSF_Capital_Gains_Fraction_Half := SplitData[i].SF_Capital_Gains_Fraction_Half;
         PayeeLine.plSF_Ledger_ID := SplitData[i].SF_Ledger_ID;
         PayeeLine.plSF_Ledger_Name := SplitData[i].SF_Ledger_Name;
+
+        PayeeLine.plSF_Other_Income := SplitData[ i ].SF_Other_Income;
+        PayeeLine.plSF_Other_Trust_Deductions := SplitData[ i ].SF_Other_Trust_Deductions;
+        PayeeLine.plSF_CGT_Concession_Amount := SplitData[ i ].SF_CGT_Concession_Amount;
+        PayeeLine.plSF_CGT_ForeignCGT_Before_Disc := SplitData[ i ].SF_CGT_ForeignCGT_Before_Disc;
+        PayeeLine.plSF_CGT_ForeignCGT_Indexation := SplitData[ i ].SF_CGT_ForeignCGT_Indexation;
+        PayeeLine.plSF_CGT_ForeignCGT_Other_Method := SplitData[ i ].SF_CGT_ForeignCGT_Other_Method;
+        PayeeLine.plSF_CGT_TaxPaid_Indexation := SplitData[ i ].SF_CGT_TaxPaid_Indexation;
+        PayeeLine.plSF_CGT_TaxPaid_Other_Method := SplitData[ i ].SF_CGT_TaxPaid_Other_Method;
+        PayeeLine.plSF_Other_Net_Foreign_Income := SplitData[ i ].SF_Other_Net_Foreign_Income;
+        PayeeLine.plSF_Cash_Distribution := SplitData[ i ].SF_Cash_Distribution;
+        PayeeLine.plSF_AU_Franking_Credits_NZ_Co := SplitData[ i ].SF_AU_Franking_Credits_NZ_Co;
+        PayeeLine.plSF_Non_Res_Witholding_Tax := SplitData[ i ].SF_Non_Res_Witholding_Tax;
+        PayeeLine.plSF_LIC_Deductions := SplitData[ i ].SF_LIC_Deductions;
+        PayeeLine.plSF_Non_Cash_CGT_Discounted_Before_Discount := SplitData[ i ].SF_Non_Cash_CGT_Discounted_Before_Discount;
+        PayeeLine.plSF_Non_Cash_CGT_Indexation := SplitData[ i ].SF_Non_Cash_CGT_Indexation;
+        PayeeLine.plSF_Non_Cash_CGT_Other_Method := SplitData[ i ].SF_Non_Cash_CGT_Other_Method;
+        PayeeLine.plSF_Non_Cash_CGT_Capital_Losses := SplitData[ i ].SF_Non_Cash_CGT_Capital_Losses;
+        PayeeLine.plSF_Share_Brokerage := SplitData[ i ].SF_Share_Brokerage;
+        PayeeLine.plSF_Share_Consideration := SplitData[ i ].SF_Share_Consideration;
+        PayeeLine.plSF_Share_GST_Amount := SplitData[ i ].SF_Share_GST_Amount;
+        PayeeLine.plSF_Share_GST_Rate := SplitData[ i ].SF_Share_GST_Rate;
+        PayeeLine.plSF_Cash_Date := SplitData[ i ].SF_Cash_Date;
+        PayeeLine.plSF_Accrual_Date := SplitData[ i ].SF_Accrual_Date;
+        PayeeLine.plSF_Record_Date := SplitData[ i ].SF_Record_Date;
+
+
 
         if AuditIDList.Count > 0 then begin
           PayeeLine.plAudit_Record_ID := integer(AuditIDList.Items[0]);
