@@ -1244,7 +1244,7 @@ begin
     fmeDist_AU_Income_InterestIncome.nfInterest.Enabled := not Value;
     fmeDist_AU_Income_InterestIncome.nfOtherIncome.Enabled := not Value;
   end;
-  nfLessOtherAllowableTrustDeductions.Enabled := Value;
+  nfLessOtherAllowableTrustDeductions.Enabled := not Value;
 
   // Capital Gains Tab
   fmeDist_CashCapitalGains_CGT.nfCGTIndexation.Enabled := not Value;
