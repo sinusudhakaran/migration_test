@@ -116,7 +116,6 @@ type
     lpShareGSTAmount: TLabel;
     lblShareGSTRate: TLabel;
     cmbxShareGSTRate: TcxComboBox;
-    lpShareTradeUnits: TLabel;
     nfShareTradeUnits: TOvcNumericField;
     lblShareTradeUnits: TLabel;
     lblOtherExpenses: TLabel;
@@ -138,6 +137,13 @@ type
     edtAccount: TEdit;
     lblOffset_Credits: TLabel;
     EditedTabImageList: TImageList;
+    lpCGTDiscounted: TLabel;
+    lpForeignCGTBeforeDiscount: TLabel;
+    lpForeignCGTIndexationMethod: TLabel;
+    lpForeignCGTOtherMethod: TLabel;
+    lpTaxPaidBeforeDiscount: TLabel;
+    lpTaxPaidIndexationMethod: TLabel;
+    lpTaxPaidOtherMethod: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1228,8 +1234,10 @@ begin
   if assigned( fmeDist_AU_Income_Franking ) then begin
     fmeDist_AU_Income_Franking.nfFranked.Enabled := not Value;
     fmeDist_AU_Income_Franking.nfUnfranked.Enabled := not Value;
-    fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not Value;
-    fmeDist_AU_Income_Franking.btnFrankingCredits.Enabled := not Value;
+//    fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not Value;
+//    fmeDist_AU_Income_Franking.btnFrankingCredits.Enabled := not Value;
+    fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := (not Value and ( not MemOnly ) );
+    fmeDist_AU_Income_Franking.btnFrankingCredits.Enabled := (not Value and ( not MemOnly ) );
   end;
 
   if assigned( fmeDist_AU_Income_InterestIncome ) then begin
@@ -1296,8 +1304,8 @@ begin
   if assigned( fmeDividend_Franking ) then begin
     fmeDividend_Franking.nfFranked.Enabled := not Value;
     fmeDividend_Franking.nfUnfranked.Enabled := not Value;
-    fmeDividend_Franking.nfFrankingCredits.Enabled := not Value;
-    fmeDividend_Franking.btnFrankingCredits.Enabled := not Value;
+//    fmeDividend_Franking.nfFrankingCredits.Enabled := not Value;
+//    fmeDividend_Franking.btnFrankingCredits.Enabled := not Value;
     fmeDividend_Franking.nfFrankingCredits.Enabled := (not Value and ( not MemOnly ) );
     fmeDividend_Franking.btnFrankingCredits.Enabled := (not Value and ( not MemOnly ) );
   end;
@@ -1312,7 +1320,7 @@ begin
 
 
   if not MemOnly then  begin
-     fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not Value;
+//     fmeDist_AU_Income_Franking.nfFrankingCredits.Enabled := not Value;
      nfTFNAmountsWithheld.Enabled := not Value;
      if assigned( fmeDist_ForeignIncome_Tax ) then begin
 // DN Not sure if these on fmeDist_ForeignIncome_Tax and fmeDividend_ForeignIncome_Tax map?
@@ -1362,7 +1370,7 @@ begin
    SetPercentLabel(lpShareBrokerage, FRevenuePercentage);
    SetPercentLabel(lpShareConsideration, FRevenuePercentage);
    SetPercentLabel(lpShareGSTAmount, FRevenuePercentage);
-   SetPercentLabel(lpShareTradeUnits, FRevenuePercentage);
+//   SetPercentLabel(lpShareTradeUnits, FRevenuePercentage);
    SetPercentLabel(lpOtherExpenses, FRevenuePercentage);
 
    SetPercentLabel(fmeDist_AU_Income_Franking.lpFranked, FRevenuePercentage);
@@ -1374,6 +1382,12 @@ begin
    SetPercentLabel(fmeDist_CashCapitalGains_CGT.lpCGTDiscounted, FRevenuePercentage);
    SetPercentLabel(fmeDist_CashCapitalGains_CGT.lpCGTIndexation, FRevenuePercentage);
    SetPercentLabel(fmeDist_CashCapitalGains_CGT.lpCGTOther, FRevenuePercentage);
+   SetPercentLabel(lpForeignCGTBeforeDiscount, FRevenuePercentage);
+   SetPercentLabel(lpForeignCGTIndexationMethod, FRevenuePercentage);
+   SetPercentLabel(lpForeignCGTOtherMethod, FRevenuePercentage);
+   SetPercentLabel(lpTaxPaidBeforeDiscount, FRevenuePercentage);
+   SetPercentLabel(lpTaxPaidIndexationMethod, FRevenuePercentage);
+   SetPercentLabel(lpTaxPaidOtherMethod, FRevenuePercentage);
 
 
    SetPercentLabel(fmeDist_NonCashCapitalGains_CGT.lpCGTDiscounted, FRevenuePercentage);
@@ -1769,10 +1783,14 @@ procedure TdlgEditBGLSF360Fields.SetMemOnly(const Value: boolean);
 begin
   FMemOnly := Value;
 // Set the FrankingFme MemorisationsOnly property rather
-  if assigned( fmeDividend_Franking ) then begin
+(*  if assigned( fmeDividend_Franking ) then begin
     fmeDividend_Franking.lblFrankingCredits.Enabled := not FMemOnly;
     fmeDividend_Franking.nfFrankingCredits.Enabled := not FMemOnly;
-  end;
+  end; *)
+  if assigned( fmeDist_AU_Income_Franking ) then
+    fmeDist_AU_Income_Franking.MemorisationsOnly := FMemOnly;
+  if assigned( fmeDividend_Franking ) then
+    fmeDividend_Franking.MemorisationsOnly := FMemOnly;
 // Set the FrankingFme MemorisationsOnly property rather
 end;
 
