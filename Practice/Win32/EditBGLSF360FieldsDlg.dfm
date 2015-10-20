@@ -1815,7 +1815,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       EFColors.Highlight.BackColor = clHighlight
       EFColors.Highlight.TextColor = clHighlightText
       Options = []
-      PictureMask = '#,###,###,###.##'
+      PictureMask = '###.####'
       TabOrder = 0
       OnKeyDown = nfUnitsKeyDown
       RangeHigh = {F6285CFFFFF802952040}
