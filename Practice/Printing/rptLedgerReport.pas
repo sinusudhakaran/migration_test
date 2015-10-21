@@ -40,7 +40,7 @@ type
     SuperTotalForeign_Income: Money;
     SuperTotalForeign_Tax_Credits: Money;
     SuperTotalCapital_Gains_Indexed: Money;
-    SuperTotalCapital_Gains_Disc: Money;               
+    SuperTotalCapital_Gains_Disc: Money;
     SuperTotalCapital_Gains_Other: Money;
     SuperTotalOther_Expenses: Money;
     SuperTotalCGT_Date: Money;
@@ -53,6 +53,63 @@ type
     SuperTotalOther_Tax_Credit: Money;
     SuperTotalNon_Resident_Tax: Money;
     SuperTotalForeign_Capital_Gains_Credit: Money;
+
+    SuperTotalOther_Income                         : Money;
+    SuperTotalOther_Trust_Deductions               : Money;
+    SuperTotalCGT_Concession_Amount                : Money;
+    SuperTotalCGT_ForeignCGT_Before_Disc           : Money;
+    SuperTotalCGT_ForeignCGT_Indexation            : Money;
+    SuperTotalCGT_ForeignCGT_Other_Method          : Money;
+    SuperTotalCGT_TaxPaid_Indexation               : Money;
+    SuperTotalCGT_TaxPaid_Other_Method             : Money;
+    SuperTotalOther_Net_Foreign_Income             : Money;
+    SuperTotalCash_Distribution                    : Money;
+    SuperTotalAU_Franking_Credits_NZ_Co            : Money;
+    SuperTotalNon_Res_Witholding_Tax               : Money;
+    SuperTotalLIC_Deductions                       : Money;
+    SuperTotalNon_Cash_CGT_Discounted_Before_Discount : Money;
+    SuperTotalNon_Cash_CGT_Indexation              : Money;
+    SuperTotalNon_Cash_CGT_Other_Method            : Money;
+    SuperTotalNon_Cash_CGT_Capital_Losses          : Money;
+    SuperTotalShare_Brokerage                      : Money;
+    SuperTotalShare_GST_Amount                     : Money;
+
+
+(*
+  if (aReportColumnItem.DataUnit = BKTE) then begin
+    case aReportColumnItem.DataToken of
+      tkteSF_Other_Income                            : Result := Amount_Size;
+      tkteSF_Other_Trust_Deductions                  : Result := Amount_Size;
+      tkteSF_CGT_Concession_Amount                   : Result := Amount_Size;
+      tkteSF_CGT_ForeignCGT_Before_Disc              : Result := Amount_Size;
+      tkteSF_CGT_ForeignCGT_Indexation               : Result := Amount_Size;
+      tkteSF_CGT_ForeignCGT_Other_Method             : Result := Amount_Size;
+      tkteSF_CGT_TaxPaid_Indexation                  : Result := Amount_Size;
+      tkteSF_CGT_TaxPaid_Other_Method                : Result := Amount_Size;
+      tkteSF_Other_Net_Foreign_Income                : Result := Amount_Size;
+      tkteSF_Cash_Distribution                       : Result := Amount_Size;
+      tkteSF_AU_Franking_Credits_NZ_Co               : Result := Amount_Size;
+      tkteSF_Non_Res_Witholding_Tax                  : Result := Amount_Size;
+      tkteSF_LIC_Deductions                          : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Indexation                 : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Other_Method               : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Capital_Losses             : Result := Amount_Size;
+      tkteSF_Share_Brokerage                         : Result := Amount_Size;
+      tkteSF_Share_GST_Amount                        : Result := Amount_Size;
+      tkteSF_Share_GST_Rate                          :
+        Result := sizeof( Transaction_Extension_Rec.teSF_Share_GST_Rate );
+      tkteSF_Cash_Date                               : Result := DATE_SIZE;
+      tkteSF_Accrual_Date                            : Result := DATE_SIZE;
+      tkteSF_Record_Date                             : Result := DATE_SIZE;
+    end;
+  end;
+*)
+
+
+
+
+
     procedure ClearSuper;
   end;
 
@@ -1701,6 +1758,27 @@ begin
     Mgr.SuperTotalOther_Tax_Credit             := Mgr.SuperTotalOther_Tax_Credit + TranRec.txSF_Other_Tax_Credit;
     Mgr.SuperTotalNon_Resident_Tax             := Mgr.SuperTotalNon_Resident_Tax + TranRec.txSF_Non_Resident_Tax;
     Mgr.SuperTotalForeign_Capital_Gains_Credit := Mgr.SuperTotalForeign_Capital_Gains_Credit + TranRec.txSF_Foreign_Capital_Gains_Credit;
+
+  //Extension Record fields
+    Mgr.SuperTotalOther_Income                     := Mgr.SuperTotalOther_Income + TranRec.txTransaction_Extension^.teSF_Other_Income;
+    Mgr.SuperTotalOther_Trust_Deductions           := Mgr.SuperTotalOther_Trust_Deductions + TranRec.txTransaction_Extension^.teSF_Other_Trust_Deductions;
+    Mgr.SuperTotalCGT_Concession_Amount            := Mgr.SuperTotalCGT_Concession_Amount + TranRec.txTransaction_Extension^.teSF_CGT_Concession_Amount;
+    Mgr.SuperTotalCGT_ForeignCGT_Before_Disc       := Mgr.SuperTotalCGT_ForeignCGT_Before_Disc + TranRec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc;
+    Mgr.SuperTotalCGT_ForeignCGT_Indexation        := Mgr.SuperTotalCGT_ForeignCGT_Indexation + TranRec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation;
+    Mgr.SuperTotalCGT_ForeignCGT_Other_Method      := Mgr.SuperTotalCGT_ForeignCGT_Other_Method + TranRec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method;
+    Mgr.SuperTotalCGT_TaxPaid_Indexation           := Mgr.SuperTotalCGT_TaxPaid_Indexation + TranRec.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation;
+    Mgr.SuperTotalCGT_TaxPaid_Other_Method         := Mgr.SuperTotalCGT_TaxPaid_Other_Method + TranRec.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method;
+    Mgr.SuperTotalOther_Net_Foreign_Income         := Mgr.SuperTotalOther_Net_Foreign_Income + TranRec.txTransaction_Extension^.teSF_Other_Net_Foreign_Income;
+    Mgr.SuperTotalCash_Distribution                := Mgr.SuperTotalCash_Distribution + TranRec.txTransaction_Extension^.teSF_Cash_Distribution;
+    Mgr.SuperTotalAU_Franking_Credits_NZ_Co        := Mgr.SuperTotalAU_Franking_Credits_NZ_Co + TranRec.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co;
+    Mgr.SuperTotalNon_Res_Witholding_Tax           := Mgr.SuperTotalNon_Res_Witholding_Tax + TranRec.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax;
+    Mgr.SuperTotalLIC_Deductions                   := Mgr.SuperTotalLIC_Deductions + TranRec.txTransaction_Extension^.teSF_LIC_Deductions;
+    Mgr.SuperTotalNon_Cash_CGT_Discounted_Before_Discount := Mgr.SuperTotalNon_Cash_CGT_Discounted_Before_Discount + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount;
+    Mgr.SuperTotalNon_Cash_CGT_Indexation          := Mgr.SuperTotalNon_Cash_CGT_Indexation + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation;
+    Mgr.SuperTotalNon_Cash_CGT_Other_Method        := Mgr.SuperTotalNon_Cash_CGT_Other_Method + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method;
+    Mgr.SuperTotalNon_Cash_CGT_Capital_Losses      := Mgr.SuperTotalNon_Cash_CGT_Capital_Losses + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses;
+    Mgr.SuperTotalShare_Brokerage                  := Mgr.SuperTotalShare_Brokerage + TranRec.txTransaction_Extension^.teSF_Share_Brokerage;
+    Mgr.SuperTotalShare_GST_Amount                 := Mgr.SuperTotalShare_GST_Amount + TranRec.txTransaction_Extension^.teSF_Share_GST_Amount;
   end;
 end;
 
@@ -1914,6 +1992,27 @@ begin
     Mgr.SuperTotalOther_Tax_Credit              := Mgr.SuperTotalOther_Tax_Credit + DissRec.dsSF_Other_Tax_Credit;
     Mgr.SuperTotalNon_Resident_Tax              := Mgr.SuperTotalNon_Resident_Tax + DissRec.dsSF_Non_Resident_Tax;
     Mgr.SuperTotalForeign_Capital_Gains_Credit  := Mgr.SuperTotalForeign_Capital_Gains_Credit + DissRec.dsSF_Foreign_Capital_Gains_Credit;
+
+  //Extension Record fields
+    Mgr.SuperTotalOther_Income                     := Mgr.SuperTotalOther_Income + DissRec.dsDissection_Extension^.deSF_Other_Income;
+    Mgr.SuperTotalOther_Trust_Deductions           := Mgr.SuperTotalOther_Trust_Deductions + DissRec.dsDissection_Extension^.deSF_Other_Trust_Deductions;
+    Mgr.SuperTotalCGT_Concession_Amount            := Mgr.SuperTotalCGT_Concession_Amount + DissRec.dsDissection_Extension^.deSF_CGT_Concession_Amount;
+    Mgr.SuperTotalCGT_ForeignCGT_Before_Disc       := Mgr.SuperTotalCGT_ForeignCGT_Before_Disc + DissRec.dsDissection_Extension^.deSF_CGT_ForeignCGT_Before_Disc;
+    Mgr.SuperTotalCGT_ForeignCGT_Indexation        := Mgr.SuperTotalCGT_ForeignCGT_Indexation + DissRec.dsDissection_Extension^.deSF_CGT_ForeignCGT_Indexation;
+    Mgr.SuperTotalCGT_ForeignCGT_Other_Method      := Mgr.SuperTotalCGT_ForeignCGT_Other_Method + DissRec.dsDissection_Extension^.deSF_CGT_ForeignCGT_Other_Method;
+    Mgr.SuperTotalCGT_TaxPaid_Indexation           := Mgr.SuperTotalCGT_TaxPaid_Indexation + DissRec.dsDissection_Extension^.deSF_CGT_TaxPaid_Indexation;
+    Mgr.SuperTotalCGT_TaxPaid_Other_Method         := Mgr.SuperTotalCGT_TaxPaid_Other_Method + DissRec.dsDissection_Extension^.deSF_CGT_TaxPaid_Other_Method;
+    Mgr.SuperTotalOther_Net_Foreign_Income         := Mgr.SuperTotalOther_Net_Foreign_Income + DissRec.dsDissection_Extension^.deSF_Other_Net_Foreign_Income;
+    Mgr.SuperTotalCash_Distribution                := Mgr.SuperTotalCash_Distribution + DissRec.dsDissection_Extension^.deSF_Cash_Distribution;
+    Mgr.SuperTotalAU_Franking_Credits_NZ_Co        := Mgr.SuperTotalAU_Franking_Credits_NZ_Co + DissRec.dsDissection_Extension^.deSF_AU_Franking_Credits_NZ_Co;
+    Mgr.SuperTotalNon_Res_Witholding_Tax           := Mgr.SuperTotalNon_Res_Witholding_Tax + DissRec.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax;
+    Mgr.SuperTotalLIC_Deductions                   := Mgr.SuperTotalLIC_Deductions + DissRec.dsDissection_Extension^.deSF_LIC_Deductions;
+    Mgr.SuperTotalNon_Cash_CGT_Discounted_Before_Discount := Mgr.SuperTotalNon_Cash_CGT_Discounted_Before_Discount + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Discounted_Before_Discount;
+    Mgr.SuperTotalNon_Cash_CGT_Indexation          := Mgr.SuperTotalNon_Cash_CGT_Indexation + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Indexation;
+    Mgr.SuperTotalNon_Cash_CGT_Other_Method        := Mgr.SuperTotalNon_Cash_CGT_Other_Method + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method;
+    Mgr.SuperTotalNon_Cash_CGT_Capital_Losses      := Mgr.SuperTotalNon_Cash_CGT_Capital_Losses + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses;
+    Mgr.SuperTotalShare_Brokerage                  := Mgr.SuperTotalShare_Brokerage + DissRec.dsDissection_Extension^.deSF_Share_Brokerage;
+    Mgr.SuperTotalShare_GST_Amount                 := Mgr.SuperTotalShare_GST_Amount + DissRec.dsDissection_Extension^.deSF_Share_GST_Amount;
   end;
 end;
 

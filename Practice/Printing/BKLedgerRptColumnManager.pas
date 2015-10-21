@@ -39,6 +39,34 @@ const
   tktxSF_Transaction_Code              = 237 ;
   tktxSF_Capital_Gains_Fraction_Half   = 238 ;
 
+
+//Transaction Extension Record - Super Fund fields
+  tkteSF_Other_Income                  = 166 ;
+  tkteSF_Other_Trust_Deductions        = 167 ;
+  tkteSF_CGT_Concession_Amount         = 168 ;
+  tkteSF_CGT_ForeignCGT_Before_Disc    = 169 ;
+  tkteSF_CGT_ForeignCGT_Indexation     = 170 ;
+  tkteSF_CGT_ForeignCGT_Other_Method   = 171 ;
+  tkteSF_CGT_TaxPaid_Indexation        = 172 ;
+  tkteSF_CGT_TaxPaid_Other_Method      = 173 ;
+  tkteSF_Other_Net_Foreign_Income      = 174 ;
+  tkteSF_Cash_Distribution             = 175 ;
+  tkteSF_AU_Franking_Credits_NZ_Co     = 176 ;
+  tkteSF_Non_Res_Witholding_Tax        = 177 ;
+  tkteSF_LIC_Deductions                = 178 ;
+  tkteSF_Non_Cash_CGT_Discounted_Before_Discount = 179 ;
+  tkteSF_Non_Cash_CGT_Indexation       = 180 ;
+  tkteSF_Non_Cash_CGT_Other_Method     = 181 ;
+  tkteSF_Non_Cash_CGT_Capital_Losses   = 182 ;
+  tkteSF_Share_Brokerage               = 183 ;
+  tkteSF_Share_Consideration           = 184 ;
+  tkteSF_Share_GST_Amount              = 185 ;
+  tkteSF_Share_GST_Rate                = 186 ;
+  tkteSF_Cash_Date                     = 187 ;
+  tkteSF_Accrual_Date                  = 188 ;
+  tkteSF_Record_Date                   = 189 ;
+
+
   //Calculated fields
   CALC_NET        = CALC_FIELD + 1;
   CALC_AVG_NET    = CALC_FIELD + 2;
@@ -138,6 +166,56 @@ begin
   AddColumn(BKTX, tktxSF_Capital_Gains_Disc,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTX, tktxSF_Capital_Gains_Other,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
+
+  AddColumn(BKTE, tkteSF_Other_Income,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Other_Trust_Deductions,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_CGT_Concession_Amount,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_CGT_ForeignCGT_Before_Disc,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_CGT_ForeignCGT_Indexation,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_CGT_ForeignCGT_Other_Method,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_CGT_TaxPaid_Indexation,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_CGT_TaxPaid_Other_Method,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Other_Net_Foreign_Income,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Cash_Distribution,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_AU_Franking_Credits_NZ_Co,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Non_Res_Witholding_Tax,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_LIC_Deductions,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Non_Cash_CGT_Discounted_Before_Discount,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Non_Cash_CGT_Indexation,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Non_Cash_CGT_Other_Method,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Non_Cash_CGT_Capital_Losses,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Share_Brokerage,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Share_Consideration,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Share_GST_Amount,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Share_GST_Rate,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Cash_Date,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Accrual_Date,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTE, tkteSF_Record_Date,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
 //		Units??
 end;
@@ -340,6 +418,34 @@ begin
           tktxSF_Capital_Gains_Indexed : Result := 'CG Indexed';
           tktxSF_Capital_Gains_Disc    : Result := 'CG Discounted';
           tktxSF_Capital_Gains_Other   : Result := 'CG Other';
+
+        //BGL360
+          tkteSF_Other_Income                            : Result := 'Other Income';
+          tkteSF_Other_Trust_Deductions                  : Result := 'Less Other Allowable Trust Deductions';
+          tkteSF_CGT_Concession_Amount                   : Result := 'Concession Amount';
+          tkteSF_CGT_ForeignCGT_Before_Disc              : Result := 'CG Before Disc';
+          tkteSF_CGT_ForeignCGT_Indexation               : Result := 'CG Indexation Method';
+          tkteSF_CGT_ForeignCGT_Other_Method             : Result := 'CG Other Method';
+          tkteSF_CGT_TaxPaid_Indexation                  : Result := 'Tax Paid Indexation Method';
+          tkteSF_CGT_TaxPaid_Other_Method                : Result := 'Tax Paid Other Method';
+          tkteSF_Other_Net_Foreign_Income                : Result := 'Other Net foreign income';
+          tkteSF_Cash_Distribution                       : Result := 'Cash Distribution';
+          tkteSF_AU_Franking_Credits_NZ_Co               : Result := 'AU Franking Credits from NZ Co.';
+          tkteSF_Non_Res_Witholding_Tax                  : Result := 'Non-Resident Withholding Tax';
+          tkteSF_LIC_Deductions                          : Result := 'LIC Deductions';
+          tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Discounted Before Disc';
+          tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexation Method';
+          tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other Method';
+          tkteSF_Non_Cash_CGT_Capital_Losses             : Result := 'Non-Cash CG Capital Losses';
+          tkteSF_Share_Brokerage                         : Result := 'Brokerage';
+          tkteSF_Share_Consideration                     : Result := 'Consideration';
+          tkteSF_Share_GST_Amount                        : Result := 'GST Amount';
+          tkteSF_Share_GST_Rate                          : Result := 'GST Rate';
+          tkteSF_Cash_Date                               : Result := 'Cash Date';
+          tkteSF_Accrual_Date                            : Result := 'Accrual Date';
+          tkteSF_Record_Date                             : Result := 'Record Date';
+
+
         end;
       saDesktopSuper:
         //DesktopSuper
@@ -394,46 +500,71 @@ end;
 function TLedgerReportColumnList.GetFieldSize(
   aReportColumnItem: TReportColumnItem): double;
 var
-  Transaction_Rec: pTransaction_Rec;
+  Transaction_Rec: TTransaction_Rec;
+  Transaction_Extension_Rec : tTransaction_Extension_Rec;
 begin
   Result := 0;
   if (aReportColumnItem.DataUnit = BKTX) then begin
-    GetMem(Transaction_Rec, SizeOf(tTransaction_Rec));
-    try
-      case aReportColumnItem.DataToken of
-        tktxSF_Imputed_Credit                : Result := AMOUNT_SIZE;
-        tktxSF_Tax_Free_Dist                 : Result := AMOUNT_SIZE;
-        tktxSF_Tax_Exempt_Dist               : Result := AMOUNT_SIZE;
-        tktxSF_Tax_Deferred_Dist             : Result := AMOUNT_SIZE;
-        tktxSF_TFN_Credits                   : Result := AMOUNT_SIZE;
-        tktxSF_Foreign_Income                : Result := AMOUNT_SIZE;
-        tktxSF_Foreign_Tax_Credits           : Result := AMOUNT_SIZE;
-        tktxSF_Capital_Gains_Indexed         : Result := AMOUNT_SIZE;
-        tktxSF_Capital_Gains_Disc            : Result := AMOUNT_SIZE;
-        tktxSF_Capital_Gains_Other           : Result := AMOUNT_SIZE;
-        tktxSF_Other_Expenses                : Result := AMOUNT_SIZE;
-        tktxSF_CGT_Date                      : Result := DATE_SIZE;
-        tktxSF_Franked                       : Result := AMOUNT_SIZE;
-        tktxSF_UnFranked                     : Result := AMOUNT_SIZE;
-        tktxSF_Interest                      : Result := AMOUNT_SIZE;
-        tktxSF_Capital_Gains_Foreign_Disc    : Result := AMOUNT_SIZE;
-        tktxSF_Rent                          : Result := AMOUNT_SIZE;
-        tktxSF_Special_Income                : Result := AMOUNT_SIZE;
-        tktxSF_Other_Tax_Credit              : Result := AMOUNT_SIZE;
-        tktxSF_Non_Resident_Tax              : Result := AMOUNT_SIZE;
-        tktxSF_Member_ID                     : Result := SizeOf(Transaction_Rec.txSF_Member_ID);
-        tktxSF_Foreign_Capital_Gains_Credit  : Result := AMOUNT_SIZE;
-        tktxSF_Member_Account_ID             : Result := INTEGER_SIZE;
-        tktxSF_Transaction_ID                : Result := INTEGER_SIZE;
-        tktxSF_Fund_ID                       : Result := INTEGER_SIZE;
-        tktxSF_Member_Component              : Result := 12; //Can wrap
-        tktxSF_Transaction_Code              : Result := 12;
-        tktxSF_Fund_Code                     : Result := 12;
-        tktxSF_Member_Account_Code           : Result := 12;
-  //        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
-      end;
-    finally
-      FreeMem(Transaction_Rec);
+    case aReportColumnItem.DataToken of
+      tktxSF_Imputed_Credit                : Result := AMOUNT_SIZE;
+      tktxSF_Tax_Free_Dist                 : Result := AMOUNT_SIZE;
+      tktxSF_Tax_Exempt_Dist               : Result := AMOUNT_SIZE;
+      tktxSF_Tax_Deferred_Dist             : Result := AMOUNT_SIZE;
+      tktxSF_TFN_Credits                   : Result := AMOUNT_SIZE;
+      tktxSF_Foreign_Income                : Result := AMOUNT_SIZE;
+      tktxSF_Foreign_Tax_Credits           : Result := AMOUNT_SIZE;
+      tktxSF_Capital_Gains_Indexed         : Result := AMOUNT_SIZE;
+      tktxSF_Capital_Gains_Disc            : Result := AMOUNT_SIZE;
+      tktxSF_Capital_Gains_Other           : Result := AMOUNT_SIZE;
+      tktxSF_Other_Expenses                : Result := AMOUNT_SIZE;
+      tktxSF_CGT_Date                      : Result := DATE_SIZE;
+      tktxSF_Franked                       : Result := AMOUNT_SIZE;
+      tktxSF_UnFranked                     : Result := AMOUNT_SIZE;
+      tktxSF_Interest                      : Result := AMOUNT_SIZE;
+      tktxSF_Capital_Gains_Foreign_Disc    : Result := AMOUNT_SIZE;
+      tktxSF_Rent                          : Result := AMOUNT_SIZE;
+      tktxSF_Special_Income                : Result := AMOUNT_SIZE;
+      tktxSF_Other_Tax_Credit              : Result := AMOUNT_SIZE;
+      tktxSF_Non_Resident_Tax              : Result := AMOUNT_SIZE;
+      tktxSF_Member_ID                     :
+        Result := SizeOf(Transaction_Rec.txSF_Member_ID);
+      tktxSF_Foreign_Capital_Gains_Credit  : Result := AMOUNT_SIZE;
+      tktxSF_Member_Account_ID             : Result := INTEGER_SIZE;
+      tktxSF_Transaction_ID                : Result := INTEGER_SIZE;
+      tktxSF_Fund_ID                       : Result := INTEGER_SIZE;
+      tktxSF_Member_Component              : Result := 12; //Can wrap
+      tktxSF_Transaction_Code              : Result := 12;
+      tktxSF_Fund_Code                     : Result := 12;
+      tktxSF_Member_Account_Code           : Result := 12;
+//        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
+    end;
+  end;
+  if (aReportColumnItem.DataUnit = BKTE) then begin
+    case aReportColumnItem.DataToken of
+      tkteSF_Other_Income                            : Result := Amount_Size;
+      tkteSF_Other_Trust_Deductions                  : Result := Amount_Size;
+      tkteSF_CGT_Concession_Amount                   : Result := Amount_Size;
+      tkteSF_CGT_ForeignCGT_Before_Disc              : Result := Amount_Size;
+      tkteSF_CGT_ForeignCGT_Indexation               : Result := Amount_Size;
+      tkteSF_CGT_ForeignCGT_Other_Method             : Result := Amount_Size;
+      tkteSF_CGT_TaxPaid_Indexation                  : Result := Amount_Size;
+      tkteSF_CGT_TaxPaid_Other_Method                : Result := Amount_Size;
+      tkteSF_Other_Net_Foreign_Income                : Result := Amount_Size;
+      tkteSF_Cash_Distribution                       : Result := Amount_Size;
+      tkteSF_AU_Franking_Credits_NZ_Co               : Result := Amount_Size;
+      tkteSF_Non_Res_Witholding_Tax                  : Result := Amount_Size;
+      tkteSF_LIC_Deductions                          : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Indexation                 : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Other_Method               : Result := Amount_Size;
+      tkteSF_Non_Cash_CGT_Capital_Losses             : Result := Amount_Size;
+      tkteSF_Share_Brokerage                         : Result := Amount_Size;
+      tkteSF_Share_GST_Amount                        : Result := Amount_Size;
+      tkteSF_Share_GST_Rate                          :
+        Result := sizeof( Transaction_Extension_Rec.teSF_Share_GST_Rate );
+      tkteSF_Cash_Date                               : Result := DATE_SIZE;
+      tkteSF_Accrual_Date                            : Result := DATE_SIZE;
+      tkteSF_Record_Date                             : Result := DATE_SIZE;
     end;
   end;
 end;
@@ -523,91 +654,152 @@ begin
       CALC_NET        : FBkReport.PutMoney(Net);
       CALC_AVG_NET    : FBkReport.PutCurrency(Avg);
     end;
-  end else if (aReportColumnItem.DataUnit = BKTX) then begin
-    case aReportColumnItem.DataToken of
-      tktxAccount                          : FBkReport.PutString(Trim(Dissection_Rec.dsAccount));
-      tktxReference                        :
-        begin
-          if Length(Dissection_Rec.dsReference) > 0 then
-            BkReport.PutString(Dissection_Rec.dsReference)
-          else
-            BkReport.PutString(GetFormattedReference(TravManager.Transaction,
-                                                     TravManager.Bank_Account.baFields.baAccount_Type));
-        end;
-      tktxGL_Narration                     : WrapColumn(aReportColumnItem,
-                                                        GetNarration(TravManager.Dissection, TravManager.Bank_Account.baFields.baAccount_Type));
-      tktxAmount                           : BkReport.PutMoney((Dissection_Rec.dsAmount));
-      tktxDate_Effective                   :
-        begin
-          if TravManager.Bank_Account.IsAJournalAccount then
-            FBkReport.PutString( bkDate2Str (Transaction_Rec.txDate_Effective ))
-          else
-            FBkReport.PutString( bkDate2Str (Transaction_Rec.txDate_Effective ) + ' [D]');
-        end;
-      tktxNotes                            : WrapColumn(aReportColumnItem, GetFullNotes(TravManager.Dissection));
-      tktxGST_Amount                       : BkReport.PutMoney(Dissection_Rec.dsGST_Amount);
-      tktxQuantity                         : BkReport.PutQuantity(Qty);
-      tktxGST_Class                        : if Dissection_Rec.dsGST_Class = 0 then
-                                               BkReport.SkipColumn
-                                             else
-                                               BkReport.PutString(GetGstClassCode(FClient, Dissection_Rec.dsGST_Class));
-
-      //Super fields
-      tktxSF_Imputed_Credit                : PutSuperMoney(Dissection_Rec.dsSF_Imputed_Credit);
-      tktxSF_Tax_Free_Dist                 : PutSuperMoney(Dissection_Rec.dsSF_Tax_Free_Dist);
-      tktxSF_Tax_Exempt_Dist               : PutSuperMoney(Dissection_Rec.dsSF_Tax_Exempt_Dist);
-      tktxSF_Tax_Deferred_Dist             : PutSuperMoney(Dissection_Rec.dsSF_Tax_Deferred_Dist);
-      tktxSF_TFN_Credits                   : PutSuperMoney(Dissection_Rec.dsSF_TFN_Credits);
-      tktxSF_Foreign_Income                : PutSuperMoney(Dissection_Rec.dsSF_Foreign_Income);
-      tktxSF_Foreign_Tax_Credits           : PutSuperMoney(Dissection_Rec.dsSF_Foreign_Tax_Credits);
-      tktxSF_Capital_Gains_Indexed         : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Indexed);
-      tktxSF_Capital_Gains_Disc            : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Disc);
-      tktxSF_Capital_Gains_Other           : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Other);
-      tktxSF_Other_Expenses                : PutSuperMoney(Dissection_Rec.dsSF_Other_Expenses);
-      tktxSF_CGT_Date                      : FBkReport.PutString(bkDate2Str(Dissection_Rec.dsSF_CGT_Date));
-      tktxSF_Franked                       : PutSuperMoney(Dissection_Rec.dsSF_Franked);
-      tktxSF_UnFranked                     : PutSuperMoney(Dissection_Rec.dsSF_UnFranked);
-      tktxSF_Interest                      : PutSuperMoney(Dissection_Rec.dsSF_Interest);
-      tktxSF_Capital_Gains_Foreign_Disc    : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Foreign_Disc);
-      tktxSF_Rent                          : PutSuperMoney(Dissection_Rec.dsSF_Rent);
-      tktxSF_Special_Income                : PutSuperMoney(Dissection_Rec.dsSF_Special_Income);
-      tktxSF_Other_Tax_Credit              : PutSuperMoney(Dissection_Rec.dsSF_Other_Tax_Credit);
-      tktxSF_Non_Resident_Tax              : PutSuperMoney(Dissection_Rec.dsSF_Non_Resident_Tax);
-      tktxSF_Member_ID                     : BkReport.PutString(Dissection_Rec.dsSF_Member_ID);
-      tktxSF_Foreign_Capital_Gains_Credit  : PutSuperMoney(Dissection_Rec.dsSF_Foreign_Capital_Gains_Credit);
-      tktxSF_Member_Component              :
-        begin
-          MemberComponentText := '';
-          if (Dissection_Rec.dsSF_Member_Component > 0) then begin
-            if (Transaction_Rec.txDate_Effective = 0) or (Transaction_Rec.txDate_Effective >= mcSwitchDate) then
-              MemberComponentText := mcNewNames[Dissection_Rec.dsSF_Member_Component]
-            else
-              MemberComponentText := mcOldNames[Dissection_Rec.dsSF_Member_Component]
-          end;
-          WrapColumn(aReportColumnItem, MemberComponentText);
-        end;
-      tktxSF_Fund_ID                       : BkReport.PutString(IntToStr(Dissection_Rec.dsSF_Fund_ID));
-      tktxSF_Member_Account_ID             : BkReport.PutString(IntToStr(Dissection_Rec.dsSF_Member_Account_ID));
-      tktxSF_Fund_Code                     : BkReport.PutString(Dissection_Rec.dsSF_Fund_Code);
-      tktxSF_Member_Account_Code           : BkReport.PutString(Dissection_Rec.dsSF_Member_Account_Code);
-      tktxSF_Transaction_ID                : BkReport.PutString(IntToStr(Dissection_Rec.dsSF_Transaction_ID));
-      tktxSF_Transaction_Code              : BkReport.PutString(Dissection_Rec.dsSF_Transaction_Code);
-//        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
-    else
-      FBkReport.PutString(MISSINGFIELD);
-    end;
-  end else if (aReportColumnItem.DataUnit = BKCH) then begin
-    Account_Rec := MyClient.clChart.FindCode(TravManager.Dissection^.dsAccount);
-    if Assigned(Account_Rec) then
+  end
+  else
+    if (aReportColumnItem.DataUnit = BKTX) then begin
       case aReportColumnItem.DataToken of
-        tkchAccount_Description   : FBkReport.PutString(Trim(Account_Rec.chAccount_Description));
+        tktxAccount                          : FBkReport.PutString(Trim(Dissection_Rec.dsAccount));
+        tktxReference                        :
+          begin
+            if Length(Dissection_Rec.dsReference) > 0 then
+              BkReport.PutString(Dissection_Rec.dsReference)
+            else
+              BkReport.PutString(GetFormattedReference(TravManager.Transaction,
+                                                       TravManager.Bank_Account.baFields.baAccount_Type));
+          end;
+        tktxGL_Narration                     : WrapColumn(aReportColumnItem,
+                                                          GetNarration(TravManager.Dissection, TravManager.Bank_Account.baFields.baAccount_Type));
+        tktxAmount                           : BkReport.PutMoney((Dissection_Rec.dsAmount));
+        tktxDate_Effective                   :
+          begin
+            if TravManager.Bank_Account.IsAJournalAccount then
+              FBkReport.PutString( bkDate2Str (Transaction_Rec.txDate_Effective ))
+            else
+              FBkReport.PutString( bkDate2Str (Transaction_Rec.txDate_Effective ) + ' [D]');
+          end;
+        tktxNotes                            : WrapColumn(aReportColumnItem, GetFullNotes(TravManager.Dissection));
+        tktxGST_Amount                       : BkReport.PutMoney(Dissection_Rec.dsGST_Amount);
+        tktxQuantity                         : BkReport.PutQuantity(Qty);
+        tktxGST_Class                        : if Dissection_Rec.dsGST_Class = 0 then
+                                                 BkReport.SkipColumn
+                                               else
+                                                 BkReport.PutString(GetGstClassCode(FClient, Dissection_Rec.dsGST_Class));
+
+        //Super fields
+        tktxSF_Imputed_Credit                : PutSuperMoney(Dissection_Rec.dsSF_Imputed_Credit);
+        tktxSF_Tax_Free_Dist                 : PutSuperMoney(Dissection_Rec.dsSF_Tax_Free_Dist);
+        tktxSF_Tax_Exempt_Dist               : PutSuperMoney(Dissection_Rec.dsSF_Tax_Exempt_Dist);
+        tktxSF_Tax_Deferred_Dist             : PutSuperMoney(Dissection_Rec.dsSF_Tax_Deferred_Dist);
+        tktxSF_TFN_Credits                   : PutSuperMoney(Dissection_Rec.dsSF_TFN_Credits);
+        tktxSF_Foreign_Income                : PutSuperMoney(Dissection_Rec.dsSF_Foreign_Income);
+        tktxSF_Foreign_Tax_Credits           : PutSuperMoney(Dissection_Rec.dsSF_Foreign_Tax_Credits);
+        tktxSF_Capital_Gains_Indexed         : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Indexed);
+        tktxSF_Capital_Gains_Disc            : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Disc);
+        tktxSF_Capital_Gains_Other           : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Other);
+        tktxSF_Other_Expenses                : PutSuperMoney(Dissection_Rec.dsSF_Other_Expenses);
+        tktxSF_CGT_Date                      : FBkReport.PutString(bkDate2Str(Dissection_Rec.dsSF_CGT_Date));
+        tktxSF_Franked                       : PutSuperMoney(Dissection_Rec.dsSF_Franked);
+        tktxSF_UnFranked                     : PutSuperMoney(Dissection_Rec.dsSF_UnFranked);
+        tktxSF_Interest                      : PutSuperMoney(Dissection_Rec.dsSF_Interest);
+        tktxSF_Capital_Gains_Foreign_Disc    : PutSuperMoney(Dissection_Rec.dsSF_Capital_Gains_Foreign_Disc);
+        tktxSF_Rent                          : PutSuperMoney(Dissection_Rec.dsSF_Rent);
+        tktxSF_Special_Income                : PutSuperMoney(Dissection_Rec.dsSF_Special_Income);
+        tktxSF_Other_Tax_Credit              : PutSuperMoney(Dissection_Rec.dsSF_Other_Tax_Credit);
+        tktxSF_Non_Resident_Tax              : PutSuperMoney(Dissection_Rec.dsSF_Non_Resident_Tax);
+        tktxSF_Member_ID                     : BkReport.PutString(Dissection_Rec.dsSF_Member_ID);
+        tktxSF_Foreign_Capital_Gains_Credit  : PutSuperMoney(Dissection_Rec.dsSF_Foreign_Capital_Gains_Credit);
+        tktxSF_Member_Component              :
+          begin
+            MemberComponentText := '';
+            if (Dissection_Rec.dsSF_Member_Component > 0) then begin
+              if (Transaction_Rec.txDate_Effective = 0) or (Transaction_Rec.txDate_Effective >= mcSwitchDate) then
+                MemberComponentText := mcNewNames[Dissection_Rec.dsSF_Member_Component]
+              else
+                MemberComponentText := mcOldNames[Dissection_Rec.dsSF_Member_Component]
+            end;
+            WrapColumn(aReportColumnItem, MemberComponentText);
+          end;
+        tktxSF_Fund_ID                       : BkReport.PutString(IntToStr(Dissection_Rec.dsSF_Fund_ID));
+        tktxSF_Member_Account_ID             : BkReport.PutString(IntToStr(Dissection_Rec.dsSF_Member_Account_ID));
+        tktxSF_Fund_Code                     : BkReport.PutString(Dissection_Rec.dsSF_Fund_Code);
+        tktxSF_Member_Account_Code           : BkReport.PutString(Dissection_Rec.dsSF_Member_Account_Code);
+        tktxSF_Transaction_ID                : BkReport.PutString(IntToStr(Dissection_Rec.dsSF_Transaction_ID));
+        tktxSF_Transaction_Code              : BkReport.PutString(Dissection_Rec.dsSF_Transaction_Code);
+  //        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
       else
-        FBkReport.PutString('');
-      end
+        FBkReport.PutString(MISSINGFIELD);
+      end;
+    end
     else
-      FBkReport.PutString('');
-  end else
-    FBkReport.PutString(MISSINGFIELD);
+      if (aReportColumnItem.DataUnit = BKCH) then begin
+        Account_Rec := MyClient.clChart.FindCode(TravManager.Dissection^.dsAccount);
+        if Assigned(Account_Rec) then
+          case aReportColumnItem.DataToken of
+            tkchAccount_Description   : FBkReport.PutString(Trim(Account_Rec.chAccount_Description));
+          else
+            FBkReport.PutString('');
+          end
+        else
+          FBkReport.PutString('');
+      end
+      else
+        if (aReportColumnItem.DataUnit = BKTE) then begin // Transaction Extension Record
+          case aReportColumnItem.DataToken of
+            tkteSF_Other_Income                            :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Other_Income);
+            tkteSF_Other_Trust_Deductions                  :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Other_Trust_Deductions);
+            tkteSF_CGT_Concession_Amount                   :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_CGT_Concession_Amount);
+            tkteSF_CGT_ForeignCGT_Before_Disc              :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_CGT_ForeignCGT_Before_Disc);
+            tkteSF_CGT_ForeignCGT_Indexation               :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_CGT_ForeignCGT_Indexation);
+            tkteSF_CGT_ForeignCGT_Other_Method             :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_CGT_ForeignCGT_Other_Method);
+            tkteSF_CGT_TaxPaid_Indexation                  :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_CGT_TaxPaid_Indexation);
+            tkteSF_CGT_TaxPaid_Other_Method                :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_CGT_TaxPaid_Other_Method);
+            tkteSF_Other_Net_Foreign_Income                :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Other_Net_Foreign_Income);
+            tkteSF_Cash_Distribution                       :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Cash_Distribution);
+            tkteSF_AU_Franking_Credits_NZ_Co               :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_AU_Franking_Credits_NZ_Co);
+            tkteSF_Non_Res_Witholding_Tax                  :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax);
+            tkteSF_LIC_Deductions                          :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_LIC_Deductions);
+            tkteSF_Non_Cash_CGT_Discounted_Before_Discount :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Non_Cash_CGT_Discounted_Before_Discount);
+            tkteSF_Non_Cash_CGT_Indexation                 :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Non_Cash_CGT_Indexation);
+            tkteSF_Non_Cash_CGT_Other_Method               :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method);
+            tkteSF_Non_Cash_CGT_Capital_Losses             :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses);
+            tkteSF_Share_Brokerage                         :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Share_Brokerage);
+            tkteSF_Share_Consideration                        :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Share_Consideration);
+            tkteSF_Share_GST_Amount                        :
+              PutSuperMoney(Dissection_Rec.dsDissection_Extension^.deSF_Share_GST_Amount);
+            tkteSF_Share_GST_Rate                          :
+              FBkReport.PutString(Dissection_Rec.dsDissection_Extension^.deSF_Share_GST_Rate);
+            tkteSF_Cash_Date                               :
+              FBkReport.PutString(bkDate2Str(
+                Dissection_Rec.dsDissection_Extension^.deSF_Cash_Date ) );
+            tkteSF_Accrual_Date                            :
+              FBkReport.PutString(bkDate2Str(
+                Dissection_Rec.dsDissection_Extension^.deSF_Accrual_Date ) );
+            tkteSF_Record_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                Dissection_Rec.dsDissection_Extension^.deSF_Record_Date ) );
+          end;
+        end
+        else
+          FBkReport.PutString(MISSINGFIELD);
 end;
 
 procedure TLedgerReportColumnList.OutputSummarised(
@@ -626,77 +818,135 @@ begin
       CALC_NET        : FBkReport.PutMoney(TListLedgerTMgr(TravManager).AccountTotalNet);
       CALC_AVG_NET    : FBkReport.PutCurrency(Avg);
     end;
-  end else if (aReportColumnItem.DataUnit = BKTX) then begin
-    case aReportColumnItem.DataToken of
-      tktxAccount                          : if Code <> '' then
-                                               BkReport.PutString(Code)
-                                             else
-                                               BkReport.PutString('Uncoded');
-      tktxAmount                           : BkReport.PutMoney(TravMgr.AccountTotalGross);
-      tktxGST_Amount                       : BkReport.PutMoney(TravMgr.AccountTotalTax);
-      tktxQuantity                         : BkReport.PutQuantity(TravMgr.AccountTotalQuantity);
+  end
+  else
+    if (aReportColumnItem.DataUnit = BKTX) then begin  // Transaction Record
+      case aReportColumnItem.DataToken of
+        tktxAccount                          : if Code <> '' then
+                                                 BkReport.PutString(Code)
+                                               else
+                                                 BkReport.PutString('Uncoded');
+        tktxAmount                           : BkReport.PutMoney(TravMgr.AccountTotalGross);
+        tktxGST_Amount                       : BkReport.PutMoney(TravMgr.AccountTotalTax);
+        tktxQuantity                         : BkReport.PutQuantity(TravMgr.AccountTotalQuantity);
 
-      //Super
-      tktxSF_Imputed_Credit                : PutSuperMoney(TravMgr.SuperTotalImputed_Credit);
-      tktxSF_Tax_Free_Dist                 : PutSuperMoney(TravMgr.SuperTotalTax_Free_Dist);
-      tktxSF_Tax_Exempt_Dist               : PutSuperMoney(TravMgr.SuperTotalTax_Exempt_Dist);
-      tktxSF_Tax_Deferred_Dist             : PutSuperMoney(TravMgr.SuperTotalTax_Deferred_Dist);
-      tktxSF_TFN_Credits                   : PutSuperMoney(TravMgr.SuperTotalTFN_Credits);
-      tktxSF_Foreign_Income                : PutSuperMoney(TravMgr.SuperTotalForeign_Income);
-      tktxSF_Foreign_Tax_Credits           : PutSuperMoney(TravMgr.SuperTotalForeign_Tax_Credits);
-      tktxSF_Capital_Gains_Indexed         : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Indexed);
-      tktxSF_Capital_Gains_Disc            : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Disc);
-      tktxSF_Capital_Gains_Other           : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Other);
-      tktxSF_Other_Expenses                : PutSuperMoney(TravMgr.SuperTotalOther_Expenses);
-      tktxSF_Franked                       : PutSuperMoney(TravMgr.SuperTotalFranked);
-      tktxSF_UnFranked                     : PutSuperMoney(TravMgr.SuperTotalUnFranked);
-      tktxSF_Interest                      : PutSuperMoney(TravMgr.SuperTotalInterest);
-      tktxSF_Capital_Gains_Foreign_Disc    : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Foreign_Disc);
-      tktxSF_Rent                          : PutSuperMoney(TravMgr.SuperTotalRent);
-      tktxSF_Special_Income                : PutSuperMoney(TravMgr.SuperTotalSpecial_Income);
-      tktxSF_Other_Tax_Credit              : PutSuperMoney(TravMgr.SuperTotalOther_Tax_Credit);
-      tktxSF_Non_Resident_Tax              : PutSuperMoney(TravMgr.SuperTotalNon_Resident_Tax);
-      tktxSF_Foreign_Capital_Gains_Credit  : PutSuperMoney(TravMgr.SuperTotalForeign_Capital_Gains_Credit);
-//        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
+        //Super
+        tktxSF_Imputed_Credit                : PutSuperMoney(TravMgr.SuperTotalImputed_Credit);
+        tktxSF_Tax_Free_Dist                 : PutSuperMoney(TravMgr.SuperTotalTax_Free_Dist);
+        tktxSF_Tax_Exempt_Dist               : PutSuperMoney(TravMgr.SuperTotalTax_Exempt_Dist);
+        tktxSF_Tax_Deferred_Dist             : PutSuperMoney(TravMgr.SuperTotalTax_Deferred_Dist);
+        tktxSF_TFN_Credits                   : PutSuperMoney(TravMgr.SuperTotalTFN_Credits);
+        tktxSF_Foreign_Income                : PutSuperMoney(TravMgr.SuperTotalForeign_Income);
+        tktxSF_Foreign_Tax_Credits           : PutSuperMoney(TravMgr.SuperTotalForeign_Tax_Credits);
+        tktxSF_Capital_Gains_Indexed         : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Indexed);
+        tktxSF_Capital_Gains_Disc            : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Disc);
+        tktxSF_Capital_Gains_Other           : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Other);
+        tktxSF_Other_Expenses                : PutSuperMoney(TravMgr.SuperTotalOther_Expenses);
+        tktxSF_Franked                       : PutSuperMoney(TravMgr.SuperTotalFranked);
+        tktxSF_UnFranked                     : PutSuperMoney(TravMgr.SuperTotalUnFranked);
+        tktxSF_Interest                      : PutSuperMoney(TravMgr.SuperTotalInterest);
+        tktxSF_Capital_Gains_Foreign_Disc    : PutSuperMoney(TravMgr.SuperTotalCapital_Gains_Foreign_Disc);
+        tktxSF_Rent                          : PutSuperMoney(TravMgr.SuperTotalRent);
+        tktxSF_Special_Income                : PutSuperMoney(TravMgr.SuperTotalSpecial_Income);
+        tktxSF_Other_Tax_Credit              : PutSuperMoney(TravMgr.SuperTotalOther_Tax_Credit);
+        tktxSF_Non_Resident_Tax              : PutSuperMoney(TravMgr.SuperTotalNon_Resident_Tax);
+        tktxSF_Foreign_Capital_Gains_Credit  : PutSuperMoney(TravMgr.SuperTotalForeign_Capital_Gains_Credit);
+  //        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
 
-      //Non amount columns
-      tktxSF_CGT_Date                      : BkReport.SkipColumn;
-      tktxSF_Fund_Code                     : BkReport.SkipColumn;
-      tktxSF_Fund_ID                       : BkReport.SkipColumn;
-      tktxSF_Member_Account_Code           : BkReport.SkipColumn;
-      tktxSF_Member_Account_ID             : BkReport.SkipColumn;
-      tktxSF_Member_Component              : BkReport.SkipColumn;
-      tktxSF_Member_ID                     : BkReport.SkipColumn;
-      tktxSF_Transaction_Code              : BkReport.SkipColumn;
-      tktxSF_Transaction_ID                : BkReport.SkipColumn;
-    end;
-  end else if (aReportColumnItem.DataUnit = BKCH) then begin
-    case aReportColumnItem.DataToken of
-       tkchAccount_Description : begin
-          if Code = '' then
-             BKReport.PutString( 'Uncoded')
-          else begin
-             if FShowBalances then
-                BkReport.PutString('MOVEMENT')
-             else begin
-                Account_Rec := MyClient.clChart.FindCode(Code);
-                if Assigned(Account_Rec) then
-                   BkReport.PutString(Trim(Account_Rec.chAccount_Description))
-                else
-                   BkReport.PutString('INVALID CODE');
-             end;
+        //Non amount columns
+        tktxSF_CGT_Date                      : BkReport.SkipColumn;
+        tktxSF_Fund_Code                     : BkReport.SkipColumn;
+        tktxSF_Fund_ID                       : BkReport.SkipColumn;
+        tktxSF_Member_Account_Code           : BkReport.SkipColumn;
+        tktxSF_Member_Account_ID             : BkReport.SkipColumn;
+        tktxSF_Member_Component              : BkReport.SkipColumn;
+        tktxSF_Member_ID                     : BkReport.SkipColumn;
+        tktxSF_Transaction_Code              : BkReport.SkipColumn;
+        tktxSF_Transaction_ID                : BkReport.SkipColumn;
+      end;
+    end
+    else
+      if (aReportColumnItem.DataUnit = BKCH) then begin
+        case aReportColumnItem.DataToken of
+           tkchAccount_Description : begin
+              if Code = '' then
+                 BKReport.PutString( 'Uncoded')
+              else begin
+                 if FShowBalances then
+                    BkReport.PutString('MOVEMENT')
+                 else begin
+                    Account_Rec := MyClient.clChart.FindCode(Code);
+                    if Assigned(Account_Rec) then
+                       BkReport.PutString(Trim(Account_Rec.chAccount_Description))
+                    else
+                       BkReport.PutString('INVALID CODE');
+                 end;
+              end;
+           end;
+           tkchAlternative_Code : begin
+               Account_Rec := MyClient.clChart.FindCode(Code);
+               if Assigned(Account_Rec) then
+                  BkReport.PutString(Trim(Account_Rec.chAlternative_code ))
+               else
+                  BkReport.PutString('')
+           end;
+        end;
+      end
+      else
+(*        if (aReportColumnItem.DataUnit = BKTE) then begin // Transaction Extension Record
+          case aReportColumnItem.DataToken of
+            tkteSF_Other_Income                            :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Income);
+                  tkteSF_Other_Trust_Deductions                  :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Trust_Deductions);
+            tkteSF_CGT_Concession_Amount                   :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_Concession_Amount);
+            tkteSF_CGT_ForeignCGT_Before_Disc              :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc);
+            tkteSF_CGT_ForeignCGT_Indexation               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation);
+            tkteSF_CGT_ForeignCGT_Other_Method             :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method);
+            tkteSF_CGT_TaxPaid_Indexation                  :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation);
+            tkteSF_CGT_TaxPaid_Other_Method                :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method);
+            tkteSF_Other_Net_Foreign_Income                :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Net_Foreign_Income);
+            tkteSF_Cash_Distribution                       :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Distribution);
+            tkteSF_AU_Franking_Credits_NZ_Co               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co);
+            tkteSF_Non_Res_Witholding_Tax                  :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax);
+            tkteSF_LIC_Deductions                          :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_LIC_Deductions);
+            tkteSF_Non_Cash_CGT_Discounted_Before_Discount :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount);
+            tkteSF_Non_Cash_CGT_Indexation                 :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation);
+            tkteSF_Non_Cash_CGT_Other_Method               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method);
+            tkteSF_Non_Cash_CGT_Capital_Losses             :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses);
+            tkteSF_Share_Brokerage                         :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_Brokerage);
+            tkteSF_Share_Consideration                        :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_Consideration);
+            tkteSF_Share_GST_Amount                        :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_GST_Amount);
+            tkteSF_Share_GST_Rate                          :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_GST_Rate);
+            tkteSF_Cash_Date                               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Date);
+            tkteSF_Accrual_Date                            :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Accrual_Date);
+            tkteSF_Record_Date                             :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Record_Date);
           end;
-       end;
-       tkchAlternative_Code : begin
-           Account_Rec := MyClient.clChart.FindCode(Code);
-           if Assigned(Account_Rec) then
-              BkReport.PutString(Trim(Account_Rec.chAlternative_code ))
-           else
-              BkReport.PutString('')
-       end;
-    end;
-  end else
-    FBkReport.PutString('');
+        end
+        else *)
+          FBkReport.PutString('');
 end;
 
 procedure TLedgerReportColumnList.OutputTransaction(
@@ -723,79 +973,143 @@ begin
       CALC_NET        : FBkReport.PutMoney(Net);
       CALC_AVG_NET    : FBkReport.PutCurrency(Avg);
     end;
-  end else if (aReportColumnItem.DataUnit = BKTX) then begin
-    case aReportColumnItem.DataToken of
-      tktxAccount                          : FBkReport.PutString(Trim(Transaction_Rec.txAccount));
-      tktxDate_Effective                   : FBkReport.PutString(bkDate2Str(Transaction_Rec.txDate_Effective));
-      tktxReference                        : FBkReport.PutString(GetFormattedReference(TravManager.Transaction,
-                                                                   TravManager.Bank_Account.baFields.baAccount_Type));
-      tktxGL_Narration                     : WrapColumn(aReportColumnItem, Transaction_Rec.txGL_Narration);
-      tktxAmount                           : BkReport.PutMoney((Transaction_Rec.txAmount));
-      tktxNotes                            : WrapColumn(aReportColumnItem, GetFullNotes(TravManager.Transaction));
-      tktxGST_Amount                       : BkReport.PutMoney(Transaction_Rec.txGST_Amount);
-      tktxQuantity                         : BkReport.PutQuantity(Qty);
-      tktxGST_Class                        : if Transaction_Rec.txGST_Class = 0 then
-                                               BkReport.SkipColumn
-                                             else
-                                               BkReport.PutString(GetGstClassCode(FClient, Transaction_Rec.txGST_Class));
-
-      //Super fields
-      tktxSF_Imputed_Credit                : PutSuperMoney(Transaction_Rec.txSF_Imputed_Credit);
-      tktxSF_Tax_Free_Dist                 : PutSuperMoney(Transaction_Rec.txSF_Tax_Free_Dist);
-      tktxSF_Tax_Exempt_Dist               : PutSuperMoney(Transaction_Rec.txSF_Tax_Exempt_Dist);
-      tktxSF_Tax_Deferred_Dist             : PutSuperMoney(Transaction_Rec.txSF_Tax_Deferred_Dist);
-      tktxSF_TFN_Credits                   : PutSuperMoney(Transaction_Rec.txSF_TFN_Credits);
-      tktxSF_Foreign_Income                : PutSuperMoney(Transaction_Rec.txSF_Foreign_Income);
-      tktxSF_Foreign_Tax_Credits           : PutSuperMoney(Transaction_Rec.txSF_Foreign_Tax_Credits);
-      tktxSF_Capital_Gains_Indexed         : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Indexed);
-      tktxSF_Capital_Gains_Disc            : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Disc);
-      tktxSF_Capital_Gains_Other           : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Other);
-      tktxSF_Other_Expenses                : PutSuperMoney(Transaction_Rec.txSF_Other_Expenses);
-      tktxSF_CGT_Date                      : FBkReport.PutString(bkDate2Str(Transaction_Rec.txSF_CGT_Date));
-      tktxSF_Franked                       : PutSuperMoney(Transaction_Rec.txSF_Franked);
-      tktxSF_UnFranked                     : PutSuperMoney(Transaction_Rec.txSF_UnFranked);
-      tktxSF_Interest                      : PutSuperMoney(Transaction_Rec.txSF_Interest);
-      tktxSF_Capital_Gains_Foreign_Disc    : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Foreign_Disc);
-      tktxSF_Rent                          : PutSuperMoney(Transaction_Rec.txSF_Rent);
-      tktxSF_Special_Income                : PutSuperMoney(Transaction_Rec.txSF_Special_Income);
-      tktxSF_Other_Tax_Credit              : PutSuperMoney(Transaction_Rec.txSF_Other_Tax_Credit);
-      tktxSF_Non_Resident_Tax              : PutSuperMoney(Transaction_Rec.txSF_Non_Resident_Tax);
-      tktxSF_Member_ID                     : BkReport.PutString(Transaction_Rec.txSF_Member_ID);
-      tktxSF_Foreign_Capital_Gains_Credit  : PutSuperMoney(Transaction_Rec.txSF_Foreign_Capital_Gains_Credit);
-      tktxSF_Member_Component              :
-        begin
-          MemberComponentText := '';
-          if (Transaction_Rec.txSF_Member_Component > 0)  then begin
-            if (Transaction_Rec.txDate_Effective = 0) or (Transaction_Rec.txDate_Effective >= mcSwitchDate) then
-              MemberComponentText := mcNewNames[Transaction_Rec.txSF_Member_Component]
-            else
-              MemberComponentText := mcOldNames[Transaction_Rec.txSF_Member_Component]
-          end;
-          WrapColumn(aReportColumnItem, MemberComponentText);
-        end;
-      tktxSF_Fund_ID                       : BkReport.PutString(IntToStr(Transaction_Rec.txSF_Fund_ID));
-      tktxSF_Member_Account_ID             : BkReport.PutString(IntToStr(Transaction_Rec.txSF_Member_Account_ID));
-      tktxSF_Fund_Code                     : BkReport.PutString(Transaction_Rec.txSF_Fund_Code);
-      tktxSF_Member_Account_Code           : BkReport.PutString(Transaction_Rec.txSF_Member_Account_Code);
-      tktxSF_Transaction_ID                : BkReport.PutString(IntToStr(Transaction_Rec.txSF_Transaction_ID));
-      tktxSF_Transaction_Code              : BkReport.PutString(Transaction_Rec.txSF_Transaction_Code);
-//        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
-    else
-      FBkReport.PutString(MISSINGFIELD);
-    end;
-  end else if (aReportColumnItem.DataUnit = BKCH) then begin
-    Account_Rec := MyClient.clChart.FindCode(TravManager.Transaction^.txAccount);
-    if Assigned(Account_Rec) then
+  end
+  else
+    if (aReportColumnItem.DataUnit = BKTX) then begin
       case aReportColumnItem.DataToken of
-        tkchAccount_Description : FBkReport.PutString(Trim(Account_Rec.chAccount_Description));
-        tkchAlternative_Code    : FBkReport.PutString(Trim(Account_Rec.chAlternative_Code));
+        tktxAccount                          : FBkReport.PutString(Trim(Transaction_Rec.txAccount));
+        tktxDate_Effective                   : FBkReport.PutString(bkDate2Str(Transaction_Rec.txDate_Effective));
+        tktxReference                        : FBkReport.PutString(GetFormattedReference(TravManager.Transaction,
+                                                                     TravManager.Bank_Account.baFields.baAccount_Type));
+        tktxGL_Narration                     : WrapColumn(aReportColumnItem, Transaction_Rec.txGL_Narration);
+        tktxAmount                           : BkReport.PutMoney((Transaction_Rec.txAmount));
+        tktxNotes                            : WrapColumn(aReportColumnItem, GetFullNotes(TravManager.Transaction));
+        tktxGST_Amount                       : BkReport.PutMoney(Transaction_Rec.txGST_Amount);
+        tktxQuantity                         : BkReport.PutQuantity(Qty);
+        tktxGST_Class                        : if Transaction_Rec.txGST_Class = 0 then
+                                                 BkReport.SkipColumn
+                                               else
+                                                 BkReport.PutString(GetGstClassCode(FClient, Transaction_Rec.txGST_Class));
+
+        //Super fields
+        tktxSF_Imputed_Credit                : PutSuperMoney(Transaction_Rec.txSF_Imputed_Credit);
+        tktxSF_Tax_Free_Dist                 : PutSuperMoney(Transaction_Rec.txSF_Tax_Free_Dist);
+        tktxSF_Tax_Exempt_Dist               : PutSuperMoney(Transaction_Rec.txSF_Tax_Exempt_Dist);
+        tktxSF_Tax_Deferred_Dist             : PutSuperMoney(Transaction_Rec.txSF_Tax_Deferred_Dist);
+        tktxSF_TFN_Credits                   : PutSuperMoney(Transaction_Rec.txSF_TFN_Credits);
+        tktxSF_Foreign_Income                : PutSuperMoney(Transaction_Rec.txSF_Foreign_Income);
+        tktxSF_Foreign_Tax_Credits           : PutSuperMoney(Transaction_Rec.txSF_Foreign_Tax_Credits);
+        tktxSF_Capital_Gains_Indexed         : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Indexed);
+        tktxSF_Capital_Gains_Disc            : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Disc);
+        tktxSF_Capital_Gains_Other           : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Other);
+        tktxSF_Other_Expenses                : PutSuperMoney(Transaction_Rec.txSF_Other_Expenses);
+        tktxSF_CGT_Date                      : FBkReport.PutString(bkDate2Str(Transaction_Rec.txSF_CGT_Date));
+        tktxSF_Franked                       : PutSuperMoney(Transaction_Rec.txSF_Franked);
+        tktxSF_UnFranked                     : PutSuperMoney(Transaction_Rec.txSF_UnFranked);
+        tktxSF_Interest                      : PutSuperMoney(Transaction_Rec.txSF_Interest);
+        tktxSF_Capital_Gains_Foreign_Disc    : PutSuperMoney(Transaction_Rec.txSF_Capital_Gains_Foreign_Disc);
+        tktxSF_Rent                          : PutSuperMoney(Transaction_Rec.txSF_Rent);
+        tktxSF_Special_Income                : PutSuperMoney(Transaction_Rec.txSF_Special_Income);
+        tktxSF_Other_Tax_Credit              : PutSuperMoney(Transaction_Rec.txSF_Other_Tax_Credit);
+        tktxSF_Non_Resident_Tax              : PutSuperMoney(Transaction_Rec.txSF_Non_Resident_Tax);
+        tktxSF_Member_ID                     : BkReport.PutString(Transaction_Rec.txSF_Member_ID);
+        tktxSF_Foreign_Capital_Gains_Credit  : PutSuperMoney(Transaction_Rec.txSF_Foreign_Capital_Gains_Credit);
+        tktxSF_Member_Component              :
+          begin
+            MemberComponentText := '';
+            if (Transaction_Rec.txSF_Member_Component > 0)  then begin
+              if (Transaction_Rec.txDate_Effective = 0) or (Transaction_Rec.txDate_Effective >= mcSwitchDate) then
+                MemberComponentText := mcNewNames[Transaction_Rec.txSF_Member_Component]
+              else
+                MemberComponentText := mcOldNames[Transaction_Rec.txSF_Member_Component]
+            end;
+            WrapColumn(aReportColumnItem, MemberComponentText);
+          end;
+        tktxSF_Fund_ID                       : BkReport.PutString(IntToStr(Transaction_Rec.txSF_Fund_ID));
+        tktxSF_Member_Account_ID             : BkReport.PutString(IntToStr(Transaction_Rec.txSF_Member_Account_ID));
+        tktxSF_Fund_Code                     : BkReport.PutString(Transaction_Rec.txSF_Fund_Code);
+        tktxSF_Member_Account_Code           : BkReport.PutString(Transaction_Rec.txSF_Member_Account_Code);
+        tktxSF_Transaction_ID                : BkReport.PutString(IntToStr(Transaction_Rec.txSF_Transaction_ID));
+        tktxSF_Transaction_Code              : BkReport.PutString(Transaction_Rec.txSF_Transaction_Code);
+  //        tktxSF_Capital_Gains_Fraction_Half   : Result := ;
       else
-        FBkReport.PutString('');
-      end
+        FBkReport.PutString(MISSINGFIELD);
+      end;
+    end
     else
-      FBkReport.PutString('');
-  end else
-    FBkReport.PutString(MISSINGFIELD);
+      if (aReportColumnItem.DataUnit = BKCH) then begin
+        Account_Rec := MyClient.clChart.FindCode(TravManager.Transaction^.txAccount);
+        if Assigned(Account_Rec) then
+          case aReportColumnItem.DataToken of
+            tkchAccount_Description : FBkReport.PutString(Trim(Account_Rec.chAccount_Description));
+            tkchAlternative_Code    : FBkReport.PutString(Trim(Account_Rec.chAlternative_Code));
+          else
+            FBkReport.PutString('');
+          end
+        else
+          FBkReport.PutString('');
+      end
+      else
+        if (aReportColumnItem.DataUnit = BKTE) then begin // Transaction Extension Record
+          case aReportColumnItem.DataToken of
+            tkteSF_Other_Income                            :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Income);
+                  tkteSF_Other_Trust_Deductions                  :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Trust_Deductions);
+            tkteSF_CGT_Concession_Amount                   :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_Concession_Amount);
+            tkteSF_CGT_ForeignCGT_Before_Disc              :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc);
+            tkteSF_CGT_ForeignCGT_Indexation               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation);
+            tkteSF_CGT_ForeignCGT_Other_Method             :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method);
+            tkteSF_CGT_TaxPaid_Indexation                  :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation);
+            tkteSF_CGT_TaxPaid_Other_Method                :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method);
+            tkteSF_Other_Net_Foreign_Income                :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Net_Foreign_Income);
+            tkteSF_Cash_Distribution                       :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Distribution);
+            tkteSF_AU_Franking_Credits_NZ_Co               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co);
+            tkteSF_Non_Res_Witholding_Tax                  :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax);
+            tkteSF_LIC_Deductions                          :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_LIC_Deductions);
+            tkteSF_Non_Cash_CGT_Discounted_Before_Discount :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount);
+            tkteSF_Non_Cash_CGT_Indexation                 :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation);
+            tkteSF_Non_Cash_CGT_Other_Method               :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method);
+            tkteSF_Non_Cash_CGT_Capital_Losses             :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses);
+            tkteSF_Share_Brokerage                         :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_Brokerage);
+            tkteSF_Share_Consideration                        :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_Consideration);
+            tkteSF_Share_GST_Amount                        :
+              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_GST_Amount);
+            tkteSF_Share_GST_Rate                          :
+              FBkReport.PutString(Transaction_Rec.txTransaction_Extension^.teSF_Share_GST_Rate);
+            tkteSF_Cash_Date                               :
+              FBkReport.PutString(bkDate2Str(
+                Transaction_Rec.txTransaction_Extension^.teSF_Cash_Date ) );
+//              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Date);
+            tkteSF_Accrual_Date                            :
+              FBkReport.PutString(bkDate2Str(
+                Transaction_Rec.txTransaction_Extension^.teSF_Accrual_Date ) );
+//              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Accrual_Date);
+            tkteSF_Record_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                Transaction_Rec.txTransaction_Extension^.teSF_Record_Date ) );
+//              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Record_Date);
+          end;
+        end
+        else
+          FBkReport.PutString(MISSINGFIELD);
 end;
 
 procedure TLedgerReportColumnList.PutSuperMoney(aAmount: comp);

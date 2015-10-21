@@ -35,6 +35,7 @@ const
   //Data Units
   NO_DATA_UNIT = 'NONE';
   BKTX = 'BKTXIO'; //Transaction
+  BKTE = 'BKTEIO'; //Transaction Extension Record
   BKDS = 'BKDSIO'; //Disection
   BKCH = 'BKCHIO'; //Chart of Accounts
   BKJH = 'BKJHIO'; //Job
