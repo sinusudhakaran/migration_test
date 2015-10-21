@@ -421,8 +421,14 @@ var
   NewSuggMemSortedItem : TMemTranSortedListRec;
   MemLine : pMemorisation_Line_Rec;
   MemLineIndex : integer;
+  CheckMasterMem : boolean;
+  MasterMemList : TMemorisations_List;
+  SuggestionChanged : boolean;
 begin
   Result := false;
+
+  CheckMasterMem := GetMasterMemForAccount(MyClient, aBankAccount, MasterMemList);
+
   for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
   begin
     Tran := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
@@ -443,6 +449,8 @@ begin
     if (aTempMem.mdFields^.mdUntil_Date > 0) and
        (Tran^.txDate_Effective > aTempMem.mdFields^.mdUntil_Date) then
       Continue;
+
+    AutoCodeEntry( MyClient, aBankAccount, Tran, SuggestionChanged, CheckMasterMem, MasterMemList);
 
     if CanMemorise(Tran, aTempMem) then
     begin
