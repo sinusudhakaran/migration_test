@@ -1974,7 +1974,10 @@ var
 
           MemLine^.mlLine_Type           := mltPercentage;
 
-          MemLine.mlGST_Class := MyClient.clChart.GSTClass(pDissection^.dsAccount);
+          if pDissection^.dsGST_Has_Been_Edited then
+            MemLine.mlGST_Class := pDissection^.dsGST_Class
+          else
+            MemLine.mlGST_Class := MyClient.clChart.GSTClass(pDissection^.dsAccount);
 
           Mem.mdLines.Insert(MemLine);
 
@@ -2003,7 +2006,10 @@ var
       MemLine^.mlPercentage          := 1000000;
       MemLine^.mlLine_Type           := mltPercentage;
 
-      MemLine.mlGST_Class := MyClient.clChart.GSTClass(pT^.txAccount);
+      if pT^.txGST_Has_Been_Edited then
+        MemLine.mlGST_Class := pT^.txGST_Class
+      else
+        MemLine.mlGST_Class := MyClient.clChart.GSTClass(pT^.txAccount);
 
       Mem.mdLines.Insert(MemLine);
     end;
