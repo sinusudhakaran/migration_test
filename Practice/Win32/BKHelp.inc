@@ -617,6 +617,7 @@ const
   BKH_Export_chart_to_COMPANY_NAME1_Essentials_Cashbook = 2151;
   BKH_List_Manual_Bank_Accounts = 2152;
   BKH_Migrating_a_client_from_COMPANY_NAME1_PRODUCT_PRACTICE_to_COMPANY_NAME1_Essentials_Cashbook = 2153;
+  BKH_Coding_transactions_for_BGL_Simple_Fund_360 = 2154;
 
 var
   //filename of HTML help file

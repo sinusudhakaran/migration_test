@@ -966,12 +966,14 @@ procedure TdlgEditBGLSF360Fields.FormCreate(Sender: TObject);
 ///////////////////////////////////////////////////////////////////////////////}
 begin
   ThemeForm( Self);
-  Self.HelpContext := BKH_Coding_transactions_for_BGL_Simple_Ledger;
 
-  if MyClient.clFields.clAccounting_System_Used in [saBGLSimpleFund, saBGL360] then
-     BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Fund)
-  else
-     BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Ledger );
+  case MyClient.clFields.clAccounting_System_Used of
+    saBGLSimpleFund : BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Fund);
+    saBGL360        : BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Fund_360);
+    else
+      BKHelpSetUp(Self, BKH_Coding_transactions_for_BGL_Simple_Ledger );
+  end;
+
   SetUpHelp;
   FReadOnly := false;
   Self.KeyPreview := True;
