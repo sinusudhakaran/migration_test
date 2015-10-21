@@ -628,19 +628,19 @@ object dlgMemorise: TdlgMemorise
         RowData = (
           24)
         ColData = (
-          125
+          70
           False
           True
           'dlgMemorise.colTranDate'
-          125
+          100
           False
           True
           'dlgMemorise.colReference'
-          125
+          100
           False
           True
           'dlgMemorise.colAnalysis'
-          75
+          100
           False
           True
           'dlgMemorise.colTranAccount'
