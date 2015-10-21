@@ -2026,11 +2026,13 @@ begin
   with tblCoding do
   begin
     pT := WorkTranList.Transaction_At(ActiveRow-1);
-    CanDoMems := (MyClient.clExtra.ceBlock_Client_Edit_Mems = false) or Assigned(AdminSystem);
+
+    IsAMasterMem := (pT.txCoded_By = cbMemorisedM);
+    CanDoMems := ((MyClient.clExtra.ceBlock_Client_Edit_Mems = false) or Assigned(AdminSystem)) and
+                 (IsAMasterMem and CurrUser.CanMemoriseToMaster) ;
 
     if (pT.txCoded_By in [cbMemorisedC, cbMemorisedM]) and CanDoMems then
     begin
-      IsAMasterMem := (pT.txCoded_By = cbMemorisedM);
       MemList := tBank_Account(BankAccount).baMemorisations_List;
       FindMemorisation(BankAccount, pT, Mem);
       DeleteSelectedMem := False;
