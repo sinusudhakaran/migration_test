@@ -152,22 +152,30 @@ type
   function GetNumericValue(Control: TOvcNumericField; isPercentage: Boolean): money;
 
   procedure SplitRevenue(Amount: Money;
-     var TaxFreeDist,TaxExemptDist,TaxDeferredDist,
-         ForeignIncome,
+     var TaxFreeDist,TaxExemptDist,TaxDeferredDist, ForeignIncome,
          CapitalGainsIndexed, CapitalGainsDisc, CapitalGainsOther, CapitalGainsForeignDisc,
-         OtherExpenses,
-         Interest,
-         Rent,
-         SpecialIncome : Money; Line: pMemorisation_Line_Rec); overload;
+         OtherExpenses, Interest, Rent, SpecialIncome, Other_Income, Other_Trust_Deductions,
+         CGT_Concession_Amount, CGT_ForeignCGT_Before_Disc, CGT_ForeignCGT_Indexation,
+         CGT_ForeignCGT_Other_Method, CGT_TaxPaid_Indexation, CGT_TaxPaid_Other_Method,
+         Other_Net_Foreign_Income, Cash_Distribution, Foreign_Tax_Credits { Foreign Income Tax Offset },
+         AU_Franking_Credits_NZ_Co, TFN_Credits{ TFN Amounts Withheld },
+         Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
+         Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
+         Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+         Line: pMemorisation_Line_Rec); overload;
 
    procedure SplitRevenue(Amount: Money;
-     var TaxFreeDist,TaxExemptDist,TaxDeferredDist,
-         ForeignIncome,
+     var TaxFreeDist,TaxExemptDist,TaxDeferredDist, ForeignIncome,
          CapitalGainsIndexed, CapitalGainsDisc, CapitalGainsOther, CapitalGainsForeignDisc,
-         OtherExpenses,
-         Interest,
-         Rent,
-         SpecialIncome : Money; Line: pPayee_Line_Rec); overload;
+         OtherExpenses, Interest, Rent, SpecialIncome, Other_Income, Other_Trust_Deductions,
+         CGT_Concession_Amount, CGT_ForeignCGT_Before_Disc, CGT_ForeignCGT_Indexation,
+         CGT_ForeignCGT_Other_Method, CGT_TaxPaid_Indexation, CGT_TaxPaid_Other_Method,
+         Other_Net_Foreign_Income, Cash_Distribution, Foreign_Tax_Credits { Foreign Income Tax Offset },
+         AU_Franking_Credits_NZ_Co, TFN_Credits{ TFN Amounts Withheld },
+         Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
+         Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
+         Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+         Line: pPayee_Line_Rec); overload;
 
 
 
@@ -179,11 +187,18 @@ uses
   EditSageHandisoftSuperFieldsDlg, EditBGLSF360FieldsDlg;
 
 
-procedure SplitRevenue(Amount: Money; var TaxFreeDist, TaxExemptDist,
-            TaxDeferredDist, ForeignIncome, CapitalGainsIndexed,
-            CapitalGainsDisc, CapitalGainsOther, CapitalGainsForeignDisc,
-            OtherExpenses, Interest, Rent, SpecialIncome : Money;
-            Line: pMemorisation_Line_Rec);
+procedure SplitRevenue(Amount: Money;
+     var TaxFreeDist,TaxExemptDist,TaxDeferredDist, ForeignIncome,
+         CapitalGainsIndexed, CapitalGainsDisc, CapitalGainsOther, CapitalGainsForeignDisc,
+         OtherExpenses, Interest, Rent, SpecialIncome, Other_Income, Other_Trust_Deductions,
+         CGT_Concession_Amount, CGT_ForeignCGT_Before_Disc, CGT_ForeignCGT_Indexation,
+         CGT_ForeignCGT_Other_Method, CGT_TaxPaid_Indexation, CGT_TaxPaid_Other_Method,
+         Other_Net_Foreign_Income, Cash_Distribution, Foreign_Tax_Credits { Foreign Income Tax Offset },
+         AU_Franking_Credits_NZ_Co, TFN_Credits{ TFN Amounts Withheld },
+         Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
+         Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
+         Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+         Line: pMemorisation_Line_Rec); 
 var
   TotalRate,
   Remainder: Money;
@@ -220,6 +235,28 @@ begin
       MakeAmount(Interest, Line.mlSF_Interest);
       MakeAmount(Rent, Line.mlSF_Rent);
       MakeAmount(SpecialIncome, Line.mlSF_Special_Income);
+      MakeAmount(Other_Income, Line.mlSF_Other_Income);
+      MakeAmount(Other_Trust_Deductions, Line.mlSF_Other_Trust_Deductions);
+      MakeAmount(CGT_Concession_Amount, Line.mlSF_CGT_Concession_Amount);
+      MakeAmount(CGT_ForeignCGT_Before_Disc, Line.mlSF_CGT_ForeignCGT_Before_Disc);
+      MakeAmount(CGT_ForeignCGT_Indexation, Line.mlSF_CGT_ForeignCGT_Indexation);
+      MakeAmount(CGT_ForeignCGT_Other_Method, Line.mlSF_CGT_ForeignCGT_Other_Method);
+      MakeAmount(CGT_TaxPaid_Indexation, Line.mlSF_CGT_TaxPaid_Indexation);
+      MakeAmount(CGT_TaxPaid_Other_Method, Line.mlSF_CGT_TaxPaid_Other_Method);
+      MakeAmount(Other_Net_Foreign_Income, Line.mlSF_Other_Net_Foreign_Income);
+      MakeAmount(Cash_Distribution, Line.mlSF_Cash_Distribution);
+      MakeAmount(Foreign_Tax_Credits, Line.mlSF_Foreign_Tax_Credits); { Foreign Income Tax Offset }
+      MakeAmount(AU_Franking_Credits_NZ_Co, Line.mlSF_AU_Franking_Credits_NZ_Co);
+      MakeAmount(TFN_Credits, Line.mlSF_TFN_Credits); { TFN Amounts Withheld }
+      MakeAmount(Non_Res_Witholding_Tax, Line.mlSF_Non_Res_Witholding_Tax);
+      MakeAmount(LIC_Deductions, Line.mlSF_LIC_Deductions);
+      MakeAmount(Non_Cash_CGT_Discounted_Before_Discount, Line.mlSF_Non_Cash_CGT_Discounted_Before_Discount);
+      MakeAmount(Non_Cash_CGT_Indexation, Line.mlSF_Non_Cash_CGT_Indexation);
+      MakeAmount(Non_Cash_CGT_Other_Method, Line.mlSF_Non_Cash_CGT_Other_Method);
+      MakeAmount(Non_Cash_CGT_Capital_Losses, Line.mlSF_Non_Cash_CGT_Capital_Losses);
+      MakeAmount(Share_Brokerage, Line.mlSF_Share_Brokerage);
+      MakeAmount(Share_Consideration, Line.mlSF_Share_Consideration);
+      MakeAmount(Share_GST_Amount, Line.mlSF_Share_GST_Amount);
    {end else begin
       // Just use the amounts...
       TaxFreeDist := Line.mlSF_Tax_Free_Dist;
@@ -239,13 +276,17 @@ end;
 
 
 procedure SplitRevenue(Amount: Money;
-   var TaxFreeDist,TaxExemptDist,TaxDeferredDist,
-       ForeignIncome,
+  var TaxFreeDist,TaxExemptDist,TaxDeferredDist, ForeignIncome,
        CapitalGainsIndexed, CapitalGainsDisc, CapitalGainsOther, CapitalGainsForeignDisc,
-       OtherExpenses,
-       Interest,
-       Rent,
-       SpecialIncome : Money; Line: pPayee_Line_Rec);
+       OtherExpenses, Interest, Rent, SpecialIncome, Other_Income, Other_Trust_Deductions,
+       CGT_Concession_Amount, CGT_ForeignCGT_Before_Disc, CGT_ForeignCGT_Indexation,
+       CGT_ForeignCGT_Other_Method, CGT_TaxPaid_Indexation, CGT_TaxPaid_Other_Method,
+       Other_Net_Foreign_Income, Cash_Distribution, Foreign_Tax_Credits, // Foreign Income Tax Offset
+       AU_Franking_Credits_NZ_Co, TFN_Credits, // TFN Amounts Withheld
+       Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
+       Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
+       Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+       Line: pPayee_Line_Rec);
 
 var TotalRate, Remainder: Money;
 
@@ -281,6 +322,28 @@ begin
       MakeAmount(Interest, Line.plSF_Interest);
       MakeAmount(Rent, Line.plSF_Rent);
       MakeAmount(SpecialIncome, Line.plSF_Special_Income);
+      MakeAmount(Other_Income, Line.plSF_Other_Income);
+      MakeAmount(Other_Trust_Deductions, Line.plSF_Other_Trust_Deductions);
+      MakeAmount(CGT_Concession_Amount, Line.plSF_CGT_Concession_Amount);
+      MakeAmount(CGT_ForeignCGT_Before_Disc, Line.plSF_CGT_ForeignCGT_Before_Disc);
+      MakeAmount(CGT_ForeignCGT_Indexation, Line.plSF_CGT_ForeignCGT_Indexation);
+      MakeAmount(CGT_ForeignCGT_Other_Method, Line.plSF_CGT_ForeignCGT_Other_Method);
+      MakeAmount(CGT_TaxPaid_Indexation, Line.plSF_CGT_TaxPaid_Indexation);
+      MakeAmount(CGT_TaxPaid_Other_Method, Line.plSF_CGT_TaxPaid_Other_Method);
+      MakeAmount(Other_Net_Foreign_Income, Line.plSF_Other_Net_Foreign_Income);
+      MakeAmount(Cash_Distribution, Line.plSF_Cash_Distribution);
+      MakeAmount(Foreign_Tax_Credits, Line.plSF_Foreign_Tax_Credits); { Foreign Income Tax Offset }
+      MakeAmount(AU_Franking_Credits_NZ_Co, Line.plSF_AU_Franking_Credits_NZ_Co);
+      MakeAmount(TFN_Credits, Line.plSF_TFN_Credits); { TFN Amounts Withheld }
+      MakeAmount(Non_Res_Witholding_Tax, Line.plSF_Non_Res_Witholding_Tax);
+      MakeAmount(LIC_Deductions, Line.plSF_LIC_Deductions);
+      MakeAmount(Non_Cash_CGT_Discounted_Before_Discount, Line.plSF_Non_Cash_CGT_Discounted_Before_Discount);
+      MakeAmount(Non_Cash_CGT_Indexation, Line.plSF_Non_Cash_CGT_Indexation);
+      MakeAmount(Non_Cash_CGT_Other_Method, Line.plSF_Non_Cash_CGT_Other_Method);
+      MakeAmount(Non_Cash_CGT_Capital_Losses, Line.plSF_Non_Cash_CGT_Capital_Losses);
+      MakeAmount(Share_Brokerage, Line.plSF_Share_Brokerage);
+      MakeAmount(Share_Consideration, Line.plSF_Share_Consideration);
+      MakeAmount(Share_GST_Amount, Line.plSF_Share_GST_Amount);
    {end else begin
       // Just use the amounts...
       TaxFreeDist := Line.mlSF_Tax_Free_Dist;

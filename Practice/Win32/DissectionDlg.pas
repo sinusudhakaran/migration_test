@@ -4189,9 +4189,18 @@ begin
              dtSF_Member_ID            := PayeeLine.plSF_Member_ID;
              dtSF_Transaction_type_ID  := PayeeLine.plSF_Trans_ID;
              dtSF_Transaction_Type_Code := PayeeLine.plSF_Trans_Code;
-             dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-             dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
              dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+
+           // Additional BGL360 fields
+             dtSF_Accrual_Date                         :=
+               PayeeLine.plSF_Accrual_Date;
+             dtSF_Cash_Date                            :=
+               PayeeLine.plSF_Cash_Date;
+             dtSF_Record_Date                          :=
+               PayeeLine.plSF_Record_Date;
+             dtSF_Share_GST_Rate                       :=
+               PayeeLine.plSF_Share_GST_Rate;
+
 
              if PayeeLine.plQuantity <> 0 then
                 dtQuantity := PayeeLine.plQuantity;
@@ -4214,6 +4223,29 @@ begin
                           dtSF_Interest,
                           dtSF_Rent,
                           dtSF_Special_Income,
+                        // Additional BGL360 fields
+                          dtSF_Other_Income,
+                          dtSF_Other_Trust_Deductions,
+                          dtSF_CGT_Concession_Amount,
+                          dtSF_CGT_ForeignCGT_Before_Disc,
+                          dtSF_CGT_ForeignCGT_Indexation,
+                          dtSF_CGT_ForeignCGT_Other_Method,
+                          dtSF_CGT_TaxPaid_Indexation,
+                          dtSF_CGT_TaxPaid_Other_Method,
+                          dtSF_Other_Net_Foreign_Income,
+                          dtSF_Cash_Distribution,
+                          dtSF_Foreign_Tax_Credits,
+                          dtSF_AU_Franking_Credits_NZ_Co,
+                          dtSF_TFN_Credits,
+                          dtSF_Non_Res_Witholding_Tax,
+                          dtSF_LIC_Deductions,
+                          dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                          dtSF_Non_Cash_CGT_Indexation,
+                          dtSF_Non_Cash_CGT_Other_Method,
+                          dtSF_Non_Cash_CGT_Capital_Losses,
+                          dtSF_Share_Brokerage,
+                          dtSF_Share_Consideration,
+                          dtSF_Share_GST_Amount,
                           PayeeLine);
 
              dtSuper_Fields_Edited  := True;
@@ -4312,16 +4344,24 @@ begin
                    else
                        pDissectRec.dtSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(pDissectRec.dtAmount)/100));
                 end;
-                pDissectRec.dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-                pDissectRec.dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-                pDissectRec.dtSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
-                pDissectRec.dtSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
-                pDissectRec.dtSF_Member_ID            := PayeeLine.plSF_Member_ID;
-                pDissectRec.dtSF_Transaction_type_ID  := PayeeLine.plSF_Trans_ID;
+                pDissectRec.dtSF_Member_Account_ID     := PayeeLine.plSF_Member_Account_ID;
+                pDissectRec.dtSF_Member_Account_Code   := PayeeLine.plSF_Member_Account_Code;
+                pDissectRec.dtSF_Fund_ID               := PayeeLine.plSF_Fund_ID;
+                pDissectRec.dtSF_Fund_Code             := PayeeLine.plSF_Fund_Code;
+                pDissectRec.dtSF_Member_ID             := PayeeLine.plSF_Member_ID;
+                pDissectRec.dtSF_Transaction_type_ID   := PayeeLine.plSF_Trans_ID;
                 pDissectRec.dtSF_Transaction_Type_Code := PayeeLine.plSF_Trans_Code;
-                pDissectRec.dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-                pDissectRec.dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-                pDissectRec.dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+                pDissectRec.dtSF_Member_Component      := PayeeLine.plSF_Member_Component;
+
+              // Additional BGL360 fields
+                pDissectRec.dtSF_Accrual_Date                         :=
+                  PayeeLine.plSF_Accrual_Date;
+                pDissectRec.dtSF_Cash_Date                            :=
+                  PayeeLine.plSF_Cash_Date;
+                pDissectRec.dtSF_Record_Date                          :=
+                  PayeeLine.plSF_Record_Date;
+                pDissectRec.dtSF_Share_GST_Rate                       :=
+                  PayeeLine.plSF_Share_GST_Rate;
 
                 if PayeeLine.plQuantity <> 0 then
                     pDissectRec.dtQuantity := PayeeLine.plQuantity;
@@ -4344,6 +4384,29 @@ begin
                           pDissectRec.dtSF_Interest,
                           pDissectRec.dtSF_Rent,
                           pDissectRec.dtSF_Special_Income,
+                        // Additional BGL360 fields
+                          pDissectRec.dtSF_Other_Income,
+                          pDissectRec.dtSF_Other_Trust_Deductions,
+                          pDissectRec.dtSF_CGT_Concession_Amount,
+                          pDissectRec.dtSF_CGT_ForeignCGT_Before_Disc,
+                          pDissectRec.dtSF_CGT_ForeignCGT_Indexation,
+                          pDissectRec.dtSF_CGT_ForeignCGT_Other_Method,
+                          pDissectRec.dtSF_CGT_TaxPaid_Indexation,
+                          pDissectRec.dtSF_CGT_TaxPaid_Other_Method,
+                          pDissectRec.dtSF_Other_Net_Foreign_Income,
+                          pDissectRec.dtSF_Cash_Distribution,
+                          pDissectRec.dtSF_Foreign_Tax_Credits,
+                          pDissectRec.dtSF_AU_Franking_Credits_NZ_Co,
+                          pDissectRec.dtSF_TFN_Credits,
+                          pDissectRec.dtSF_Non_Res_Witholding_Tax,
+                          pDissectRec.dtSF_LIC_Deductions,
+                          pDissectRec.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                          pDissectRec.dtSF_Non_Cash_CGT_Indexation,
+                          pDissectRec.dtSF_Non_Cash_CGT_Other_Method,
+                          pDissectRec.dtSF_Non_Cash_CGT_Capital_Losses,
+                          pDissectRec.dtSF_Share_Brokerage,
+                          pDissectRec.dtSF_Share_Consideration,
+                          pDissectRec.dtSF_Share_GST_Amount,
                           PayeeLine);
 
                 pDissectRec.dtSuper_Fields_Edited  := True;

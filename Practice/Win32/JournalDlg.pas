@@ -3475,16 +3475,24 @@ begin
                 else
                    dtSF_UnFranked := abs(Double2Money (Percent2Double(PayeeLine.plSF_PCUnFranked) * Money2Double(dtAmount)/100));
              end;
-             dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-             dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-             dtSF_Fund_ID              := PayeeLine.plSF_Fund_ID;
-             dtSF_Fund_Code            := PayeeLine.plSF_Fund_Code;
-             dtSF_Member_ID            := PayeeLine.plSF_Member_ID;
-             dtSF_Transaction_type_ID  := PayeeLine.plSF_Trans_ID;
+             dtSF_Member_Account_ID     := PayeeLine.plSF_Member_Account_ID;
+             dtSF_Member_Account_Code   := PayeeLine.plSF_Member_Account_Code;
+             dtSF_Fund_ID               := PayeeLine.plSF_Fund_ID;
+             dtSF_Fund_Code             := PayeeLine.plSF_Fund_Code;
+             dtSF_Member_ID             := PayeeLine.plSF_Member_ID;
+             dtSF_Transaction_type_ID   := PayeeLine.plSF_Trans_ID;
              dtSF_Transaction_Type_Code := PayeeLine.plSF_Trans_Code;
-             dtSF_Member_Account_ID    := PayeeLine.plSF_Member_Account_ID;
-             dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
-             dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
+             dtSF_Member_Component      := PayeeLine.plSF_Member_Component;
+
+           // Additional BGL360 fields
+             dtSF_Accrual_Date                         :=
+               PayeeLine.plSF_Accrual_Date;
+             dtSF_Cash_Date                            :=
+               PayeeLine.plSF_Cash_Date;
+             dtSF_Record_Date                          :=
+               PayeeLine.plSF_Record_Date;
+             dtSF_Share_GST_Rate                       :=
+               PayeeLine.plSF_Share_GST_Rate;
 
              if PayeeLine.plQuantity <> 0 then
                 dtQuantity := PayeeLine.plQuantity;
@@ -3507,6 +3515,29 @@ begin
                           dtSF_Interest,
                           dtSF_Rent,
                           dtSF_Special_Income,
+                        // Additional BGL360 fields
+                          dtSF_Other_Income,
+                          dtSF_Other_Trust_Deductions,
+                          dtSF_CGT_Concession_Amount,
+                          dtSF_CGT_ForeignCGT_Before_Disc,
+                          dtSF_CGT_ForeignCGT_Indexation,
+                          dtSF_CGT_ForeignCGT_Other_Method,
+                          dtSF_CGT_TaxPaid_Indexation,
+                          dtSF_CGT_TaxPaid_Other_Method,
+                          dtSF_Other_Net_Foreign_Income,
+                          dtSF_Cash_Distribution,
+                          dtSF_Foreign_Tax_Credits,
+                          dtSF_AU_Franking_Credits_NZ_Co,
+                          dtSF_TFN_Credits,
+                          dtSF_Non_Res_Witholding_Tax,
+                          dtSF_LIC_Deductions,
+                          dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                          dtSF_Non_Cash_CGT_Indexation,
+                          dtSF_Non_Cash_CGT_Other_Method,
+                          dtSF_Non_Cash_CGT_Capital_Losses,
+                          dtSF_Share_Brokerage,
+                          dtSF_Share_Consideration,
+                          dtSF_Share_GST_Amount,
                           PayeeLine);
 
              dtSF_Super_Fields_Edited := True;
@@ -3599,6 +3630,16 @@ begin
                 pJournalRec^.dtSF_Member_Account_Code  := PayeeLine.plSF_Member_Account_Code;
                 pJournalRec^.dtSF_Member_Component     := PayeeLine.plSF_Member_Component;
 
+              // Additional BGL360 fields
+                pJournalRec^.dtSF_Accrual_Date                         :=
+                  PayeeLine.plSF_Accrual_Date;
+                pJournalRec^.dtSF_Cash_Date                            :=
+                  PayeeLine.plSF_Cash_Date;
+                pJournalRec^.dtSF_Record_Date                          :=
+                  PayeeLine.plSF_Record_Date;
+                pJournalRec^.dtSF_Share_GST_Rate                       :=
+                  PayeeLine.plSF_Share_GST_Rate;
+
                 if PayeeLine.plQuantity <> 0 then
                     pJournalRec^.dtQuantity := PayeeLine.plQuantity;
 
@@ -3620,6 +3661,29 @@ begin
                           pJournalRec^.dtSF_Interest,
                           pJournalRec^.dtSF_Rent,
                           pJournalRec^.dtSF_Special_Income,
+                        // Additional BGL360 fields
+                          pJournalRec^.dtSF_Other_Income,
+                          pJournalRec^.dtSF_Other_Trust_Deductions,
+                          pJournalRec^.dtSF_CGT_Concession_Amount,
+                          pJournalRec^.dtSF_CGT_ForeignCGT_Before_Disc,
+                          pJournalRec^.dtSF_CGT_ForeignCGT_Indexation,
+                          pJournalRec^.dtSF_CGT_ForeignCGT_Other_Method,
+                          pJournalRec^.dtSF_CGT_TaxPaid_Indexation,
+                          pJournalRec^.dtSF_CGT_TaxPaid_Other_Method,
+                          pJournalRec^.dtSF_Other_Net_Foreign_Income,
+                          pJournalRec^.dtSF_Cash_Distribution,
+                          pJournalRec^.dtSF_Foreign_Tax_Credits,
+                          pJournalRec^.dtSF_AU_Franking_Credits_NZ_Co,
+                          pJournalRec^.dtSF_TFN_Credits,
+                          pJournalRec^.dtSF_Non_Res_Witholding_Tax,
+                          pJournalRec^.dtSF_LIC_Deductions,
+                          pJournalRec^.dtSF_Non_Cash_CGT_Discounted_Before_Discount,
+                          pJournalRec^.dtSF_Non_Cash_CGT_Indexation,
+                          pJournalRec^.dtSF_Non_Cash_CGT_Other_Method,
+                          pJournalRec^.dtSF_Non_Cash_CGT_Capital_Losses,
+                          pJournalRec^.dtSF_Share_Brokerage,
+                          pJournalRec^.dtSF_Share_Consideration,
+                          pJournalRec^.dtSF_Share_GST_Amount,
                           PayeeLine);
 
                 pJournalRec^.dtSF_Super_Fields_Edited  := True;
