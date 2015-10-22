@@ -616,6 +616,7 @@ object dlgMemorise: TdlgMemorise
         OnActiveCellChanged = tblTranActiveCellChanged
         OnGetCellData = tblTranGetCellData
         OnGetCellAttributes = tblTranGetCellAttributes
+        OnMouseDown = tblTranMouseDown
         CellData = (
           'dlgMemorise.tranHeader'
           'dlgMemorise.colTranCodedBy'
@@ -1510,5 +1511,13 @@ object dlgMemorise: TdlgMemorise
     OnOwnerDraw = colTranStatementDetailsOwnerDraw
     Left = 344
     Top = 632
+  end
+  object popMatchTran: TPopupMenu
+    Left = 456
+    Top = 552
+    object mnuMatchStatementDetails: TMenuItem
+      Caption = 'Match on this Statement Details'
+      OnClick = mnuMatchStatementDetailsClick
+    end
   end
 end

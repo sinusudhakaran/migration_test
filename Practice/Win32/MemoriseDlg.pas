@@ -214,6 +214,8 @@ type
     pnlMessage: TPanel;
     colReference: TOvcTCString;
     colAnalysis: TOvcTCString;
+    popMatchTran: TPopupMenu;
+    mnuMatchStatementDetails: TMenuItem;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -320,6 +322,9 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer;
       var Accept: Boolean);
+    procedure tblTranMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure mnuMatchStatementDetailsClick(Sender: TObject);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -389,6 +394,7 @@ type
     function SplitLineIsValid(LineNo: integer): boolean;
     procedure ApplyAmountShortcut(Key: Char);
     procedure ShowPopUp( x, y : Integer; PopMenu :TPopUpMenu );
+    procedure ShowTranPopUp( x, y : Integer; PopMenu :TPopUpMenu );
     function HasPayees: Boolean;
     function HasJobs: Boolean;
     procedure SetAccountingSystem(const Value: Integer);
@@ -1512,6 +1518,24 @@ begin
     Exit;
 
   ReadCellforPaint(RowNum, ColNum, Data);
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.tblTranMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  ColEstimate, RowEstimate : integer;
+begin
+  if (Button = mbRight) then
+  begin
+    if tblTran.CalcRowColFromXY(x,y,RowEstimate,ColEstimate) in [ otrOutside, otrInUnused ] then
+      exit;
+
+    tblTran.SetFocus;
+    tblTran.ActiveRow := RowEstimate;
+    tblTran.ActiveCol := ColEstimate;
+    ShowTranPopUp( x, y, popMatchTran);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -4130,6 +4154,16 @@ begin
   Self.DoGSTLookup;
 end;
 
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.mnuMatchStatementDetailsClick(Sender: TObject);
+begin
+  chkStatementDetails.Checked := true;
+  eStatementDetails.Text := fMemTranSortedList.GetPRec(tblTran.ActiveRow-1)^.Statement_Details;
+  eStatementDetails.SetFocus;
+  RefreshMemTransactions();
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.CopyContentoftheCellAbove1Click(Sender: TObject);
 begin
   Self.DoDitto;
@@ -4375,6 +4409,16 @@ begin
    ClientPt.x := x;
    ClientPt.y := y;
    ScreenPt   := tblSplit.ClientToScreen(ClientPt);
+   PopMenu.Popup(ScreenPt.x, ScreenPt.y);
+end;
+
+procedure TdlgMemorise.ShowTranPopUp( x, y : Integer; PopMenu :TPopUpMenu );
+var
+   ClientPt, ScreenPt : TPoint;
+begin
+   ClientPt.x := x;
+   ClientPt.y := y;
+   ScreenPt   := tblTran.ClientToScreen(ClientPt);
    PopMenu.Popup(ScreenPt.x, ScreenPt.y);
 end;
 
