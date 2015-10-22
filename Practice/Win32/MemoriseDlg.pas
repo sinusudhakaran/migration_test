@@ -216,6 +216,7 @@ type
     popMatchTran: TPopupMenu;
     mnuMatchStatementDetails: TMenuItem;
     eStatementDetails: TMemo;
+    lblMatchingTranNote: TLabel;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -3488,6 +3489,7 @@ begin
       treView.Visible := true;
       tblTran.Visible := false;
       lblMatchingTransactions.Caption := 'Matching Accounts';
+      lblMatchingTranNote.Visible := false;
       RefreshMasterMemTree();
     finally
       SuggestedMem.StartMemScan();
@@ -3499,7 +3501,8 @@ begin
 
     treView.Visible := false;
     tblTran.Visible := true;
-    lblMatchingTransactions.Caption := 'Matching Transactions';
+    lblMatchingTranNote.Visible := true;
+    lblMatchingTransactions.Caption := 'Matching Transactions *';
     RefreshMemTransactions();
   end;
 end;
@@ -3657,7 +3660,7 @@ begin
     RefreshMemTransactions();
     treView.Visible := false;
     tblTran.Visible := true;
-    lblMatchingTransactions.Caption := 'Matching Transactions';
+    lblMatchingTransactions.Caption := 'Matching Transactions *';
   end
   else
   begin
