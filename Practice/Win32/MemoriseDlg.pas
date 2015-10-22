@@ -165,7 +165,6 @@ type
     cEntry: TCheckBox;
     cmbType: TComboBox;
     chkStatementDetails: TCheckBox;
-    eStatementDetails: TEdit;
     cRef: TCheckBox;
     eRef: TEdit;
     eOther: TEdit;
@@ -216,6 +215,7 @@ type
     colAnalysis: TOvcTCString;
     popMatchTran: TPopupMenu;
     mnuMatchStatementDetails: TMenuItem;
+    eStatementDetails: TMemo;
 
     procedure cRefClick(Sender: TObject);
     procedure cPartClick(Sender: TObject);
@@ -4148,7 +4148,7 @@ begin
      Caption := Localise( FCountry, Caption );
 end;
 
-
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.LookupGSTClass1Click(Sender: TObject);
 begin
   Self.DoGSTLookup;
