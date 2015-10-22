@@ -377,7 +377,7 @@ type
 
     procedure UpdateFields(RowNum : integer);
     procedure UpdateTotal;
-    function  OKtoPost : boolean;
+    function  OKtoPost() : boolean;
     procedure RemoveBlankLines;
     procedure CompleteAmount;
     procedure CalcRemaining(var Fixed, TotalPerc, RemainingPerc, RemainingDollar : Money;
@@ -1170,12 +1170,19 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnCopyClick(Sender: TObject);
 begin
-  if (not fDirty) or OKtoPost then
+  if fDirty then
   begin
-    TerminateMasterThread();
-
-    Modalresult := mrCopy;
+    if AskYesNo('Confirm Copy', 'Any changes to the current memorisation will not be saved.' + #13 +
+                'They will be copied across to the new memorisation.' + #13#13 +
+                'Please confirm you want to do this.', DLG_NO, 0) = DLG_NO then
+    begin
+      Exit;
+    end;
   end;
+
+  TerminateMasterThread();
+
+  Modalresult := mrCopy;
 end;
 
 //------------------------------------------------------------------------------
@@ -2190,7 +2197,7 @@ begin
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function TdlgMemorise.OKtoPost : boolean;
+function TdlgMemorise.OKtoPost() : boolean;
 var
   i,j : integer;
   ExtraMsg : string;
@@ -2935,11 +2942,10 @@ begin
          SourceTransaction := Tr;
 
          if Assigned(pM) then
-           FillSplitData(pM)
-         else
-         begin
+           FillSplitData(pM);
 
-         end;
+         if pM.mdFields.mdFrom_Master_List then
+           DlgEditMode := demMasterCreate;
 
          //**************************
          if ShowModal = mrOK then begin
@@ -3259,7 +3265,7 @@ begin
        FormResult := ShowModal();
        
        case FormResult of
-         mrok, mrCopy :
+         mrok :
          begin
            //save new values back
            if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
@@ -3320,24 +3326,27 @@ begin
              SaveToMemRec(pM, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
            end;
            Result := true;
+         end;
 
-           if FormResult = mrCopy then
-           begin
-             // Create memorisation
-             Mems := BA.baMemorisations_List;
-             pMCopy := TMemorisation.Create(Mems.AuditMgr);
-             try
-               CopyMemorisation(pM, pMCopy);
+         mrCopy : begin
+           // Create memorisation
+           Mems := BA.baMemorisations_List;
+           pMCopy := TMemorisation.Create(Mems.AuditMgr);
+           try
+             SaveToMemRec(pMCopy, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
 
-               FillSplitData(pMCopy);
-               
-               // OK pressed, and insert mem?
-               Result := CreateMemorisation(BA, Mems, pMCopy);
-             finally
-               FreeAndNil(pMCopy);
-             end;
+             if (fDlgEditMode in ALL_MASTER) then
+               pMCopy.mdFields.mdFrom_Master_List := true;
+
+             FillSplitData(pMCopy);
+
+             // OK pressed, and insert mem?
+             Result := CreateMemorisation(BA, Mems, pMCopy);
+           finally
+             FreeAndNil(pMCopy);
            end;
          end;
+
          mrDelete : begin
            CodedTo := '';
            for LineIndex := pM.mdLines.First to pM.mdLines.Last do
