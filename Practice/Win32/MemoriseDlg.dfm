@@ -1190,6 +1190,8 @@ object dlgMemorise: TdlgMemorise
       MaxLength = 100
       ParentFont = False
       TabOrder = 22
+      OnChange = eStatementDetailsChange
+      OnExit = cCodeExit
     end
   end
   object memController: TOvcController

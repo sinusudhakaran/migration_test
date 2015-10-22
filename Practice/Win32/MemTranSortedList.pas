@@ -100,9 +100,9 @@ begin
   MemTranItem1 := pMemTranSortedListRec(Item1)^;
   MemTranItem2 := pMemTranSortedListRec(Item2)^;
 
-  if MemTranItem1.HasPotentialIssue > MemTranItem2.HasPotentialIssue then
+  if MemTranItem1.HasPotentialIssue < MemTranItem2.HasPotentialIssue then
     Result := 1
-  else if MemTranItem1.HasPotentialIssue < MemTranItem2.HasPotentialIssue then
+  else if MemTranItem1.HasPotentialIssue > MemTranItem2.HasPotentialIssue then
     Result := -1
   else
     Result := 0;
