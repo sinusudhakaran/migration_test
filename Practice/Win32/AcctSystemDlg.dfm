@@ -164,7 +164,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbSystemChange
@@ -272,7 +272,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 215
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 1
     end
     object ckExtract: TCheckBox
@@ -355,7 +355,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbTaxInterfaceChange
@@ -387,7 +387,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 347
       Height = 21
       Style = csDropDownList
-      ItemHeight = 0
+      ItemHeight = 13
       Sorted = True
       TabOrder = 0
       OnChange = cmbWebFormatsChange

@@ -1101,7 +1101,7 @@ begin
                 lblBGL360FundName.Caption := MyClient.clExtra.ceBGLFundNameSelected;
                 lblBGL360FundName.Font.Color := clWindowText;
               end;
-              SaveClient(false);
+//DN #89797-BGL360: Crash selecting a Fund in the Setup New Client Wizard             SaveClient(false);
             end;
           end;
         end
