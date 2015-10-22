@@ -2029,7 +2029,7 @@ begin
 
     IsAMasterMem := (pT.txCoded_By = cbMemorisedM);
     CanDoMems := ((MyClient.clExtra.ceBlock_Client_Edit_Mems = false) or Assigned(AdminSystem)) and
-                 (IsAMasterMem and CurrUser.CanMemoriseToMaster) ;
+                 ((IsAMasterMem and CurrUser.CanMemoriseToMaster) or (not IsAMasterMem));
 
     if (pT.txCoded_By in [cbMemorisedC, cbMemorisedM]) and CanDoMems then
     begin
