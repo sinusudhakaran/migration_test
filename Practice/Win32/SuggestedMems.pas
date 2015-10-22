@@ -114,7 +114,7 @@ type
 
     procedure UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId : integer; aIsHidden : boolean);
     function GetSuggestionUsedByTransaction(const aBankAccount: TBank_Account; const aTrans : pTransaction_Rec; const aChart : TChart; var aSuggMemItem : TSuggMemSortedListRec) : boolean;
-    function GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList) : boolean;
+    function GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList; aIdDissection : boolean ) : boolean;
     function IsAccountUsedByMem(const aBankAccount: TBank_Account; const aTempMem : TMemorisation) : boolean;
 
     procedure SetSuggestedTransactionState(const aBankAccount : TBank_Account; const aTrans : pTransaction_Rec; aState : byte; aAccountChanged : boolean = false; aIsBulk : boolean = false); Overload;
@@ -414,7 +414,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList) : boolean;
+function TSuggestedMems.GetTransactionListMatchingMemPhrase(const aBankAccount: TBank_Account; const aTempMem : TMemorisation; var aMemTranSortedList : TMemTranSortedList; aIdDissection : boolean) : boolean;
 var
   TranIndex : integer;
   Tran : pTransaction_Rec;
@@ -463,21 +463,26 @@ begin
       NewSuggMemSortedItem.Reference         := Tran^.txReference;
       NewSuggMemSortedItem.Analysis          := Tran^.txAnalysis;
 
-      NewSuggMemSortedItem.HasPotentialIssue := true;
-      for MemLineIndex := 0 to aTempMem.mdLines.ItemCount-1 do
+      if not (Tran^.txFirst_Dissection = nil) and aIdDissection then
+        NewSuggMemSortedItem.HasPotentialIssue := false
+      else
       begin
-        MemLine := aTempMem.mdLines.MemorisationLine_At(MemLineIndex);
-        if ((Assigned(MemLine)) and (MemLineIndex = 0) and (MemLine^.mlAccount = '')) or
-           (Tran^.txAccount = '') then
+        NewSuggMemSortedItem.HasPotentialIssue := true;
+        for MemLineIndex := 0 to aTempMem.mdLines.ItemCount-1 do
         begin
-          NewSuggMemSortedItem.HasPotentialIssue := false;
-          break;
-        end;
+          MemLine := aTempMem.mdLines.MemorisationLine_At(MemLineIndex);
+          if ((Assigned(MemLine)) and (MemLineIndex = 0) and (MemLine^.mlAccount = '')) or
+             (Tran^.txAccount = '') then
+          begin
+            NewSuggMemSortedItem.HasPotentialIssue := false;
+            break;
+          end;
 
-        if (Assigned(MemLine)) and (MemLine^.mlAccount = Tran^.txAccount) then
-        begin
-          NewSuggMemSortedItem.HasPotentialIssue := false;
-          break;
+          if (Assigned(MemLine)) and (MemLine^.mlAccount = Tran^.txAccount) then
+          begin
+            NewSuggMemSortedItem.HasPotentialIssue := false;
+            break;
+          end;
         end;
       end;
 

@@ -425,7 +425,7 @@ type
     procedure HideIssueHint();
   public
     procedure FillSplitData(aMem : TMemorisation);
-    procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; ATempMem: boolean = false);
+    procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; var aNunOfSplitLines : integer; ATempMem: boolean = false);
 
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
@@ -570,6 +570,7 @@ var
   Institution : string;
   SysIndex : integer;
   Found : boolean;
+  NunOfSplitLines : integer;
 begin
   RootNode := nil;
   ClientNode := nil;
@@ -605,7 +606,7 @@ begin
 
   TempMem := TMemorisation.Create(nil);
   try
-    DlgMemorise.SaveToMemRec(TempMem, SourceTransaction, true, true);
+    DlgMemorise.SaveToMemRec(TempMem, SourceTransaction, true, NunOfSplitLines, true);
 
     fMasterTreeView.Items.BeginUpdate;
     try
@@ -1916,6 +1917,10 @@ begin
         end;
         SplitData[RowNum].AcctCode := Trim(SplitData[RowNum].AcctCode);
         ExistingCode := SplitData[RowNum].AcctCode;
+
+        if fDlgEditMode in ALL_NO_MASTER then
+          RefreshMemTransactions();
+
         UpdateFields(RowNum);
       end;
       AmountCol, PercentCol : begin
@@ -2186,6 +2191,7 @@ var
   InvalidCodes: TStringList;
   InactiveCodes: TStringList;
   WarningMsg: string;
+  NunOfSplitLines : integer;
 
 const
   ThisMethodName = 'OKtoPost';
@@ -2304,7 +2310,7 @@ begin
      //check that this transaction will be coded
      TempMem := TMemorisation.Create(nil);
      try
-       SaveToMemRec( TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, True);
+       SaveToMemRec( TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, NunOfSplitLines, True);
 
        if Assigned( SourceBankAccount) then begin
           if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
@@ -2533,15 +2539,16 @@ end;
 procedure TdlgMemorise.RefreshMemTransactions;
 var
   TempMem : TMemorisation;
+  NunOfSplitLines : integer;
 begin
   TempMem := TMemorisation.Create(nil);
   try
-    SaveToMemRec(TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, true);
+    SaveToMemRec(TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, NunOfSplitLines, true);
 
     tblTran.RowLimit := 0;
 
     fMemTranSortedList.FreeAll;
-    SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList);
+    SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList, (NunOfSplitLines > 1));
 
     if fMemTranSortedList.ItemCount = 0 then
     begin
@@ -2815,6 +2822,7 @@ var
   MasterMemList : TMemorisations_List;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
   pAcct : pAccount_Rec;
+  NunOfSplitLines : integer;
 begin
    result := false;
    IsAMasterMem := false;
@@ -2922,7 +2930,7 @@ begin
 
                //--ADD MASTER MEM---
                if LoadAdminSystem(true, 'MemoriseEntry') then begin
-                 SaveToMemRec(Memorised_Trans, Tr, True);
+                 SaveToMemRec(Memorised_Trans, Tr, True, NunOfSplitLines);
                  SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
                  if not Assigned(SystemMemorisation) then begin
                    MasterMemList := TMemorisations_List.Create(SystemAuditMgr);
@@ -2948,7 +2956,7 @@ begin
              end
              else begin
                Memorised_Trans := TMemorisation.Create(MyClient.ClientAuditMgr);
-               SaveToMemRec(Memorised_Trans, Tr, False);
+               SaveToMemRec(Memorised_Trans, Tr, False, NunOfSplitLines);
                Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
                ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
              end;
@@ -3068,6 +3076,7 @@ var
   CodedTo   : string;
   MemDesc   : string;
   CodeType  : string;
+  NunOfSplitLines : integer;
 
 begin
   Result := false;
@@ -3267,7 +3276,7 @@ begin
                    if Assigned(Memorised_Trans) then begin
                      if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then 
                      begin
-                       SaveToMemRec(Memorised_Trans, nil, fDlgEditMode in ALL_MASTER);
+                       SaveToMemRec(Memorised_Trans, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
                        Break;
                      end;
                    end;
@@ -3283,7 +3292,7 @@ begin
            end 
            else 
            begin
-             SaveToMemRec(pM, nil, fDlgEditMode in ALL_MASTER);
+             SaveToMemRec(pM, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
            end;
            Result := true;
 
@@ -3718,12 +3727,13 @@ begin
 end;
 
 procedure TdlgMemorise.SaveToMemRec(var pM: TMemorisation; pT: pTransaction_Rec;
-  IsMaster: Boolean; ATempMem: boolean = false);
+  IsMaster: Boolean; var aNunOfSplitLines : integer; ATempMem: boolean = false);
 var
   i : integer;
   MemLine : pMemorisation_Line_Rec;
   AuditIDList: TList;
 begin
+  aNunOfSplitLines := 0;
   with pM do begin
      mdFields.mdType := GetTxTypeFromCmbType;
      //see if this is a new memorisation
@@ -3813,6 +3823,9 @@ begin
            MemLine := BKMLIO.New_Memorisation_Line_Rec;
            with MemLine^ do
            begin
+             if SplitData[i].AcctCode > '' then
+               inc(aNunOfSplitLines);
+
              mlAccount := SplitData[i].AcctCode;
              if SplitData[i].LineType = mltPercentage then
                 mlPercentage := Double2Percent(SplitData[i].Amount)
