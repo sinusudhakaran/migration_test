@@ -93,6 +93,7 @@ type
     procedure PutSuperMoney(aAmount: comp);
     procedure SetDefaultColWidths;
     procedure AddBGLColumns;
+    procedure AddBGL360Columns;
     procedure AddDesktopSuperColumns;
     procedure AddMYOBSuperFundColumns;
     procedure SetIsDissection(const Value: boolean);
@@ -167,8 +168,39 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTX, tktxSF_Capital_Gains_Other,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+//		Units??
+end;
 
+procedure TLedgerReportColumnList.AddBGL360Columns;
+begin
+  AddColumn(BKTX, tktxSF_Imputed_Credit,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True, True);
+//  AddColumn(BKTX, tktxSF_CGT_Date, 0, jtLeft,
+//            ctAuto, '', '', DEFAULT_GAP);
+  AddColumn(BKTX, tktxSF_Tax_Free_Dist,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Tax_Exempt_Dist,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Tax_Deferred_Dist,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+//  AddColumn(BKTX, tktxSF_Member_Component,  0, jtLeft, ctFormat,
+//            '', '', DEFAULT_GAP);
+  AddColumn(BKTX, tktxSF_TFN_Credits,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Foreign_Income,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Foreign_Tax_Credits,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Other_Expenses,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Capital_Gains_Indexed,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Capital_Gains_Disc,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+  AddColumn(BKTX, tktxSF_Capital_Gains_Other,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
 
+//BGL360 extended fields            
   AddColumn(BKTE, tkteSF_Other_Income,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_Other_Trust_Deductions,  0, jtRight, ctFormat,
@@ -384,117 +416,145 @@ end;
 function TLedgerReportColumnList.GetColumnTitle(aDataUnit: string; aDataToken: integer): string;
 begin
   //Common
-  case aDataToken of
-    tktxAccount              : Result := 'Account';
-    tkchAccount_Description  : Result := 'Description';
-    tktxDate_Effective       : Result := 'Date';
-    tktxReference            : Result := 'Reference';
-    tktxGL_Narration         : Result := 'Narration';
-    tktxGST_Class            : Result := TaxName;
-    tktxAmount               : Result := '$ Gross';
-    tktxGST_Amount           : Result := '$ ' + TaxName;
-    tktxQuantity             : Result := 'Quantity';
-    tktxNotes                : Result := 'Notes';
-    tktxSF_Franked           : Result := 'Franked';
-    tktxSF_Unfranked         : Result := 'Unfranked';
-    CALC_NET                 : Result := '$ Net';
-    CALC_AVG_NET             : Result := 'Avg $ Net';
-    tkchAlternative_Code     : Result := Software.AlternativeChartCodeName(Country,AccountingSystemUsed);
-  else
-    case AccountingSystemUsed of
-      saBGLSimpleFund, saBGLSimpleLedger, saBGL360:
-        //BGL
-        case aDataToken of
-          tktxSF_Imputed_Credit        : Result := 'Imputed CR';
-          tktxSF_CGT_Date              : Result := 'CGT Date';
-          tktxSF_Tax_Free_Dist         : Result := 'Tax Free Dist';
-          tktxSF_Tax_Exempt_Dist       : Result := 'Tax Exempt Dist';
-          tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred Dist';
-          tktxSF_Member_Component      : Result := 'Member Component';
-          tktxSF_TFN_Credits           : Result := 'TFN Credits';
-          tktxSF_Foreign_Income        : Result := 'Foreign Income';
-          tktxSF_Foreign_Tax_Credits   : Result := 'Foreign Tax CR';
-          tktxSF_Other_Expenses        : Result := 'Other Expenses';
-          tktxSF_Capital_Gains_Indexed : Result := 'CG Indexed';
-          tktxSF_Capital_Gains_Disc    : Result := 'CG Discounted';
-          tktxSF_Capital_Gains_Other   : Result := 'CG Other';
-
-        //BGL360
-          tkteSF_Other_Income                            : Result := 'Other Income';
-          tkteSF_Other_Trust_Deductions                  : Result := 'Less Other Allowable Trust Deductions';
-          tkteSF_CGT_Concession_Amount                   : Result := 'Concession Amount';
-          tkteSF_CGT_ForeignCGT_Before_Disc              : Result := 'CG Before Disc';
-          tkteSF_CGT_ForeignCGT_Indexation               : Result := 'CG Indexation Method';
-          tkteSF_CGT_ForeignCGT_Other_Method             : Result := 'CG Other Method';
-          tkteSF_CGT_TaxPaid_Indexation                  : Result := 'Tax Paid Indexation Method';
-          tkteSF_CGT_TaxPaid_Other_Method                : Result := 'Tax Paid Other Method';
-          tkteSF_Other_Net_Foreign_Income                : Result := 'Other Net foreign income';
-          tkteSF_Cash_Distribution                       : Result := 'Cash Distribution';
-          tkteSF_AU_Franking_Credits_NZ_Co               : Result := 'AU Franking Credits from NZ Co.';
-          tkteSF_Non_Res_Witholding_Tax                  : Result := 'Non-Resident Withholding Tax';
-          tkteSF_LIC_Deductions                          : Result := 'LIC Deductions';
-          tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Discounted Before Disc';
-          tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexation Method';
-          tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other Method';
-          tkteSF_Non_Cash_CGT_Capital_Losses             : Result := 'Non-Cash CG Capital Losses';
-          tkteSF_Share_Brokerage                         : Result := 'Brokerage';
-          tkteSF_Share_Consideration                     : Result := 'Consideration';
-          tkteSF_Share_GST_Amount                        : Result := 'GST Amount';
-          tkteSF_Share_GST_Rate                          : Result := 'GST Rate';
-          tkteSF_Cash_Date                               : Result := 'Cash Date';
-          tkteSF_Accrual_Date                            : Result := 'Accrual Date';
-          tkteSF_Record_Date                             : Result := 'Record Date';
-
-
-        end;
-      saDesktopSuper:
-        //DesktopSuper
-        case aDataToken of
-          tktxSF_Imputed_Credit        : Result := 'Franking Credits';
-          tktxSF_Transaction_Code      : Result := 'Tran Type';
-          tktxSF_Fund_Code             : Result := 'Inv Code';
-          tktxSF_Member_Account_Code   : Result := 'Member Account';
-          tktxSF_CGT_Date              : Result := 'CGT/Tax Date';
-          tktxSF_Special_Income        : Result := 'Undeducted Contrib';
-          tktxSF_Foreign_Income        : Result := 'Foreign Income';
-          tktxSF_Other_Expenses        : Result := 'Other Taxable';
-          tktxSF_Capital_Gains_Other   : Result := 'CG Other';
-          tktxSF_Capital_Gains_Disc    : Result := 'CG Disc';
-          tktxSF_Capital_Gains_Indexed : Result := 'CG Conc';
-          tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred';
-          tktxSF_Tax_Free_Dist         : Result := 'Tax Free Trust';
-          tktxSF_Tax_Exempt_Dist       : Result := 'Non-Taxable';
-          tktxSF_TFN_Credits           : Result := 'TFN Credit';
-          tktxSF_Foreign_Capital_Gains_Credit : Result := 'Foreign Tax CR';
-          tktxSF_Other_Tax_Credit      : Result := 'ABN Credit';
-        end;
-      saSolution6SuperFund, saSupervisor, saSuperMate:
-        //Solution6SuperFund & Supervisor
-        case aDataToken of
-          tktxSF_Imputed_Credit        : Result := 'Imputation CR';
-          tktxSF_Member_ID             : Result := 'Member ID';
-          tktxSF_Interest              : Result := 'Interest';
-          tktxSF_Foreign_Income        : Result := 'Foreign';
-          tktxSF_Capital_Gains_Other   : Result := 'Foreign CG';
-          tktxSF_Capital_Gains_Foreign_Disc : Result := 'Foreign Disc CG';
-          tktxSF_Rent                  : Result := 'Rent';
-          tktxSF_Capital_Gains_Indexed : Result := 'Capital Gain';
-          tktxSF_Capital_Gains_Disc    : Result := 'Discount CG';
-          tktxSF_Other_Expenses        : Result := 'Other Taxable';
-          tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred';
-          tktxSF_Tax_Free_Dist         : Result := 'Tax Free Trust';
-          tktxSF_Tax_Exempt_Dist       : Result := 'Non-Taxable';
-          tktxSF_Special_Income        : Result := 'Special Income';
-          tktxSF_Foreign_Tax_Credits   : Result := 'Foreign CR';
-          tktxSF_Foreign_Capital_Gains_Credit : Result := 'Foreign CG CR';
-          tktxSF_TFN_Credits           : Result := 'Withholding CR';
-          tktxSF_Other_Tax_Credit      : Result := 'Other Tax CR';
-          tktxSF_Non_Resident_Tax      : Result := 'Non-resident Tax';
-        end;
+//  if then
+  Result := ''; 
+  if ( aDataUnit = BKTX ) or ( aDataUnit = BKCH ) or ( aDataUnit = NO_DATA_UNIT ) then begin
+    case aDataToken of
+      tktxAccount              : Result := 'Account';
+      tkchAccount_Description  : Result := 'Description';
+      tktxDate_Effective       : Result := 'Date';
+      tktxReference            : Result := 'Reference';
+      tktxGL_Narration         : Result := 'Narration';
+      tktxGST_Class            : Result := TaxName;
+      tktxAmount               : Result := '$ Gross';
+      tktxGST_Amount           : Result := '$ ' + TaxName;
+      tktxQuantity             : Result := 'Quantity';
+      tktxNotes                : Result := 'Notes';
+      tktxSF_Franked           : Result := 'Franked';
+      tktxSF_Unfranked         : Result := 'Unfranked';
+      CALC_NET                 : Result := '$ Net';
+      CALC_AVG_NET             : Result := 'Avg $ Net';
+      tkchAlternative_Code     : Result := Software.AlternativeChartCodeName(Country,AccountingSystemUsed);
+//    end;
     else
-      Result := inherited GetColumnTitle(aDataUnit, aDataToken);
+      case AccountingSystemUsed of
+        saBGLSimpleFund, saBGLSimpleLedger: begin
+          //BGL
+          case aDataToken of
+            tktxSF_Imputed_Credit        : Result := 'Imputed CR';
+            tktxSF_CGT_Date              : Result := 'CGT Date';
+            tktxSF_Tax_Free_Dist         : Result := 'Tax Free Dist';
+            tktxSF_Tax_Exempt_Dist       : Result := 'Tax Exempt Dist';
+            tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred Dist';
+            tktxSF_Member_Component      : Result := 'Member Component';
+            tktxSF_TFN_Credits           : Result := 'TFN Credits';
+            tktxSF_Foreign_Income        : Result := 'Foreign Income';
+            tktxSF_Foreign_Tax_Credits   : Result := 'Foreign Tax CR';
+            tktxSF_Other_Expenses        : Result := 'Other Expenses';
+            tktxSF_Capital_Gains_Indexed : Result := 'CG Indexed';
+            tktxSF_Capital_Gains_Disc    : Result := 'CG Discounted';
+            tktxSF_Capital_Gains_Other   : Result := 'CG Other';
+          end;
+        end;
+        saBGL360 : begin
+          case aDataToken of
+            tktxSF_Imputed_Credit        : Result := 'Franking CR';
+  //          tktxSF_CGT_Date              : Result := 'CGT Date';
+            tktxSF_Tax_Free_Dist         : Result := 'Tax Free Amounts';
+            tktxSF_Tax_Exempt_Dist       : Result := 'Tax Exempt Amounts';
+            tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred Amounts';
+            tktxSF_TFN_Credits           : Result := 'Withholding Tax';
+            tktxSF_Foreign_Income        : Result := 'Foreign Income';
+            tktxSF_Foreign_Tax_Credits   : Result := 'Foreign Tax CR';
+            tktxSF_Other_Expenses        : Result := 'Other Expenses';
+            tktxSF_Capital_Gains_Indexed : Result := 'CG Indexed';
+            tktxSF_Capital_Gains_Disc    : Result := 'CG Discounted';
+            tktxSF_Capital_Gains_Other   : Result := 'CG Other';
+          end;
+        end;
+        saDesktopSuper:
+          //DesktopSuper
+          case aDataToken of
+            tktxSF_Imputed_Credit        : Result := 'Franking Credits';
+            tktxSF_Transaction_Code      : Result := 'Tran Type';
+            tktxSF_Fund_Code             : Result := 'Inv Code';
+            tktxSF_Member_Account_Code   : Result := 'Member Account';
+            tktxSF_CGT_Date              : Result := 'CGT/Tax Date';
+            tktxSF_Special_Income        : Result := 'Undeducted Contrib';
+            tktxSF_Foreign_Income        : Result := 'Foreign Income';
+            tktxSF_Other_Expenses        : Result := 'Other Taxable';
+            tktxSF_Capital_Gains_Other   : Result := 'CG Other';
+            tktxSF_Capital_Gains_Disc    : Result := 'CG Disc';
+            tktxSF_Capital_Gains_Indexed : Result := 'CG Conc';
+            tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred';
+            tktxSF_Tax_Free_Dist         : Result := 'Tax Free Trust';
+            tktxSF_Tax_Exempt_Dist       : Result := 'Non-Taxable';
+            tktxSF_TFN_Credits           : Result := 'TFN Credit';
+            tktxSF_Foreign_Capital_Gains_Credit : Result := 'Foreign Tax CR';
+            tktxSF_Other_Tax_Credit      : Result := 'ABN Credit';
+          end;
+        saSolution6SuperFund, saSupervisor, saSuperMate:
+          //Solution6SuperFund & Supervisor
+          case aDataToken of
+            tktxSF_Imputed_Credit        : Result := 'Imputation CR';
+            tktxSF_Member_ID             : Result := 'Member ID';
+            tktxSF_Interest              : Result := 'Interest';
+            tktxSF_Foreign_Income        : Result := 'Foreign';
+            tktxSF_Capital_Gains_Other   : Result := 'Foreign CG';
+            tktxSF_Capital_Gains_Foreign_Disc : Result := 'Foreign Disc CG';
+            tktxSF_Rent                  : Result := 'Rent';
+            tktxSF_Capital_Gains_Indexed : Result := 'Capital Gain';
+            tktxSF_Capital_Gains_Disc    : Result := 'Discount CG';
+            tktxSF_Other_Expenses        : Result := 'Other Taxable';
+            tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred';
+            tktxSF_Tax_Free_Dist         : Result := 'Tax Free Trust';
+            tktxSF_Tax_Exempt_Dist       : Result := 'Non-Taxable';
+            tktxSF_Special_Income        : Result := 'Special Income';
+            tktxSF_Foreign_Tax_Credits   : Result := 'Foreign CR';
+            tktxSF_Foreign_Capital_Gains_Credit : Result := 'Foreign CG CR';
+            tktxSF_TFN_Credits           : Result := 'Withholding CR';
+            tktxSF_Other_Tax_Credit      : Result := 'Other Tax CR';
+            tktxSF_Non_Resident_Tax      : Result := 'Non-resident Tax';
+          end;
+      else
+        Result := inherited GetColumnTitle(aDataUnit, aDataToken);
+      end;
+    end;  
+  end
+  else
+    if ( aDataUnit = BKTE ) then begin
+      case  AccountingSystemUsed of
+        saBGL360 : begin
+          //BGL360
+          case aDataToken of
+            tkteSF_Other_Income                            : Result := 'Other Income';
+            tkteSF_Other_Trust_Deductions                  : Result := 'Less Other Allowable Trust Deductions';
+            tkteSF_CGT_Concession_Amount                   : Result := 'Concession Amount';
+            tkteSF_CGT_ForeignCGT_Before_Disc              : Result := 'CG Before Disc';
+            tkteSF_CGT_ForeignCGT_Indexation               : Result := 'CG Indexation Method';
+            tkteSF_CGT_ForeignCGT_Other_Method             : Result := 'CG Other Method';
+            tkteSF_CGT_TaxPaid_Indexation                  : Result := 'Tax Paid Indexation Method';
+            tkteSF_CGT_TaxPaid_Other_Method                : Result := 'Tax Paid Other Method';
+            tkteSF_Other_Net_Foreign_Income                : Result := 'Other Net foreign income';
+            tkteSF_Cash_Distribution                       : Result := 'Cash Distribution';
+            tkteSF_AU_Franking_Credits_NZ_Co               : Result := 'AU Franking CR from NZ Co.';
+            tkteSF_Non_Res_Witholding_Tax                  : Result := 'Non-Resident Withholding Tax';
+            tkteSF_LIC_Deductions                          : Result := 'LIC Deduction';
+            tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Discounted Before Disc';
+            tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexation Method';
+            tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other Method';
+            tkteSF_Non_Cash_CGT_Capital_Losses             : Result := 'Non-Cash Capital Losses';
+            tkteSF_Share_Brokerage                         : Result := 'Brokerage';
+            tkteSF_Share_Consideration                     : Result := 'Consideration';
+            tkteSF_Share_GST_Amount                        : Result := 'GST Amount';
+            tkteSF_Share_GST_Rate                          : Result := 'GST Rate';
+            tkteSF_Cash_Date                               : Result := 'Cash Date';
+            tkteSF_Accrual_Date                            : Result := 'Accrual Date';
+            tkteSF_Record_Date                             : Result := 'Record Date';
+          end;
+        end;
+      end;
     end;
-  end;
 end;
 
 function TLedgerReportColumnList.GetFieldSize(
@@ -1282,8 +1342,8 @@ begin
     //Superfund specific columns
     case AccountingSystemUsed of
       saBGLSimpleFund,
-      saBGLSimpleLedger,
-      saBGL360: AddBGLColumns;
+      saBGLSimpleLedger : AddBGLColumns;
+      saBGL360: AddBGL360Columns;
       saDesktopSuper: AddDesktopSuperColumns;
       saSolution6SuperFund, saSupervisor, saSuperMate: AddMYOBSuperFundColumns;
       //These superfunds currently don't have any additional fields in Practice
