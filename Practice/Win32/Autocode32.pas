@@ -505,9 +505,9 @@ begin
                                    MemorisationLine);
                      txSF_Super_Fields_Edited  := True;
                   end else begin
-                     ClearSuperFundFields(Transaction);
+                     ClearSuperFundFields(aTransaction);
                   end;
-                  Continue;
+                  exit;
                 end;
 
               //Dissected memorisation
