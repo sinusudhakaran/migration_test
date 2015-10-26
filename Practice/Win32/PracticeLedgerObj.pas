@@ -54,7 +54,7 @@ uses Globals, bkContactInformation, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       LogUtil, progress, software, chartutils, ovcDate,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
-      ChartExportToMYOBCashbook, Math;
+      ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls;
 
 function CheckFormyMYOBTokens:Boolean;
 begin
@@ -410,9 +410,37 @@ var
   i: Integer;
   Account: TChartOfAccountData;
   NewAccount  : pAccount_Rec;
+
+  SignInFrm : TmyMYOBSignInForm;
 const
   ThisMethodName = 'FetchCOAFromAPI';
 begin
+  if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
+  begin
+    HelpfulErrorMsg('Online Firm should be associated before a refresh chart!',
+                      0, false, 'Make sure admin user setup an Online ledger firm before you do a refrsh chart', true);
+    Exit;
+  end;
+
+  if not (CheckFormyMYOBTokens) then
+  begin
+    SignInFrm := TmyMYOBSignInForm.Create(Nil);
+    Screen.Cursor := crHourGlass;
+    try
+      SignInFrm.FormShowType := fsSignIn;
+      if SignInFrm.ShowModal <> mrOK then
+      begin
+        HelpfulErrorMsg('Establish a MYOB login before refresh chart',
+                      0, false, 'Sign in to MYOB portal to get the access tokens to communicate to Online Ledger', true);
+        Exit;
+      end;
+    finally
+      Screen.Cursor := crDefault;
+      FreeAndNil(SigninFrm);
+    end;
+
+  end;
+
   Accounts := TChartOfAccountsData.Create(TChartOfAccountData);
   try
     RandomKey := UserINI_myMYOB_Random_Key;

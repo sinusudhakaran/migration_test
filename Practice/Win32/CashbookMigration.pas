@@ -787,6 +787,8 @@ begin
       end;
     end;
   finally
+    if Assigned(JsonObject) then
+      FreeAndNil(JsonObject);
     FreeAndNil(Response);
   end;
 
@@ -914,7 +916,6 @@ begin
       ErroMessage:= TlkJSON.ParseText(aResponse);
       aError := E.Message;
       aError := aError + ProcessErrorMessage(ErroMessage);
-      Exit;
     end;
   end;
 end;
