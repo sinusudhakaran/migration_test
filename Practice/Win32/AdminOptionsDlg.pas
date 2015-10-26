@@ -462,7 +462,7 @@ begin
   //set temp variables
 
   ExportType := BulkExtractFrm.GetComboBoxExtractorCode(cbBulkExport);
- 
+
 
   UpdatesPending := btnInstallUpdates.Visible;
 
@@ -962,7 +962,7 @@ begin
 
   if Assigned(AdminSystem) then
   begin
-    FFirmID := AdminSystem.fdFields.fdmyMYOBFirmName;
+    FFirmID := AdminSystem.fdFields.fdmyMYOBFirmID;
     FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
 
     if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
@@ -1113,10 +1113,10 @@ begin
       FFirmName := SignInFrm.SelectedName;
     end;
 
-    if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+    if Trim(FFirmName) = '' then
       lblFirmName.Caption := 'No firm selected for MYOB Online Ledger Export'
     else
-      lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+      lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ FFirmName;
 
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'my.MYOB Sign In'
