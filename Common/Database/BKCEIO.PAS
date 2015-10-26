@@ -102,6 +102,8 @@ CONST
    tkceCashbook_Export_File_Location    = 95 ;
    tkceBGLFundIDSelected                = 96 ;
    tkceBGLFundNameSelected              = 97 ;
+   tkcemyMYOBClientIDSelected           = 98 ;
+   tkcemyMYOBClientNameSelected         = 99 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -192,6 +194,8 @@ Begin
       F.WriteStringValue( tkceCashbook_Export_File_Location , ceCashbook_Export_File_Location );
       F.WriteStringValue( tkceBGLFundIDSelected , ceBGLFundIDSelected );
       F.WriteStringValue( tkceBGLFundNameSelected , ceBGLFundNameSelected );
+      F.WriteStringValue( tkcemyMYOBClientIDSelected , cemyMYOBClientIDSelected );
+      F.WriteStringValue( tkcemyMYOBClientNameSelected , cemyMYOBClientNameSelected );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -309,6 +313,8 @@ Begin
          tkceCashbook_Export_File_Location    : ceCashbook_Export_File_Location := F.ReadStringValue;
          tkceBGLFundIDSelected                : ceBGLFundIDSelected := F.ReadStringValue;
          tkceBGLFundNameSelected              : ceBGLFundNameSelected := F.ReadStringValue;
+         tkcemyMYOBClientIDSelected           : cemyMYOBClientIDSelected := F.ReadStringValue;
+         tkcemyMYOBClientNameSelected         : cemyMYOBClientNameSelected := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -359,7 +365,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkceBGLFundNameSelected do begin
+  for i := tkceTAX_Applies_From to tkcemyMYOBClientNameSelected do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -668,6 +674,16 @@ begin
   if (P1.ceBGLFundNameSelected <> P2.ceBGLFundNameSelected) then begin
     P3.ceBGLFundNameSelected := P1.ceBGLFundNameSelected;
     ChangedFields[i] := tkceBGLFundNameSelected;
+    Inc(i);
+  end;
+  if (P1.cemyMYOBClientIDSelected <> P2.cemyMYOBClientIDSelected) then begin
+    P3.cemyMYOBClientIDSelected := P1.cemyMYOBClientIDSelected;
+    ChangedFields[i] := tkcemyMYOBClientIDSelected;
+    Inc(i);
+  end;
+  if (P1.cemyMYOBClientNameSelected <> P2.cemyMYOBClientNameSelected) then begin
+    P3.cemyMYOBClientNameSelected := P1.cemyMYOBClientNameSelected;
+    ChangedFields[i] := tkcemyMYOBClientNameSelected;
     Inc(i);
   end;
 

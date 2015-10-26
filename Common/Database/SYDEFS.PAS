@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 130;
-   SY_IOLIB_Date    = '30/09/15';
+   SY_IOLIB_Version : Integer = 135;
+   SY_IOLIB_Date    = '14/10/15';
    SY_FILE_VERSION   = 133;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -343,6 +343,8 @@ Type
       fdBGLRefreshToken                  : String[ 64 ];       { Stored }
       fdBGLTokenType                     : String[ 32 ];       { Stored }
       fdBGLTokenExpiresAt                : TDateTime;       { Stored }
+      fdmyMYOBFirmID                     : String[ 64 ];       { Stored }
+      fdmyMYOBFirmName                   : String[ 150 ];       { Stored }
       fdEOR                              : Byte;
    end;
 

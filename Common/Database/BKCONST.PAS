@@ -502,7 +502,8 @@ CONST
    snQBWN            = 40;
    snAcclipse        = 41;
    snMYOBAccRight    = 42;
-   snMax = 42;
+   snMYOBOnlineLedger = 43;
+   snMax = 43;
 
    snNames : Array[ snMin..snMax ] of String[32] =
       //'12345678901234567890123467890'
@@ -548,7 +549,8 @@ CONST
         'MYOB AO (manual posting)',       //snMYOB_COM
         'QuickBooks 2008/2009',           //snQBWN
         'iFirm',                          //snAcclipse
-        'MYOB General Journals (2012)'    //snMYOBAccRight
+        'MYOB General Journals (2012)' ,   //snMYOBAccRight
+        'MYOB Online Ledger'
          );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -608,7 +610,8 @@ CONST
    saAcclipse = 52;
    saMYOBAccRight = 53;
    saBGL360 = 54;
-   saMax = 54; // hiding BGL 360 in v5.25 and v5.26, change this back to 54 when we want to unhide it
+   saMYOBOnlineLedger = 55;
+   saMax = 55; // hiding BGL 360 in v5.25 and v5.26, change this back to 54 when we want to unhide it
 
    saNames : Array[ saMin..saMax ] of String[36] =
       //'123456789012345678901234567890'
@@ -666,7 +669,8 @@ CONST
         'Sage HandiSoft SuperFund',                   //saSageHandisoftSuperfund
         'iFirm',                                      //saAcclipse
         'MYOB General Journals (2012)',                //snMYOBAccRight
-        'BGL Simple Fund 360'                         //saBGL360
+        'BGL Simple Fund 360'  ,                       //saBGL360
+        'MYOB Online Ledger'                            //saMYOBOnlineLedger
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';

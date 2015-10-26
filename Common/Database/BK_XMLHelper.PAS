@@ -3462,6 +3462,8 @@ begin
 	SetTextAttr(Result, 'CashbookExportFileLocation', ceCashbook_Export_File_Location);
 	SetTextAttr(Result, 'BGLFundIDSelected', ceBGLFundIDSelected);
 	SetTextAttr(Result, 'BGLFundNameSelected', ceBGLFundNameSelected);
+	SetTextAttr(Result, 'myMYOBClientIDSelected', cemyMYOBClientIDSelected);
+	SetTextAttr(Result, 'myMYOBClientNameSelected', cemyMYOBClientNameSelected);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3621,6 +3623,8 @@ begin
 	ceCashbook_Export_File_Location := GetTextAttr(Result, 'CashbookExportFileLocation');
 	ceBGLFundIDSelected := GetTextAttr(Result, 'BGLFundIDSelected');
 	ceBGLFundNameSelected := GetTextAttr(Result, 'BGLFundNameSelected');
+	cemyMYOBClientIDSelected := GetTextAttr(Result, 'myMYOBClientIDSelected');
+	cemyMYOBClientNameSelected := GetTextAttr(Result, 'myMYOBClientNameSelected');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

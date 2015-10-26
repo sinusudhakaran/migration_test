@@ -229,6 +229,8 @@ CONST
    tkfdBGLRefreshToken                  = 192 ;
    tkfdBGLTokenType                     = 193 ;
    tkfdBGLTokenExpiresAt                = 194 ;
+   tkfdmyMYOBFirmID                     = 195 ;
+   tkfdmyMYOBFirmName                   = 196 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -449,6 +451,8 @@ Begin
       F.WriteStringValue( tkfdBGLRefreshToken , fdBGLRefreshToken );
       F.WriteStringValue( tkfdBGLTokenType , fdBGLTokenType );
       F.WriteDateTimeValue( tkfdBGLTokenExpiresAt , fdBGLTokenExpiresAt );
+      F.WriteStringValue( tkfdmyMYOBFirmID , fdmyMYOBFirmID );
+      F.WriteStringValue( tkfdmyMYOBFirmName , fdmyMYOBFirmName );
       F.WriteToken( tkEnd_Practice_Details );
    end;
 end; { of Write_Practice_Details_Rec }
@@ -761,6 +765,8 @@ Begin
          tkfdBGLRefreshToken                  : fdBGLRefreshToken := F.ReadStringValue;
          tkfdBGLTokenType                     : fdBGLTokenType := F.ReadStringValue;
          tkfdBGLTokenExpiresAt                : fdBGLTokenExpiresAt := F.ReadDateTimeValue;
+         tkfdmyMYOBFirmID                     : fdmyMYOBFirmID := F.ReadStringValue;
+         tkfdmyMYOBFirmName                   : fdmyMYOBFirmName := F.ReadStringValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -841,7 +847,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkfdPractice_Name_for_Reports to tkfdBGLTokenExpiresAt do begin
+  for i := tkfdPractice_Name_for_Reports to tkfdmyMYOBFirmName do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -1798,6 +1804,16 @@ begin
   if (P1.fdBGLTokenExpiresAt <> P2.fdBGLTokenExpiresAt) then begin
     P3.fdBGLTokenExpiresAt := P1.fdBGLTokenExpiresAt;
     ChangedFields[i] := tkfdBGLTokenExpiresAt;
+    Inc(i);
+  end;
+  if (P1.fdmyMYOBFirmID <> P2.fdmyMYOBFirmID) then begin
+    P3.fdmyMYOBFirmID := P1.fdmyMYOBFirmID;
+    ChangedFields[i] := tkfdmyMYOBFirmID;
+    Inc(i);
+  end;
+  if (P1.fdmyMYOBFirmName <> P2.fdmyMYOBFirmName) then begin
+    P3.fdmyMYOBFirmName := P1.fdmyMYOBFirmName;
+    ChangedFields[i] := tkfdmyMYOBFirmName;
     Inc(i);
   end;
 

@@ -249,6 +249,8 @@ begin
     FAuditNamesArray[10,192] := 'BGLRefreshToken';
     FAuditNamesArray[10,193] := 'BGLTokenType';
     FAuditNamesArray[10,194] := 'BGLTokenExpiresAt';
+    FAuditNamesArray[10,195] := 'myMYOBFirmID';
+    FAuditNamesArray[10,196] := 'myMYOBFirmName';
 
    FAuditTableArray[40] := 'System_Disk_Log';
     FAuditNamesArray[40,42] := 'Disk_ID';

@@ -457,6 +457,22 @@ namespace BankLink.Practice.BooksIO
 		public String BGLFundNameSelected { get; set; }
 
 
+
+		/// <summary>
+		/// myMYOBClientIDSelected property
+		/// </summary>
+		[XmlAttribute("myMYOBClientIDSelected", DataType = "string")]
+		public String myMYOBClientIDSelected { get; set; }
+
+
+
+		/// <summary>
+		/// myMYOBClientNameSelected property
+		/// </summary>
+		[XmlAttribute("myMYOBClientNameSelected", DataType = "string")]
+		public String myMYOBClientNameSelected { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -527,6 +543,8 @@ namespace BankLink.Practice.BooksIO
 			s.WriteShortStringValue(95, CashbookExportFileLocation);
 			s.WriteShortStringValue(96, BGLFundIDSelected);
 			s.WriteShortStringValue(97, BGLFundNameSelected);
+			s.WriteShortStringValue(98, myMYOBClientIDSelected);
+			s.WriteShortStringValue(99, myMYOBClientNameSelected);
 			s.WriteToken(41);
 		}
 
@@ -712,6 +730,12 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 97 :
 				BGLFundNameSelected = s.ReadShortStringValue("BGLFundNameSelected");
+				break;
+			case 98 :
+				myMYOBClientIDSelected = s.ReadShortStringValue("myMYOBClientIDSelected");
+				break;
+			case 99 :
+				myMYOBClientNameSelected = s.ReadShortStringValue("myMYOBClientNameSelected");
 				break;
 			case BeginToken :
 			case EndToken :

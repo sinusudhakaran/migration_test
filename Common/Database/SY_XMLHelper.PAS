@@ -425,6 +425,8 @@ begin
 	SetTextAttr(Result, 'BGLAccessToken', fdBGLAccessToken);
 	SetTextAttr(Result, 'BGLRefreshToken', fdBGLRefreshToken);
 	SetTextAttr(Result, 'BGLTokenType', fdBGLTokenType);
+	SetTextAttr(Result, 'myMYOBFirmID', fdmyMYOBFirmID);
+	SetTextAttr(Result, 'myMYOBFirmName', fdmyMYOBFirmName);
 
 	CNode := nil;
 	CCNode := nil;
@@ -791,6 +793,8 @@ begin
 	fdBGLAccessToken := GetTextAttr(Result, 'BGLAccessToken');
 	fdBGLRefreshToken := GetTextAttr(Result, 'BGLRefreshToken');
 	fdBGLTokenType := GetTextAttr(Result, 'BGLTokenType');
+	fdmyMYOBFirmID := GetTextAttr(Result, 'myMYOBFirmID');
+	fdmyMYOBFirmName := GetTextAttr(Result, 'myMYOBFirmName');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPractice_Details_Rec');
 	end;

@@ -1293,6 +1293,8 @@ F|Cashbook GST Map File Location|S|250
 F|Cashbook Export File Location|S|250
 F|BGLFundIDSelected|S|64
 F|BGLFundNameSelected|S|250
+F|myMYOBClientIDSelected|S|64
+F|myMYOBClientNameSelected|S|250
 E
 
 N|Deleted Transaction|dx|233

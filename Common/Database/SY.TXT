@@ -308,6 +308,8 @@ F|BGLAccessToken|S|64
 F|BGLRefreshToken|S|64
 F|BGLTokenType|S|32
 F|BGLTokenExpiresAt|DT
+F|myMYOBFirmID|S|64
+F|myMYOBFirmName|S|150
 E
 
 N|System Disk Log|dl|40

@@ -21,7 +21,11 @@ type
     class function DefaultCashbookLoginAUURL : String; static;
     class function CashbookAPILoginURL : String; static;
     class function CashbookAPIFirmsURL : String; static;
+    class function PracticeLedgerAPIBusinessesURL : String; static;
+    class function PracticeLedgerAPITransactionsURL: string; static;
+    class function PracticeLedgerAPIJournalsURL : string; static;
     class function CashbookAPIUploadURL : String; static;
+    class function PracticeLedgerAPICOAURL : String; static;
 
     class function DefaultNZCatalogServer: String; static;
     class function DefaultAUCatalogServer: String; static;
@@ -315,6 +319,26 @@ begin
   begin
     Result := 'https://www.banklinkonline.com';
   end;
+end;
+
+class function TUrls.PracticeLedgerAPIBusinessesURL: String;
+begin
+  Result := 'https://cashbook.myob.com.au/api/businesses';
+end;
+
+class function TUrls.PracticeLedgerAPICOAURL: String;
+begin
+  Result := 'https://cashbook.myob.com.au/api/businesses/%s/accounts';
+end;
+
+class function TUrls.PracticeLedgerAPIJournalsURL: string;
+begin
+
+end;
+
+class function TUrls.PracticeLedgerAPITransactionsURL: string;
+begin
+  Result := 'https://cashbook.myob.com.au/api/businesses/%s/bank_transactions';
 end;
 
 class function TUrls.ProvisionalAccountUrl: String;

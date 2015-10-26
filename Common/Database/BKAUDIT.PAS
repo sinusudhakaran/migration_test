@@ -998,6 +998,8 @@ begin
     FAuditNamesArray[40,95] := 'Cashbook_Export_File_Location';
     FAuditNamesArray[40,96] := 'BGLFundIDSelected';
     FAuditNamesArray[40,97] := 'BGLFundNameSelected';
+    FAuditNamesArray[40,98] := 'myMYOBClientIDSelected';
+    FAuditNamesArray[40,99] := 'myMYOBClientNameSelected';
 
    FAuditTableArray[233] := 'Deleted_Transaction';
     FAuditNamesArray[233,235] := 'Date_Deleted';
