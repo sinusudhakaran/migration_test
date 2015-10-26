@@ -1187,10 +1187,18 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnDeleteClick(Sender: TObject);
+var
+  Msg : string;
 begin
+  if fDlgEditMode in ALL_MASTER then
+    Msg := 'Deleting this Master Memorisation will remove all coding for entries that match the criteria,' +
+           ' which are yet to be transferred or finalised.'
+  else
+    Msg := 'Deleting this Memorisation will remove all coding for entries that match the criteria,' +
+           ' which are yet to be transferred or finalised.';
+
   if AskYesNo('Confirm Delete',
-              'Deleting this Memorisation will remove all coding for entries that match the criteria,' + #13 +
-              ' which are yet to be transferred or finalised.' + #13#13 +
+              Msg + #13#13 +
               'Please confirm you wish to delete.', DLG_NO, 0) = DLG_YES then
   begin
     TerminateMasterThread();
