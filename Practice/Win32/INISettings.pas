@@ -110,6 +110,7 @@ const
    GrpPracLinks  = 'Links';
    GrpPracBankLinkOnline = 'BankLinkOnline';
    GrpPracThirdParty = 'ThirdParty';
+   GrpPracmyMYOB = 'my.MYOB';
    //Mems Ini groups
    GrpMemsSupport = 'Support';
 
@@ -728,6 +729,10 @@ begin
         PRACINI_CashbookAPIUploadURL       := ReadString(GrpPracLinks,'CashbookAPIUploadURL', TUrls.CashbookAPIUploadURL);
         PRACINI_CashbookAPIUploadDataStore := ReadString(GrpPracLinks,'CashbookAPIUploadDataStore', 'assetsmigrationstore-prod');
         PRACINI_CashbookAPIUploadQueue     := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'Production-Banklink-SQS');
+        PRACINI_PracticeLedgerAPIBusinessesURL := ReadString(GrpPracLinks,'PracticeLedgerAPIBusinessesURL', TUrls.PracticeLedgerAPIBusinessesURL);
+        PRACINI_PracticeLedgerAPITransactionsURL := ReadString(GrpPracLinks,'PracticeLedgerAPITransactionsURL', TUrls.PracticeLedgerAPITransactionsURL);
+        PRACINI_PracticeLedgerAPIJournalsURL := ReadString(GrpPracLinks,'PracticeLedgerAPIJournalsURL', TUrls.PracticeLedgerAPIJournalsURL);
+        PRACINI_PracticeLedgerAPICOAURL := ReadString(GrpPracLinks,'PracticeLedgerAPICOAURL', TUrls.PracticeLedgerAPICOAURL);
 
         PRACINI_CashbookModifiedCodeCount  := ReadInteger( GrpPracInfo, 'CashbookModifiedCodeCount', 0);
 
@@ -979,15 +984,14 @@ begin
 
            WriteInteger( GrpPracInfo, 'IniVersion', PRAC_INI_VERSION);
 
-          {BGL API URL}
+           {BGL API URL}
            WriteString(GrpPracLinks,  'BGL360APIURL', PRACINI_BGL360_API_URL);
            WriteString(GrpPracThirdParty,  'BGL360ClientID', PRACINI_BGL360_Client_ID);
            WriteString(GrpPracThirdParty,  'BGL360ClientSecret', PRACINI_BGL360_Client_Secret);
            WriteString(GrpPracThirdParty,  'BGL360Key', PRACINI_Random_Key);
 
-          {Contentful API URL}
+           {Contentful API URL}
            WriteString(GrpPracLinks,  'ContentfulAPIURL', PRACINI_Contentful_API_URL);
-
          end;
       finally
          PracIniFile.UpdateFile;
@@ -1162,11 +1166,18 @@ begin
 
       //Get and send checkbox options
 //      UserINI_Client_Lookup_Available_Only := IniFile.ReadBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
-      UserINI_Client_Lookup_Flag_Read_Only := IniFile.ReadBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Flag_Read_Only);
-      UserINI_Client_Lookup_Edit_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
+      UserINI_Client_Lookup_Flag_Read_Only := IniFile.ReadBool(GrpPracThirdParty, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Flag_Read_Only);
+      UserINI_Client_Lookup_Edit_Email     := IniFile.ReadBool(GrpPracThirdParty, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
       UserINI_Client_Lookup_Send_Email     := IniFile.ReadBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Send_Email);
 
       UserINI_Suggested_Mems_Show_Popup := IniFile.ReadBool(GrpUserOptions, 'SuggestedMemsShowPopup', UserINI_Suggested_Mems_Show_Popup);
+
+      {my.MYOB user credentials}
+      UserINI_myMYOB_Random_Key := ReadString(GrpPracmyMYOB,'my.MYOBRandomKey', '');
+      UserINI_myMYOB_EmailAddress := ReadString(GrpPracmyMYOB,'my.MYOBEmailAddress', '');
+      UserINI_myMYOB_Access_Token := ReadString(GrpPracmyMYOB,'my.MYOBAccessToken', '');
+      UserINI_myMYOB_Refresh_Token := ReadString(GrpPracmyMYOB,'my.MYOBRefreshToken', '');
+      UserINI_myMYOB_Expires_TokenAt := ReadDateTime(GrpPracmyMYOB,'my.MYOBExpiresAt', 0);
 
       UserIniUpgrade(IniFile);
 
@@ -1278,12 +1289,20 @@ begin
       IniFile.WriteString(GrpPracBankLinkOnline, 'BankLinkOnlineSubDomain', INI_BankLink_Online_SubDomain);
 
       //Get and send checkbox options
-//      IniFile.WriteBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
+      //IniFile.WriteBool(GrpUserOptions, 'ClientLookupAvailableOnly', UserINI_Client_Lookup_Available_Only);
       IniFile.WriteBool(GrpUserOptions, 'ClientLookupFlagReadOnly', UserINI_Client_Lookup_Flag_Read_Only);
       IniFile.WriteBool(GrpUserOptions, 'ClientLookupEditEmail', UserINI_Client_Lookup_Edit_Email);
       IniFile.WriteBool(GrpUserOptions, 'ClientLookupSendEmail', UserINI_Client_Lookup_Send_Email);
 
       IniFile.WriteBool(GrpUserOptions, 'SuggestedMemsShowPopup', UserINI_Suggested_Mems_Show_Popup);
+
+      {my.MYOB user credentials}
+      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBRandomKey', UserINI_myMYOB_Random_Key);
+      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBEmailAddress', UserINI_myMYOB_EmailAddress);
+      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBAccessToken', UserINI_myMYOB_Access_Token);
+      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBRefreshToken', UserINI_myMYOB_Refresh_Token);
+      IniFile.WriteDateTime(GrpPracmyMYOB, 'my.MYOBExpiresAt', UserINI_myMYOB_Expires_TokenAt);
+
     end;
   finally
     IniFile.UpdateFile;

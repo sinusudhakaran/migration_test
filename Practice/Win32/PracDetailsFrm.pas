@@ -144,6 +144,8 @@ type
     cmbState: TComboBox;
     mskABN: TMaskEdit;
     btnConnectBGL: TButton;
+    btnConnectMYOB: TButton;
+    lblFirmName: TLabel;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -187,6 +189,7 @@ type
     procedure edtPostCodeKeyPress(Sender: TObject; var Key: Char);
     procedure mskABNClick(Sender: TObject);
     procedure btnConnectBGLClick(Sender: TObject);
+    procedure btnConnectMYOBClick(Sender: TObject);
   private
     { Private declarations }
     fLoading : boolean;
@@ -290,7 +293,9 @@ uses
   bkContactInformation,
   CountryUtils,
   bautils,
-  INISettings;
+  INISettings,
+  PracticeLedgerObj,
+  myMYOBSignInFrm;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -441,8 +446,36 @@ begin
   lblMask.Enabled := AccountingSystemSelected;
   eMask.Enabled := AccountingSystemSelected;
   lblLoad.Enabled := AccountingSystemSelected and CanRefresh;
-  eLoad.Enabled   := AccountingSystemSelected and CanRefresh;
-  btnLoadFolder.Enabled := AccountingSystemSelected and CanRefresh;
+  eLoad.Enabled   := AccountingSystemSelected and CanRefresh ;
+  btnLoadFolder.Enabled := AccountingSystemSelected and CanRefresh ;
+  btnConnectMYOB.Visible := False;
+  {case AdminSystem.fdFields.fdCountry of
+    whNewZealand :
+    begin
+      eLoad.Visible := (AccountingSystem <> snMYOBOnlineLedger);
+      btnLoadFolder.Visible := (AccountingSystem <> snMYOBOnlineLedger);
+      btnConnectMYOB.Visible := (AccountingSystem = snMYOBOnlineLedger);
+    end;
+    whAustralia :
+    begin
+      eLoad.Visible := (AccountingSystem <> saMYOBOnlineLedger);
+      btnLoadFolder.Visible := (AccountingSystem <> saMYOBOnlineLedger);
+      btnConnectMYOB.Visible := (AccountingSystem = saMYOBOnlineLedger);
+    end;
+  end;
+
+  lblFirmName.Caption := '';
+  if btnConnectMYOB.Visible then
+  begin
+    if Trim(UserINI_myMYOB_Access_Token) = '' then
+      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+    else
+    begin
+      btnConnectMYOB.Caption := 'Select my.MYOB Firm';
+      if Assigned(AdminSystem) then
+        lblFirmName.Caption := AdminSystem.fdFields.fdmyMYOBFirmName;
+    end;
+  end;}
   lblSave.Enabled := AccountingSystemSelected and UseSaveTo;
   eSave.Enabled := AccountingSystemSelected and UseSaveTo;
   btnSaveFolder.Enabled := AccountingSystemSelected and UseSaveTo;
@@ -700,6 +733,22 @@ begin
   end;
 end;
 
+procedure TfrmPracticeDetails.btnConnectMYOBClick(Sender: TObject);
+var
+  SignInFrm : TmyMYOBSignInForm;
+begin
+  SignInFrm := TmyMYOBSignInForm.Create(Nil);
+  try
+    if not CheckFormyMYOBTokens then
+      SignInFrm.FormShowType := fsSignIn
+    else
+      SignInFrm.FormShowType := fsSelectFirm;
+    SignInFrm.ShowFirmSelection := False;
+    SignInFrm.ShowModal;
+  finally
+    FreeAndNil(SignInFrm);
+  end;
+end;
 //------------------------------------------------------------------------------
 procedure TfrmPracticeDetails.btnEditClick(Sender: TObject);
 begin

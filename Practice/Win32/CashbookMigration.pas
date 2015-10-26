@@ -22,6 +22,9 @@ const
   PUBLIC_KEY_FILE_CASHBOOK_TOKEN = 'PublicKeyMyobMigration.pke';
 
 type
+
+  TLicenceType = (ltCashbook, ltPracticeLedger);
+  TDataRequestType = (drtSignIn, drtFirm, drtBusiness, drtCOA, drtTransactions);
   //----------------------------------------------------------------------------
   TClientMigrationState = (cmsAccessSysDB,
                            cmsAccessCltDB,
@@ -90,9 +93,11 @@ type
     fURLsArePreload : boolean;
     fToken: string;
     fUnEncryptedToken : string;
+    FRefreshToken: string;
     fTokenStartDate : TDateTime;
     FHttpRequester : TipsHTTPS;
     fProgressEvent : TProgressEvent;
+    FTokenExpiresAt : TDateTime;
 
     fClientCount : integer;
     fCurrentClient : integer;
@@ -101,14 +106,24 @@ type
     fCurrentMyDotUser : string;
 
     fClientTimeFrameStart : TStDate;
-    fMappingsData : TMappingsData;
     fClientMigrationState : TClientMigrationState;
     fCurrentCBClientCode : string;
     fHasProvisionalAccountsAndMoved : boolean;
     fProvisionalAccounts  : TStringList;
     fURLThread : TURLThread;
+    FRandomKey : string;
 
+    procedure ProcessLargeReceivedData;
+    function ProcessErrorMessage(aErrorMessage: TlkJSONbase): string;
   protected
+    FLicenseType : TLicenceType;
+    FLargeJsonData : string;
+    FDataRequestType : TDataRequestType;
+    FDataTransferStarted : Boolean;
+    FDataError : string;
+    FDataResponse : TlkJSONbase;
+    FMappingsData : TMappingsData;
+
     procedure LogHttpDebugSend(aCall : string;
                                aHeaders: THttpHeaders;
                                aPostData: TStringList); overload;
@@ -146,7 +161,10 @@ type
                            const AField : String;
                            const AValue : String); Virtual;
     procedure HttpSetup;
-    procedure EncryptToken(aToken : string);
+
+    {below 2 functions are using for cashbook migration. The Transferreddata
+    wont work for large response. So the below 2 functions are rewritten to
+    get businesses. Below functions are stil using to get firms}
 
     function DoHttpSecure(const aVerb: string; const aURL: string;
                           const aHeaders: THttpHeaders; const aRequest: string;
@@ -198,24 +216,35 @@ type
   public
     constructor Create; virtual;
     destructor Destroy; override;
+    function StartedDataTransfer:Boolean;
+    procedure EncryptToken(aToken : string);
 
     procedure PreloadURLs();
     procedure MarkSelectedClients(aFileStatus: Integer; aSelectClients : TStringList);
     procedure MarkSelectClient(aFileStatus: Integer; aClientCode : string);
 
     function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
-
     function GetFirms(var aFirms: TFirms; var aError: string): boolean;
+    function GetBusinesses(aFirmID: string;var aBusinesses: TBusinesses;var aError: string):Boolean;
+    function GetChartOfAccounts(aBusinessID:string;var aChartOfAccounts: TChartOfAccountsData; var aError:string):Boolean;
 
     function MigrateClients(aSelectClients : TStringList;
                             aSelectedData : TSelectedData;
                             var aClientErrors : TStringList;
                             var aNumErrorClients : integer) : TMigrationStatus;
 
+    function CheckForValidTokens:Boolean;
+
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
     property MappingsData : TMappingsData read fMappingsData write fMappingsData;
     property HasProvisionalAccountsAndMoved : boolean read fHasProvisionalAccountsAndMoved;
     property ProvisionalAccounts : TStringList read fProvisionalAccounts write fProvisionalAccounts;
+
+    property UnEncryptedToken : string read FUnEncryptedToken write FUnEncryptedToken;
+    property RandomKey : string read FRandomKey write FRandomKey;
+    property EncryptedToken : string read FToken write FToken;
+    property RefreshToken : string read FRefreshToken write FRefreshToken;
+    property TokenExpiresAt : TDateTime read FTokenExpiresAt write FTokenExpiresAt;
   end;
 
   //----------------------------------------------------------------------------
@@ -252,7 +281,9 @@ uses
   SYDEFS,
   PayeeObj,
   JobObj,
-  CountryUtils;
+  CountryUtils,
+  dateUtils,
+  Variants;
 
 const
   UnitName = 'CashbookMigration';
@@ -589,7 +620,9 @@ end;
 procedure TCashbookMigration.DoHttpStartTransfer(ASender    : TObject;
                                                  ADirection : Integer);
 begin
-
+  FLargeJsonData := '';
+  FDataTransferStarted := True;
+  FDataError := '';
 end;
 
 //------------------------------------------------------------------------------
@@ -597,25 +630,16 @@ procedure TCashbookMigration.DoHttpTransfer(ASender           : TObject;
                                             ADirection        : Integer;
                                             ABytesTransferred : LongInt;
                                             AText             : String);
-//var
-//  Percent : integer;
 begin
-  {if ABytesTransferred > fClientDataSize then
-    Percent := 100
-  else
-    Percent := trunc(ABytesTransferred / fClientDataSize);
-
-  if Assigned(fProgressEvent) then
-  begin
-    fProgressEvent(fCurrentClient-1, fClientCount, Percent);
-  end;   }
+  FLargeJsonData := FLargeJsonData + AText;
 end;
 
 //------------------------------------------------------------------------------
 procedure TCashbookMigration.DoHttpEndTransfer(ASender    : TObject;
                                                ADirection : Integer);
 begin
-
+  ProcessLargeReceivedData;
+  FDataTransferStarted := False;
 end;
 
 //------------------------------------------------------------------------------
@@ -645,6 +669,58 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCashbookMigration.GetBusinesses(aFirmID: string;
+  var aBusinesses: TBusinesses; var aError: string): Boolean;
+var
+  sURL: string;
+  Response: TlkJSONbase;
+  JsonObject: TlkJSONObject;
+  RespStr : string;
+begin
+  Result := False;
+  Response := nil;
+  try
+    try
+      sURL := PRACINI_PracticeLedgerAPIBusinessesURL;
+      FDataRequestType := drtBusiness;
+
+      if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
+        Exit;
+
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+      if Assigned(FDataResponse) then
+        JsonObject := (FDataResponse as TlkJSONObject);
+
+      RespStr := TlkJSON.GenerateText(JsonObject);
+
+      if DebugMe then
+        LogUtil.LogMsg(lmInfo, UnitName, RespStr);
+
+      if Assigned(aBusinesses) and Assigned(JsonObject) then
+        aBusinesses.Read(aFirmID,JsonObject);
+
+    except
+      on E: Exception do
+      begin
+        aError := 'Exception running PracticeLedger.Getbusinesses, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
+    end;
+  finally
+    if Assigned(Response) then
+      FreeAndNil(Response);
+    if Assigned(JsonObject) then
+      FreeAndNil(JsonObject);
+  end;
+
+  Result := True;
+end;
+
 function TCashbookMigration.GetCashBookGSTType(aGSTMapCol : TGSTMapCol; aGSTClassId : byte): string;
 var
   GSTClassTypeIndicator : byte;
@@ -668,6 +744,53 @@ begin
     GetMYOBCashbookGSTDetails(GSTClass, CashBookGstClassCode, CashBookGstClassDesc);
   end;
   Result := CashBookGstClassCode;
+end;
+
+function TCashbookMigration.GetChartOfAccounts(aBusinessID: string; var aChartOfAccounts: TChartOfAccountsData;
+  var aError: string): Boolean;
+var
+  sURL: string;
+  Response: TlkJSONbase;
+  JsonObject: TlkJSONObject;
+  RespStr : string;
+begin
+  Result := False;
+
+  Response := nil;
+  try
+    try
+      sURL := Format(PRACINI_PracticeLedgerAPICOAURL,[aBusinessID]);
+      FDataRequestType := drtCOA;
+
+      if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
+        Exit;
+
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+      if Assigned(FDataResponse) then
+        JsonObject := (FDataResponse as TlkJSONObject);
+      RespStr := TlkJSON.GenerateText(FDataResponse);
+      if Assigned(aChartOfAccounts) and Assigned(JsonObject) then
+      begin
+        aChartOfAccounts.Read(aBusinessID,JsonObject);
+      end;
+
+    except
+      on E: Exception do
+      begin
+        aError := 'Exception running PracticeLedger.GetCOA, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
+    end;
+  finally
+    FreeAndNil(Response);
+  end;
+
+  Result := True;
 end;
 
 //------------------------------------------------------------------------------
@@ -699,14 +822,24 @@ var
   EncryptedToken : string;
   EncryptedKey : string;
 begin
-  fUnEncryptedToken := aToken;
+  FUnEncryptedToken := aToken;
 
-  KeyString := OpenSSLEncription.GetRandomKey;
+  case FLicenseType of
+    ltCashbook : FRandomKey := '';
+    ltPracticeLedger : ;
+  end;
+
+  if Trim(FRandomKey) = '' then
+    KeyString := OpenSSLEncription.GetRandomKey
+  else
+    KeyString := FRandomKey;
+
   if OpenSSLEncription.AESEncrypt(KeyString, aToken, EncryptedToken, INIT_VECTOR) then
   begin
     EncryptedKey := OpenSSLEncription.SimpleRSAEncrypt(KeyString, GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN);
-    fToken := EncryptedToken + KEY_DELIMMITER + EncryptedKey;
-    fTokenStartDate := Now();
+    FToken := EncryptedToken + KEY_DELIMMITER + EncryptedKey;
+    FRandomKey := KeyString;
+    FTokenStartDate := Now();
   end;
 end;
 
@@ -716,7 +849,8 @@ function TCashbookMigration.DoHttpSecure(const aVerb, aURL: string; const aHeade
 const
   CRLF = #13#10;
 var
-  LoggedRequest : string;
+  sDetails, LoggedRequest : string;
+  ErroMessage: TlkJSONbase;
 
   function RemovePassword(aValue : string) : string;
   var
@@ -766,19 +900,21 @@ begin
     begin
       FHttpRequester.PostData := aRequest;
       FHttpRequester.Post(aURL);
+
+      aResponse := FHttpRequester.TransferredData;
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
     end;
-
-    aResponse := FHttpRequester.TransferredData;
-
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
 
     Result := true;
   except
     on E: Exception do
     begin
+      aResponse := FHttpRequester.TransferredData;
+      ErroMessage:= TlkJSON.ParseText(aResponse);
       aError := E.Message;
-      exit;
+      aError := aError + ProcessErrorMessage(ErroMessage);
+      Exit;
     end;
   end;
 end;
@@ -794,8 +930,7 @@ begin
   try
     { WORKAROUND:
       Setting specific headers (Authorization/Accept/Content-Type) doesn't work,
-      so we must use OtherHeaders instead.
-    }
+      so we must use OtherHeaders instead.}
     FHttpRequester.OtherHeaders :=
       'Content-Type: ' + aHeaders.ContentType + CRLF +
       'x-myobapi-accesstoken: ' + aHeaders.MyobApiAccessToken;
@@ -843,8 +978,9 @@ var
   sVerb: string;
   Headers: THttpHeaders;
   sRequest: string;
+  JSONData : TStringList;
 begin
-  result := false;
+  Result := false;
 
   aResponse := nil;
 
@@ -869,9 +1005,8 @@ begin
       Headers.Authorization := CASHBOOK_AUTH_PREFIX + fUnEncryptedToken;
       Headers.MyobApiAccessToken := fUnEncryptedToken;
     end;
-
     // Body
-    if assigned(aRequest) then
+    if Assigned(aRequest) then
     begin
       sRequest := TlkJSON.GenerateText(aRequest);
       fClientDataSize := length(sRequest);
@@ -879,23 +1014,19 @@ begin
 
     // Http
     if not DoHttpSecure(sVerb, aURL, Headers, sRequest, aRespStr, aError) then
-      exit;
+      Exit;
 
-    // Response
-    aResponse := TlkJSON.ParseText(aRespStr);
-    if not assigned(aResponse) then
-      exit;
   except
     on E: Exception do
     begin
       FreeAndNil(aResponse);
 
       aError := E.Message;
-      exit;
+      Exit;
     end;
   end;
 
-  result := true;
+  Result := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -1955,8 +2086,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TCashbookMigration.PreloadURLs;
-var
-  URL : string;
 begin
   if fURLsArePreload then
     Exit;
@@ -1964,6 +2093,101 @@ begin
   fURLThread := TURLThread.Create(false);
 
   fURLsArePreload := true;
+end;
+
+function TCashbookMigration.ProcessErrorMessage(
+  aErrorMessage: TlkJSONbase): string;
+var
+  Errors: TlkJSONbase;
+  i : integer;
+  sErrors : string;
+begin
+  if Assigned(aErrorMessage.Field['error']) then
+    Result := '[' + VarToStr(aErrorMessage.Field['error'].Value) + ']';
+  if Assigned(aErrorMessage.Field['error_description']) then
+    Result := Result +  #13#10 + VarToStr(aErrorMessage.Field['error_description'].Value);
+  if Assigned(aErrorMessage.Field['message']) then
+    Result := Result + '[' + VarToStr(aErrorMessage.Field['message'].Value) + ']';
+
+  if Assigned(aErrorMessage.Field['errors']) then
+  begin
+    sErrors := StringReplace(TlkJSON.GenerateText(aErrorMessage.Field['errors']), '{','', [rfReplaceAll, rfIgnoreCase]);
+    sErrors := StringReplace(sErrors, '}','', [rfReplaceAll, rfIgnoreCase]);
+    sErrors := StringReplace(sErrors, '[','', [rfReplaceAll, rfIgnoreCase]);
+    sErrors := StringReplace(sErrors, ']','', [rfReplaceAll, rfIgnoreCase]);
+    sErrors := StringReplace(sErrors, '"','', [rfReplaceAll, rfIgnoreCase]);
+    Result := Result + #13#10 + sErrors;
+  end;
+end;
+
+procedure TCashbookMigration.ProcessLargeReceivedData;
+var
+  JSONData : TStringList;
+begin
+  if DebugMe then
+  begin
+    JSONData := TStringList.Create;
+    JSONData.Add(FLargeJsonData);
+    JSONData.SaveToFile('PL_BusinessJSON.txt');
+  end;
+
+  if Trim(FLargeJsonData) = '' then
+    Exit;
+
+  FDataResponse := TlkJSON.ParseText(FLargeJsonData);
+
+  if not Assigned(FDataResponse) then
+    Exit;
+
+  case FDataRequestType of
+    drtFirm :
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONlist) then
+      begin
+        FDataError := 'Error running CashbookMigration.GetFirms, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtBusiness :
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'Error running PracticeLedger.GetBusinesses, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtCOA:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'Error running PracticeLedger.GetCOA, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtTransactions:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'Error running PracticeLedger.UploadTransaction, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+  end;
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + FLargeJsonData);
+end;
+
+function TCashbookMigration.StartedDataTransfer: Boolean;
+begin
+  Result := FDataTransferStarted;
 end;
 
 //------------------------------------------------------------------------------
@@ -2231,6 +2455,14 @@ begin
   end;
 end;
 
+function TCashbookMigration.CheckForValidTokens: Boolean;
+begin
+  Result := False;
+  if ((Trim(FUnEncryptedToken) <> '') and
+      (Trim(FRandomKey) <> ''))  then
+    Result := True;
+end;
+
 //------------------------------------------------------------------------------
 constructor TCashbookMigration.Create;
 begin
@@ -2244,6 +2476,7 @@ begin
   fHasProvisionalAccountsAndMoved := false;
 
   fProvisionalAccounts := TStringlist.Create;
+  FLicenseType := ltCashbook;
 end;
 
 //------------------------------------------------------------------------------
@@ -2267,6 +2500,7 @@ var
   sResponse: string;
   sError: string;
   Token : string;
+  NoOfSecondsToExpire : Integer;
 begin
   result := false;
   aInvalidPass := false;
@@ -2288,6 +2522,7 @@ begin
       PostData.Values['password']      := aPassword;
       PostData.Values['grant_type']    := MY_DOT_GRANT_PASSWORD;
       PostData.Values['scope']         := PRACINI_CashbookAPILoginScope;
+      FDataRequestType := drtSignIn;
 
       // Cancelled?
       if not DoHttpSecure(
@@ -2298,7 +2533,7 @@ begin
         sResponse,
         sError) then
       begin
-        if sError = '151: Bad Request' then
+        if Pos('151: Bad Request', sError) > 0 then
         begin
           aInvalidPass := true;
           sError := 'Email address and/or password is invalid.' + #13#10 + 'Please try again.';
@@ -2311,8 +2546,14 @@ begin
         exit;
       end;
 
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+
       // Parse JSON result
-      js := TlkJSON.ParseText(sResponse) as TlkJSONobject;
+      if Assigned(FDataResponse) then      
+        js := FDataResponse as TlkJSONobject;
 
       if not assigned(js) then
       begin
@@ -2323,6 +2564,10 @@ begin
 
       // Get token
       Token := js.GetString('access_token');
+      FRefreshToken := js.GetString('refresh_token');
+      NoOfSecondsToExpire := StrToIntDef(js.GetString('expires_in'),0);
+      FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
+
       if (Token <> '') then
         EncryptToken(Token)
       else
@@ -2354,33 +2599,37 @@ end;
 function TCashbookMigration.GetFirms(var aFirms: TFirms; var aError: string): boolean;
 var
   sURL: string;
-  Response: TlkJSONbase;
   List: TlkJSONlist;
   RespStr : string;
+  Response: TlkJSONbase;
 begin
-  result := false;
-
-  Response := nil;
+  Result := false;
+  Response:= nil;
   try
     try
       sURL := PRACINI_CashbookAPIFirmsURL;
+      FDataRequestType := drtFirm;
 
       if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
-        exit;
+        Exit;
 
-      if not (Assigned(Response)) or
-         not (Response is TlkJSONlist) then
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+      if Assigned(FDataResponse) then
+        List := (FDataResponse as TlkJSONlist);
+
+      RespStr := TlkJSON.GenerateText(List);
+      if DebugMe then
+        LogUtil.LogMsg(lmInfo, UnitName, RespStr);
+        
+      if Assigned(aFirms)  and Assigned(List) then
       begin
-        aError := 'Error running CashbookMigration.GetFirms, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, aError);
-        exit;
-      end;
-
-      List := (Response as TlkJSONlist);
-
-      aFirms.clear;
-      if Assigned(aFirms) then
+        aFirms.Clear;
         aFirms.Read(List);
+      end;
     except
       on E: Exception do
       begin
@@ -2390,10 +2639,13 @@ begin
       end;
     end;
   finally
-    FreeAndNil(Response);
+    if Assigned(Response) then
+      FreeAndNil(Response);
+    if Assigned(List) then
+      FreeAndNil(List);
   end;
 
-  result := true;
+  Result := true;
 end;
 
 //------------------------------------------------------------------------------

@@ -105,7 +105,8 @@ uses
   GenUtils,
   bkBranding,
   PromoDisplayForm,
-  PromoWindowObj;
+  PromoWindowObj,
+  PracticeLedgerObj;
 
 const
   UnitName = 'LOGIN32';
@@ -933,8 +934,11 @@ begin
                INISettings.ReadUsersINI(CurrUser.Code);
                MadAddEmailBodyValue('User-Code',CurrUser.Code  );
                MadAddEmailBodyValue('User-Name',CurrUser.FullName  );
-               result := true;
-               exit;
+               PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
+               PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+               PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+               Result := true;
+               Exit;
             end;
             //else  Autologin failed - password required
          end;
@@ -949,6 +953,9 @@ begin
       if (CurrUser.Code <> SuperUserCode) then
       begin
         INISettings.ReadUsersINI(CurrUser.Code);
+        PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
+        PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+        PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
         MadAddEmailBodyValue('User-Code', CurrUser.Code);
         MadAddEmailBodyValue('User-Name', CurrUser.FullName);
      end
@@ -996,6 +1003,9 @@ begin
     else
       MadAddEmailBodyValue('User-Name','SuperUser');
 
+    PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
+    PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+    PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
     ShowPromoWindow(User);
 
     if Debugme then

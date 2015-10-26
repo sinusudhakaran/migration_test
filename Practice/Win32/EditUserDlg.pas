@@ -109,6 +109,9 @@ Type
     pnlGeneratedPassword: TPanel;
     Label12: TLabel;
     Label13: TLabel;
+    tsMYOB: TTabSheet;
+    Label14: TLabel;
+    edtEmailId: TEdit;
 
     Procedure btnCancelClick(Sender: TObject);
     Procedure btnOKClick(Sender: TObject);
@@ -132,6 +135,7 @@ Type
     procedure chkMasterClick(Sender: TObject);
     procedure CBPrintDialogOptionClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure pnlMainClick(Sender: TObject);
   Private
     fOldValues : TUserValues;
 
@@ -213,6 +217,7 @@ uses
   RegExprUtils,
   PickNewPrimaryUser,
   progress,
+  INISettings,
   AuthenticationFailedFrm, bkBranding, bkProduct;
 
 Const
@@ -554,6 +559,11 @@ begin
   end;
 end;
 
+procedure TdlgEditUser.pnlMainClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 Function TdlgEditUser.OKtoPost : boolean;
 
@@ -611,7 +621,15 @@ begin { TdlgEditUser.OKtoPost }
       eUserCode.SetFocus;
       Exit;
     end;
-  End; { eUserCode.visible };
+  end; { eUserCode.visible };
+
+  if ((Trim(edtEmailId.Text) <> '') and  (not RegExIsEmailValid(edtEmailId.Text))) Then
+  begin
+    HelpfulWarningMsg('Please enter a valid my.MYOB email id.', 0 );
+    pcMain.ActivePage := tsMYOB;
+    edtEmailId.SetFocus;
+    Exit;
+  end; { ValidEmail(eMail.text) }
 
   if IsBankLinkOnlineUser then
   begin
@@ -1338,7 +1356,7 @@ begin { TdlgEditUser.Execute }
     cbSuppressHeaderFooter.Checked := (User.usSuppress_HF = shfChecked);
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
-
+    edtEmailId.Text := UserINI_myMYOB_EmailAddress;
     if UseBankLinkOnline and User.usAllow_Banklink_Online then
     begin
       Screen.Cursor := crHourGlass;
@@ -1397,6 +1415,7 @@ begin { TdlgEditUser.Execute }
     rbAllFiles.Checked := true;
     chkCanAccessBankLinkOnline.Checked := false;
     UserGuid := '';
+    edtEmailId.Text := '';
   end { not (Assigned(User)) };
 
   StoreOldValues;
@@ -1510,6 +1529,11 @@ begin { EditUser }
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
+          if UserINI_myMYOB_EmailAddress <> Trim(edtEmailId.Text) then
+          begin
+            UserINI_myMYOB_EmailAddress := Trim(edtEmailId.Text);
+            WriteUsersINI(StoredName);
+          end;
 
           if Password <> pu.usPassword then
           begin

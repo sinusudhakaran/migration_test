@@ -549,6 +549,13 @@ var
     UserINI_Client_Lookup_Send_Email     : Boolean = True;
     UserINI_Suggested_Mems_Show_Popup    : Boolean = True;
 
+    {my.MYOB user credentials}
+    UserINI_myMYOB_Random_Key : string = '';
+    UserINI_myMYOB_Access_Token: string = '';
+    UserINI_myMYOB_Refresh_Token : string = '';
+    UserINI_myMYOB_Expires_TokenAt : TDateTime ;
+    UserINI_myMYOB_EmailAddress: string = '';
+
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //practice INI settings bk5prac.INI
     PRACINI_REMOVEGST        : boolean = false;
@@ -645,6 +652,10 @@ var
     PRACINI_CashbookAPILoginSecret           : String = '';
     PRACINI_CashbookAPILoginScope            : String = '';
     PRACINI_CashbookAPIFirmsURL              : String = '';
+    PRACINI_PracticeLedgerAPIBusinessesURL   : String = '';
+    PRACINI_PracticeLedgerAPITransactionsURL : String = '';
+    PRACINI_PracticeLedgerAPIJournalsURL     : string = '';
+    PRACINI_PracticeLedgerAPICOAURL          : String = '';
     PRACINI_CashbookAPIUploadURL             : String = '';
     PRACINI_CashbookAPIUploadDataStore       : String = '';
     PRACINI_CashbookAPIUploadQueue           : String = '';
@@ -708,7 +719,6 @@ var
     PRACINI_BGL360_Client_Secret: string = 'bankLinkSecret';
     {Contentful API URL}
     PRACINI_Contentful_API_URL : string = '';
-
 const
     //LeanEngage
     cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';

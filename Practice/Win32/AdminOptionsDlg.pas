@@ -135,6 +135,9 @@ type
     lblLoginSecret: TLabel;
     edtBGLClientID: TEdit;
     edtBGLSecret: TEdit;
+    pnlMYOBConnect: TPanel;
+    lblFirmName: TLabel;
+    btnConnectMYOB: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
@@ -156,13 +159,16 @@ type
     procedure eDate1Change(Sender: TObject);
     procedure eDate1DblClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure btnConnectMYOBClick(Sender: TObject);
   private
 
     HeaderFooterChanged : Boolean;
     ReportPassword: string;
     CESFont: TFont;
     TaxChanged: Boolean;
-
+    FFirmChanged : Boolean;
+    FFirmID : string;
+    FFirmName : string;
     procedure LoadSettingsFromINI;
     procedure LoadSettingsFromAdmin;
 
@@ -221,7 +227,7 @@ uses
   //ReportStylesDlg,
   ChangePwdDlg, EnterPwdDlg, bkdateutils,
   Registry,
-  StrUtils, LOGUTIL, bkBranding, bkProduct;
+  StrUtils, LOGUTIL, bkBranding, bkProduct, myMYOBSignInFrm, PracticeLedgerObj;
 
 {$R *.dfm}
 
@@ -479,7 +485,7 @@ begin
                        (UpdatesPending <> AdminSystem.fdFields.fdUpdates_Pending) or
                        (ReportPassword <> AdminSystem.fdFields.fdSystem_Report_Password) or
                        (FontToStr(CESFont) <> AdminSystem.fdFields.fdCoding_Font) or
-                       (TaxChanged);
+                       (TaxChanged) or (FFirmChanged);
                        //(cmbPurge.ItemIndex <> fdExpire_Client_Entries);
   end;
   //save new admin system if changed
@@ -504,6 +510,9 @@ begin
          fdReplace_Narration_With_Payee := chkDissectedNarration.Checked;
          fdCollect_Usage_Data := chkUsage.Checked;
          fdAuto_Retrieve_New_Transactions := chkRetrieve.Checked;
+         fdmyMYOBFirmID := FFirmID;
+         fdmyMYOBFirmName := FFirmName;
+
          if rsMaxNarration.IntValue = 0 then
            fdMaximum_Narration_Extract := 200
          else
@@ -932,9 +941,6 @@ begin
    CESFont.Free;
 end;
 
-
-
-
 procedure TdlgAdminOptions.rsAutoSaveTimeChange(Sender: TObject);
 begin
   if (TRzSpinEdit(Sender).Value = 0) then
@@ -943,11 +949,27 @@ begin
     lblAutoSaveTime.Caption := 'minutes';
 end;
 
-
 procedure TdlgAdminOptions.FormShow(Sender: TObject);
 begin
+  FFirmChanged := False;
   pcOptions.ActivePage := tsGeneral;
   btnReportPwd.Enabled := chkReportPwd.Checked;
+
+  if not (CheckFormyMYOBTokens) then
+    btnConnectMYOB.Caption := 'my.MYOB Sign In'
+  else
+    btnConnectMYOB.Caption := 'Select my.MYOB Firm';
+
+  if Assigned(AdminSystem) then
+  begin
+    FFirmID := AdminSystem.fdFields.fdmyMYOBFirmName;
+    FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
+
+    if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+      lblFirmName.Caption := 'No firm selected for MYOB Online Ledger Export'
+    else
+      lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+  end;
 end;
 
 function CountUsersLoggedIn( aAdminSystem : TSystemObj; var UserList : string) : integer;
@@ -1066,6 +1088,43 @@ begin
     end;
   finally
     Upgrader.Free;
+  end;
+end;
+
+procedure TdlgAdminOptions.btnConnectMYOBClick(Sender: TObject);
+var
+  SignInFrm : TmyMYOBSignInForm;
+  OldCursor: TCursor;
+begin
+  SignInFrm := TmyMYOBSignInForm.Create(Nil);
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourGlass;
+  try
+    if (not CheckFormyMYOBTokens) then
+      SignInFrm.FormShowType := fsSignIn
+    else
+      SignInFrm.FormShowType := fsSelectFirm;
+    SignInFrm.ShowFirmSelection := True;
+    if ((SignInFrm.ShowModal = mrOK) and (Assigned(AdminSystem)) and
+        (Trim(SignInFrm.SelectedID) <> Trim(AdminSystem.fdFields.fdmyMYOBFirmID))) then
+    begin
+      FFirmChanged := True;
+      FFirmID := SignInFrm.SelectedID;
+      FFirmName := SignInFrm.SelectedName;
+    end;
+
+    if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+      lblFirmName.Caption := 'No firm selected for MYOB Online Ledger Export'
+    else
+      lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+
+    if not (CheckFormyMYOBTokens) then
+      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+    else
+      btnConnectMYOB.Caption := 'Select my.MYOB Firm';
+  finally
+    FreeAndNil(SignInFrm);
+    Screen.Cursor := OldCursor;
   end;
 end;
 

@@ -7,7 +7,8 @@ uses
   SysUtils,
   Classes,
   ecollect,
-  uLkJSON;
+  uLkJSON,
+  contnrs;
 
 const
   UPLOAD_RESP_ERROR = -1;
@@ -36,20 +37,24 @@ type
   //----------------------------------------------------------------------------
   TFirm = class
   private
-    fID: string;
-    fName: string;
-
+    FID: string;
+    FName: string;
+    FRegion : string; // AU or NZ
+    FEligibleLicense : string; // can be comma separated like CB, PL
   public
     procedure Read(const aJson: TlkJSONobject);
 
     property  ID: string read fID write fID;
     property  Name: string read fName write fName;
+    property Region : string read FRegion write FRegion;
+    property EligibleLicense : string read FEligibleLicense write FEligibleLicense;
   end;
 
   //----------------------------------------------------------------------------
   TFirms = class(TListDestroy)
   public
-    function  GetItem(const aIndex: integer): TFirm;
+    function  GetItem(const aIndex: integer): TFirm; overload;
+    function GetItem(const aFirmID: string): TFirm;overload;
     property  Items[const aIndex: integer]: TFirm read GetItem; default;
 
     procedure Read(const aJson: TlkJSONlist);
@@ -130,7 +135,8 @@ type
     function Compare(aItem1, aItem2 : Pointer): Integer; override;
     function ItemAs(aItem : Pointer) : TJournalData;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject);overload;
+    procedure Write(const aJson: TlkJSONobject;FromIndex, JournalCount: Integer);overload;
   end;
 
   //----------------------------------------------------------------------------
@@ -145,7 +151,7 @@ type
     fPayeeNumber: integer;
     fJobCode: string;
   public
-    procedure Write(const aJson: TlkJSONobject; aTransAmount : integer);
+    procedure Write(const aJson: TlkJSONobject; aTransAmount : integer;IsDirectAPI:Boolean=False);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
     property Description : string read fDescription write fDescription;
@@ -163,7 +169,7 @@ type
   public
     function ItemAs(aIndex : integer) : TAllocationData;
 
-    procedure Write(const aJson: TlkJSONobject; aTransAmount : integer);
+    procedure Write(const aJson: TlkJSONobject; aTransAmount : integer;IsDirectAPI:Boolean=False);
 
     function  PayeeExists(const aPayeeNumber: integer): boolean;
     function  JobExists(const aJobCode: string): boolean;
@@ -186,7 +192,7 @@ type
     constructor Create(Collection: TCollection); override;
     destructor  Destroy; override;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject;IsDirectAPI:Boolean=False);
 
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
@@ -206,7 +212,8 @@ type
   public
     function ItemAs(aIndex : integer) : TTransactionData;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject);overload;
+    procedure Write(const aJson: TlkJSONobject;FromIndex, TransCount: Integer);overload;
 
     function  PayeeExists(const aPayeeNumber: integer): boolean;
     function  JobExists(const aJobCode: string): boolean;
@@ -222,7 +229,8 @@ type
     constructor Create(Collection: TCollection); override;
     destructor  Destroy; override;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject);overload;
+    procedure Write(const aJson: TlkJSONobject;FromIndex, TransCount: Integer);overload;
 
     property BankAccountNumber : string read fBankAccountNumber write fBankAccountNumber;
     property Transactions : TTransactionsData read fTransactions write fTransactions;
@@ -243,7 +251,8 @@ type
   //----------------------------------------------------------------------------
   TChartOfAccountData = class(TCollectionItem)
   private
-    fCode : string;
+    fCode : string; // id for practice ledger
+    FID: Integer;
     fName : string;
     fAccountType : string;
     fGstType : string;
@@ -254,9 +263,14 @@ type
     fInactive : boolean;
     fPostingAllowed : boolean;
     fDivisions : string;
+    FIsSystemAccount: Boolean;
+    FBusinessID : string;
+    FSystemAccountType: string;
   public
     procedure Write(const aJson: TlkJSONobject);
+    procedure Read(const aJson: TlkJSONobject);
 
+    property ID: Integer read FID write FID;
     property Code : string read fCode write fCode;
     property Name : string read fName write fName;
     property AccountType : string read fAccountType write fAccountType;
@@ -268,6 +282,9 @@ type
     property Inactive : boolean read fInactive write fInactive;
     property PostingAllowed : boolean read fPostingAllowed write fPostingAllowed;
     property Divisions : string read fDivisions write fDivisions;
+    property IsSystemAccount: Boolean read FIsSystemAccount write FIsSystemAccount;
+    property BusinessID: string read FBusinessID write FBusinessID;
+    property SystemAccountType: string read FSystemAccountType write FSystemAccountType;
   end;
 
   //----------------------------------------------------------------------------
@@ -279,6 +296,8 @@ type
     function FindCode(aChartCode : string; var aChartOfAccountItem : TChartOfAccountData) : boolean;
 
     procedure Write(const aJson: TlkJSONobject);
+    procedure Read(aBusinessID: string; const aJson: TlkJSONobject);
+
   end;
 
   //----------------------------------------------------------------------------
@@ -446,25 +465,39 @@ type
   //----------------------------------------------------------------------------
   TBusinessData = class
   private
+    FID: string;
+    FName: string;
     fABN : string;
     fIRD : string;
-    fName : string;
     fClientCode : string;
     fOrigClientCode : string;
     fFinancialYearStartMonth : integer;
     fOpeningBalanceDate : string;
     fFirmId : string;
+    FVisibility: Boolean;
   public
     procedure Write(const aJson: TlkJSONobject);
+    procedure Read(const aJson: TlkJSONobject);
+
+    property ID: string read FID write FID;
+    property Name: string read FName write FName;
 
     property  ABN : string read fABN write fABN;
     property  IRD : string read fIRD write fIRD;
-    property  Name : string read fName write fName;
     property  ClientCode : string read fClientCode write fClientCode;
     property  OrigClientCode : string read fOrigClientCode write fOrigClientCode;
     property  FinancialYearStartMonth : integer read fFinancialYearStartMonth write fFinancialYearStartMonth;
     property  OpeningBalanceDate : string read fOpeningBalanceDate write fOpeningBalanceDate;
     property  FirmId : string read fFirmId write fFirmId;
+    property Visibility: Boolean read FVisibility write FVisibility;
+  end;
+
+  TBusinesses = class(TObjectList)
+  public
+    function GetItem(aIndex : integer) : TBusinessData;overload;
+    function GetItem(aBusinessID : string) : TBusinessData;overload;
+
+    procedure Read(aFirmID:string;const aJson: TlkJSONObject);
   end;
 
   //----------------------------------------------------------------------------
@@ -617,6 +650,10 @@ const
 var
   DebugMe : boolean = false;
 
+function CompareNames(Item1, Item2: Pointer): Integer;
+begin
+  Result := CompareText(TBusinessData(Item1).Name, TBusinessData(Item2).Name)
+end;  
 { TListDestroy }
 //------------------------------------------------------------------------------
 procedure TListDestroy.Notify(Ptr: Pointer; Action: TListNotification);
@@ -635,11 +672,26 @@ end;
 { TFirm }
 //------------------------------------------------------------------------------
 procedure TFirm.Read(const aJson: TlkJSONobject);
+var
+  License : TlkJSONbase;
+  i : Integer;
 begin
   ASSERT(assigned(aJson));
 
   ID := aJson.getString('id');
   Name := aJson.getString('name');
+  Region := aJson.getString('region');
+  License := aJson.Field['eligible_licence_codes'];
+  if Assigned(License) then
+  begin
+    for i := 0 to License.Count - 1 do
+    begin
+      if (Trim(FEligibleLicense) = '') then
+        FEligibleLicense := License.Child[i].Value
+      else
+        FEligibleLicense := FEligibleLicense + ',' + License.Child[i].Value;
+    end;
+  end;
 end;
 
 { TFirms }
@@ -650,6 +702,21 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TFirms.GetItem(const aFirmID: string): TFirm;
+var
+  i : Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    if TFirm(Items[i]).ID = aFirmID then
+    begin
+      Result := TFirm(Items[i]);
+      Exit;
+    end;
+  end;
+end;
+
 procedure TFirms.Read(const aJson: TlkJSONlist);
 var
   i: integer;
@@ -669,6 +736,7 @@ begin
     // Read firm
     Firm.Read(Child);
   end;
+  Self.Sort(CompareNames);
 end;
 
 { TLineData }
@@ -779,6 +847,38 @@ begin
   Result := TJournalData(aItem);
 end;
 
+procedure TJournalsData.Write(const aJson: TlkJSONobject; FromIndex,
+  JournalCount: Integer);
+var
+  Journals: TlkJSONlist;
+  i, ToIndex : integer;
+  Journal : TJournalData;
+  JournalData : TlkJSONobject;
+begin
+  if Self.ItemCount = 0 then
+    Exit;
+
+  if FromIndex > ItemCount then
+    Exit;
+
+  if FromIndex + JournalCount > ItemCount then
+    ToIndex := ItemCount
+  else
+    ToIndex := FromIndex + JournalCount;
+
+  Journals := TlkJSONlist.Create;
+  aJson.Add('generaljournals', Journals);
+
+  for i := FromIndex to ToIndex - 1 do
+  begin
+    JournalData := TlkJSONobject.Create;
+    Journals.Add(JournalData);
+
+    Journal := ItemAs(Items[i]);
+    Journal.Write(JournalData);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 procedure TJournalsData.Write(const aJson: TlkJSONobject);
 var
@@ -805,18 +905,30 @@ end;
 
 { TAllocationData }
 //------------------------------------------------------------------------------
-procedure TAllocationData.Write(const aJson: TlkJSONobject; aTransAmount : integer);
+procedure TAllocationData.Write(const aJson: TlkJSONobject; aTransAmount : integer;IsDirectAPI:Boolean=False);
 begin
-  aJson.Add('AccountNumber', AccountNumber);
-  aJson.Add('Description', Description);
+  if IsDirectAPI then
+  begin
+    aJson.Add('account_number', AccountNumber);
+    aJson.Add('description', Description);
 
-  aJson.Add('Amount', (Amount-TaxAmount));
-  aJson.Add('TaxRate', TaxRate);
-  aJson.Add('TaxAmount', TaxAmount);
+    aJson.Add('amount', (Amount-TaxAmount));
+    aJson.Add('tax_rate', TaxRate);
+    aJson.Add('tax_amount', TaxAmount);
+  end
+  else
+  begin
+    aJson.Add('AccountNumber', AccountNumber);
+    aJson.Add('Description', Description);
 
-  aJson.Add('Quantity', Quantity);
-  aJson.Add('PayeeNumber', PayeeNumber);
-  aJson.Add('JobCode', JobCode);
+    aJson.Add('Amount', (Amount-TaxAmount));
+    aJson.Add('TaxRate', TaxRate);
+    aJson.Add('TaxAmount', TaxAmount);
+
+    aJson.Add('Quantity', Quantity);
+    aJson.Add('PayeeNumber', PayeeNumber);
+    aJson.Add('JobCode', JobCode);
+  end;
 end;
 
 { TAllocationsData }
@@ -827,18 +939,22 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TAllocationsData.Write(const aJson: TlkJSONobject; aTransAmount : integer);
+procedure TAllocationsData.Write(const aJson: TlkJSONobject; aTransAmount : integer;IsDirectAPI:Boolean=False);
 var
   Allocations: TlkJSONlist;
   AllocationIndex : integer;
   Allocation : TAllocationData;
   AllocationData : TlkJSONobject;
 begin
-  if self.Count = 0 then
+  if Self.Count = 0 then
     Exit;
 
   Allocations := TlkJSONlist.Create;
-  aJson.Add('Allocations', Allocations);
+
+  if IsDirectAPI  then
+    aJson.Add('allocations', Allocations)
+  else
+    aJson.Add('Allocations', Allocations);
 
   for AllocationIndex := 0 to self.Count-1 do
   begin
@@ -846,7 +962,8 @@ begin
     Allocations.Add(AllocationData);
 
     Allocation := ItemAs(AllocationIndex);
-    Allocation.Write(AllocationData, aTransAmount);
+
+    Allocation.Write(AllocationData, aTransAmount,IsDirectAPI)
   end;
 end;
 
@@ -910,22 +1027,36 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TTransactionData.Write(const aJson: TlkJSONobject);
+procedure TTransactionData.Write(const aJson: TlkJSONobject;IsDirectAPI:Boolean=False);
 begin
-  aJson.Add('Date', Date);
-  aJson.Add('Description', Description);
-  aJson.Add('Reference', Reference);
+  if IsDirectAPI then
+  begin
+    aJson.Add('date', Date);
+    aJson.Add('description', Description);
+    aJson.Add('amount', -(Amount));
 
-  aJson.Add('Amount', -(Amount));
+    if CoreTransactionId <> '' then
+      aJson.Add('core_transaction_id', CoreTransactionId);
 
-  if CoreTransactionId <> '' then
-    aJson.Add('CoreTransactionId', CoreTransactionId);
+    Allocations.Write(aJson, Amount, True);
+  end
+  else
+  begin
+    aJson.Add('Date', Date);
+    aJson.Add('Description', Description);
+    aJson.Add('Reference', Reference);
 
-  aJson.Add('Quantity', Quantity);
-  aJson.Add('PayeeNumber', PayeeNumber);
-  aJson.Add('JobCode', JobCode);
+    aJson.Add('Amount', -(Amount));
 
-  Allocations.Write(aJson, Amount);
+    if CoreTransactionId <> '' then
+      aJson.Add('CoreTransactionId', CoreTransactionId);
+
+    aJson.Add('Quantity', Quantity);
+    aJson.Add('PayeeNumber', PayeeNumber);
+    aJson.Add('JobCode', JobCode);
+
+    Allocations.Write(aJson, Amount);
+  end;
 end;
 
 { TTransactionsData }
@@ -985,6 +1116,40 @@ begin
   result := false;
 end;
 
+procedure TTransactionsData.Write(const aJson: TlkJSONobject; FromIndex,
+  TransCount: Integer);
+var
+  Transactions: TlkJSONlist;
+  i : integer;
+  Transaction : TTransactionData;
+  TransactionData : TlkJSONobject;
+  ToIndex: Integer;
+begin
+  // this write function is used for direct api write.
+  if Self.Count = 0 then
+    Exit;
+
+  if FromIndex > Count then
+    Exit;
+
+  if FromIndex + TransCount > Count then
+    ToIndex := Count
+  else
+    ToIndex := FromIndex + TransCount;
+
+  Transactions := TlkJSONlist.Create;
+  aJson.Add('bank_transactions', Transactions);
+
+  for i := FromIndex to ToIndex - 1 do
+  begin
+    TransactionData := TlkJSONobject.Create;
+    Transactions.Add(TransactionData);
+
+    Transaction := ItemAs(i);
+    Transaction.Write(TransactionData,True);
+  end;
+end;
+
 //------------------------------------------------------------------------------
 function TTransactionsData.JobExists(const aJobCode: string): boolean;
 var
@@ -1016,7 +1181,7 @@ end;
 constructor TBankAccountData.Create(Collection: TCollection);
 begin
   inherited;
-  fTransactions := TTransactionsData.Create(TTransactionData);
+  FTransactions := TTransactionsData.Create(TTransactionData);
 end;
 
 //------------------------------------------------------------------------------
@@ -1024,6 +1189,13 @@ destructor TBankAccountData.Destroy;
 begin
   FreeAndNil(fTransactions);
   inherited;
+end;
+
+procedure TBankAccountData.Write(const aJson: TlkJSONobject; FromIndex,
+  TransCount: Integer);
+begin
+  aJson.Add('bank_account_number', BankAccountNumber);
+  Transactions.Write(aJson, FromIndex, TransCount);
 end;
 
 //------------------------------------------------------------------------------
@@ -1119,6 +1291,32 @@ end;
 
 { TChartOfAccountData }
 //------------------------------------------------------------------------------
+procedure TChartOfAccountData.Read(const aJson: TlkJSONobject);
+begin
+  ASSERT(assigned(aJson));
+
+  FID := aJson.getInt('id');
+  FName := aJson.getString('name');
+  FCode := aJson.getString('number');
+  fAccountType := aJson.getString('account_type');
+  fGstType := aJson.getString('tax_rate');
+  FBusinessID := aJson.getString('business_id');
+  fOpeningBalance := 0;
+  fBankOrCreditFlag := False;
+  FIsSystemAccount := False;
+  FSystemAccountType := '';
+  if ((aJson.Field['opening_balance'].SelfType <> jsNull)) then
+    fOpeningBalance := aJson.getInt('opening_balance');
+  if (Assigned(aJson.Field['bank_or_credit_flag']) and (aJson.Field['bank_or_credit_flag'].SelfType <> jsNull)) then
+    fBankOrCreditFlag := aJson.getBoolean('bank_or_credit_flag');
+  if (Assigned(aJson.Field['permits_journal_entry']) and (aJson.Field['permits_journal_entry'].SelfType <> jsNull)) then
+    fPostingAllowed := aJson.getBoolean('permits_journal_entry');
+  if (Assigned(aJson.Field['system_account']) and (aJson.Field['system_account'].SelfType <> jsNull)) then
+    FIsSystemAccount := aJson.getBoolean('system_account');
+  if (Assigned(aJson.Field['system_account_type']) and (aJson.Field['system_account_type'].SelfType <> jsNull)) then
+    FSystemAccountType := aJson.getString('system_account_type');
+end;
+
 procedure TChartOfAccountData.Write(const aJson: TlkJSONobject);
 begin
   aJson.Add('Code', Code);
@@ -1144,6 +1342,33 @@ end;
 function TChartOfAccountsData.ItemAs(aIndex: integer): TChartOfAccountData;
 begin
   Result := TChartOfAccountData(Self.Items[aIndex]);
+end;
+
+procedure TChartOfAccountsData.Read(aBusinessID: string; const aJson: TlkJSONobject);
+var
+  i: integer;
+  Child: TlkJSONobject;
+  Field : TlkJSONlist;
+  ChartOfAccount: TChartOfAccountData;
+begin
+  Clear;
+
+  ASSERT(assigned(aJson));
+  Field := aJson.Field['accounts'] as TlkJsonList;
+
+  if not Assigned(Field) then
+    Exit;
+
+  for i := 0 to Field.Count - 1 do
+  begin
+    Child := Field.Child[i] as TlkJSONobject;
+
+    // New business
+    ChartOfAccount := TChartOfAccountData(Self.Add);
+    // Read business
+    ChartOfAccount.Read(Child);
+  end;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -1437,6 +1662,26 @@ end;
 
 { TBusinessData }
 //------------------------------------------------------------------------------
+procedure TBusinessData.Read(const aJson: TlkJSONobject);
+begin
+  ASSERT(assigned(aJson));
+
+  FID := aJson.getString('id');
+  FName := aJson.getString('name');
+  FClientCode := '';
+  FABN := '';
+  FIRD := '';
+
+  if ((aJson.Field['client_code'].SelfType <> jsNull)) then
+    FClientCode := aJson.getString('client_code');
+  if ((aJson.Field['abn'].SelfType <> jsNull)) then
+    FABN := aJson.getString('abn');
+  FFirmId := aJson.getString('firm_id');
+  FVisibility := aJson.getBoolean('visibility');
+  if (aJson.Field['ird'].SelfType <> jsNull) then
+    FIRD := aJson.getString('ird');
+end;
+
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
 begin
   ASSERT(assigned(aJson));
@@ -1740,6 +1985,63 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+
+{ TBusinesses }
+
+function TBusinesses.GetItem(aIndex: integer): TBusinessData;
+begin
+  Result := TBusinessData(Self.Items[aIndex]);
+end;
+
+function TBusinesses.GetItem(aBusinessID: string): TBusinessData;
+var
+  i : Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    if (TBusinessData(Items[i]).ID = aBusinessID) then
+    begin
+      Result := TBusinessData(Items[i]);
+      Exit;
+    end;
+  end;
+end;
+
+procedure TBusinesses.Read(aFirmID: string; const aJson: TlkJSONObject);
+var
+  i: integer;
+  Child: TlkJSONobject;
+  Field : TlkJSONlist;
+  Business: TBusinessData;
+begin
+  Clear;
+
+  ASSERT(assigned(aJson));
+  Field := aJson.Field['businesses'] as TlkJsonList;
+
+  if not Assigned(Field) then
+    Exit;
+
+  for i := 0 to Field.Count-1 do
+  begin
+    Child := Field.Child[i] as TlkJSONobject;
+
+    // New business
+    Business:= TBusinessData.Create;
+    // Read business
+    Business.Read(Child);
+
+    if (not Business.Visibility) or
+       ((Trim(aFirmID) <> '') and (Business.FirmID <> aFirmID)) then
+      FreeAndNil(Business)
+    else
+      Add(Business);
+  end;
+  Self.Sort(CompareNames);
+end;
+
 initialization
 begin
   DebugMe := DebugUnit(UnitName);
