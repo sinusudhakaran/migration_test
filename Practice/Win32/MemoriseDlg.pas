@@ -1191,8 +1191,9 @@ var
   Msg : string;
 begin
   if fDlgEditMode in ALL_MASTER then
-    Msg := 'Deleting this Master Memorisation will remove all coding for entries that match the criteria,' +
-           ' which are yet to be transferred or finalised.'
+    Msg := 'Deleting this MASTER Memorisation will remove all coding' +
+           ' for entries that match the criteria, which are yet to be' +
+           ' transferred or finalised, for ALL clients.'
   else
     Msg := 'Deleting this Memorisation will remove all coding for entries that match the criteria,' +
            ' which are yet to be transferred or finalised.';
