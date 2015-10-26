@@ -64,6 +64,9 @@ type
     Shape1: TShape;
     btnConnectBGL: TButton;
     lblBGL360FundName: TLabel;
+    btnConnectMYOB: TButton;
+    lblFirmName: TLabel;
+    lblPLClientName: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure SetUpHelp;
     procedure btnOkClick(Sender: TObject);
@@ -85,6 +88,7 @@ type
     procedure cmbWebFormatsChange(Sender: TObject);
     procedure pnlBGLConnectClick(Sender: TObject);
     procedure btnConnectBGLClick(Sender: TObject);
+    procedure btnConnectMYOBClick(Sender: TObject);
   private
     { Private declarations }
     okPressed : boolean;
@@ -151,7 +155,9 @@ uses
   INISettings,
   FundListSelectionFrm,
   Files,
-  SimpleFund;
+  SimpleFund,
+  myMYOBSignInFrm,
+  PracticeLedgerObj;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -437,15 +443,22 @@ begin
 //DN BGL360- UI changes  lblFrom.Visible := (SelectedSystem <> saBGL360);
 //DN BGL360- UI changes    eFrom.Visible := lblFrom.Visible;
 //DN BGL360- UI changes    btnFromFolder.Visible := lblFrom.Visible;
-  eFrom.Visible := (SelectedSystem <> saBGL360); //DN BGL360- UI changes
-  btnFromFolder.Visible := (SelectedSystem <> saBGL360); //DN BGL360- UI changes
+  eFrom.Visible := (not(SelectedSystem in [saBGL360, saMYOBOnlineLedger, snMYOBOnlineLedger])); //DN BGL360- UI changes
+  btnFromFolder.Visible := eFrom.Visible; //DN BGL360- UI changes
 
   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
-  lblBGL360FundName.Visible := (SelectedSystem = saBGL360);
+  lblBGL360FundName.Visible := btnConnectBGL.Visible;
 
+  btnConnectMYOB.Visible := (SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger]);
+  lblSaveTo.Visible := (not btnConnectMYOB.Visible);
+  eTo.Visible := lblSaveTo.Visible;
+  btnToFolder.Visible := lblSaveTo.Visible;
+  lblPLClientName.Visible := btnConnectMYOB.Visible;
+
+  lblFirmName.Visible := btnConnectMYOB.Visible;
   if SelectedSystem = saBGL360 then
   begin
-//DN Not required    BGLServerNoSignRequired := True;
+  //DN Not required    BGLServerNoSignRequired := True;
     btnConnectBGL.Caption := 'BGL Sign in';
     btnConnectBGL.Hint    := 'Sign in and select a Fund to refresh the client''s Chart of Accounts from';
     lblBGL360FundName.Caption := '';
@@ -483,6 +496,30 @@ begin
     finally
       FreeAndNil(BGLServer);
     end;
+  end
+  else if SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+  begin
+    if not (CheckFormyMYOBTokens) then
+      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+    else
+      btnConnectMYOB.Caption := 'Select my.MYOB Client';
+
+    lblFirmName.Caption := 'No Firm selected';
+    lblFirmName.Font.Color := clRed;
+    if (Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmName)<>'')) then
+    begin
+      lblFirmName.Caption := 'my.MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
+      lblFirmName.Font.Color := clWindowText;
+    end;
+
+    lblPLClientName.Caption := 'No Client selected';
+    lblPLClientName.Font.Color := clRed;
+
+    if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
+    begin
+      lblPLClientName.Caption := 'my.MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
+      lblPLClientName.Font.Color := clWindowText;
+    end;
   end;
 end;
 
@@ -491,14 +528,15 @@ function TdlgAcctSystem.Execute(var AutoRefreshDone : Boolean; InWizard: Boolean
 var
   i : integer;
   OldLoadFrom : String;
-  S : String;
+  S, sName : String;
   LCLRec: pClient_File_Rec;
   NotesId : TBloGuid;
   OldWebExportFormat: Byte;
   BlopiClientDetails: TBloClientReadDetail;
   OffLineSubscription : TBloArrayOfguid;
   SubIndex : integer;
-  OldFirmID, OldFundID : string;
+  OldID, NewID : string;
+  RefreshYourChart: Boolean;
 begin
   LCLRec := nil;
   FInWizard := InWizard;
@@ -667,7 +705,11 @@ begin
 
      OldLoadFrom := clLoad_Client_Files_From;
 
-     OldFundID := MyClient.clExtra.ceBGLFundIDSelected;
+     if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+       OldID := MyClient.clExtra.cemyMYOBClientIDSelected
+     else if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
+       OldID := MyClient.clExtra.ceBGLFundIDSelected;
+
      Insetup := False;
 
      Self.ClientHeight := gbxWebExport.Top + 96;
@@ -700,19 +742,51 @@ begin
                  'Do you want to Refresh the Chart now?';
           end;
 
-          if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
+          if (((clCountry = whAustralia) and (clAccounting_System_Used = saBGL360)) or
+              (clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger])) then
           begin
-            if ( OldFundID = '' ) then
+
+            if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
+            begin
+              NewID := MyClient.clExtra.ceBGLFundIDSelected;
+              sName := 'Fund';
+            end
+            else if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+            begin
+              NewID := MyClient.clExtra.cemyMYOBClientIDSelected;
+              sName := 'Client';
+            end;
+
+            if ( OldID = '' ) then
               S := 'Do you want to Load the Chart now?'
             else
-              S := 'You have changed the Fund where the Chart is Loaded From.'#13+
+              S := 'You have changed the ' + sName + ' where the Chart is Loaded From.'#13+
                    'Do you want to Refresh the Chart now?';
 
-            if ( MyClient.clExtra.ceBGLFundIDSelected <> '' ) and
-                    ( MyClient.clExtra.ceBGLFundIDSelected <> OldFundID ) and
-                    ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
+            RefreshYourChart := ( Trim(NewID) <> '' ) and
+                                ( Trim(NewId) <> Trim(OldID) );
+
+            if RefreshYourChart and
+               (clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger]) then
             begin
-              RefreshChart;
+              RefreshYourChart := CheckFormyMYOBTokens;
+
+              if not RefreshYourChart then
+              begin
+                HelpfulErrorMsg('Refresh Chart can not be done.',
+                    0, false, 'Refresh Chart can not be done due to invalid access tokens. Need a sign in to my.MYOB again to fix the problem', true);
+
+                if DebugMe then
+                  LogUtil.LogMsg(lmDebug, UnitName, 'Refresh Chart failed due to invalid access tokens. Need a sign in to my.MYOB again.');
+              end;
+            end;
+            
+            if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
+            begin
+              if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+                Import32.RefreshChart // Practice Ledger
+              else
+                RefreshChart; // BGL 360
               AutoRefreshFlag := True;
             end;
           end
@@ -1114,6 +1188,63 @@ begin
   finally
     FreeAndNil(BGLServer);
     FreeAndNil(FundFrm);
+  end;
+end;
+
+procedure TdlgAcctSystem.btnConnectMYOBClick(Sender: TObject);
+var
+  SignInFrm : TmyMYOBSignInForm;
+  OldCursor: TCursor;
+begin
+  if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+  begin
+    HelpfulErrorMsg('No my.MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
+    Exit;
+  end;
+
+  SignInFrm := TmyMYOBSignInForm.Create(Nil);
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourGlass;
+  try
+    if (not CheckFormyMYOBTokens) then
+      SignInFrm.FormShowType := fsSignIn
+    else
+      SignInFrm.FormShowType := fsSelectClient;
+    SignInFrm.ShowFirmSelection := False;
+
+    if (SignInFrm.ShowModal = mrOK) then
+    begin
+      if MyClient.clExtra.cemyMYOBClientIDSelected <> SignInFrm.SelectedID then
+      begin
+        MyClient.clExtra.cemyMYOBClientIDSelected := SignInFrm.SelectedID;
+        MyClient.clExtra.cemyMYOBClientNameSelected := SignInFrm.SelectedName;
+
+        if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
+        begin
+          lblPLClientName.Caption := MyClient.clExtra.cemyMYOBClientNameSelected;
+        end;
+        SaveClient(false);
+      end;
+    end;
+
+    lblFirmName.Caption := 'No Firm selected';
+    if (Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmName)<>'')) then
+      lblFirmName.Caption := 'my.MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
+
+    lblPLClientName.Caption := 'No Client selected';
+    if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
+    begin
+      lblPLClientName.Caption := 'my.MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
+      lblPLClientName.Font.Color := clWindowText;
+    end;
+
+    if not (CheckFormyMYOBTokens) then
+      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+    else
+      btnConnectMYOB.Caption := 'Select my.MYOB Client';
+  finally
+    FreeAndNil(SignInFrm);
+    Screen.Cursor := OldCursor;
   end;
 end;
 

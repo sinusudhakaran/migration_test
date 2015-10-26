@@ -59,7 +59,8 @@ uses
   ProSuper,
   ClassSuperIP,
   TasBooks,
-  Sage50;
+  Sage50,
+  PracticeLedgerObj;
 
 Const
    UnitName = '';
@@ -114,6 +115,7 @@ procedure RefreshChart;
          snQBWN,
          snQBWO           : QuickBooks.RefreshChart;
          snMYOBAccRight   : MYOBGen.RefreshChart;
+         snMYOBOnlineLedger: PracticeLedger.RefreshChartFromPLAPI;
       end; { of Case }
    end; { NZRefreshChart }
 
@@ -167,6 +169,7 @@ procedure RefreshChart;
          saClassSuperIP   : ClassSuperIP.RefreshChart;
          saProSuper       : ProSuper.RefreshChart('*.CSV');
          saMYOBAccRight   : MYOBGen.RefreshChart;
+         saMYOBOnlineLedger: PracticeLedger.RefreshChartFromPLAPI;
       end; { of Case }
    end; { OZRefreshChart }
 
