@@ -172,31 +172,32 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Account - ' + BA.baFields.baBank_Account_Number);
 
+    CheckMasterMX := false;
     if (BA.baFields.baApply_Master_Memorised_Entries) and Assigned(AdminSystem) and
        (aClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number) and
        (aClient.clFields.clDownload_From = dlAdminSystem) then
     begin
       CheckMasterMX := GetMasterMemForAccount(aClient, BA, MasterMemList);
+    end;
 
-      //cycle thru the transactions
-      for EntryNo := 0 to Pred( BA.baTransaction_List.ItemCount ) do
-      begin
-        Transaction := BA.baTransaction_List.Transaction_At( EntryNo );
+    //cycle thru the transactions
+    for EntryNo := 0 to Pred( BA.baTransaction_List.ItemCount ) do
+    begin
+      Transaction := BA.baTransaction_List.Transaction_At( EntryNo );
 
-        if ( Transaction^.txType <> EntryType ) and not ( EntryType = AllEntries ) then
-          Continue; // Not the type we are looking for
+      if ( Transaction^.txType <> EntryType ) and not ( EntryType = AllEntries ) then
+        Continue; // Not the type we are looking for
 
-        // Check the Date Range
-        if Transaction^.txDate_Effective < FromDate then
-          Continue;
+      // Check the Date Range
+      if Transaction^.txDate_Effective < FromDate then
+        Continue;
 
-        if (ToDate > 0)
-        and (Transaction^.txDate_Effective > ToDate) then
-          Continue;
+      if (ToDate > 0)
+      and (Transaction^.txDate_Effective > ToDate) then
+        Continue;
 
-        AutoCodeEntry(aClient, BA, Transaction, SuggestionChanged, CheckMasterMX,
-                      MasterMemList, DoUpdateRecMemCandidates);
-      end;
+      AutoCodeEntry(aClient, BA, Transaction, SuggestionChanged, CheckMasterMX,
+                    MasterMemList, DoUpdateRecMemCandidates);
     end;
   finally
     if DebugMe then
