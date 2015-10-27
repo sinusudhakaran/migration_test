@@ -100,7 +100,6 @@ var
   BankPrefix : BankPrefixStr;
   SystemMemorisation : pSystem_Memorisation_List_Rec;
 begin
-  BA.baMemorisations_List.UpdateLinkedLists;
   aMasterMemList := nil;
 
   //test to see if we should check for master memorisations
@@ -172,6 +171,7 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Account - ' + BA.baFields.baBank_Account_Number);
 
+    BA.baMemorisations_List.UpdateLinkedLists;
     CheckMasterMX := false;
     if (BA.baFields.baApply_Master_Memorised_Entries) and Assigned(AdminSystem) and
        (aClient.clFields.clMagic_Number = AdminSystem.fdFields.fdMagic_Number) and
@@ -206,12 +206,11 @@ begin
       LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' End - Time Taken ' + floattostr(TimeTaken) + ' seconds.');
     end;
 
-    if SuggestedMem.IsSuggMemsScanning then
-    begin
+    if SuggMemsRunning then
       SuggestedMem.StartMemScan();
-      if SuggestionChanged then
-        SuggestedMem.DoProcessingComplete();
-    end;
+
+    if SuggestionChanged then
+      SuggestedMem.DoProcessingComplete();
   end;
 end;
 
@@ -252,6 +251,7 @@ var
   SubCode            : string;
   CodeIsActive       : boolean;
 begin
+  CodeIsActive := true;
   Mask := ConstStr( '#', MaxBk5CodeLen );
   SubCode := '';
 
