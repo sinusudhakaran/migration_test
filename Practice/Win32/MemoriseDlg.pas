@@ -2927,14 +2927,14 @@ begin
                   eOther.Text   := txOther_Party;
                   eCode.Text    := txAnalysis;
                   ePart.text    := txParticulars;
-                  eStatementDetails.Text := txStatement_Details;
+                  eStatementDetails.Text := StringReplace(txStatement_Details, '&&', '&', [rfReplaceAll]);
                end;
             whAustralia, whUK :
                Begin
                   eCode.Text    := txParticulars; { Shows the Bank Type Information }
                   eOther.Text   := '';
                   ePart.Text    := '';
-                  eStatementDetails.Text := txStatement_Details;
+                  eStatementDetails.Text := StringReplace(txStatement_Details, '&&', '&', [rfReplaceAll]);
                end;
          end;
 
@@ -3151,13 +3151,13 @@ begin
           case MyClient.clFields.clCountry of
              whNewZealand : begin
                 eCode.Text             := mdFields.mdAnalysis;
-                eStatementDetails.Text := mdFields.mdStatement_Details;
+                eStatementDetails.Text := StringReplace(mdFields.mdStatement_Details, '&&', '&', [rfReplaceAll]);
                 ePart.Text             := mdFields.mdParticulars;
                 eOther.Text            := mdFields.mdOther_Party;
              end;
              whAustralia, whUK : begin
                 eCode.Text             := mdFields.mdParticulars;
-                eStatementDetails.Text := mdFields.mdStatement_Details;
+                eStatementDetails.Text := StringReplace(mdFields.mdStatement_Details, '&&', '&', [rfReplaceAll]);
                 ePart.Text             := '';
                 eOther.Text            := '';
              end;
@@ -4179,7 +4179,8 @@ end;
 procedure TdlgMemorise.mnuMatchStatementDetailsClick(Sender: TObject);
 begin
   chkStatementDetails.Checked := true;
-  eStatementDetails.Text := fMemTranSortedList.GetPRec(tblTran.ActiveRow-1)^.Statement_Details;
+
+  eStatementDetails.Text := StringReplace(fMemTranSortedList.GetPRec(tblTran.ActiveRow-1)^.Statement_Details, '&&', '&', [rfReplaceAll]);
   eStatementDetails.SetFocus;
   RefreshMemTransactions();
 end;

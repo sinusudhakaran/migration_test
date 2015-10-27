@@ -125,7 +125,10 @@ begin
   NewSuggMem^.DateEffective     := aSuggMemSortedItem.DateEffective;
   NewSuggMem^.Account           := aSuggMemSortedItem.Account;
   NewSuggMem^.Amount            := aSuggMemSortedItem.Amount;
-  NewSuggMem^.Statement_Details := StringReplace(aSuggMemSortedItem.Statement_Details, '&', '&&', [rfReplaceAll]);
+
+  NewSuggMem^.Statement_Details := StringReplace(aSuggMemSortedItem.Statement_Details, '&&', '&', [rfReplaceAll]);
+  NewSuggMem^.Statement_Details := StringReplace(NewSuggMem^.Statement_Details, '&', '&&', [rfReplaceAll]);
+
   NewSuggMem^.CodedBy           := aSuggMemSortedItem.CodedBy;
   NewSuggMem^.Reference         := aSuggMemSortedItem.Reference;
   NewSuggMem^.Analysis          := aSuggMemSortedItem.Analysis;

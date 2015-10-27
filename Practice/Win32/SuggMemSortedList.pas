@@ -162,7 +162,10 @@ begin
   NewSuggMem := NewItem;
   NewSuggMem^.Id                 := aSuggMemSortedItem.Id;
   NewSuggMem^.AccType            := aSuggMemSortedItem.AccType;
-  NewSuggMem^.MatchedPhrase      := StringReplace(aSuggMemSortedItem.MatchedPhrase, '&', '&&', [rfReplaceAll]);
+
+  NewSuggMem^.MatchedPhrase := StringReplace(aSuggMemSortedItem.MatchedPhrase, '&&', '&', [rfReplaceAll]);
+  NewSuggMem^.MatchedPhrase := StringReplace(NewSuggMem^.MatchedPhrase, '&', '&&', [rfReplaceAll]);
+
   NewSuggMem^.Account            := aSuggMemSortedItem.Account;
   NewSuggMem^.TotalCount         := aSuggMemSortedItem.TotalCount;
   NewSuggMem^.ManualCount        := aSuggMemSortedItem.ManualCount;
