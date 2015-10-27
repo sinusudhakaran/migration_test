@@ -3520,7 +3520,7 @@ begin
     treView.Visible := false;
     tblTran.Visible := true;
     lblMatchingTranNote.Visible := true;
-    lblMatchingTransactions.Caption := 'Matching Transactions *';
+    lblMatchingTransactions.Caption := 'Matching Transactions';
     RefreshMemTransactions();
   end;
 end;
@@ -3678,7 +3678,7 @@ begin
     RefreshMemTransactions();
     treView.Visible := false;
     tblTran.Visible := true;
-    lblMatchingTransactions.Caption := 'Matching Transactions *';
+    lblMatchingTransactions.Caption := 'Matching Transactions';
   end
   else
   begin
