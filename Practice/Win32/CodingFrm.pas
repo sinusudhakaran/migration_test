@@ -7504,9 +7504,11 @@ end;
 procedure TfrmCoding.SetSearchText(const Value: string);
 begin
   btnFind.Enabled := Value > '';
-  if not SameText (FSearchText, Value) then begin
-     FSearchText := uppercase(Value);
-     LoadWTLMaintainPos;
+  if not SameText (FSearchText, Value) then
+  begin
+    CloseSuggMemPopup;
+    FSearchText := uppercase(Value);
+    LoadWTLMaintainPos;
   end;
 end;
 
