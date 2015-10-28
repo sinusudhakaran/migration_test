@@ -369,6 +369,7 @@ type
     fDirty : boolean;
     ffrmSpinner : TfrmSpinner;
     FIssueHint : THintWindow;
+    fAllowRefreshTran : boolean;
 
     function GetCellRect(const RowNum, ColNum: Integer): TRect;
 
@@ -701,6 +702,7 @@ var
   i : Integer;
   W : Integer;
 begin
+  fAllowRefreshTran := false;
   fMemTranSortedList := TMemTranSortedList.Create();
   fCalledFromRecommendedMems := False;
   PayeeUsed := False;
@@ -2588,11 +2590,13 @@ var
   TempMem : TMemorisation;
   NunOfSplitLines : integer;
 begin
+  if not fAllowRefreshTran then
+    Exit;
+
+  tblTran.AllowRedraw := false;
   TempMem := TMemorisation.Create(nil);
   try
     SaveToMemRec(TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, NunOfSplitLines, true);
-
-    tblTran.RowLimit := 0;
 
     fMemTranSortedList.FreeAll;
     SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList, (NunOfSplitLines > 1));
@@ -2608,9 +2612,12 @@ begin
       pnlMessage.Visible := false;
     end;
 
-    tblTran.invalidate;
+    tblTran.invalidateTable;
+    tblTran.refresh;
+
   finally
     FreeAndNil(TempMem);
+    tblTran.AllowRedraw := true;
   end;
 end;
 
@@ -3681,7 +3688,9 @@ begin
 
   if fDlgEditMode in ALL_NO_MASTER then
   begin
+    fAllowRefreshTran := true;
     RefreshMemTransactions();
+    fAllowRefreshTran := false;
     treView.Visible := false;
     tblTran.Visible := true;
     lblMatchingTransactions.Caption := 'Matching Transactions';
@@ -3707,6 +3716,7 @@ begin
   cbAccounting.Left := chkAccountSystem.Left + chkAccountSystem.Width + 16;
   cbAccounting.Width := cbAccounting.Width - MovedValue;
 
+  fAllowRefreshTran := true;
   fDirty := false;
 end;
 
