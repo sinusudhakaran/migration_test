@@ -3679,6 +3679,7 @@ begin
     treView.Visible := false;
     tblTran.Visible := true;
     lblMatchingTransactions.Caption := 'Matching Transactions';
+    lblMatchingTranNote.Visible := true;
   end
   else
   begin
@@ -3688,6 +3689,7 @@ begin
       tblTran.Visible := false;
       lblMatchingTransactions.Caption := 'Matching Accounts';
       RefreshMasterMemTree();
+      lblMatchingTranNote.Visible := false;
     end;
 
     chkMaster.Checked := true;
