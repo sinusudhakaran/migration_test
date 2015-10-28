@@ -8438,7 +8438,8 @@ begin
   FieldID := ColumnFmtList.ColumnDefn_At(ColNum)^.cdFieldID;
   CustomHint := '';
 
-  if (MEMSINI_SupportOptions = meiDisableSuggestedMems) or (Not Assigned(AdminSystem)) then
+  if (not Assigned(AdminSystem) and (MyClient.clExtra.ceBlock_Client_Edit_Mems)) or
+     (MEMSINI_SupportOptions = meiDisableSuggestedMems) then
   begin
     ShowNormalHint();
     Exit;
