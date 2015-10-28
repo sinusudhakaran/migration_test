@@ -19,6 +19,9 @@ const
   CHARTLOOKUPHINT    = 'Lookup the Chart of Accounts|' +
                        'Lookup the Chart of Accounts';
 
+  JOBLOOKUPHINT      = 'Lookup the Job list|' +
+                       'Lookup the Job list';
+
   PAYEELOOKUPHINT    = 'Lookup the Payee list|'+
                        'Lookup the Payee list';
 

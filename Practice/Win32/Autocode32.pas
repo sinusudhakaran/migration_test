@@ -889,6 +889,14 @@ begin
          end;
       end; { of Analysis Code Processing }
 
+      // Has mem being Deleted
+      if ((OldCoded_By = cbMemorisedM) or (OldCoded_By = cbMemorisedC)) and
+         ((txCoded_By <> cbMemorisedM) and (txCoded_By <> cbMemorisedC)) then
+      begin
+
+      end;
+
+
     finally
       if (OldTranAccount <> txAccount) or
          (OldCoded_By <> txCoded_By) then

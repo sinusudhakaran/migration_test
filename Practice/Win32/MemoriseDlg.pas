@@ -958,6 +958,9 @@ begin
    cPart.Hint       :=
                     'Check to memorise on the contents of the Particulars field|' +
                     'Check to memorise on the contents of the Particulars field';
+   cOther.Hint      :=
+                    'Check to memorise on the contents of the Other Party field|' +
+                    'Check to memorise on the contents of the Other Party field';
 
    case MyClient.clFields.clCountry of
      whNewZealand :
@@ -973,10 +976,10 @@ begin
    end;
 
    cNotes.Hint      :=
-                    'Check to memorise on the contents of the notes field|';
+                    'Check to memorise on the contents of the Notes field|';
    cmbValue.Hint    :=
                     'Select to memorise by Value, Percentage or both|' +
-                    'Select "Yes" to memorise on Value, "No" on Percentage, or "$/%" to memorise on both';
+                    'Select to memorise by Value, Percentage or both';
    tblSplit.Hint    :=
                     'Enter the details for coding this Memorisation|' +
                     'Enter the details for automatically coding this Memorisation';
@@ -984,6 +987,9 @@ begin
                     STDHINTS.PayeeLookupHint;
    sbtnChart.Hint   :=
                     STDHINTS.ChartLookupHint;
+   sbtnJob.Hint     :=
+                    STDHINTS.JOBLOOKUPHINT;
+
    chkMaster.Hint   :=
                     'Check to make this a Master Memorisation|' +
                     'Check to make this a Master Memorisation';

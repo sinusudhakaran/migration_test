@@ -787,7 +787,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 3
+      TabOrder = 4
       OnClick = cRefClick
       OnExit = cCodeExit
     end
@@ -806,7 +806,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 12
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 5
       Text = 'eRef'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -826,7 +826,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 20
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 7
       Text = 'eOther'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -844,7 +844,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 6
       OnClick = cOtherClick
       OnExit = cCodeExit
     end
@@ -861,7 +861,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 7
+      TabOrder = 8
       OnClick = cCodeClick
       OnExit = cCodeExit
     end
@@ -880,7 +880,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 12
       ParentFont = False
-      TabOrder = 8
+      TabOrder = 9
       Text = 'eCode'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -899,7 +899,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 19
+      TabOrder = 20
       OnClick = cNotesClick
       OnExit = cCodeExit
     end
@@ -917,13 +917,13 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 17
+      TabOrder = 18
       OnClick = cPartClick
       OnExit = cCodeExit
     end
     object cValue: TCheckBox
       Left = 475
-      Top = 90
+      Top = 88
       Width = 96
       Height = 22
       Alignment = taLeftJustify
@@ -935,7 +935,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 13
+      TabOrder = 14
       OnClick = cValueClick
       OnExit = cCodeExit
     end
@@ -953,7 +953,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 11
+      TabOrder = 12
       OnClick = cbToClick
       OnExit = cCodeExit
     end
@@ -971,7 +971,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 10
       OnClick = cbFromClick
       OnExit = cCodeExit
     end
@@ -1007,7 +1007,7 @@ object dlgMemorise: TdlgMemorise
       Options = [efoCaretToEnd]
       ParentFont = False
       PictureMask = 'DD/mm/yy'
-      TabOrder = 10
+      TabOrder = 11
       OnChange = eStatementDetailsChange
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
@@ -1046,7 +1046,7 @@ object dlgMemorise: TdlgMemorise
       Options = [efoCaretToEnd]
       ParentFont = False
       PictureMask = 'DD/mm/yy'
-      TabOrder = 12
+      TabOrder = 13
       OnChange = eStatementDetailsChange
       OnDblClick = eDateFromDblClick
       OnExit = cCodeExit
@@ -1070,7 +1070,7 @@ object dlgMemorise: TdlgMemorise
       ItemHeight = 16
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 14
+      TabOrder = 15
       OnChange = cmbValueChange
       OnExit = cCodeExit
     end
@@ -1101,7 +1101,7 @@ object dlgMemorise: TdlgMemorise
       Options = []
       ParentFont = False
       PictureMask = '###,###,###.##'
-      TabOrder = 15
+      TabOrder = 16
       OnChange = nValueChange
       OnExit = cCodeExit
       OnKeyPress = nValueKeyPress
@@ -1122,7 +1122,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       ItemHeight = 16
       ParentFont = False
-      TabOrder = 16
+      TabOrder = 17
       OnChange = cbMinusChange
       OnExit = cCodeExit
       Items.Strings = (
@@ -1142,7 +1142,7 @@ object dlgMemorise: TdlgMemorise
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 21
+      TabOrder = 22
       OnClick = btnShowMoreOptionsClick
     end
     object ePart: TEdit
@@ -1160,7 +1160,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 12
       ParentFont = False
-      TabOrder = 18
+      TabOrder = 19
       Text = 'ePart'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -1180,7 +1180,7 @@ object dlgMemorise: TdlgMemorise
       Font.Style = []
       MaxLength = 40
       ParentFont = False
-      TabOrder = 20
+      TabOrder = 21
       Text = 'eCode'
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
@@ -1201,7 +1201,7 @@ object dlgMemorise: TdlgMemorise
         'eStatementDetails')
       MaxLength = 100
       ParentFont = False
-      TabOrder = 22
+      TabOrder = 3
       OnChange = eStatementDetailsChange
       OnExit = cCodeExit
     end

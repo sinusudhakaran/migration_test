@@ -567,8 +567,7 @@ begin
    btnChart.Hint   := STDHINTS.ChartLookupHint;
    sbtnSuper.Hint  := STDHINTS.SUPERFIELDSHINT;
    btnPayee.Hint   := STDHINTS.PAYEELOOKUPHINT;
-   btnJob.Hint     := 'Lookup the Job list|'+
-                      'Lookup the Job list';
+   btnJob.Hint     := STDHINTS.JOBLOOKUPHINT;
    btnView.Hint  :=
                 'Change View|'
                 +'Configure columns or restore the default column settings';
