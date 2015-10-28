@@ -428,7 +428,10 @@ begin
   Result := false;
 
   aBankAccount.baMemorisations_List.UpdateLinkedLists;
-  CheckMasterMem := GetMasterMemForAccount(MyClient, aBankAccount, MasterMemList);
+  if Assigned(AdminSystem) then
+    CheckMasterMem := GetMasterMemForAccount(MyClient, aBankAccount, MasterMemList)
+  else
+    CheckMasterMem := false;
 
   for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1 do
   begin
