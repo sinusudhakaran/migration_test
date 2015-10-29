@@ -177,6 +177,14 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True, True);
 //  AddColumn(BKTX, tktxSF_CGT_Date, 0, jtLeft,
 //            ctAuto, '', '', DEFAULT_GAP);
+
+  AddColumn(BKTE, tkteSF_Cash_Date,  0, jtRight, ctFormat,
+            '', '', DEFAULT_GAP, false);
+  AddColumn(BKTE, tkteSF_Accrual_Date,  0, jtRight, ctFormat,
+            '', '', DEFAULT_GAP, false);
+  AddColumn(BKTE, tkteSF_Record_Date,  0, jtRight, ctFormat,
+            '', '', DEFAULT_GAP, false);
+
   AddColumn(BKTX, tktxSF_Tax_Free_Dist,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTX, tktxSF_Tax_Exempt_Dist,  0, jtRight, ctFormat,
@@ -200,7 +208,11 @@ begin
   AddColumn(BKTX, tktxSF_Capital_Gains_Other,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
 
-//BGL360 extended fields            
+//BGL360 extended fields
+
+  AddColumn(BKTX, tktxSF_Interest,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
   AddColumn(BKTE, tkteSF_Other_Income,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_Other_Trust_Deductions,  0, jtRight, ctFormat,
@@ -213,6 +225,11 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_CGT_ForeignCGT_Other_Method,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
+  AddColumn(BKTX, tktxSF_Capital_Gains_Foreign_Disc,  0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
+
   AddColumn(BKTE, tkteSF_CGT_TaxPaid_Indexation,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_CGT_TaxPaid_Other_Method,  0, jtRight, ctFormat,
@@ -229,6 +246,9 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_Non_Cash_CGT_Discounted_Before_Discount,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
+
+
   AddColumn(BKTE, tkteSF_Non_Cash_CGT_Indexation,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_Non_Cash_CGT_Other_Method,  0, jtRight, ctFormat,
@@ -242,12 +262,6 @@ begin
   AddColumn(BKTE, tkteSF_Share_GST_Amount,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_Share_GST_Rate,  0, jtRight, ctFormat,
-            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
-  AddColumn(BKTE, tkteSF_Cash_Date,  0, jtRight, ctFormat,
-            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
-  AddColumn(BKTE, tkteSF_Accrual_Date,  0, jtRight, ctFormat,
-            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
-  AddColumn(BKTE, tkteSF_Record_Date,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
 //		Units??
 end;
@@ -457,9 +471,11 @@ begin
           end;
         end;
         saBGL360 : begin
-          case aDataToken of
+           case aDataToken of
             tktxSF_Imputed_Credit        : Result := 'Franking CR';
   //          tktxSF_CGT_Date              : Result := 'CGT Date';
+            tktxSF_Interest              : Result := 'Gross Interest';
+            tktxSF_Capital_Gains_Foreign_Disc : Result := 'Tax Paid CR Before Disc';
             tktxSF_Tax_Free_Dist         : Result := 'Tax Free Amounts';
             tktxSF_Tax_Exempt_Dist       : Result := 'Tax Exempt Amounts';
             tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred Amounts';
