@@ -138,7 +138,7 @@ type
     procedure DoCreateNewMemorisation(aRow: integer);
     procedure CloseCalculatingSpinner();
   public
-    procedure DoSuggestedMemsDoneProcessing();
+    procedure DoSuggestedMemsDoneProcessing(Sender: TObject);
 
     property BankAccount: TBank_Account read fBankAccount write fBankAccount;
     property NeedReCoding: boolean read fNeedReCoding;
@@ -223,7 +223,6 @@ begin
   inherited;
 
   fNeedReCoding := false;
-  SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
 
   fHeadingClicked := false;
   fLoading := true;
@@ -240,6 +239,8 @@ begin
   fSuggMemSortedList := TSuggMemSortedList.create;
 
   ffrmSpinner := TfrmSpinner.Create(self);
+
+  SuggestedMem.DoneProcessingEvent.Add(DoSuggestedMemsDoneProcessing);
 end;
 
 //------------------------------------------------------------------------------
@@ -306,7 +307,7 @@ procedure TRecommendedMemorisationsFrm.FormDestroy(Sender: TObject);
 var
   UserRec : PUser_Rec;
 begin
-  SuggestedMem.DoneProcessingEvent := nil;
+  SuggestedMem.DoneProcessingEvent.Remove(DoSuggestedMemsDoneProcessing);
 
   FreeAndNil(fSuggMemSortedList);
 
@@ -875,7 +876,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TRecommendedMemorisationsFrm.DoSuggestedMemsDoneProcessing;
+procedure TRecommendedMemorisationsFrm.DoSuggestedMemsDoneProcessing(Sender: TObject);
 begin
   CloseCalculatingSpinner();
   MainRefresh();

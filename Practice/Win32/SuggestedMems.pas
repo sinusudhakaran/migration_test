@@ -17,6 +17,7 @@ uses
   trxList32,
   SuggMemSortedList,
   MemTranSortedList,
+  MultiCast,
   Classes;
 
 const
@@ -48,9 +49,6 @@ type
   TArrSuggPointers = Array of pSuggested_Mem_Rec;
 
   //----------------------------------------------------------------------------
-  TDoneProcessingEvent = procedure() of object;
-
-  //----------------------------------------------------------------------------
   TSuggestedMems = class(TObject)
   private
     fMainState : Byte;
@@ -66,7 +64,7 @@ type
     fNoMoreRecord : boolean;
     fTempNoMoreRecord : boolean;
 
-    fDoneProcessingEvent : TDoneProcessingEvent;
+    fDoneProcessingEvent : TMultiCastNotify;
   protected
     procedure DoScanTimer(Sender: TObject);
 
@@ -141,7 +139,7 @@ type
 
     property MainState : byte read fMainState write fMainState;
     property NoMoreRecord : boolean read fNoMoreRecord;
-    property DoneProcessingEvent : TDoneProcessingEvent read fDoneProcessingEvent write fDoneProcessingEvent;
+    property DoneProcessingEvent : TMultiCastNotify read fDoneProcessingEvent write fDoneProcessingEvent;
   end;
 
   //----------------------------------------------------------------------------
@@ -1257,12 +1255,11 @@ begin
           Exit;
         end;
 
-        if (Assigned(fDoneProcessingEvent)) and
-           (fNoMoreRecord = false) and
+        if (fNoMoreRecord = false) and
            (fTempNoMoreRecord = true) then
         begin
           fNoMoreRecord := fTempNoMoreRecord;
-          fDoneProcessingEvent();
+          fDoneProcessingEvent.DoEvent();
         end
         else
           fNoMoreRecord := fTempNoMoreRecord;
@@ -1402,6 +1399,8 @@ end;
 //------------------------------------------------------------------------------
 constructor TSuggestedMems.Create;
 begin
+  fDoneProcessingEvent := TMultiCastNotify.Create(self);
+
   fScanTimer := TTimer.Create(nil);
   fScanTimer.Enabled  := false;
   fScanTimer.Interval := 150;
@@ -1418,6 +1417,7 @@ end;
 destructor TSuggestedMems.Destroy;
 begin
   FreeandNil(fScanTimer);
+  FreeAndNil(fDoneProcessingEvent);
   inherited;
 end;
 
@@ -1557,8 +1557,7 @@ begin
         if DebugMe then
           LogDoneProcessing(true);
 
-        if Assigned(fDoneProcessingEvent) then
-          fDoneProcessingEvent();
+        fDoneProcessingEvent.DoEvent;
       end;
     end;
 
@@ -1635,8 +1634,7 @@ begin
   if DebugMe then
     LogDoneProcessing(true);
 
-  if Assigned(fDoneProcessingEvent) then
-    fDoneProcessingEvent();
+  fDoneProcessingEvent.DoEvent;
 end;
 
 //------------------------------------------------------------------------------

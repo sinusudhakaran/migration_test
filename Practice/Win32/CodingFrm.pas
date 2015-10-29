@@ -560,7 +560,7 @@ type
     procedure SetSearchVisible(const Value: Boolean);
     function GetSearchVisible: Boolean;
 
-    procedure DoSuggestedMemsDoneProcessing();
+    procedure DoSuggestedMemsDoneProcessing(Sender: TObject);
 
   protected
     procedure RefreshSuggestedMemColumn();
@@ -1258,6 +1258,8 @@ begin
   frmSuggMemPopup.OnHideClick   := DoHideClick;
   frmSuggMemPopup.OnLaterClick  := DoLaterClick;
   frmSuggMemPopup.OnCreateClick := DoCreateClick;
+
+  SuggestedMem.DoneProcessingEvent.Add(DoSuggestedMemsDoneProcessing);
 end;
 
 //------------------------------------------------------------------------------
@@ -2667,7 +2669,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TfrmCoding.DoSuggestedMemsDoneProcessing;
+procedure TfrmCoding.DoSuggestedMemsDoneProcessing(Sender: TObject);
 var
   ActiveRow : integer;
 begin
@@ -3061,14 +3063,12 @@ var
 begin
   ShowRecommendedMemorisations(self, BankAccount, NeedReCoding);
 
-  SuggestedMem.DoneProcessingEvent := DoSuggestedMemsDoneProcessing;
-
   if NeedReCoding then
     DoRecodeEntries();
 
   CloseSuggMemPopup();
 
-  DoSuggestedMemsDoneProcessing();
+  DoSuggestedMemsDoneProcessing(self);
 
   RefreshSuggestedMemColumn();
 end;
@@ -4217,6 +4217,7 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormDestroy(Sender: TObject);
 begin
+  SuggestedMem.DoneProcessingEvent.Remove(DoSuggestedMemsDoneProcessing);
   frmMain.UpdateAllWindowTabs(Self, Caption, True);
 
   if Assigned( FHint ) then
@@ -6165,10 +6166,8 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormShow(Sender: TObject);
 begin
-   SearchVisible := UserINI_CES_Show_Find;
-   tblCoding.Setfocus;
-   //pnlExtraTitleBar.Color := bkBranding.HeaderBackgroundColor;
-   //imgGraphic.Picture := bkBranding.CodingBanner;
+  SearchVisible := UserINI_CES_Show_Find;
+  tblCoding.Setfocus;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormResize(Sender: TObject);
@@ -8512,7 +8511,6 @@ begin
    ThisForm := TfrmCoding.Create( aOwner);
    with ThisForm do begin
       BankAccount := aBankAccount;
-      SuggestedMem.DoneProcessingEvent := ThisForm.DoSuggestedMemsDoneProcessing;
 
       BankPrefix  := copy(BankAccount.baFields.baBank_Account_Number, 1, 2);
       SectionName := Format( SectionNameTemplate, [ BankPrefix ] );
@@ -8673,7 +8671,6 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  SuggestedMem.DoneProcessingEvent := nil;
   SaveLayoutForThisAcct;
   IsClosing := true;
   if not FIsReloading then begin
