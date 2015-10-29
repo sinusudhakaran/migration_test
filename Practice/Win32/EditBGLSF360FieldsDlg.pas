@@ -1560,8 +1560,12 @@ begin
                   'Goto next line';
 
   if assigned( fmeDividend_Franking ) then
-    fmeDividend_Franking.btnFrankingCredits.Hint := 'Calculate the Imputed Credit|' +
-       'Calculate the Imputed Credit';
+    fmeDividend_Franking.btnFrankingCredits.Hint := 'Calculate the Franking Credit|' +
+       'Calculate the Franking Credit';
+
+  if assigned( fmeDist_AU_Income_Franking ) then
+    fmeDividend_Franking.btnFrankingCredits.Hint := 'Calculate the Franking Credit|' +
+       'Calculate the Franking Credit';
 
   btnChart.Hint :=  '(F2) Lookup Chart|(F2) Lookup Chart';
 

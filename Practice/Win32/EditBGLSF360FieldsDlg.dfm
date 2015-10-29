@@ -23,6 +23,420 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 17
+  object pnlInterest: TPanel
+    Left = 0
+    Top = 145
+    Width = 709
+    Height = 267
+    Align = alClient
+    BevelOuter = bvNone
+    ParentColor = True
+    TabOrder = 4
+    Visible = False
+    object lblInterest: TLabel
+      Left = 10
+      Top = 13
+      Width = 81
+      Height = 17
+      Caption = 'Gross Interest'
+      FocusControl = nfInterest
+    end
+    object lpInterest: TLabel
+      Left = 393
+      Top = 13
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfInterest
+      Visible = False
+    end
+    object lblOtherIncome: TLabel
+      Left = 10
+      Top = 45
+      Width = 79
+      Height = 17
+      Caption = 'Other Income'
+      FocusControl = nfOtherIncome
+    end
+    object lpOtherIncome: TLabel
+      Left = 393
+      Top = 45
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfOtherIncome
+      Visible = False
+    end
+    object lblTFNAmountsWithheld: TLabel
+      Left = 10
+      Top = 73
+      Width = 133
+      Height = 17
+      Caption = 'TFN Amounts Withheld'
+      FocusControl = nfTFNAmountsWithheld
+    end
+    object lpTFNAmountsWithheld: TLabel
+      Left = 393
+      Top = 73
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfTFNAmountsWithheld
+      Visible = False
+    end
+    object lblNonResidentWithholdingTax: TLabel
+      Left = 10
+      Top = 103
+      Width = 178
+      Height = 17
+      Caption = 'Non-Resident Withholding Tax'
+      FocusControl = nfNonResidentWithholdingTax
+    end
+    object lpNonResidentWithholdingTax: TLabel
+      Left = 393
+      Top = 103
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfNonResidentWithholdingTax
+      Visible = False
+    end
+    object lineInterest: TShape
+      Left = 0
+      Top = 0
+      Width = 709
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 720
+    end
+    object nfInterest: TOvcNumericField
+      Left = 260
+      Top = 11
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 0
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {00000000000000000000}
+    end
+    object nfOtherIncome: TOvcNumericField
+      Left = 260
+      Top = 43
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 1
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {00000000000000000000}
+    end
+    object nfTFNAmountsWithheld: TOvcNumericField
+      Left = 260
+      Top = 71
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 2
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {5C8FC2F5FF276BEE1CC0}
+    end
+    object nfNonResidentWithholdingTax: TOvcNumericField
+      Left = 260
+      Top = 101
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 3
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {5C8FC2F5FF276BEE1CC0}
+    end
+  end
+  object pnlShareTrade: TPanel
+    Left = 0
+    Top = 145
+    Width = 709
+    Height = 267
+    Align = alClient
+    BevelOuter = bvNone
+    ParentColor = True
+    TabOrder = 5
+    Visible = False
+    object lblShareBrokerage: TLabel
+      Left = 10
+      Top = 48
+      Width = 60
+      Height = 17
+      Caption = 'Brokerage'
+      FocusControl = fmeDist_AU_Income_InterestIncome.nfInterest
+    end
+    object lpShareBrokerage: TLabel
+      Left = 280
+      Top = 48
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfShareBrokerage
+      Visible = False
+    end
+    object lblShareConsideration: TLabel
+      Left = 10
+      Top = 77
+      Width = 81
+      Height = 17
+      Caption = 'Consideration'
+      FocusControl = fmeDist_AU_Income_InterestIncome.nfOtherIncome
+    end
+    object lpShareConsideration: TLabel
+      Left = 280
+      Top = 77
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfShareConsideration
+      Visible = False
+    end
+    object lblShareGSTAmount: TLabel
+      Left = 417
+      Top = 18
+      Width = 72
+      Height = 17
+      Caption = 'GST Amount'
+      FocusControl = fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld
+    end
+    object lpShareGSTAmount: TLabel
+      Left = 684
+      Top = 18
+      Width = 11
+      Height = 17
+      Caption = '%'
+      FocusControl = nfShareGSTAmount
+      Visible = False
+    end
+    object lblShareGSTRate: TLabel
+      Left = 417
+      Top = 48
+      Width = 53
+      Height = 17
+      Caption = 'GST Rate'
+      FocusControl = fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax
+    end
+    object lblShareTradeUnits: TLabel
+      Left = 9
+      Top = 223
+      Width = 29
+      Height = 17
+      Caption = 'Units'
+      FocusControl = fmeDist_AU_Income_InterestIncome.nfInterest
+      Visible = False
+    end
+    object lineShareTrade: TShape
+      Left = 0
+      Top = 0
+      Width = 709
+      Height = 1
+      Align = alTop
+      Pen.Color = clSilver
+      ExplicitWidth = 720
+    end
+    object lblUnits: TLabel
+      Left = 10
+      Top = 18
+      Width = 29
+      Height = 17
+      Caption = 'Units'
+    end
+    object nfShareBrokerage: TOvcNumericField
+      Left = 147
+      Top = 46
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 1
+      OnChange = nfShareBrokerageChange
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {00000000000000000000}
+    end
+    object nfShareConsideration: TOvcNumericField
+      Left = 147
+      Top = 75
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Enabled = False
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 2
+      OnChange = nfShareConsiderationChange
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {00000000000000000000}
+    end
+    object nfShareGSTAmount: TOvcNumericField
+      Left = 551
+      Top = 16
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 3
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {5C8FC2F5FF276BEE1CC0}
+    end
+    object cmbxShareGSTRate: TcxComboBox
+      Left = 551
+      Top = 46
+      Properties.Alignment.Horz = taLeftJustify
+      Properties.DropDownAutoWidth = False
+      Properties.DropDownListStyle = lsFixedList
+      Properties.DropDownWidth = 132
+      Properties.Items.Strings = (
+        ''
+        '100'
+        '75'
+        '0')
+      Style.BorderStyle = ebs3D
+      Style.LookAndFeel.Kind = lfStandard
+      Style.LookAndFeel.NativeStyle = True
+      Style.Shadow = False
+      Style.TransparentBorder = True
+      Style.ButtonStyle = bts3D
+      Style.PopupBorderStyle = epbsDefault
+      StyleDisabled.LookAndFeel.Kind = lfStandard
+      StyleDisabled.LookAndFeel.NativeStyle = True
+      StyleFocused.LookAndFeel.Kind = lfStandard
+      StyleFocused.LookAndFeel.NativeStyle = True
+      StyleHot.LookAndFeel.Kind = lfStandard
+      StyleHot.LookAndFeel.NativeStyle = True
+      TabOrder = 4
+      Width = 132
+    end
+    object nfShareTradeUnits: TOvcNumericField
+      Left = 259
+      Top = 221
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '#,###,###,###.##'
+      TabOrder = 5
+      Visible = False
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {00000000000000000000}
+    end
+    object nfUnits: TOvcNumericField
+      Left = 147
+      Top = 16
+      Width = 132
+      Height = 20
+      Cursor = crIBeam
+      DataType = nftDouble
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Options = []
+      PictureMask = '###,###,###.####'
+      TabOrder = 0
+      OnKeyDown = nfUnitsKeyDown
+      RangeHigh = {F6285CFFFFF802952040}
+      RangeLow = {5C8FC2F5FF276BEE1CC0}
+    end
+  end
   object pnlDividend: TPanel
     Left = 0
     Top = 145
@@ -1408,420 +1822,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       end
     end
   end
-  object pnlInterest: TPanel
-    Left = 0
-    Top = 145
-    Width = 709
-    Height = 267
-    Align = alClient
-    BevelOuter = bvNone
-    ParentColor = True
-    TabOrder = 4
-    Visible = False
-    object lblInterest: TLabel
-      Left = 10
-      Top = 13
-      Width = 81
-      Height = 17
-      Caption = 'Gross Interest'
-      FocusControl = nfInterest
-    end
-    object lpInterest: TLabel
-      Left = 393
-      Top = 13
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfInterest
-      Visible = False
-    end
-    object lblOtherIncome: TLabel
-      Left = 10
-      Top = 45
-      Width = 79
-      Height = 17
-      Caption = 'Other Income'
-      FocusControl = nfOtherIncome
-    end
-    object lpOtherIncome: TLabel
-      Left = 393
-      Top = 45
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfOtherIncome
-      Visible = False
-    end
-    object lblTFNAmountsWithheld: TLabel
-      Left = 10
-      Top = 73
-      Width = 133
-      Height = 17
-      Caption = 'TFN Amounts Withheld'
-      FocusControl = nfTFNAmountsWithheld
-    end
-    object lpTFNAmountsWithheld: TLabel
-      Left = 393
-      Top = 73
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfTFNAmountsWithheld
-      Visible = False
-    end
-    object lblNonResidentWithholdingTax: TLabel
-      Left = 10
-      Top = 103
-      Width = 178
-      Height = 17
-      Caption = 'Non-Resident Withholding Tax'
-      FocusControl = nfNonResidentWithholdingTax
-    end
-    object lpNonResidentWithholdingTax: TLabel
-      Left = 393
-      Top = 103
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfNonResidentWithholdingTax
-      Visible = False
-    end
-    object lineInterest: TShape
-      Left = 0
-      Top = 0
-      Width = 709
-      Height = 1
-      Align = alTop
-      Pen.Color = clSilver
-      ExplicitWidth = 720
-    end
-    object nfInterest: TOvcNumericField
-      Left = 260
-      Top = 11
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 0
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {00000000000000000000}
-    end
-    object nfOtherIncome: TOvcNumericField
-      Left = 260
-      Top = 43
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 1
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {00000000000000000000}
-    end
-    object nfTFNAmountsWithheld: TOvcNumericField
-      Left = 260
-      Top = 71
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 2
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {5C8FC2F5FF276BEE1CC0}
-    end
-    object nfNonResidentWithholdingTax: TOvcNumericField
-      Left = 260
-      Top = 101
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 3
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {5C8FC2F5FF276BEE1CC0}
-    end
-  end
-  object pnlShareTrade: TPanel
-    Left = 0
-    Top = 145
-    Width = 709
-    Height = 267
-    Align = alClient
-    BevelOuter = bvNone
-    ParentColor = True
-    TabOrder = 5
-    Visible = False
-    object lblShareBrokerage: TLabel
-      Left = 10
-      Top = 48
-      Width = 60
-      Height = 17
-      Caption = 'Brokerage'
-      FocusControl = fmeDist_AU_Income_InterestIncome.nfInterest
-    end
-    object lpShareBrokerage: TLabel
-      Left = 280
-      Top = 48
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfShareBrokerage
-      Visible = False
-    end
-    object lblShareConsideration: TLabel
-      Left = 10
-      Top = 77
-      Width = 81
-      Height = 17
-      Caption = 'Consideration'
-      FocusControl = fmeDist_AU_Income_InterestIncome.nfOtherIncome
-    end
-    object lpShareConsideration: TLabel
-      Left = 280
-      Top = 77
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfShareConsideration
-      Visible = False
-    end
-    object lblShareGSTAmount: TLabel
-      Left = 417
-      Top = 18
-      Width = 72
-      Height = 17
-      Caption = 'GST Amount'
-      FocusControl = fmeDividend_ForeignIncome_Tax.nfTFNAmountsWithheld
-    end
-    object lpShareGSTAmount: TLabel
-      Left = 684
-      Top = 18
-      Width = 11
-      Height = 17
-      Caption = '%'
-      FocusControl = nfShareGSTAmount
-      Visible = False
-    end
-    object lblShareGSTRate: TLabel
-      Left = 417
-      Top = 48
-      Width = 53
-      Height = 17
-      Caption = 'GST Rate'
-      FocusControl = fmeDividend_ForeignIncome_Tax.nfNonResidentWithholdingTax
-    end
-    object lblShareTradeUnits: TLabel
-      Left = 9
-      Top = 223
-      Width = 29
-      Height = 17
-      Caption = 'Units'
-      FocusControl = fmeDist_AU_Income_InterestIncome.nfInterest
-      Visible = False
-    end
-    object lineShareTrade: TShape
-      Left = 0
-      Top = 0
-      Width = 709
-      Height = 1
-      Align = alTop
-      Pen.Color = clSilver
-      ExplicitWidth = 720
-    end
-    object lblUnits: TLabel
-      Left = 10
-      Top = 18
-      Width = 29
-      Height = 17
-      Caption = 'Units'
-    end
-    object nfShareBrokerage: TOvcNumericField
-      Left = 147
-      Top = 46
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 1
-      OnChange = nfShareBrokerageChange
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {00000000000000000000}
-    end
-    object nfShareConsideration: TOvcNumericField
-      Left = 147
-      Top = 75
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Enabled = False
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 2
-      OnChange = nfShareConsiderationChange
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {00000000000000000000}
-    end
-    object nfShareGSTAmount: TOvcNumericField
-      Left = 551
-      Top = 16
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 3
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {5C8FC2F5FF276BEE1CC0}
-    end
-    object cmbxShareGSTRate: TcxComboBox
-      Left = 551
-      Top = 46
-      Properties.Alignment.Horz = taLeftJustify
-      Properties.DropDownAutoWidth = False
-      Properties.DropDownListStyle = lsFixedList
-      Properties.DropDownWidth = 132
-      Properties.Items.Strings = (
-        ''
-        '100'
-        '75'
-        '0')
-      Style.BorderStyle = ebs3D
-      Style.LookAndFeel.Kind = lfStandard
-      Style.LookAndFeel.NativeStyle = True
-      Style.Shadow = False
-      Style.TransparentBorder = True
-      Style.ButtonStyle = bts3D
-      Style.PopupBorderStyle = epbsDefault
-      StyleDisabled.LookAndFeel.Kind = lfStandard
-      StyleDisabled.LookAndFeel.NativeStyle = True
-      StyleFocused.LookAndFeel.Kind = lfStandard
-      StyleFocused.LookAndFeel.NativeStyle = True
-      StyleHot.LookAndFeel.Kind = lfStandard
-      StyleHot.LookAndFeel.NativeStyle = True
-      TabOrder = 4
-      Width = 132
-    end
-    object nfShareTradeUnits: TOvcNumericField
-      Left = 259
-      Top = 221
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '#,###,###,###.##'
-      TabOrder = 5
-      Visible = False
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {00000000000000000000}
-    end
-    object nfUnits: TOvcNumericField
-      Left = 147
-      Top = 16
-      Width = 132
-      Height = 20
-      Cursor = crIBeam
-      DataType = nftDouble
-      AutoSize = False
-      BorderStyle = bsNone
-      CaretOvr.Shape = csBlock
-      EFColors.Disabled.BackColor = clWindow
-      EFColors.Disabled.TextColor = clGrayText
-      EFColors.Error.BackColor = clRed
-      EFColors.Error.TextColor = clBlack
-      EFColors.Highlight.BackColor = clHighlight
-      EFColors.Highlight.TextColor = clHighlightText
-      Options = []
-      PictureMask = '###,###,###.####'
-      TabOrder = 0
-      OnKeyDown = nfUnitsKeyDown
-      RangeHigh = {F6285CFFFFF802952040}
-      RangeLow = {5C8FC2F5FF276BEE1CC0}
-    end
-  end
   object pnlTransactionInfo: TPanel
     Left = 0
     Top = 73
@@ -2298,7 +2298,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     Left = 672
     Top = 8
     Bitmap = {
-      494C010105001800240010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010105001800280010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
