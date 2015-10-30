@@ -1890,6 +1890,14 @@ begin
     end
     else
       TfrmClientHomePage(ClientHomePage).LEFeedbackForm := nil;
+
+    if NeedToClearMYOBClient then
+    begin
+      MyClient.clExtra.cemyMYOBClientIDSelected := '';
+      MyClient.clExtra.cemyMYOBClientNameSelected := '';
+      SaveClient(false);
+      NeedToClearMYOBClient := False;
+    end;
   end;
 
   if DebugMeVerbose then LogUtil.LogMsg(lmDebug,UnitName,'Exit DoOpen');

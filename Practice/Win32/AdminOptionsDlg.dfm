@@ -731,7 +731,7 @@ object dlgAdminOptions: TdlgAdminOptions
           Top = 6
           Width = 165
           Height = 27
-          Caption = 'my.MYOB Sign in'
+          Caption = 'MYOB login'
           TabOrder = 0
           OnClick = btnConnectMYOBClick
         end

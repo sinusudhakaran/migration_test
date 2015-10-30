@@ -82,9 +82,9 @@ var
 begin
   if (FormShowType = fsSelectFirm) then
   begin
-    if (Trim(cmbSelectFirm.Items.Text) <> '') then
+    if ((Trim(cmbSelectFirm.Items.Text) <> '') and (cmbSelectFirm.ItemIndex >= 0)) then
     begin
-      Firm := FFirms.GetItem(cmbSelectFirm.ItemIndex);
+      Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
       if Assigned(Firm) then
       begin
         FSelectedID := Firm.ID;
@@ -94,9 +94,9 @@ begin
   end
   else if (FormShowType = fsSelectClient) then
   begin
-    if (Trim(cmbSelectClient.Items.Text) <> '') then
+    if ((Trim(cmbSelectClient.Items.Text) <> '') and (cmbSelectClient.ItemIndex >= 0)) then
     begin
-      Business := FBusinesses.GetItem(cmbSelectClient.ItemIndex);
+      Business := TBusinessData(cmbSelectClient.Items.Objects[cmbSelectClient.ItemIndex]);
       if Assigned(Business) then
       begin
         FSelectedID := Business.ID;
@@ -209,6 +209,9 @@ var
 begin
   edtPassword.Text := '';
   edtEmail.Text := UserINI_myMYOB_EmailAddress;
+  if Trim(edtEmail.Text)= '' then
+    edtEmail.Text := CurrUser.EmailAddress;
+
   pnlClientSelection.Visible := False;
   pnlFirmSelection.Visible := False;
   pnlLogin.Visible := False;
@@ -311,7 +314,7 @@ begin
     begin
       if Business.ID = MyClient.clExtra.cemyMYOBClientIDSelected then
         Index := i;
-      cmbSelectClient.Items.Add(Business.Name);
+      cmbSelectClient.Items.AddObject(Business.Name, TObject(Business));
     end;
   end;
   cmbSelectClient.ItemIndex := Index;
@@ -341,7 +344,7 @@ begin
       begin
         if (Firm.ID = AdminSystem.fdFields.fdmyMYOBFirmID) then
           Index := i;
-        cmbSelectFirm.Items.Add(Firm.Name);
+        cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
       end;
     end;
   end;
@@ -354,7 +357,7 @@ var
   SupportNumber : string;
 begin
   SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-  HelpfulErrorMsg('Could not connect to my.MYOB service, please try again later. ' +
+  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
                   'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
                   0, false, aError, true);
 end;

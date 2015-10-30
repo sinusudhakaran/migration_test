@@ -16,37 +16,56 @@ type
     //used for processing the transactiosn to export
     FBankAcctsToExport : TBankAccountsData;
     FBankAcctToExport: TBankAccountData;
-    FExportTerminated : Boolean;
-    procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
-    procedure UploadTransAndJournals(TypeOfTrans: TTransType);
-  public
-    constructor Create;override;
 
-    procedure RefreshChartFromPLAPI;
-    function FetchCOAFromAPI(NewChart: TChart):Boolean;
-    function UploadTransactions(RequestData: TlkJSONobject;
+    // used for processing the journals to export
+    FJournalsData : TJournalsData;
+    FExportTerminated : Boolean;
+
+    //Export data functions
+    procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
+    procedure BuildBankTransactionData;
+    procedure BuildJournalData;
+    procedure UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
+    function UploadToAPI(RequestData: TlkJSONobject;
             var aResponse: TlkJSONbase; var aRespStr, aError: string;
             aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
 
+    //Get COA from PL api and add to chart
+    function FetchCOAFromAPI(NewChart: TChart):Boolean;
+    procedure SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
+    //Call Rollback api to rollback a batch of transaction
+    function RollbackBatch(aBatchRef: string;
+      var aResponse: TlkJSONbase; var aRespStr, aError: string;
+      aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
+  public
+    constructor Create;override;
+
+    //Refresh chart
+    procedure RefreshChartFromPLAPI;
+
+    //Export data to pl api
     function ExportDataToAPI(FromDate, ToDate : Integer;
         AllowUncoded : boolean = False;
         AllowBlankContra : boolean = False):Boolean;
 
+    //This function will be called from DoTransaction which is a hooked event to Traverse to filter the export transactions
     procedure AddTransactionToExpList;
   end;
 
 const
   UnitName = 'PracticeLedgerObj';
+  MAXENTRIES = 200; // Max entries (journal/ bank) can sent to a api at a time
 
 var
   DebugMe : boolean = false;
   PracticeLedger: TPracticeLedger;
   NoOfEntries : LongInt;
 
+  //Validate tokens
   function CheckFormyMYOBTokens:Boolean;
 
+
   procedure DoTransaction;
-  procedure DoDissection;
 
 implementation
 
@@ -69,13 +88,28 @@ end;
 { TPracticeLedger }
 
 procedure TPracticeLedger.AddTransactionToExpList;
+begin
+  with MyClient.clFields, Bank_Account.baFields, Transaction^ do
+  begin
+    txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective);
+
+    if SkipZeroAmountExport(Transaction) then
+       Exit; // Im done...
+
+    if (Bank_Account.baFields.baAccount_Type = btBank) then
+      BuildBankTransactionData
+    else if Bank_Account.baFields.baAccount_Type in [btCashJournals, btAccrualJournals] then
+      BuildJournalData;
+  end;
+end;
+
+procedure TPracticeLedger.BuildBankTransactionData;
 var
-  S : ShortString;
   TransactionItem: TTransactionData;
   DissRec: pDissection_Rec;
   AllocationItem : TAllocationData;
   AccRec : pAccount_Rec;
-  ShowGSTMapping: Boolean;
+  S : ShortString;
 
   procedure FixAllocationValues(aAllocationsData: TAllocationsData);
   var
@@ -97,82 +131,15 @@ var
     end;
   end;
 begin
-  if not (Assigned(FBankAcctToExport) and Assigned(FBankAcctsToExport)) then
-    Exit;
-
+  Inc(NoOfEntries );
   with MyClient.clFields, Bank_Account.baFields, Transaction^ do
   begin
-    txForex_Conversion_Rate := Bank_Account.Default_Forex_Conversion_Rate(txDate_Effective);
+    if (txDate_Transferred > 0) then
+      Exit;
 
-    if SkipZeroAmountExport(Transaction) then
-       Exit; // Im done...
-
-    {Get Practice and Online ledger GST mapping. Load it only once. Get saved in a file and load it from there each time}
-    (*ShowGSTMapping := True;
-    if (clCountry = whAustralia) then
+    if ( txFirst_Dissection = nil ) then
     begin
-      GSTMapCol := TGSTMapCol.Create(TGSTMapItem);
-      GSTMapCol.PrevGSTFileLocation := MyClient.clExtra.ceCashbook_GST_Map_File_Location;
-      FillGstMapCol(ChartExportCol, GSTMapCol, False);
-
-      if GSTMapCol.PrevGSTFileLocation <> '' then
-      begin
-        if FileExists(GSTMapCol.PrevGSTFileLocation) then
-        begin
-          Filename := GSTMapCol.PrevGSTFileLocation;
-          if not GSTMapCol.LoadGSTFile(Filename, ErrorStr) then
-          begin
-            if ShowGSTMapping then
-            begin
-              HelpfulErrorMsg(ErrorStr,0);
-              LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
-            end;
-          end;
-        end;
-      end;
-
-      if ShowGSTMapping then
-        Res := ShowMapGSTClass(aPopupParent, fGSTMapCol)
-      else
-        Res := true;
-
-      if Res then
-      begin
-        if (ShowGSTMapping) and
-           (not (Filename = '')) then
-          Res := GSTMapCol.SaveGSTFile(Filename, ErrorStr);
-
-        if Res then
-        begin
-          if (GSTMapCol.PrevGSTFileLocation <> MyClient.clExtra.ceCashbook_GST_Map_File_Location) then
-            MyClient.clExtra.ceCashbook_GST_Map_File_Location := GSTMapCol.PrevGSTFileLocation;
-        end
-        else
-        begin
-          if ShowGSTMapping then
-          begin
-            HelpfulErrorMsg(ErrorStr,0);
-            LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + ErrorStr );
-          end;
-        end;
-      end;
-    end
-    else if (Country = whNewZealand) then
-    begin
-      if not CheckNZGStTypes() then
-      begin
-        if ShowGSTMapping then
-        begin
-          ErrorStr := 'Please assign a GST type to all rates, Other Functions | GST Setup | Rates.';
-          HelpfulWarningMsg(ErrorStr,0);
-        end;
-        Exit;
-      end;
-    end;*)
-
-    Inc(NoOfEntries );
-    if ( txFirst_Dissection = nIL ) then
-    begin
+      //txDate_Transferred := CurrentDate;
       S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
       if ( txGST_Class=0 ) then txGST_Amount := 0;
       // Check if Transaction is not finalized and not presented
@@ -181,6 +148,7 @@ begin
 
       TransactionItem := TTransactionData.Create(FBankAcctToExport.Transactions);
       TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
+      TransactionItem.SequenceNo  := txSequence_No;
       TransactionItem.Description := txStatement_Details;
       TransactionItem.Amount      := trunc(txAmount);
       TransactionItem.Reference   := TrimLeadZ(txReference);
@@ -198,7 +166,7 @@ begin
       DissRec := txFirst_Dissection;
       if DissRec <> nil then
       begin
-        While (DissRec <> nil ) do
+        while (DissRec <> nil ) do
         begin
           AllocationItem := TAllocationData.Create(TransactionItem.Allocations);
 
@@ -262,19 +230,75 @@ begin
   end;
 end;
 
+procedure TPracticeLedger.BuildJournalData;
+var
+  i : Integer;
+  JournalItem : TJournalData;
+  LineItem : TLineData;
+  BankAccount : TBank_Account;
+  AccRec : pAccount_Rec;
+  DissRec: pDissection_Rec;
+begin
+  Inc(NoOfEntries );
+  with MyClient.clFields,Bank_Account.baFields, Transaction^ do
+  begin
+    //Check if Transaction is not finalized and not presented
+    if (txDate_Transferred > 0) then
+      Exit;
+
+    //txDate_Transferred := CurrentDate;
+    
+    JournalItem := TJournalData.Create();
+    JournalItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
+    JournalItem.SequenceNo  := txSequence_No;
+    JournalItem.Description := txGL_Narration;
+    JournalItem.Reference   := TrimLeadZ(txReference);
+    JournalItem.JournalAccountName := Bank_Account.baFields.baBank_Account_Number;
+
+    DissRec := txFirst_Dissection;
+    while (DissRec <> nil ) do
+    begin
+      LineItem := TLineData.Create(JournalItem.Lines);
+
+      if trim(DissRec^.dsAccount) = '' then
+        LineItem.AccountNumber := txAccount
+      else
+        LineItem.AccountNumber := DissRec^.dsAccount;
+      AccRec := MyClient.clChart.FindCode( LineItem.AccountNumber );
+      if not Assigned(AccRec) then
+        LineItem.AccountNumber := '';
+
+      LineItem.Description := DissRec^.dsGL_Narration;
+      LineItem.Reference   := TrimLeadZ(DissRec^.dsReference);
+      LineItem.TaxAmount   := trunc(DissRec^.dsGST_Amount);
+      LineItem.TaxRate     := GSTCalc32.GetGSTClassCode( MyClient, DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+      if Trim(LineItem.TaxRate) = '' then
+        LineItem.TaxRate := 'NA';
+
+      LineItem.Amount := abs(trunc(DissRec^.dsAmount));
+      if trunc(DissRec^.dsAmount) < 0 then
+        LineItem.IsCredit := true
+      else
+        LineItem.IsCredit := false;
+
+      LineItem.Quantity := DissRec^.dsQuantity;
+      LineItem.PayeeNumber := DissRec^.dsPayee_Number;
+      LineItem.JobCode := DissRec^.dsJob_Code;
+
+      DissRec := DissRec^.dsNext;
+    end;
+    FJournalsData.Insert(JournalItem);
+  end;
+
+  if FJournalsData.ItemCount > 1 then
+    FJournalsData.Sort();
+end;
+
+
 constructor TPracticeLedger.Create;
 begin
   inherited;
   FLicenseType := ltPracticeLedger;
-end;
-
-procedure DoDissection;
-const
-  ThisMethodName = 'DoDissection';
-begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 procedure DoTransaction;
@@ -300,7 +324,44 @@ var
   Selected: TStringList;
   OK, DoBalance, IsJournal, DoBankAccount: boolean;
   ContraCode: string;
+  SignInFrm : TmyMYOBSignInForm;
+  TransactionRec: tTransaction_Rec;
+  ExportStartDate : TStDate;
 begin
+  ExportStartDate := CurrentDate;
+
+  if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
+  begin
+    HelpfulErrorMsg('Online Firm should be associated before exporting data!',
+                      0, false, 'Make sure admin user setup an Online ledger firm before you export data to Online Ledger', true);
+    Exit;
+  end;
+
+  if Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '' then
+  begin
+    HelpfulErrorMsg('MYOB online client should be associated before exporting data!',
+                      0, false, 'Make sure you select an Online ledger client before you export data to Online Ledger', true);
+    Exit;
+  end;
+
+  if not (CheckFormyMYOBTokens) then
+  begin
+    SignInFrm := TmyMYOBSignInForm.Create(Nil);
+    Screen.Cursor := crHourGlass;
+    try
+      SignInFrm.FormShowType := fsSignIn;
+      if SignInFrm.ShowModal <> mrOK then
+      begin
+        HelpfulErrorMsg('Establish a MYOB login before export data',
+                      0, false, 'Sign in to MYOB portal to get the access tokens to communicate to Online Ledger', true);
+        Exit;
+      end;
+    finally
+      Screen.Cursor := crDefault;
+      FreeAndNil(SigninFrm);
+    end;
+  end;
+
   MappingsData.GetMappingFromClient(MyClient);
 
   FExportTerminated := False;
@@ -364,18 +425,18 @@ begin
       end;
 
       FBankAcctsToExport := TBankAccountsData.Create(TBankAccountData);
+      FJournalsData := TJournalsData.Create;
+      FJournalsData.Duplicates := True;
       FDoQuantity := Globals.PRACINI_ExtractQuantity;
       NoOfEntries := 0;
 
       //send bank transactions
       PrepareTransAndJournalsToExport(Selected, ttbank, FromDate, ToDate);
-      UploadTransAndJournals(ttBank);
-
-      FBankAcctsToExport.Clear;
+      UploadTransAndJournals(Selected, ttBank);
 
       //send journals
       PrepareTransAndJournalsToExport(Selected, ttJournals, FromDate, ToDate);
-      UploadTransAndJournals(ttJournals);
+      UploadTransAndJournals(Selected, ttJournals);
 
       if Not FExportTerminated then
       Begin
@@ -383,7 +444,7 @@ begin
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
         HelpfulInfoMsg( Msg, 0 );
       end;
-    end; { Scope of MyClient }
+    end;
   finally
     Selected.Free;
     if Assigned(FBankAcctsToExport) then
@@ -391,10 +452,9 @@ begin
       FBankAcctsToExport.Clear;
       FreeAndNil(FBankAcctsToExport);
     end;
-    if Assigned(MappingsData) then
+    if Assigned(FJournalsData) then
     begin
-      MappingsData.Clear;
-      FreeAndNil(FMappingsData);
+      FreeAndNil(FJournalsData);
     end;
   end;
 
@@ -422,6 +482,13 @@ begin
     Exit;
   end;
 
+  if Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '' then
+  begin
+    HelpfulErrorMsg('MYOB online client should be associated before exporting data!',
+                      0, false, 'Make sure you select an Online ledger client before you export data to Online Ledger', true);
+    Exit;
+  end;
+
   if not (CheckFormyMYOBTokens) then
   begin
     SignInFrm := TmyMYOBSignInForm.Create(Nil);
@@ -438,7 +505,6 @@ begin
       Screen.Cursor := crDefault;
       FreeAndNil(SigninFrm);
     end;
-
   end;
 
   Accounts := TChartOfAccountsData.Create(TChartOfAccountData);
@@ -502,15 +568,17 @@ begin
     if (((TypeOfTrans = ttbank) and (BA.baFields.baAccount_Type = btBank)) or
         ((TypeOfTrans = ttJournals) and (BA.baFields.baAccount_Type in [btCashJournals, btAccrualJournals]))) then
     begin
-      FBankAcctToExport := TBankAccountData(FBankAcctsToExport.Add);
-      FBankAcctToExport.BankAccountNumber := MappingsData.UpdateSysCode(BA.baFields.baContra_Account_Code);
+      if (TypeOfTrans = ttbank) then
+      begin
+        FBankAcctToExport := TBankAccountData(FBankAcctsToExport.Add);
+        FBankAcctToExport.BankAccountNumber := MappingsData.UpdateSysCode(BA.baFields.baContra_Account_Code);
+      end;
 
       Traverse.Clear;
       Traverse.SetSortMethod( csDateEffective );
       Traverse.SetSelectionMethod( TRAVERSE.twAllNewEntries );
 
       Traverse.SetOnEHProc( DoTransaction );
-      Traverse.SetOnDSProc( DoDissection );
 
       //Load all transactions to the Export transaction list
       Traverse.TraverseEntriesForAnAccount( BA, FromDate, ToDate );
@@ -551,7 +619,7 @@ begin
 
         if NewChart.ItemCount > 0 then
         begin
-           MergeCharts(NewChart,MyClient,False, False,false);
+           MergeCharts(NewChart,MyClient,False, True,false);
 
            clLoad_Client_Files_From := '';
            clChart_Last_Updated := CurrentDate;
@@ -580,7 +648,138 @@ begin
   end;  {with}
 end;
 
-function TPracticeLedger.UploadTransactions(RequestData: TlkJSONobject;
+function TPracticeLedger.RollbackBatch(aBatchRef: string;
+  var aResponse: TlkJSONbase; var aRespStr, aError: string;
+  aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
+var
+  sURL: string;
+  JsonObject: TlkJSONObject;
+  RespStr : string;
+  RequestJson : TlkJSONobject;
+const
+  ThisMethodName = 'RollbackBatch';
+begin
+  Result := True;
+  if Trim(aBatchRef) = '' then
+    Exit;
+
+  RequestJson :=  TlkJSONobject.Create();
+  try
+    RequestJson.Add('batch_ref', aBatchRef);
+    if TypeOfTrans = ttbank then
+    begin
+      sURL := Format(PRACINI_CashbookAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+      FDataRequestType := drtRollback;
+    end
+    else
+    begin
+      sURL := Format(PRACINI_CashbookAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+      FDataRequestType := drtRollback;
+    end;
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestJson));
+
+    if not DoDeleteSecureJson(sURL, RequestJson, aResponse, RespStr, aError) then
+      Exit;
+
+    //Wait til data gets transferred completely
+    while (FDataTransferStarted) do
+      ;
+
+    aError := FDataError;
+    if Assigned(FDataResponse) then
+      aResponse := (FDataResponse as TlkJSONObject);
+    aRespStr := TlkJSON.GenerateText(aResponse);
+  except
+    on E: Exception do
+    begin
+      aError := 'Exception running PracticeLedger.RollbackBatch, Error Message : ' + E.Message;
+      LogUtil.LogMsg(lmError, UnitName, aError);
+      Exit;
+    end;
+  end;
+
+  Result := True;
+end;
+
+procedure TPracticeLedger.SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
+var
+  i, k, ToIndex: Integer;
+  stDate : TStDate;
+  SeqNo: Integer;
+  TransRec: pTransaction_Rec;
+  BA : TBank_Account ;
+
+  function GetBankAccount(aAcctNo : string):TBank_Account;
+  var
+    j: Integer;
+  begin
+    Result := nil;
+    for j := 0 to Selected.Count - 1 do
+    begin
+      if TBank_Account(Selected.Objects[j]).baFields.baBank_Account_Number =  aAcctNo then
+        Result := TBank_Account(Selected.Objects[j]);
+    end;
+  end;
+begin
+  if TypeOfTrans = ttbank then
+  begin
+    if FromIndex + MAXENTRIES > FBankAcctToExport.Transactions.Count then
+      ToIndex := FBankAcctToExport.Transactions.Count
+    else
+      ToIndex := FromIndex + MAXENTRIES;
+
+    BA := GetBankAccount(FBankAcctToExport.BankAccountNumber);
+    if Assigned(BA) then
+    begin
+      for i := FromIndex to ToIndex - 1 do
+      begin
+        stDate := DateStringToStDate('yyyy-mm-dd', FBankAcctToExport.Transactions.ItemAs(i).Date, Epoch);
+        SeqNo := FBankAcctToExport.Transactions.ItemAs(i).SequenceNo;
+
+        for k := 0 to BA.baTransaction_List.ItemCount - 1 do
+        begin
+          TransRec := BA.baTransaction_List.Transaction_At(k);
+          if ((TransRec^.txDate_Effective = stDate) and (TransRec^.txSequence_No = SeqNo)) then
+          begin
+            TransRec^.txDate_Transferred := CurrentDate;
+            TransRec^.txHas_Been_Edited := True;
+          end;
+        end;
+      end;
+    end;
+  end
+  else if TypeOfTrans = ttJournals then
+  begin
+    if FromIndex + MAXENTRIES > FJournalsData.ItemCount then
+      ToIndex := FJournalsData.ItemCount
+    else
+      ToIndex := FromIndex + MAXENTRIES;
+
+    for i := FromIndex to  ToIndex - 1 do
+    begin
+      stDate := DateStringToStDate('yyyy-mm-dd', TJournalData(FJournalsData.Items[i]).Date, Epoch);
+      SeqNo := TJournalData(FJournalsData.Items[i]).SequenceNo;
+      BA := GetBankAccount(TJournalData(FJournalsData.Items[i]).JournalAccountName);
+      
+      if Assigned(BA) then
+      begin
+        for k := 0 to BA.baTransaction_List.ItemCount - 1 do
+        begin
+          TransRec := BA.baTransaction_List.Transaction_At(k);
+          if ((TransRec^.txDate_Effective = stDate) and (TransRec^.txSequence_No = SeqNo)) then
+          begin
+            TransRec^.txDate_Transferred := CurrentDate;
+            TransRec^.txHas_Been_Edited := True;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
   var aResponse: TlkJSONbase; var aRespStr, aError: string;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
@@ -593,11 +792,16 @@ begin
   Result := False;
 
   try
-    if TypeOfTrans = ttbank then    
-      sURL := Format(PRACINI_PracticeLedgerAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected])
+    if TypeOfTrans = ttbank then
+    begin
+      sURL := Format(PRACINI_CashbookAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+      FDataRequestType := drtTransactions;
+    end
     else
-      sURL := Format(PRACINI_PracticeLedgerAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
-    FDataRequestType := drtTransactions;
+    begin
+      sURL := Format(PRACINI_CashbookAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+      FDataRequestType := drtJournals;
+    end;
 
     if DebugMe then
       LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestData));
@@ -616,7 +820,7 @@ begin
   except
     on E: Exception do
     begin
-      aError := 'Exception running PracticeLedger.Getbusinesses, Error Message : ' + E.Message;
+      aError := 'Exception running PracticeLedger.UploadToAPI, Error Message : ' + E.Message;
       LogUtil.LogMsg(lmError, UnitName, aError);
       Exit;
     end;
@@ -625,52 +829,100 @@ begin
   Result := True;
 end;
 
-procedure TPracticeLedger.UploadTransAndJournals(TypeOfTrans: TTransType);
+procedure TPracticeLedger.UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
 var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
   ErrorStr,RespStr : string;
   Response: TlkJSONbase;
+  BankAcctToExport: TBankAccountData;
+  JournalItem : TJournalData;
 begin
-  if Assigned(FBankAcctsToExport) then
+  if ((TypeOfTrans = ttbank) and Assigned(FBankAcctsToExport)) then
   begin
     for i := 0 to FBankAcctsToExport.Count - 1 do
     begin
-      FBankAcctToExport := FBankAcctsToExport.ItemAs(i);
-      if FBankAcctToExport.Transactions.Count <= 0 then
+      BankAcctToExport := FBankAcctsToExport.ItemAs(i);
+      if BankAcctToExport.Transactions.Count <= 0 then
         Continue;
 
       FromIndex := 0;
-      for j := 1 to Ceil(FBankAcctToExport.Transactions.Count / 200) do
+
+      for j := 1 to Ceil(BankAcctToExport.Transactions.Count / MAXENTRIES) do
       begin
         RequestJson :=  TlkJSONobject.Create();
         try
-
-          FBankAcctToExport.Write(RequestJson,FromIndex,200);
+          BankAcctToExport.Write(RequestJson, FromIndex, MAXENTRIES);
+          if DebugMe then
+            LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions batch exported - ' + BankAcctToExport.BatchRef);
 
           //send to api
-          if not UploadTransactions(RequestJson,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+          if not UploadToAPI(RequestJson,Response,RespStr, ErrorStr,False, TypeOfTrans) then
           begin
             LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-            HelpfulErrorMsg('Exception running PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
+            HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
+            //Rollback all batches transferred
+
+            if not RollbackBatch(BankAcctToExport.BatchRef,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+            begin
+              LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+              HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
+            end;
+
             FExportTerminated := True;
-            Break;
+            Exit;
           end;
+          SetTransferredFlag(Selected,TypeOfTrans, FromIndex);
         finally
           FreeAndNil(RequestJson);
         end;
-        FromIndex := FromIndex + 200;
+        FromIndex := FromIndex + MAXENTRIES;
       end;
+    end;
+  end
+  else if ((TypeOfTrans = ttJournals) and Assigned(FJournalsData)) then
+  begin
+    FromIndex := 0;
+    for i := 1 to Ceil(FJournalsData.ItemCount/MAXENTRIES) do
+    begin
+      RequestJson :=  TlkJSONobject.Create();
+      try
+        // Write will update a new batch ref and this will be used when
+        FJournalsData.Write(RequestJson, FromIndex, MAXENTRIES);
+        if DebugMe then
+          LogUtil.LogMsg(lmInfo, UnitName, 'PL journal batch exported - ' + FJournalsData.BatchRef);
+
+        //send to api
+        if not UploadToAPI(RequestJson,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+        begin
+          LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+          HelpfulErrorMsg('Exception in journal export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
+
+          //Rollback all batches transferred
+          if not RollbackBatch(FJournalsData.BatchRef,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+          begin
+            LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+            HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
+          end;
+
+          FExportTerminated := True;
+          Exit;
+        end;
+        SetTransferredFlag(Selected, TypeOfTrans, FromIndex);
+      finally
+        FreeAndNil(RequestJson);
+      end;
+      FromIndex := FromIndex + MAXENTRIES;
     end;
   end;
 end;
 
 initialization
   PracticeLedger:= TPracticeLedger.Create;
-
+  DebugMe := LogUtil.DebugUnit( UnitName );
+  
 finalization
   if Assigned(PracticeLedger) then
     FreeAndNil(PracticeLedger);
-
 
 end.

@@ -171,7 +171,7 @@ begin
     chkNewFormat.Checked := NewFormat;
 
     eTo.Text := ExUtil.DefaultFileName;
-    if (Myclient.clfields.clAccounting_System_Used = saBGL360) then
+    if (clAccounting_System_Used = saBGL360) then
     begin
       ExtractDir := AddSlash(ExtractFileDir(eTo.Text));
       if (ExtractDir = '') or (ExtractDir = '\') then
@@ -220,6 +220,14 @@ begin
         lblLedgerCodeToUse.Caption := clAlternate_Extract_ID
      else
         lblLedgerCodeToUse.Caption := clCode;
+    end;
+
+    if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+    begin
+      pnlSaveTo.Visible := False;
+      lblMessage.Caption := 'MYOB BankLink Practice will now export the selected entries into MYOB Online Ledger';
+      lblFormat.Caption := 'Transactions will be exported using MYOB Online Ledger API';
+      Self.Height := 275;
     end;
   end;
 
@@ -315,6 +323,12 @@ begin
       Exit;
     end;
   end; {with myclient}
+
+  if MyClient.clFields.clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+  begin
+    Result := True;
+    Exit;
+  end;
 
   if Software.UseSaveToField( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
   begin

@@ -21,7 +21,6 @@ uses
   ExtractDlg, Globals, baobj32, Software, ContraDlg, WarningMoreFrm,
   ErrorMoreFrm, LogUtil, bkConst, InfoMoreFrm, StDate, S6INI,
   classes, bkDateUtils, SysUtils, ClientHomePagefrm, ExUtil,
-
   AcclipseX,
   AccountSoftX,
   AccPacWinX,
@@ -75,7 +74,8 @@ uses
   ComObj, bk5Except,
   SupervisorX, DesktopSuperX, ProSuperX, SageHandisoftSuperX,
   RewardSuperXmlX, ClassSuperXmlX,
-  MYOBAccRightX;
+  MYOBAccRightX,
+  PracticeLedgerObj;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -235,6 +235,7 @@ begin
                   snOFXV1           : DoExtractBusinessProduct(FD, TD, Path);
                   snOFXV2           : DoExtractBusinessProduct(FD, TD, Path);
                   snMYOBAccRight    : MYOBAccRightX.ExtractData( FD, TD, Path );
+                  snMYOBOnlineLedger: PracticeLedger.ExportDataToAPI(FD, TD);
                end; { of Case }
 
             whAustralia :
@@ -292,6 +293,7 @@ begin
                   saSageHandisoftSuperfund : SageHandisoftSuperX.ExtractData( FD, TD, Path, True, True );
                   saAcclipse        : AcclipseX.ExtractData( FD, TD, Path );
                   saMYOBAccRight    : MYOBAccRightX.ExtractData( FD, TD, Path );
+                  saMYOBOnlineLedger: PracticeLedger.ExportDataToAPI(FD, TD);
                end;
 
 

@@ -24,7 +24,8 @@ const
 type
 
   TLicenceType = (ltCashbook, ltPracticeLedger);
-  TDataRequestType = (drtSignIn, drtFirm, drtBusiness, drtCOA, drtTransactions);
+  TDataRequestType = (drtSignIn, drtFirm, drtBusiness, drtCOA, drtTransactions,
+                      drtJournals,drtRollback);
   //----------------------------------------------------------------------------
   TClientMigrationState = (cmsAccessSysDB,
                            cmsAccessCltDB,
@@ -173,7 +174,9 @@ type
     function DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
                               var aResponse: TlkJSONbase; var aRespStr : string;
                               var aError: string; aEncryptToken : boolean = false): boolean;
-
+    function DoDeleteSecureJson(const aURL: string; const aRequest: TlkJSONbase;
+                              var aResponse: TlkJSONbase; var aRespStr : string;
+                              var aError: string; aEncryptToken : boolean = false): boolean;
     function DoUploadHttpSecure(const aVerb: string; const aURL: string;
                                 const aHeaders: THttpHeaders; const aRequest: string;
                                 var aResponse: string; var aError: string): boolean;
@@ -581,6 +584,61 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCashbookMigration.DoDeleteSecureJson(const aURL: string;
+  const aRequest: TlkJSONbase; var aResponse: TlkJSONbase; var aRespStr,
+  aError: string; aEncryptToken: boolean): boolean;
+var
+  sVerb: string;
+  Headers: THttpHeaders;
+  sRequest: string;
+  JSONData : TStringList;
+begin
+  Result := false;
+
+  aResponse := nil;
+
+  try
+    // Verb
+    sVerb := 'DELETE';
+
+    // Headers
+    Headers.ContentType := CASHBOOK_CONTENT_TYPE;
+    Headers.Accept := CASHBOOK_ACCEPT;
+
+    if aEncryptToken then
+    begin
+      Headers.Authorization := CASHBOOK_AUTH_PREFIX + fToken;
+      Headers.MyobApiAccessToken := fToken;
+    end
+    else
+    begin
+      Headers.Authorization := CASHBOOK_AUTH_PREFIX + fUnEncryptedToken;
+      Headers.MyobApiAccessToken := fUnEncryptedToken;
+    end;
+    // Body
+    if Assigned(aRequest) then
+    begin
+      sRequest := TlkJSON.GenerateText(aRequest);
+      fClientDataSize := length(sRequest);
+    end;
+
+    // Http
+    if not DoHttpSecure(sVerb, aURL, Headers, sRequest, aRespStr, aError) then
+      Exit;
+
+  except
+    on E: Exception do
+    begin
+      FreeAndNil(aResponse);
+
+      aError := E.Message;
+      Exit;
+    end;
+  end;
+
+  Result := True;
+end;
+
 procedure TCashbookMigration.DoHttpConnected(Sender     : TObject;
                                              StatusCode : Integer;
                                              const Description : String);
@@ -681,7 +739,7 @@ begin
   Response := nil;
   try
     try
-      sURL := PRACINI_PracticeLedgerAPIBusinessesURL;
+      sURL := PRACINI_CashbookAPIBusinessesURL;
       FDataRequestType := drtBusiness;
 
       if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
@@ -759,7 +817,7 @@ begin
   Response := nil;
   try
     try
-      sURL := Format(PRACINI_PracticeLedgerAPICOAURL,[aBusinessID]);
+      sURL := Format(PRACINI_CashbookAPICOAURL,[aBusinessID]);
       FDataRequestType := drtCOA;
 
       if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
@@ -2177,6 +2235,26 @@ begin
          not (FDataResponse is TlkJSONObject) then
       begin
         FDataError := 'Error running PracticeLedger.UploadTransaction, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtJournals:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'Error running PracticeLedger.UploadJournals, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtRollback:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'Error running PracticeLedger.Rollback Batch, Error Message : No response from Server.';
         LogUtil.LogMsg(lmError, UnitName, FDataError);
         Exit;
       end;

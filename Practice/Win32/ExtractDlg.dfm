@@ -179,8 +179,6 @@ object dlgExtract: TdlgExtract
     Caption = ' '
     ParentBackground = False
     TabOrder = 3
-    ExplicitTop = 328
-    ExplicitWidth = 371
     DesignSize = (
       538
       41)

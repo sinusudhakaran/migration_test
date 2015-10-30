@@ -74,7 +74,7 @@ type
     fPayeeNumber: integer;
     fJobCode: string;
   public
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject;IsDirectAPI:Boolean=False);
 
     property AccountNumber : string read fAccountNumber write fAccountNumber;
     property Amount : integer read fAmount write fAmount;
@@ -97,7 +97,8 @@ type
   public
     function ItemAs(aIndex : integer) : TLineData;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject);overload;
+    procedure Write(const aJson: TlkJSONobject; FromIndex,ItemCount:Integer);overload;
   end;
 
   //----------------------------------------------------------------------------
@@ -108,17 +109,22 @@ type
     fReference   : string;
 
     fLines : TLinesData;
+    FSequenceNo: Integer;
+    FJournalAccountName: string;
   public
     constructor Create(); reintroduce; overload;
     destructor Destroy; override;
 
-    procedure Write(const aJson: TlkJSONobject);
+    procedure Write(const aJson: TlkJSONobject);overload;
+    procedure Write(const aJson: TlkJSONobject;FromIndex,ItemCount:Integer);overload;
 
     property Date : string read fDate write fDate;
     property Description : string read fDescription write fDescription;
     property Reference : string read fReference write fReference;
 
     property Lines : TLinesData read fLines write fLines;
+    property SequenceNo: Integer read FSequenceNo write FSequenceNo;
+    property JournalAccountName : string read FJournalAccountName write FJournalAccountName;
   end;
 
   //----------------------------------------------------------------------------
@@ -127,6 +133,7 @@ type
   //----------------------------------------------------------------------------
   TJournalsData = class(TExtdSortedCollection)
   private
+    FBatchRef : string;
   protected
     procedure FreeItem( Item : Pointer ); override;
   public
@@ -137,6 +144,9 @@ type
 
     procedure Write(const aJson: TlkJSONobject);overload;
     procedure Write(const aJson: TlkJSONobject;FromIndex, JournalCount: Integer);overload;
+    procedure WriteAJournal(const aJson: TlkJSONobject;JournalIndex, FromIndex, JournalCount: Integer);overload;
+
+    property BatchRef : string read FBatchRef write FBatchRef;
   end;
 
   //----------------------------------------------------------------------------
@@ -188,6 +198,7 @@ type
     fJobCode: string;
 
     fAllocations : TAllocationsData;
+    FSequenceNo : Integer; // Temporary storage. No need to send the data to api
   public
     constructor Create(Collection: TCollection); override;
     destructor  Destroy; override;
@@ -204,6 +215,7 @@ type
     property JobCode: string read fJobCode write fJobCode;
 
     property Allocations : TAllocationsData read fAllocations write fAllocations;
+    property SequenceNo : Integer read FSequenceNo write FSequenceNo;
   end;
 
   //----------------------------------------------------------------------------
@@ -223,7 +235,7 @@ type
   TBankAccountData = class(TCollectionItem)
   private
     fBankAccountNumber : string;
-
+    FBatchRef : string;
     fTransactions : TTransactionsData;
   public
     constructor Create(Collection: TCollection); override;
@@ -233,6 +245,7 @@ type
     procedure Write(const aJson: TlkJSONobject;FromIndex, TransCount: Integer);overload;
 
     property BankAccountNumber : string read fBankAccountNumber write fBankAccountNumber;
+    property BatchRef : string read FBatchRef write FBatchRef;
     property Transactions : TTransactionsData read fTransactions write fTransactions;
   end;
 
@@ -243,6 +256,7 @@ type
     function ItemAs(aIndex : integer) : TBankAccountData;
 
     procedure Write(const aJson: TlkJSONobject);
+    procedure WriteABankAccount(const aJson: TlkJSONobject;BankIndex, FromIndex, TransCount : Integer);
 
     function  PayeeExists(const aPayeeNumber: integer): boolean;
     function  JobExists(const aJobCode: string): boolean;
@@ -642,7 +656,9 @@ uses
   LogUtil,
   ZlibExGZ,
   Globals,
-  ZipUtils;
+  ZipUtils,
+  StDateSt,
+  bkdateutils;
 
 const
   UnitName = 'CashbookMigrationRestData';
@@ -653,7 +669,7 @@ var
 function CompareNames(Item1, Item2: Pointer): Integer;
 begin
   Result := CompareText(TBusinessData(Item1).Name, TBusinessData(Item2).Name)
-end;  
+end;
 { TListDestroy }
 //------------------------------------------------------------------------------
 procedure TListDestroy.Notify(Ptr: Pointer; Action: TListNotification);
@@ -741,21 +757,34 @@ end;
 
 { TLineData }
 //------------------------------------------------------------------------------
-procedure TLineData.Write(const aJson: TlkJSONobject);
+procedure TLineData.Write(const aJson: TlkJSONobject;IsDirectAPI:Boolean=False);
 begin
-  aJson.Add('AccountNumber', AccountNumber);
-  aJson.Add('Amount', (abs(Amount)-abs(TaxAmount)));
+  if IsDirectAPI then
+  begin
+    aJson.Add('account_number', AccountNumber);
+    aJson.Add('amount', (abs(Amount)-abs(TaxAmount)));
 
-  aJson.Add('Description', Description);
-  aJson.Add('Reference', Reference);
-  aJson.Add('TaxRate', TaxRate);
-  aJson.Add('TaxAmount', abs(TaxAmount) );
+    aJson.Add('description', Description);
+    aJson.Add('tax_rate', TaxRate);
+    aJson.Add('tax_amount', abs(TaxAmount) );
+    aJson.Add('is_credit', IsCredit);
+  end
+  else
+  begin
+    aJson.Add('AccountNumber', AccountNumber);
+    aJson.Add('Amount', (abs(Amount)-abs(TaxAmount)));
 
-  aJson.Add('IsCredit', IsCredit);
+    aJson.Add('Description', Description);
+    aJson.Add('Reference', Reference);
+    aJson.Add('TaxRate', TaxRate);
+    aJson.Add('TaxAmount', abs(TaxAmount) );
 
-  aJson.Add('Quantity', Quantity);
-  aJson.Add('PayeeNumber', PayeeNumber);
-  aJson.Add('JobCode', JobCode);
+    aJson.Add('IsCredit', IsCredit);
+
+    aJson.Add('Quantity', Quantity);
+    aJson.Add('PayeeNumber', PayeeNumber);
+    aJson.Add('JobCode', JobCode);
+  end;
 end;
 
 { TLinesData }
@@ -805,6 +834,16 @@ begin
   inherited;
 end;
 
+procedure TJournalData.Write(const aJson: TlkJSONobject; FromIndex,
+  ItemCount: Integer);
+begin
+  aJson.Add('date', Date);
+  aJson.Add('description', Description);
+  aJson.Add('reference_id', Reference);
+
+  Lines.Write(aJson,FromIndex, ItemCount);
+end;
+
 //------------------------------------------------------------------------------
 procedure TJournalData.Write(const aJson: TlkJSONobject);
 begin
@@ -826,12 +865,12 @@ end;
 //------------------------------------------------------------------------------
 function TJournalsData.Compare(aItem1, aItem2: Pointer): Integer;
 begin
-  if TJournalData(aItem1^).Date < TJournalData(aItem2^).Date then
-    result := -1
-  else if TJournalData(aItem1^).Date > TJournalData(aItem2^).Date then
-    result := 1
+  if DateStringToStDate('yyyy-mm-dd', TJournalData(aItem1).Date, Epoch) < DateStringToStDate('yyyy-mm-dd', TJournalData(aItem2).Date, Epoch) then
+    Result := -1
+  else if DateStringToStDate('yyyy-mm-dd', TJournalData(aItem1).Date, Epoch) > DateStringToStDate('yyyy-mm-dd', TJournalData(aItem2).Date, Epoch) then
+    Result := 1
   else
-    result := 0;
+    Result := 0;
 end;
 
 //------------------------------------------------------------------------------
@@ -867,7 +906,13 @@ begin
     ToIndex := FromIndex + JournalCount;
 
   Journals := TlkJSONlist.Create;
-  aJson.Add('generaljournals', Journals);
+
+  FBatchRef := 'JOUR-' + FormatdateTime('ddmmyyyyhhnnss',Now);
+  if Assigned(MyClient) then
+    FBatchRef := MyClient.clFields.clName + '-' + FormatdateTime('ddmmyyyyhhnnss',Now);
+
+  aJson.Add('batch_ref', FBatchRef);
+  aJson.Add('general_journals', Journals);
 
   for i := FromIndex to ToIndex - 1 do
   begin
@@ -875,8 +920,36 @@ begin
     Journals.Add(JournalData);
 
     Journal := ItemAs(Items[i]);
-    Journal.Write(JournalData);
+    if Assigned(Journal) then
+      Journal.Write(JournalData,FromIndex, Journal.Lines.Count); //JournalCount);
   end;
+end;
+
+procedure TJournalsData.WriteAJournal(const aJson: TlkJSONobject; JournalIndex,
+  FromIndex, JournalCount: Integer);
+var
+  Journals: TlkJSONlist;
+  i: integer;
+  JournalObj : TJournalData;
+  JournalData : TlkJSONobject;
+begin
+  if Self.ItemCount = 0 then
+    Exit;
+
+  if FromIndex > ItemCount then
+    Exit;
+
+  JournalObj := ItemAs(Items[JournalIndex]);
+  Journals := TlkJSONlist.Create;
+  JournalData := TlkJSONobject.Create;
+  Journals.Add(JournalData);
+
+  FBatchRef := 'JOUR' + FormatdateTime('ddmmyyyyhhnnss',Now);
+  aJson.Add('batch_ref', FBatchRef);
+  aJson.Add('general_journals', Journals);
+
+  if Assigned(JournalObj) then
+    JournalObj.Write(JournalData, FromIndex, JournalObj.Lines.Count);//JournalCount);
 end;
 
 //------------------------------------------------------------------------------
@@ -1194,7 +1267,13 @@ end;
 procedure TBankAccountData.Write(const aJson: TlkJSONobject; FromIndex,
   TransCount: Integer);
 begin
+  FBatchRef := 'BA' + FormatdateTime('ddmmyyyyhhnnss',Now);
+  if Assigned(MyClient) then
+    FBatchRef := MyClient.clFields.clName + '-' + FormatdateTime('ddmmyyyyhhnnss',Now);
+
+  aJson.Add('batch_ref', FBatchRef);
   aJson.Add('bank_account_number', BankAccountNumber);
+
   Transactions.Write(aJson, FromIndex, TransCount);
 end;
 
@@ -1247,6 +1326,35 @@ begin
     BankAccount := ItemAs(BankAccountIndex);
     BankAccount.Write(BankAccountData);
   end;
+end;
+
+procedure TBankAccountsData.WriteABankAccount(const aJson: TlkJSONobject;
+  BankIndex, FromIndex, TransCount: Integer);
+var
+  BankAccounts: TlkJSONlist;
+  BankAccountObj : TBankAccountData;
+  BankAccountData : TlkJSONobject;
+  AllBankAccountsEmpty : boolean;
+  i: Integer;
+begin
+  if (Self.Count = 0) then
+    Exit;
+
+  AllBankAccountsEmpty := true;
+  for i := 0 to Self.Count-1 do
+    if ItemAs(i).Transactions.Count > 0 then
+      AllBankAccountsEmpty := false;
+
+  if AllBankAccountsEmpty then
+    Exit;
+
+  BankAccountObj := ItemAs(BankIndex);
+  BankAccounts := TlkJSONlist.Create;
+  BankAccountData := TlkJSONobject.Create;
+  aJson.Add('', BankAccounts);
+
+  BankAccounts.Add(BankAccountData);
+  BankAccountObj.Write(BankAccountData, FromIndex, TransCount);
 end;
 
 //------------------------------------------------------------------------------
@@ -2040,6 +2148,42 @@ begin
       Add(Business);
   end;
   Self.Sort(CompareNames);
+end;
+
+procedure TLinesData.Write(const aJson: TlkJSONobject; FromIndex,
+  ItemCount: Integer);
+var
+  Lines: TlkJSONlist;
+  i, ToIndex : integer;
+  Line : TLineData;
+  LineData : TlkJSONobject;
+begin
+  if Self.Count = 0 then
+    Exit;
+
+  // this write function is used for direct api write.
+  if Self.Count = 0 then
+    Exit;
+
+  if FromIndex > Count then
+    Exit;
+
+  if FromIndex + ItemCount > Count then
+    ToIndex := Count
+  else
+    ToIndex := FromIndex + ItemCount;
+
+  Lines := TlkJSONlist.Create;
+  aJson.Add('lines', Lines);
+
+  for i := FromIndex to ToIndex-1 do
+  begin
+    LineData := TlkJSONobject.Create;
+    Lines.Add(LineData);
+
+    Line := ItemAs(i);
+    Line.Write(LineData, True);
+  end;
 end;
 
 initialization

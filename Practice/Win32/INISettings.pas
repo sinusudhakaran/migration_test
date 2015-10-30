@@ -729,10 +729,11 @@ begin
         PRACINI_CashbookAPIUploadURL       := ReadString(GrpPracLinks,'CashbookAPIUploadURL', TUrls.CashbookAPIUploadURL);
         PRACINI_CashbookAPIUploadDataStore := ReadString(GrpPracLinks,'CashbookAPIUploadDataStore', 'assetsmigrationstore-prod');
         PRACINI_CashbookAPIUploadQueue     := ReadString(GrpPracLinks,'CashbookAPIUploadQueue', 'Production-Banklink-SQS');
-        PRACINI_PracticeLedgerAPIBusinessesURL := ReadString(GrpPracLinks,'PracticeLedgerAPIBusinessesURL', TUrls.PracticeLedgerAPIBusinessesURL);
-        PRACINI_PracticeLedgerAPITransactionsURL := ReadString(GrpPracLinks,'PracticeLedgerAPITransactionsURL', TUrls.PracticeLedgerAPITransactionsURL);
-        PRACINI_PracticeLedgerAPIJournalsURL := ReadString(GrpPracLinks,'PracticeLedgerAPIJournalsURL', TUrls.PracticeLedgerAPIJournalsURL);
-        PRACINI_PracticeLedgerAPICOAURL := ReadString(GrpPracLinks,'PracticeLedgerAPICOAURL', TUrls.PracticeLedgerAPICOAURL);
+        
+        PRACINI_CashbookAPIBusinessesURL := ReadString(GrpPracLinks,'CashbookAPIBusinessesURL', TUrls.CashbookAPIBusinessesURL);
+        PRACINI_CashbookAPITransactionsURL := ReadString(GrpPracLinks,'CashbookAPITransactionsURL', TUrls.CashbookAPITransactionsURL);
+        PRACINI_CashbookAPIJournalsURL := ReadString(GrpPracLinks,'CashbookAPIJournalsURL', TUrls.CashbookAPIJournalsURL);
+        PRACINI_CashbookAPICOAURL := ReadString(GrpPracLinks,'CashbookAPICOAURL', TUrls.CashbookAPICOAURL);
 
         PRACINI_CashbookModifiedCodeCount  := ReadInteger( GrpPracInfo, 'CashbookModifiedCodeCount', 0);
 

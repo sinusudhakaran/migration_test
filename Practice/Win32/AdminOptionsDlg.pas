@@ -225,9 +225,17 @@ uses
   UpgradeHelper,
   LockUtils,
   //ReportStylesDlg,
-  ChangePwdDlg, EnterPwdDlg, bkdateutils,
+  ChangePwdDlg,
+  EnterPwdDlg,
+  bkdateutils,
   Registry,
-  StrUtils, LOGUTIL, bkBranding, bkProduct, myMYOBSignInFrm, PracticeLedgerObj;
+  StrUtils,
+  LOGUTIL,
+  bkBranding,
+  bkProduct,
+  myMYOBSignInFrm,
+  PracticeLedgerObj,
+  Files;
 
 {$R *.dfm}
 
@@ -956,9 +964,9 @@ begin
   btnReportPwd.Enabled := chkReportPwd.Checked;
 
   if not (CheckFormyMYOBTokens) then
-    btnConnectMYOB.Caption := 'my.MYOB Sign In'
+    btnConnectMYOB.Caption := 'MYOB Login'
   else
-    btnConnectMYOB.Caption := 'Select my.MYOB Firm';
+    btnConnectMYOB.Caption := 'Select MYOB Firm';
 
   if Assigned(AdminSystem) then
   begin
@@ -1111,6 +1119,14 @@ begin
       FFirmChanged := True;
       FFirmID := SignInFrm.SelectedID;
       FFirmName := SignInFrm.SelectedName;
+      NeedToClearMYOBClient := True;
+      if Assigned(MyClient) then
+      begin
+        NeedToClearMYOBClient := False;
+        MyClient.clExtra.cemyMYOBClientIDSelected := '';
+        MyClient.clExtra.cemyMYOBClientNameSelected := '';
+        SaveClient(false);
+      end;
     end;
 
     if Trim(FFirmName) = '' then
@@ -1119,9 +1135,9 @@ begin
       lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ FFirmName;
 
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+      btnConnectMYOB.Caption := 'MYOB Login'
     else
-      btnConnectMYOB.Caption := 'Select my.MYOB Firm';
+      btnConnectMYOB.Caption := 'Select MYOB Firm';
   finally
     FreeAndNil(SignInFrm);
     Screen.Cursor := OldCursor;

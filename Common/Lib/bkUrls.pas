@@ -21,11 +21,13 @@ type
     class function DefaultCashbookLoginAUURL : String; static;
     class function CashbookAPILoginURL : String; static;
     class function CashbookAPIFirmsURL : String; static;
-    class function PracticeLedgerAPIBusinessesURL : String; static;
-    class function PracticeLedgerAPITransactionsURL: string; static;
-    class function PracticeLedgerAPIJournalsURL : string; static;
+
+    class function CashbookAPIBusinessesURL : String; static;
+    class function CashbookAPITransactionsURL: string; static;
+    class function CashbookAPIJournalsURL : string; static;
+    class function CashbookAPICOAURL : String; static;
+
     class function CashbookAPIUploadURL : String; static;
-    class function PracticeLedgerAPICOAURL : String; static;
 
     class function DefaultNZCatalogServer: String; static;
     class function DefaultAUCatalogServer: String; static;
@@ -321,22 +323,22 @@ begin
   end;
 end;
 
-class function TUrls.PracticeLedgerAPIBusinessesURL: String;
+class function TUrls.CashbookAPIBusinessesURL: String;
 begin
   Result := 'https://cashbook.myob.com.au/api/businesses';
 end;
 
-class function TUrls.PracticeLedgerAPICOAURL: String;
+class function TUrls.CashbookAPICOAURL: String;
 begin
   Result := 'https://cashbook.myob.com.au/api/businesses/%s/accounts';
 end;
 
-class function TUrls.PracticeLedgerAPIJournalsURL: string;
+class function TUrls.CashbookAPIJournalsURL: string;
 begin
-
+  Result := 'https://cashbook.myob.com.au/api/businesses/%s/general_journals';
 end;
 
-class function TUrls.PracticeLedgerAPITransactionsURL: string;
+class function TUrls.CashbookAPITransactionsURL: string;
 begin
   Result := 'https://cashbook.myob.com.au/api/businesses/%s/bank_transactions';
 end;

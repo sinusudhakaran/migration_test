@@ -276,7 +276,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Width = 165
       Height = 27
       Anchors = [akLeft, akBottom]
-      Caption = 'my.MYOB Sign in'
+      Caption = 'MYOB Login'
       TabOrder = 9
       OnClick = btnConnectMYOBClick
     end

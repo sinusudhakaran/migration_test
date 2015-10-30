@@ -500,15 +500,15 @@ begin
   else if SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
   begin
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+      btnConnectMYOB.Caption := 'MYOB Login'
     else
-      btnConnectMYOB.Caption := 'Select my.MYOB Client';
+      btnConnectMYOB.Caption := 'Select MYOB Client';
 
     lblFirmName.Caption := 'No Firm selected';
     lblFirmName.Font.Color := clRed;
     if (Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmName)<>'')) then
     begin
-      lblFirmName.Caption := 'my.MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
+      lblFirmName.Caption := 'MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
       lblFirmName.Font.Color := clWindowText;
     end;
 
@@ -517,7 +517,7 @@ begin
 
     if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
     begin
-      lblPLClientName.Caption := 'my.MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
+      lblPLClientName.Caption := 'MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
       lblPLClientName.Font.Color := clWindowText;
     end;
   end;
@@ -774,10 +774,10 @@ begin
               if not RefreshYourChart then
               begin
                 HelpfulErrorMsg('Refresh Chart can not be done.',
-                    0, false, 'Refresh Chart can not be done due to invalid access tokens. Need a sign in to my.MYOB again to fix the problem', true);
+                    0, false, 'Refresh Chart can not be done due to invalid access tokens. Need a sign in to MYOB again to fix the problem', true);
 
                 if DebugMe then
-                  LogUtil.LogMsg(lmDebug, UnitName, 'Refresh Chart failed due to invalid access tokens. Need a sign in to my.MYOB again.');
+                  LogUtil.LogMsg(lmDebug, UnitName, 'Refresh Chart failed due to invalid access tokens. Need a sign in to MYOB again.');
               end;
             end;
             
@@ -1198,7 +1198,7 @@ var
 begin
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
   begin
-    HelpfulErrorMsg('No my.MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
+    HelpfulErrorMsg('No MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
     Exit;
   end;
 
@@ -1229,19 +1229,19 @@ begin
 
     lblFirmName.Caption := 'No Firm selected';
     if (Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmName)<>'')) then
-      lblFirmName.Caption := 'my.MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
+      lblFirmName.Caption := 'MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
 
     lblPLClientName.Caption := 'No Client selected';
     if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
     begin
-      lblPLClientName.Caption := 'my.MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
+      lblPLClientName.Caption := 'MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
       lblPLClientName.Font.Color := clWindowText;
     end;
 
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+      btnConnectMYOB.Caption := 'MYOB Sign In'
     else
-      btnConnectMYOB.Caption := 'Select my.MYOB Client';
+      btnConnectMYOB.Caption := 'Select MYOB Client';
   finally
     FreeAndNil(SignInFrm);
     Screen.Cursor := OldCursor;

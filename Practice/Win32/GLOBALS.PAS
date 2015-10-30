@@ -652,10 +652,10 @@ var
     PRACINI_CashbookAPILoginSecret           : String = '';
     PRACINI_CashbookAPILoginScope            : String = '';
     PRACINI_CashbookAPIFirmsURL              : String = '';
-    PRACINI_PracticeLedgerAPIBusinessesURL   : String = '';
-    PRACINI_PracticeLedgerAPITransactionsURL : String = '';
-    PRACINI_PracticeLedgerAPIJournalsURL     : string = '';
-    PRACINI_PracticeLedgerAPICOAURL          : String = '';
+    PRACINI_CashbookAPIBusinessesURL   : String = '';
+    PRACINI_CashbookAPITransactionsURL : String = '';
+    PRACINI_CashbookAPIJournalsURL     : string = '';
+    PRACINI_CashbookAPICOAURL          : String = '';
     PRACINI_CashbookAPIUploadURL             : String = '';
     PRACINI_CashbookAPIUploadDataStore       : String = '';
     PRACINI_CashbookAPIUploadQueue           : String = '';
@@ -746,7 +746,6 @@ const
     INI_LeanEngage_System_Switch : string = cLeanEngage_ProdSwitch;
   {$endif}{ifdef DEBUG}
 
-
 Type
     TMemsSupportOptions = (meiFullfunctionality,
                            meiResetMems,
@@ -756,7 +755,7 @@ Type
 
   TTransactionTypes = (ttDistribution, ttDividend, ttInterest, ttShareTrade, ttOtherTx );
 
-Var
+var
     MEMSINI_SupportOptions : TMemsSupportOptions;
 
     // Remember email details in case it fails
@@ -771,8 +770,8 @@ Var
 
     //BankLink Online - Pracice global setting
     UseBankLinkOnline: Boolean = False;
-
-//******************************************************************************
+    NeedToClearMYOBClient : Boolean = False;
+//** ****************************************************************************
 implementation
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -96,7 +96,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Top = 117
       Width = 125
       Height = 25
-      Caption = 'my.MYOB Sign in'
+      Caption = 'MYOB login'
       Default = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
