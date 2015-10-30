@@ -894,6 +894,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsCapitalGains: TTabSheet
         Caption = 'Capital Gains'
         ImageIndex = -1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblCGTConcession: TLabel
           Left = 6
           Top = 86
@@ -1280,6 +1284,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsForeignIncome: TTabSheet
         Caption = 'Foreign Income'
         ImageIndex = -1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblAssessableForeignSourceIncome: TLabel
           Left = 6
           Top = 6
@@ -1694,6 +1702,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsNonCashCapitalGains: TTabSheet
         Caption = 'Non-Cash Capital Gains/Losses'
         ImageIndex = -1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lpCGTCapitalLosses: TLabel
           Left = 393
           Top = 84
@@ -2298,7 +2310,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     Left = 672
     Top = 8
     Bitmap = {
-      494C010105001800280010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010105001800300010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

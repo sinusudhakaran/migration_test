@@ -501,9 +501,14 @@ begin
                                    txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
                                    txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
                                    txTransaction_Extension^.teSF_Share_Brokerage,
-                                   txTransaction_Extension^.teSF_Share_Consideration,
+//                                   txTransaction_Extension^.teSF_Share_Consideration,
                                    txTransaction_Extension^.teSF_Share_GST_Amount,
                                    MemorisationLine);
+
+                     if MemorisationLine.mlSF_Share_Brokerage <> 0 then
+                       txTransaction_Extension^.teSF_Share_Consideration :=
+                         CalcShareConsideration( txAmount, txTransaction_Extension^.teSF_Share_Consideration );
+
                      txSF_Super_Fields_Edited  := True;
                   end else begin
                      ClearSuperFundFields(aTransaction);
@@ -632,9 +637,14 @@ begin
                                    dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method,
                                    dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses,
                                    dsDissection_Extension^.deSF_Share_Brokerage,
-                                   dsDissection_Extension^.deSF_Share_Consideration,
+//                                   dsDissection_Extension^.deSF_Share_Consideration,
                                    dsDissection_Extension^.deSF_Share_GST_Amount,
                                    MemorisationLine);
+
+                             if MemorisationLine.mlSF_Share_Brokerage <> 0 then
+                               MemorisationLine.mlSF_Share_Brokerage :=
+                                 CalcShareConsideration( dsAmount, MemorisationLine.mlSF_Share_Brokerage );
+
                              dsSF_Super_Fields_Edited  := True;
                           end;
 

@@ -4830,7 +4830,6 @@ begin
             txTransaction_Extension^.teSF_Share_GST_Rate                       :=
               PayeeLine.plSF_Share_GST_Rate;
 
-
              if PayeeLine.plQuantity <> 0 then
                 txQuantity := PayeeLine.plQuantity;
 
@@ -4873,9 +4872,12 @@ begin
                           txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method,
                           txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses,
                           txTransaction_Extension^.teSF_Share_Brokerage,
-                          txTransaction_Extension^.teSF_Share_Consideration,
+//                          txTransaction_Extension^.teSF_Share_Consideration,
                           txTransaction_Extension^.teSF_Share_GST_Amount,
                           PayeeLine);
+
+            if PayeeLine.plSF_Share_Brokerage <> 0 then
+              txTransaction_Extension^.teSF_Share_Consideration := CalcShareConsideration( txAmount, txTransaction_Extension^.teSF_Share_Brokerage );
 
              txSF_Super_Fields_Edited  := True;
           end else begin
@@ -4997,9 +4999,15 @@ begin
                                dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method,
                                dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses,
                                dsDissection_Extension^.deSF_Share_Brokerage,
-                               dsDissection_Extension^.deSF_Share_Consideration,
+//                               dsDissection_Extension^.deSF_Share_Consideration,
                                dsDissection_Extension^.deSF_Share_GST_Amount,
                                PayeeLine);
+
+                  if PayeeLine.plSF_Share_Brokerage <> 0 then
+                    dsDissection_Extension^.deSF_Share_Consideration :=
+                      CalcShareConsideration( txAmount, dsDissection_Extension^.deSF_Share_Brokerage );
+
+
                   dsSF_Super_Fields_Edited  := True;
                end;
 

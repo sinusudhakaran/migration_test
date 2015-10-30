@@ -4243,9 +4243,13 @@ begin
                           dtSF_Non_Cash_CGT_Other_Method,
                           dtSF_Non_Cash_CGT_Capital_Losses,
                           dtSF_Share_Brokerage,
-                          dtSF_Share_Consideration,
+//                          dtSF_Share_Consideration,
                           dtSF_Share_GST_Amount,
                           PayeeLine);
+
+              if PayeeLine.plSF_Share_Brokerage <> 0 then
+                dtSF_Share_Consideration :=
+                  CalcShareConsideration( dtAmount, dtSF_Share_Brokerage );
 
              dtSuper_Fields_Edited  := True;
           end else begin
@@ -4404,9 +4408,13 @@ begin
                           pDissectRec.dtSF_Non_Cash_CGT_Other_Method,
                           pDissectRec.dtSF_Non_Cash_CGT_Capital_Losses,
                           pDissectRec.dtSF_Share_Brokerage,
-                          pDissectRec.dtSF_Share_Consideration,
+//                          pDissectRec.dtSF_Share_Consideration,
                           pDissectRec.dtSF_Share_GST_Amount,
                           PayeeLine);
+
+                if PayeeLine.plSF_Share_Brokerage <> 0 then
+                  pDissectRec.dtSF_Share_Consideration :=
+                    CalcShareConsideration( pDissectRec.dtAmount, pDissectRec.dtSF_Share_Brokerage );
 
                 pDissectRec.dtSuper_Fields_Edited  := True;
              end else begin

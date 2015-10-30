@@ -1529,6 +1529,11 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
         lblRecordDate.Caption := 'Settlement Date';
         lblCashDate.Left      := 490;
         lblRecordDate.Left    := 490;
+
+        lblShareConsideration.Visible := not MemOnly;
+        lpShareConsideration.Visible  := not MemOnly;
+        nfShareConsideration.Visible  := not MemOnly;
+
         SetFields( [ lblAccrualDate, eAccrualDate ], false );
         Configure_ShareTrade;
       end;
@@ -1670,11 +1675,17 @@ end;
 
 procedure TdlgEditBGLSF360Fields.nfShareBrokerageChange(Sender: TObject);
 begin
-  if not ShareConsiderationModified then
-    if FActualAmount <= 0 then // Transaction is a disposal
-      nfShareConsideration.AsFloat := Money2Double( abs( FActualAmount ) ) + nfShareBrokerage.AsFloat
-    else                       // Transaction is a purchase
-      nfShareConsideration.AsFloat := Money2Double( abs( FActualAmount ) ) - nfShareBrokerage.AsFloat
+  if (not ShareConsiderationModified) or ( MemOnly ) then
+    if FrankPercentage then
+      if FActualAmount <= 0 then // Transaction is a disposal
+        nfShareConsideration.AsFloat := Percent2Double( abs( FActualAmount ) ) + nfShareBrokerage.AsFloat
+      else                       // Transaction is a purchase
+        nfShareConsideration.AsFloat := Percent2Double( abs( FActualAmount ) ) - nfShareBrokerage.AsFloat
+    else
+      if FActualAmount <= 0 then // Transaction is a disposal
+        nfShareConsideration.AsFloat := Money2Double( abs( FActualAmount ) ) + nfShareBrokerage.AsFloat
+      else                       // Transaction is a purchase
+        nfShareConsideration.AsFloat := Money2Double( abs( FActualAmount ) ) - nfShareBrokerage.AsFloat
 end;
 
 procedure TdlgEditBGLSF360Fields.nfShareConsiderationChange(Sender: TObject);

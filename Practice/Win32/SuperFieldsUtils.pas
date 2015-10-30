@@ -131,13 +131,15 @@ type
   function EditSuperFields(  ParentTrans : pTransaction_Rec; var Mem : TmemSplitRec;
                              var Move: TFundNavigation; var T, L: Integer;
                              aSDMode : TSuperDialogMode;
-                             BA: TBank_Account = nil 
+                             BA: TBank_Account = nil
                              ) : boolean; overload;
 
   function CompanyTax(ForDate: Integer): Money;
 
   procedure CalcFrankAmount(const Amount: Double; var SetFrank, GetFrank: Double); overload;
   procedure CalcFrankAmount(const Amount: Double; SetFrank, GetFrank: TOvcNumericField); overload;
+
+  function CalcShareConsideration(Value: Money; Rate: Money) : Money;
 
   function FrankingCredit(Amount: Money; ForDate: Integer): Money;
 
@@ -161,7 +163,7 @@ type
          AU_Franking_Credits_NZ_Co, TFN_Credits{ TFN Amounts Withheld },
          Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
          Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
-         Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+         Share_Brokerage, (* Share_Consideration, *)Share_GST_Amount : Money;
          Line: pMemorisation_Line_Rec); overload;
 
    procedure SplitRevenue(Amount: Money;
@@ -174,7 +176,7 @@ type
          AU_Franking_Credits_NZ_Co, TFN_Credits{ TFN Amounts Withheld },
          Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
          Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
-         Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+         Share_Brokerage, (*Share_Consideration, *)Share_GST_Amount : Money;
          Line: pPayee_Line_Rec); overload;
 
 
@@ -197,7 +199,7 @@ procedure SplitRevenue(Amount: Money;
          AU_Franking_Credits_NZ_Co, TFN_Credits{ TFN Amounts Withheld },
          Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
          Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
-         Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+         Share_Brokerage, (* Share_Consideration, *)Share_GST_Amount : Money;
          Line: pMemorisation_Line_Rec); 
 var
   TotalRate,
@@ -255,7 +257,7 @@ begin
       MakeAmount(Non_Cash_CGT_Other_Method, Line.mlSF_Non_Cash_CGT_Other_Method);
       MakeAmount(Non_Cash_CGT_Capital_Losses, Line.mlSF_Non_Cash_CGT_Capital_Losses);
       MakeAmount(Share_Brokerage, Line.mlSF_Share_Brokerage);
-      MakeAmount(Share_Consideration, Line.mlSF_Share_Consideration);
+//      MakeAmount(Share_Consideration, Line.mlSF_Share_Consideration);
       MakeAmount(Share_GST_Amount, Line.mlSF_Share_GST_Amount);
    {end else begin
       // Just use the amounts...
@@ -285,25 +287,25 @@ procedure SplitRevenue(Amount: Money;
        AU_Franking_Credits_NZ_Co, TFN_Credits, // TFN Amounts Withheld
        Non_Res_Witholding_Tax, LIC_Deductions, Non_Cash_CGT_Discounted_Before_Discount,
        Non_Cash_CGT_Indexation, Non_Cash_CGT_Other_Method, Non_Cash_CGT_Capital_Losses,
-       Share_Brokerage, Share_Consideration, Share_GST_Amount : Money;
+       Share_Brokerage, (*Share_Consideration, *)Share_GST_Amount : Money;
        Line: pPayee_Line_Rec);
 
 var TotalRate, Remainder: Money;
 
-    procedure MakeAmount(var Value: Money; Rate: Money);
-    begin
-       if Rate = 0 then
-          Value := 0
-       else begin
-          TotalRate := TotalRate + Rate;
-          if TotalRate = 1000000 then begin
-             Value := Remainder; // 100% just copy the leftover, stop rounding errors
-          end else begin
-             Value := abs(Double2Money (Percent2Double(Rate) * Money2Double(Amount)/100));
-          end;
-       end;
-       Remainder := Remainder - Value;
-    end;
+  procedure MakeAmount(var Value: Money; Rate: Money);
+  begin
+     if Rate = 0 then
+        Value := 0
+     else begin
+        TotalRate := TotalRate + Rate;
+        if TotalRate = 1000000 then begin
+           Value := Remainder; // 100% just copy the leftover, stop rounding errors
+        end else begin
+           Value := abs(Double2Money (Percent2Double(Rate) * Money2Double(Amount)/100));
+        end;
+     end;
+     Remainder := Remainder - Value;
+  end;
 
 begin
    {if Line.mlLine_Type = mltPercentage then begin}
@@ -342,7 +344,7 @@ begin
       MakeAmount(Non_Cash_CGT_Other_Method, Line.plSF_Non_Cash_CGT_Other_Method);
       MakeAmount(Non_Cash_CGT_Capital_Losses, Line.plSF_Non_Cash_CGT_Capital_Losses);
       MakeAmount(Share_Brokerage, Line.plSF_Share_Brokerage);
-      MakeAmount(Share_Consideration, Line.plSF_Share_Consideration);
+//      MakeAmount(Share_Consideration, Line.plSF_Share_Consideration);
       MakeAmount(Share_GST_Amount, Line.plSF_Share_GST_Amount);
    {end else begin
       // Just use the amounts...
@@ -505,6 +507,15 @@ begin
    end else
       GetFrank := Amount - SetFrank;
 
+end;
+
+function CalcShareConsideration(Value: Money; Rate: Money) : Money;
+begin
+  result := 0;
+  if Money2Double(Value) <= 0 then // Transaction is a disposal
+    result := abs( Value) + Rate
+  else                       // Transaction is a purchase
+    result := abs( Value) - Rate;
 end;
 
 function FrankingCredit(Amount: Money; ForDate: Integer): Money;
