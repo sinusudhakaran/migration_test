@@ -11,7 +11,6 @@ type
   {This class is same as practice ledger. This can be extended later in future.}
   TPracticeLedger = class(TCashbookMigration)
   private
-    FNoOfLines          : LongInt;
     FDoQuantity         : Boolean;
     //used for processing the transactiosn to export
     FBankAcctsToExport : TBankAccountsData;
@@ -232,10 +231,8 @@ end;
 
 procedure TPracticeLedger.BuildJournalData;
 var
-  i : Integer;
   JournalItem : TJournalData;
   LineItem : TLineData;
-  BankAccount : TBank_Account;
   AccRec : pAccount_Rec;
   DissRec: pDissection_Rec;
 begin
@@ -320,16 +317,12 @@ const
 var
   BA: TBank_Account;
   Msg : String;
-  i, j, FromIndex: Integer;
+  i: Integer;
   Selected: TStringList;
-  OK, DoBalance, IsJournal, DoBankAccount: boolean;
   ContraCode: string;
   SignInFrm : TmyMYOBSignInForm;
-  TransactionRec: tTransaction_Rec;
-  ExportStartDate : TStDate;
 begin
-  ExportStartDate := CurrentDate;
-
+  Result := False;
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
     HelpfulErrorMsg('Online Firm should be associated before exporting data!',
@@ -440,6 +433,7 @@ begin
 
       if Not FExportTerminated then
       Begin
+        Result := True;
         Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were exported to Online Ledger Account',[NoOfEntries] );
         LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
         HelpfulInfoMsg( Msg, 0 );
@@ -475,6 +469,7 @@ var
 const
   ThisMethodName = 'FetchCOAFromAPI';
 begin
+  Result := False;
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
     HelpfulErrorMsg('Online Firm should be associated before a refresh chart!',
@@ -591,11 +586,8 @@ const
   ThisMethodName = 'RefreshChartFromPLAPI';
 var
   ChartFileName     : string;
-  HCtx              : integer;
   NewChart          : TChart;
   Msg               : string;
-  FileType          : string;
-  Extn              : string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -653,7 +645,6 @@ function TPracticeLedger.RollbackBatch(aBatchRef: string;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
-  JsonObject: TlkJSONObject;
   RespStr : string;
   RequestJson : TlkJSONobject;
 const
@@ -784,7 +775,6 @@ function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
-  JsonObject: TlkJSONObject;
   RespStr : string;
 const
   ThisMethodName = 'UploadTransactions';
@@ -836,7 +826,6 @@ var
   ErrorStr,RespStr : string;
   Response: TlkJSONbase;
   BankAcctToExport: TBankAccountData;
-  JournalItem : TJournalData;
 begin
   if ((TypeOfTrans = ttbank) and Assigned(FBankAcctsToExport)) then
   begin
@@ -893,7 +882,7 @@ begin
           LogUtil.LogMsg(lmInfo, UnitName, 'PL journal batch exported - ' + FJournalsData.BatchRef);
 
         //send to api
-        if not UploadToAPI(RequestJson,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+        if not UploadToAPI(RequestJson, Response, RespStr, ErrorStr, False, TypeOfTrans) then
         begin
           LogUtil.LogMsg(lmError, UnitName, ErrorStr);
           HelpfulErrorMsg('Exception in journal export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);

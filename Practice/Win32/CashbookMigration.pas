@@ -956,10 +956,20 @@ begin
     begin
       FHttpRequester.Get(aURL);
     end
-    else
+    else if (aVerb = 'POST') then
     begin
       FHttpRequester.PostData := aRequest;
       FHttpRequester.Post(aURL);
+
+      aResponse := FHttpRequester.TransferredData;
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
+    end
+    else //delete
+    begin
+      FHttpRequester.HTTPMethod := 'DELETE';
+      FHttpRequester.PostData := aRequest;
+      FHttpRequester.Put(aURL);
 
       aResponse := FHttpRequester.TransferredData;
       if DebugMe then
