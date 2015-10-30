@@ -608,6 +608,9 @@ begin
             if not Assigned(CltClient) then
               Continue;
 
+            if CltClient.clExtra.ceBlock_Client_Edit_Mems then
+              Continue;
+
             for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
             begin
               BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
@@ -638,6 +641,9 @@ begin
           OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
           try
             if not Assigned(CltClient) then
+              Continue;
+
+            if CltClient.clExtra.ceBlock_Client_Edit_Mems then
               Continue;
 
             //Screen.Cursor := crHourglass;
