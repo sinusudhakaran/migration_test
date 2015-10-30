@@ -296,8 +296,8 @@ procedure TPromoDisplayFrm.SetSize;
 begin
   Self.Width := 600;//Screen.Width * 1 div 3;
   Self.Height := 830;
-  if Screen.Height < 830 then
-    Self.Height := Screen.Height * 3 div 4;
+  {if Screen.Height < 830 then
+    Self.Height := Screen.Height-30;// * 3 div 4;}
   Self.Height := Self.Height - GetTaskbarHeight;
 end;
 
