@@ -889,11 +889,12 @@ begin
          end;
       end; { of Analysis Code Processing }
 
-      // Has mem being Deleted
+      // Has mem been Deleted and not edited
       if ((OldCoded_By = cbMemorisedM) or (OldCoded_By = cbMemorisedC)) and
-         ((txCoded_By <> cbMemorisedM) and (txCoded_By <> cbMemorisedC)) then
+         ((txCoded_By <> cbMemorisedM) and (txCoded_By <> cbMemorisedC)) and
+         (not aTransaction^.txHas_Been_Edited) then
       begin
-
+        aTransaction^.txGL_Narration := aTransaction^.txStatement_Details;
       end;
 
 
