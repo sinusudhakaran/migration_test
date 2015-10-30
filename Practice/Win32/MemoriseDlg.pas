@@ -1,5 +1,5 @@
 unit MemoriseDlg;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 {
   Title:   Memorise Entry Dlg
 
@@ -24,7 +24,7 @@ unit MemoriseDlg;
      always be used.  AutoCode will also be changed to use the current gst default for the chart code.
 
 }
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 interface
 
@@ -95,14 +95,14 @@ type
 
   TDoneThreadEvent = procedure() of object;
 
-    //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   TMasterTreeThread = class(TThread)
   private
     fMasterTreeView : TTreeView;
     fSourceBankAccount : TBank_Account;
     fdlgMemorise : TdlgMemorise;
     fSourceTransaction : pTransaction_Rec;
-    fEditPrefix : string;
+    fBankPrefix : string;
     fDoneThreadEvent : TDoneThreadEvent;
 
     procedure RefreshMasterMemTree();
@@ -113,10 +113,11 @@ type
     property MasterTreeView : TTreeView read fMasterTreeView write fMasterTreeView;
     property SourceBankAccount : TBank_Account read fSourceBankAccount write fSourceBankAccount;
     property SourceTransaction : pTransaction_Rec read fSourceTransaction write fSourceTransaction;
-    property EditPrefix : string read fEditPrefix write fEditPrefix;
+    property BankPrefix : string read fBankPrefix write fBankPrefix;
     property DoneThreadEvent : TDoneThreadEvent read fDoneThreadEvent write fDoneThreadEvent;
   end;
 
+  //----------------------------------------------------------------------------
   TdlgMemorise = class(TForm)
     memController: TOvcController;
     ColAmount: TOvcTCNumericField;
@@ -342,7 +343,6 @@ type
     AmountToMatch : Money;
     AmountMultiplier : integer;
     SourceTransaction : pTransaction_Rec;
-    SourceBankAccount : TBank_Account;
     FTaxName : String;
     FCountry : Byte;
     FsuperTop, FSuperLeft: Integer;
@@ -356,7 +356,9 @@ type
     fDlgEditMode: TDlgEditMode;
     fShowMoreOptions : boolean;
     fMemTranSortedList : TMemTranSortedList;
-    fEditPrefix : string;
+
+    fBankAccount : TBank_Account;
+    fBankPrefix : string;
 
     fTempByte : Byte;
     fTempInteger : integer;
@@ -431,31 +433,35 @@ type
 
     procedure ShowIssueHint(const RowNum, ColNum: Integer);
     procedure HideIssueHint();
+
+    procedure SetAccount(aAccount : TBank_Account);
   public
     procedure FillSplitData(aMem : TMemorisation);
     procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; var aNunOfSplitLines : integer; ATempMem: boolean = false);
 
     property AccountingSystem: Integer read GetAccountingSystem write SetAccountingSystem;
     property DlgEditMode: TDlgEditMode read fDlgEditMode write SetDlgEditMode;
-    property EditPrefix : string read fEditPrefix write fEditPrefix;
+    property BankPrefix : string read fBankPrefix write fBankPrefix;
     property CalledFromRecommendedMems: boolean read fCalledFromRecommendedMems write fCalledFromRecommendedMems;
+
+    property BankAccount : TBank_Account read fBankAccount write SetAccount;
   end;
 
+  //----------------------------------------------------------------------------
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
                          pM: TMemorisation = nil; FromRecommendedMems: boolean = false): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
-                            IsCopy: Boolean = False; Prefix: string = '';
-                            CopySaveSeq: integer = -1): boolean;
+                            IsCopy: Boolean = False; CopySaveSeq: integer = -1): boolean;
   function CreateMemorisation(BA : TBank_Account;
                               MemorisedList : TMemorisations_List;
                               pM : TMemorisation;
                               FromRecommendedMems: boolean = false): boolean;
   function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
 
-
-//******************************************************************************
+//------------------------------------------------------------------------------
 implementation
+{$R *.DFM}
 
 uses
   Software,
@@ -502,8 +508,6 @@ uses
   bkBranding,
   NewHints,
   trxList32;
-
-{$R *.DFM}
 
 CONST
   {table command const}
@@ -553,11 +557,8 @@ var
 
 //------------------------------------------------------------------------------
 { TMasterTreeThread }
-
-//------------------------------------------------------------------------------
 procedure TMasterTreeThread.RefreshMasterMemTree();
 var
-  BankPrefix : string;
   SearchPrefix : string;
   CltClient : TClientObj;
   BackupClient : TClientObj;
@@ -579,107 +580,114 @@ var
   SysIndex : integer;
   Found : boolean;
   NunOfSplitLines : integer;
+  InstitutionList : TStringList;
 begin
   RootNode := nil;
   ClientNode := nil;
   FoundFirstAccount := false;
 
-  if Assigned(SourceBankAccount) then
-  begin
-    BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
-    SysAccRec := AdminSystem.fdSystem_Bank_Account_List.FindCode(SourceBankAccount.baFields.baBank_Account_Number);
-
-    if not Assigned(SysAccRec) then
-      Institution := ''
-    else
-      Institution := SysAccRec^.sbInstitution;
-  end
-  else
-  begin
-    Found := false;
-    BankPrefix := EditPrefix;
-    for SysIndex := 0 to AdminSystem.fdSystem_Bank_Account_List.ItemCount-1 do
-    begin
-      if BankPrefix = mxFiles32.GetBankPrefix(AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(SysIndex)^.sbAccount_Number) then
-      begin
-        Institution := AdminSystem.fdSystem_Bank_Account_List.System_Bank_Account_At(SysIndex)^.sbInstitution;
-        Found := true;
-        break;
-      end;
-    end;
-
-    if not found then
-      Exit;
-  end;
-
-  TempMem := TMemorisation.Create(nil);
+  InstitutionList := TStringList.create();
   try
-    DlgMemorise.SaveToMemRec(TempMem, SourceTransaction, true, NunOfSplitLines, true);
-
-    fMasterTreeView.Items.BeginUpdate;
+    TempMem := TMemorisation.Create(nil);
     try
-      fMasterTreeView.Items.Clear;
+      DlgMemorise.SaveToMemRec(TempMem, SourceTransaction, true, NunOfSplitLines, true);
 
-      for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
-      begin
-        ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
+      fMasterTreeView.Items.BeginUpdate;
+      try
+        fMasterTreeView.Items.Clear;
 
-        if ClientFileRec^.cfForeign_File then
-          Continue;
+        for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+        begin
+          ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
 
-        OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
-        try
-          if not Assigned(CltClient) then
+          if ClientFileRec^.cfForeign_File then
             Continue;
 
-          //Screen.Cursor := crHourglass;
-          FoundFirstClientAccount := false;
-
-          for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
-          begin
-            BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-            SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
-
-            if BankPrefix <> SearchPrefix then
+          OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
+          try
+            if not Assigned(CltClient) then
               Continue;
 
-            if not SuggestedMem.IsAccountUsedByMem(BankAcc, TempMem) then
-              Continue;
-
-            if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
+            for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
             begin
-              if (not FoundFirstAccount) then
-              begin
-                RootNode := fMasterTreeView.Items.Add( NIL, Institution);
+              BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+              SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
 
-                FoundFirstAccount := true;
-              end;
+              if BankPrefix <> SearchPrefix then
+                Continue;
 
-              if FoundFirstAccount then
-                ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
-
-              FoundFirstClientAccount := true;
+              Institution := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAcc.baFields.baBank_Account_Number).sbInstitution;
+              if InstitutionList.IndexOf( Institution) = - 1 then
+                InstitutionList.Add( Institution);
             end;
 
-            if (FoundFirstAccount and FoundFirstClientAccount) then
-              AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
+          finally
+            FreeAndNil(CltClient);
           end;
-
-        finally
-          FreeAndNil(CltClient);
         end;
+
+        Institution := BankPrefix + ' (' + StringReplace(InstitutionList.CommaText, '"', '', [rfReplaceAll]) + ')';
+
+        for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+        begin
+          ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
+
+          if ClientFileRec^.cfForeign_File then
+            Continue;
+
+          OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
+          try
+            if not Assigned(CltClient) then
+              Continue;
+
+            //Screen.Cursor := crHourglass;
+            FoundFirstClientAccount := false;
+
+            for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
+            begin
+              BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+              SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
+
+              if BankPrefix <> SearchPrefix then
+                Continue;
+
+              if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
+              begin
+                if (not FoundFirstAccount) then
+                begin
+                  RootNode := fMasterTreeView.Items.Add( NIL, Institution);
+
+                  FoundFirstAccount := true;
+                end;
+
+                if FoundFirstAccount then
+                  ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
+
+                FoundFirstClientAccount := true;
+              end;
+
+              if (FoundFirstAccount and FoundFirstClientAccount) then
+                AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
+            end;
+
+          finally
+            FreeAndNil(CltClient);
+          end;
+        end;
+      finally
+        if Assigned(RootNode) then
+        begin
+          fMasterTreeView.FullExpand;
+          RootNode.Selected := true;
+          RootNode.Focused := true;
+        end;
+        fMasterTreeView.Items.EndUpdate;
       end;
     finally
-      if Assigned(RootNode) then
-      begin
-        fMasterTreeView.FullExpand;
-        RootNode.Selected := true;
-        RootNode.Focused := true;
-      end;
-      fMasterTreeView.Items.EndUpdate;
+      FreeAndNil(TempMem);
     end;
   finally
-    FreeAndNil(TempMem);
+    FreeAndNil(InstitutionList);
   end;
 end;
 
@@ -696,7 +704,7 @@ begin
   end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.FormCreate(Sender: TObject);
 var
   i : Integer;
@@ -720,7 +728,7 @@ begin
   bkBranding.StyleOvcTableGrid(tblTran);
   bkBranding.StyleTableHeading(tranHeader);
 
-  SourceBankAccount := nil;
+  fBankAccount := nil;
 
   with MyClient, clFields do
   begin
@@ -1007,10 +1015,12 @@ begin
                     'Check to enable a Tranaction date, until which this Memorisation will apply|' +
                     'Check to enable a Tranaction date, until which this Memorisation will apply';
 end;
+
 //------------------------------------------------------------------------------
 procedure ToggleEdit(Sender : TObjecT);
 begin
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cRefClick(Sender: TObject);
 begin
@@ -1020,6 +1030,7 @@ begin
   if not Loading then
     if eRef.enabled then eRef.SetFocus;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cPartClick(Sender: TObject);
 begin
@@ -1029,6 +1040,7 @@ begin
   if not Loading then
     if ePart.enabled then ePart.setFocus;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cOtherClick(Sender: TObject);
 begin
@@ -1038,6 +1050,7 @@ begin
   if not Loading then
     if eOther.enabled then eOther.setFocus;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.chkAccountSystemClick(Sender: TObject);
 begin
@@ -1133,6 +1146,7 @@ begin
        end;
     end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.btnOKClick(Sender: TObject);
 var
@@ -1145,7 +1159,7 @@ begin
     if fDlgEditMode in ALL_MASTER then
       BA := ''
     else
-      BA := SourceBankAccount.baFields.baBank_Account_Number;
+      BA := fBankAccount.baFields.baBank_Account_Number;
 
     EntryType := GetTxTypeFromCmbType;
 
@@ -1230,6 +1244,7 @@ begin
   btnOk.Default := false;
   btnCancel.Cancel := false;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitExit(Sender: TObject);
 var
@@ -1245,6 +1260,7 @@ begin
    btnOK.Default := true;
    btnCancel.Cancel := true;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitGetCellData(Sender: TObject; RowNum,
   ColNum: Integer; var Data: Pointer; Purpose: TOvcCellDataPurpose);
@@ -1355,8 +1371,8 @@ begin
 
   end;
 end;
-//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.DoGSTLookup;
 var
    Msg           : TWMKey;
@@ -1389,6 +1405,8 @@ begin
        end;
     end;
 end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.DoJobLookup;
 var
    Msg           : TWMKey;
@@ -1420,8 +1438,7 @@ begin
     end;
 end;
 
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.DoDeleteCell;
 //Pressing Delete key while not in Editing mode should delete the content of the
 //current cell.  Note that this routine can't be called while Edit mode is selected
@@ -1444,7 +1461,8 @@ begin
       StopEditingState( True );
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitUserCommand(Sender: TObject; Command: Word);
 var
   Msg   : TWMKey;
@@ -1624,11 +1642,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
 
-  type
-    ChangeMode = (Amount, ToAmount, ToPercent);
+type
+  ChangeMode = (Amount, ToAmount, ToPercent);
 
+ //-----------------------------------------------------------------------------
  function TestAmount: boolean;
 
+     //-------------------------------------------------------------------------
      function HasSFRevenuSplit: Boolean;
      begin
         Result := True;
@@ -1649,7 +1669,7 @@ procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
         Result := false;
      end;
 
-
+     //-------------------------------------------------------------------------
      function EditSuperfund(Mode:ChangeMode): Boolean;
      var Move: TFundNavigation;
          BA: TBank_Account;
@@ -1686,6 +1706,7 @@ procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
             MakeAmount(ldata.SF_Special_Income);
          end;
 
+         //---------------------------------------------------------------------
          procedure DoToPercent(OldAmount:Money);
          var TotalAmount, Remainder: Money;
             procedure MakeAmount(var Value: Money);
@@ -1724,7 +1745,7 @@ procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
         if fDlgEditMode in ALL_MASTER then
            BA := nil
         else
-           BA := SourceBankAccount;
+           BA := fBankAccount;
 
         // Make a temp Copy
         ldata := SplitData[tmrRow];
@@ -1796,8 +1817,6 @@ procedure TdlgMemorise.RowtmrTimer(Sender: TObject);
         end;
      end;
   end; //TestAmount
-
-
 
 begin //RowtmrTimer
    if RowTmr.Enabled then
@@ -1946,6 +1965,7 @@ begin
    tblSplit.InvalidateCell(RowNum,DescCol);  {desc}
    tblSplit.InvalidateCell(RowNum,TypeCol);  {type}
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitDoneEdit(Sender: TObject; RowNum,
   ColNum: Integer);
@@ -1999,6 +2019,7 @@ begin
          SplitData[RowNum+i].GST_Has_Been_Edited := APayee.pdLines.PayeeLine_At(i).plGST_Has_Been_Edited;
    end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.ColAcctKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -2011,7 +2032,15 @@ begin
       ColAcct.SendKeyToTable(Msg);
    end;
 end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+//------------------------------------------------------------------------------
+procedure TdlgMemorise.SetAccount(aAccount: TBank_Account);
+begin
+  fBankPrefix := mxFiles32.GetBankPrefix( aAccount.baFields.baBank_Account_Number);
+  fBankAccount := aAccount;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.SetAccountingSystem(const Value: Integer);
 begin
    if Value = asNone then
@@ -2033,7 +2062,7 @@ begin
   UpdateControls();
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.SetFirstLineDefaultAmount;
 begin
   if ( SplitData[1].AcctCode = '') then
@@ -2058,6 +2087,7 @@ begin
   end;
   UpdateTotal;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cmbValueChange(Sender: TObject);
 begin
@@ -2130,6 +2160,7 @@ begin
     RemainingDollar := AmountToMatch - Fixed;
   end;
 end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.UpdateTotal;
 Const
@@ -2144,10 +2175,10 @@ var
   MatchOnEquals : boolean;
 begin
   CalcRemaining(Fixed, TotalPerc, RemainingPerc, RemainingDollar, HasDollarLines, HasPercentLines);
-  if Assigned(SourceBankAccount)  then begin
-     lblAmount.Caption := SourceBankAccount.MoneyStr( AmountToMatch );
-     lblFixed.Caption  := SourceBankAccount.MoneyStr( Fixed );
-     lblRemDollar.Caption := SourceBankAccount.MoneyStr( RemainingDollar );
+  if Assigned(fBankAccount)  then begin
+     lblAmount.Caption := fBankAccount.MoneyStr( AmountToMatch );
+     lblFixed.Caption  := fBankAccount.MoneyStr( Fixed );
+     lblRemDollar.Caption := fBankAccount.MoneyStr( RemainingDollar );
   end else if Assigned(MyClient) then begin
      lblAmount.Caption := MyClient.MoneyStr( AmountToMatch );
      lblFixed.Caption  := MyClient.MoneyStr( Fixed );
@@ -2213,7 +2244,7 @@ begin
     lblRemDollar.Font.Color := clWindowText;
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 function TdlgMemorise.OKtoPost() : boolean;
 var
   i,j : integer;
@@ -2361,11 +2392,11 @@ begin
      try
        SaveToMemRec( TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, NunOfSplitLines, True);
 
-       if Assigned( SourceBankAccount) then begin
+       if Assigned( fBankAccount) then begin
           if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
              begin
                //memorise to relevant master file then reload to get new global list
-               BankPrefix := mxFiles32.GetBankPrefix( SourceBankAccount.baFields.baBank_Account_Number);
+               BankPrefix := mxFiles32.GetBankPrefix( fBankAccount.baFields.baBank_Account_Number);
 
 //               Master_Mem_Lists_Collection.ReloadSystemMXList( BankPrefix);
 //               FMemorisationsList := Master_Mem_Lists_Collection.FindPrefix( BankPrefix);
@@ -2376,7 +2407,7 @@ begin
                // TempMem.mdFields.mdFrom_Master_List := true;
              end
           else
-             FMemorisationsList := SourceBankAccount.baMemorisations_List;
+             FMemorisationsList := fBankAccount.baMemorisations_List;
        end else begin
           FMemorisationsList := EditMemorisedList;
        end;
@@ -2599,7 +2630,7 @@ begin
     SaveToMemRec(TempMem, SourceTransaction, fDlgEditMode in ALL_MASTER, NunOfSplitLines, true);
 
     fMemTranSortedList.FreeAll;
-    SuggestedMem.GetTransactionListMatchingMemPhrase(SourceBankAccount, TempMem, fMemTranSortedList, (NunOfSplitLines > 1));
+    SuggestedMem.GetTransactionListMatchingMemPhrase(fBankAccount, TempMem, fMemTranSortedList, (NunOfSplitLines > 1));
 
     if fMemTranSortedList.ItemCount = 0 then
     begin
@@ -2638,10 +2669,10 @@ begin
   FreeAndNil(fMasterTreeThread);
   fMasterTreeThread := TMasterTreeThread.Create(true);
   fMasterTreeThread.MasterTreeView    := treView;
-  fMasterTreeThread.SourceBankAccount := SourceBankAccount;
+  fMasterTreeThread.SourceBankAccount := BankAccount;
   fMasterTreeThread.SourceTransaction := SourceTransaction;
   fMasterTreeThread.DlgMemorise       := Self;
-  fMasterTreeThread.EditPrefix        := EditPrefix;
+  fMasterTreeThread.BankPrefix        := BankPrefix;
   fMasterTreeThread.DoneThreadEvent   := AfterRefreshMasterMemTreeEvent;
   fMasterTreeThread.Resume;
 end;
@@ -2892,11 +2923,13 @@ begin
 
          PopulateCmbType(BA, tr.txType);
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-         SourceBankAccount := ba;
+
+         BankAccount := BA;
+
          EditMem := nil;
          EditMemorisedList := nil;
 
-         if ((ba.IsManual) and chkMaster.Enabled) or SourceBankAccount.IsAForexAccount then begin
+         if ((ba.IsManual) and chkMaster.Enabled) or fBankAccount.IsAForexAccount then begin
             chkMaster.Enabled := False;
             AllowMasterMemorised := False;
          end;
@@ -3060,7 +3093,7 @@ end;
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   var pM: TMemorisation; var DeleteSelectedMem: boolean;
-  IsCopy: Boolean = False; Prefix: string = ''; CopySaveSeq: integer = -1): boolean;
+  IsCopy: Boolean = False; CopySaveSeq: integer = -1): boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -3153,7 +3186,7 @@ begin
        ExistingCode := '';
        //Controls will be initialise in the FormCreate method
        //load memorisation into form
-       SourceBankAccount := ba;
+       BankAccount := BA;
 
        LocaliseForm;
 
@@ -3281,7 +3314,6 @@ begin
          ColGSTCode.Font.Color := clGrayText;
 
        SourceTransaction := nil;
-       EditPrefix := Prefix;
 
        //**********************
        FormResult := ShowModal();
@@ -3303,7 +3335,7 @@ begin
 
              if LoadAdminSystem(true, ThisMethodName) then 
              begin
-               SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(Prefix);
+               SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
                if not Assigned(SystemMemorisation) then 
                begin
                  UnlockAdmin;
@@ -3673,7 +3705,7 @@ begin
                               ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
                               ( MyClient.clFields.clDownload_From = dlAdminSystem ) and
                               ( (DlgEditMode in ALL_CREATE)) and
-                              ( not SourceBankAccount.baFields.baIs_A_Manual_Account ) and
+                              ( not fBankAccount.baFields.baIs_A_Manual_Account ) and
                               ( not ClientFileRec^.cfForeign_File );
   end;
   chkMaster.Enabled := AllowMasterMemorised;
@@ -4166,8 +4198,8 @@ end;
 procedure TdlgMemorise.LocaliseForm;
 var LCur: string[5];
 begin
-  if Assigned( SourceBankAccount)  then
-     LCur := SourceBankAccount.CurrencySymbol
+  if Assigned( fBankAccount)  then
+     LCur := fBankAccount.CurrencySymbol
   else
      LCur := MyClient.CurrencySymbol;
 
@@ -4861,7 +4893,7 @@ begin
        if fDlgEditMode in ALL_MASTER then
           BA := nil
        else
-          BA := SourceBankAccount;
+          BA := fBankAccount;
 
        if SuperFieldsUtils.EditSuperFields( SourceTransaction,SplitData[ActiveRow] , Move, FSuperTop, FSuperLeft,sfMem, BA) then
        begin

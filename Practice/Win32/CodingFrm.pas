@@ -2038,9 +2038,8 @@ begin
       MemList := tBank_Account(BankAccount).baMemorisations_List;
       FindMemorisation(BankAccount, pT, Mem);
       DeleteSelectedMem := False;
-      BankPrefix := mxFiles32.GetBankPrefix(tBank_Account(BankAccount).baFields.baBank_Account_Number);
 
-      if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem, False, BankPrefix) then
+      if EditMemorisation(BankAccount, MemList, Mem, DeleteSelectedMem, False) then
       begin
         if DeleteSelectedMem then
         begin

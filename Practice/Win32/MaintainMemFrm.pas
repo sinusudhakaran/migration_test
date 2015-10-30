@@ -406,82 +406,6 @@ begin
        end;
 
        //load MASTER memorisations
-{       if Assigned( AdminSystem) and (not HideMasters )then begin
-         NewNode1 := trvAccountView.Items.Add(nil,'MASTER Memorisations');
-         NewNode1.ImageIndex    := MAINTAIN_MASTER_MEM_PAGE_BMP;
-         NewNode1.SelectedIndex := MAINTAIN_MASTER_MEM_PAGE_BMP;
-
-         //need to read memorisation files from disk if there is no open client
-         if MastersOnly or ( not Assigned( MyClient)) then begin
-            CountryPrefix  := whShortNames[ AdminSystem.fdFields.fdCountry ];
-            FileSearchMask := mmxPrefix + CountryPrefix + '*' + mmxExtn;
-            FilePrefixLength := Length( mmxPrefix) + Length( CountryPrefix);
-
-            Found := FindFirst(DATADIR + FileSearchMask, faAnyFile, SearchRec);
-            try
-               while Found = 0 do begin
-                  //note:  searching for *.mxl will also return *.mxlold - Windows??!!@
-                  if lowercase( ExtractFileExt( SearchRec.Name)) = lowercase(mmxExtn) then
-                  begin
-                    Prefix := Copy( SearchRec.Name, FilePrefixLength + 1,
-                                    Pos( '.', SearchRec.Name) - FilePrefixLength -1 );
-                    MasterMemFound := true;
-                    NewNode2       := AddChild( NewNode1, Prefix);
-                    NewNode2.ImageIndex    := MAINTAIN_FOLDER_CLOSED_BMP;
-                    NewNode2.SelectedIndex := MAINTAIN_FOLDER_OPEN_BMP;
-                    NewNode2.OverlayIndex := 1;
-                    NewNode2.StateIndex   := 0;
-                    //NewNode2.StateIndex    := 1;
-                    if FirstAcc = nil then FirstAcc := NewNode2;
-                  end;
-                  Found := FindNext(SearchRec);
-               end;
-            finally
-               FindClose(SearchRec);
-            end;
-         end
-         else begin
-            //only show master memorisations that are relevant for this client
-            //load master memorisations for accounts, load prefix as caption
-            //first build a list of unique prefixs
-            PrefixList := TStringList.Create;
-            try
-               with MyClient.clBank_Account_List do begin
-                  for i := 0 to Pred(itemCount) do begin
-                    b := Bank_Account_At(i);
-                    if not (b.isAJournalAccount) then begin
-                       Prefix := mxFiles32.GetBankPrefix( b.baFields.baBank_Account_Number);
-                       if PrefixList.IndexOf( Prefix) = - 1 then
-                          PrefixList.Add( Prefix);
-                    end;
-                  end;
-               end;
-
-               for i := 0 to Pred( PrefixList.Count) do begin
-                  //now see if master mems exists for each prefix
-                 if BKFileExists( MasterFileName( PrefixList[ i])) then begin
-                    MasterMemFound := true;
-                    NewNode2 := AddChild( NewNode1, PrefixList[ i]);
-                    NewNode2.ImageIndex    := MAINTAIN_FOLDER_CLOSED_BMP;
-                    NewNode2.SelectedIndex := MAINTAIN_FOLDER_OPEN_BMP;
-                    NewNode2.OverlayIndex := 1;
-                    NewNode2.StateIndex := 0;
-                    //NewNode2.StateIndex    := 1;
-                    if FirstAcc = nil then FirstAcc := NewNode2;
-                 end;
-               end;
-            finally
-               PrefixList.Free;
-            end;
-         end;
-
-         //see if any found, if not there removed parent node
-         if not MasterMemFound then
-            trvAccountView.Items.Delete( NewNode1);
-       end;    }
-
-
-       //load MASTER memorisations
        if Assigned(AdminSystem) and (not HideMasters) then begin
          NewNode1 := trvAccountView.Items.Add(nil,'MASTER Memorisations');
          NewNode1.ImageIndex    := MAINTAIN_MASTER_MEM_PAGE_BMP;
@@ -753,7 +677,7 @@ begin
     DeleteSelectedMem := False;
     Sequence_No := pM.mdFields^.mdSequence_No;
 
-    if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, Prefix, -1) then
+    if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, -1) then
     begin
       if DeleteSelectedMem then
       begin
