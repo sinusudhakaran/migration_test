@@ -138,6 +138,7 @@ type
     pnlMYOBConnect: TPanel;
     lblFirmName: TLabel;
     btnConnectMYOB: TButton;
+    btnForceAuthorisationRefresh: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnBackupDirClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
@@ -160,6 +161,7 @@ type
     procedure eDate1DblClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure btnConnectMYOBClick(Sender: TObject);
+    procedure btnForceAuthorisationRefreshClick(Sender: TObject);
   private
 
     HeaderFooterChanged : Boolean;
@@ -387,7 +389,7 @@ begin
     ReportPassword := Adminsystem.fdFields.fdSystem_Report_Password;
     chkReportPwd.Checked := ReportPassword <> '';
 
-    
+
 
     // CES Font
     if fdCoding_Font = '' then
@@ -1142,6 +1144,16 @@ begin
     FreeAndNil(SignInFrm);
     Screen.Cursor := OldCursor;
   end;
+end;
+
+procedure TdlgAdminOptions.btnForceAuthorisationRefreshClick(Sender: TObject);
+begin
+//  Clear out the BGL Tokens and force the user to re-authenticate
+  AdminSystem.fdFields.fdBGLAccessToken    := '';
+  AdminSystem.fdFields.fdBGLRefreshToken   := '';
+  AdminSystem.fdFields.fdBGLTokenType      := '';
+  AdminSystem.Save;
+//  AdminSystem.fdFields.fdBGLTokenExpiresAt := StrToDateTime('1900');
 end;
 
 procedure TdlgAdminOptions.btnInstallUpdatesClick(Sender: TObject);

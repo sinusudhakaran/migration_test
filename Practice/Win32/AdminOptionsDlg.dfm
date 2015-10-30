@@ -1,7 +1,7 @@
 object dlgAdminOptions: TdlgAdminOptions
   Left = 317
   Top = 231
-  ActiveControl = chkExtractQty
+  ActiveControl = edtBGLClientID
   BorderStyle = bsDialog
   Caption = 'System Options'
   ClientHeight = 471
@@ -60,7 +60,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = tsInterfaces
+    ActivePage = tsBGL360
     Align = alTop
     MultiLine = True
     TabOrder = 1
@@ -985,6 +985,15 @@ object dlgAdminOptions: TdlgAdminOptions
         Height = 21
         TabOrder = 1
         Text = 'bankLinkSecret'
+      end
+      object btnForceAuthorisationRefresh: TButton
+        Left = 16
+        Top = 88
+        Width = 225
+        Height = 25
+        Caption = 'Force refresh of Authorisation'
+        TabOrder = 2
+        OnClick = btnForceAuthorisationRefreshClick
       end
     end
   end
