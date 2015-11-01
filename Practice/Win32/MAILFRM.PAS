@@ -189,9 +189,8 @@ function SendSceduledEmail(EmailList: tList; srOptions : TSchReportOptions): Boo
 function GetSupportEmailAddress : string;
 
 resourcestring
-  rsMAPI_X64EXE_NOT_FOUND = 'You are running x32 Practice application on x64 version of MS Windows'#13#10 +
-                            'In order to use MS Outlook the mapi64bit.exe application required.'#13#10 +
-                            'mapi64bit.exe application is not found in the current installation directory';
+  rsMAPI_X64EXE_NOT_FOUND = 'Unable to email as the mapi64bit.exe application could '#13#10'not be found in the Practice directory.'#13#10#13#10 +
+                            'Please contact Support for assistance.';
 
 //******************************************************************************
 Implementation
@@ -731,7 +730,7 @@ begin
       end;
     end;
   end else
-    MessageDlg(rsMAPI_X64EXE_NOT_FOUND, mtError, [mbOk], 0);
+    HelpfulErrorMsg('Failed to send the email!', 0, False, rsMAPI_X64EXE_NOT_FOUND, True);
 end;
 
 procedure TfrmMail.SetBodyText(const Value: string);
