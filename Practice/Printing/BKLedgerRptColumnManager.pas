@@ -1377,32 +1377,34 @@ begin
   FIsSuperFund := HasSuperFundColumns;
   if FIsSuperFund then begin
     for i := 0 to Count - 1 do begin
-      case Columns[i].DataToken of
-        //Summarised
-        tktxAccount: if FShowBalances then
-                       OutputCol(i, False)
-                     else
-                       OutputCol(i, FIsSummarised);
-        tkchAccount_Description : OutputCol(i, FIsSummarised);
-        tkchAlternative_Code    : begin
-               OutputCol(i, FIsSummarised);
-               EnableCol(i, FisSummarised);
-           end;
-        //Detailed
-        tktxDate_Effective,
-        tktxReference,
-        tktxGL_Narration : OutputCol(i, (not FIsSummarised));
-        //Show Gross & GST
-        tktxGST_Class: OutputCol(i, (FShowGrossGst and not FIsSummarised));
-        tktxAmount,
-        tktxGST_Amount   : OutputCol(i, FShowGrossGst);
+      if Columns[i].DataUnit = BKTX then
+        case Columns[i].DataToken of
+          //Summarised
+          tktxAccount: if FShowBalances then
+                         OutputCol(i, False)
+                       else
+                         OutputCol(i, FIsSummarised);
+          tkchAccount_Description : OutputCol(i, FIsSummarised);
+          tkchAlternative_Code    : begin
+                 OutputCol(i, FIsSummarised);
+                 EnableCol(i, FisSummarised);
+             end;
+          //Detailed
+          tktxDate_Effective,
+          tktxReference,
+          tktxGL_Narration : OutputCol(i, (not FIsSummarised));
+          //Show Gross & GST
+          tktxGST_Class: OutputCol(i, (FShowGrossGst and not FIsSummarised));
+          tktxAmount,
+          tktxGST_Amount   : OutputCol(i, FShowGrossGst);
 
-        //Show quantity
-        tktxQuantity,
-        CALC_AVG_NET     : OutputCol(i, FShowQuantity);
-        //Show notes
-        tktxNotes        : OutputCol(i, FShowNotes);
-      end;
+          //Show quantity
+          tktxQuantity,
+          CALC_AVG_NET     : OutputCol(i, FShowQuantity);
+          //Show notes
+          tktxNotes        : OutputCol(i, FShowNotes);
+        end
+      else;
     end;
   end;
 end;
