@@ -452,7 +452,7 @@ type
                          pM: TMemorisation = nil; FromRecommendedMems: boolean = false): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
-                            IsCopy: Boolean = False; CopySaveSeq: integer = -1): boolean;
+                            IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
   function CreateMemorisation(BA : TBank_Account;
                               MemorisedList : TMemorisations_List;
                               pM : TMemorisation;
@@ -581,6 +581,7 @@ var
   Found : boolean;
   NunOfSplitLines : integer;
   InstitutionList : TStringList;
+  FoundAcc : pSystem_Bank_Account_Rec;
 begin
   RootNode := nil;
   ClientNode := nil;
@@ -619,9 +620,13 @@ begin
               if BankPrefix <> SearchPrefix then
                 Continue;
 
-              Institution := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAcc.baFields.baBank_Account_Number).sbInstitution;
-              if InstitutionList.IndexOf( Institution) = - 1 then
-                InstitutionList.Add( Institution);
+              FoundAcc := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAcc.baFields.baBank_Account_Number);
+              if assigned(FoundAcc) then
+              begin
+                Institution := FoundAcc^.sbInstitution;
+                if InstitutionList.IndexOf( Institution) = - 1 then
+                  InstitutionList.Add( Institution);
+              end;
             end;
 
           finally
@@ -3099,7 +3104,7 @@ end;
 //------------------------------------------------------------------------------
 function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
   var pM: TMemorisation; var DeleteSelectedMem: boolean;
-  IsCopy: Boolean = False; CopySaveSeq: integer = -1): boolean;
+  IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
 // edits an existing memorisation
 //
 // parameters: pM   Memorisation to edit
@@ -3192,7 +3197,11 @@ begin
        ExistingCode := '';
        //Controls will be initialise in the FormCreate method
        //load memorisation into form
-       BankAccount := BA;
+
+       if (BA = nil) then
+         BankPrefix := aPrefix
+       else
+         BankAccount := BA;
 
        LocaliseForm;
 

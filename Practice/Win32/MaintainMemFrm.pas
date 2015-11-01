@@ -677,7 +677,7 @@ begin
     DeleteSelectedMem := False;
     Sequence_No := pM.mdFields^.mdSequence_No;
 
-    if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, -1) then
+    if EditMemorisation(BA, MemorisedList, pM, DeleteSelectedMem, False, -1, Prefix) then
     begin
       if DeleteSelectedMem then
       begin
