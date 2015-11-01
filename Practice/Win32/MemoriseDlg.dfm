@@ -678,6 +678,7 @@ object dlgMemorise: TdlgMemorise
         Height = 278
         Anchors = [akLeft, akTop, akRight, akBottom]
         Indent = 19
+        ReadOnly = True
         TabOrder = 1
       end
       object pnlMessage: TPanel

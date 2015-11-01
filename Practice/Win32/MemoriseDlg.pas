@@ -615,6 +615,10 @@ begin
             for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
             begin
               BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+
+              if not BankAcc.baFields.baApply_Master_Memorised_Entries then
+                Continue;
+
               SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
 
               if BankPrefix <> SearchPrefix then
@@ -634,7 +638,8 @@ begin
           end;
         end;
 
-        Institution := BankPrefix + ' (' + StringReplace(InstitutionList.CommaText, '"', '', [rfReplaceAll]) + ')';
+        Institution := StringReplace(InstitutionList.CommaText, ',', ', ', [rfReplaceAll]);
+        Institution := BankPrefix + ' (' + StringReplace(Institution, '"', '', [rfReplaceAll]) + ')';
 
         for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
         begin
@@ -657,6 +662,10 @@ begin
             for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
             begin
               BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
+
+              if not BankAcc.baFields.baApply_Master_Memorised_Entries then
+                Continue;
+
               SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
 
               if BankPrefix <> SearchPrefix then
