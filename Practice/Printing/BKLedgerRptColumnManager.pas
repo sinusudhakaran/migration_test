@@ -421,7 +421,7 @@ begin
     Result := True
   else begin
     case AccountingSystem of
-      saBGLSimpleFund, saBGLSimpleLedger, saBGL360: Result := (AccountingSystemUsed in [saBGLSimpleFund, saBGLSimpleLedger, saBGL360]);
+      saBGLSimpleFund, saBGLSimpleLedger (*, saBGL360 *): Result := (AccountingSystemUsed in [saBGLSimpleFund, saBGLSimpleLedger, saBGL360]);
       saSolution6SuperFund, saSupervisor, saSuperMate: Result := (AccountingSystemUsed in [saSolution6SuperFund, saSupervisor, saSuperMate]);
     end;
   end;
