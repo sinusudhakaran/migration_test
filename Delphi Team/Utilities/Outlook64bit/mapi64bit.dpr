@@ -297,7 +297,7 @@ begin
     begin
       EmailSenderOle := TOutlookOle.Create;
       try
-        if (Length(toArray) > 0) and (subj <> '') then
+        if (Length(toArray) > 0) then
         begin
           for i := 0 to Length(toArray) - 1  do
             EmailSenderOle.AddToRecipient(toArray[i]);
@@ -327,7 +327,7 @@ begin
     begin
       EmailSender := TEmailSender64.Create;
       try
-        if (Length(toArray) > 0) and (subj <> '') then
+        if (Length(toArray) > 0) then
         begin
           for i := 0 to Length(toArray) - 1  do
             EmailSender.AddTO(toArray[i]);
