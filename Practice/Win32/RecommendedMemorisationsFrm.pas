@@ -860,7 +860,7 @@ begin
     Mem.mdLines.Insert(MemLine);
 
     // OK pressed, and insert mem?
-    if CreateMemorisation(fBankAccount, Mems, Mem, true) then
+    if CreateMemorisation(fBankAccount, Mem, true) then
     begin
       fNeedReCoding := true;
       MainRefresh();

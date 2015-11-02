@@ -1619,7 +1619,7 @@ begin
     Mem.mdLines.Insert(MemLine);
 
     // OK pressed, and insert mem?
-    Result := CreateMemorisation(aBankAccount, Mems, Mem);
+    Result := CreateMemorisation(aBankAccount, Mem);
   finally
     FreeAndNil(Mem);
   end;

@@ -454,7 +454,6 @@ type
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
   function CreateMemorisation(BA : TBank_Account;
-                              MemorisedList : TMemorisations_List;
                               pM : TMemorisation;
                               FromRecommendedMems: boolean = false): boolean;
   function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
@@ -2935,27 +2934,32 @@ begin
    result := false;
    IsAMasterMem := false;
 
-   if not(Assigned(ba) and Assigned(tr)) then exit;
+   if not Assigned(tr) then
+     exit;
 
    MemDlg := TdlgMemorise.Create(Application.MainForm);
    try
-      with MemDlg,tr^ do
+      with MemDlg, tr^ do
       begin
          DlgEditMode := demCreate;
          CalledFromRecommendedMems := FromRecommendedMems;
 
          PopulateCmbType(BA, tr.txType);
+
          BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
 
-         BankAccount := BA;
+         if Assigned(Ba) then
+           BankAccount := BA;
 
          EditMem := nil;
          EditMemorisedList := nil;
 
-         if ((ba.IsManual) and chkMaster.Enabled) or fBankAccount.IsAForexAccount then begin
-            chkMaster.Enabled := False;
-            AllowMasterMemorised := False;
+         if Assigned(Ba) and ((ba.IsManual and chkMaster.Enabled) or fBankAccount.IsAForexAccount) then
+         begin
+           chkMaster.Enabled := False;
+           AllowMasterMemorised := False;
          end;
+
          LocaliseForm;
 
          if chkMaster.Enabled then begin
@@ -3087,7 +3091,6 @@ end;
 
 //------------------------------------------------------------------------------
 function CreateMemorisation(BA : TBank_Account;
-                            MemorisedList : TMemorisations_List;
                             pM: TMemorisation;
                             FromRecommendedMems: boolean): boolean;
 var
@@ -3411,8 +3414,7 @@ begin
 
          mrCopy : begin
            // Create memorisation
-           Mems := BA.baMemorisations_List;
-           pMCopy := TMemorisation.Create(Mems.AuditMgr);
+           pMCopy := TMemorisation.Create(MyClient.ClientAuditMgr);
            try
              SaveToMemRec(pMCopy, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
 
@@ -3422,7 +3424,7 @@ begin
              FillSplitData(pMCopy);
 
              // OK pressed, and insert mem?
-             Result := CreateMemorisation(BA, Mems, pMCopy);
+             Result := CreateMemorisation(BA, pMCopy);
            finally
              FreeAndNil(pMCopy);
            end;
@@ -3732,7 +3734,7 @@ begin
                               ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
                               ( MyClient.clFields.clDownload_From = dlAdminSystem ) and
                               ( (DlgEditMode in ALL_CREATE)) and
-                              ( not fBankAccount.baFields.baIs_A_Manual_Account ) and
+                              ( (Assigned(fBankAccount) and not fBankAccount.baFields.baIs_A_Manual_Account) ) and
                               ( not ClientFileRec^.cfForeign_File );
   end;
   chkMaster.Enabled := AllowMasterMemorised;
