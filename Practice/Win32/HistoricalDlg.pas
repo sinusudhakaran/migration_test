@@ -785,7 +785,11 @@ begin
    bkBranding.StyleTransRangeText(lblTransRange); 
 
    bkBranding.StyleTopBannerRightImage(imgGraphic);
-
+   if Assigned(MyClient) and MyClient.clFields.clFile_Read_Only then
+   begin
+     lblAcctDetails.Font.Color :=  clRed;
+     lblTransRange.Font.Color := clRed;
+   end;
    DittoLineInProgress := False;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

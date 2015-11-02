@@ -925,6 +925,11 @@ begin
   with pTran^ do begin
      lblDate.Caption        := bkDate2Str( txDate_Effective );
      lblJournalType.caption := Localise(MyClient.clFields.clCountry, btNames[JournalType]);
+     if MyClient.clFields.clFile_Read_Only then
+     begin
+       lblDate.Font.Color :=  clRed;
+       lblJournalType.Font.Color :=  clRed;
+     end;
 
      SetUnLocked(not ( txLocked or (txDate_Transferred <> 0)));
 

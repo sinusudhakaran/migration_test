@@ -955,6 +955,11 @@ begin
    ClientTree.Header.Height := MonthHeight * 2 + 4;
    FClosing := False;
    FAbandon := False;
+  if Assigned(MyClient) and MyClient.clFields.clFile_Read_Only then
+  begin
+    lblClientName.Font.Color := clRed;
+  end;
+
    RegisterWebNotesUpdate(Self.Handle);
 end;
 

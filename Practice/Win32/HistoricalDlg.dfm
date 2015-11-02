@@ -609,6 +609,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblHist
@@ -628,6 +629,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.##'
     ShowHint = True
     Table = tblHist
@@ -647,6 +649,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '#########.####'
     ShowHint = True
     Table = tblHist
@@ -787,6 +790,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     ShowHint = True
     Table = tblHist
@@ -1021,6 +1025,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblHist
     OnOwnerDraw = celForexAmountOwnerDraw
@@ -1037,6 +1042,7 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '####.####'
     Table = tblHist
     Left = 336
@@ -1052,7 +1058,6 @@ object dlgHistorical: TdlgHistorical
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '##########.##'
     Table = tblHist
     OnOwnerDraw = celLocalAmountOwnerDraw

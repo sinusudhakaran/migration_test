@@ -1259,6 +1259,12 @@ begin
   frmSuggMemPopup.OnLaterClick  := DoLaterClick;
   frmSuggMemPopup.OnCreateClick := DoCreateClick;
 
+  if Assigned(MyClient) and MyClient.clFields.clFile_Read_Only then
+  begin
+    lblAcctDetails.Font.Color := clRed;
+    lblTransRange.Font. Color := clRed;
+  end;
+
   SuggestedMem.DoneProcessingEvent.Add(DoSuggestedMemsDoneProcessing);
 end;
 

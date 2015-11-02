@@ -1171,6 +1171,15 @@ begin
    ExtraTitleBar.GradientColorStop  := bkbranding.TopBarStopColor;
    lblDetails.Font.Color := bkBranding.TopTitleColor;
    lblName.Font.Color := bkBranding.TopTitleColor;
+   if Assigned(MyClient) and MyClient.clFields.clFile_Read_Only then
+   begin
+     lblDetails.Font.Color := clRed;
+     lblName.Font.Color := clRed;
+     edtName.Font.Color := clRed;
+     lblStart.Font.Color := clRed;
+     lblAllExclude.Font.Color := clRed;
+     lblReminderNote.Font.Color := clRed;
+   end;
 
    mniLockLeftmostClick(Sender);
 
