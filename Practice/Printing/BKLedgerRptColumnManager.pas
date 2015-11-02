@@ -548,7 +548,7 @@ begin
           //BGL360
           case aDataToken of
             tkteSF_Other_Income                            : Result := 'Other Income';
-            tkteSF_Other_Trust_Deductions                  : Result := 'Less Other Allowable Trust Deductions';
+            tkteSF_Other_Trust_Deductions                  : Result := 'Trust Deductions';
             tkteSF_CGT_Concession_Amount                   : Result := 'CGT Concession';
             tkteSF_CGT_ForeignCGT_Before_Disc              : Result := 'Foreign CG Before Disc';
             tkteSF_CGT_ForeignCGT_Indexation               : Result := 'Foreign CG Indexed';
@@ -560,9 +560,9 @@ begin
             tkteSF_AU_Franking_Credits_NZ_Co               : Result := 'AU Franking CR from NZ Co.';
             tkteSF_Non_Res_Witholding_Tax                  : Result := 'Non-Resident Tax';
             tkteSF_LIC_Deductions                          : Result := 'LIC Deduction';
-            tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Discounted Before Disc';
-            tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexation Method';
-            tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other Method';
+            tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Before Disc';
+            tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexed';
+            tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other';
             tkteSF_Non_Cash_CGT_Capital_Losses             : Result := 'Non-Cash Capital Losses';
             tkteSF_Share_Brokerage                         : Result := 'Brokerage';
             tkteSF_Share_Consideration                     : Result := 'Consideration';
