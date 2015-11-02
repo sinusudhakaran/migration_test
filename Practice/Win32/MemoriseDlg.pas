@@ -628,6 +628,9 @@ begin
               if assigned(FoundAcc) then
               begin
                 Institution := FoundAcc^.sbInstitution;
+                if trim(Institution) = '' then
+                  Continue;
+
                 if InstitutionList.IndexOf( Institution) = - 1 then
                   InstitutionList.Add( Institution);
               end;
