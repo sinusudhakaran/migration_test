@@ -259,10 +259,14 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTE, tkteSF_Share_Consideration,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
   AddColumn(BKTE, tkteSF_Share_GST_Amount,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
-  AddColumn(BKTE, tkteSF_Share_GST_Rate,  0, jtRight, ctFormat,
-            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
+  AddColumn(BKTE, tkteSF_Share_GST_Rate, 0, jtLeft,
+            ctAuto, '', '', DEFAULT_GAP, False, False, True);
+(*  AddColumn(BKTE, tkteSF_Share_GST_Rate,  0, jtRight, ctAuto, '', '', ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, false); *)
 //		Units??
 end;
 

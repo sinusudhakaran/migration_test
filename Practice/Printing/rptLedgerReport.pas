@@ -74,42 +74,6 @@ type
     SuperTotalShare_Brokerage                      : Money;
     SuperTotalShare_GST_Amount                     : Money;
 
-
-(*
-  if (aReportColumnItem.DataUnit = BKTE) then begin
-    case aReportColumnItem.DataToken of
-      tkteSF_Other_Income                            : Result := Amount_Size;
-      tkteSF_Other_Trust_Deductions                  : Result := Amount_Size;
-      tkteSF_CGT_Concession_Amount                   : Result := Amount_Size;
-      tkteSF_CGT_ForeignCGT_Before_Disc              : Result := Amount_Size;
-      tkteSF_CGT_ForeignCGT_Indexation               : Result := Amount_Size;
-      tkteSF_CGT_ForeignCGT_Other_Method             : Result := Amount_Size;
-      tkteSF_CGT_TaxPaid_Indexation                  : Result := Amount_Size;
-      tkteSF_CGT_TaxPaid_Other_Method                : Result := Amount_Size;
-      tkteSF_Other_Net_Foreign_Income                : Result := Amount_Size;
-      tkteSF_Cash_Distribution                       : Result := Amount_Size;
-      tkteSF_AU_Franking_Credits_NZ_Co               : Result := Amount_Size;
-      tkteSF_Non_Res_Witholding_Tax                  : Result := Amount_Size;
-      tkteSF_LIC_Deductions                          : Result := Amount_Size;
-      tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := Amount_Size;
-      tkteSF_Non_Cash_CGT_Indexation                 : Result := Amount_Size;
-      tkteSF_Non_Cash_CGT_Other_Method               : Result := Amount_Size;
-      tkteSF_Non_Cash_CGT_Capital_Losses             : Result := Amount_Size;
-      tkteSF_Share_Brokerage                         : Result := Amount_Size;
-      tkteSF_Share_GST_Amount                        : Result := Amount_Size;
-      tkteSF_Share_GST_Rate                          :
-        Result := sizeof( Transaction_Extension_Rec.teSF_Share_GST_Rate );
-      tkteSF_Cash_Date                               : Result := DATE_SIZE;
-      tkteSF_Accrual_Date                            : Result := DATE_SIZE;
-      tkteSF_Record_Date                             : Result := DATE_SIZE;
-    end;
-  end;
-*)
-
-
-
-
-
     procedure ClearSuper;
   end;
 
