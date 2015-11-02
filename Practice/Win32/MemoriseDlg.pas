@@ -3776,6 +3776,7 @@ begin
   MovedValue := (chkAccountSystem.Left + chkAccountSystem.Width + 16) - cbAccounting.Left;
   cbAccounting.Left := chkAccountSystem.Left + chkAccountSystem.Width + 16;
   cbAccounting.Width := cbAccounting.Width - MovedValue;
+  eStatementDetails.Enabled := chkStatementDetails.Checked;
 
   fAllowRefreshTran := true;
   fDirty := false;
