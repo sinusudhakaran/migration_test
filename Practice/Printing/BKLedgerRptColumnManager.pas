@@ -264,7 +264,7 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
 
   AddColumn(BKTE, tkteSF_Share_GST_Rate, 0, jtLeft,
-            ctAuto, '', '', DEFAULT_GAP, False, False, True);
+            ctAuto, '', '', DEFAULT_GAP, False, False, False);
 (*  AddColumn(BKTE, tkteSF_Share_GST_Rate,  0, jtRight, ctAuto, '', '', ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, false); *)
 //		Units??
