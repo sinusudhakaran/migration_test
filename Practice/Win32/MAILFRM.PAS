@@ -1049,7 +1049,6 @@ begin
       else
       begin
         CmdString := '';
-
         if Trim(txtRecipient.Text) <> '' then
           CmdString := CmdString + ' -to '+ txtRecipient.Text;
         if Trim(txtCC.Text) <> '' then
@@ -1163,7 +1162,7 @@ begin
   if aMsg = '' then begin
      HelpfulWarningMsg('Please specify at least one recipient.', 0);
      txtRecipient.SetFocus;
-     exit;
+     Exit;
   end { txtRecipient.text = '' };
 
 
@@ -1181,8 +1180,15 @@ begin
   if eReturnAddr.Visible then begin
      if ( Trim(eReturnAddr.text) = '') then begin
         HelpfulWarningMsg('Please specify a return address.', 0);
-        exit;
+        Exit;
      end { eReturnAddr.text = '' }
+  end;
+
+  if (((IsWoW64) or (INI_Mail_Type = MAPI_MAIL)) and (Trim(txtSubject.text) = '')) then
+  begin
+    HelpfulWarningMsg('Please specify a subject.', 0);
+    txtSubject.SetFocus;
+    Exit;
   end;
 
   //verify that all attachments are available
