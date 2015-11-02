@@ -730,7 +730,7 @@ begin
       end;
     end;
   end else
-    HelpfulErrorMsg('Failed to send the email!', 0, False, rsMAPI_X64EXE_NOT_FOUND, True);
+    HelpfulErrorMsg(rsMAPI_X64EXE_NOT_FOUND, 0);
 end;
 
 procedure TfrmMail.SetBodyText(const Value: string);
@@ -1184,7 +1184,7 @@ begin
      end { eReturnAddr.text = '' }
   end;
 
-  if (((IsWoW64) or (INI_Mail_Type = MAPI_MAIL)) and (Trim(txtSubject.text) = '')) then
+  if ((IsWoW64) and (INI_Mail_Type = MAPI_MAIL) and (Trim(txtSubject.text) = '')) then
   begin
     HelpfulWarningMsg('Please specify a subject.', 0);
     txtSubject.SetFocus;
@@ -1229,6 +1229,7 @@ begin
         if li.SubItems.Strings[0] = BNotesFile then
            BNotesAttachSent := True;
      end;
+
      for i := 0 to lvClientFiles.Items.Count - 1 do begin
         li := lvClientFiles.Items[i];
            BK5Attachments.Add(li.Caption); //client code
