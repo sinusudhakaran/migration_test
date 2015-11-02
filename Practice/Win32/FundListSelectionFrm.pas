@@ -30,6 +30,7 @@ type
     procedure edtSearchChange(Sender: TObject);
     procedure sgFundsMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure sgFundsDblClick(Sender: TObject);
   private
     { Private declarations }
     FFundListJSON : TFundList_Obj;
@@ -105,11 +106,11 @@ begin
         begin
           FSelectedFundID := tmpFund.FundID;
           FSelectedFundName := tmpFund.FundName;
+          ModalResult := mrOk;
         end;
       end;
     end;
   end;
-  ModalResult := mrOk;
 end;
 
 procedure TFundSelectionFrm.ClearHeaderTriangle(ACol, ARow: Integer);
@@ -222,12 +223,17 @@ begin
   sgFunds.Row := Index;
 end;
 
+procedure TFundSelectionFrm.sgFundsDblClick(Sender: TObject);
+begin
+  if ((FCurrentRow > 0) and (FundListJSON.Count > 0)  and (sgFunds.Row > 0 ))then
+    btnYesClick(Sender);
+end;
+
 procedure TFundSelectionFrm.sgFundsDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
   Triangle: array [0..2] of TPoint;
   aCanvas: TCanvas;
-  oldColor: TColor;
 const
   Spacing = 10;
   TriSize = 3;
@@ -235,7 +241,6 @@ begin
   if ARow = 0 then
   begin
     aCanvas := sgFunds.Canvas;
-    oldColor := aCanvas.Brush.Color;
     sgFunds.Canvas.Pen.Color := clBlack;
     aCanvas.Brush.Color := clBtnFace;
     aCanvas.FillRect(Rect);

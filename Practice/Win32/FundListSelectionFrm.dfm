@@ -144,8 +144,10 @@ object FundSelectionFrm: TFundSelectionFrm
       ParentCtl3D = False
       ScrollBars = ssNone
       TabOrder = 0
+      OnDblClick = sgFundsDblClick
       OnDrawCell = sgFundsDrawCell
       OnMouseUp = sgFundsMouseUp
+      ExplicitTop = 3
       ColWidths = (
         164
         514
