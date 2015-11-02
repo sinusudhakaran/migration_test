@@ -2152,32 +2152,32 @@ const
        'Discounted Capital Gain (Before Discount)', // sffIdxBGL360_Discounted_Capital_Gain_Before_Discount
        'Capital Gains - Indexation',                // sffIdxBGL360_Capital_Gains_Indexation
        'Capital Gains - Other Method',              // sffIdxBGL360_Capital_Gains_Other Method
-       'Capital Gain Tax (CGT) Concession Amount',  // sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount
+       'CGT Concession',  // sffIdxBGL360_Capital_Gain_Tax_CGT_Concession_Amount
 
-       'Foreign Capital Gains Before Discount',     // sffIdxBGL360_Foreign_Capital_Gains_Before_Discount
-       'Foreign Capital Gains Indexation Method',   // sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method
-       'Foreign Capital Gains Other Method',        // sffIdxBGL360_Foreign_Capital_Gains_Other_Method
+       'Foreign CG Before Disc',     // sffIdxBGL360_Foreign_Capital_Gains_Before_Discount
+       'Foreign CG Indexed',   // sffIdxBGL360_Foreign_Capital_Gains_Indexation_Method
+       'Foreign CG Other',        // sffIdxBGL360_Foreign_Capital_Gains_Other_Method
 
-       'Income Tax Paid Before Discount',           // sffIdxBGL360_Income_Tax_Paid_Before_Discount
-       'Income Tax Paid Indexation Method',         // sffIdxBGL360_Income_Tax_Paid_Indexation_Method
-       'Income Tax Paid Other Method',              // sffIdxBGL360_Income_Tax_Paid_Other_Method
+       'Tax Paid CR Before Disc',           // sffIdxBGL360_Income_Tax_Paid_Before_Discount
+       'Tax Paid CR Indexed',         // sffIdxBGL360_Income_Tax_Paid_Indexation_Method
+       'Tax Paid CR Other',              // sffIdxBGL360_Income_Tax_Paid_Other_Method
      //Capital Gains Tab
 
      //ForeignIncome Tab
        'Assessable Foreign Source Income',          // sffIdxBGL360_Assessable_Foreign_Source_Income
-       'Other Net Foreign Source Income',           // sffIdxBGL360_Other_Net_Foreign_Source_Income
+       'Other Net Foreign Income',           // sffIdxBGL360_Other_Net_Foreign_Source_Income
        'Cash Distribution',                         // sffIdxBGL360_Cash_Distribution
 
        'Foreign Income Tax Offset',                 // sffIdxBGL360_Foreign_Income_Tax_Offset
        'AU Franking Credits from an NZ Company',    // sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company
 
-       'TFN Amounts Withheld',                      // sffIdxBGL360_TFN_Amounts_Withheld
-       'Non-Resident Withholding Tax',              // sffIdxBGL360_Non_Resident_Withholding_Tax
+       'TFN Withheld',                      // sffIdxBGL360_TFN_Amounts_Withheld
+       'Non-Resident Tax',              // sffIdxBGL360_Non_Resident_Withholding_Tax
        'LIC Deductions',                            // sffIdxBGL360_LIC_Deductions
 
-       'Tax Exempted Amounts',                      // sffIdxBGL360_Tax_Exempted_Amounts
-       'Tax Free Amounts',                          // sffIdxBGL360_Tax_Free_Amounts
-       'Tax Deferred Amounts',                      // sffIdxBGL360_Tax_Deferred_Amounts
+       'Tax Exempt',                      // sffIdxBGL360_Tax_Exempted_Amounts
+       'Tax Free',                          // sffIdxBGL360_Tax_Free_Amounts
+       'Tax Deferred',                      // sffIdxBGL360_Tax_Deferred_Amounts
        'Other Expenses',                            // sffIdxBGL360_Other_Expenses
      //ForeignIncome Tab
 
