@@ -1896,25 +1896,25 @@ begin
       Caption := 'Memorisation';
       btnCopy.Visible := false;
       btnDelete.Visible := false;
-      btnOk.Caption := 'Create';
+      btnOk.Caption := 'Cr&eate';
     end;
     demEdit : begin
       Caption := 'Memorisation';
       btnCopy.Visible := true;
       btnDelete.Visible := true;
-      btnOk.Caption := 'Update';
+      btnOk.Caption := 'Updat&e';
     end;
     demMasterCreate : begin
       Caption := 'MASTER Memorisation';
       btnCopy.Visible := false;
       btnDelete.Visible := false;
-      btnOk.Caption := 'Create';
+      btnOk.Caption := 'Cr&eate';
     end;
     demMasterEdit : begin
       Caption := 'MASTER Memorisation';
       btnCopy.Visible := true;
       btnDelete.Visible := true;
-      btnOk.Caption := 'Update';
+      btnOk.Caption := 'Updat&e';
     end;
   end;
 
@@ -4459,7 +4459,7 @@ procedure TdlgMemorise.UpdateMoreOptions();
 begin
   if fShowMoreOptions then
   begin
-    btnShowMoreOptions.Caption := 'Hide more options';
+    btnShowMoreOptions.Caption := 'Hide more &options';
 
     cRef.Visible   := true;
     eRef.Visible   := true;
@@ -4484,7 +4484,7 @@ begin
   end
   else
   begin
-    btnShowMoreOptions.Caption := 'Show more options';
+    btnShowMoreOptions.Caption := 'Show more &options';
     pnlDetails.Height := 117;
 
     cRef.Visible   := false;

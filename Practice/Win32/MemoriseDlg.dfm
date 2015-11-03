@@ -260,7 +260,7 @@ object dlgMemorise: TdlgMemorise
           Margins.Bottom = 1
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 16
           Sorted = True
           TabOrder = 2
           OnChange = eStatementDetailsChange
@@ -317,7 +317,16 @@ object dlgMemorise: TdlgMemorise
         OnMouseDown = tblSplitMouseDown
         OnUserCommand = tblSplitUserCommand
         CellData = (
-          'dlgMemorise.Header')
+          'dlgMemorise.Header'
+          'dlgMemorise.colLineType'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.ColAcct')
         RowData = (
           24)
         ColData = (
@@ -622,7 +631,14 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         OnMouseDown = tblTranMouseDown
         CellData = (
-          'dlgMemorise.tranHeader')
+          'dlgMemorise.tranHeader'
+          'dlgMemorise.colTranCodedBy'
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colAnalysis'
+          'dlgMemorise.colReference'
+          'dlgMemorise.colTranDate')
         RowData = (
           24)
         ColData = (
@@ -736,7 +752,7 @@ object dlgMemorise: TdlgMemorise
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 1
       OnChange = eStatementDetailsChange
@@ -1052,7 +1068,7 @@ object dlgMemorise: TdlgMemorise
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentCtl3D = False
       ParentFont = False
       TabOrder = 15
@@ -1120,7 +1136,7 @@ object dlgMemorise: TdlgMemorise
       Width = 129
       Height = 25
       Anchors = [akTop, akRight]
-      Caption = 'Show more options'
+      Caption = 'Show more &options'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -1216,7 +1232,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblSplit
     TableColor = False
@@ -1352,7 +1367,6 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
-    Options = [efoCaretToEnd, efoTrimBlanks]
     PictureMask = '999999'
     ShowHint = True
     Table = tblSplit
@@ -1373,6 +1387,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.####'
     Table = tblSplit
     TableColor = False
@@ -1481,6 +1496,7 @@ object dlgMemorise: TdlgMemorise
     EFColors.Error.TextColor = clBlack
     EFColors.Highlight.BackColor = clHighlight
     EFColors.Highlight.TextColor = clHighlightText
+    Options = [efoCaretToEnd]
     PictureMask = '###,###,###.##'
     Table = tblTran
     TableColor = False
