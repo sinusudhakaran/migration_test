@@ -744,6 +744,7 @@ begin
           ShowPracticeLogo     := User^.usShow_Practice_Logo;
           AllowBanklinkOnline  := User^.usAllow_Banklink_Online;
           EmailAddress         := User^.usEMail_Address;
+          MYOBEmailAddress     := User^.usMYOBEMail;
           Password             := UserPassword;
        end;
      end;
@@ -1003,9 +1004,8 @@ begin
     else
       MadAddEmailBodyValue('User-Name','SuperUser');
 
-    PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
-    PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
-    PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+    GetFirmsAndBusinesses(True); // start thread and get firms and businesses
+
     ShowPromoWindow(User);
 
     if Debugme then

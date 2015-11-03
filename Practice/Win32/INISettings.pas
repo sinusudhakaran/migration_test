@@ -1175,7 +1175,6 @@ begin
 
       {my.MYOB user credentials}
       UserINI_myMYOB_Random_Key := ReadString(GrpPracmyMYOB,'my.MYOBRandomKey', '');
-      UserINI_myMYOB_EmailAddress := ReadString(GrpPracmyMYOB,'my.MYOBEmailAddress', '');
       UserINI_myMYOB_Access_Token := ReadString(GrpPracmyMYOB,'my.MYOBAccessToken', '');
       UserINI_myMYOB_Refresh_Token := ReadString(GrpPracmyMYOB,'my.MYOBRefreshToken', '');
       UserINI_myMYOB_Expires_TokenAt := ReadDateTime(GrpPracmyMYOB,'my.MYOBExpiresAt', 0);
@@ -1299,7 +1298,6 @@ begin
 
       {my.MYOB user credentials}
       IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBRandomKey', UserINI_myMYOB_Random_Key);
-      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBEmailAddress', UserINI_myMYOB_EmailAddress);
       IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBAccessToken', UserINI_myMYOB_Access_Token);
       IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBRefreshToken', UserINI_myMYOB_Refresh_Token);
       IniFile.WriteDateTime(GrpPracmyMYOB, 'my.MYOBExpiresAt', UserINI_myMYOB_Expires_TokenAt);

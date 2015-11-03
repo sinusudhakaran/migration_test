@@ -897,6 +897,7 @@ begin
 	SetBoolAttr(Result, 'UsingSecureAuthentication', usUsing_Secure_Authentication);
 	SetArray(Result, 'UserDataBlocks', usUser_Data_Block);
 	SetTextAttr(Result, 'Salt', usSalt);
+	SetTextAttr(Result, 'MYOBEMail', usMYOBEMail);
 
 	CNode := nil;
 	CCNode := nil;
@@ -943,6 +944,7 @@ begin
 	usUsing_Secure_Authentication := GetBoolAttr(Result, 'UsingSecureAuthentication');
 	GetArray(Result, 'UserDataBlocks', usUser_Data_Block);
 	usSalt := GetTextAttr(Result, 'Salt');
+	usMYOBEMail := GetTextAttr(Result, 'MYOBEMail');
 	except
 		on E: Exception do ReRaise (E, 'Reading TUser_Rec');
 	end;

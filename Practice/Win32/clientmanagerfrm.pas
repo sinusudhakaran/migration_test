@@ -452,7 +452,8 @@ uses
   CashBookMigrationWiz,
   bkProduct,
   CashbookMigration,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  PracticeLedgerObj;
 
 {$R *.dfm}
 
@@ -1895,6 +1896,9 @@ begin
     begin
       MyClient.clExtra.cemyMYOBClientIDSelected := '';
       MyClient.clExtra.cemyMYOBClientNameSelected := '';
+      if Assigned(PracticeLedger) then
+        PracticeLedger.Businesses.Clear;
+
       SaveClient(false);
       NeedToClearMYOBClient := False;
     end;

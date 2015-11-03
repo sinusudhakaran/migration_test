@@ -37,8 +37,12 @@ type
       var aResponse: TlkJSONbase; var aRespStr, aError: string;
       aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
   public
-    constructor Create;override;
+    //Couldn't make these private variables and add property since the getfirms and getbusiness need var list to be passed
+    Firms : TFirms;// read FFirms write FFirms;
+    Businesses : TBusinesses ;//read FBusinesses write FBusinesses;
 
+    constructor Create;override;
+    destructor Destroy;override;
     //Refresh chart
     procedure RefreshChartFromPLAPI;
 
@@ -51,6 +55,16 @@ type
     procedure AddTransactionToExpList;
   end;
 
+  TPracticeLedgerThread = class(TThread)
+  private
+    FIsDownloadBusiness : Boolean;
+  public
+    constructor CreateThread(CreateSuspended: Boolean;aIsLoadBusiness:Boolean);
+    property IsDownloadBusiness : Boolean read FIsDownloadBusiness write FIsDownloadBusiness;
+
+    procedure Execute;override;
+  end;
+
 const
   UnitName = 'PracticeLedgerObj';
   MAXENTRIES = 200; // Max entries (journal/ bank) can sent to a api at a time
@@ -59,11 +73,14 @@ var
   DebugMe : boolean = false;
   PracticeLedger: TPracticeLedger;
   NoOfEntries : LongInt;
+  PracticeLedgerThread : TPracticeLedgerThread;
 
   //Validate tokens
   function CheckFormyMYOBTokens:Boolean;
+  // this function invokes a thread to retrieve firms and businesses so that there wont be any delay while showing them to screen
+  procedure GetFirmsAndBusinesses(aIsLoadBusiness:Boolean);
 
-
+  // This is the global function called for each transaction from Traverse unit once it's filtered for extract
   procedure DoTransaction;
 
 implementation
@@ -83,6 +100,12 @@ begin
       (Trim(UserINI_myMYOB_Refresh_Token) <> '') and
       ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now + 1/180) ) )) then
     Result := True;
+end;
+
+procedure GetFirmsAndBusinesses(aIsLoadBusiness:Boolean);
+begin
+  PracticeLedgerThread := TPracticeLedgerThread.CreateThread(False,aIsLoadBusiness);
+  Application.ProcessMessages;
 end;
 { TPracticeLedger }
 
@@ -296,6 +319,24 @@ constructor TPracticeLedger.Create;
 begin
   inherited;
   FLicenseType := ltPracticeLedger;
+
+  Firms := TFirms.Create;
+  Businesses := TBusinesses.Create;
+end;
+
+destructor TPracticeLedger.Destroy;
+begin
+  if Assigned(Firms) then
+  begin
+    Firms.Clear;
+    FreeAndNil(Firms);
+  end;
+  if Assigned(Businesses) then
+  begin
+    Businesses.Clear;
+    FreeAndNil(Businesses);
+  end;
+  inherited;
 end;
 
 procedure DoTransaction;
@@ -903,6 +944,45 @@ begin
       end;
       FromIndex := FromIndex + MAXENTRIES;
     end;
+  end;
+end;
+
+{ PracticeLedgerThread }
+
+constructor TPracticeLedgerThread.CreateThread(CreateSuspended,
+  aIsLoadBusiness: Boolean);
+begin
+  inherited Create(CreateSuspended);
+  IsDownloadBusiness := aIsLoadBusiness;
+end;
+
+procedure TPracticeLedgerThread.Execute;
+var
+  sError: string;
+begin
+  FreeOnTerminate := True;
+
+  while not Terminated do
+  begin
+    PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
+    PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+    PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+
+    if (CheckFormyMYOBTokens) then
+    begin
+      if not PracticeLedger.GetFirms(PracticeLedger.Firms, sError) then
+      begin
+        LogUtil.LogMsg(lmError,UnitName, sError);
+      end;
+
+      if (IsDownloadBusiness and Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID)<>'')) then
+      begin
+        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, PracticeLedger.Businesses, sError) then
+          LogUtil.LogMsg(lmError,UnitName, sError);
+      end;
+    end;
+
+    Terminate;
   end;
 end;
 

@@ -16,7 +16,8 @@ uses
   Buttons,
   Software,
   ExtCtrls,
-  OsFont;
+  OsFont,
+  SelectBusinessFrm;
 
 type
   TdlgAcctSystem = class(TForm)
@@ -103,6 +104,7 @@ type
     function VerifyForm : boolean;
     procedure FillSystemList;
     procedure DoReBranding;
+    procedure ShowConnectionError(aError : string);
   protected
     procedure UpdateActions; override;
   public
@@ -157,7 +159,8 @@ uses
   Files,
   SimpleFund,
   myMYOBSignInFrm,
-  PracticeLedgerObj;
+  PracticeLedgerObj,
+  bkContactInformation;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -500,7 +503,7 @@ begin
   else if SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
   begin
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'MYOB Login'
+      btnConnectMYOB.Caption := 'MYOB Sign in'
     else
       btnConnectMYOB.Caption := 'Select MYOB Client';
 
@@ -975,6 +978,16 @@ begin
   end;
 end;
 
+procedure TdlgAcctSystem.ShowConnectionError(aError: string);
+var
+  SupportNumber : string;
+begin
+  SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
+  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
+                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+                  0, false, aError, true);
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FillSystemList;
 var
@@ -1195,36 +1208,64 @@ procedure TdlgAcctSystem.btnConnectMYOBClick(Sender: TObject);
 var
   SignInFrm : TmyMYOBSignInForm;
   OldCursor: TCursor;
+  SaveBusiness : Boolean;
+  SelectBusinessFrm : TSelectBusinessForm;
+  sError : string;
 begin
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
   begin
     HelpfulErrorMsg('No MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
     Exit;
   end;
-
+  SaveBusiness := False;
   SignInFrm := TmyMYOBSignInForm.Create(Nil);
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;
   try
     if (not CheckFormyMYOBTokens) then
-      SignInFrm.FormShowType := fsSignIn
-    else
-      SignInFrm.FormShowType := fsSelectClient;
-    SignInFrm.ShowFirmSelection := False;
-
-    if (SignInFrm.ShowModal = mrOK) then
     begin
-      if MyClient.clExtra.cemyMYOBClientIDSelected <> SignInFrm.SelectedID then
+      SignInFrm.FormShowType := fsSignIn;
+      SignInFrm.ShowFirmSelection := False;
+      if (SignInFrm.ShowModal = mrOK) then
       begin
-        MyClient.clExtra.cemyMYOBClientIDSelected := SignInFrm.SelectedID;
-        MyClient.clExtra.cemyMYOBClientNameSelected := SignInFrm.SelectedName;
-
-        if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
+        if MyClient.clExtra.cemyMYOBClientIDSelected <> SignInFrm.SelectedID then
         begin
-          lblPLClientName.Caption := MyClient.clExtra.cemyMYOBClientNameSelected;
+          MyClient.clExtra.cemyMYOBClientIDSelected := SignInFrm.SelectedID;
+          MyClient.clExtra.cemyMYOBClientNameSelected := SignInFrm.SelectedName;
+          SaveBusiness := True;
         end;
-        SaveClient(false);
       end;
+    end
+    else
+    begin
+      SelectBusinessFrm := TSelectBusinessForm.Create(Self);
+      try
+        // Get Businesses
+        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID ,PracticeLedger.Businesses, sError))) then
+        begin
+          Screen.Cursor := OldCursor;
+          ShowConnectionError(sError);
+          ModalResult := mrCancel;
+        end;
+      
+        if SelectBusinessFrm.ShowModal = mrOk then
+        begin
+          MyClient.clExtra.cemyMYOBClientIDSelected := SelectBusinessFrm.SelectedBusinessID;
+          MyClient.clExtra.cemyMYOBClientNameSelected := SelectBusinessFrm.SelectedBusinessName;
+          SaveBusiness := True;
+        end;
+      finally
+        FreeAndNil(SelectBusinessFrm);
+      end;
+    end;
+
+    if SaveBusiness then
+    begin
+      if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
+      begin
+        lblPLClientName.Caption := MyClient.clExtra.cemyMYOBClientNameSelected;
+      end;
+      SaveClient(false);
     end;
 
     lblFirmName.Caption := 'No Firm selected';

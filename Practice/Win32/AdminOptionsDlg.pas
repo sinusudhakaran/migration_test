@@ -966,7 +966,7 @@ begin
   btnReportPwd.Enabled := chkReportPwd.Checked;
 
   if not (CheckFormyMYOBTokens) then
-    btnConnectMYOB.Caption := 'MYOB Login'
+    btnConnectMYOB.Caption := 'MYOB Sign in'
   else
     btnConnectMYOB.Caption := 'Select MYOB Firm';
 
@@ -1127,6 +1127,9 @@ begin
         NeedToClearMYOBClient := False;
         MyClient.clExtra.cemyMYOBClientIDSelected := '';
         MyClient.clExtra.cemyMYOBClientNameSelected := '';
+        if Assigned(PracticeLedger) then
+          PracticeLedger.Businesses.Clear;
+          
         SaveClient(false);
       end;
     end;
@@ -1137,7 +1140,7 @@ begin
       lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ FFirmName;
 
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'MYOB Login'
+      btnConnectMYOB.Caption := 'MYOB Sign in'
     else
       btnConnectMYOB.Caption := 'Select MYOB Firm';
   finally

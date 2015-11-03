@@ -16,7 +16,6 @@ type
     lblForgotPassword: TLabel;
     edtEmail: TEdit;
     edtPassword: TEdit;
-    btnSignIn: TButton;
     pnlClientSelection: TPanel;
     ShapeBorder: TShape;
     Label1: TLabel;
@@ -29,17 +28,15 @@ type
     Label6: TLabel;
     Shape1: TShape;
     cmbSelectFirm: TComboBox;
+    btnSignIn: TButton;
+
     procedure btnSignInClick(Sender: TObject);
     procedure lblForgotPasswordClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
-    FFirms : TFirms;
-    FBusinesses : TBusinesses;
     FFormShowType : TFormShowType;
     FShowFirmSelection : Boolean;
 
@@ -66,7 +63,7 @@ const
 implementation
 
 uses ShellApi, Globals, CashbookMigration, WarningMoreFrm, bkContactInformation,
-  ErrorMoreFrm, SYDEFS, Admin32, LogUtil, AuditMgr, IniSettings;
+  ErrorMoreFrm, SYDEFS, Admin32, LogUtil, AuditMgr, IniSettings, SelectBusinessFrm;
 
 {$R *.dfm}
 
@@ -78,7 +75,6 @@ end;
 procedure TmyMYOBSignInForm.btnOKClick(Sender: TObject);
 var
   Firm : TFirm;
-  Business : TBusinessData;
 begin
   if (FormShowType = fsSelectFirm) then
   begin
@@ -91,8 +87,8 @@ begin
         FSelectedName := Firm.Name;
       end;
     end;
-  end
-  else if (FormShowType = fsSelectClient) then
+  end;
+  (*else if (FormShowType = fsSelectClient) then
   begin
     if ((Trim(cmbSelectClient.Items.Text) <> '') and (cmbSelectClient.ItemIndex >= 0)) then
     begin
@@ -103,7 +99,7 @@ begin
         FSelectedName := Business.Name;
       end;
     end;
-  end;
+  end;*)
   ModalResult := mrOk;
 end;
 
@@ -112,15 +108,16 @@ var
   sError: string;
   OldCursor: TCursor;
   InvalidPass: boolean;
+  BusinessFrm : TSelectBusinessForm;
 begin
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
   try
-    if UserINI_myMYOB_EmailAddress <> Trim(edtEmail.Text) then
+    {if UserINI_myMYOB_EmailAddress <> Trim(edtEmail.Text) then
     begin
       UserINI_myMYOB_EmailAddress := Trim(edtEmail.Text);
       WriteUsersINI(CurrUser.Code);
-    end;
+    end;}
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
     PracticeLedger.EncryptToken(UserINI_myMYOB_Access_Token);
 
@@ -146,7 +143,7 @@ begin
       begin
         // Get Firms
         FormShowType := fsSelectFirm;
-        if not PracticeLedger.GetFirms(FFirms, sError) then
+        if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
@@ -162,43 +159,35 @@ begin
       else if (FormShowType = fsSignIn) and (not ShowFirmSelection) then
       begin // means show client - for a normal user
         // Get Businesses
-        FormShowType := fsSelectClient;
-        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID ,FBusinesses, sError) then
+        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID ,PracticeLedger.Businesses, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
           ModalResult := mrCancel;
         end;
-        //pnlLogin.Visible := False;
-        pnlClientSelection.Visible := True;
-        Self.Height := 300;
-        btnOK.Visible := True;
+        FormShowType := fsSelectClient;
+        BusinessFrm := TSelectBusinessForm.Create(Self);
+        try
+          if BusinessFrm.ShowModal = mrOk then
+          begin
+            FSelectedID := BusinessFrm.SelectedBusinessID;
+            FSelectedName := BusinessFrm.SelectedBusinessName;
 
-        LoadBusinesses;
+            btnOKClick(Self);
+          end
+          else
+            ModalResult := mrCancel;
+        finally
+          FreeAndNil(BusinessFrm);
+        end;
+        //pnlLogin.Visible := False;
+        //pnlClientSelection.Visible := True;
+        //Self.Height := 300;
+        //btnOK.Visible := True;
       end;
     end;
   finally
     Screen.Cursor := OldCursor;
-  end;
-end;
-
-procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
-begin
-  FFirms := TFirms.Create;
-  FBusinesses := TBusinesses.Create;
-end;
-
-procedure TmyMYOBSignInForm.FormDestroy(Sender: TObject);
-begin
-  if Assigned(FFirms) then
-  begin
-    FFirms.Clear;
-    FreeAndNil(FFirms);
-  end;
-  if Assigned(FBusinesses) then
-  begin
-    FBusinesses.Clear;
-    FreeAndNil(FBusinesses);
   end;
 end;
 
@@ -208,7 +197,7 @@ var
   OldCursor: TCursor;
 begin
   edtPassword.Text := '';
-  edtEmail.Text := UserINI_myMYOB_EmailAddress;
+  edtEmail.Text := CurrUser.MYOBEmailAddress;
   if Trim(edtEmail.Text)= '' then
     edtEmail.Text := CurrUser.EmailAddress;
 
@@ -221,7 +210,7 @@ begin
     fsSignIn :
     begin
       pnlLogin.Visible := True;
-      Self.Height := 250;
+      Self.Height := 185;
       btnOK.Visible := False;
     end;
     fsSelectFirm :
@@ -236,7 +225,7 @@ begin
         PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
         Application.ProcessMessages;
         // Get Firms
-        if not PracticeLedger.GetFirms(FFirms, sError) then
+        if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
@@ -259,7 +248,7 @@ begin
         PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
         Application.ProcessMessages;
         // Get Businesses
-        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, FBusinesses, sError) then
+        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, PracticeLedger.Businesses, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
@@ -301,15 +290,15 @@ begin
   cmbSelectClient.Items.Clear;
   Index := 0;
 
-  if not Assigned(FBusinesses) then
+  if not Assigned(PracticeLedger.Businesses) then
     Exit;
 
-  if FBusinesses.Count = 0 then
+  if PracticeLedger.Businesses.Count = 0 then
     ModalResult := mrCancel;
 
-  for i := 0 to FBusinesses.Count - 1 do
+  for i := 0 to PracticeLedger.Businesses.Count - 1 do
   begin
-    Business := FBusinesses.GetItem(i);
+    Business := PracticeLedger.Businesses.GetItem(i);
     if Assigned(Business) then
     begin
       if Business.ID = MyClient.clExtra.cemyMYOBClientIDSelected then
@@ -323,28 +312,29 @@ end;
 
 procedure TmyMYOBSignInForm.LoadFirms;
 var
-  i, Index: Integer;
+  i, Index, Row: Integer;
   Firm : TFirm;
 begin
   cmbSelectFirm.Items.Clear;
   Index := 0;
-  if not Assigned(FFirms) then
+  if not Assigned(PracticeLedger.Firms) then
     Exit;
 
-  if FFirms.Count = 0 then
+  if PracticeLedger.Firms.Count = 0 then
     ModalResult := mrCancel;
-
-  for i := 0 to FFirms.Count - 1 do
+  Row := 0;
+  for i := 0 to PracticeLedger.Firms.Count - 1 do
   begin
-    Firm := FFirms.GetItem(i);
+    Firm := PracticeLedger.Firms.GetItem(i);
     if Assigned(Firm) then
     begin
       // Check for Practice Ledger 
       if Pos('PL',Firm.EligibleLicense) > 0 then
       begin
         if (Firm.ID = AdminSystem.fdFields.fdmyMYOBFirmID) then
-          Index := i;
+          Index := Row;
         cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
+        Inc(Row);
       end;
     end;
   end;

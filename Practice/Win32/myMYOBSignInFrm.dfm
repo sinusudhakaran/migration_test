@@ -3,30 +3,31 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = ' '
-  ClientHeight = 324
-  ClientWidth = 567
+  Caption = 'Sign in'
+  ClientHeight = 279
+  ClientWidth = 509
   Color = clWindow
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
-  OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pnlLogin: TPanel
     Left = 0
     Top = 0
-    Width = 567
-    Height = 154
+    Width = 509
+    Height = 106
     Align = alTop
     BevelOuter = bvNone
     ParentColor = True
     TabOrder = 0
+    DesignSize = (
+      509
+      106)
     object lblEmail: TLabel
       Left = 24
-      Top = 27
+      Top = 13
       Width = 31
       Height = 16
       Caption = 'Email'
@@ -39,7 +40,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     end
     object lblPassword: TLabel
       Left = 24
-      Top = 69
+      Top = 47
       Width = 55
       Height = 16
       Caption = 'Password'
@@ -52,7 +53,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     end
     object lblForgotPassword: TLabel
       Left = 128
-      Top = 120
+      Top = 77
       Width = 131
       Height = 16
       Caption = 'Forgot your password?'
@@ -66,8 +67,8 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     end
     object edtEmail: TEdit
       Left = 128
-      Top = 24
-      Width = 425
+      Top = 10
+      Width = 363
       Height = 24
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -79,8 +80,8 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     end
     object edtPassword: TEdit
       Left = 128
-      Top = 66
-      Width = 169
+      Top = 44
+      Width = 363
       Height = 24
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -92,11 +93,12 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       TabOrder = 1
     end
     object btnSignIn: TButton
-      Left = 428
-      Top = 117
-      Width = 125
+      Left = 416
+      Top = 75
+      Width = 75
       Height = 25
-      Caption = 'MYOB login'
+      Anchors = [akRight, akBottom]
+      Caption = 'Sign in'
       Default = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -110,18 +112,19 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   end
   object pnlClientSelection: TPanel
     Left = 0
-    Top = 210
-    Width = 567
-    Height = 66
+    Top = 162
+    Width = 509
+    Height = 69
     Align = alClient
     BevelOuter = bvNone
     ParentColor = True
     TabOrder = 1
     Visible = False
+    ExplicitHeight = 57
     object ShapeBorder: TShape
       Left = 0
       Top = 0
-      Width = 567
+      Width = 509
       Height = 1
       Align = alTop
       Pen.Color = clSilver
@@ -146,7 +149,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     object cmbSelectClient: TComboBox
       Left = 128
       Top = 18
-      Width = 425
+      Width = 363
       Height = 24
       Style = csDropDownList
       Font.Charset = DEFAULT_CHARSET
@@ -161,21 +164,22 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   end
   object pnlControls: TPanel
     Left = 0
-    Top = 276
-    Width = 567
+    Top = 231
+    Width = 509
     Height = 48
     Align = alBottom
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
     TabOrder = 2
+    ExplicitTop = 219
     DesignSize = (
-      567
+      509
       48)
     object Shape2: TShape
       Left = 0
       Top = 0
-      Width = 567
+      Width = 509
       Height = 1
       Align = alTop
       Pen.Color = clSilver
@@ -184,7 +188,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       ExplicitWidth = 65
     end
     object btnOK: TButton
-      Left = 394
+      Left = 335
       Top = 13
       Width = 75
       Height = 25
@@ -196,7 +200,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       OnClick = btnOKClick
     end
     object btnCancel: TButton
-      Left = 478
+      Left = 416
       Top = 13
       Width = 75
       Height = 25
@@ -209,8 +213,8 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   end
   object pnlFirmSelection: TPanel
     Left = 0
-    Top = 154
-    Width = 567
+    Top = 106
+    Width = 509
     Height = 56
     Align = alTop
     BevelOuter = bvNone
@@ -235,7 +239,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     object Shape1: TShape
       Left = 0
       Top = 0
-      Width = 567
+      Width = 509
       Height = 1
       Align = alTop
       Pen.Color = clSilver
@@ -246,7 +250,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     object cmbSelectFirm: TComboBox
       Left = 128
       Top = 21
-      Width = 425
+      Width = 363
       Height = 24
       Style = csDropDownList
       Font.Charset = DEFAULT_CHARSET

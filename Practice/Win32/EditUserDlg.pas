@@ -1356,7 +1356,7 @@ begin { TdlgEditUser.Execute }
     cbSuppressHeaderFooter.Checked := (User.usSuppress_HF = shfChecked);
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
-    edtEmailId.Text := UserINI_myMYOB_EmailAddress;
+    edtEmailId.Text := User.usMYOBEMail;
     if UseBankLinkOnline and User.usAllow_Banklink_Online then
     begin
       Screen.Cursor := crHourGlass;
@@ -1529,12 +1529,7 @@ begin { EditUser }
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
-          if UserINI_myMYOB_EmailAddress <> Trim(edtEmailId.Text) then
-          begin
-            UserINI_myMYOB_EmailAddress := Trim(edtEmailId.Text);
-            WriteUsersINI(StoredName);
-          end;
-
+          pu.usMYOBEMail := Trim(edtEmailId.Text);
           if Password <> pu.usPassword then
           begin
             pu.usUsing_Mixed_Case_Password := True;
@@ -1628,6 +1623,7 @@ begin { EditUser }
               CurrUser.ShowPrinterDialog := pu.usShow_Printer_Choice;
               CurrUser.AllowBanklinkOnline := pu.usAllow_Banklink_Online;
               CurrUser.CanAccessAdmin := pu.usSystem_Access;
+              CurrUser.MYOBEmailAddress := pu.usMYOBEMail;
             End; { CurrUser.LRN = pu.usLRN }
           End;
         End { LoadAdminSystem(true) }

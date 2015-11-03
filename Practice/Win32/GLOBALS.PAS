@@ -554,7 +554,6 @@ var
     UserINI_myMYOB_Access_Token: string = '';
     UserINI_myMYOB_Refresh_Token : string = '';
     UserINI_myMYOB_Expires_TokenAt : TDateTime ;
-    UserINI_myMYOB_EmailAddress: string = '';
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //practice INI settings bk5prac.INI

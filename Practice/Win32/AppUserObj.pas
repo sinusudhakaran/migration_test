@@ -23,6 +23,7 @@ type
     fAllowBanklinkOnline  : boolean;
     FPassword: String;
     FEmailAddress: String;
+    FMYOBEmailAddress: string;
   public
     property Code                 : string  read  fCode                 write fCode;
     property FullName             : string  read  fFullName             write fFullName;
@@ -38,6 +39,7 @@ type
     property AllowBanklinkOnline  : boolean read  fAllowBanklinkOnline  write fAllowBanklinkOnline;
     property Password             : String  read  FPassword             write FPassword;
     property EmailAddress         : String  read  FEmailAddress         write FEmailAddress;
+    property MYOBEmailAddress     : string  read  FMYOBEmailAddress     write FMYOBEmailAddress;
   end;
 
 //------------------------------------------------------------------------------
