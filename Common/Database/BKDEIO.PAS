@@ -71,6 +71,8 @@ CONST
    tkdeSF_Cash_Date                     = 206 ;
    tkdeSF_Accrual_Date                  = 207 ;
    tkdeSF_Record_Date                   = 208 ;
+   tkdeSF_Contract_Date                 = 209 ;
+   tkdeSF_Settlement_Date               = 210 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -121,6 +123,8 @@ Begin
       F.WriteDateValue( tkdeSF_Cash_Date , deSF_Cash_Date );
       F.WriteDateValue( tkdeSF_Accrual_Date , deSF_Accrual_Date );
       F.WriteDateValue( tkdeSF_Record_Date , deSF_Record_Date );
+      F.WriteDateValue( tkdeSF_Contract_Date , deSF_Contract_Date );
+      F.WriteDateValue( tkdeSF_Settlement_Date , deSF_Settlement_Date );
       F.WriteToken( tkEnd_Dissection_Extension );
    end;
 end; { of Write_Dissection_Extension_Rec }
@@ -168,6 +172,8 @@ Begin
          tkdeSF_Cash_Date                     : deSF_Cash_Date := F.ReadDateValue;
          tkdeSF_Accrual_Date                  : deSF_Accrual_Date := F.ReadDateValue;
          tkdeSF_Record_Date                   : deSF_Record_Date := F.ReadDateValue;
+         tkdeSF_Contract_Date                 : deSF_Contract_Date := F.ReadDateValue;
+         tkdeSF_Settlement_Date               : deSF_Settlement_Date := F.ReadDateValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -214,7 +220,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkdeSequence_No to tkdeSF_Record_Date do begin
+  for i := tkdeSequence_No to tkdeSF_Settlement_Date do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -362,6 +368,16 @@ begin
   if (P1.deSF_Record_Date <> P2.deSF_Record_Date) then begin
     P3.deSF_Record_Date := P1.deSF_Record_Date;
     ChangedFields[i] := tkdeSF_Record_Date;
+    Inc(i);
+  end;
+  if (P1.deSF_Contract_Date <> P2.deSF_Contract_Date) then begin
+    P3.deSF_Contract_Date := P1.deSF_Contract_Date;
+    ChangedFields[i] := tkdeSF_Contract_Date;
+    Inc(i);
+  end;
+  if (P1.deSF_Settlement_Date <> P2.deSF_Settlement_Date) then begin
+    P3.deSF_Settlement_Date := P1.deSF_Settlement_Date;
+    ChangedFields[i] := tkdeSF_Settlement_Date;
     Inc(i);
   end;
 

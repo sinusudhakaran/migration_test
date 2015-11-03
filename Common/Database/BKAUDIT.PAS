@@ -424,6 +424,8 @@ begin
     FAuditNamesArray[95,159] := 'SF_Cash_Date';
     FAuditNamesArray[95,160] := 'SF_Accrual_Date';
     FAuditNamesArray[95,161] := 'SF_Record_Date';
+    FAuditNamesArray[95,162] := 'SF_Contract_Date';
+    FAuditNamesArray[95,163] := 'SF_Settlement_Date';
 
    FAuditTableArray[110] := 'Budget_Header';
     FAuditNamesArray[110,112] := 'Start_Date';
@@ -538,6 +540,8 @@ begin
     FAuditNamesArray[145,209] := 'SF_Cash_Date';
     FAuditNamesArray[145,210] := 'SF_Accrual_Date';
     FAuditNamesArray[145,211] := 'SF_Record_Date';
+    FAuditNamesArray[145,212] := 'SF_Contract_Date';
+    FAuditNamesArray[145,213] := 'SF_Settlement_Date';
 
    FAuditTableArray[150] := 'Bank_Account';
     FAuditNamesArray[150,152] := 'Bank_Account_Number';
@@ -714,6 +718,8 @@ begin
     FAuditNamesArray[162,187] := 'SF_Cash_Date';
     FAuditNamesArray[162,188] := 'SF_Accrual_Date';
     FAuditNamesArray[162,189] := 'SF_Record_Date';
+    FAuditNamesArray[162,190] := 'SF_Contract_Date';
+    FAuditNamesArray[162,191] := 'SF_Settlement_Date';
 
    FAuditTableArray[180] := 'Dissection';
     FAuditNamesArray[180,182] := 'Sequence_No';
@@ -804,6 +810,8 @@ begin
     FAuditNamesArray[182,206] := 'SF_Cash_Date';
     FAuditNamesArray[182,207] := 'SF_Accrual_Date';
     FAuditNamesArray[182,208] := 'SF_Record_Date';
+    FAuditNamesArray[182,209] := 'SF_Contract_Date';
+    FAuditNamesArray[182,210] := 'SF_Settlement_Date';
 
    FAuditTableArray[190] := 'Balances';
     FAuditNamesArray[190,192] := 'GST_Period_Starts';

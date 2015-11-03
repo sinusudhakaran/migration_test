@@ -1533,6 +1533,8 @@ begin
 	SetIntAttr(Result, 'SFCashDate', plSF_Cash_Date);
 	SetIntAttr(Result, 'SFAccrualDate', plSF_Accrual_Date);
 	SetIntAttr(Result, 'SFRecordDate', plSF_Record_Date);
+	SetIntAttr(Result, 'SFContractDate', plSF_Contract_Date);
+	SetIntAttr(Result, 'SFSettlementDate', plSF_Settlement_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -1614,6 +1616,8 @@ begin
 	plSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
 	plSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
 	plSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
+	plSF_Contract_Date := GetIntAttr(Result, 'SFContractDate');
+	plSF_Settlement_Date := GetIntAttr(Result, 'SFSettlementDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TPayee_Line_Rec');
 	end;
@@ -1929,6 +1933,8 @@ begin
 	SetIntAttr(Result, 'SFCashDate', mlSF_Cash_Date);
 	SetIntAttr(Result, 'SFAccrualDate', mlSF_Accrual_Date);
 	SetIntAttr(Result, 'SFRecordDate', mlSF_Record_Date);
+	SetIntAttr(Result, 'SFContractDate', mlSF_Contract_Date);
+	SetIntAttr(Result, 'SFSettlementDate', mlSF_Settlement_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2010,6 +2016,8 @@ begin
 	mlSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
 	mlSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
 	mlSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
+	mlSF_Contract_Date := GetIntAttr(Result, 'SFContractDate');
+	mlSF_Settlement_Date := GetIntAttr(Result, 'SFSettlementDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TMemorisation_Line_Rec');
 	end;
@@ -2418,6 +2426,8 @@ begin
 	SetIntAttr(Result, 'SFCashDate', teSF_Cash_Date);
 	SetIntAttr(Result, 'SFAccrualDate', teSF_Accrual_Date);
 	SetIntAttr(Result, 'SFRecordDate', teSF_Record_Date);
+	SetIntAttr(Result, 'SFContractDate', teSF_Contract_Date);
+	SetIntAttr(Result, 'SFSettlementDate', teSF_Settlement_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2460,6 +2470,8 @@ begin
 	teSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
 	teSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
 	teSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
+	teSF_Contract_Date := GetIntAttr(Result, 'SFContractDate');
+	teSF_Settlement_Date := GetIntAttr(Result, 'SFSettlementDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TTransaction_Extension_Rec');
 	end;
@@ -2665,6 +2677,8 @@ begin
 	SetIntAttr(Result, 'SFCashDate', deSF_Cash_Date);
 	SetIntAttr(Result, 'SFAccrualDate', deSF_Accrual_Date);
 	SetIntAttr(Result, 'SFRecordDate', deSF_Record_Date);
+	SetIntAttr(Result, 'SFContractDate', deSF_Contract_Date);
+	SetIntAttr(Result, 'SFSettlementDate', deSF_Settlement_Date);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2706,6 +2720,8 @@ begin
 	deSF_Cash_Date := GetIntAttr(Result, 'SFCashDate');
 	deSF_Accrual_Date := GetIntAttr(Result, 'SFAccrualDate');
 	deSF_Record_Date := GetIntAttr(Result, 'SFRecordDate');
+	deSF_Contract_Date := GetIntAttr(Result, 'SFContractDate');
+	deSF_Settlement_Date := GetIntAttr(Result, 'SFSettlementDate');
 	except
 		on E: Exception do ReRaise (E, 'Reading TDissection_Extension_Rec');
 	end;

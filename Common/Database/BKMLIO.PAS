@@ -111,6 +111,8 @@ CONST
    tkmlSF_Cash_Date                     = 209 ;
    tkmlSF_Accrual_Date                  = 210 ;
    tkmlSF_Record_Date                   = 211 ;
+   tkmlSF_Contract_Date                 = 212 ;
+   tkmlSF_Settlement_Date               = 213 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -201,6 +203,8 @@ Begin
       F.WriteDateValue( tkmlSF_Cash_Date , mlSF_Cash_Date );
       F.WriteDateValue( tkmlSF_Accrual_Date , mlSF_Accrual_Date );
       F.WriteDateValue( tkmlSF_Record_Date , mlSF_Record_Date );
+      F.WriteDateValue( tkmlSF_Contract_Date , mlSF_Contract_Date );
+      F.WriteDateValue( tkmlSF_Settlement_Date , mlSF_Settlement_Date );
       F.WriteToken( tkEnd_Memorisation_Line );
    end;
 end; { of Write_Memorisation_Line_Rec }
@@ -288,6 +292,8 @@ Begin
          tkmlSF_Cash_Date                     : mlSF_Cash_Date := F.ReadDateValue;
          tkmlSF_Accrual_Date                  : mlSF_Accrual_Date := F.ReadDateValue;
          tkmlSF_Record_Date                   : mlSF_Record_Date := F.ReadDateValue;
+         tkmlSF_Contract_Date                 : mlSF_Contract_Date := F.ReadDateValue;
+         tkmlSF_Settlement_Date               : mlSF_Settlement_Date := F.ReadDateValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -336,7 +342,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkmlAccount to tkmlSF_Record_Date do begin
+  for i := tkmlAccount to tkmlSF_Settlement_Date do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -684,6 +690,16 @@ begin
   if (P1.mlSF_Record_Date <> P2.mlSF_Record_Date) then begin
     P3.mlSF_Record_Date := P1.mlSF_Record_Date;
     ChangedFields[i] := tkmlSF_Record_Date;
+    Inc(i);
+  end;
+  if (P1.mlSF_Contract_Date <> P2.mlSF_Contract_Date) then begin
+    P3.mlSF_Contract_Date := P1.mlSF_Contract_Date;
+    ChangedFields[i] := tkmlSF_Contract_Date;
+    Inc(i);
+  end;
+  if (P1.mlSF_Settlement_Date <> P2.mlSF_Settlement_Date) then begin
+    P3.mlSF_Settlement_Date := P1.mlSF_Settlement_Date;
+    ChangedFields[i] := tkmlSF_Settlement_Date;
     Inc(i);
   end;
 

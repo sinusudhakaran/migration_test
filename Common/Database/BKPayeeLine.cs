@@ -535,6 +535,22 @@ namespace BankLink.Practice.BooksIO
 		public Int32 SFRecordDate { get; set; }
 
 
+
+		/// <summary>
+		/// SFContractDate property
+		/// </summary>
+		[XmlAttribute("SFContractDate", DataType = "int")]
+		public Int32 SFContractDate { get; set; }
+
+
+
+		/// <summary>
+		/// SFSettlementDate property
+		/// </summary>
+		[XmlAttribute("SFSettlementDate", DataType = "int")]
+		public Int32 SFSettlementDate { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -614,6 +630,8 @@ namespace BankLink.Practice.BooksIO
 			s.WriteJulDateValue(159, SFCashDate);
 			s.WriteJulDateValue(160, SFAccrualDate);
 			s.WriteJulDateValue(161, SFRecordDate);
+			s.WriteJulDateValue(162, SFContractDate);
+			s.WriteJulDateValue(163, SFSettlementDate);
 			s.WriteToken(96);
 		}
 
@@ -826,6 +844,12 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 161 :
 				SFRecordDate = s.ReadJulDateValue("SFRecordDate");
+				break;
+			case 162 :
+				SFContractDate = s.ReadJulDateValue("SFContractDate");
+				break;
+			case 163 :
+				SFSettlementDate = s.ReadJulDateValue("SFSettlementDate");
 				break;
 			case BeginToken :
 			case EndToken :

@@ -652,6 +652,8 @@ F|SF_Share_GST_Rate|S|5
 F|SF_Cash_Date|D
 F|SF_Accrual_Date|D
 F|SF_Record_Date|D
+F|SF_Contract_Date|D
+F|SF_Settlement_Date|D
 E
 
 N|Budget Header|bu|110
@@ -776,6 +778,8 @@ F|SF_Share_GST_Rate|S|5
 F|SF_Cash_Date|D
 F|SF_Accrual_Date|D
 F|SF_Record_Date|D
+F|SF_Contract_Date|D
+F|SF_Settlement_Date|D
 E
 
 N|Bank Account|ba|150
@@ -992,6 +996,8 @@ F|SF_Share_GST_Rate|S|5
 F|SF_Cash_Date|D
 F|SF_Accrual_Date|D
 F|SF_Record_Date|D
+F|SF_Contract_Date|D
+F|SF_Settlement_Date|D
 E
 
 N|Dissection|ds|180
@@ -1090,6 +1096,8 @@ F|SF_Share_GST_Rate|S|5
 F|SF_Cash_Date|D
 F|SF_Accrual_Date|D
 F|SF_Record_Date|D
+F|SF_Contract_Date|D
+F|SF_Settlement_Date|D
 E
 
 N|Balances|bl|190
