@@ -9,13 +9,13 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 764;
-   BK_IOLIB_Date    = '19/10/15';
-   BK_FILE_VERSION  = 186;  (* Current Version counter for files
+   BK_IOLIB_Version : Integer = 765;
+   BK_IOLIB_Date    = '04/11/15';
+   BK_FILE_VERSION  = 187;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
-   BK_FILE_VERSION_STR = '5.40';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
+   BK_FILE_VERSION_STR = '5.41';   (* Should be changed whenever BK_FILE_VERSION changes. Is used to show user what version they need *)
    
    (*
        History  :     31    New format for GST class codes ( delimited string)
@@ -235,6 +235,11 @@ Const
      5.26            184    Fix for journals being scanned for suggested mems 
      5.27            185    Payee Inactive
      5.28            186    Account Inactive
+                            Suggested Mems
+                            Cashbook Migration
+     5.29            187    Suggested Mems Improvements
+                            BGL Export
+                            Practice Ledger Export
    *)
    //Audit Trail - 135 Don't reuse token!!! - Record defined in SY.TXT but also used in Client File
 
