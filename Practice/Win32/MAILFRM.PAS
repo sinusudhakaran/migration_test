@@ -131,7 +131,7 @@ Type
                                      aSubject,MessageBody: string; AttachmentsList: TStringList;
                                      StatusChangeMethod: TStatusChangeMeth): boolean;
     function SendEmail64Bit(const aCmdLineParams : string) : Cardinal;
-    function GenerateRndFileName : string;                                     
+    function GenerateRndFileName : string;
     procedure SetupUI;
     procedure SaveFailedEmail(Attachments: TStringList);
 
@@ -404,7 +404,6 @@ begin
   end;
 end;
 
-
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMail.formCreate(Sender: TObject);
 begin
@@ -454,7 +453,7 @@ begin
 
   SetUpHelp;
   FAutomatic := False;
- 
+
   LoadSignature;
   ClientList := nil;
 end;
@@ -845,11 +844,16 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TfrmMail.OffsiteSendMail( BK5Files, OtherAttachments : TStringList; CheckoutClientFiles : boolean; WasOpenCode: string) : boolean;
 var
-  Code, Msg : string;
+  Code, Msg: string;
   i, CheckOutDisabled : integer;
   Attachments : TStringList;
   MailSentOK : boolean;
   TempClient : TClientObj;
+
+  //create process variables
+  CmdString : string;
+  AttachmentsStr : string;
+  RTFFileBodyToSendPath : string;
 begin
   //add all bk5 attachments and other attachments into one list
   Attachments := TStringList.Create;
@@ -859,9 +863,67 @@ begin
     for i := 0 to OtherAttachments.Count -1 do
       Attachments.Add( OtherAttachments[i]);
 
-    //send mail
-    MailSentOK := CreateMailObjectAndSend( txtRecipient.Text, txtCC.Text, eReturnAddr.text, txtSubject.text,
-                              Editor.ERTF.Text, Attachments, UpdateStatus);
+      //send mail
+      if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
+        //send mail
+        MailSentOK := CreateMailObjectAndSend( txtRecipient.Text, txtCC.Text, eReturnAddr.text, txtSubject.text,
+                              Editor.ERTF.Text, Attachments, UpdateStatus)
+      else
+      begin
+        CmdString := '';
+        if Trim(txtRecipient.Text) <> '' then
+          CmdString := CmdString + ' -to '+ txtRecipient.Text;
+        if Trim(txtCC.Text) <> '' then
+          CmdString := CmdString + ' -cc '+ txtCC.Text;
+        if Trim(txtSubject.text) <> '' then
+          CmdString := CmdString + ' -subject ' + txtSubject.text;
+        if Trim(Editor.ERTF.Text) <> '' then
+        begin
+          RTFFileBodyToSendPath := GenerateRndFileName;
+          if FileExists(RTFFileBodyToSendPath) then
+          begin
+            DeleteFile(RTFFileBodyToSendPath);
+            RTFFileBodyToSendPath := GenerateRndFileName;
+          end;
+          Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
+          //Save the body to RTF to load it from external EXE and add it to body.
+          //The file will be removed in external EXE
+          CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
+        end;
+        CmdString := CmdString + ' -ole true;';
+
+        AttachmentsStr := '';
+        if Attachments.Count > 0 then
+        begin
+          for i := 0 to Attachments.Count - 1 do
+            AttachmentsStr := AttachmentsStr + Attachments.Strings[i] + ';';
+        end;
+        if AttachmentsStr <> '' then
+          CmdString := CmdString + ' -att '+ AttachmentsStr;
+
+       if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, Editor.ERTF.Text) = 0) then
+       begin
+          AddLine(' ');
+          AddLine(' ');
+          AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
+          //see if email is being sent to support. If so add practice code and name
+          if IsEmailAddressSupport( txtRecipient.Text) then
+          begin
+             AddLine('Path '+ExecDir);
+             if RefreshAdmin then begin   //refresh will fail if no admin exists
+                with AdminSystem.fdFields do
+                   AddLine('Practice '+fdBankLink_Code+' '+fdPractice_Name_for_Reports);
+             end
+          end
+          //add client of info
+          else begin
+             if Assigned(MyClient) then with MyClient.clFields do begin
+                AddLine('Client of: '+clPractice_Name);
+             end;
+          end;
+       end;
+      MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
+    end;
   finally
     Attachments.Free;
   end;
@@ -1079,8 +1141,29 @@ begin
         if AttachmentsStr <> '' then
           CmdString := CmdString + ' -att '+ AttachmentsStr;
 
+       if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, Editor.ERTF.Text) = 0) then
+       begin
+          AddLine(' ');
+          AddLine(' ');
+          AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
+          //see if email is being sent to support. If so add practice code and name
+          if IsEmailAddressSupport( txtRecipient.Text) then
+          begin
+             AddLine('Path '+ExecDir);
+             if RefreshAdmin then begin   //refresh will fail if no admin exists
+                with AdminSystem.fdFields do
+                   AddLine('Practice '+fdBankLink_Code+' '+fdPractice_Name_for_Reports);
+             end
+          end
+          //add client of info
+          else begin
+             if Assigned(MyClient) then with MyClient.clFields do begin
+                AddLine('Client of: '+clPractice_Name);
+             end;
+          end;
+       end;
       MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
-      end;
+    end;
     finally
       Attachments.Free;
     end;
