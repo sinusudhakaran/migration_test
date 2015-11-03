@@ -1927,7 +1927,6 @@ var
   MemList            : TMemorisations_List;
   Mem                : TMemorisation;
   DeleteSelectedMem  : boolean;
-  BankPrefix         : BankPrefixStr;
   CanDoMems          : boolean;
   MasterMemToDelete  : integer;
   SystemMemorisation : pSystem_Memorisation_List_Rec;
@@ -2067,8 +2066,9 @@ begin
 
               if (DeleteSelectedMem and (MasterMemToDelete > -1)) then
               begin
+
                 SystemMem := TMemorisations_List(SystemMemorisation.smMemorisations).Memorisation_At(MasterMemToDelete);
-                DeleteMem(MemList, BankAccount, SystemMem, BankPrefix);
+                DeleteMem(MemList, BankAccount, SystemMem,  mxFiles32.GetBankPrefix( BankAccount.baFields.baBank_Account_Number));
               end;
             end;
           end;
