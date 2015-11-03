@@ -9,7 +9,7 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 765;
+   BK_IOLIB_Version : Integer = 766;
    BK_IOLIB_Date    = '04/11/15';
    BK_FILE_VERSION  = 187;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
@@ -726,6 +726,8 @@ Type
       plSF_Cash_Date                     : Integer;       { Stored }
       plSF_Accrual_Date                  : Integer;       { Stored }
       plSF_Record_Date                   : Integer;       { Stored }
+      plSF_Contract_Date                 : Integer;       { Stored }
+      plSF_Settlement_Date               : Integer;       { Stored }
       plEOR                              : Byte;
    end;
 
@@ -868,6 +870,8 @@ Type
       mlSF_Cash_Date                     : Integer;       { Stored }
       mlSF_Accrual_Date                  : Integer;       { Stored }
       mlSF_Record_Date                   : Integer;       { Stored }
+      mlSF_Contract_Date                 : Integer;       { Stored }
+      mlSF_Settlement_Date               : Integer;       { Stored }
       mlEOR                              : Byte;
    end;
 
@@ -1097,6 +1101,8 @@ Type
       teSF_Cash_Date                     : Integer;       { Stored }
       teSF_Accrual_Date                  : Integer;       { Stored }
       teSF_Record_Date                   : Integer;       { Stored }
+      teSF_Contract_Date                 : Integer;       { Stored }
+      teSF_Settlement_Date               : Integer;       { Stored }
       teEOR                              : Byte;
    end;
 
@@ -1203,6 +1209,8 @@ Type
       deSF_Cash_Date                     : Integer;       { Stored }
       deSF_Accrual_Date                  : Integer;       { Stored }
       deSF_Record_Date                   : Integer;       { Stored }
+      deSF_Contract_Date                 : Integer;       { Stored }
+      deSF_Settlement_Date               : Integer;       { Stored }
       deEOR                              : Byte;
    end;
 
