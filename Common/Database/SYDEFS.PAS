@@ -9,9 +9,9 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   SY_IOLIB_Version : Integer = 136;
-   SY_IOLIB_Date    = '03/11/15';
-   SY_FILE_VERSION   = 133;  (* Current Version counter for files
+   SY_IOLIB_Version : Integer = 137;
+   SY_IOLIB_Date    = '04/11/15';
+   SY_FILE_VERSION   = 134;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
    
@@ -135,6 +135,11 @@ Const
        5.24.0 (BLOPI)    131   Added field for suspending banklink online
        5.25.1            132   Memorisations upgrade, code only
        5.25.1            133   New TPR Supplier Detail Table
+       5.29              134   Practice Ledger Export
+                               BGL Export
+                               Suggested Mems Update
+                               ATO Export
+                               Mems Upgrade
    *)
    //Memorisation Detail - 140 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems
    //Memorisation Line - 145 Don't reuse token!!! - Record defined in BK.TXT but used in SY for Master Mems

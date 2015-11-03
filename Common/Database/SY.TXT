@@ -1,4 +1,4 @@
-$|SY_FILE_VERSION   = 133;  (* Current Version counter for files
+$|SY_FILE_VERSION   = 134;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
@@ -122,6 +122,11 @@ $|    5.24.0 (BLOPI)    130   Added field for storing the last agreed to banklin
 $|    5.24.0 (BLOPI)    131   Added field for suspending banklink online
 $|    5.25.1            132   Memorisations upgrade, code only
 $|    5.25.1            133   New TPR Supplier Detail Table
+$|    5.29              134   Practice Ledger Export
+$|                            BGL Export
+$|                            Suggested Mems Update
+$|                            ATO Export
+$|                            Mems Upgrade
 $|*)
 
 N|Practice Details|fd|10
