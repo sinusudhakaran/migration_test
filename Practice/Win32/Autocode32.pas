@@ -156,7 +156,7 @@ begin
     StartTickCount := GetTickCount();
   end;
 
-  SuggMemsRunning := SuggestedMem.IsSuggMemsScanning();
+  SuggMemsRunning := SuggestedMem.IsSuggMemsRunning();
 
   if SuggMemsRunning then
    SuggestedMem.StopMemScan();
@@ -207,10 +207,12 @@ begin
     end;
 
     if SuggMemsRunning then
+    begin
       SuggestedMem.StartMemScan();
 
-    if SuggestionChanged then
-      SuggestedMem.DoProcessingComplete();
+      if SuggestionChanged then
+        SuggestedMem.DoProcessingComplete();
+    end;
   end;
 end;
 
@@ -982,3 +984,4 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 END.
+

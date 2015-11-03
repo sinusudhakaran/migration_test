@@ -108,7 +108,7 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    function IsSuggMemsScanning() : boolean;
+    function IsSuggMemsRunning() : boolean;
 
     procedure UpdateSuggestion(const aBankAccount: TBank_Account; aSuggestionId : integer; aIsHidden : boolean);
     function GetSuggestionUsedByTransaction(const aBankAccount: TBank_Account; const aTrans : pTransaction_Rec; const aChart : TChart; var aSuggMemItem : TSuggMemSortedListRec) : boolean;
@@ -1162,7 +1162,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TSuggestedMems.IsSuggMemsScanning: boolean;
+function TSuggestedMems.IsSuggMemsRunning: boolean;
 begin
   Result := (MainState <> mtsNoScan) and (fMemScanRefCount > 0);
 end;
