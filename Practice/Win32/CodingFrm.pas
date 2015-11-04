@@ -5338,6 +5338,9 @@ begin
            end;
         ceEntryType:
            begin
+              if not Assigned(pT^.txClient) then
+                pT^.txClient := MyClient;
+
               tmpPaintString := GetFormattedEntryType(pT);
               data := PChar(tmpPaintString);
            end;
