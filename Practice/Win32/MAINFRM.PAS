@@ -4783,9 +4783,12 @@ begin
     if (obj is TfrmBudget) then
       TfrmBudget(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
 
-    if (obj is TfrmClientHomePage) then begin
+    if (obj is TfrmClientHomePage) then
+    begin
       TfrmClientHomePage(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
-      frmLEFeedback.Show;
+
+      if assigned(AdminSystem) then
+        frmLEFeedback.Show;
     end;
   end;
 end;
