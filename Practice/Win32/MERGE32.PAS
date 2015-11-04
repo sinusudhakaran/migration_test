@@ -82,6 +82,7 @@ uses
   UsageUtils,
   AuditMgr,
   SystemMemorisationList,
+  SuggestedMems,
   MainFrm;
 
 const
@@ -201,9 +202,15 @@ Var
    Msg               : string;
    BCode, CCode : String[3];
    Rate : Extended;
+   SuggMemsRunning : boolean;
 Begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+  SuggMemsRunning := SuggestedMem.IsSuggMemsRunning();
+
+  if SuggMemsRunning then
+   SuggestedMem.StopMemScan();
 
   NoOfEntries := 0;
   NoSkipped   := 0;
@@ -504,6 +511,9 @@ Begin
         HelpfulInfoMsg(SHORTAPPNAME+' ' + Msg, 0);
     end;
   end;
+
+  if SuggMemsRunning then
+    SuggestedMem.StartMemScan();
 
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
