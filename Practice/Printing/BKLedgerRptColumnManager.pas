@@ -72,6 +72,7 @@ const
   //Calculated fields
   CALC_NET        = CALC_FIELD + 1;
   CALC_AVG_NET    = CALC_FIELD + 2;
+  CALC_ENTRY_TYPE = CALC_FIELD + 3;
 
 type
 
@@ -137,7 +138,8 @@ implementation
 
 uses
   Globals, Software, repcols, LedgerRepDlg, BKDEFS, GenUtils,
-  rptLedgerReport, bkdateutils, TransactionUtils, MoneyDef, GstCalc32;
+  rptLedgerReport, bkdateutils, TransactionUtils, MoneyDef, GstCalc32,
+  SimpleFundX{Included for the StripBGL360ControlAccountCode routine};
 
 { TLedgerReportColumnList }
 
@@ -175,10 +177,14 @@ end;
 
 procedure TLedgerReportColumnList.AddBGL360Columns;
 begin
-  AddColumn(BKTX, tktxSF_Imputed_Credit,  0, jtRight, ctFormat,
+  AddColumn(BKTX, tktxSF_Imputed_Credit,  0, jtRight, ctFormat,             // Franking CR
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True, True);
 //  AddColumn(BKTX, tktxSF_CGT_Date, 0, jtLeft,
 //            ctAuto, '', '', DEFAULT_GAP);
+
+  //Net amount
+  AddColumn(NO_DATA_UNIT, CALC_ENTRY_TYPE, 0, jtRight, ctFormat,
+            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, false);
 
   AddColumn(BKTE, tkteSF_Cash_Date,  0, jtRight, ctFormat,
             '', '', DEFAULT_GAP, false);
@@ -201,6 +207,7 @@ begin
 //            '', '', DEFAULT_GAP);
   AddColumn(BKTX, tktxSF_TFN_Credits,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
+
   AddColumn(BKTX, tktxSF_Foreign_Income,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
   AddColumn(BKTX, tktxSF_Foreign_Tax_Credits,  0, jtRight, ctFormat,
@@ -458,6 +465,7 @@ begin
       tktxSF_Unfranked         : Result := 'Unfranked';
       CALC_NET                 : Result := '$ Net';
       CALC_AVG_NET             : Result := 'Avg $ Net';
+      CALC_ENTRY_TYPE          : Result := 'Entry Type';
       tkchAlternative_Code     : Result := Software.AlternativeChartCodeName(Country,AccountingSystemUsed);
 //    end;
     else
@@ -666,6 +674,24 @@ begin
     Result :=  CanUseSuperFundFields(Country, AccountingSystemUsed);
 end;
 
+function GetTransactionTypeString( aValue : string ) : string;
+var
+  liControlCode : integer;
+begin
+  if trim( aValue ) <> '' then
+    liControlCode := StripBGL360ControlAccountCode( aValue )
+  else
+    liControlCode := -1;
+  case liControlCode of
+    cttanDistribution      : result := 'Distribution';
+    cttanDividend          : result := 'Dividend';
+    cttanInterest          : result := 'Interest';
+    cttanShareTradeRangeStart..cttanShareTradeRangeEnd : result := 'Share Trade';
+    else
+      result := 'Other';
+  end;
+end;
+
 procedure TLedgerReportColumnList.OutputContra(
   aReportColumnItem: TReportColumnItem);
 begin
@@ -677,7 +703,7 @@ begin
                           FBkReport.PutMoney(TListLedgerTMgr(TravManager).AccountTotalNet);
       CALC_AVG_NET    : FBkReport.PutCurrency(0);
     else
-      BKReport.SkipColumn;      
+      BKReport.SkipColumn;
     end;
   end else if (aReportColumnItem.DataUnit = BKTX) then begin
     case aReportColumnItem.DataToken of
@@ -743,6 +769,7 @@ begin
     case aReportColumnItem.DataToken of
       CALC_NET        : FBkReport.PutMoney(Net);
       CALC_AVG_NET    : FBkReport.PutCurrency(Avg);
+      CALC_ENTRY_TYPE : FBkReport.PutString(GetTransactionTypeString( Dissection_Rec.dsAccount ) );
     end;
   end
   else
@@ -913,6 +940,7 @@ begin
     case aReportColumnItem.DataToken of
       CALC_NET        : FBkReport.PutMoney(TListLedgerTMgr(TravManager).AccountTotalNet);
       CALC_AVG_NET    : FBkReport.PutCurrency(Avg);
+      CALC_ENTRY_TYPE : FBkReport.PutString( GetTransactionTypeString( Code ) );
     end;
   end
   else
@@ -1015,6 +1043,7 @@ begin
     case aReportColumnItem.DataToken of
       CALC_NET        : FBkReport.PutMoney(Net);
       CALC_AVG_NET    : FBkReport.PutCurrency(Avg);
+      CALC_ENTRY_TYPE : FBkReport.PutString( GetTransactionTypeString( Trim(Transaction_Rec.txAccount) ) );
     end;
   end
   else
