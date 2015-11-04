@@ -282,6 +282,8 @@ begin
   Dissection_Extension_Rec^.deSF_Cash_Date := 0;
   Dissection_Extension_Rec^.deSF_Accrual_Date := 0;
   Dissection_Extension_Rec^.deSF_Record_Date := 0;
+  Dissection_Extension_Rec^.deSF_Contract_Date := 0;
+  Dissection_Extension_Rec^.deSF_Settlement_Date := 0;
 end;
 
 procedure ClearSuperFundFields( Transaction_Extension_Rec : pTransaction_Extension_Rec); overload;
@@ -312,6 +314,8 @@ begin
   Transaction_Extension_Rec^.teSF_Cash_Date:= 0;
   Transaction_Extension_Rec^.teSF_Accrual_Date:= 0;
   Transaction_Extension_Rec^.teSF_Record_Date:= 0;
+  Transaction_Extension_Rec^.teSF_Contract_Date:= 0;
+  Transaction_Extension_Rec^.teSF_Settlement_Date:= 0;
 end;
 
 // Does a tx have notes attached to it

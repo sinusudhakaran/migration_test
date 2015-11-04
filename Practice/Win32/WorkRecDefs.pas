@@ -103,6 +103,8 @@ type
       dtSF_Cash_Date                     : Integer;       { Stored }
       dtSF_Accrual_Date                  : Integer;       { Stored }
       dtSF_Record_Date                   : Integer;       { Stored }
+      dtSF_Contract_Date                 : Integer;       { Stored }
+      dtSF_Settlement_Date               : Integer;       { Stored }
     //DN BGL360 - Extended Fields - additional fields for BGL360
    end;
 
@@ -190,6 +192,8 @@ type
       dtSF_Cash_Date                     : Integer;       { Stored }
       dtSF_Accrual_Date                  : Integer;       { Stored }
       dtSF_Record_Date                   : Integer;       { Stored }
+      dtSF_Contract_Date                 : Integer;       { Stored }
+      dtSF_Settlement_Date               : Integer;       { Stored }
     //DN BGL360 - Extended Fields - additional fields for BGL360
    end;
 

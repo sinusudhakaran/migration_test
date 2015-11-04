@@ -459,6 +459,10 @@ begin
                        MemorisationLine.mlSF_Cash_Date;
                      txTransaction_Extension^.teSF_Record_Date                          :=
                        MemorisationLine.mlSF_Record_Date;
+                     txTransaction_Extension^.teSF_Contract_Date                        :=
+                       MemorisationLine.mlSF_Contract_Date;
+                     txTransaction_Extension^.teSF_Settlement_Date                      :=
+                       MemorisationLine.mlSF_Settlement_Date;
                      txTransaction_Extension^.teSF_Share_GST_Rate                       :=
                        MemorisationLine.mlSF_Share_GST_Rate;
 
@@ -595,6 +599,10 @@ begin
                                MemorisationLine.mlSF_Cash_Date;
                              dsDissection_Extension^.deSF_Record_Date                          :=
                                MemorisationLine.mlSF_Record_Date;
+                             dsDissection_Extension^.deSF_Contract_Date                          :=
+                               MemorisationLine.mlSF_Contract_Date;
+                             dsDissection_Extension^.deSF_Settlement_Date                          :=
+                               MemorisationLine.mlSF_Settlement_Date;
                              dsDissection_Extension^.deSF_Share_GST_Rate                       :=
                                MemorisationLine.mlSF_Share_GST_Rate;
 

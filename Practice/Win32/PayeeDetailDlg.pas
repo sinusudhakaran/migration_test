@@ -1643,6 +1643,8 @@ begin
         SplitData[SplitIndex].SF_Cash_Date := PayeeLine.plSF_Cash_Date;
         SplitData[SplitIndex].SF_Accrual_Date := PayeeLine.plSF_Accrual_Date;
         SplitData[SplitIndex].SF_Record_Date := PayeeLine.plSF_Record_Date;
+        SplitData[SplitIndex].SF_Contract_Date := PayeeLine.plSF_Contract_Date;
+        SplitData[SplitIndex].SF_Settlement_Date := PayeeLine.plSF_Settlement_Date;
 
         SplitData[SplitIndex].SF_Edited := PayeeLine.plSF_Edited;
 
@@ -2064,8 +2066,8 @@ begin
         PayeeLine.plSF_Cash_Date := SplitData[ i ].SF_Cash_Date;
         PayeeLine.plSF_Accrual_Date := SplitData[ i ].SF_Accrual_Date;
         PayeeLine.plSF_Record_Date := SplitData[ i ].SF_Record_Date;
-
-
+        PayeeLine.plSF_Contract_Date := SplitData[ i ].SF_Contract_Date;
+        PayeeLine.plSF_Settlement_Date := SplitData[ i ].SF_Settlement_Date;
 
         if AuditIDList.Count > 0 then begin
           PayeeLine.plAudit_Record_ID := integer(AuditIDList.Items[0]);

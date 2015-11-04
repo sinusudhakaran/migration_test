@@ -4032,6 +4032,8 @@ begin
              mlSF_Cash_Date                               := SplitData[ i ].SF_Cash_Date;
              mlSF_Accrual_Date                            := SplitData[ i ].SF_Accrual_Date;
              mlSF_Record_Date                             := SplitData[ i ].SF_Record_Date;
+             mlSF_Contract_Date                           := SplitData[ i ].SF_Contract_Date;
+             mlSF_Settlement_Date                         := SplitData[ i ].SF_Settlement_Date;
              //DN BGL360 Extended fields
 
              mlSF_edited := SplitData[i].SF_edited;
@@ -4394,6 +4396,8 @@ begin
     SplitData[ i+1 ].SF_Cash_Date                               := MemLine^.mlSF_Cash_Date;
     SplitData[ i+1 ].SF_Accrual_Date                            := MemLine^.mlSF_Accrual_Date;
     SplitData[ i+1 ].SF_Record_Date                             := MemLine^.mlSF_Record_Date;
+    SplitData[ i+1 ].SF_Contract_Date                           := MemLine^.mlSF_Contract_Date;
+    SplitData[ i+1 ].SF_Settlement_Date                         := MemLine^.mlSF_Settlement_Date;
   end;
 end;
 

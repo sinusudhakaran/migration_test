@@ -3495,6 +3495,10 @@ begin
                PayeeLine.plSF_Cash_Date;
              dtSF_Record_Date                          :=
                PayeeLine.plSF_Record_Date;
+             dtSF_Contract_Date                        :=
+               PayeeLine.plSF_Contract_Date;
+             dtSF_Settlement_Date                      :=
+               PayeeLine.plSF_Settlement_Date;
              dtSF_Share_GST_Rate                       :=
                PayeeLine.plSF_Share_GST_Rate;
 
@@ -3645,6 +3649,10 @@ begin
                   PayeeLine.plSF_Cash_Date;
                 pJournalRec^.dtSF_Record_Date                          :=
                   PayeeLine.plSF_Record_Date;
+                pJournalRec^.dtSF_Contract_Date                        :=
+                  PayeeLine.plSF_Contract_Date;
+                pJournalRec^.dtSF_Settlement_Date                      :=
+                  PayeeLine.plSF_Settlement_Date;
                 pJournalRec^.dtSF_Share_GST_Rate                       :=
                   PayeeLine.plSF_Share_GST_Rate;
 

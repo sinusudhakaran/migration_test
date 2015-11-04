@@ -108,6 +108,8 @@ type
     SF_Cash_Date                     : Integer;       { Stored }
     SF_Accrual_Date                  : Integer;       { Stored }
     SF_Record_Date                   : Integer;       { Stored }
+    SF_Contract_Date                 : Integer;       { Stored }
+    SF_Settlement_Date               : Integer;       { Stored }
   //DN BGL360 Extended Fields - additional fields for BGL360
   end;
 
@@ -1043,7 +1045,9 @@ begin
                          ParentTrans^.txTransaction_Extension^.teSF_Share_GST_Rate,
                          ParentTrans^.txTransaction_Extension^.teSF_Cash_Date,
                          ParentTrans^.txTransaction_Extension^.teSF_Accrual_Date,
-                         ParentTrans^.txTransaction_Extension^.teSF_Record_Date
+                         ParentTrans^.txTransaction_Extension^.teSF_Record_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Contract_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Settlement_Date
                        );
     SuperForm.ReadOnly := ( ParentTrans^.txLocked)
                        or ( ParentTrans^.txDate_Transferred <> 0);
@@ -1108,7 +1112,9 @@ begin
                          ParentTrans^.txTransaction_Extension^.teSF_Share_GST_Rate,
                          ParentTrans^.txTransaction_Extension^.teSF_Cash_Date,
                          ParentTrans^.txTransaction_Extension^.teSF_Accrual_Date,
-                         ParentTrans^.txTransaction_Extension^.teSF_Record_Date
+                         ParentTrans^.txTransaction_Extension^.teSF_Record_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Contract_Date,
+                         ParentTrans^.txTransaction_Extension^.teSF_Settlement_Date
                        );
 
       if ParentTrans^.txSF_Super_Fields_Edited then begin
@@ -1190,7 +1196,9 @@ begin
                          pWJ^.dtSF_Share_GST_Rate,
                          pWJ^.dtSF_Cash_Date,
                          pWJ^.dtSF_Accrual_Date,
-                         pWJ^.dtSF_Record_Date
+                         pWJ^.dtSF_Record_Date,
+                         pWJ^.dtSF_Contract_Date,
+                         pWJ^.dtSF_Settlement_Date
                        );
 
     SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
@@ -1250,7 +1258,9 @@ begin
                        pWJ^.dtSF_Share_GST_Rate,
                        pWJ^.dtSF_Cash_Date,
                        pWJ^.dtSF_Accrual_Date,
-                       pWJ^.dtSF_Record_Date
+                       pWJ^.dtSF_Record_Date,
+                       pWJ^.dtSF_Contract_Date,
+                       pWJ^.dtSF_Settlement_Date
                      );
       if Move in [fnGoForward, fnGoBack] then
       begin
@@ -1320,7 +1330,9 @@ begin
                          pWD^.dtSF_Share_GST_Rate,
                          pWD^.dtSF_Cash_Date,
                          pWD^.dtSF_Accrual_Date,
-                         pWD^.dtSF_Record_Date
+                         pWD^.dtSF_Record_Date,
+                         pWD^.dtSF_Contract_Date,
+                         pWD^.dtSF_Settlement_Date
                        );
     SuperForm.ReadOnly := ( ParentTrans.txLocked) or ( ParentTrans.txDate_Transferred <> 0);
     SuperForm.MoveDirection := Move;
@@ -1379,7 +1391,9 @@ begin
                          pWD^.dtSF_Share_GST_Rate,
                          pWD^.dtSF_Cash_Date,
                          pWD^.dtSF_Accrual_Date,
-                         pWD^.dtSF_Record_Date
+                         pWD^.dtSF_Record_Date,
+                         pWD^.dtSF_Contract_Date,
+                         pWD^.dtSF_Settlement_Date
                      );
 
       if Move in [fnGoForward, fnGoBack] then
@@ -1501,7 +1515,9 @@ begin
                          Mem.SF_Share_GST_Rate,
                          Mem.SF_Cash_Date,
                          Mem.SF_Accrual_Date,
-                         Mem.SF_Record_Date
+                         Mem.SF_Record_Date,
+                         Mem.SF_Contract_Date,
+                         Mem.SF_Settlement_Date
                         );
 
     SuperForm.MoveDirection := Move;
@@ -1570,7 +1586,9 @@ begin
                          Mem.SF_Share_GST_Rate,
                          Mem.SF_Cash_Date,
                          Mem.SF_Accrual_Date,
-                         Mem.SF_Record_Date
+                         Mem.SF_Record_Date,
+                         Mem.SF_Contract_Date,
+                         Mem.SF_Settlement_Date
                        );
 
       if Move in [fnGoForward, fnGoBack] then begin

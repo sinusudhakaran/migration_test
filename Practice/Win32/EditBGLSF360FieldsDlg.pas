@@ -144,6 +144,10 @@ type
     lpTaxPaidBeforeDiscount: TLabel;
     lpTaxPaidIndexationMethod: TLabel;
     lpTaxPaidOtherMethod: TLabel;
+    eContractDate: TOvcPictureField;
+    lblContractDate: TLabel;
+    lblSettlementDate: TLabel;
+    eSettlementDate: TOvcPictureField;
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -269,7 +273,9 @@ type
                          mShareGSTRate: shortstring;
                          dCash_Date,
                          dAccrual_Date,
-                         dRecord_Date : integer
+                         dRecord_Date,
+                         dContract_Date,
+                         dSettlement_Date : integer
                          );
 
     procedure SetInfo(iDate : integer; sNarration: string; mAmount : Money);
@@ -316,7 +322,9 @@ type
                         var mShareGSTRate: shortstring;
                         var dCash_Date : integer;
                         var dAccrual_Date : integer;
-                        var dRecord_Date : integer) : boolean;
+                        var dRecord_Date : integer;
+                        var dContract_Date : integer;
+                        var dSettlement_Date : integer) : boolean;
 
     property ReadOnly : boolean read FReadOnly write SetReadOnly;
     property MoveDirection : TFundNavigation read FMoveDirection write SetMoveDirection;
@@ -469,7 +477,9 @@ function TdlgEditBGLSF360Fields.GetFields( var mImputedCredit : Money;
                         var mShareGSTRate: shortstring;
                         var dCash_Date : integer;
                         var dAccrual_Date : integer;
-                        var dRecord_Date : integer) : boolean;
+                        var dRecord_Date : integer;
+                        var dContract_Date : integer;
+                        var dSettlement_Date : integer) : boolean;
 //- - - - - - - - - - - - - - - - - - - -
 // Purpose:     take the values from the form and return into vars
 //
@@ -637,9 +647,11 @@ begin
 
   mUnits := nfUnits.AsFloat * 10000;
 
-  dCash_Date    := eCashDate.AsStDate;
-  dAccrual_Date := eAccrualDate.AsStDate;
-  dRecord_Date  := eRecordDate.AsStDate;
+  dCash_Date       := eCashDate.AsStDate;
+  dAccrual_Date    := eAccrualDate.AsStDate;
+  dRecord_Date     := eRecordDate.AsStDate;
+  dContract_Date   := eContractDate.AsStDate;
+  dSettlement_Date := eSettlementDate.AsStDate;
 
   Result := ( mImputedCredit <> 0) or
             ( mTaxFreeDist <> 0) or
@@ -684,7 +696,9 @@ begin
             ( mShareGSTRate <> '' ) or
             ( dCash_Date <> 0) or
             ( dAccrual_Date <> 0) or
-            ( dRecord_Date <> 0);
+            ( dRecord_Date <> 0 ) or
+            ( dContract_Date <> 0 ) or
+            ( dSettlement_Date <> 0 );
 end;
 
 
@@ -777,7 +791,9 @@ procedure TdlgEditBGLSF360Fields.SetFields(
             mShareGSTRate: shortstring;
             dCash_Date,
             dAccrual_Date,
-            dRecord_Date : integer
+            dRecord_Date,
+            dContract_Date,
+            dSettlement_Date : integer
             );
 
 begin
@@ -924,12 +940,12 @@ begin
      end;
   end;
 
-
 // DN Not sure about whether these map?
-  eCashDate.AsStDate    := BkNull2St(dCash_Date);
-  eAccrualDate.AsStDate := BkNull2St(dAccrual_Date);
-  eRecordDate.AsStDate  := BkNull2St(dRecord_Date);
-
+  eCashDate.AsStDate       := BkNull2St(dCash_Date);
+  eAccrualDate.AsStDate    := BkNull2St(dAccrual_Date);
+  eRecordDate.AsStDate     := BkNull2St(dRecord_Date);
+  eContractDate.AsStDate   := BkNull2St(dContract_Date);
+  eSettlementDate.AsStDate := BkNull2St(dSettlement_Date);
 
   nfUnits.AsFloat := mUnits / 10000;
 
@@ -1082,7 +1098,7 @@ end;
 procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
 begin
   SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0 );
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0 );
 
   UnfrankedModified := False;
   ShareConsiderationModified := false;
@@ -1341,6 +1357,8 @@ begin
   eCashDate.Enabled := not Value;
   eAccrualDate.Enabled := not Value;
   eRecordDate.Enabled := not Value;
+  eContractDate.Enabled := not Value;
+  eSettlementDate.Enabled := not Value;
 
 
   nfUnits.Enabled := not Value;
@@ -1449,15 +1467,14 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure ShowAllHeaderFields;
   begin
-    SetFields( [ lblCashDate, eCashDate,
-      lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
-      sfEntryType ], true );
+    SetFields( [ lblEntryType, sfEntryType ], true );
   end;
 
   procedure HideAllHeaderFields;
   begin
     SetFields( [ lblCashDate, eCashDate,
-      lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblEntryType,
+      lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblContractDate,
+      eContractDate, lblSettlementDate, eSettlementDate, lblEntryType,
       sfEntryType ], false );
   end;
 
@@ -1504,37 +1521,46 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
   procedure SetupFields( const Value: TTransactionTypes );
   begin
     ShowAllHeaderFields;
-    lblCashDate.Caption   := 'Cash Date';
-    lblRecordDate.Caption := 'Record Date';
     lblCashDate.Left      := 510;
     lblRecordDate.Left    := 510;
     case Value of
-      ttDistribution : begin
-        sfEntryType.Text        := 'Distribution';
-        Configure_Distribution;
-      end;
-      ttDividend     : begin
-        sfEntryType.Text        := 'Dividend';
-        Configure_Dividend;
-      end;
-      ttInterest     : begin
-        sfEntryType.Text      := 'Interest';
+      ttDistribution, ttDividend : begin
         SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
-          lblRecordDate, eRecordDate ], false );
+          lblRecordDate, eRecordDate ], true );
+        case Value of
+          ttDistribution : begin
+            sfEntryType.Text        := 'Distribution';
+
+            Configure_Distribution;
+          end;
+          ttDividend     : begin
+            sfEntryType.Text        := 'Dividend';
+
+            Configure_Dividend;
+          end;
+        end;
+      end;  
+      ttInterest     : begin
+        SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
+          lblRecordDate, eRecordDate, lblContractDate, eContractDate,
+          lblSettlementDate, eSettlementDate ], false );
+        sfEntryType.Text      := 'Interest';
+
         Configure_Interest;
       end;
       ttShareTrade   : begin
+        SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
+          lblRecordDate, eRecordDate ], false );
+        SetFields( [ lblContractDate, eContractDate,
+          lblSettlementDate, eSettlementDate ], true );
         sfEntryType.Text      := 'Share Trade';
-        lblCashDate.Caption   := 'Contract Date';
-        lblRecordDate.Caption := 'Settlement Date';
-        lblCashDate.Left      := 490;
-        lblRecordDate.Left    := 490;
+        lblContractDate.Left      := 490;
+        lblSettlementDate.Left    := 490;
 
         lblShareConsideration.Visible := not MemOnly;
         lpShareConsideration.Visible  := not MemOnly;
         nfShareConsideration.Visible  := not MemOnly;
 
-        SetFields( [ lblAccrualDate, eAccrualDate ], false );
         Configure_ShareTrade;
       end;
       ttOtherTx      : begin

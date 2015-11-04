@@ -3498,6 +3498,8 @@ begin
                        dtSF_Cash_Date                               := deSF_Cash_Date;
                        dtSF_Accrual_Date                            := deSF_Accrual_Date;
                        dtSF_Record_Date                             := deSF_Record_Date;
+                       dtSF_Contract_Date                           := deSF_Contract_Date;
+                       dtSF_Settlement_Date                         := deSF_Settlement_Date;
                      end;
                    //DN BGL360 - Extended fields
                 end;
@@ -3906,6 +3908,8 @@ begin
                        deSF_Cash_Date                               := dtSF_Cash_Date;
                        deSF_Accrual_Date                            := dtSF_Accrual_Date;
                        deSF_Record_Date                             := dtSF_Record_Date;
+                       deSF_Contract_Date                           := dtSF_Contract_Date;
+                       deSF_Settlement_Date                         := dtSF_Settlement_Date;
                      end;
                  //DN BGL360 - Extended fields
 
@@ -4197,6 +4201,10 @@ begin
                PayeeLine.plSF_Cash_Date;
              dtSF_Record_Date                          :=
                PayeeLine.plSF_Record_Date;
+             dtSF_Contract_Date                        :=
+               PayeeLine.plSF_Contract_Date;
+             dtSF_Settlement_Date                      :=
+               PayeeLine.plSF_Settlement_Date;
              dtSF_Share_GST_Rate                       :=
                PayeeLine.plSF_Share_GST_Rate;
 
@@ -4363,6 +4371,10 @@ begin
                   PayeeLine.plSF_Cash_Date;
                 pDissectRec.dtSF_Record_Date                          :=
                   PayeeLine.plSF_Record_Date;
+                pDissectRec.dtSF_Contract_Date                        :=
+                  PayeeLine.plSF_Contract_Date;
+                pDissectRec.dtSF_Settlement_Date                      :=
+                  PayeeLine.plSF_Settlement_Date;
                 pDissectRec.dtSF_Share_GST_Rate                       :=
                   PayeeLine.plSF_Share_GST_Rate;
 

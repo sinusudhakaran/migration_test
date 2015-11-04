@@ -894,10 +894,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsCapitalGains: TTabSheet
         Caption = 'Capital Gains'
         ImageIndex = -1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblCGTConcession: TLabel
           Left = 6
           Top = 86
@@ -1284,10 +1280,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsForeignIncome: TTabSheet
         Caption = 'Foreign Income'
         ImageIndex = -1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblAssessableForeignSourceIncome: TLabel
           Left = 6
           Top = 6
@@ -1702,10 +1694,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsNonCashCapitalGains: TTabSheet
         Caption = 'Non-Cash Capital Gains/Losses'
         ImageIndex = -1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lpCGTCapitalLosses: TLabel
           Left = 393
           Top = 84
@@ -1928,9 +1916,9 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     object lblCashDate: TLabel
       Left = 504
       Top = 9
-      Width = 80
+      Width = 59
       Height = 17
-      Caption = 'Contract Date'
+      Caption = 'Cash Date'
       Visible = False
     end
     object lblAccrualDate: TLabel
@@ -1944,9 +1932,9 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     object lblRecordDate: TLabel
       Left = 504
       Top = 43
-      Width = 92
+      Width = 73
       Height = 17
-      Caption = 'Settlement Date'
+      Caption = 'Record Date'
       Visible = False
     end
     object lineTransactionInfo: TShape
@@ -1957,6 +1945,22 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Align = alTop
       Pen.Color = clSilver
       ExplicitWidth = 720
+    end
+    object lblContractDate: TLabel
+      Left = 504
+      Top = 9
+      Width = 80
+      Height = 17
+      Caption = 'Contract Date'
+      Visible = False
+    end
+    object lblSettlementDate: TLabel
+      Left = 504
+      Top = 43
+      Width = 92
+      Height = 17
+      Caption = 'Settlement Date'
+      Visible = False
     end
     object cmbxAccount: TcxComboBox
       Left = 74
@@ -2109,6 +2113,62 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       OnKeyDown = edtAccountKeyDown
       OnKeyPress = edtAccountKeyPress
       OnKeyUp = edtAccountKeyUp
+    end
+    object eContractDate: TOvcPictureField
+      Left = 603
+      Top = 8
+      Width = 80
+      Height = 20
+      Cursor = crIBeam
+      DataType = pftDate
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      ControlCharColor = clRed
+      DecimalPlaces = 0
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Epoch = 1970
+      InitDateTime = False
+      MaxLength = 8
+      Options = [efoCaretToEnd]
+      PictureMask = 'DD/mm/yy'
+      TabOrder = 6
+      Visible = False
+      RangeHigh = {25600D00000000000000}
+      RangeLow = {00000000000000000000}
+    end
+    object eSettlementDate: TOvcPictureField
+      Left = 603
+      Top = 42
+      Width = 80
+      Height = 20
+      Cursor = crIBeam
+      DataType = pftDate
+      AutoSize = False
+      BorderStyle = bsNone
+      CaretOvr.Shape = csBlock
+      ControlCharColor = clRed
+      DecimalPlaces = 0
+      EFColors.Disabled.BackColor = clWindow
+      EFColors.Disabled.TextColor = clGrayText
+      EFColors.Error.BackColor = clRed
+      EFColors.Error.TextColor = clBlack
+      EFColors.Highlight.BackColor = clHighlight
+      EFColors.Highlight.TextColor = clHighlightText
+      Epoch = 1970
+      InitDateTime = False
+      MaxLength = 8
+      Options = [efoCaretToEnd]
+      PictureMask = 'DD/mm/yy'
+      TabOrder = 7
+      Visible = False
+      RangeHigh = {25600D00000000000000}
+      RangeLow = {00000000000000000000}
     end
   end
   object pnlFooters: TPanel
@@ -2310,7 +2370,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     Left = 672
     Top = 8
     Bitmap = {
-      494C010105001800300010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010105001800340010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

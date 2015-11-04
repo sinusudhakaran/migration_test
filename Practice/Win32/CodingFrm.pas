@@ -4833,6 +4833,10 @@ begin
               PayeeLine.plSF_Cash_Date;
             txTransaction_Extension^.teSF_Record_Date                          :=
               PayeeLine.plSF_Record_Date;
+            txTransaction_Extension^.teSF_Contract_Date                        :=
+              PayeeLine.plSF_Contract_Date;
+            txTransaction_Extension^.teSF_Settlement_Date                      :=
+              PayeeLine.plSF_Settlement_Date;
             txTransaction_Extension^.teSF_Share_GST_Rate                       :=
               PayeeLine.plSF_Share_GST_Rate;
 
@@ -4961,6 +4965,10 @@ begin
                     PayeeLine.plSF_Cash_Date;
                   dsDissection_Extension^.deSF_Record_Date                          :=
                     PayeeLine.plSF_Record_Date;
+                  dsDissection_Extension^.deSF_Contract_Date                        :=
+                    PayeeLine.plSF_Contract_Date;
+                  dsDissection_Extension^.deSF_Settlement_Date                      :=
+                    PayeeLine.plSF_Settlement_Date;
                   dsDissection_Extension^.deSF_Share_GST_Rate                       :=
                     PayeeLine.plSF_Share_GST_Rate;
 

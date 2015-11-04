@@ -470,9 +470,9 @@ begin
   if IsDissection then
   begin
     // Contract_date
-    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(Dissection^.dsDissection_Extension^.deSF_Cash_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(Dissection^.dsDissection_Extension^.deSF_Contract_Date, FDateMask));
     // Settlement_date
-    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(Dissection^.dsDissection_Extension^.deSF_Record_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(Dissection^.dsDissection_Extension^.deSF_Settlement_Date, FDateMask));
     // Brokerage
     AddFieldNode(
       TransactionNode,
@@ -500,9 +500,9 @@ begin
   else
   begin
     // Contract_date
-    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(Transaction^.txTransaction_Extension^.teSF_Cash_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Contract_date', Date2Str(Transaction^.txTransaction_Extension^.teSF_Contract_Date, FDateMask));
     // Settlement_date
-    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(Transaction^.txTransaction_Extension^.teSF_Record_Date, FDateMask));
+    AddFieldNode(TransactionNode, 'Settlement_date', Date2Str(Transaction^.txTransaction_Extension^.teSF_Settlement_Date, FDateMask));
     // Brokerage
     AddFieldNode(
       TransactionNode,

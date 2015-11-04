@@ -721,13 +721,13 @@ begin
               end;
               ttShareTrade : begin
               // Contract Date
-                if T^.txTransAction_Extension^.teSF_Cash_Date <> -1 then
+                if T^.txTransAction_Extension^.teSF_Contract_Date <> -1 then
                   HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Contract_Date ], BGLMsgPadLength) +
-                  bkDate2Str( T^.txTransAction_Extension^.teSF_Cash_Date ));
+                  bkDate2Str( T^.txTransAction_Extension^.teSF_Contract_Date ));
               // Settlement Date
-                if T^.txTransAction_Extension^.teSF_Record_Date <> -1 then
+                if T^.txTransAction_Extension^.teSF_Settlement_Date <> -1 then
                   HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Settlement_Date], BGLMsgPadLength) +
-                  bkDate2Str( T^.txTransAction_Extension^.teSF_Record_Date ));
+                  bkDate2Str( T^.txTransAction_Extension^.teSF_Settlement_Date ));
               // Brokerage
                 AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Brokerage ],
                   T^.txTransAction_Extension^.teSF_Share_Brokerage, HintSL, ValuePadLength, BGLMsgPadLength);
@@ -1044,13 +1044,13 @@ begin
             end;
             ttShareTrade : begin
             // Contract Date
-              if pWJ^.dtSF_Cash_Date <> -1 then
+              if pWJ^.dtSF_Contract_Date <> -1 then
                 HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Contract_Date ], BGLMsgPadLength) +
-                bkDate2Str( pWJ^.dtSF_Cash_Date ));
+                bkDate2Str( pWJ^.dtSF_Contract_Date ));
             // Settlement Date
-              if pWJ^.dtSF_Record_Date <> -1 then
+              if pWJ^.dtSF_Settlement_Date <> -1 then
                 HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Settlement_Date], BGLMsgPadLength) +
-                bkDate2Str( pWJ^.dtSF_Record_Date ));
+                bkDate2Str( pWJ^.dtSF_Settlement_Date ));
             // Brokerage
               AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Brokerage ],
                 pWJ^.dtSF_Share_Brokerage, HintSL, ValuePadLength, BGLMsgPadLength);
@@ -1357,13 +1357,13 @@ begin
             end;
             ttShareTrade : begin
             // Contract Date
-              if pWD^.dtSF_Cash_Date <> -1 then
+              if pWD^.dtSF_Contract_Date <> -1 then
                 HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Contract_Date ], BGLMsgPadLength) +
-                bkDate2Str( pWD^.dtSF_Cash_Date ));
+                bkDate2Str( pWD^.dtSF_Contract_Date ));
             // Settlement Date
-              if pWD^.dtSF_Record_Date <> -1 then
+              if pWD^.dtSF_Settlement_Date <> -1 then
                 HintSL.Add ( PadS( sffNamesBGL360[ sffIdxBGL360_Settlement_Date], BGLMsgPadLength) +
-                bkDate2Str( pWD^.dtSF_Record_Date ));
+                bkDate2Str( pWD^.dtSF_Settlement_Date ));
             // Brokerage
               AddIfNotZero ( sffNamesBGL360[ sffIdxBGL360_Brokerage ],
                 pWD^.dtSF_Share_Brokerage, HintSL, ValuePadLength, BGLMsgPadLength);

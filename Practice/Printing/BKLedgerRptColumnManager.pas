@@ -65,6 +65,8 @@ const
   tkteSF_Cash_Date                     = 187 ;
   tkteSF_Accrual_Date                  = 188 ;
   tkteSF_Record_Date                   = 189 ;
+  tkteSF_Contract_Date                 = 190 ;
+  tkteSF_Settlement_Date               = 191 ;
 
 
   //Calculated fields
@@ -183,6 +185,10 @@ begin
   AddColumn(BKTE, tkteSF_Accrual_Date,  0, jtRight, ctFormat,
             '', '', DEFAULT_GAP, false);
   AddColumn(BKTE, tkteSF_Record_Date,  0, jtRight, ctFormat,
+            '', '', DEFAULT_GAP, false);
+  AddColumn(BKTE, tkteSF_Contract_Date,  0, jtRight, ctFormat,
+            '', '', DEFAULT_GAP, false);
+  AddColumn(BKTE, tkteSF_Settlement_Date,  0, jtRight, ctFormat,
             '', '', DEFAULT_GAP, false);
 
   AddColumn(BKTX, tktxSF_Tax_Free_Dist,  0, jtRight, ctFormat,
@@ -571,6 +577,8 @@ begin
             tkteSF_Cash_Date                               : Result := 'Cash Date';
             tkteSF_Accrual_Date                            : Result := 'Accrual Date';
             tkteSF_Record_Date                             : Result := 'Record Date';
+            tkteSF_Contract_Date                           : Result := 'Contract Date';
+            tkteSF_Settlement_Date                         : Result := 'Settlement Date';
           end;
         end;
       end;
@@ -645,6 +653,8 @@ begin
       tkteSF_Cash_Date                               : Result := DATE_SIZE;
       tkteSF_Accrual_Date                            : Result := DATE_SIZE;
       tkteSF_Record_Date                             : Result := DATE_SIZE;
+      tkteSF_Contract_Date                           : Result := DATE_SIZE;
+      tkteSF_Settlement_Date                         : Result := DATE_SIZE;
     end;
   end;
 end;
@@ -876,6 +886,12 @@ begin
             tkteSF_Record_Date                             :
               FBkReport.PutString(bkDate2Str(
                 Dissection_Rec.dsDissection_Extension^.deSF_Record_Date ) );
+            tkteSF_Contract_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                Dissection_Rec.dsDissection_Extension^.deSF_Contract_Date ) );
+            tkteSF_Settlement_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                Dissection_Rec.dsDissection_Extension^.deSF_Settlement_Date ) );
           end;
         end
         else
@@ -973,60 +989,7 @@ begin
         end;
       end
       else
-(*        if (aReportColumnItem.DataUnit = BKTE) then begin // Transaction Extension Record
-          case aReportColumnItem.DataToken of
-            tkteSF_Other_Income                            :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Income);
-                  tkteSF_Other_Trust_Deductions                  :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Trust_Deductions);
-            tkteSF_CGT_Concession_Amount                   :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_Concession_Amount);
-            tkteSF_CGT_ForeignCGT_Before_Disc              :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc);
-            tkteSF_CGT_ForeignCGT_Indexation               :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation);
-            tkteSF_CGT_ForeignCGT_Other_Method             :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method);
-            tkteSF_CGT_TaxPaid_Indexation                  :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation);
-            tkteSF_CGT_TaxPaid_Other_Method                :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method);
-            tkteSF_Other_Net_Foreign_Income                :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Other_Net_Foreign_Income);
-            tkteSF_Cash_Distribution                       :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Distribution);
-            tkteSF_AU_Franking_Credits_NZ_Co               :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co);
-            tkteSF_Non_Res_Witholding_Tax                  :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax);
-            tkteSF_LIC_Deductions                          :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_LIC_Deductions);
-            tkteSF_Non_Cash_CGT_Discounted_Before_Discount :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount);
-            tkteSF_Non_Cash_CGT_Indexation                 :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation);
-            tkteSF_Non_Cash_CGT_Other_Method               :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method);
-            tkteSF_Non_Cash_CGT_Capital_Losses             :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses);
-            tkteSF_Share_Brokerage                         :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_Brokerage);
-            tkteSF_Share_Consideration                        :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_Consideration);
-            tkteSF_Share_GST_Amount                        :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_GST_Amount);
-            tkteSF_Share_GST_Rate                          :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Share_GST_Rate);
-            tkteSF_Cash_Date                               :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Date);
-            tkteSF_Accrual_Date                            :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Accrual_Date);
-            tkteSF_Record_Date                             :
-              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Record_Date);
-          end;
-        end
-        else *)
-          FBkReport.PutString('');
+        FBkReport.PutString('');
 end;
 
 procedure TLedgerReportColumnList.OutputTransaction(
@@ -1177,15 +1140,18 @@ begin
             tkteSF_Cash_Date                               :
               FBkReport.PutString(bkDate2Str(
                 Transaction_Rec.txTransaction_Extension^.teSF_Cash_Date ) );
-//              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Cash_Date);
             tkteSF_Accrual_Date                            :
               FBkReport.PutString(bkDate2Str(
                 Transaction_Rec.txTransaction_Extension^.teSF_Accrual_Date ) );
-//              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Accrual_Date);
             tkteSF_Record_Date                             :
               FBkReport.PutString(bkDate2Str(
                 Transaction_Rec.txTransaction_Extension^.teSF_Record_Date ) );
-//              PutSuperMoney(Transaction_Rec.txTransaction_Extension^.teSF_Record_Date);
+            tkteSF_Contract_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                Transaction_Rec.txTransaction_Extension^.teSF_Contract_Date ) );
+            tkteSF_Settlement_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                Transaction_Rec.txTransaction_Extension^.teSF_Settlement_Date ) );
           end;
         end
         else
