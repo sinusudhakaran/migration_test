@@ -877,19 +877,6 @@ begin
           CmdString := CmdString + ' -cc '+ txtCC.Text;
         if Trim(txtSubject.text) <> '' then
           CmdString := CmdString + ' -subject ' + txtSubject.text;
-        if Trim(Editor.ERTF.Text) <> '' then
-        begin
-          RTFFileBodyToSendPath := GenerateRndFileName;
-          if FileExists(RTFFileBodyToSendPath) then
-          begin
-            DeleteFile(RTFFileBodyToSendPath);
-            RTFFileBodyToSendPath := GenerateRndFileName;
-          end;
-          Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
-          //Save the body to RTF to load it from external EXE and add it to body.
-          //The file will be removed in external EXE
-          CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
-        end;
         CmdString := CmdString + ' -ole true;';
 
         AttachmentsStr := '';
@@ -901,27 +888,41 @@ begin
         if AttachmentsStr <> '' then
           CmdString := CmdString + ' -att '+ AttachmentsStr;
 
-       if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, Editor.ERTF.Text) = 0) then
-       begin
-          AddLine(' ');
-          AddLine(' ');
-          AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
-          //see if email is being sent to support. If so add practice code and name
-          if IsEmailAddressSupport( txtRecipient.Text) then
-          begin
-             AddLine('Path '+ExecDir);
-             if RefreshAdmin then begin   //refresh will fail if no admin exists
-                with AdminSystem.fdFields do
-                   AddLine('Practice '+fdBankLink_Code+' '+fdPractice_Name_for_Reports);
-             end
-          end
-          //add client of info
-          else begin
-             if Assigned(MyClient) then with MyClient.clFields do begin
-                AddLine('Client of: '+clPractice_Name);
-             end;
-          end;
-       end;
+      if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, Editor.ERTF.Text) = 0) then
+      begin
+        AddLine(' ');
+        AddLine(' ');
+        AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
+        //see if email is being sent to support. If so add practice code and name
+        if IsEmailAddressSupport( txtRecipient.Text) then
+        begin
+           AddLine('Path '+ExecDir);
+           if RefreshAdmin then begin   //refresh will fail if no admin exists
+              with AdminSystem.fdFields do
+                 AddLine('Practice '+fdBankLink_Code+' '+fdPractice_Name_for_Reports);
+           end
+        end
+        //add client of info
+        else begin
+           if Assigned(MyClient) then with MyClient.clFields do begin
+              AddLine('Client of: '+clPractice_Name);
+           end;
+        end;
+      end;
+      if Trim(Editor.ERTF.Text) <> '' then
+      begin
+        RTFFileBodyToSendPath := GenerateRndFileName;
+        if FileExists(RTFFileBodyToSendPath) then
+        begin
+          DeleteFile(RTFFileBodyToSendPath);
+          RTFFileBodyToSendPath := GenerateRndFileName;
+        end;
+        Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
+        //Save the body to RTF to load it from external EXE and add it to body.
+        //The file will be removed in external EXE
+        CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
+      end;
+
       MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
     end;
   finally
@@ -1016,7 +1017,7 @@ begin
     if BK5Files.Count > 0 then begin
       EncodedLogoString := PracticeLogo.EncodePracticeLogo( AdminSystem.fdFields.fdPractice_Logo_Filename);
       if EncodedLogoString <> '' then
-        SetUsage('Practice Logo', 1); 
+        SetUsage('Practice Logo', 1);
     end else
       EncodedLogoString := '';
 
@@ -1117,19 +1118,6 @@ begin
           CmdString := CmdString + ' -cc '+ txtCC.Text;
         if Trim(txtSubject.text) <> '' then
           CmdString := CmdString + ' -subject ' + txtSubject.text;
-        if Trim(Editor.ERTF.Text) <> '' then
-        begin
-          RTFFileBodyToSendPath := GenerateRndFileName;
-          if FileExists(RTFFileBodyToSendPath) then
-          begin
-            DeleteFile(RTFFileBodyToSendPath);
-            RTFFileBodyToSendPath := GenerateRndFileName;
-          end;
-          Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
-          //Save the body to RTF to load it from external EXE and add it to body.
-          //The file will be removed in external EXE
-          CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
-        end;
         CmdString := CmdString + ' -ole true;';
 
         AttachmentsStr := '';
@@ -1141,8 +1129,8 @@ begin
         if AttachmentsStr <> '' then
           CmdString := CmdString + ' -att '+ AttachmentsStr;
 
-       if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, Editor.ERTF.Text) = 0) then
-       begin
+        if FShowPracDetails and (AnsiPos(WinUtils.GetAppVersionStr, Editor.ERTF.Text) = 0) then
+        begin
           AddLine(' ');
           AddLine(' ');
           AddLine(APPTITLE + ' ' + WinUtils.GetAppVersionStr);
@@ -1161,9 +1149,23 @@ begin
                 AddLine('Client of: '+clPractice_Name);
              end;
           end;
-       end;
-      MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
-    end;
+        end;
+        if Trim(Editor.ERTF.Text) <> '' then
+        begin
+          RTFFileBodyToSendPath := GenerateRndFileName;
+          if FileExists(RTFFileBodyToSendPath) then
+          begin
+            DeleteFile(RTFFileBodyToSendPath);
+            RTFFileBodyToSendPath := GenerateRndFileName;
+          end;
+          Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
+          //Save the body to RTF to load it from external EXE and add it to body.
+          //The file will be removed in external EXE
+          CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
+        end;
+
+        MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
+      end;
     finally
       Attachments.Free;
     end;
