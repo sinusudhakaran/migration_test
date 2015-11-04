@@ -505,7 +505,7 @@ begin
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'MYOB Sign in'
     else
-      btnConnectMYOB.Caption := 'Select MYOB Client';
+      btnConnectMYOB.Caption := 'MYOB Client';
 
     lblFirmName.Caption := 'No Firm selected';
     lblFirmName.Font.Color := clRed;
@@ -1282,7 +1282,7 @@ begin
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'MYOB Sign In'
     else
-      btnConnectMYOB.Caption := 'Select MYOB Client';
+      btnConnectMYOB.Caption := 'MYOB Client';
   finally
     FreeAndNil(SignInFrm);
     Screen.Cursor := OldCursor;

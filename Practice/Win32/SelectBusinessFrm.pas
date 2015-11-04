@@ -54,6 +54,7 @@ implementation
 
 {$R *.dfm}
 
+uses bkConst;
 { TSelectBusinessForm }
 
 function BusinessCompare(Item1, Item2 : pointer):integer;
@@ -73,13 +74,16 @@ begin
   end
   else if SortColumn = 2 then
   begin
-    FirstValue := TBusinessData(Item1).ABN;
-    SecondValue := TBusinessData(Item2).ABN;
-  end
-  else if SortColumn = 3 then
-  begin
-    FirstValue := TBusinessData(Item1).IRD;
-    SecondValue := TBusinessData(Item2).IRD;
+    if AdminSystem.fdFields.fdCountry = whAustralia then
+    begin
+      FirstValue := TBusinessData(Item1).ABN;
+      SecondValue := TBusinessData(Item2).ABN;
+    end
+    else if AdminSystem.fdFields.fdCountry = whNewZealand then
+    begin
+      FirstValue := TBusinessData(Item1).IRD;
+      SecondValue := TBusinessData(Item2).IRD;
+    end;
   end;
 
   if SortDirection = soAcsending then
@@ -150,8 +154,10 @@ begin
 
   sgClients.Cells[0,0] := ' Client Name';
   sgClients.Cells[1,0] := ' Client Code';
-  sgClients.Cells[2,0] := ' ABN';
-  sgClients.Cells[3,0] := ' IRD';
+  if AdminSystem.fdFields.fdCountry = whAustralia then
+    sgClients.Cells[2,0] := ' ABN'
+  else if AdminSystem.fdFields.fdCountry = whNewZealand then
+    sgClients.Cells[3,0] := ' IRD';
 
   edtSearch.Text := '';
   PracticeLedger.Businesses.Sort(BusinessCompare);
@@ -169,7 +175,6 @@ begin
   sgClients.Cells[0, 1] := '';
   sgClients.Cells[1, 1] := '';
   sgClients.Cells[2, 1] := '';
-  sgClients.Cells[3, 1] := '';
 
   aFilterBusiness := UpperCase(aFilterBusiness);
   Row := 1;
@@ -190,12 +195,19 @@ begin
       if Trim(aFilterBusiness) <> '' then
       begin
         NeedFund := False;
-        if ((Pos(aFilterBusiness, UpperCase(Business.ID)) > 0) or
+        if ((AdminSystem.fdFields.fdCountry = whAustralia) and
+          (((Pos(aFilterBusiness, UpperCase(Business.ID)) > 0) or
+            (Pos(aFilterBusiness, UpperCase(Business.Name)) > 0) or
+            (Pos(aFilterBusiness, UpperCase(Business.ClientCode)) > 0) or
+            (Pos(aFilterBusiness, UpperCase(Business.ABN)) > 0)))) then
+          NeedFund := True
+        else if ((AdminSystem.fdFields.fdCountry = whNewZealand) and
+            (((Pos(aFilterBusiness, UpperCase(Business.ID)) > 0) or
             (Pos(aFilterBusiness, UpperCase(Business.Name)) > 0) or
             (Pos(aFilterBusiness, UpperCase(Business.IRD)) > 0) or
-            (Pos(aFilterBusiness, UpperCase(Business.ClientCode)) > 0) or
-            (Pos(aFilterBusiness, UpperCase(Business.ABN)) > 0)) then
+            (Pos(aFilterBusiness, UpperCase(Business.ClientCode)) > 0)))) then
           NeedFund := True;
+
       end;
 
       if NeedFund then
@@ -205,8 +217,10 @@ begin
 
         sgClients.Cells[0,Row] := Business.Name;
         sgClients.Cells[1,Row] := Business.ClientCode;
-        sgClients.Cells[2,Row] := Business.ABN;
-        sgClients.Cells[3,Row] := Business.IRD;
+        if AdminSystem.fdFields.fdCountry = whAustralia then
+          sgClients.Cells[2,Row] := Business.ABN
+        else if AdminSystem.fdFields.fdCountry = whNewZealand then
+          sgClients.Cells[3,Row] := Business.IRD;
 
         sgClients.Objects[0,Row] := Business;
 
@@ -317,7 +331,6 @@ begin
     ClearHeaderTriangle(0,0);
     ClearHeaderTriangle(1,0);
     ClearHeaderTriangle(2,0);
-    ClearHeaderTriangle(3,0);
     sgClientsDrawCell(Sender, SortColumn, 0 , sgClients.CellRect(SortColumn, 0), [gdFixed]);
   end;
 end;

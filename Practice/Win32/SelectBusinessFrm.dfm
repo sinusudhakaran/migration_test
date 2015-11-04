@@ -1,11 +1,12 @@
 object SelectBusinessForm: TSelectBusinessForm
   Left = 0
   Top = 0
+  ActiveControl = edtSearch
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = 'Select a Business'
+  Caption = 'Select a Client'
   ClientHeight = 514
-  ClientWidth = 830
+  ClientWidth = 686
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,7 +22,7 @@ object SelectBusinessForm: TSelectBusinessForm
   object pnlGridContainer: TPanel
     Left = 0
     Top = 37
-    Width = 830
+    Width = 686
     Height = 436
     Margins.Left = 10
     Margins.Top = 0
@@ -30,12 +31,11 @@ object SelectBusinessForm: TSelectBusinessForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 832
-    ExplicitHeight = 437
+    ExplicitWidth = 830
     object sgClients: TStringGrid
       Left = 0
       Top = 0
-      Width = 830
+      Width = 686
       Height = 436
       Margins.Top = 0
       Margins.Right = 0
@@ -44,7 +44,7 @@ object SelectBusinessForm: TSelectBusinessForm
       BevelInner = bvNone
       BevelOuter = bvNone
       BorderStyle = bsNone
-      ColCount = 4
+      ColCount = 3
       Ctl3D = False
       DefaultColWidth = 10
       DefaultRowHeight = 22
@@ -56,30 +56,27 @@ object SelectBusinessForm: TSelectBusinessForm
       OnDblClick = sgClientsDblClick
       OnDrawCell = sgClientsDrawCell
       OnMouseUp = sgClientsMouseUp
-      ExplicitTop = -3
-      ExplicitWidth = 925
-      ExplicitHeight = 437
+      ExplicitWidth = 830
       ColWidths = (
         336
         186
-        144
-        145)
+        144)
     end
   end
   object pnlSearch: TPanel
     Left = 0
     Top = 0
-    Width = 830
+    Width = 686
     Height = 37
     Align = alTop
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 1
-    ExplicitWidth = 832
+    ExplicitWidth = 830
     object Shape1: TShape
       Left = 0
       Top = 0
-      Width = 830
+      Width = 686
       Height = 1
       Align = alTop
       Pen.Color = clSilver
@@ -95,7 +92,7 @@ object SelectBusinessForm: TSelectBusinessForm
     object ShapeBorderTop: TShape
       Left = 0
       Top = 36
-      Width = 830
+      Width = 686
       Height = 1
       Align = alBottom
       Pen.Color = clSilver
@@ -118,28 +115,27 @@ object SelectBusinessForm: TSelectBusinessForm
   object pnlBottom: TPanel
     Left = 0
     Top = 473
-    Width = 830
+    Width = 686
     Height = 41
     Align = alBottom
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 2
-    ExplicitTop = 474
-    ExplicitWidth = 832
+    ExplicitWidth = 830
     DesignSize = (
-      830
+      686
       41)
     object ShapeBorder: TShape
       Left = 0
       Top = 0
-      Width = 830
+      Width = 686
       Height = 1
       Align = alTop
       Pen.Color = clSilver
       ExplicitWidth = 788
     end
     object btnYes: TButton
-      Left = 666
+      Left = 522
       Top = 7
       Width = 75
       Height = 25
@@ -148,9 +144,10 @@ object SelectBusinessForm: TSelectBusinessForm
       Default = True
       TabOrder = 0
       OnClick = btnYesClick
+      ExplicitLeft = 666
     end
     object btnNo: TButton
-      Left = 747
+      Left = 603
       Top = 7
       Width = 75
       Height = 25
@@ -159,7 +156,7 @@ object SelectBusinessForm: TSelectBusinessForm
       Caption = '&Cancel'
       TabOrder = 1
       OnClick = btnNoClick
-      ExplicitLeft = 749
+      ExplicitLeft = 747
     end
   end
 end
