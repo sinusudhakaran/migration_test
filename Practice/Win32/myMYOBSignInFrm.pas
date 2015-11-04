@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, PracticeLedgerObj, CashbookMigrationRestData, OSFont;
+  Dialogs, StdCtrls, ExtCtrls, PracticeLedgerObj, CashbookMigrationRestData,
+  OSFont, contnrs;
 
 type
   TFormShowType = (fsSignIn, fsSelectFirm, fsSelectClient);
@@ -46,6 +47,7 @@ type
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
+    procedure SaveUser;
   public
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
@@ -113,11 +115,11 @@ begin
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
   try
-    {if UserINI_myMYOB_EmailAddress <> Trim(edtEmail.Text) then
+    if CurrUser.MYOBEmailAddress <> Trim(edtEmail.Text) then
     begin
-      UserINI_myMYOB_EmailAddress := Trim(edtEmail.Text);
-      WriteUsersINI(CurrUser.Code);
-    end;}
+      SaveUser;
+    end;
+    
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
     PracticeLedger.EncryptToken(UserINI_myMYOB_Access_Token);
 
@@ -151,7 +153,7 @@ begin
         end;
         //pnlLogin.Visible := False;
         pnlFirmSelection.Visible := True;
-        Self.Height := 300;
+        Self.Height := 250;
         btnOK.Visible := True;
 
         LoadFirms;
@@ -340,6 +342,77 @@ begin
   end;
   cmbSelectFirm.ItemIndex := Index;
   cmbSelectFirm.SetFocus;
+end;
+
+procedure TmyMYOBSignInForm.SaveUser;
+const
+  ThisMethodName = 'SaveMYOBEmail';
+var
+  eUser: pUser_Rec;
+  StoredLRN   : Integer;
+  StoredName  : string;
+  pu          : pUser_Rec;
+  pCF    : pClient_File_Rec;
+  FileList : TStringList;
+  i: Integer;
+begin
+  //get the user_rec again as the admin system may have changed in the mean time.
+  eUser := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
+  StoredLRN := eUser.usLRN; {user pointer about to be destroyed}
+  StoredName := eUser.usCode;
+
+  if LoadAdminSystem(true, ThisMethodName ) Then
+  begin
+    pu := AdminSystem.fdSystem_User_List.FindLRN(StoredLRN);
+    if not Assigned(pu) Then
+    begin
+      UnlockAdmin;
+      HelpfulErrorMsg('The User ' + StoredName + ' can no longer be found in the Admin System.', 0);
+      Exit;
+    end;
+    pu^.usMYOBEMail := Trim(edtEmail.Text);
+
+    FileList := TStringList.Create;
+    try
+      if AdminSystem.fdSystem_Client_File_List.ItemCount > 0  then
+      begin
+        //Create a dummy client LRN so that file access will be denied
+        for i := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+        begin
+          pCF := AdminSystem.fdSystem_Client_File_List.Client_File_At( i );
+
+          if AdminSystem.fdSystem_File_Access_List.Allow_Access( pu^.usLRN, pCF^.cfLRN ) then
+          begin
+            FileList.Add(IntToStr( pCF^.cfLRN ));
+            {NewLVItem := lvFiles.Items.Add;
+            NewLVItem.caption := pCF^.cfFile_Code;
+            NewLVItem.SubItems.AddObject( pCF^.cfFile_Name, Pointer( pCF^.cfLRN ));
+            NewLVItem.ImageIndex := 0;}
+          end;
+        end;
+      end;
+
+      //Clear out the existing information, this will allow access to all files
+      AdminSystem.fdSystem_File_Access_List.Delete_User( pu^.usLRN );
+      if FileList.Count > 0 then
+      begin
+        for i := 0 to Pred(FileList.Count ) do
+          AdminSystem.fdSystem_File_Access_List.Insert_Access_Rec( pu^.usLRN, StrToInt(Trim (FileList.Strings[i])) );
+      end
+      else //create a dummy client LRN so that file access will be denied
+        AdminSystem.fdSystem_File_Access_List.Insert_Access_Rec(  pu^.usLRN, 0 )
+    finally
+      if Assigned(FileList) then
+      begin
+        FileList.Clear;
+        FreeAndNil(FileList);
+      end;
+    end;
+
+    //*** Flag Audit ***
+    SystemAuditMgr.FlagAudit(arUsers);
+    SaveAdminSystem;
+  end;
 end;
 
 procedure TmyMYOBSignInForm.ShowConnectionError(aError: string);

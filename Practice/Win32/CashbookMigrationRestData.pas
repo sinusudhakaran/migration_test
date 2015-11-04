@@ -831,7 +831,8 @@ end;
 //------------------------------------------------------------------------------
 destructor TJournalData.Destroy;
 begin
-  FreeAndNil(fLines);
+  FLines.Clear;
+  FreeAndNil(FLines);
 
   inherited;
 end;
