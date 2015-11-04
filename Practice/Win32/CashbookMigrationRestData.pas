@@ -111,6 +111,7 @@ type
     fLines : TLinesData;
     FSequenceNo: Integer;
     FJournalAccountName: string;
+    FJournalContraCode : string;
   public
     constructor Create(); reintroduce; overload;
     destructor Destroy; override;
@@ -125,6 +126,7 @@ type
     property Lines : TLinesData read fLines write fLines;
     property SequenceNo: Integer read FSequenceNo write FSequenceNo;
     property JournalAccountName : string read FJournalAccountName write FJournalAccountName;
+    property JournalContraCode: string read FJournalContraCode write FJournalContraCode;
   end;
 
   //----------------------------------------------------------------------------
@@ -929,7 +931,6 @@ procedure TJournalsData.WriteAJournal(const aJson: TlkJSONobject; JournalIndex,
   FromIndex, JournalCount: Integer);
 var
   Journals: TlkJSONlist;
-  i: integer;
   JournalObj : TJournalData;
   JournalData : TlkJSONobject;
 begin
@@ -1094,6 +1095,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TTransactionData.Destroy;
 begin
+  fAllocations.Clear;
   FreeAndNil(fAllocations);
 
   inherited;
@@ -1260,6 +1262,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TBankAccountData.Destroy;
 begin
+  fTransactions.Clear;
   FreeAndNil(fTransactions);
   inherited;
 end;

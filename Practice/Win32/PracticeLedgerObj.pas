@@ -12,6 +12,7 @@ type
   TPracticeLedger = class(TCashbookMigration)
   private
     FDoQuantity         : Boolean;
+
     //used for processing the transactiosn to export
     FBankAcctsToExport : TBankAccountsData;
     FBankAcctToExport: TBankAccountData;
@@ -26,7 +27,7 @@ type
     procedure BuildJournalData;
     procedure UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
     function UploadToAPI(RequestData: TlkJSONobject;
-            var aResponse: TlkJSONbase; var aRespStr, aError: string;
+            var aRespStr, aError: string;
             aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
 
     //Get COA from PL api and add to chart
@@ -34,7 +35,7 @@ type
     procedure SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
     //Call Rollback api to rollback a batch of transaction
     function RollbackBatch(aBatchRef: string;
-      var aResponse: TlkJSONbase; var aRespStr, aError: string;
+      var aRespStr, aError: string;
       aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
   public
     //Couldn't make these private variables and add property since the getfirms and getbusiness need var list to be passed
@@ -274,6 +275,7 @@ begin
     JournalItem.Description := txGL_Narration;
     JournalItem.Reference   := TrimLeadZ(txReference);
     JournalItem.JournalAccountName := Bank_Account.baFields.baBank_Account_Number;
+    JournalItem.JournalContraCode := Bank_Account.baFields.baContra_Account_Code;
 
     DissRec := txFirst_Dissection;
     while (DissRec <> nil ) do
@@ -336,6 +338,7 @@ begin
     Businesses.Clear;
     FreeAndNil(Businesses);
   end;
+
   inherited;
 end;
 
@@ -408,15 +411,9 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ' + Msg);
 
-  {if (TestAccountList <> nil) then
-  begin
-    Selected := TestAccountList;
-  end else}
-  begin
-    Selected := dlgSelect.SelectBankAccountsForExport( FromDate, ToDate );
-    if Selected = nil then
-      Exit;
-  end;
+  Selected := dlgSelect.SelectBankAccountsForExport( FromDate, ToDate );
+  if Selected = nil then
+    Exit;
 
   try
     with MyClient.clFields do
@@ -460,37 +457,42 @@ begin
 
       FBankAcctsToExport := TBankAccountsData.Create(TBankAccountData);
       FJournalsData := TJournalsData.Create;
-      FJournalsData.Duplicates := True;
-      FDoQuantity := Globals.PRACINI_ExtractQuantity;
-      NoOfEntries := 0;
+      try
+        FJournalsData.Duplicates := True;
+        FDoQuantity := Globals.PRACINI_ExtractQuantity;
+        NoOfEntries := 0;
 
-      //send bank transactions
-      PrepareTransAndJournalsToExport(Selected, ttbank, FromDate, ToDate);
-      UploadTransAndJournals(Selected, ttBank);
+        //send bank transactions
+        PrepareTransAndJournalsToExport(Selected, ttbank, FromDate, ToDate);
+        UploadTransAndJournals(Selected, ttBank);
 
-      //send journals
-      PrepareTransAndJournalsToExport(Selected, ttJournals, FromDate, ToDate);
-      UploadTransAndJournals(Selected, ttJournals);
+        //send journals
+        PrepareTransAndJournalsToExport(Selected, ttJournals, FromDate, ToDate);
+        UploadTransAndJournals(Selected, ttJournals);
 
-      if Not FExportTerminated then
-      Begin
-        Result := True;
-        Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were exported to Online Ledger Account',[NoOfEntries] );
-        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
-        HelpfulInfoMsg( Msg, 0 );
+        if Not FExportTerminated then
+        Begin
+          Result := True;
+          Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were exported to Online Ledger Account',[NoOfEntries] );
+          LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
+          HelpfulInfoMsg( Msg, 0 );
+        end;
+      finally
+        if Assigned(FBankAcctsToExport) then
+        begin
+          FBankAcctsToExport.Clear;
+          FreeAndNil(FBankAcctsToExport);
+        end;
+        if Assigned(FJournalsData) then
+        begin
+          FJournalsData.DeleteAll;
+          FreeAndNil(FJournalsData);
+        end;
       end;
     end;
   finally
+    Selected.Clear;
     Selected.Free;
-    if Assigned(FBankAcctsToExport) then
-    begin
-      FBankAcctsToExport.Clear;
-      FreeAndNil(FBankAcctsToExport);
-    end;
-    if Assigned(FJournalsData) then
-    begin
-      FreeAndNil(FJournalsData);
-    end;
   end;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
@@ -682,7 +684,7 @@ begin
 end;
 
 function TPracticeLedger.RollbackBatch(aBatchRef: string;
-  var aResponse: TlkJSONbase; var aRespStr, aError: string;
+  var aRespStr, aError: string;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
@@ -694,7 +696,6 @@ begin
   Result := True;
   if Trim(aBatchRef) = '' then
     Exit;
-
   RequestJson :=  TlkJSONobject.Create();
   try
     RequestJson.Add('batch_ref', aBatchRef);
@@ -712,7 +713,7 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestJson));
 
-    if not DoDeleteSecureJson(sURL, RequestJson, aResponse, RespStr, aError) then
+    if not DoDeleteSecureJson(sURL, RequestJson,RespStr, aError) then
       Exit;
 
     //Wait til data gets transferred completely
@@ -721,8 +722,7 @@ begin
 
     aError := FDataError;
     if Assigned(FDataResponse) then
-      aResponse := (FDataResponse as TlkJSONObject);
-    aRespStr := TlkJSON.GenerateText(aResponse);
+      aRespStr := TlkJSON.GenerateText(FDataResponse as TlkJSONObject);
   except
     on E: Exception do
     begin
@@ -750,7 +750,7 @@ var
     Result := nil;
     for j := 0 to Selected.Count - 1 do
     begin
-      if TBank_Account(Selected.Objects[j]).baFields.baBank_Account_Number =  aAcctNo then
+      if TBank_Account(Selected.Objects[j]).baFields.baContra_Account_Code =  aAcctNo then
         Result := TBank_Account(Selected.Objects[j]);
     end;
   end;
@@ -793,7 +793,7 @@ begin
     begin
       stDate := DateStringToStDate('yyyy-mm-dd', TJournalData(FJournalsData.Items[i]).Date, Epoch);
       SeqNo := TJournalData(FJournalsData.Items[i]).SequenceNo;
-      BA := GetBankAccount(TJournalData(FJournalsData.Items[i]).JournalAccountName);
+      BA := GetBankAccount(TJournalData(FJournalsData.Items[i]).JournalContraCode);
       
       if Assigned(BA) then
       begin
@@ -812,11 +812,12 @@ begin
 end;
 
 function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
-  var aResponse: TlkJSONbase; var aRespStr, aError: string;
+  var aRespStr, aError: string;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
   RespStr : string;
+  Response : TlkJSONbase;
 const
   ThisMethodName = 'UploadTransactions';
 begin
@@ -837,7 +838,7 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestData));
 
-    if not DoHttpSecureJson(sURL, RequestData, aResponse, RespStr, aError) then
+    if not DoHttpSecureJson(sURL, RequestData, Response, RespStr, aError) then
       Exit;
 
     //Wait til data gets transferred completely
@@ -846,8 +847,7 @@ begin
 
     aError := FDataError;
     if Assigned(FDataResponse) then
-      aResponse := (FDataResponse as TlkJSONObject);
-    aRespStr := TlkJSON.GenerateText(aResponse);
+      aRespStr := TlkJSON.GenerateText(FDataResponse as TlkJSONObject);
   except
     on E: Exception do
     begin
@@ -865,7 +865,6 @@ var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
   ErrorStr,RespStr : string;
-  Response: TlkJSONbase;
   BankAcctToExport: TBankAccountData;
 begin
   if ((TypeOfTrans = ttbank) and Assigned(FBankAcctsToExport)) then
@@ -887,13 +886,13 @@ begin
             LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions batch exported - ' + BankAcctToExport.BatchRef);
 
           //send to api
-          if not UploadToAPI(RequestJson,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+          if not UploadToAPI(RequestJson,RespStr, ErrorStr,False, TypeOfTrans) then
           begin
             LogUtil.LogMsg(lmError, UnitName, ErrorStr);
             HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
             //Rollback all batches transferred
 
-            if not RollbackBatch(BankAcctToExport.BatchRef,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+            if not RollbackBatch(BankAcctToExport.BatchRef,RespStr, ErrorStr,False, TypeOfTrans) then
             begin
               LogUtil.LogMsg(lmError, UnitName, ErrorStr);
               HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
@@ -923,13 +922,13 @@ begin
           LogUtil.LogMsg(lmInfo, UnitName, 'PL journal batch exported - ' + FJournalsData.BatchRef);
 
         //send to api
-        if not UploadToAPI(RequestJson, Response, RespStr, ErrorStr, False, TypeOfTrans) then
+        if not UploadToAPI(RequestJson, RespStr, ErrorStr, False, TypeOfTrans) then
         begin
           LogUtil.LogMsg(lmError, UnitName, ErrorStr);
           HelpfulErrorMsg('Exception in journal export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
 
           //Rollback all batches transferred
-          if not RollbackBatch(FJournalsData.BatchRef,Response,RespStr, ErrorStr,False, TypeOfTrans) then
+          if not RollbackBatch(FJournalsData.BatchRef,RespStr, ErrorStr,False, TypeOfTrans) then
           begin
             LogUtil.LogMsg(lmError, UnitName, ErrorStr);
             HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
@@ -989,9 +988,8 @@ end;
 initialization
   PracticeLedger:= TPracticeLedger.Create;
   DebugMe := LogUtil.DebugUnit( UnitName );
-  
+
 finalization
   if Assigned(PracticeLedger) then
     FreeAndNil(PracticeLedger);
-
 end.

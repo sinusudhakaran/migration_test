@@ -175,7 +175,7 @@ type
                               var aResponse: TlkJSONbase; var aRespStr : string;
                               var aError: string; aEncryptToken : boolean = false): boolean;
     function DoDeleteSecureJson(const aURL: string; const aRequest: TlkJSONbase;
-                              var aResponse: TlkJSONbase; var aRespStr : string;
+                              var aRespStr : string;
                               var aError: string; aEncryptToken : boolean = false): boolean;
     function DoUploadHttpSecure(const aVerb: string; const aURL: string;
                                 const aHeaders: THttpHeaders; const aRequest: string;
@@ -585,17 +585,14 @@ end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.DoDeleteSecureJson(const aURL: string;
-  const aRequest: TlkJSONbase; var aResponse: TlkJSONbase; var aRespStr,
+  const aRequest: TlkJSONbase; var aRespStr,
   aError: string; aEncryptToken: boolean): boolean;
 var
   sVerb: string;
   Headers: THttpHeaders;
   sRequest: string;
-  JSONData : TStringList;
 begin
   Result := false;
-
-  aResponse := nil;
 
   try
     // Verb
@@ -629,8 +626,6 @@ begin
   except
     on E: Exception do
     begin
-      FreeAndNil(aResponse);
-
       aError := E.Message;
       Exit;
     end;
@@ -909,7 +904,7 @@ function TCashbookMigration.DoHttpSecure(const aVerb, aURL: string; const aHeade
 const
   CRLF = #13#10;
 var
-  sDetails, LoggedRequest : string;
+  LoggedRequest : string;
   ErroMessage: TlkJSONbase;
 
   function RemovePassword(aValue : string) : string;
@@ -982,8 +977,12 @@ begin
     begin
       aResponse := FHttpRequester.TransferredData;
       ErroMessage:= TlkJSON.ParseText(aResponse);
-      aError := E.Message;
-      aError := aError + ProcessErrorMessage(ErroMessage);
+      try
+        aError := E.Message;
+        aError := aError + ProcessErrorMessage(ErroMessage);
+      finally
+        FreeAndNil(ErroMessage);
+      end;
     end;
   end;
 end;
@@ -1047,7 +1046,6 @@ var
   sVerb: string;
   Headers: THttpHeaders;
   sRequest: string;
-  JSONData : TStringList;
 begin
   Result := false;
 
@@ -2167,10 +2165,12 @@ end;
 function TCashbookMigration.ProcessErrorMessage(
   aErrorMessage: TlkJSONbase): string;
 var
-  Errors: TlkJSONbase;
-  i : integer;
   sErrors : string;
 begin
+  Result := '';
+  if not Assigned(aErrorMessage) then
+    Exit;
+    
   if Assigned(aErrorMessage.Field['error']) then
     Result := '[' + VarToStr(aErrorMessage.Field['error'].Value) + ']';
   if Assigned(aErrorMessage.Field['error_description']) then
@@ -2196,8 +2196,12 @@ begin
   if DebugMe then
   begin
     JSONData := TStringList.Create;
-    JSONData.Add(FLargeJsonData);
-    JSONData.SaveToFile('PL_BusinessJSON.txt');
+    try
+      JSONData.Add(FLargeJsonData);
+      JSONData.SaveToFile('PL_BusinessJSON.txt');
+    finally
+      FreeAndNil(JSONData);
+    end;
   end;
 
   if Trim(FLargeJsonData) = '' then
@@ -2572,11 +2576,10 @@ end;
 destructor TCashbookMigration.Destroy;
 begin
   // Http
-  freeAndNil(fMappingsData);
   FreeAndNil(FHttpRequester);
+  FreeAndNil(FMappingsData);
   FreeAndNil(fProvisionalAccounts);
   FreeAndNil(fURLThread);
-
   inherited;
 end;
 
@@ -2641,7 +2644,7 @@ begin
       aError := FDataError;
 
       // Parse JSON result
-      if Assigned(FDataResponse) then      
+      if Assigned(FDataResponse) then
         js := FDataResponse as TlkJSONobject;
 
       if not assigned(js) then
