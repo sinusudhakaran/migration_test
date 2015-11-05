@@ -1164,7 +1164,7 @@ end;
 //------------------------------------------------------------------------------
 function TSuggestedMems.IsSuggMemsRunning: boolean;
 begin
-  Result := (MainState <> mtsNoScan) and (fMemScanRefCount > 0);
+  Result := (MainState <> mtsNoScan) and (fMemScanRefCount = 0);
 end;
 
 //------------------------------------------------------------------------------
