@@ -57,7 +57,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 416
-    ActivePage = tbsInterfaces
+    ActivePage = tsSuperFundSystem
     MultiLine = True
     TabOrder = 0
     OnChange = PageControl1Change
@@ -530,16 +530,19 @@ object frmPracticeDetails: TfrmPracticeDetails
           Caption = 'Account &Mask'
           FocusControl = eSuperMask
         end
-        object cmbSuperSystem: TComboBox
-          Left = 144
-          Top = 16
-          Width = 316
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          Sorted = True
-          TabOrder = 0
-          OnChange = cmbSuperSystemChange
+        object lblConnectBGL: TLabel
+          Left = 272
+          Top = 83
+          Width = 137
+          Height = 13
+          Caption = 'Successfully signed in to BGL'
+          FocusControl = eSuperMask
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clGreen
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
         end
         object eSuperLoad: TEdit
           Left = 144
@@ -550,6 +553,17 @@ object frmPracticeDetails: TfrmPracticeDetails
           MaxLength = 128
           TabOrder = 3
           Text = 'eSuperLoad'
+        end
+        object cmbSuperSystem: TComboBox
+          Left = 144
+          Top = 16
+          Width = 316
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          Sorted = True
+          TabOrder = 0
+          OnChange = cmbSuperSystemChange
         end
         object eSuperSave: TEdit
           Left = 144

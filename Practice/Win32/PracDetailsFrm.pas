@@ -146,6 +146,7 @@ type
     btnConnectBGL: TButton;
     btnConnectMYOB: TButton;
     lblFirmName: TLabel;
+    lblConnectBGL: TLabel;
     
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -640,6 +641,7 @@ begin
       end
       else
         btnConnectBGL.Enabled := false;
+      lblConnectBGL.Visible := not btnConnectBGL.Enabled;
     finally
       freeAndNil( BGLServer );
     end;
