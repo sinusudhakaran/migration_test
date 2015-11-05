@@ -1266,7 +1266,7 @@ begin
       begin
         lblPLClientName.Caption := MyClient.clExtra.cemyMYOBClientNameSelected;
       end;
-      SaveClient(false);
+      //SaveClient(false); Disabled due to Crash selecting a client in the Setup New Client Wizard
     end;
 
     lblFirmName.Caption := 'No Firm selected';

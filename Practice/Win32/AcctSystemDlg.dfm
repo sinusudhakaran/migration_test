@@ -164,7 +164,6 @@ object dlgAcctSystem: TdlgAcctSystem
       TabOrder = 6
       Text = 'eFrom'
       OnChange = eFromChange
-      ExplicitTop = 142
     end
     object eTo: TEdit
       Left = 140
@@ -174,7 +173,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Anchors = [akLeft, akBottom]
       TabOrder = 7
       Text = 'eTo'
-      ExplicitTop = 172
     end
     object btnCheckBankManID: TButton
       Left = 140
@@ -185,7 +183,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Caption = 'Set &BankLink ID'
       TabOrder = 8
       OnClick = btnCheckBankManIDClick
-      ExplicitTop = 200
     end
     object cmbSystem: TComboBox
       Left = 140
@@ -275,7 +272,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Caption = 'BGL Sign in'
       TabOrder = 5
       OnClick = btnConnectBGLClick
-      ExplicitTop = 138
     end
     object btnConnectMYOB: TButton
       Left = 140
@@ -286,7 +282,6 @@ object dlgAcctSystem: TdlgAcctSystem
       Caption = 'MYOB Login'
       TabOrder = 9
       OnClick = btnConnectMYOBClick
-      ExplicitTop = 138
     end
   end
   object GBExtract: TGroupBox
@@ -300,7 +295,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 2
-    ExplicitTop = 295
     object Label3: TLabel
       Left = 16
       Top = 16
@@ -338,7 +332,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 3
-    ExplicitTop = 344
     object Label5: TLabel
       Left = 16
       Top = 16
@@ -416,7 +409,6 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 4
-    ExplicitTop = 453
     object Label4: TLabel
       Left = 16
       Top = 16
