@@ -327,28 +327,27 @@ begin
 
       except
          on e : EFCreateError do begin
-            Msg := E.Message+'.  Please ensure this is a valid file name, and you have access rights to the directory.';
-            HelpfulErrorMsg( Msg, 0 );
+            Msg := 'Please ensure this is a valid file name, and you have access rights to the directory.';
+            HelpfulErrorMsg( Msg, 0, False, E.Message, True );
             Msg := 'EFCreateError : '+E.Message;
             LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
          end;
-
          on e : EInOutError do begin
-            Msg := 'EInOutError occurred : '+E.message;
-            HelpfulErrorMsg(Msg,0);
+            Msg := 'EInOutError occurred';
+            HelpfulErrorMsg(Msg,0, false, E.Message, True);
             Logutil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
          end;
 
          on e : EOleSysError do
          begin
-            Msg := 'Error extracting data.  ' + E.Message + ' ' + E.ClassName;
-            HelpfulErrorMsg(Msg,0);
+            Msg := 'Error extracting data.';
+            HelpfulErrorMsg(Msg,0, True, E.Message + ' ' + E.ClassName, True);
          end;
 
          on e : EInterfaceError do
          begin
-            Msg := 'Error extracting data.  ' + E.Message + ' ' + E.ClassName;
-            HelpfulErrorMsg(Msg,0);
+            Msg := 'Error extracting data.';
+            HelpfulErrorMsg(Msg,0, True, E.Message + ' ' + E.ClassName, True);
          end;
       end;
    end;

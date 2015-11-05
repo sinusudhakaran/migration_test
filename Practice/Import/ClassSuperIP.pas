@@ -200,9 +200,9 @@ begin
       end;
    except
       on E : Exception do begin // File I/O only
-         Msg := Format( 'Error Refreshing Chart %s. %s', [Chartfile, E.Message ] );
+         Msg := Format( 'Error Refreshing Chart %s.', [Chartfile] );
          LogUtil.LogMsg( lmError, UNIT_NAME, ThisMethodName + ' : ' + Msg );
-         HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+         HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True);
 
       end;
    end;
@@ -273,9 +273,9 @@ begin
 
    except
       on E : Exception do begin
-         Msg := Format( 'Error reading %s. %s', [FilePath, E.Message ] );
-         LogUtil.LogMsg( lmError, UNIT_NAME, ThisMethodName + ' : ' + Msg );
-         HelpfulErrorMsg( Msg, 0 );
+         Msg := ('Error reading file.');
+         LogUtil.LogMsg( lmError, UNIT_NAME, ThisMethodName + ' : ' + Msg + #13#13 + E.Message);
+         HelpfulErrorMsg(Msg, 0, false, 'Error in file: ' + FilePath+ #13#13 + E.Message );
       end;
    end;
    finally
@@ -402,9 +402,9 @@ begin //ImportClassSuperList
       Result := LList.Text;
    except
       on E : Exception do begin // File I/O only
-         Msg := Format( 'Error reading %s : %s', [FilePath, E.Message ] );
-         LogUtil.LogMsg( lmError, UNIT_NAME, format( '%s : %s', [ThisMethodName, Msg]) );
-         HelpfulErrorMsg( Msg , 0 );
+         Msg := ('Error reading file.');
+         LogUtil.LogMsg( lmError, UNIT_NAME, ThisMethodName + ' : ' + Msg + #13#13 + E.Message);
+         HelpfulErrorMsg(Msg, 0, false, 'Error in file: ' + FilePath+ #13#13 + E.Message );
       end;
    end;
    finally

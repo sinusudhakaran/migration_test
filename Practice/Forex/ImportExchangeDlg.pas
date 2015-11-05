@@ -1074,7 +1074,7 @@ begin
           lFile.LoadFromFile(EPath.Text);
        except
           on e: exception do begin
-             HelpfulErrorMsg(Format( 'Cannot open file %s: %s',[EPath.Text, e.Message]),0);
+             HelpfulErrorMsg('File open failed.',0, True, Format( 'Cannot open file %s: %s',[EPath.Text, e.Message]),True);
           end;
        end;
        if LFile.Count = 0 then

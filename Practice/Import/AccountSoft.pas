@@ -139,9 +139,9 @@ begin
         end;
      except
         on E : EInOutError do begin //Normally EExtractData but File I/O only
-           Msg := Format( 'Error Refreshing Chart %s. %s', [ChartFileName, E.Message ] );
+           Msg := Format( 'Error Refreshing Chart %s.', [ChartFileName] );
            LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-           HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+           HelpfulErrorMsg( Msg, 0 , false, 'The existing chart has not been modified.'#13#13 + E.Message, True);
            exit;
         end;
      end; {except}

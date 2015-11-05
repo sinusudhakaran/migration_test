@@ -353,7 +353,7 @@ begin
            except
              on E: EInOutError do
              begin
-               HelpfulErrorMsg( E.Message + ' - ' + Filename, 0);
+               HelpfulErrorMsg('Extract failed.',0, True, E.Message + ' - ' + Filename, True);
              end;
            end;
            Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were saved in %s',[ NoOfEntries, CMFilename ] );
