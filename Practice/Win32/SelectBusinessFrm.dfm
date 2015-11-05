@@ -30,7 +30,7 @@ object SelectBusinessForm: TSelectBusinessForm
     Margins.Bottom = 0
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 0
+    TabOrder = 1
     object sgClients: TStringGrid
       Left = 0
       Top = 0
@@ -69,7 +69,7 @@ object SelectBusinessForm: TSelectBusinessForm
     Align = alTop
     BevelOuter = bvNone
     ParentBackground = False
-    TabOrder = 1
+    TabOrder = 0
     object Shape1: TShape
       Left = 0
       Top = 0
