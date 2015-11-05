@@ -23,7 +23,6 @@ const
 
 type
 
-  TLicenceType = (ltCashbook, ltPracticeLedger);
   TDataRequestType = (drtSignIn, drtFirm, drtBusiness, drtCOA, drtTransactions,
                       drtJournals,drtRollback);
   //----------------------------------------------------------------------------
@@ -228,7 +227,7 @@ type
 
     function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
     function GetFirms(var aFirms: TFirms; var aError: string): boolean;
-    function GetBusinesses(aFirmID: string;var aBusinesses: TBusinesses;var aError: string):Boolean;
+    function GetBusinesses(aFirmID: string;LicenseType:TLicenceType;var aBusinesses: TBusinesses;var aError: string):Boolean;
     function GetChartOfAccounts(aBusinessID:string;var aChartOfAccounts: TChartOfAccountsData; var aError:string):Boolean;
 
     function MigrateClients(aSelectClients : TStringList;
@@ -722,7 +721,7 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TCashbookMigration.GetBusinesses(aFirmID: string;
+function TCashbookMigration.GetBusinesses(aFirmID: string; LicenseType:TLicenceType;
   var aBusinesses: TBusinesses; var aError: string): Boolean;
 var
   sURL: string;
@@ -754,7 +753,7 @@ begin
         LogUtil.LogMsg(lmInfo, UnitName, RespStr);
 
       if Assigned(aBusinesses) and Assigned(JsonObject) then
-        aBusinesses.Read(aFirmID,JsonObject);
+        aBusinesses.Read(aFirmID,LicenseType,JsonObject);
 
     except
       on E: Exception do

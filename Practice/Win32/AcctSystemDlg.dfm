@@ -60,7 +60,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Left = 8
     Top = 56
     Width = 504
-    Height = 236
+    Height = 226
     Margins.Left = 8
     Margins.Right = 8
     Margins.Bottom = 0
@@ -68,10 +68,10 @@ object dlgAcctSystem: TdlgAcctSystem
     TabOrder = 1
     DesignSize = (
       504
-      236)
+      226)
     object btnFromFolder: TSpeedButton
       Left = 462
-      Top = 138
+      Top = 128
       Width = 25
       Height = 24
       Hint = 'Click to Select a Folder'
@@ -81,7 +81,7 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object lblFrom: TLabel
       Left = 16
-      Top = 143
+      Top = 133
       Width = 80
       Height = 13
       Anchors = [akLeft, akBottom]
@@ -91,7 +91,7 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object lblSaveTo: TLabel
       Left = 16
-      Top = 175
+      Top = 165
       Width = 75
       Height = 13
       Anchors = [akLeft, akBottom]
@@ -101,7 +101,7 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object btnToFolder: TSpeedButton
       Left = 462
-      Top = 170
+      Top = 160
       Width = 25
       Height = 24
       Hint = 'Click to Select a Folder'
@@ -127,7 +127,7 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object lblBGL360FundName: TLabel
       Left = 272
-      Top = 143
+      Top = 133
       Width = 215
       Height = 17
       Anchors = [akLeft, akBottom]
@@ -136,50 +136,56 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object lblFirmName: TLabel
       Left = 140
-      Top = 171
+      Top = 161
       Width = 347
       Height = 23
       Anchors = [akLeft, akBottom]
       AutoSize = False
       Caption = 'Firm name'
+      Visible = False
+      ExplicitTop = 171
     end
     object lblPLClientName: TLabel
       Left = 139
-      Top = 200
+      Top = 161
       Width = 348
       Height = 23
       Anchors = [akLeft, akBottom]
       AutoSize = False
       Caption = 'Selected my.MYOB client name goes here'
+      ExplicitTop = 171
     end
     object eFrom: TEdit
       Left = 139
-      Top = 142
+      Top = 132
       Width = 317
       Height = 21
       Anchors = [akLeft, akBottom]
       TabOrder = 6
       Text = 'eFrom'
       OnChange = eFromChange
+      ExplicitTop = 142
     end
     object eTo: TEdit
       Left = 140
-      Top = 172
+      Top = 162
       Width = 317
       Height = 21
       Anchors = [akLeft, akBottom]
       TabOrder = 7
       Text = 'eTo'
+      ExplicitTop = 172
     end
     object btnCheckBankManID: TButton
       Left = 140
-      Top = 200
+      Top = 190
       Width = 129
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Set &BankLink ID'
       TabOrder = 8
       OnClick = btnCheckBankManIDClick
+      ExplicitTop = 200
     end
     object cmbSystem: TComboBox
       Left = 140
@@ -259,7 +265,7 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object btnConnectBGL: TButton
       Left = 137
-      Top = 138
+      Top = 128
       Width = 129
       Height = 27
       Hint = 
@@ -269,22 +275,24 @@ object dlgAcctSystem: TdlgAcctSystem
       Caption = 'BGL Sign in'
       TabOrder = 5
       OnClick = btnConnectBGLClick
+      ExplicitTop = 138
     end
     object btnConnectMYOB: TButton
       Left = 140
-      Top = 138
+      Top = 128
       Width = 165
       Height = 27
       Anchors = [akLeft, akBottom]
       Caption = 'MYOB Login'
       TabOrder = 9
       OnClick = btnConnectMYOBClick
+      ExplicitTop = 138
     end
   end
   object GBExtract: TGroupBox
     AlignWithMargins = True
     Left = 8
-    Top = 295
+    Top = 285
     Width = 504
     Height = 46
     Margins.Left = 8
@@ -292,6 +300,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 2
+    ExplicitTop = 295
     object Label3: TLabel
       Left = 16
       Top = 16
@@ -321,7 +330,7 @@ object dlgAcctSystem: TdlgAcctSystem
   object gbxTaxInterface: TGroupBox
     AlignWithMargins = True
     Left = 8
-    Top = 344
+    Top = 334
     Width = 504
     Height = 105
     Margins.Left = 8
@@ -329,6 +338,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 3
+    ExplicitTop = 344
     object Label5: TLabel
       Left = 16
       Top = 16
@@ -397,7 +407,7 @@ object dlgAcctSystem: TdlgAcctSystem
   object gbxWebExport: TGroupBox
     AlignWithMargins = True
     Left = 8
-    Top = 453
+    Top = 443
     Width = 504
     Height = 46
     Margins.Left = 8
@@ -406,6 +416,7 @@ object dlgAcctSystem: TdlgAcctSystem
     Margins.Bottom = 0
     Align = alTop
     TabOrder = 4
+    ExplicitTop = 453
     object Label4: TLabel
       Left = 16
       Top = 16

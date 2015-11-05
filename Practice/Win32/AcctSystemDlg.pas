@@ -160,7 +160,8 @@ uses
   SimpleFund,
   myMYOBSignInFrm,
   PracticeLedgerObj,
-  bkContactInformation;
+  bkContactInformation,
+  CashbookMigrationRestData;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -458,7 +459,7 @@ begin
   btnToFolder.Visible := lblSaveTo.Visible;
   lblPLClientName.Visible := btnConnectMYOB.Visible;
 
-  lblFirmName.Visible := btnConnectMYOB.Visible;
+  //lblFirmName.Visible := btnConnectMYOB.Visible;
   if SelectedSystem = saBGL360 then
   begin
   //DN Not required    BGLServerNoSignRequired := True;
@@ -1241,7 +1242,7 @@ begin
       SelectBusinessFrm := TSelectBusinessForm.Create(Self);
       try
         // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID ,PracticeLedger.Businesses, sError))) then
+        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger,PracticeLedger.Businesses, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);

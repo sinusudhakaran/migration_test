@@ -976,7 +976,7 @@ begin
 
       if (IsDownloadBusiness and Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID)<>'')) then
       begin
-        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, PracticeLedger.Businesses, sError) then
+        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID,  ltPracticeLedger,PracticeLedger.Businesses, sError) then
           LogUtil.LogMsg(lmError,UnitName, sError);
       end;
     end;

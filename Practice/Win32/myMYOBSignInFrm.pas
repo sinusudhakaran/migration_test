@@ -161,7 +161,7 @@ begin
       else if (FormShowType = fsSignIn) and (not ShowFirmSelection) then
       begin // means show client - for a normal user
         // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID ,PracticeLedger.Businesses, sError))) then
+        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger ,PracticeLedger.Businesses, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
@@ -250,7 +250,7 @@ begin
         PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
         Application.ProcessMessages;
         // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, PracticeLedger.Businesses, sError))) then
+        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, ltPracticeLedger,PracticeLedger.Businesses, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);

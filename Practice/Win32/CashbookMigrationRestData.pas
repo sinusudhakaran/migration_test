@@ -18,6 +18,7 @@ const
   UPLOAD_RESP_CORUPT = 3;
 
 type
+  TLicenceType = (ltCashbook, ltPracticeLedger);
   //----------------------------------------------------------------------------
   TSelectedData = record
     FirmId : string;
@@ -491,6 +492,7 @@ type
     fOpeningBalanceDate : string;
     fFirmId : string;
     FVisibility: Boolean;
+    FLicenseCode: string;
   public
     procedure Write(const aJson: TlkJSONobject);
     procedure Read(const aJson: TlkJSONobject);
@@ -506,6 +508,7 @@ type
     property  OpeningBalanceDate : string read fOpeningBalanceDate write fOpeningBalanceDate;
     property  FirmId : string read fFirmId write fFirmId;
     property Visibility: Boolean read FVisibility write FVisibility;
+    property LicenseCode : string read FLicenseCode write FLicenseCode;
   end;
 
   TBusinesses = class(TObjectList)
@@ -513,7 +516,7 @@ type
     function GetItem(aIndex : integer) : TBusinessData;overload;
     function GetItem(aBusinessID : string) : TBusinessData;overload;
 
-    procedure Read(aFirmID:string;const aJson: TlkJSONObject);
+    procedure Read(aFirmID:string;LicenseType: TLicenceType;const aJson: TlkJSONObject);
   end;
 
   //----------------------------------------------------------------------------
@@ -1792,6 +1795,8 @@ begin
   FVisibility := aJson.getBoolean('visibility');
   if (aJson.Field['ird'].SelfType <> jsNull) then
     FIRD := aJson.getString('ird');
+  if (Assigned(aJson.Field['licence_code'])) and (aJson.Field['licence_code'].SelfType <> jsNull) then
+    FLicenseCode := aJson.getString('licence_code');
 end;
 
 procedure TBusinessData.Write(const aJson: TlkJSONobject);
@@ -2121,12 +2126,13 @@ begin
   end;
 end;
 
-procedure TBusinesses.Read(aFirmID: string; const aJson: TlkJSONObject);
+procedure TBusinesses.Read(aFirmID: string;LicenseType: TLicenceType; const aJson: TlkJSONObject);
 var
   i: integer;
   Child: TlkJSONobject;
   Field : TlkJSONlist;
   Business: TBusinessData;
+  LicenseTypeStr : string;
 begin
   Clear;
 
@@ -2144,9 +2150,12 @@ begin
     Business:= TBusinessData.Create;
     // Read business
     Business.Read(Child);
-
+    case LicenseType of
+      ltCashbook : LicenseTypeStr := 'CB';
+      ltPracticeLedger : LicenseTypeStr := 'PL';
+    end;
     if (not Business.Visibility) or
-       ((Trim(aFirmID) <> '') and (Business.FirmID <> aFirmID)) then
+       ((Trim(aFirmID) <> '') and (Business.FirmID <> aFirmID) and (Pos(LicenseTypeStr,Business.LicenseCode) <= 0)) then
       FreeAndNil(Business)
     else
       Add(Business);
