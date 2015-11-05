@@ -152,6 +152,8 @@ begin
   if PracticeLedger.Businesses.Count = 0 then
     ModalResult := mrCancel;
 
+  Self.Caption := 'Select a client (Firm Selected: ' + AdminSystem.fdFields.fdmyMYOBFirmName + ')';
+  
   sgClients.Cells[0,0] := ' Client Name';
   sgClients.Cells[1,0] := ' Client Code';
   if AdminSystem.fdFields.fdCountry = whAustralia then

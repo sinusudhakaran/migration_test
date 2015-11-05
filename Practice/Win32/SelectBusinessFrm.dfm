@@ -31,7 +31,6 @@ object SelectBusinessForm: TSelectBusinessForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 830
     object sgClients: TStringGrid
       Left = 0
       Top = 0
@@ -56,7 +55,6 @@ object SelectBusinessForm: TSelectBusinessForm
       OnDblClick = sgClientsDblClick
       OnDrawCell = sgClientsDrawCell
       OnMouseUp = sgClientsMouseUp
-      ExplicitWidth = 830
       ColWidths = (
         336
         186
@@ -72,7 +70,6 @@ object SelectBusinessForm: TSelectBusinessForm
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 1
-    ExplicitWidth = 830
     object Shape1: TShape
       Left = 0
       Top = 0
@@ -121,7 +118,6 @@ object SelectBusinessForm: TSelectBusinessForm
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 2
-    ExplicitWidth = 830
     DesignSize = (
       686
       41)
@@ -144,7 +140,6 @@ object SelectBusinessForm: TSelectBusinessForm
       Default = True
       TabOrder = 0
       OnClick = btnYesClick
-      ExplicitLeft = 666
     end
     object btnNo: TButton
       Left = 603
@@ -156,7 +151,6 @@ object SelectBusinessForm: TSelectBusinessForm
       Caption = '&Cancel'
       TabOrder = 1
       OnClick = btnNoClick
-      ExplicitLeft = 747
     end
   end
 end
