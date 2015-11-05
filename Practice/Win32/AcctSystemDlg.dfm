@@ -132,6 +132,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Height = 17
       Anchors = [akLeft, akBottom]
       AutoSize = False
+      ShowAccelChar = False
       ExplicitTop = 144
     end
     object lblFirmName: TLabel
@@ -153,6 +154,7 @@ object dlgAcctSystem: TdlgAcctSystem
       Anchors = [akLeft, akBottom]
       AutoSize = False
       Caption = 'Selected my.MYOB client name goes here'
+      ShowAccelChar = False
       ExplicitTop = 171
     end
     object eFrom: TEdit
