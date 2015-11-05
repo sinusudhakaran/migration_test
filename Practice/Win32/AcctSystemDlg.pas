@@ -1213,11 +1213,15 @@ var
   SelectBusinessFrm : TSelectBusinessForm;
   sError : string;
 begin
+  if not Assigned(AdminSystem) then
+    Exit;
+
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
   begin
     HelpfulErrorMsg('No MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
     Exit;
   end;
+  
   SaveBusiness := False;
   SignInFrm := TmyMYOBSignInForm.Create(Nil);
   OldCursor := Screen.Cursor;

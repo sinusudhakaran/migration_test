@@ -513,6 +513,10 @@ const
   ThisMethodName = 'FetchCOAFromAPI';
 begin
   Result := False;
+
+  if not Assigned(AdminSystem) then
+    Exit;
+    
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
     HelpfulErrorMsg('Online Firm should be associated before a refresh chart!',
