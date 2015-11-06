@@ -550,7 +550,7 @@ CONST
         'QuickBooks 2008/2009',           //snQBWN
         'iFirm',                          //snAcclipse
         'MYOB General Journals (2012)' ,   //snMYOBAccRight
-        'MYOB Online Ledger'
+        'MYOB Ledger'
          );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -670,7 +670,7 @@ CONST
         'iFirm',                                      //saAcclipse
         'MYOB General Journals (2012)',                //snMYOBAccRight
         'BGL Simple Fund 360'  ,                       //saBGL360
-        'MYOB Online Ledger'                            //saMYOBOnlineLedger
+        'MYOB Ledger'                            //saMYOBOnlineLedger
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';
