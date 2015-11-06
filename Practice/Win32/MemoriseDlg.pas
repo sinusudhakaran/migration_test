@@ -423,6 +423,8 @@ type
                                  var DoneIt: Boolean;
                                  aHasPotentialIssue : boolean = false);
   protected
+    procedure RefreshAccTranControls();
+
     procedure SetDlgEditMode(aValue : TDlgEditMode);
     procedure UpdateMoreOptions();
     procedure UpdateControls();
@@ -1224,7 +1226,8 @@ begin
     end;
   end;
 
-  TerminateMasterThread();
+  if Assigned(AdminSystem) then
+    TerminateMasterThread();
 
   Modalresult := mrCopy;
 end;
@@ -2675,6 +2678,34 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgMemorise.RefreshAccTranControls();
+begin
+  if (fDlgEditMode in ALL_NO_MASTER) or (not Assigned(AdminSystem)) then
+  begin
+    fAllowRefreshTran := true;
+    RefreshMemTransactions();
+    fAllowRefreshTran := false;
+    treView.Visible := false;
+    tblTran.Visible := true;
+    lblMatchingTransactions.Caption := 'Matching Transactions';
+    lblMatchingTranNote.Visible := true;
+  end
+  else
+  begin
+    SuggestedMem.StopMemScan(true);
+    try
+      treView.Visible := true;
+      tblTran.Visible := false;
+      lblMatchingTransactions.Caption := 'Matching Accounts';
+      lblMatchingTranNote.Visible := false;
+      RefreshMasterMemTree();
+    finally
+      SuggestedMem.StartMemScan();
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TdlgMemorise.RefreshMasterMemTree;
 var
   screenPos : TPoint;
@@ -3404,8 +3435,8 @@ begin
              else
                HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
              //---END EDIT MASTER MEM---
-           end 
-           else 
+           end
+           else
            begin
              SaveToMemRec(pM, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
            end;
@@ -3416,9 +3447,9 @@ begin
            // Create memorisation
            pMCopy := TMemorisation.Create(MyClient.ClientAuditMgr);
            try
-             SaveToMemRec(pMCopy, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
+             SaveToMemRec(pMCopy, nil, ((fDlgEditMode in ALL_MASTER) and (Assigned(AdminSystem))), NunOfSplitLines);
 
-             if (fDlgEditMode in ALL_MASTER) then
+             if ((fDlgEditMode in ALL_MASTER) and (Assigned(AdminSystem))) then
                pMCopy.mdFields.mdFrom_Master_List := true;
 
              FillSplitData(pMCopy);
@@ -3574,29 +3605,9 @@ begin
       HelpfulInfoMsg('Payees or Jobs cannot be used in Master Memorisations.'#13'The Payees or Jobs you have used in this memorisation will not be saved.', 0);
   end;
 
-  if chkMaster.Checked then
-  begin
-    SuggestedMem.StopMemScan(true);
-    try
-      treView.Visible := true;
-      tblTran.Visible := false;
-      lblMatchingTransactions.Caption := 'Matching Accounts';
-      lblMatchingTranNote.Visible := false;
-      RefreshMasterMemTree();
-    finally
-      SuggestedMem.StartMemScan();
-    end;
-  end
-  else
-  begin
+  if fDlgEditMode in ALL_NO_MASTER then
     TerminateMasterThread();
-
-    treView.Visible := false;
-    tblTran.Visible := true;
-    lblMatchingTranNote.Visible := true;
-    lblMatchingTransactions.Caption := 'Matching Transactions';
-    RefreshMemTransactions();
-  end;
+  RefreshAccTranControls();
 end;
 //------------------------------------------------------------------------------
 
@@ -3747,31 +3758,19 @@ begin
     (DlgEditMode in ALL_CREATE) then
     chkStatementDetails.checked := true;
 
-  if fDlgEditMode in ALL_NO_MASTER then
+  RefreshAccTranControls();
+  if fDlgEditMode in ALL_MASTER then
+    chkMaster.Checked := true;
+
+  if (Assigned(AdminSystem)) or (not (fDlgEditMode = demMasterEdit)) then
   begin
-    fAllowRefreshTran := true;
-    RefreshMemTransactions();
-    fAllowRefreshTran := false;
-    treView.Visible := false;
-    tblTran.Visible := true;
-    lblMatchingTransactions.Caption := 'Matching Transactions';
-    lblMatchingTranNote.Visible := true;
+    btnOk.SetFocus;
   end
   else
   begin
-    if not AllowMasterMemorised then
-    begin
-      treView.Visible := true;
-      tblTran.Visible := false;
-      lblMatchingTransactions.Caption := 'Matching Accounts';
-      RefreshMasterMemTree();
-      lblMatchingTranNote.Visible := false;
-    end;
-
-    chkMaster.Checked := true;
+    btnOk.enabled := false;
+    btnCancel.SetFocus;
   end;
-
-  btnOk.SetFocus;
 
   MovedValue := (chkAccountSystem.Left + chkAccountSystem.Width + 16) - cbAccounting.Left;
   cbAccounting.Left := chkAccountSystem.Left + chkAccountSystem.Width + 16;
