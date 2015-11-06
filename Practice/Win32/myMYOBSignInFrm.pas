@@ -38,6 +38,7 @@ type
     procedure btnCancelClick(Sender: TObject);
     procedure cmbSelectFirmChange(Sender: TObject);
     procedure cmbSelectFirmEnter(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     FFormShowType : TFormShowType;
@@ -47,6 +48,7 @@ type
     FSelectedID: string;
     FOldFirmIndex : Integer;
     FForcedSignInSucceed : Boolean;
+    FShowClientSelection : Boolean;
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
@@ -55,6 +57,8 @@ type
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
     property ShowFirmSelection : Boolean read FShowFirmSelection write FShowFirmSelection;
+    property ShowClientSelection : Boolean read FShowClientSelection write FShowClientSelection;
+
     property SelectedID: string read FSelectedID write FSelectedID;
     property SelectedName : string read FSelectedName write FSelectedName;
   end;
@@ -162,8 +166,9 @@ begin
         btnOK.Visible := True;
         FForcedSignInSucceed := True;
         LoadFirms;
-      end
-      else if (FormShowType = fsSignIn) and (not ShowFirmSelection) then
+      end;
+
+      if (FormShowType = fsSignIn) and (ShowClientSelection) then
       begin // means show client - for a normal user
         // Get Businesses
         if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger ,PracticeLedger.Businesses, sError))) then
@@ -236,6 +241,12 @@ end;
 procedure TmyMYOBSignInForm.cmbSelectFirmEnter(Sender: TObject);
 begin
   FOldFirmIndex := cmbSelectFirm.ItemIndex;
+end;
+
+procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
+begin
+  ShowClientSelection := False;
+  ShowFirmSelection := False;
 end;
 
 procedure TmyMYOBSignInForm.FormShow(Sender: TObject);

@@ -161,7 +161,8 @@ uses
   myMYOBSignInFrm,
   PracticeLedgerObj,
   bkContactInformation,
-  CashbookMigrationRestData;
+  CashbookMigrationRestData,
+  AuditMgr;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -1212,36 +1213,68 @@ var
   SaveBusiness : Boolean;
   SelectBusinessFrm : TSelectBusinessForm;
   sError : string;
+  ShowClientScreen : Boolean;
 begin
   if not Assigned(AdminSystem) then
     Exit;
 
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
   begin
-    HelpfulErrorMsg('No MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
-    Exit;
+    if (not (CurrUser.CanAccessAdmin and (not CurrUser.HasRestrictedAccess))) then // not admin user
+    begin
+      HelpfulErrorMsg('No MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
+      Exit;
+    end;
   end;
-  
+
   SaveBusiness := False;
   SignInFrm := TmyMYOBSignInForm.Create(Nil);
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;
+  ShowClientScreen := True;
   try
-    if (not CheckFormyMYOBTokens) then
+    if ((not CheckFormyMYOBTokens) or
+      ((Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '') and
+      (CurrUser.CanAccessAdmin and
+      (not CurrUser.HasRestrictedAccess)))) then
     begin
+      ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;
       SignInFrm.ShowFirmSelection := False;
+
+      if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '') and
+      (CurrUser.CanAccessAdmin and
+      (not CurrUser.HasRestrictedAccess))) then
+      begin
+        SignInFrm.ShowFirmSelection := True;
+        ShowClientScreen := True;
+      end;
+
       if (SignInFrm.ShowModal = mrOK) then
       begin
-        if MyClient.clExtra.cemyMYOBClientIDSelected <> SignInFrm.SelectedID then
+        if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '') and
+          (CurrUser.CanAccessAdmin and
+          (not CurrUser.HasRestrictedAccess))) then
         begin
-          MyClient.clExtra.cemyMYOBClientIDSelected := SignInFrm.SelectedID;
-          MyClient.clExtra.cemyMYOBClientNameSelected := SignInFrm.SelectedName;
-          SaveBusiness := True;
+          // Save Firm for admin user
+
+          if LoadAdminSystem(true, 'TdlgAdminOptions.SaveSettingsToAdmin' ) then
+          with AdminSystem.fdFields do
+          begin
+             fdmyMYOBFirmID := SignInFrm.SelectedID;
+             fdmyMYOBFirmName := SignInFrm.SelectedName;
+
+             //*** Flag Audit ***
+             SystemAuditMgr.FlagAudit(arSystemOptions);
+
+             SaveAdminSystem;
+          end;
+          UpdateMF.UpdateSystemMenus;
         end;
       end;
-    end
-    else
+    end;
+
+    if ShowClientScreen then
     begin
       SelectBusinessFrm := TSelectBusinessForm.Create(Self);
       try
@@ -1252,11 +1285,12 @@ begin
           ShowConnectionError(sError);
           ModalResult := mrCancel;
         end;
-      
+
         if SelectBusinessFrm.ShowModal = mrOk then
         begin
           MyClient.clExtra.cemyMYOBClientIDSelected := SelectBusinessFrm.SelectedBusinessID;
           MyClient.clExtra.cemyMYOBClientNameSelected := SelectBusinessFrm.SelectedBusinessName;
+
           SaveBusiness := True;
         end;
       finally

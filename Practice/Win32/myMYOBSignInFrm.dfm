@@ -10,6 +10,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   ParentFont = True
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -120,8 +121,6 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     ParentColor = True
     TabOrder = 1
     Visible = False
-    ExplicitTop = 162
-    ExplicitHeight = 69
     object ShapeBorder: TShape
       Left = 0
       Top = 0
@@ -173,7 +172,6 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     Caption = ' '
     ParentBackground = False
     TabOrder = 2
-    ExplicitTop = 231
     DesignSize = (
       509
       48)
@@ -223,7 +221,6 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     ParentColor = True
     TabOrder = 3
     Visible = False
-    ExplicitHeight = 56
     object Label6: TLabel
       Left = 24
       Top = 24
