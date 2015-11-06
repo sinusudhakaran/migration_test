@@ -1113,10 +1113,17 @@ begin
     if (not CheckFormyMYOBTokens) then
       SignInFrm.FormShowType := fsSignIn
     else
+    begin
+      SignInFrm.SelectedID := FFirmID;
+      SignInFrm.SelectedName := FFirmName;
       SignInFrm.FormShowType := fsSelectFirm;
+      if Trim(FFirmID) = '' then
+        SignInFrm.FormShowType := fsSignIn;
+    end;
+
     SignInFrm.ShowFirmSelection := True;
     if ((SignInFrm.ShowModal = mrOK) and (Assigned(AdminSystem)) and
-        (Trim(SignInFrm.SelectedID) <> Trim(AdminSystem.fdFields.fdmyMYOBFirmID))) then
+        (Trim(SignInFrm.SelectedID) <> Trim(FFirmID))) then
     begin
       FFirmChanged := True;
       FFirmID := SignInFrm.SelectedID;

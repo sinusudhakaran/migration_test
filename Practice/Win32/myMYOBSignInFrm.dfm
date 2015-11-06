@@ -4,7 +4,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Sign in'
-  ClientHeight = 279
+  ClientHeight = 219
   ClientWidth = 509
   Color = clWindow
   ParentFont = True
@@ -112,14 +112,16 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   end
   object pnlClientSelection: TPanel
     Left = 0
-    Top = 162
+    Top = 106
     Width = 509
-    Height = 69
+    Height = 65
     Align = alClient
     BevelOuter = bvNone
     ParentColor = True
     TabOrder = 1
     Visible = False
+    ExplicitTop = 162
+    ExplicitHeight = 69
     object ShapeBorder: TShape
       Left = 0
       Top = 0
@@ -156,14 +158,14 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 0
     end
   end
   object pnlControls: TPanel
     Left = 0
-    Top = 231
+    Top = 171
     Width = 509
     Height = 48
     Align = alBottom
@@ -171,6 +173,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     Caption = ' '
     ParentBackground = False
     TabOrder = 2
+    ExplicitTop = 231
     DesignSize = (
       509
       48)
@@ -213,13 +216,14 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     Left = 0
     Top = 106
     Width = 509
-    Height = 56
-    Align = alTop
+    Height = 65
+    Align = alClient
     BevelOuter = bvNone
     Caption = ' '
     ParentColor = True
     TabOrder = 3
     Visible = False
+    ExplicitHeight = 56
     object Label6: TLabel
       Left = 24
       Top = 24
@@ -256,9 +260,11 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 0
+      OnChange = cmbSelectFirmChange
+      OnEnter = cmbSelectFirmEnter
     end
   end
 end

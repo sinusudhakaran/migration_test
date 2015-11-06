@@ -8,7 +8,7 @@ uses
   OSFont, contnrs;
 
 type
-  TFormShowType = (fsSignIn, fsSelectFirm, fsSelectClient);
+  TFormShowType = (fsSignIn, fsSelectFirm, fsSelectClient, fsFirmForceSignIn);
 
   TmyMYOBSignInForm = class(TForm)
     pnlLogin: TPanel;
@@ -36,6 +36,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure cmbSelectFirmChange(Sender: TObject);
+    procedure cmbSelectFirmEnter(Sender: TObject);
   private
     { Private declarations }
     FFormShowType : TFormShowType;
@@ -43,7 +45,8 @@ type
 
     FSelectedName: string;
     FSelectedID: string;
-
+    FOldFirmIndex : Integer;
+    FForcedSignInSucceed : Boolean;
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
@@ -65,7 +68,8 @@ const
 implementation
 
 uses ShellApi, Globals, CashbookMigration, WarningMoreFrm, bkContactInformation,
-  ErrorMoreFrm, SYDEFS, Admin32, LogUtil, AuditMgr, IniSettings, SelectBusinessFrm;
+  ErrorMoreFrm, SYDEFS, Admin32, LogUtil, AuditMgr, IniSettings,
+  SelectBusinessFrm, YesNoDlg;
 
 {$R *.dfm}
 
@@ -112,6 +116,7 @@ var
   InvalidPass: boolean;
   BusinessFrm : TSelectBusinessForm;
 begin
+  FForcedSignInSucceed := False;
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
   try
@@ -141,7 +146,7 @@ begin
       UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
       UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
       WriteUsersINI(CurrUser.Code);
-      if (FormShowType = fsSignIn) and (ShowFirmSelection) then
+      if (FormShowType in [fsSignIn, fsFirmForceSignIn]) and (ShowFirmSelection) then
       begin
         // Get Firms
         FormShowType := fsSelectFirm;
@@ -155,7 +160,7 @@ begin
         pnlFirmSelection.Visible := True;
         Self.Height := 250;
         btnOK.Visible := True;
-
+        FForcedSignInSucceed := True;
         LoadFirms;
       end
       else if (FormShowType = fsSignIn) and (not ShowFirmSelection) then
@@ -186,11 +191,51 @@ begin
         //pnlClientSelection.Visible := True;
         //Self.Height := 300;
         //btnOK.Visible := True;
-      end;
+      end ;
     end;
   finally
     Screen.Cursor := OldCursor;
   end;
+end;
+
+procedure TmyMYOBSignInForm.cmbSelectFirmChange(Sender: TObject);
+var
+  Firm : TFirm;
+begin
+  if cmbSelectFirm.Items.Count <= 0 then
+    Exit;
+
+  if FOldFirmIndex = cmbSelectFirm.ItemIndex then
+    Exit;
+
+  if FForcedSignInSucceed then
+    Exit;
+    
+  Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
+
+  if ((Trim(FSelectedID) <> '') and
+      (Trim(FSelectedID) <> Firm.ID))
+  then
+  begin
+    if not (AskYesNo('Change Firm',
+                 'This change will affect the MYOB client setup done for all clients.'#13#13 +
+                 'You need a MYOB sign in before changing the Firm.'#13#13+
+                 'Do you want to continue?',DLG_YES, 0) = DLG_YES) then
+    begin
+      cmbSelectFirm.ItemIndex := FOldFirmIndex;
+      Exit;
+    end;
+    cmbSelectFirm.ItemIndex := FOldFirmIndex;
+    FormShowType := fsFirmForceSignIn;
+    FormShow(Self);
+  end;
+
+  FOldFirmIndex := cmbSelectFirm.ItemIndex;
+end;
+
+procedure TmyMYOBSignInForm.cmbSelectFirmEnter(Sender: TObject);
+begin
+  FOldFirmIndex := cmbSelectFirm.ItemIndex;
 end;
 
 procedure TmyMYOBSignInForm.FormShow(Sender: TObject);
@@ -213,6 +258,13 @@ begin
     begin
       pnlLogin.Visible := True;
       Self.Height := 185;
+      btnOK.Visible := False;
+    end;
+    fsFirmForceSignIn :
+    begin
+      pnlLogin.Visible := True;
+      pnlFirmSelection.Visible := True;
+      Self.Height := 250;
       btnOK.Visible := False;
     end;
     fsSelectFirm :
@@ -333,7 +385,7 @@ begin
       // Check for Practice Ledger 
       if Pos('PL',Firm.EligibleLicense) > 0 then
       begin
-        if (Firm.ID = AdminSystem.fdFields.fdmyMYOBFirmID) then
+        if (Firm.ID = FSelectedID) then
           Index := Row;
         cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
         Inc(Row);
@@ -341,6 +393,7 @@ begin
     end;
   end;
   cmbSelectFirm.ItemIndex := Index;
+  FOldFirmIndex := Index;
   cmbSelectFirm.SetFocus;
 end;
 
