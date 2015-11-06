@@ -72,6 +72,7 @@ uses
   BKTXIO,
   MALLOC,
   SuggestedMems,
+  IOStream,
   windows;
 
 const
@@ -255,6 +256,23 @@ var
   SubCode            : string;
   CodeIsActive       : boolean;
   OldTransaction     : pTransaction_Rec;
+
+  procedure Local_Copy_Transaction_Rec(P1, P2: pTransaction_Rec);
+  var
+    S: TIOStream;
+  begin
+    S := TIOStream.Create;
+    try
+      Write_Transaction_Rec(P1^, S);
+      S.Position := 0;
+      Read_Transaction_Rec(P2^, S);
+      P2^.txTransaction_Extension := P1^.txTransaction_Extension;
+    finally
+      S.Free;
+    end;
+  end;
+
+
 begin
   CodeIsActive := true;
   Mask := ConstStr( '#', MaxBk5CodeLen );
@@ -262,8 +280,8 @@ begin
 
   OldTransaction := BKTXIO.New_Transaction_Rec;
   try
-    BKTXIO.Copy_Transaction_Rec(aTransaction, OldTransaction);
-
+//    BKTXIO.Copy_Transaction_Rec(aTransaction, OldTransaction);
+    Local_Copy_Transaction_Rec(aTransaction, OldTransaction);
     With aTransaction^ do
     Begin
       OldCoded_By := txCoded_By;
@@ -929,8 +947,9 @@ begin
           if (OldTransaction^.txHas_Been_Edited) then
           begin
             BKTXIO.Free_Transaction_Rec_Dynamic_Fields( aTransaction^);
-            aTransaction^.txTransaction_Extension := nil;
-            BKTXIO.Copy_Transaction_Rec(OldTransaction, aTransaction);
+//            aTransaction^.txTransaction_Extension := nil;
+//            BKTXIO.Copy_Transaction_Rec(OldTransaction, aTransaction);
+            Local_Copy_Transaction_Rec(OldTransaction, aTransaction);
           end;
         end;
 
