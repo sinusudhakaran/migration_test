@@ -119,7 +119,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     Align = alClient
     BevelOuter = bvNone
     ParentColor = True
-    TabOrder = 1
+    TabOrder = 3
     Visible = False
     object ShapeBorder: TShape
       Left = 0
@@ -219,7 +219,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
     BevelOuter = bvNone
     Caption = ' '
     ParentColor = True
-    TabOrder = 3
+    TabOrder = 1
     Visible = False
     object Label6: TLabel
       Left = 24
