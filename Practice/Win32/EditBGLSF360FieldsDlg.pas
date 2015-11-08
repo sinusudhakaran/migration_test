@@ -1388,7 +1388,7 @@ begin
    SetPercentLabel(lpTFNAmountsWithheld, FRevenuePercentage);
    SetPercentLabel(lpNonResidentWithholdingTax, FRevenuePercentage);
    SetPercentLabel(lpShareBrokerage, FRevenuePercentage);
-   SetPercentLabel(lpShareConsideration, FRevenuePercentage);
+//   SetPercentLabel(lpShareConsideration, FRevenuePercentage);
    SetPercentLabel(lpShareGSTAmount, FRevenuePercentage);
 //   SetPercentLabel(lpShareTradeUnits, FRevenuePercentage);
    SetPercentLabel(lpOtherExpenses, FRevenuePercentage);
@@ -1558,7 +1558,6 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
         lblSettlementDate.Left    := 490;
 
         lblShareConsideration.Visible := not MemOnly;
-        lpShareConsideration.Visible  := not MemOnly;
         nfShareConsideration.Visible  := not MemOnly;
 
         Configure_ShareTrade;
