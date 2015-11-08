@@ -569,7 +569,7 @@ begin
       begin
         if (NewChart.FindCode(Account.Code) <> nil) then
           LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
-            Account.Code +' found in MYOB online Ledger API' )
+            Account.Code +' found in MYOB Ledger API' )
         else
         begin
           NewAccount := New_Account_Rec;
@@ -582,7 +582,7 @@ begin
           NewAccount^.chGST_Class := GSTCalc32.GetGSTClassNo( MyClient, Account.GstType);
           if ( NewAccount^.chGST_Class = 0 ) and ( Account.GstType <> '' ) then
           begin
-             LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Online Ledger: '+ Account.Code );
+             LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Ledger: '+ Account.Code );
              UnknownGSTCodesFound := True;
           end;
           NewChart.Insert(NewAccount);

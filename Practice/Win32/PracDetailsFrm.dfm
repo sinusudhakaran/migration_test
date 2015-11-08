@@ -57,7 +57,7 @@ object frmPracticeDetails: TfrmPracticeDetails
     Top = 8
     Width = 617
     Height = 416
-    ActivePage = tsSuperFundSystem
+    ActivePage = tbsInterfaces
     MultiLine = True
     TabOrder = 0
     OnChange = PageControl1Change
@@ -278,7 +278,7 @@ object frmPracticeDetails: TfrmPracticeDetails
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
-        Width = 569
+        Width = 593
         Height = 147
         TabOrder = 0
         object Label4: TLabel
@@ -332,16 +332,16 @@ object frmPracticeDetails: TfrmPracticeDetails
           FocusControl = eMask
         end
         object lblFirmName: TLabel
-          Left = 272
-          Top = 83
-          Width = 286
+          Left = 144
+          Top = 112
+          Width = 406
           Height = 19
           AutoSize = False
         end
         object cmbSystem: TComboBox
           Left = 144
           Top = 16
-          Width = 316
+          Width = 324
           Height = 21
           Style = csDropDownList
           ItemHeight = 13
@@ -384,7 +384,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Top = 79
           Width = 121
           Height = 27
-          Caption = 'my.MYOB Sign in'
+          Caption = 'MYOB Login'
           TabOrder = 4
           Visible = False
           OnClick = btnConnectMYOBClick
@@ -393,7 +393,7 @@ object frmPracticeDetails: TfrmPracticeDetails
       object gbxWebExport: TGroupBox
         Left = 8
         Top = 243
-        Width = 569
+        Width = 593
         Height = 50
         TabOrder = 2
         object Label11: TLabel
@@ -418,7 +418,7 @@ object frmPracticeDetails: TfrmPracticeDetails
       object gbxTaxInterface: TGroupBox
         Left = 8
         Top = 156
-        Width = 569
+        Width = 593
         Height = 82
         TabOrder = 1
         object Label5: TLabel
@@ -473,13 +473,13 @@ object frmPracticeDetails: TfrmPracticeDetails
       ImageIndex = 2
       object gbxSuperSystem: TGroupBox
         Left = 8
-        Top = 4
-        Width = 569
-        Height = 147
+        Top = 1
+        Width = 595
+        Height = 149
         TabOrder = 0
         DesignSize = (
-          569
-          147)
+          595
+          149)
         object lblSuperfundSystem: TLabel
           Left = 16
           Top = 20
@@ -580,13 +580,14 @@ object frmPracticeDetails: TfrmPracticeDetails
         end
         object btnConnectBGL: TButton
           Left = 144
-          Top = 77
+          Top = 79
           Width = 121
           Height = 27
           Anchors = [akLeft, akBottom]
           Caption = 'BGL Sign in'
           TabOrder = 2
           OnClick = btnConnectBGLClick
+          ExplicitTop = 77
         end
       end
     end
@@ -596,7 +597,7 @@ object frmPracticeDetails: TfrmPracticeDetails
       object gbxPracticeManagementSystem: TGroupBox
         Left = 8
         Top = 4
-        Width = 569
+        Width = 594
         Height = 147
         TabOrder = 0
         object lblPracticeManagementSystem: TLabel

@@ -225,8 +225,8 @@ begin
     if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
     begin
       pnlSaveTo.Visible := False;
-      lblMessage.Caption := 'MYOB BankLink Practice will now export the selected entries into MYOB Online Ledger';
-      lblFormat.Caption := 'Transactions will be exported using MYOB Online Ledger API';
+      lblMessage.Caption := 'MYOB BankLink Practice will now export the selected entries into MYOB Ledger';
+      lblFormat.Caption := 'Transactions will be exported using MYOB Ledger API';
       Self.Height := 275;
     end;
   end;

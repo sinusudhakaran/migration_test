@@ -204,7 +204,9 @@ type
     FVendorSubscriberCount: TBloArrayOfPracticeDataSubscriberCount;
 
     FEnablingBankLinkOnline: Boolean;
-
+    FFirmID : string;
+    FFirmName : string;
+    
     procedure SetUpHelp;
     function AddTreeNode(AVST: TCustomVirtualStringTree; ANode:
                                PVirtualNode; ACaption: widestring;
@@ -296,7 +298,8 @@ uses
   bautils,
   INISettings,
   PracticeLedgerObj,
-  myMYOBSignInFrm;
+  myMYOBSignInFrm,
+  Files;
 
 const
   UnitName = 'PRACDETAILSFRM';
@@ -450,33 +453,47 @@ begin
   eLoad.Enabled   := AccountingSystemSelected and CanRefresh ;
   btnLoadFolder.Enabled := AccountingSystemSelected and CanRefresh ;
   btnConnectMYOB.Visible := False;
-  {case AdminSystem.fdFields.fdCountry of
+
+  FFirmID := AdminSystem.fdFields.fdmyMYOBFirmID;
+  FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
+
+  case AdminSystem.fdFields.fdCountry of
     whNewZealand :
     begin
       eLoad.Visible := (AccountingSystem <> snMYOBOnlineLedger);
-      btnLoadFolder.Visible := (AccountingSystem <> snMYOBOnlineLedger);
       btnConnectMYOB.Visible := (AccountingSystem = snMYOBOnlineLedger);
     end;
     whAustralia :
     begin
       eLoad.Visible := (AccountingSystem <> saMYOBOnlineLedger);
-      btnLoadFolder.Visible := (AccountingSystem <> saMYOBOnlineLedger);
       btnConnectMYOB.Visible := (AccountingSystem = saMYOBOnlineLedger);
     end;
+  end;
+  btnLoadFolder.Visible := eLoad.Visible;
+
+  if btnConnectMYOB.Visible then
+  begin
+    lblSave.Visible := False;
+    eSave.Visible := False;
+    btnSaveFolder.Visible := False;
   end;
 
   lblFirmName.Caption := '';
   if btnConnectMYOB.Visible then
   begin
     if Trim(UserINI_myMYOB_Access_Token) = '' then
-      btnConnectMYOB.Caption := 'my.MYOB Sign In'
+      btnConnectMYOB.Caption := 'MYOB Login'
     else
     begin
-      btnConnectMYOB.Caption := 'Select my.MYOB Firm';
-      if Assigned(AdminSystem) then
-        lblFirmName.Caption := AdminSystem.fdFields.fdmyMYOBFirmName;
+      btnConnectMYOB.Caption := 'Select MYOB Firm';
+
+      if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+        lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
+      else
+        lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
     end;
-  end;}
+  end;
+
   lblSave.Enabled := AccountingSystemSelected and UseSaveTo;
   eSave.Enabled := AccountingSystemSelected and UseSaveTo;
   btnSaveFolder.Enabled := AccountingSystemSelected and UseSaveTo;
@@ -727,7 +744,7 @@ begin
 
         if BGLServer.CheckForAuthentication then
           ShowMessage('BGL Server Sign in completed successfully');
-          
+
         btnConnectBGL.Enabled := not BGLServer.CheckTokensExist;
       end;
     finally
@@ -739,17 +756,56 @@ end;
 procedure TfrmPracticeDetails.btnConnectMYOBClick(Sender: TObject);
 var
   SignInFrm : TmyMYOBSignInForm;
+  OldCursor: TCursor;
 begin
   SignInFrm := TmyMYOBSignInForm.Create(Nil);
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourGlass;
+
   try
-    if not CheckFormyMYOBTokens then
+    if (not CheckFormyMYOBTokens) then
       SignInFrm.FormShowType := fsSignIn
     else
+    begin
+      SignInFrm.SelectedID := FFirmID;
+      SignInFrm.SelectedName := FFirmName;
       SignInFrm.FormShowType := fsSelectFirm;
-    SignInFrm.ShowFirmSelection := False;
-    SignInFrm.ShowModal;
+      if Trim(FFirmID) = '' then
+        SignInFrm.FormShowType := fsSignIn;
+    end;
+
+    SignInFrm.ShowFirmSelection := True;
+    if ((SignInFrm.ShowModal = mrOK) and (Assigned(AdminSystem)) and
+        (Trim(SignInFrm.SelectedID) <> Trim(FFirmID))) then
+    begin
+      FFirmID := SignInFrm.SelectedID;
+      FFirmName := SignInFrm.SelectedName;
+      NeedToClearMYOBClient := True;
+
+      if Assigned(MyClient) then
+      begin
+        NeedToClearMYOBClient := False;
+        MyClient.clExtra.cemyMYOBClientIDSelected := '';
+        MyClient.clExtra.cemyMYOBClientNameSelected := '';
+        if Assigned(PracticeLedger) then
+          PracticeLedger.Businesses.Clear;
+
+        SaveClient(false);
+      end;
+    end;
+
+    if Trim(FFirmName) = '' then
+      lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
+    else
+      lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ FFirmName;
+
+    if not (CheckFormyMYOBTokens) then
+      btnConnectMYOB.Caption := 'MYOB Login'
+    else
+      btnConnectMYOB.Caption := 'Select MYOB Firm';
   finally
     FreeAndNil(SignInFrm);
+    Screen.Cursor := OldCursor;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1322,6 +1378,10 @@ begin
 
        //Practice Management System
        fdPractice_Management_System := ComboUtils.GetComboCurrentIntObject(cmbPracticeManagementSystem);
+
+       //MYOB login
+       fdmyMYOBFirmID := FFirmID;
+       fdmyMYOBFirmName := FFirmName;
 
        // TRPSupplierDetails
        AdminSystem.fdTPR_Supplier_Detail.As_pRec.srABN            := mskABN.Text;

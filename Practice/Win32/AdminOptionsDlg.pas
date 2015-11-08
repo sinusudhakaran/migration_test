@@ -976,9 +976,9 @@ begin
     FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
 
     if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
-      lblFirmName.Caption := 'No firm selected for MYOB Online Ledger Export'
+      lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
     else
-      lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+      lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
   end;
 end;
 
@@ -1142,9 +1142,9 @@ begin
     end;
 
     if Trim(FFirmName) = '' then
-      lblFirmName.Caption := 'No firm selected for MYOB Online Ledger Export'
+      lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
     else
-      lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ FFirmName;
+      lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ FFirmName;
 
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'MYOB Login'
