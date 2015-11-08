@@ -3,7 +3,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
   Top = 0
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = 'Sign in'
+  Caption = 'MYOB Login'
   ClientHeight = 219
   ClientWidth = 509
   Color = clWindow
@@ -99,7 +99,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
-      Caption = 'Sign in'
+      Caption = 'Login'
       Default = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText

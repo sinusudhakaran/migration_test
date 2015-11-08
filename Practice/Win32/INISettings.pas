@@ -110,7 +110,7 @@ const
    GrpPracLinks  = 'Links';
    GrpPracBankLinkOnline = 'BankLinkOnline';
    GrpPracThirdParty = 'ThirdParty';
-   GrpPracmyMYOB = 'my.MYOB';
+   GrpPracmyMYOB = 'MYOB';
    //Mems Ini groups
    GrpMemsSupport = 'Support';
 
@@ -1174,10 +1174,10 @@ begin
       UserINI_Suggested_Mems_Show_Popup := IniFile.ReadBool(GrpUserOptions, 'SuggestedMemsShowPopup', UserINI_Suggested_Mems_Show_Popup);
 
       {my.MYOB user credentials}
-      UserINI_myMYOB_Random_Key := ReadString(GrpPracmyMYOB,'my.MYOBRandomKey', '');
-      UserINI_myMYOB_Access_Token := ReadString(GrpPracmyMYOB,'my.MYOBAccessToken', '');
-      UserINI_myMYOB_Refresh_Token := ReadString(GrpPracmyMYOB,'my.MYOBRefreshToken', '');
-      UserINI_myMYOB_Expires_TokenAt := ReadDateTime(GrpPracmyMYOB,'my.MYOBExpiresAt', 0);
+      UserINI_myMYOB_Random_Key := ReadString(GrpPracmyMYOB,'MYOBRandomKey', '');
+      UserINI_myMYOB_Access_Token := ReadString(GrpPracmyMYOB,'MYOBAccessToken', '');
+      UserINI_myMYOB_Refresh_Token := ReadString(GrpPracmyMYOB,'MYOBRefreshToken', '');
+      UserINI_myMYOB_Expires_TokenAt := ReadDateTime(GrpPracmyMYOB,'MYOBExpiresAt', 0);
 
       UserIniUpgrade(IniFile);
 
@@ -1297,10 +1297,10 @@ begin
       IniFile.WriteBool(GrpUserOptions, 'SuggestedMemsShowPopup', UserINI_Suggested_Mems_Show_Popup);
 
       {my.MYOB user credentials}
-      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBRandomKey', UserINI_myMYOB_Random_Key);
-      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBAccessToken', UserINI_myMYOB_Access_Token);
-      IniFile.WriteString(GrpPracmyMYOB, 'my.MYOBRefreshToken', UserINI_myMYOB_Refresh_Token);
-      IniFile.WriteDateTime(GrpPracmyMYOB, 'my.MYOBExpiresAt', UserINI_myMYOB_Expires_TokenAt);
+      IniFile.WriteString(GrpPracmyMYOB, 'MYOBRandomKey', UserINI_myMYOB_Random_Key);
+      IniFile.WriteString(GrpPracmyMYOB, 'MYOBAccessToken', UserINI_myMYOB_Access_Token);
+      IniFile.WriteString(GrpPracmyMYOB, 'MYOBRefreshToken', UserINI_myMYOB_Refresh_Token);
+      IniFile.WriteDateTime(GrpPracmyMYOB, 'MYOBExpiresAt', UserINI_myMYOB_Expires_TokenAt);
 
     end;
   finally

@@ -260,7 +260,7 @@ const
   StepDescriptions: array[mtMin..mtMax] of string = (
     'You have chosen to migrate the following client files from MYOB BankLink Practice to ' + BRAND_CASHBOOK_NAME + '.',
     '',
-    'Sign into your my.MYOB account',
+    'Login to your MYOB account',
     'What would you like to migrate to ' + BRAND_CASHBOOK_NAME + '?',
     '',
     ''
@@ -1099,7 +1099,7 @@ begin
 
   if (fSignedIn) and (not aBusySigningIn) then
   begin
-    btnSignIn.Caption := 'Sign Out';
+    btnSignIn.Caption := 'Logout';
     btnNext.Default := true;
     btnSignIn.Default := false;
 
@@ -1108,7 +1108,7 @@ begin
   end
   else
   begin
-    btnSignIn.Caption := 'Sign In';
+    btnSignIn.Caption := 'Login';
     btnNext.Default := false;
     btnSignIn.Default := true;
   end;

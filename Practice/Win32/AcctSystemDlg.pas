@@ -505,7 +505,7 @@ begin
   else if SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
   begin
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'MYOB Sign in'
+      btnConnectMYOB.Caption := 'MYOB Login'
     else
       btnConnectMYOB.Caption := 'MYOB Client';
 
@@ -1319,7 +1319,7 @@ begin
     end;
 
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'MYOB Sign In'
+      btnConnectMYOB.Caption := 'MYOB Login'
     else
       btnConnectMYOB.Caption := 'MYOB Client';
   finally

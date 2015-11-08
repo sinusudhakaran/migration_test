@@ -966,7 +966,7 @@ begin
   btnReportPwd.Enabled := chkReportPwd.Checked;
 
   if not (CheckFormyMYOBTokens) then
-    btnConnectMYOB.Caption := 'MYOB Sign in'
+    btnConnectMYOB.Caption := 'MYOB Login'
   else
     btnConnectMYOB.Caption := 'Select MYOB Firm';
 
@@ -1147,7 +1147,7 @@ begin
       lblFirmName.Caption := 'Firm selected for MYOB Online Ledger Export: '+ FFirmName;
 
     if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'MYOB Sign in'
+      btnConnectMYOB.Caption := 'MYOB Login'
     else
       btnConnectMYOB.Caption := 'Select MYOB Firm';
   finally

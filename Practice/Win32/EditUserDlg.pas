@@ -625,7 +625,7 @@ begin { TdlgEditUser.OKtoPost }
 
   if ((Trim(edtEmailId.Text) <> '') and  (not RegExIsEmailValid(edtEmailId.Text))) Then
   begin
-    HelpfulWarningMsg('Please enter a valid my.MYOB email id.', 0 );
+    HelpfulWarningMsg('Please enter a valid email address', 0 );
     pcMain.ActivePage := tsMYOB;
     edtEmailId.SetFocus;
     Exit;
