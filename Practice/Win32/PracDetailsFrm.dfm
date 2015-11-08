@@ -536,13 +536,6 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 137
           Height = 13
           Caption = 'Successfully signed in to BGL'
-          FocusControl = eSuperMask
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clGreen
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
         end
         object eSuperLoad: TEdit
           Left = 144

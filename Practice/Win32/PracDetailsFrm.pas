@@ -641,6 +641,7 @@ begin
       end
       else
         btnConnectBGL.Enabled := false;
+      lblConnectBGL.Font.Color := clGreen;
       lblConnectBGL.Visible := not btnConnectBGL.Enabled;
     finally
       freeAndNil( BGLServer );
