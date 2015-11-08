@@ -159,7 +159,7 @@ begin
   if AdminSystem.fdFields.fdCountry = whAustralia then
     sgClients.Cells[2,0] := ' ABN'
   else if AdminSystem.fdFields.fdCountry = whNewZealand then
-    sgClients.Cells[3,0] := ' IRD';
+    sgClients.Cells[2,0] := ' GST Number';
 
   edtSearch.Text := '';
   PracticeLedger.Businesses.Sort(BusinessCompare);
@@ -222,7 +222,7 @@ begin
         if AdminSystem.fdFields.fdCountry = whAustralia then
           sgClients.Cells[2,Row] := Business.ABN
         else if AdminSystem.fdFields.fdCountry = whNewZealand then
-          sgClients.Cells[3,Row] := Business.IRD;
+          sgClients.Cells[2,Row] := Business.IRD;
 
         sgClients.Objects[0,Row] := Business;
 
