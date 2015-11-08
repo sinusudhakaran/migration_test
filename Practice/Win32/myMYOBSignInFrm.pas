@@ -43,7 +43,7 @@ type
     { Private declarations }
     FFormShowType : TFormShowType;
     FShowFirmSelection : Boolean;
-
+    FProcessingLogin : Boolean;
     FSelectedName: string;
     FSelectedID: string;
     FOldFirmIndex : Integer;
@@ -79,7 +79,8 @@ uses ShellApi, Globals, CashbookMigration, WarningMoreFrm, bkContactInformation,
 
 procedure TmyMYOBSignInForm.btnCancelClick(Sender: TObject);
 begin
-  ModalResult := mrCancel;
+  if not FProcessingLogin then  
+    ModalResult := mrCancel;
 end;
 
 procedure TmyMYOBSignInForm.btnOKClick(Sender: TObject);
@@ -120,6 +121,7 @@ var
   InvalidPass: boolean;
   BusinessFrm : TSelectBusinessForm;
 begin
+  FProcessingLogin := True;
   FForcedSignInSucceed := False;
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
@@ -128,7 +130,7 @@ begin
     begin
       SaveUser;
     end;
-    
+
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
     PracticeLedger.EncryptToken(UserINI_myMYOB_Access_Token);
 
@@ -196,10 +198,13 @@ begin
         //pnlClientSelection.Visible := True;
         //Self.Height := 300;
         //btnOK.Visible := True;
-      end ;
+      end
+      else if (FormShowType = fsSignIn) then
+        btnOKClick(Self);
     end;
   finally
     Screen.Cursor := OldCursor;
+    FProcessingLogin := False;
   end;
 end;
 
@@ -254,6 +259,7 @@ var
   sError: string;
   OldCursor: TCursor;
 begin
+  FProcessingLogin := False;
   edtPassword.Text := '';
   edtEmail.Text := CurrUser.MYOBEmailAddress;
   if Trim(edtEmail.Text)= '' then

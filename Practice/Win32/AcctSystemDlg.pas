@@ -1218,7 +1218,7 @@ begin
   if not Assigned(AdminSystem) then
     Exit;
 
-  if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+  if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
     if (not (CurrUser.CanAccessAdmin and (not CurrUser.HasRestrictedAccess))) then // not admin user
     begin
@@ -1234,42 +1234,46 @@ begin
   ShowClientScreen := True;
   try
     if ((not CheckFormyMYOBTokens) or
-      ((Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '') and
+      ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
       (not CurrUser.HasRestrictedAccess)))) then
     begin
-      ShowClientScreen := False;
+      //ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;
       SignInFrm.ShowFirmSelection := False;
 
-      if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '') and
+      if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
       (not CurrUser.HasRestrictedAccess))) then
       begin
         SignInFrm.ShowFirmSelection := True;
-        ShowClientScreen := True;
+        //ShowClientScreen := True;
       end;
 
       if (SignInFrm.ShowModal = mrOK) then
       begin
-        if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '') and
+        if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
           (CurrUser.CanAccessAdmin and
           (not CurrUser.HasRestrictedAccess))) then
         begin
           // Save Firm for admin user
+          Screen.Cursor := crHourGlass;
+          try
+            if LoadAdminSystem(true, 'TdlgAdminOptions.SaveSettingsToAdmin' ) then
+            with AdminSystem.fdFields do
+            begin
+               fdmyMYOBFirmID := SignInFrm.SelectedID;
+               fdmyMYOBFirmName := SignInFrm.SelectedName;
 
-          if LoadAdminSystem(true, 'TdlgAdminOptions.SaveSettingsToAdmin' ) then
-          with AdminSystem.fdFields do
-          begin
-             fdmyMYOBFirmID := SignInFrm.SelectedID;
-             fdmyMYOBFirmName := SignInFrm.SelectedName;
+               //*** Flag Audit ***
+               SystemAuditMgr.FlagAudit(arSystemOptions);
 
-             //*** Flag Audit ***
-             SystemAuditMgr.FlagAudit(arSystemOptions);
-
-             SaveAdminSystem;
+               SaveAdminSystem;
+            end;
+            UpdateMF.UpdateSystemMenus;
+          finally
+            Screen.Cursor := OldCursor;
           end;
-          UpdateMF.UpdateSystemMenus;
         end;
       end;
     end;
@@ -1279,11 +1283,15 @@ begin
       SelectBusinessFrm := TSelectBusinessForm.Create(Self);
       try
         // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger,PracticeLedger.Businesses, sError))) then
-        begin
+        Screen.Cursor := crHourGlass;
+        try
+          if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger,PracticeLedger.Businesses, sError))) then
+          begin
+            Screen.Cursor := OldCursor;
+            ShowConnectionError(sError);
+          end;
+        finally
           Screen.Cursor := OldCursor;
-          ShowConnectionError(sError);
-          ModalResult := mrCancel;
         end;
 
         if SelectBusinessFrm.ShowModal = mrOk then
