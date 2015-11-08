@@ -3308,6 +3308,8 @@ begin
 
         MyClient.clExtra.ceDeliverDataDirectToBLO := False;
         MyClient.clExtra.ceBLOSecureCode := '';
+        MyClient.clExtra.cemyMYOBClientIDSelected := '';
+        MyClient.clExtra.cemyMYOBClientNameSelected := '';
       end;
 
       SaveClient(OldFileName <> NewFileName);   
