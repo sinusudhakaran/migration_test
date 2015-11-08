@@ -293,7 +293,7 @@ var
 
 begin
   Email_Saved := False;
-  Email_Body := '';// Less memory 
+  Email_Body := '';// Less memory
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //Create Mail Object and message
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -335,7 +335,9 @@ begin
                 end
                 //add client of info
                 else begin
-                   if Assigned(MyClient) then with MyClient.clFields do begin
+                   if (Assigned(MyClient) and (not Assigned(AdminSystem))) then
+                   with MyClient.clFields do
+                   begin
                       AddLine('Client of: '+clPractice_Name);
                    end;
                 end;
@@ -901,10 +903,9 @@ begin
               with AdminSystem.fdFields do
                  AddLine('Practice '+fdBankLink_Code+' '+fdPractice_Name_for_Reports);
            end
-        end
-        //add client of info
+        end        //add client of info
         else begin
-           if Assigned(MyClient) then with MyClient.clFields do begin
+           if (Assigned(MyClient) and (not Assigned(AdminSystem))) then with MyClient.clFields do begin
               AddLine('Client of: '+clPractice_Name);
            end;
         end;
@@ -1145,7 +1146,7 @@ begin
           end
           //add client of info
           else begin
-             if Assigned(MyClient) then with MyClient.clFields do begin
+             if (Assigned(MyClient) and (not Assigned(AdminSystem))) then with MyClient.clFields do begin
                 AddLine('Client of: '+clPractice_Name);
              end;
           end;
