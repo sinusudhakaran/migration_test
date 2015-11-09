@@ -1181,6 +1181,8 @@ begin
           FundFrm.SelectedFundID := MyClient.clExtra.ceBGLFundIDSelected;
           if ((FundFrm.ShowModal = mrOk) and (Trim(FundFrm.SelectedFundID) <> '')) then
           begin
+            btnConnectBGL.Caption := 'Fund';
+            btnConnectBGL.Hint    := 'Select a Fund to refresh the client''s Chart of Accounts from';
             if MyClient.clExtra.ceBGLFundIDSelected <> FundFrm.SelectedFundID then
             begin
               MyClient.clExtra.ceBGLFundIDSelected := FundFrm.SelectedFundID;
