@@ -267,11 +267,28 @@ var
       S.Position := 0;
       Read_Transaction_Rec(P2^, S);
       P2^.txTransaction_Extension := P1^.txTransaction_Extension;
+      P2^.txBank_Account := P1^.txBank_Account;
+      P2^.txClient := P1^.txClient;
     finally
       S.Free;
     end;
   end;
 
+(*
+  procedure Local_Copy_Transaction_Rec(P1, P2: pTransaction_Rec);
+  begin
+    fillchar( P2^, sizeof( P2^ ), 0 );
+    move( P1^, P2^, sizeof( P2^ ) );
+  end;
+
+      P2^.txFirst_Dissection := P1^.txFirst_Dissection;
+      P2^.txLast_Dissection := P1^.txLast_Dissection;
+      P2^.txNext_Transaction := P1^.txNext_Transaction;
+      P2^.txNext_Transaction_By_Type := P1^.txNext_Transaction_By_Type;
+      P2^.txNext_Transaction_By_Type := P1^.txNext_Transaction_By_Type;
+
+
+*)
 
 begin
   CodeIsActive := true;
