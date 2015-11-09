@@ -1114,12 +1114,12 @@ begin
       SignInFrm.FormShowType := fsSignIn
     else
     begin
-      SignInFrm.SelectedID := FFirmID;
-      SignInFrm.SelectedName := FFirmName;
       SignInFrm.FormShowType := fsSelectFirm;
       if Trim(FFirmID) = '' then
         SignInFrm.FormShowType := fsSignIn;
     end;
+    SignInFrm.SelectedID := FFirmID;
+    SignInFrm.SelectedName := FFirmName;
 
     SignInFrm.ShowFirmSelection := True;
     if ((SignInFrm.ShowModal = mrOK) and (Assigned(AdminSystem)) and

@@ -77,7 +77,8 @@ var
   PracticeLedgerThread : TPracticeLedgerThread;
 
   //Validate tokens
-  function CheckFormyMYOBTokens:Boolean;
+  function CheckFormyMYOBTokens(aUseRefreshToken:Boolean=True):Boolean;
+
   // this function invokes a thread to retrieve firms and businesses so that there wont be any delay while showing them to screen
   procedure GetFirmsAndBusinesses(aIsLoadBusiness:Boolean);
 
@@ -90,17 +91,47 @@ uses Globals, bkContactInformation, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       LogUtil, progress, software, chartutils, ovcDate,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
-      ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls;
+      ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls,
+      INISettings;
 
-function CheckFormyMYOBTokens:Boolean;
+function CheckFormyMYOBTokens(aUseRefreshToken:Boolean=True):Boolean;
+var
+  sError : string;
+  InvalidPass : Boolean;
 begin
   Result := False;
+
   { 1/180 to add extra 20 seconds, to get extra 20 seconds before expire.}
   if ((Trim(UserINI_myMYOB_Access_Token) <> '') and
-      (Trim(UserINI_myMYOB_Random_Key) <> '') and
-      (Trim(UserINI_myMYOB_Refresh_Token) <> '') and
-      ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now + 1/180) ) )) then
-    Result := True;
+      (Trim(UserINI_myMYOB_Random_Key) <> '')) then
+  begin
+    if ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now + 1/180))) then
+      Result := True
+    else if (Trim(UserINI_myMYOB_Refresh_Token) <> '') then
+    begin
+      //Use refresh token to get access token
+      if aUseRefreshToken and Assigned(PracticeLedger) then
+      begin
+        PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+        PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+        if PracticeLedger.RefreshTheToken(sError, InvalidPass) then
+        begin
+          Result := True;
+          
+          UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
+          UserINI_myMYOB_Random_Key := PracticeLedger.RandomKey;
+          UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
+          UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
+          WriteUsersINI(CurrUser.Code);
+        end
+        else
+        begin
+          LogUtil.LogMsg(lmError, UnitName, sError);
+          //Result := PracticeLedger.RefreshTheToken(sError, InvalidPass);
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure GetFirmsAndBusinesses(aIsLoadBusiness:Boolean);
@@ -979,7 +1010,7 @@ begin
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
     PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
 
-    if (CheckFormyMYOBTokens) then
+    if (CheckFormyMYOBTokens(False)) then
     begin
       PracticeLedger.Firms.Clear;
       PracticeLedger.Businesses.Clear;
