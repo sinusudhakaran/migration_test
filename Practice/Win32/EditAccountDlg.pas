@@ -450,7 +450,7 @@ begin
 
   Account_Code := eCode.Text;
 
-  If (Account_Code = '') then
+  If (Trim(Account_Code) = '') then
   Begin
     HelpfulErrorMsg( 'You must enter an account code', 0 );
     pgAccountDetails.ActivePage := tsDetails;

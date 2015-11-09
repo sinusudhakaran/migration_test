@@ -226,6 +226,7 @@ type
     procedure MarkSelectClient(aFileStatus: Integer; aClientCode : string);
 
     function Login(const aEmail: string; const aPassword: string; var aError : string; var aInvalidPass : boolean): boolean;
+    function RefreshTheToken(var aError : string; var aInvalidPass : boolean):Boolean;
     function GetFirms(var aFirms: TFirms; var aError: string): boolean;
     function GetBusinesses(aFirmID: string;LicenseType:TLicenceType;var aBusinesses: TBusinesses;var aError: string):Boolean;
     function GetChartOfAccounts(aBusinessID:string;var aChartOfAccounts: TChartOfAccountsData; var aError:string):Boolean;
@@ -762,8 +763,8 @@ begin
       end;
     end;
   finally
-    if Assigned(JsonObject) then
-      FreeAndNil(JsonObject);
+    if Assigned(FDataResponse) then    
+      FreeAndNil(FDataResponse);
   end;
 
   Result := True;
@@ -832,8 +833,8 @@ begin
       end;
     end;
   finally
-    if Assigned(JsonObject) then
-      FreeAndNil(JsonObject);
+    if Assigned(FDataResponse) then    
+      FreeAndNil(FDataResponse);
   end;
 
   Result := True;
@@ -1509,6 +1510,9 @@ begin
     begin
       AccRec := aClient.clChart.Account_At(ChartIndex)^;
 
+      if ((Trim(AccRec.chAccount_Code) = '') or (Trim(MappingsData.UpdateSysCode(AccRec.chAccount_Code)) = '')) then
+        Continue;
+
       SendChart := true;
       if not aSelectedData.ChartOfAccount then
       begin
@@ -1727,8 +1731,10 @@ begin
               AllocationItem.Description := DissRec^.dsGL_Narration;
               AllocationItem.Amount := trunc(DissRec^.dsAmount);
               AllocationItem.TaxAmount := trunc(DissRec^.dsGST_Amount);
-
               AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+
+              if ((AllocationItem.TaxAmount <> 0) and (AllocationItem.TaxRate ='NA')) then
+                AllocationItem.TaxRate := 'GST';
 
               AllocationItem.Quantity := DissRec^.dsQuantity;
               AllocationItem.PayeeNumber := DissRec^.dsPayee_Number;
@@ -1760,6 +1766,10 @@ begin
             AllocationItem.Amount := trunc(TransactionRec.txAmount);
             AllocationItem.TaxAmount := trunc(TransactionRec.txGST_Amount);
             AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, TransactionRec.txGST_Class);
+
+            if ((AllocationItem.TaxAmount <> 0) and (AllocationItem.TaxRate ='NA')) then
+              AllocationItem.TaxRate := 'GST';
+
             AllocationItem.Quantity := TransactionRec.txQuantity;
             AllocationItem.PayeeNumber := TransactionRec.txPayee_Number;
             AllocationItem.JobCode := TransactionRec.txJob_Code;
@@ -1836,6 +1846,9 @@ begin
             LineItem.Reference   := TrimLeadZ(DissRec^.dsReference);
             LineItem.TaxAmount   := trunc(DissRec^.dsGST_Amount);
             LineItem.TaxRate     := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+
+            if ((LineItem.TaxAmount <> 0) and (LineItem.TaxRate = 'NA')) then
+              LineItem.TaxRate := 'GST';
 
             LineItem.Amount := abs(trunc(DissRec^.dsAmount));
             if trunc(DissRec^.dsAmount) < 0 then
@@ -2265,6 +2278,110 @@ begin
     LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + FLargeJsonData);
 end;
 
+function TCashbookMigration.RefreshTheToken(var aError: string;
+  var aInvalidPass: boolean): Boolean;
+var
+  Headers: THttpHeaders;
+  PostData: TStringList;
+  js: TlkJSONobject;
+  sResponse: string;
+  sError: string;
+  Token : string;
+  NoOfSecondsToExpire : Integer;
+begin
+  Result := False;
+  aInvalidPass := False;
+
+  //Initialize token just before a login
+  Token := '';
+  NoOfSecondsToExpire := 0;
+  FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
+
+  // Setup REST request
+  PostData := nil;
+  js := nil;
+  try
+    try
+      Headers.ContentType := MY_DOT_CONTENT_TYPE;
+
+      PostData := TStringList.Create;
+      PostData.Delimiter := '&';
+      PostData.StrictDelimiter := true;
+
+      PostData.Values['client_id']     := PRACINI_CashbookAPILoginID;
+      PostData.Values['client_secret'] := PRACINI_CashbookAPILoginSecret;
+      PostData.Values['grant_type']    := MY_DOT_GRANT_REFRESH_TOKEN;
+      PostData.Values['refresh_token']    := RefreshToken;
+      FDataRequestType := drtSignIn;
+
+      // Cancelled?
+      if not DoHttpSecure(
+        'POST',
+        PRACINI_CashbookAPILoginURL,
+        Headers,
+        PostData.DelimitedText,
+        sResponse,
+        sError) then
+      begin
+        if Pos('151: Bad Request', sError) > 0 then
+        begin
+          aInvalidPass := true;
+          sError := 'Invalid Refresh Token.' + #13#10 + 'Please try again.';
+          LogUtil.LogMsg(lmInfo, UnitName, sError);
+        end
+        else
+          LogUtil.LogMsg(lmError, UnitName, 'Error running CashbookMigration.RefreshToken, Error Message : ' + sError);
+
+        aError := sError;
+        Exit;
+      end;
+
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+
+      // Parse JSON result
+      if Assigned(FDataResponse) then
+        js := FDataResponse as TlkJSONobject;
+
+      if not assigned(js) then
+      begin
+        aError := 'Error running CashbookMigration.Login, Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
+
+      // Get token
+      Token := js.GetString('access_token');
+      FRefreshToken := js.GetString('refresh_token');
+      NoOfSecondsToExpire := StrToIntDef(js.GetString('expires_in'),0);
+      FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
+
+      if (Token <> '') then
+        EncryptToken(Token)
+      else
+      begin
+        aError := 'Error running CashbookMigration.RefreshToken, Error Message : Can not find Access Token in response.';
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
+      Result := True;
+    except
+      on E : Exception do
+      begin
+        aError := 'Exception running CashbookMigration.RefreshToken, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
+    end;
+  finally
+    FreeAndNil(PostData);
+    if Assigned(FDataResponse) then    
+      FreeAndNil(FDataResponse);
+  end;
+end;
+
 function TCashbookMigration.StartedDataTransfer: Boolean;
 begin
   Result := FDataTransferStarted;
@@ -2584,6 +2701,12 @@ begin
   result := false;
   aInvalidPass := false;
 
+  //Initialize token just before a login
+  Token := '';
+  FRefreshToken := '';
+  NoOfSecondsToExpire := 0;
+  FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
+
   // Setup REST request
   PostData := nil;
   js := nil;
@@ -2657,7 +2780,7 @@ begin
       end;
 
       fCurrentMyDotUser := aEmail;
-      result := true;
+      Result := true;
 
     except
       on E : Exception do
@@ -2670,7 +2793,8 @@ begin
 
   finally
     FreeAndNil(PostData);
-    FreeAndNil(js);
+    if Assigned(FDataResponse) then    
+      FreeAndNil(FDataResponse);
   end;
 end;
 
@@ -2716,8 +2840,8 @@ begin
       end;
     end;
   finally
-    if Assigned(List) then
-      FreeAndNil(List);
+    if Assigned(FDataResponse) then    
+      FreeAndNil(FDataResponse);
   end;
 
   Result := true;

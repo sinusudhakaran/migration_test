@@ -587,7 +587,6 @@ object frmPracticeDetails: TfrmPracticeDetails
           Caption = 'BGL Sign in'
           TabOrder = 2
           OnClick = btnConnectBGLClick
-          ExplicitTop = 77
         end
       end
     end
