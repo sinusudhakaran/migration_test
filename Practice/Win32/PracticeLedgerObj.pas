@@ -267,8 +267,6 @@ begin
     if (txDate_Transferred > 0) then
       Exit;
 
-    //txDate_Transferred := CurrentDate;
-    
     JournalItem := TJournalData.Create();
     JournalItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
     JournalItem.SequenceNo  := txSequence_No;
@@ -309,6 +307,7 @@ begin
 
       DissRec := DissRec^.dsNext;
     end;
+
     FJournalsData.Insert(JournalItem);
   end;
 
@@ -485,7 +484,7 @@ begin
         end;
         if Assigned(FJournalsData) then
         begin
-          FJournalsData.DeleteAll;
+          FJournalsData.FreeAll;
           FreeAndNil(FJournalsData);
         end;
       end;
@@ -694,6 +693,7 @@ var
   sURL: string;
   RespStr : string;
   RequestJson : TlkJSONobject;
+  Response : TlkJSONObject;
 const
   ThisMethodName = 'RollbackBatch';
 begin
@@ -726,7 +726,10 @@ begin
 
     aError := FDataError;
     if Assigned(FDataResponse) then
-      aRespStr := TlkJSON.GenerateText(FDataResponse as TlkJSONObject);
+    begin
+      Response := FDataResponse as TlkJSONObject;
+      aRespStr := TlkJSON.GenerateText(Response);
+    end;
   except
     on E: Exception do
     begin
@@ -735,7 +738,8 @@ begin
       Exit;
     end;
   end;
-
+  if Assigned(Response) then
+    FreeAndNil(Response);
   Result := True;
 end;
 
@@ -821,7 +825,7 @@ function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
 var
   sURL: string;
   RespStr : string;
-  Response : TlkJSONbase;
+  Response : TlkJSONObject;
 const
   ThisMethodName = 'UploadTransactions';
 begin
@@ -842,7 +846,7 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestData));
 
-    if not DoHttpSecureJson(sURL, RequestData, Response, RespStr, aError) then
+    if not DoHttpSecureJson(sURL, RequestData, RespStr, aError) then
       Exit;
 
     //Wait til data gets transferred completely
@@ -851,7 +855,10 @@ begin
 
     aError := FDataError;
     if Assigned(FDataResponse) then
-      aRespStr := TlkJSON.GenerateText(FDataResponse as TlkJSONObject);
+    begin
+      Response := FDataResponse as TlkJSONObject; // This is like a create , so destroy at the end
+      aRespStr := TlkJSON.GenerateText(Response);
+    end;
   except
     on E: Exception do
     begin
@@ -860,7 +867,8 @@ begin
       Exit;
     end;
   end;
-
+  if Assigned(Response) then
+    FreeAndNil(Response);
   Result := True;
 end;
 
@@ -869,25 +877,25 @@ var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
   ErrorStr,RespStr : string;
-  BankAcctToExport: TBankAccountData;
+  BankAcToExport: TBankAccountData;
 begin
   if ((TypeOfTrans = ttbank) and Assigned(FBankAcctsToExport)) then
   begin
     for i := 0 to FBankAcctsToExport.Count - 1 do
     begin
-      BankAcctToExport := FBankAcctsToExport.ItemAs(i);
-      if BankAcctToExport.Transactions.Count <= 0 then
+      BankAcToExport := FBankAcctsToExport.ItemAs(i);
+      if BankAcToExport.Transactions.Count <= 0 then
         Continue;
 
       FromIndex := 0;
 
-      for j := 1 to Ceil(BankAcctToExport.Transactions.Count / MAXENTRIES) do
+      for j := 1 to Ceil(BankAcToExport.Transactions.Count / MAXENTRIES) do
       begin
         RequestJson :=  TlkJSONobject.Create();
         try
-          BankAcctToExport.Write(RequestJson, FromIndex, MAXENTRIES);
+          BankAcToExport.Write(RequestJson, FromIndex, MAXENTRIES);
           if DebugMe then
-            LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions batch exported - ' + BankAcctToExport.BatchRef);
+            LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions batch exported - ' + BankAcToExport.BatchRef);
 
           //send to api
           if not UploadToAPI(RequestJson,RespStr, ErrorStr,False, TypeOfTrans) then
@@ -896,7 +904,7 @@ begin
             HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
             //Rollback all batches transferred
 
-            if not RollbackBatch(BankAcctToExport.BatchRef,RespStr, ErrorStr,False, TypeOfTrans) then
+            if not RollbackBatch(BankAcToExport.BatchRef,RespStr, ErrorStr,False, TypeOfTrans) then
             begin
               LogUtil.LogMsg(lmError, UnitName, ErrorStr);
               HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
@@ -973,10 +981,11 @@ begin
 
     if (CheckFormyMYOBTokens) then
     begin
+      PracticeLedger.Firms.Clear;
+      PracticeLedger.Businesses.Clear;
+      
       if not PracticeLedger.GetFirms(PracticeLedger.Firms, sError) then
-      begin
         LogUtil.LogMsg(lmError,UnitName, sError);
-      end;
 
       if (IsDownloadBusiness and Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID)<>'')) then
       begin

@@ -171,7 +171,7 @@ type
                           var aResponse: string; var aError: string): boolean;
 
     function DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
-                              var aResponse: TlkJSONbase; var aRespStr : string;
+                              var aRespStr : string;
                               var aError: string; aEncryptToken : boolean = false): boolean;
     function DoDeleteSecureJson(const aURL: string; const aRequest: TlkJSONbase;
                               var aRespStr : string;
@@ -725,18 +725,16 @@ function TCashbookMigration.GetBusinesses(aFirmID: string; LicenseType:TLicenceT
   var aBusinesses: TBusinesses; var aError: string): Boolean;
 var
   sURL: string;
-  Response: TlkJSONbase;
   JsonObject: TlkJSONObject;
   RespStr : string;
 begin
   Result := False;
-  Response := nil;
   try
     try
       sURL := PRACINI_CashbookAPIBusinessesURL;
       FDataRequestType := drtBusiness;
 
-      if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
+      if not DoHttpSecureJson(sURL, nil, RespStr, aError) then
         Exit;
 
       //Wait til data gets transferred completely
@@ -764,8 +762,6 @@ begin
       end;
     end;
   finally
-    if Assigned(Response) then
-      FreeAndNil(Response);
     if Assigned(JsonObject) then
       FreeAndNil(JsonObject);
   end;
@@ -802,19 +798,16 @@ function TCashbookMigration.GetChartOfAccounts(aBusinessID: string; var aChartOf
   var aError: string): Boolean;
 var
   sURL: string;
-  Response: TlkJSONbase;
   JsonObject: TlkJSONObject;
   RespStr : string;
 begin
   Result := False;
-
-  Response := nil;
   try
     try
       sURL := Format(PRACINI_CashbookAPICOAURL,[aBusinessID]);
       FDataRequestType := drtCOA;
 
-      if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
+      if not DoHttpSecureJson(sURL, nil, RespStr, aError) then
         Exit;
 
       //Wait til data gets transferred completely
@@ -841,7 +834,6 @@ begin
   finally
     if Assigned(JsonObject) then
       FreeAndNil(JsonObject);
-    FreeAndNil(Response);
   end;
 
   Result := True;
@@ -1039,7 +1031,7 @@ end;
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.DoHttpSecureJson(const aURL: string; const aRequest: TlkJSONbase;
-                                             var aResponse: TlkJSONbase; var aRespStr : string;
+                                             var aRespStr : string;
                                              var aError: string; aEncryptToken : boolean): boolean;
 var
   sVerb: string;
@@ -1047,8 +1039,6 @@ var
   sRequest: string;
 begin
   Result := false;
-
-  aResponse := nil;
 
   try
     // Verb
@@ -1085,8 +1075,6 @@ begin
   except
     on E: Exception do
     begin
-      FreeAndNil(aResponse);
-
       aError := E.Message;
       Exit;
     end;
@@ -2692,16 +2680,14 @@ var
   sURL: string;
   List: TlkJSONlist;
   RespStr : string;
-  Response: TlkJSONbase;
 begin
   Result := false;
-  Response:= nil;
   try
     try
       sURL := PRACINI_CashbookAPIFirmsURL;
       FDataRequestType := drtFirm;
 
-      if not DoHttpSecureJson(sURL, nil, Response, RespStr, aError) then
+      if not DoHttpSecureJson(sURL, nil, RespStr, aError) then
         Exit;
 
       //Wait til data gets transferred completely
@@ -2715,7 +2701,7 @@ begin
       RespStr := TlkJSON.GenerateText(List);
       if DebugMe then
         LogUtil.LogMsg(lmInfo, UnitName, RespStr);
-        
+
       if Assigned(aFirms)  and Assigned(List) then
       begin
         aFirms.Clear;
@@ -2730,8 +2716,6 @@ begin
       end;
     end;
   finally
-    if Assigned(Response) then
-      FreeAndNil(Response);
     if Assigned(List) then
       FreeAndNil(List);
   end;
