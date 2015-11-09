@@ -1620,6 +1620,53 @@ Procedure DoUpgradeAdminToLatestVersion( var UpgradingToVersion : integer; const
     UpgradeAdmin_Memorisation_EntryType(AdminSystem);
   end;
 
+  procedure UpgradeAdminToVersion134;
+  var
+    ClientFileRec : pClient_File_Rec;
+    AdminClientIndex : integer;
+    SuggDisabledList : TStringList;
+    ClientCodes : TStringList;
+    ClientIndex : integer;
+    ClientCode : string;
+  begin
+    SuggDisabledList := TStringList.create();
+    try
+      ClientCodes := TStringList.create();
+      ClientCodes.Sorted := True;
+      ClientCodes.Duplicates := dupIgnore;
+      try
+        // Loop through System Clients and read any mem ini settings in, also used for sorting
+        for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+        begin
+          ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
+
+          ReadMemorisationINI(ClientFileRec^.cfFile_Code);
+
+          ClientCodes.Add(ClientFileRec^.cfFile_Code);
+          if MEMSINI_SupportOptions = meiDisableSuggestedMems then
+            SuggDisabledList.Add(ClientFileRec^.cfFile_Code);
+        end;
+
+        // Write Codes to ini file
+        for ClientIndex := 0 to ClientCodes.Count - 1 do
+        begin
+          ClientCode := ClientCodes.Strings[ClientIndex];
+
+          if SuggDisabledList.IndexOf(ClientCode) = -1 then
+            MEMSINI_SupportOptions := meiResetMems
+          else
+            MEMSINI_SupportOptions := meiDisableSuggestedMems;
+
+          WriteMemorisationINI_WithLock(ClientCode);
+        end;
+
+      finally;
+        FreeAndNil(ClientCodes);
+      end;
+    finally
+      FreeAndNil(SuggDisabledList);
+    end;
+  end;
 
 Const
    ThisMethodName = 'DoUpgradeAdminToLatestVersion';
@@ -2002,6 +2049,11 @@ Begin
             UpgradeAdminToVersion132;
             LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
          end;
+         if ( fdFile_Version < 134) then begin
+            Logutil.LogMsg( lmInfo, ThisMethodName, 'Upgrading to Version 134');
+            UpgradeAdminToVersion134;
+            LogUtil.LogMsg( lmInfo, ThisMethodName, 'Upgrade completed normally' );
+         end
       end;
       // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       //  FIELDS AND FILES UPGRADED, NOW SAVE NEW ADMIN SYSTEM

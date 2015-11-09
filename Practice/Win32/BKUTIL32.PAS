@@ -295,7 +295,8 @@ Begin
                              Result := //LongToKey( txBank_Seq ) +
                                        ByteToKey( 1 ) +
                                        LongToKey( txCheque_Number ) +
-                                       LongToKey( txSequence_No ); {13}
+                                       LongToKey( txDate_Effective ) +
+                                       LongToKey ( txSequence_No ); {13}
                            else
                              Result := LongToKey( txBank_Seq ) +
                                        LongToKey( txDate_Effective ) +
@@ -310,6 +311,7 @@ Begin
                                //LongToKey( txBank_Seq ) +
                                ByteToKey( 1 ) +
                                LongToKey( txCheque_Number ) +
+                               LongToKey( txDate_Effective ) +
                                LongToKey( txSequence_No ); {13}
                            else
                              Result := LongToKey( txBank_Seq ) +
@@ -329,14 +331,16 @@ Begin
 
              Result := LongToKey( txBank_Seq ) +
                        Code +
-                       LongToKey( txSequence_No );
+                       LongToKey( txDate_Effective ) +
+                       LongToKey( txSequence_No );;
            end;
 
          csDatePresented :
            MakeSortKey :=
              LongToKey( txBank_Seq ) +
              LongToKey( txDate_Presented ) +
-             LongToKey ( txSequence_No ); {12}
+             LongToKey( txDate_Effective ) +
+             LongToKey( txSequence_No ); {12}
 
          csAccountCode, csAccountCodeXLON :
             Begin

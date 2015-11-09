@@ -4032,6 +4032,14 @@ var
       Result := true
    end;
 
+   function StDatetoStr(aValue : TStDate) : string;
+   var
+     Day, Month, Year : Integer;
+   begin
+     StDateToDMY(aValue, Day, Month, Year);
+     Result := inttostr(Year) + '-' + inttostr(Month) + '-' + inttostr(Day);
+   end;
+
 begin
    MsgBar('Loading Transactions',true);
    try
@@ -4097,6 +4105,15 @@ begin
 
                 SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, SuggMemsData);
                 pT^.txSuggested_Manual_Count := SuggMemsData.ManualCount;
+
+                if DebugMe then
+                  LogUtil.LogMsg(lmDebug, UnitName,
+                    'BankSeq - ' + inttostr(pT^.txBank_Seq) + ' ' +
+                    'EffDate - ' + StDatetoStr(pT^.txDate_Effective) + ' ' +
+                    'SeqNo - ' + inttostr(pT^.txSequence_No) + ' ' +
+                    'SuggMemId - ' + inttostr(pT^.txSuggested_Mem_Index) + ' ' +
+                    'Narration - ' + pT^.txGL_Narration
+                    );
 
                 WorkTranList.Insert(pT);
               end;
@@ -8436,6 +8453,7 @@ var
   CustomHint : string;
   CellRect   : TRect;
   SuggColNum : integer;
+  SuggMemsData : TSuggMemSortedListRec;
   //----------------------------------------------------------------------------
   procedure ShowNormalHint();
   begin
@@ -8481,16 +8499,16 @@ begin
      (tblCoding.ColOffset[ SuggColNum ] > -1) and // checks if column is visible
      (not MyClient.SuggMemsHidePopupOnCoding) then
   begin
-    SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, tmpPaintSuggMemsData);
+    SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, pT, MyClient.clChart, SuggMemsData);
 
     CellRect := GetCellRect(RowNum, SuggColNum);
 
     SuggMemPopup.Top  := (CellRect.Top + CellRect.Bottom) div 2 + 1;
     SuggMemPopup.left := CellRect.Right - 5;
 
-    SuggMemPopup.ManualCount   := tmpPaintSuggMemsData.ManualCount;
-    SuggMemPopup.UnCodedCount  := tmpPaintSuggMemsData.UnCodedCount;
-    SuggMemPopup.MatchedPhrase := tmpPaintSuggMemsData.MatchedPhrase;
+    SuggMemPopup.ManualCount   := SuggMemsData.ManualCount;
+    SuggMemPopup.UnCodedCount  := SuggMemsData.UnCodedCount;
+    SuggMemPopup.MatchedPhrase := SuggMemsData.MatchedPhrase;
     SuggMemPopup.FlipPopup     := ((SuggMemPopup.Top + POPUP_MAX_HEIGHT) > (self.ClientHeight + 50) );
 
     if SuggMemPopup.FlipPopup then

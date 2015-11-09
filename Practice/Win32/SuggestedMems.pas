@@ -381,7 +381,7 @@ begin
     end;
   end;
 
-  if (ManualAccountCount = 1) and (ManualCount > 2) and (not NoSuggestion) then
+  if (ManualAccountCount = 1) and ((TotalCount - UncodedCount) > 2) and (not NoSuggestion) then
   begin
     if not IsSuggestionUsedByMem(aBankAccount, aSuggestion) then
     begin

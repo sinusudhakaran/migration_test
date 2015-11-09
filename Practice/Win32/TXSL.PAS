@@ -47,10 +47,11 @@ Begin
      Result := XlonSort( Key1, Key2);
      if (Result = 0) then
      begin
-       if (pTransaction_Rec(Item1).txSequence_No > pTransaction_Rec(Item2).txSequence_No) then
-         Result := 1
-       else
-         Result := -1;
+       if pTransaction_Rec(Item1)^.txDate_Effective < pTransaction_Rec(Item2)^.txDate_Effective then result := -1 else
+       if pTransaction_Rec(Item1)^.txDate_Effective > pTransaction_Rec(Item2)^.txDate_Effective then result := 1 else
+       if pTransaction_Rec(Item1)^.txSequence_No    < pTransaction_Rec(Item2)^.txSequence_No then result := -1 else
+       if pTransaction_Rec(Item1)^.txSequence_No    > pTransaction_Rec(Item2)^.txSequence_No then result := 1 else
+         result := -1;
      end;
    end else
    begin

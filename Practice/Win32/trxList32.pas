@@ -489,11 +489,19 @@ Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   If BKTXIO.IsATransaction_Rec( P ) then
   Begin
-    Inc( FLastSeq );
-    P^.txSequence_No  := FLastSeq;
+    if ((not FLoading) and NewAuditID) then
+    begin
+      Inc( FLastSeq );
+      P^.txSequence_No  := FLastSeq;
+    end
+    else
+    begin
+      if FLastSeq < P^.txSequence_No then
+        FLastSeq := P^.txSequence_No;
+    end;
+
     P^.txBank_Account := fBank_Account;
     P^.txClient       := fClient;
-
 
     // Build suggested Mems Index
     if (fBank_Account is TBank_Account) and
