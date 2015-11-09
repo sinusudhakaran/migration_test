@@ -561,6 +561,7 @@ type
     function GetSearchVisible: Boolean;
 
     procedure DoSuggestedMemsDoneProcessing(Sender: TObject);
+    procedure DoMainFrmToolBarResize(Sender: TObject);
 
   protected
     procedure RefreshSuggestedMemColumn();
@@ -1266,6 +1267,7 @@ begin
   end;
 
   SuggestedMem.DoneProcessingEvent.Add(DoSuggestedMemsDoneProcessing);
+  frmMain.OnToolBarResize.Add(DoMainFrmToolBarResize);
 end;
 
 //------------------------------------------------------------------------------
@@ -2686,6 +2688,13 @@ begin
   tblCoding.ActiveRow := ActiveRow;
   tblCoding.Refresh;
   RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
+end;
+
+//------------------------------------------------------------------------------
+procedure TfrmCoding.DoMainFrmToolBarResize(Sender: TObject);
+begin
+  CloseSuggMemPopup();
+  RefreshSuggestedMemColumn();
 end;
 
 //------------------------------------------------------------------------------
@@ -4240,6 +4249,7 @@ end;
 procedure TfrmCoding.FormDestroy(Sender: TObject);
 begin
   SuggestedMem.DoneProcessingEvent.Remove(DoSuggestedMemsDoneProcessing);
+  frmMain.OnToolBarResize.Remove(DoMainFrmToolBarResize);
   frmMain.UpdateAllWindowTabs(Self, Caption, True);
 
   if Assigned( FHint ) then

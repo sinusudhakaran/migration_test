@@ -32,7 +32,7 @@ uses
   pfNamesDlg, updateMF, CodingFrm, SysObj32, Admin32, BudgetFrm, Login32, CodingFormCommands,
   jpeg, AppEvnts, ModalProcessorDlg, ActnList, RzButton, RzPanel, DdeMan, ExportChargesFrm,
   BatchReportFrm,{,threadData}
-  OSFont, Progress, BudgetImportExport, RzTabs, uNPS;
+  OSFont, Progress, BudgetImportExport, RzTabs, uNPS, MultiCast;
 
 const
   BK_SHOWCM = (WM_USER + 1);
@@ -736,6 +736,7 @@ type
     procedure mniPromosClick(Sender: TObject);
 
   private
+    FOnToolBarResize : TMultiCastNotify;
     FClientInstance,
     FPrevClientProc : TFarProc;
     Image1Top, Image1Left, Image1Width, Image1Height : Integer;
@@ -885,6 +886,7 @@ type
 
     function GetMDICurrentChildCaption : string;
     property MDIChildSortedIndex : Integer read fMDIChildSortedIndex write fMDIChildSortedIndex;
+    property OnToolBarResize : TMultiCastNotify read FOnToolBarResize write FOnToolBarResize;
   end;
 
 
@@ -1212,6 +1214,7 @@ end;
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   Randomize;
+  FOnToolBarResize := TMultiCastNotify.Create(self);
   ApplicationIsStarting := true;
   Globals.DDE_Macro_To_Process := '';
 
@@ -2073,8 +2076,9 @@ begin
   Classes.FreeObjectInstance(FClientInstance);
 
   //Free LeanEngage artefacts
-  freeAndNil( frmLEFeedback );
-  freeAndNil( NPSLeanEngage );
+  FreeAndNil( frmLEFeedback );
+  FreeAndNil( NPSLeanEngage );
+  FreeAndNil( FOnToolBarResize );
 end;
 procedure TfrmMain.FormMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
@@ -2500,11 +2504,13 @@ begin
   Tbar.Width := BarWidth + 2 + TBar.Margin;
   TBar.Height := TBar.ButtonHeight + Tbar.TopMargin + 2;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.tbarVisibleChanged(Sender: TObject);
 begin
    bkArrangeToolBars;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.bkArrangeToolBars;
 // Sets the Positions of all Toolbars on the Top Dock
@@ -2567,22 +2573,27 @@ begin
         PositionToolbar( rztBudget, PrevToolbar, PanelHeight);
     end;
     rzToolbars.Height := PanelHeight + 2;
+
+    FOnToolBarResize.DoEvent();
   finally
     rzToolBars.OnResize := rzToolBarsResize;
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.DoBudgetTBarCommand(command: TExternalCmdBudget);
 begin
-   if ActiveMDIChild is TfrmBudget then
-      TfrmBudget(ActiveMDIChild).ProcessExternalCmd( command);
+  if ActiveMDIChild is TfrmBudget then
+    TfrmBudget(ActiveMDIChild).ProcessExternalCmd( command);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.DoCodingTBarCommand(command: TExternalCmd);
 begin
-   if ActiveMDIChild is TfrmCoding then
-      TfrmCoding(ActiveMDIChild).ProcessExternalCmd(command);
+  if ActiveMDIChild is TfrmCoding then
+    TfrmCoding(ActiveMDIChild).ProcessExternalCmd(command);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //******************************************************************************
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
