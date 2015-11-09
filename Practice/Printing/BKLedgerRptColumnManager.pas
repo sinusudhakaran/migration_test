@@ -181,11 +181,10 @@ begin
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True, True);
 //  AddColumn(BKTX, tktxSF_CGT_Date, 0, jtLeft,
 //            ctAuto, '', '', DEFAULT_GAP);
+  AddColumn(NO_DATA_UNIT, CALC_ENTRY_TYPE, 0, jtRight, ctFormat,
+            '', '', DEFAULT_GAP, false);
 
   //Net amount
-  AddColumn(NO_DATA_UNIT, CALC_ENTRY_TYPE, 0, jtRight, ctFormat,
-            NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, false);
-
   AddColumn(BKTE, tkteSF_Cash_Date,  0, jtRight, ctFormat,
             '', '', DEFAULT_GAP, false);
   AddColumn(BKTE, tkteSF_Accrual_Date,  0, jtRight, ctFormat,
@@ -196,6 +195,7 @@ begin
             '', '', DEFAULT_GAP, false);
   AddColumn(BKTE, tkteSF_Settlement_Date,  0, jtRight, ctFormat,
             '', '', DEFAULT_GAP, false);
+
 
   AddColumn(BKTX, tktxSF_Tax_Free_Dist,  0, jtRight, ctFormat,
             NUMBER_FORMAT, DOLLAR_FORMAT, DEFAULT_GAP, True);
@@ -1203,21 +1203,64 @@ begin
   for i := 0 to Count - 1 do begin
     ColumnItem := Columns[i];
     if ColumnItem.OutputCol then
-      case ColumnItem.DataToken of
-        tktxAccount,
-        tkchAlternative_Code     : ColumnItem.WidthPercent := 8.0;
-        tkchAccount_Description  : ColumnItem.WidthPercent := 28.0;
-        tktxDate_Effective       : ColumnItem.WidthPercent := 10.0;
-        tktxReference            : ColumnItem.WidthPercent := 10.0;
-        tktxGL_Narration         : ColumnItem.WidthPercent := 28.0;
-        tktxGST_Class            : ColumnItem.WidthPercent := 5.0;
-        tktxAmount               : ColumnItem.WidthPercent := 12.0;
-        tktxGST_Amount           : ColumnItem.WidthPercent := 12.0;
-        CALC_NET                 : ColumnItem.WidthPercent := 12.0;
-        tktxQuantity             : ColumnItem.WidthPercent := 10.0;
-        CALC_AVG_NET             : ColumnItem.WidthPercent := 12.0;
-        tktxNotes                : ColumnItem.WidthPercent := 28.0;
-      end;
+      //DN - BGL 360 and Superfund fields break this logic,
+      //     need to test for Record_Type as well, because of Token overlaps
+      if ColumnItem.DataUnit = BKTX then
+        case ColumnItem.DataToken of
+          tktxAccount,
+          tktxDate_Effective       : ColumnItem.WidthPercent := 10.0;
+          tktxReference            : ColumnItem.WidthPercent := 10.0;
+          tktxGL_Narration         : ColumnItem.WidthPercent := 28.0;
+          tktxGST_Class            : ColumnItem.WidthPercent := 5.0;
+          tktxAmount               : ColumnItem.WidthPercent := 12.0;
+          tktxGST_Amount           : ColumnItem.WidthPercent := 12.0;
+          tktxQuantity             : ColumnItem.WidthPercent := 10.0;
+          tktxNotes                : ColumnItem.WidthPercent := 28.0;
+        end
+      else
+        if ColumnItem.DataUnit = BKCH then
+            case ColumnItem.DataToken of
+              tkchAlternative_Code     : ColumnItem.WidthPercent := 8.0;
+              tkchAccount_Description  : ColumnItem.WidthPercent := 28.0;
+            end
+        else
+          if ColumnItem.DataUnit = BKTE then
+            case ColumnItem.DataToken of
+              tkteSF_Other_Income                            : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Other_Trust_Deductions                  : ColumnItem.WidthPercent := 12.0;
+              tkteSF_CGT_Concession_Amount                   : ColumnItem.WidthPercent := 12.0;
+              tkteSF_CGT_ForeignCGT_Before_Disc              : ColumnItem.WidthPercent := 12.0;
+              tkteSF_CGT_ForeignCGT_Indexation               : ColumnItem.WidthPercent := 12.0;
+              tkteSF_CGT_ForeignCGT_Other_Method             : ColumnItem.WidthPercent := 12.0;
+              tkteSF_CGT_TaxPaid_Indexation                  : ColumnItem.WidthPercent := 12.0;
+              tkteSF_CGT_TaxPaid_Other_Method                : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Other_Net_Foreign_Income                : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Cash_Distribution                       : ColumnItem.WidthPercent := 12.0;
+              tkteSF_AU_Franking_Credits_NZ_Co               : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Non_Res_Witholding_Tax                  : ColumnItem.WidthPercent := 12.0;
+              tkteSF_LIC_Deductions                          : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Non_Cash_CGT_Discounted_Before_Discount : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Non_Cash_CGT_Indexation                 : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Non_Cash_CGT_Other_Method               : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Non_Cash_CGT_Capital_Losses             : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Share_Brokerage                         : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Share_Consideration                     : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Share_GST_Amount                        : ColumnItem.WidthPercent := 12.0;
+              tkteSF_Share_GST_Rate                          : ColumnItem.WidthPercent := 4.0;
+              tkteSF_Cash_Date                               : ColumnItem.WidthPercent := 10.0;
+              tkteSF_Accrual_Date                            : ColumnItem.WidthPercent := 10.0;
+              tkteSF_Record_Date                             : ColumnItem.WidthPercent := 10.0;
+              tkteSF_Contract_Date                           : ColumnItem.WidthPercent := 10.0;
+              tkteSF_Settlement_Date                         : ColumnItem.WidthPercent := 10.0;
+            end
+          else
+            if ColumnItem.DataUnit = NO_DATA_UNIT then
+              case ColumnItem.DataToken of
+                CALC_NET                 : ColumnItem.WidthPercent := 12.0;
+                CALC_AVG_NET             : ColumnItem.WidthPercent := 12.0;
+                CALC_ENTRY_TYPE          : ColumnItem.WidthPercent := 6.0;
+              end
+            else ;
   end;
 end;
 
@@ -1346,7 +1389,7 @@ begin
     AddColumn(BKTX, tktxNotes, 0, jtLeft,
               ctAuto, '', '', DEFAULT_GAP, False, False, True);
 
-    SetDefaultColWidths;
+// DN - BGL360 columns break because of the position of this call    SetDefaultColWidths;
 
     //Common superfund columns
     AddColumn(BKTX, tktxSF_Franked,  0, jtRight, ctFormat,
@@ -1366,6 +1409,8 @@ begin
       //saPraemium: AddPraemiumColumns;
       //saClassSuperIP: AddSuperIPColumns;
     end;
+
+    SetDefaultColWidths;
   end;
 end;
 
