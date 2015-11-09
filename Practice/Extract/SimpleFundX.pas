@@ -1073,6 +1073,31 @@ begin
   end;
 end;
 
+procedure AddTextNode(var aNode: IXMLNode; aNarration : string; aChequeNumber : integer );
+var
+  lsReference, lsNarration: string;
+  NarrationLength : integer;
+begin
+  lsNarration := trim( aNarration );
+  lsReference := IntToStr( aChequeNumber );
+
+  if (lsReference > '') and (lsReference <> '0') then
+    lsReference := ' BL Ref: ' + lsReference
+  else
+    lsReference := '';
+
+  lsReference := aNarration + lsReference;
+
+  if GetMaxNarrationLength <= 150 then
+    NarrationLength := GetMaxNarrationLength
+  else
+    NarrationLength := 150;
+
+  lsReference := copy( lsReference, 1, NarrationLength );
+
+  AddFieldNode(aNode, 'Text', lsReference, True);
+end;
+
 procedure DoClassSuperIPTransaction;
 const
   ThisMethodName = 'DoClassSuperIPTransaction';
@@ -1092,16 +1117,11 @@ var
         FFields.Add(Name + '=' + Value );
   end;
 
-  procedure AddTextNode(var aNode: IXMLNode);
+(*  procedure AddTextNode(var aNode: IXMLNode);
   var
     Ref, Nar: string;
     NarrationLength : integer;
   begin
-    NarrationLength := length( Transaction^.txGL_Narration );
-    if NarrationLength > 150 then
-      NarrationLength := 150;
-
-    Nar := copy( Transaction^.txGL_Narration, 1, NarrationLength );
     Ref := IntToStr(Transaction^.txCheque_Number);
     if (Ref > '') and (Ref <> '0') then
        if Nar > '' then
@@ -1110,8 +1130,15 @@ var
           Ref := 'BL Ref: ' + Ref
     else
        Ref := Nar;
+
+    if GetMaxNarrationLength <= 150 then
+      NarrationLength := GetMaxNarrationLength
+    else
+      NarrationLength := 150;
+
+    Ref := copy( Ref, 1, NarrationLength );
     AddFieldNode(aNode, 'Text', Ref, True);
-  end;
+  end; *)
 
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
@@ -1139,7 +1166,8 @@ begin
     // Transaction_Date
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Transaction^.txDate_Effective, FDateMask));
     // Text
-    AddTextNode(FTransactionNode);
+
+    AddTextNode(FTransactionNode, Transaction^.txGL_Narration, Transaction^.txCheque_Number);
 
     // Amount
     AddFieldNode(FTransactionNode, 'Amount',
@@ -1271,11 +1299,16 @@ var
   AccountCode : Integer;
   TransType : TTransactionTypes;
 
+(*
   procedure AddTextNode(var aNode: IXMLNode);
   var
     Ref, Nar: string;
+    NarrationLength : integer;
   begin
     Nar := Dissection^.dsGL_Narration;
+    if trim( Dissection^.dsGL_Narration ) = '' then
+      Nar := Dissection^.dsTransaction^.txGL_Narration;
+
     Ref := IntToStr(Dissection^.dsTransaction^.txCheque_Number);
 
     if (Ref > '') and (Ref <> '0') then
@@ -1285,8 +1318,18 @@ var
           Ref := 'BL Ref: ' + Ref
     else
        Ref := Nar;
+
+    if GetMaxNarrationLength <= 150 then
+      NarrationLength := GetMaxNarrationLength
+    else
+      NarrationLength := 150;
+
+    Ref := copy( Ref, 1, NarrationLength );
+
     AddFieldNode(aNode, 'Text', Ref, True);
   end;
+*)
+
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins');
 
@@ -1305,8 +1348,14 @@ begin
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
     // Transaction_Date
     AddFieldNode(FTransactionNode, 'Transaction_Date', Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
+
     // Text
-    AddTextNode(FTransactionNode);
+    if trim( Dissection^.dsGL_Narration ) <> '' then
+      AddTextNode(FTransactionNode, Dissection^.dsGL_Narration,
+        Dissection^.dsTransaction^.txCheque_Number )
+    else
+      AddTextNode(FTransactionNode, Dissection^.dsTransaction^.txGL_Narration,
+        Dissection^.dsTransaction^.txCheque_Number );
 
     // Amount
     AddFieldNode(FTransactionNode, 'Amount', FormatFloatForXml(-Dissection^.dsAmount, 2, 100, true), true);
