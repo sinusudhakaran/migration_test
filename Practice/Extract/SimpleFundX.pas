@@ -528,7 +528,7 @@ begin
       'Consideration',
       FormatFloatForXml((Transaction^.txTransaction_Extension^.teSF_Share_Consideration), 2, 100), Globals.PRACINI_ExtractZeroAmounts);
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all relevant fields ');
 
 end;
 
@@ -591,7 +591,7 @@ begin
       'Non_Resident_Withholding_Tax',
       FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax), 2, 100), Globals.PRACINI_ExtractZeroAmounts);
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all relevant fields ');
 
 end;
 
@@ -704,7 +704,7 @@ begin
       'LIC_Deduction',
       FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_LIC_Deductions), 2, 100), Globals.PRACINI_ExtractZeroAmounts);
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all relevant fields ');
 end;
 
 Procedure AddDistributionEntities(IsDissection:Boolean=False);//(var TransactionNode: IXMLNode);
@@ -1053,7 +1053,7 @@ begin
       FormatFloatForXml(Abs(Transaction^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses), 2, 100), (*Globals.PRACINI_ExtractZeroAmounts*) false );
   end;
 
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all revelevnt fields ');
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Printed all relevant fields ');
 end;
 
 function StripBGL360ControlAccountCode( Value : string ) : integer;
