@@ -1136,39 +1136,48 @@ end;
 procedure TdlgMemorise.tblSplitActiveCellMoving(Sender: TObject;
   Command: Word; var RowNum, ColNum: Integer);
 var
-   Code : string;
+  Code : string;
 begin
-   Code := '';
+  Code := '';
 
-   case ColNum of
-      DescCol: case Command of
-         ccLeft, ccPageLeft   : ColNum := AcctCol;
-         ccRight, ccPageRight : ColNum := NarrationCol;
-         ccMouse              : ColNum := AcctCol;
-      end;
+  case ColNum of
+    DescCol: case Command of
+      ccLeft, ccPageLeft   : ColNum := AcctCol;
+      ccRight, ccPageRight : ColNum := NarrationCol;
+      ccMouse              : ColNum := AcctCol;
+    end;
 
-      GSTCodeCol : begin
-         if not GSTClassEditable then begin
-            case Command of
-               ccRight, ccPageRight :  ColNum := AmountCol;
-            else
-               ColNum := NarrationCol;
-            end;
-         end;
-      end;
+    PayeeCol, JobCol: case Command of
+      ccLeft, ccPageLeft   : ColNum := NarrationCol;
+      ccRight, ccPageRight : if GSTClassEditable then
+                               ColNum := GSTCodeCol
+                             else
+                               ColNum := AmountCol;
+      ccMouse              : ColNum := NarrationCol;
+    end;
 
-      TypeCol :
-       case Command of
-          ccRight, ccPageRight :
-            if RowNum < tblSplit.RowLimit then
-            begin
-              Inc(RowNum);
-              ColNum := AcctCol;
-            end;
-       else
-          ColNum := PercentCol;
+    GSTCodeCol : begin
+       if not GSTClassEditable then begin
+          case Command of
+             ccRight, ccPageRight :  ColNum := AmountCol;
+          else
+             ColNum := NarrationCol;
+          end;
        end;
     end;
+
+    TypeCol :
+     case Command of
+        ccRight, ccPageRight :
+          if RowNum < tblSplit.RowLimit then
+          begin
+            Inc(RowNum);
+            ColNum := AcctCol;
+          end;
+     else
+        ColNum := PercentCol;
+     end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
