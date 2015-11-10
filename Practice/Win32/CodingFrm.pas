@@ -2695,8 +2695,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCoding.DoMainFrmToolBarResize(Sender: TObject);
 begin
-  CloseSuggMemPopup();
-  RefreshSuggestedMemColumn();
+  if Showing then
+  begin
+    CloseSuggMemPopup();
+
+    if Assigned(BankAccount) then
+      RefreshSuggestedMemColumn();
+  end;
 end;
 
 //------------------------------------------------------------------------------
