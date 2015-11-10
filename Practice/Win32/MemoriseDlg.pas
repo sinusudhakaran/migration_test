@@ -1247,9 +1247,19 @@ var
   Msg : string;
 begin
   if fDlgEditMode in ALL_MASTER then
-    Msg := 'Deleting this MASTER Memorisation will remove all coding' +
-           ' for entries that match the criteria, which are yet to be' +
-           ' transferred or finalised, for ALL clients.'
+  begin
+    if Assigned(AdminSystem) then
+    begin
+      Msg := 'Deleting this MASTER Memorisation will remove all coding' +
+             ' for entries that match the criteria, which are yet to be' +
+             ' transferred or finalised, for ALL clients.';
+    end
+    else
+    begin
+      Msg := 'Deleting this MASTER Memorisation will only remove it TEMPORARILY.' +
+             ' To delete it permanently it must be deleted at the PRACTICE.';
+    end;
+  end
   else
     Msg := 'Deleting this Memorisation will remove all coding for entries that match the criteria,' +
            ' which are yet to be transferred or finalised.';
