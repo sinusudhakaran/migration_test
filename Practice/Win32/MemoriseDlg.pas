@@ -2633,7 +2633,7 @@ begin
       Data := @fTempString;
     end;
     mtAnalysis : begin
-      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Reference;
+      fTempString := fMemTranSortedList.GetPRec(RowNum-1)^.Analysis;
       Data := @fTempString;
     end;
     mtAccount : begin
