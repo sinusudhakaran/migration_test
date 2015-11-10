@@ -1404,31 +1404,46 @@ var
    InEditOnEntry : boolean;
    GSTCode : string;
 begin
-    if not Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then exit;
+  if chkMaster.Checked then
+  begin
+    HelpfulInfoMsg( 'GST cannot be overridden for a memorisation at MASTER level. MASTER memorised entries always apply GST at the default rate for the account in the client''s chart.', 0 );
+    Exit;
+  end;
 
-    with tblSplit do begin
-       if not StopEditingState(True) then Exit;
-       if (ActiveCol <> GSTCodeCol) then
-          ActiveCol := GSTCodeCol;
+  if not Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used ) then
+    exit;
 
-       InEditOnEntry := InEditingState;
-       if not InEditOnEntry then begin
-          if not StartEditingState then Exit;   //returns true if already in edit state
-       end;
+  with tblSplit do
+  begin
+    if not StopEditingState(True) then
+      Exit;
 
-       GSTCode := TEdit(colGSTCode.CellEditor).Text;
-       if PickGSTClass(GSTCode, True) then begin
-           //if get here then have a valid char from the picklist
-           TEdit(colGSTCode.CellEditor).Text := GSTCode;
-           Msg.CharCode := VK_RIGHT;
-           colGSTCode.SendKeyToTable(Msg);
-       end
-       else begin
-           if not InEditOnEntry then begin
-              StopEditingState(true);  //end edit
-           end;
-       end;
+    if (ActiveCol <> GSTCodeCol) then
+       ActiveCol := GSTCodeCol;
+
+    InEditOnEntry := InEditingState;
+    if not InEditOnEntry then
+    begin
+      if not StartEditingState then
+        Exit;   //returns true if already in edit state
     end;
+
+    GSTCode := TEdit(colGSTCode.CellEditor).Text;
+    if PickGSTClass(GSTCode, True) then
+    begin
+      //if get here then have a valid char from the picklist
+      TEdit(colGSTCode.CellEditor).Text := GSTCode;
+      Msg.CharCode := VK_RIGHT;
+      colGSTCode.SendKeyToTable(Msg);
+    end
+    else
+    begin
+      if not InEditOnEntry then
+      begin
+        StopEditingState(true);  //end edit
+      end;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -3578,8 +3593,7 @@ begin
     if GSTEdited then
     begin
       chkMaster.Checked := False;
-      HelpfulInfoMsg( 'You cannot memorise at a MASTER level if you have altered the GST Class column in the memorisation. '+
-                       #$0D+#$0D+'MASTER memorised entries always apply GST at the default rate for the account in the client''s chart.', 0 );
+      HelpfulInfoMsg( 'GST cannot be overridden for a memorisation at MASTER level. MASTER memorised entries always apply GST at the default rate for the account in the client''s chart.', 0 );
       Exit;
     end;
 

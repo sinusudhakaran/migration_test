@@ -1966,6 +1966,7 @@ var
           if (pDissection^.dsGL_Narration <> pT^.txStatement_Details) then
             MemLine^.mlGL_Narration      := pDissection^.dsGL_Narration;
 
+          MemLine^.mlGST_Has_Been_Edited := pDissection^.dsGST_Has_Been_Edited;
           MemLine^.mlLine_Type           := pT^.txType;
           MemLine^.mlGST_Amount          := pDissection^.dsGST_Amount;
           MemLine^.mlPayee               := pDissection^.dsPayee_Number;
@@ -2005,6 +2006,7 @@ var
       if (pT^.txGL_Narration <> pT^.txStatement_Details) then
         MemLine^.mlGL_Narration        := pT^.txGL_Narration;
 
+      MemLine^.mlGST_Has_Been_Edited := pT^.txGST_Has_Been_Edited;
       MemLine^.mlLine_Type           := pT^.txType;
       MemLine^.mlGST_Amount          := pT^.txGST_Amount;
       MemLine^.mlPayee               := pT^.txPayee_Number;
