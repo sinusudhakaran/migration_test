@@ -1352,9 +1352,16 @@ var
   EndData   : boolean;
   SearchTranDetailsLength : integer;
   MatchTranDetailLength : integer;
+  TrimmedPhrase : string;
 begin
-  SearchTranDetailsLength := length(aSearchTrans^.tiStatement_Details);
+  TrimmedPhrase := Trim(aSearchTrans^.tiStatement_Details);
+  SearchTranDetailsLength := length(TrimmedPhrase);
+
   if SearchTranDetailsLength < 3 then
+    Exit;
+
+  // don't inlcude suggestion if phrase is 3 in length and has a space in the middle example "M M"
+  if (SearchTranDetailsLength = 3) and (TrimmedPhrase[2] = ' ') then
     Exit;
 
   TranIndex := fTranTypeStartIndex;
