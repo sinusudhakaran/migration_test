@@ -2710,7 +2710,7 @@ procedure ListMemDetail(Sender : TObject);
                AddValueLine('Unfranked',MemLine^.mlSF_PCUnFranked, true);
 
                case MyClient.clFields.clAccounting_System_Used of
-               saBGLSimpleFund, saBGLSimpleLedger, saBGL360: begin
+               saBGLSimpleFund, saBGLSimpleLedger : begin
 
                      AddValueLine('Tax Free Dist', MemLine.mlSF_Tax_Free_Dist, MemLine.mlLine_Type = mltPercentage);
                      AddValueLine('Tax Exempt Dist', MemLine.mlSF_Tax_Exempt_Dist, MemLine.mlLine_Type = mltPercentage);
@@ -2729,6 +2729,90 @@ procedure ListMemDetail(Sender : TObject);
                      AddAlignedTextLine('Quantity', MemLine.mlQuantity / 10000);
 
                   end;
+               saBGL360 : begin
+(*
+tktxSF_Imputed_Credit        : Result := 'Franking CR';
+//          tktxSF_CGT_Date              : Result := 'CGT Date';
+tktxSF_Interest              : Result := 'Gross Interest';
+tktxSF_Capital_Gains_Foreign_Disc : Result := 'Tax Paid CR Before Disc';
+tktxSF_Tax_Free_Dist         : Result := 'Tax Free';
+tktxSF_Tax_Exempt_Dist       : Result := 'Tax Exempt';
+tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred';
+tktxSF_TFN_Credits           : Result := 'TFN Withheld';
+tktxSF_Foreign_Income        : Result := 'Foreign Income';
+tktxSF_Foreign_Tax_Credits   : Result := 'Foreign Tax CR';
+tktxSF_Other_Expenses        : Result := 'Other Expenses';
+tktxSF_Capital_Gains_Indexed : Result := 'CG Indexed';
+tktxSF_Capital_Gains_Disc    : Result := 'CG Discounted';
+tktxSF_Capital_Gains_Other   : Result := 'CG Other';
+
+tkteSF_Other_Income                            : Result := 'Other Income';
+tkteSF_Other_Trust_Deductions                  : Result := 'Trust Deductions';
+tkteSF_CGT_Concession_Amount                   : Result := 'CGT Concession';
+tkteSF_CGT_ForeignCGT_Before_Disc              : Result := 'Foreign CG Before Disc';
+tkteSF_CGT_ForeignCGT_Indexation               : Result := 'Foreign CG Indexed';
+tkteSF_CGT_ForeignCGT_Other_Method             : Result := 'Foreign CG Other';
+tkteSF_CGT_TaxPaid_Indexation                  : Result := 'Tax Paid CR Indexed';
+tkteSF_CGT_TaxPaid_Other_Method                : Result := 'Tax Paid CR Other';
+tkteSF_Other_Net_Foreign_Income                : Result := 'Other Net Foreign Income';
+tkteSF_Cash_Distribution                       : Result := 'Cash Distribution';
+tkteSF_AU_Franking_Credits_NZ_Co               : Result := 'AU Franking CR from NZ Co.';
+tkteSF_Non_Res_Witholding_Tax                  : Result := 'Non-Resident Tax';
+tkteSF_LIC_Deductions                          : Result := 'LIC Deduction';
+tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Before Disc';
+tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexed';
+tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other';
+tkteSF_Non_Cash_CGT_Capital_Losses             : Result := 'Non-Cash Capital Losses';
+tkteSF_Share_Brokerage                         : Result := 'Brokerage';
+tkteSF_Share_Consideration                     : Result := 'Consideration';
+tkteSF_Share_GST_Amount                        : Result := 'GST Amount';
+tkteSF_Share_GST_Rate                          : Result := 'GST Rate';
+tkteSF_Cash_Date                               : Result := 'Cash Date';
+tkteSF_Accrual_Date                            : Result := 'Accrual Date';
+tkteSF_Record_Date                             : Result := 'Record Date';
+tkteSF_Contract_Date                           : Result := 'Contract Date';
+tkteSF_Settlement_Date                         : Result := 'Settlement Date';
+
+*)
+                 AddValueLine('Tax Free', MemLine.mlSF_Tax_Free_Dist, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('Tax Exempt', MemLine.mlSF_Tax_Exempt_Dist, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('Tax Deferred', MemLine.mlSF_Tax_Deferred_Dist, MemLine.mlLine_Type = mltPercentage);
+
+                 AddValueLine('Foreign Income', MemLine.mlSF_Foreign_Income, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('Other Expenses', MemLine.mlSF_Other_Expenses , MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('CG Indexed', MemLine.mlSF_Capital_Gains_Indexed , MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('CG Discounted', MemLine.mlSF_Capital_Gains_Disc, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('CG Other', MemLine.mlSF_Capital_Gains_Other, MemLine.mlLine_Type = mltPercentage);
+
+                 AddAlignedTextLine('Quantity', MemLine.mlQuantity / 10000);
+
+                 AddValueLine( 'Other Income', MemLine.mlSF_Other_Income, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Trust Deductions', MemLine.mlSF_Other_Trust_Deductions, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'CGT Concession', MemLine.mlSF_CGT_Concession_Amount, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Foreign CG Before Disc', MemLine.mlSF_CGT_ForeignCGT_Before_Disc, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Foreign CG Indexed', MemLine.mlSF_CGT_ForeignCGT_Indexation, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Foreign CG Other', MemLine.mlSF_CGT_ForeignCGT_Other_Method, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Tax Paid CR Indexed', MemLine.mlSF_CGT_TaxPaid_Indexation, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Tax Paid CR Other', MemLine.mlSF_CGT_TaxPaid_Other_Method, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Other Net Foreign Income', MemLine.mlSF_Other_Net_Foreign_Income, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Cash Distribution', MemLine.mlSF_Cash_Distribution, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'AU Franking CR from NZ Co.', MemLine.mlSF_AU_Franking_Credits_NZ_Co, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Non-Resident Tax', MemLine.mlSF_Non_Res_Witholding_Tax, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'LIC Deduction', MemLine.mlSF_LIC_Deductions, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Non-Cash CG Before Disc', MemLine.mlSF_Non_Cash_CGT_Discounted_Before_Discount, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Non-Cash CG Indexed', MemLine.mlSF_Non_Cash_CGT_Indexation, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Non-Cash CG Other', MemLine.mlSF_Non_Cash_CGT_Other_Method, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Non-Cash Capital Losses', MemLine.mlSF_Non_Cash_CGT_Capital_Losses, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Brokerage', MemLine.mlSF_Share_Brokerage, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'Consideration', MemLine.mlSF_Share_Consideration, MemLine.mlLine_Type = mltPercentage );
+                 AddValueLine( 'GST Amount', MemLine.mlSF_Share_GST_Amount, MemLine.mlLine_Type = mltPercentage );
+                 AddTextLine( 'GST Rate', MemLine.mlSF_Share_GST_Rate );
+                 AddTextLine( 'Cash Date', bkDate2Str( MemLine.mlSF_Cash_Date ) );
+                 AddTextLine( 'Accrual Date', bkDate2Str( MemLine.mlSF_Accrual_Date ) );
+                 AddTextLine( 'Record Date', bkDate2Str( MemLine.mlSF_Record_Date ) );
+                 AddTextLine( 'Contract Date', bkDate2Str( MemLine.mlSF_Contract_Date ) );
+                 AddTextLine( 'Settlement Date', bkDate2Str( MemLine.mlSF_Settlement_Date ) );
+               end;
                saSupervisor, saSolution6SuperFund, saSuperMate: begin
                      AddValueLine('Interest', MemLine.mlSF_Interest , MemLine.mlLine_Type = mltPercentage);
                      AddValueLine('Foreign', MemLine.mlSF_Foreign_Income, MemLine.mlLine_Type = mltPercentage);
