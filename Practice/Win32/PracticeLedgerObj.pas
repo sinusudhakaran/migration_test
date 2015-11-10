@@ -158,6 +158,8 @@ begin
 end;
 
 procedure TPracticeLedger.BuildBankTransactionData;
+const
+  TheMethod = 'BuildBankTransactionData';
 var
   TransactionItem: TTransactionData;
   DissRec: pDissection_Rec;
@@ -185,6 +187,9 @@ var
     end;
   end;
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   Inc(NoOfEntries );
   with MyClient.clFields, Bank_Account.baFields, Transaction^ do
   begin
@@ -282,15 +287,22 @@ begin
         FixAllocationValues(TransactionItem.Allocations);
     end;
   end;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.BuildJournalData;
+const
+  TheMethod = 'BuildJournalData';
 var
   JournalItem : TJournalData;
   LineItem : TLineData;
   AccRec : pAccount_Rec;
   DissRec: pDissection_Rec;
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   Inc(NoOfEntries );
   with MyClient.clFields,Bank_Account.baFields, Transaction^ do
   begin
@@ -344,6 +356,9 @@ begin
 
   if FJournalsData.ItemCount > 1 then
     FJournalsData.Sort();
+
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
 end;
 
 
@@ -523,9 +538,8 @@ begin
   finally
     Selected.Clear;
     Selected.Free;
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ends' );
   end;
-
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 function TPracticeLedger.FetchCOAFromAPI(NewChart: TChart): Boolean;
@@ -540,13 +554,16 @@ var
 
   SignInFrm : TmyMYOBSignInForm;
 const
-  ThisMethodName = 'FetchCOAFromAPI';
+  TheMethod = 'FetchCOAFromAPI';
 begin
   Result := False;
 
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   if not Assigned(AdminSystem) then
     Exit;
-    
+
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
     HelpfulErrorMsg('Online Firm should be associated before a refresh chart!',
@@ -620,26 +637,36 @@ begin
       end;
     end;
     if UnknownGSTCodesFound then
-      LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : The new chart file contained unknown GST Indicators' );
+      LogUtil.LogMsg( lmError, UnitName, TheMethod + ' : The new chart file contained unknown GST Indicators' );
 
     Result := True;
   finally
+    if DebugMe then
+      LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
     Accounts.Clear;
     FreeAndNil(Accounts);
   end;
 end;
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
+const
+  TheMethod = 'PrepareTransAndJournalsToExport';
 var
   BA: TBank_Account;
   i: Integer;
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   for i := 0 to Pred(Selected.Count) do
   begin
     BA := TBank_Account(Selected.Objects[i]);
     if (((TypeOfTrans = ttbank) and (BA.baFields.baAccount_Type = btBank)) or
         ((TypeOfTrans = ttJournals) and (BA.baFields.baAccount_Type in [btCashJournals, btAccrualJournals]))) then
     begin
+      if DebugMe then
+        LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' bank account selected for extract: ' + BA.baFields.baBank_Account_Number);
+
       if (TypeOfTrans = ttbank) then
       begin
         FBankAcctToExport := TBankAccountData(FBankAcctsToExport.Add);
@@ -656,6 +683,8 @@ begin
       Traverse.TraverseEntriesForAnAccount( BA, FromDate, ToDate );
     end;
   end;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' end');
 end;
 
 procedure TPracticeLedger.RefreshChartFromPLAPI;
@@ -715,6 +744,8 @@ begin
       end;
     end;
   end;  {with}
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ends' );
+
 end;
 
 function TPracticeLedger.RollbackBatch(aBatchRef: string;
@@ -726,11 +757,16 @@ var
   RequestJson : TlkJSONobject;
   Response : TlkJSONObject;
 const
-  ThisMethodName = 'RollbackBatch';
+  TheMethod = 'RollbackBatch';
 begin
   Result := True;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   if Trim(aBatchRef) = '' then
     Exit;
+
   RequestJson :=  TlkJSONobject.Create();
   try
     RequestJson.Add('batch_ref', aBatchRef);
@@ -746,7 +782,7 @@ begin
     end;
 
     if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestJson));
+      LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestJson));
 
     if not DoDeleteSecureJson(sURL, RequestJson,RespStr, aError) then
       Exit;
@@ -772,9 +808,13 @@ begin
   if Assigned(Response) then
     FreeAndNil(Response);
   Result := True;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
+const
+  TheMethod = 'SetTransferredFlag';
 var
   i, k, ToIndex: Integer;
   stDate : TStDate;
@@ -794,6 +834,9 @@ var
     end;
   end;
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   if TypeOfTrans = ttbank then
   begin
     if FromIndex + MAXENTRIES > FBankAcctToExport.Transactions.Count then
@@ -833,7 +876,7 @@ begin
       stDate := DateStringToStDate('yyyy-mm-dd', TJournalData(FJournalsData.Items[i]).Date, Epoch);
       SeqNo := TJournalData(FJournalsData.Items[i]).SequenceNo;
       BA := GetBankAccount(TJournalData(FJournalsData.Items[i]).JournalContraCode);
-      
+
       if Assigned(BA) then
       begin
         for k := 0 to BA.baTransaction_List.ItemCount - 1 do
@@ -848,6 +891,8 @@ begin
       end;
     end;
   end;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
 end;
 
 function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
@@ -858,9 +903,11 @@ var
   RespStr : string;
   Response : TlkJSONObject;
 const
-  ThisMethodName = 'UploadTransactions';
+  TheMethod = 'UploadTransactions';
 begin
   Result := False;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
 
   try
     if TypeOfTrans = ttbank then
@@ -875,7 +922,7 @@ begin
     end;
 
     if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName, ThisMethodName + ': ' + TlkJSON.GenerateText(RequestData));
+      LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestData));
 
     if not DoHttpSecureJson(sURL, RequestData, RespStr, aError) then
       Exit;
@@ -901,17 +948,27 @@ begin
   if Assigned(Response) then
     FreeAndNil(Response);
   Result := True;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
+const
+  TheMethod = 'UploadTransAndJournals';
 var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
   ErrorStr,RespStr : string;
   BankAcToExport: TBankAccountData;
 begin
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+
   if ((TypeOfTrans = ttbank) and Assigned(FBankAcctsToExport)) then
   begin
+    if DebugMe then
+      LogUtil.LogMsg(lmInfo, UnitName, ' Exporting bank transactions');
+
     for i := 0 to FBankAcctsToExport.Count - 1 do
     begin
       BankAcToExport := FBankAcctsToExport.ItemAs(i);
@@ -925,8 +982,12 @@ begin
         RequestJson :=  TlkJSONobject.Create();
         try
           BankAcToExport.Write(RequestJson, FromIndex, MAXENTRIES);
+
           if DebugMe then
-            LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions batch exported - ' + BankAcToExport.BatchRef);
+          begin
+            LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + BankAcToExport.BatchRef);
+            LogUtil.LogMsg(lmInfo, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
+          end;
 
           //send to api
           if not UploadToAPI(RequestJson,RespStr, ErrorStr,False, TypeOfTrans) then
@@ -955,14 +1016,21 @@ begin
   else if ((TypeOfTrans = ttJournals) and Assigned(FJournalsData)) then
   begin
     FromIndex := 0;
+    if DebugMe then
+      LogUtil.LogMsg(lmInfo, UnitName, ' Exporting journal transactions');
+
     for i := 1 to Ceil(FJournalsData.ItemCount/MAXENTRIES) do
     begin
       RequestJson :=  TlkJSONobject.Create();
       try
         // Write will update a new batch ref and this will be used when
         FJournalsData.Write(RequestJson, FromIndex, MAXENTRIES);
+
         if DebugMe then
-          LogUtil.LogMsg(lmInfo, UnitName, 'PL journal batch exported - ' + FJournalsData.BatchRef);
+        begin
+          LogUtil.LogMsg(lmInfo, UnitName, 'PL journal transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + FJournalsData.BatchRef);
+          LogUtil.LogMsg(lmInfo, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
+        end;
 
         //send to api
         if not UploadToAPI(RequestJson, RespStr, ErrorStr, False, TypeOfTrans) then
@@ -987,6 +1055,8 @@ begin
       FromIndex := FromIndex + MAXENTRIES;
     end;
   end;
+  if DebugMe then
+    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
 end;
 
 { PracticeLedgerThread }
@@ -999,10 +1069,13 @@ begin
 end;
 
 procedure TPracticeLedgerThread.Execute;
+const
+  TheMethod = 'TPracticeLedgerThread.Execute';
 var
   sError: string;
 begin
   FreeOnTerminate := True;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins' );
 
   while not Terminated do
   begin
@@ -1026,6 +1099,7 @@ begin
     end;
 
     Terminate;
+    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends' );
   end;
 end;
 
