@@ -1671,10 +1671,20 @@ begin
            end;
          end;
 
-         // Start LeanEngage code
-         if ( AdminSystem.fdFields.fdBankLink_Code <>
+///////// Start LeanEngage code
+       // DN - Change #89926 Remove the check for Support Staff but force to test API site
+         if ( AdminSystem.fdFields.fdBankLink_Code =
+                cLeanEngage_Support_Practice_Code ) // Make sure this is an MYOB IT Support Practice Code
+         then
+           cLeanEngageApp_Key := cLeanEngage_TestAPIKey; //Force it to go to the TestAPI
+       // DN - Change #89926 Remove the check for Support Staff but force to test API site
+
+(* DN - Change #89926 Remove the check for Support Staff
+        if ( AdminSystem.fdFields.fdBankLink_Code <>
                 cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
-         then begin
+         then begin DN - Change #89926 Remove the check for Support Staff *)
+         
+         // Start the intialisation of this
            mniHelpProvideFeedback.Enabled := true; //User is notSupport and should be subscribed to LeanEngage
            if DebugMe then
              LogUtil.LogMsg(lmDebug,unitname,
@@ -1683,7 +1693,7 @@ begin
 
            // Add LeanEngage functionality
            InitialiseLeanEngage;
-           if not assigned( frmLEFeedback ) then begin
+           if not assigned( frmLEFeedback ) then begin  // The LeanEngage Symbol at the bottom right of the screen
 
              frmLEFeedback := TfrmLEFeedback.Create( frmMain );
 
@@ -1700,12 +1710,13 @@ begin
              LogUtil.LogMsg(lmDebug,unitname,
                format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
                [ StartupParam_Action, CurrUser.Code ] ) );
+(* DN - Change #89926 Remove the check for Support Staff
          end  // End LeanEngage active
          else begin
            mniHelpProvideFeedback.Enabled := false; //User is Support and should not be subscribed to LeanEngage
          end; // End LeanEngage code
-
-
+DN - Change #89926 Remove the check for Support Staff *)
+/////////// End LeanEngage code
        end;
 
        ReloadCustomLogo;
@@ -2339,7 +2350,9 @@ var
 begin
   if assigned( NPSLeanEngage ) and
        assigned( Application ) and
-       assigned( Application.MainForm ) then
+       assigned( Application.MainForm ) and
+       (AdminSystem.fdFields.fdBankLink_Code <> // DN - Change #89926 Remove the check for Support Staff but force to test API site
+          cLeanEngage_Support_Practice_Code )  then
     if NPSLeanEngage.HasSurvey then
       for I := 0 to NPSLeanEngage.Surveys.Count - 1 do begin
         if DebugMe then
