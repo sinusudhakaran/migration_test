@@ -1089,7 +1089,7 @@ begin
      begin
        SourceAccount := FromClient.clChart.Account_At(i);
 
-       if SourceAccount.chInactive then
+       if (SourceAccount.chInactive) or (Trim(SourceAccount.chAccount_Code) = '') then
          continue;
 
        DestAccount   := MyClient.clChart.FindCode(SourceAccount.chAccount_Code);
