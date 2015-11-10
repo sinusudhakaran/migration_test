@@ -1733,8 +1733,8 @@ begin
               AllocationItem.TaxAmount := trunc(DissRec^.dsGST_Amount);
               AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
 
-              if ((AllocationItem.TaxAmount <> 0) and (AllocationItem.TaxRate ='NA')) then
-                AllocationItem.TaxRate := 'GST';
+             { if ((AllocationItem.TaxAmount <> 0) and (AllocationItem.TaxRate ='NA')) then
+                AllocationItem.TaxRate := 'GST';}
 
               AllocationItem.Quantity := DissRec^.dsQuantity;
               AllocationItem.PayeeNumber := DissRec^.dsPayee_Number;
@@ -1767,8 +1767,8 @@ begin
             AllocationItem.TaxAmount := trunc(TransactionRec.txGST_Amount);
             AllocationItem.TaxRate := GetCashBookGSTType(aGSTMapCol, TransactionRec.txGST_Class);
 
-            if ((AllocationItem.TaxAmount <> 0) and (AllocationItem.TaxRate ='NA')) then
-              AllocationItem.TaxRate := 'GST';
+            {if ((AllocationItem.TaxAmount <> 0) and (AllocationItem.TaxRate ='NA')) then
+              AllocationItem.TaxRate := 'GST';}
 
             AllocationItem.Quantity := TransactionRec.txQuantity;
             AllocationItem.PayeeNumber := TransactionRec.txPayee_Number;
@@ -1847,8 +1847,8 @@ begin
             LineItem.TaxAmount   := trunc(DissRec^.dsGST_Amount);
             LineItem.TaxRate     := GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
 
-            if ((LineItem.TaxAmount <> 0) and (LineItem.TaxRate = 'NA')) then
-              LineItem.TaxRate := 'GST';
+            {if ((LineItem.TaxAmount <> 0) and (LineItem.TaxRate = 'NA')) then
+              LineItem.TaxRate := 'GST';}
 
             LineItem.Amount := abs(trunc(DissRec^.dsAmount));
             if trunc(DissRec^.dsAmount) < 0 then
