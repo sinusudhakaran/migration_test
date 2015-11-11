@@ -1384,8 +1384,13 @@ begin
         begin
           // Mems 2
           if aRunMems2 then
+          begin
             if FindLCS(Uppercase(aSearchTrans^.tiStatement_Details), Uppercase(MatchTran^.tiStatement_Details), StartData, FoundLCS, EndData) then
-              SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aSearchTrans, MatchTran, aTranNewState);
+            begin
+              if not ((Length(FoundLCS) = 3) and (FoundLCS[2] = ' ')) then
+                SearchFoundMatch(StartData, FoundLCS, EndData, aBankAccount, aSearchTrans, MatchTran, aTranNewState);
+            end;
+          end;
         end;
       end;
     end;
