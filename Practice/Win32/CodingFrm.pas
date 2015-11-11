@@ -1252,7 +1252,7 @@ begin
   FSuperTop := -999;
   FSuperLeft := -999;
   SelectedSuggestedMemId := TRAN_NO_SUGG;
-  fSuperDialogOpen := false;
+  fSuperDialogOpen := false; //Initialise
 
   frmSuggMemPopup := TfrmSuggMemPopup.create(self);
   frmSuggMemPopup.Visible := false;
