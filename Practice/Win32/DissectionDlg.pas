@@ -365,7 +365,9 @@ type
     tmpPaintShortStr   : ShortString;
     tmpPaintDouble     : double;
     tmpPaintInteger    : integer;
-    FCanUseSuperFundFields, FDontRecalculatePercentages : boolean;
+    FCanUseSuperFundFields,
+    FDontRecalculatePercentages,
+    fSuperDialogOpen : boolean;
     FSuperTop, FSuperLeft: Integer;
     Undo: Boolean;
     FBankAcct: TBank_Account;
@@ -4773,7 +4775,8 @@ begin
    If INI_ShowCodeHints and ( HintMsg<>'' ) then
    begin
      // Make sure the mouse is on the form
-     if PtInRect( tblDissect.BoundsRect, ScreenToClient( Mouse.CursorPos ) ) then
+     if PtInRect( tblDissect.BoundsRect, ScreenToClient( Mouse.CursorPos ) ) and
+          (not fSuperDialogOpen )  then
      begin
        R := GetCellRect( RowNum, ColNum );
        NewHints.ShowCustomHint( FHint, R, HintMsg );
@@ -5187,49 +5190,54 @@ var
   Move: TFundNavigation;
   OldAccount: BK5CodeStr;
 begin
-  if (not FCanUseSuperFundFields) or (not sbtnSuper.Visible) then
-    Exit;
+  fSuperDialogOpen := true;
+  try
+    if (not FCanUseSuperFundFields) or (not sbtnSuper.Visible) then
+      Exit;
 
-  if not ValidDataRow( tblDissect.ActiveRow ) then
-     Exit;
-  if not tblDissect.StopEditingState(True) then
-    Exit;
+    if not ValidDataRow( tblDissect.ActiveRow ) then
+       Exit;
+    if not tblDissect.StopEditingState(True) then
+      Exit;
 
-  //get current dissection line
-  pD   := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
-  if WorkDissect.Count = tblDissect.ActiveRow then
-    Move := fnIsLast
-  else if tblDissect.ActiveRow - 1 = 0 then
-    Move := fnIsFirst
-  else
-    Move := fnNothing;
+    //get current dissection line
+    pD   := WorkDissect.Items[ tblDissect.ActiveRow-1 ];
+    if WorkDissect.Count = tblDissect.ActiveRow then
+      Move := fnIsLast
+    else if tblDissect.ActiveRow - 1 = 0 then
+      Move := fnIsFirst
+    else
+      Move := fnNothing;
 
-  OldAccount := pD.dtAccount;
-  if SuperFieldsUtils.EditSuperFields( pTran, pD, Move, FSuperTop, FSuperLeft, FBankAcct) then
-    begin
-      if pD.dtAccount <> OldAccount then
-        AccountEdited(pD);
-      tblDissect.InvalidateRow( tblDissect.ActiveRow);
-      tblDissect.Refresh;
-
-      pD^.dtHas_Been_Edited := true;
-
-      if Move = fnGoForward then
+    OldAccount := pD.dtAccount;
+    if SuperFieldsUtils.EditSuperFields( pTran, pD, Move, FSuperTop, FSuperLeft, FBankAcct) then
       begin
-        tblDissect.ActiveRow := tblDissect.ActiveRow + 1;
-        DoEditsuperFields;
-      end
-      else if Move = fnGoBack then
-      begin
-        tblDissect.ActiveRow := tblDissect.ActiveRow - 1;
-        DoEditsuperFields;
-      end
-      else
-      begin
-        FSuperTop := -999;
-        FSuperLeft := -999;
+        if pD.dtAccount <> OldAccount then
+          AccountEdited(pD);
+        tblDissect.InvalidateRow( tblDissect.ActiveRow);
+        tblDissect.Refresh;
+
+        pD^.dtHas_Been_Edited := true;
+
+        if Move = fnGoForward then
+        begin
+          tblDissect.ActiveRow := tblDissect.ActiveRow + 1;
+          DoEditsuperFields;
+        end
+        else if Move = fnGoBack then
+        begin
+          tblDissect.ActiveRow := tblDissect.ActiveRow - 1;
+          DoEditsuperFields;
+        end
+        else
+        begin
+          FSuperTop := -999;
+          FSuperLeft := -999;
+        end;
       end;
-    end;
+  finally
+    fSuperDialogOpen := false;
+  end;
 end;
 
 procedure TdlgDissection.celAmountOwnerDraw(Sender: TObject;

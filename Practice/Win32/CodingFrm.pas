@@ -417,7 +417,7 @@ type
 
     SelectedSuggestedMemId        : integer;
 
-    FIsClosing, FIsReloading, StartFocus, Undo: boolean;
+    FIsClosing, FIsReloading, StartFocus, Undo, fSuperDialogOpen : boolean;
     FsuperTop, FSuperLeft: Integer;
     tmpJob: shortString;
     tmpPayee,
@@ -1220,7 +1220,7 @@ begin
   bkBranding.StyleAltRowColor(AltLineColor);
 
   pnlExtraTitleBar.Height := imgRight.Picture.Height;
-  
+
   lblAcctDetails.Font.Color := bkBranding.TopTitleColor;
   //lblTransRange.Font.Color := bkBranding.TopTitleColor;
   //lblFinalised.Font.Color := bkBranding.TopTitleColor;
@@ -1252,6 +1252,7 @@ begin
   FSuperTop := -999;
   FSuperLeft := -999;
   SelectedSuggestedMemId := TRAN_NO_SUGG;
+  fSuperDialogOpen := false;
 
   frmSuggMemPopup := TfrmSuggMemPopup.create(self);
   frmSuggMemPopup.Visible := false;
@@ -8438,7 +8439,8 @@ begin
    If INI_ShowCodeHints and ( HintMsg<>'' ) then
    begin
      // Make sure the mouse is on the form
-     if PtInRect( tblCoding.BoundsRect, ScreenToClient( Mouse.CursorPos ) ) then
+     if PtInRect( tblCoding.BoundsRect, ScreenToClient( Mouse.CursorPos ) ) and
+          (not fSuperDialogOpen ) then
      begin
        R := GetCellRect( RowNum, ColNum );
        NewHints.ShowCustomHint( FHint, R, HintMsg );
@@ -10211,50 +10213,55 @@ var
   Move: TFundNavigation;
   OldAccount: string[20];
 begin
-  if not CanUseSuperFields then
-    Exit;
+  fSuperDialogOpen := true;
+  try
+    if not CanUseSuperFields then
+      Exit;
 
-  if not ValidDataRow(tblCoding.ActiveRow) then
-    Exit;
-  if not tblCoding.StopEditingState(True) then
-    Exit;
+    if not ValidDataRow(tblCoding.ActiveRow) then
+      Exit;
+    if not tblCoding.StopEditingState(True) then
+      Exit;
 
-  //ge transaction for current row
-  pT   := WorkTranList.Transaction_At(tblCoding.ActiveRow-1);
+    //ge transaction for current row
+    pT   := WorkTranList.Transaction_At(tblCoding.ActiveRow-1);
 
-  //see if interface supports super fund fields
-  if CanUseSuperFields then begin
-      if pT^.txFirst_Dissection <> nil then
-        Exit;
-      if WorkTranList.ItemCount = tblCoding.ActiveRow then
-        Move := fnIsLast
-      else if tblCoding.ActiveRow - 1 = 0 then
-        Move := fnIsFirst
-      else
-        Move := fnNothing;
-      OldAccount := pT.txAccount;
-      if SuperFieldsUtils.EditSuperFields( pT, Move, FSuperTop, FSuperLeft, BankAccount) then begin
+    //see if interface supports super fund fields
+    if CanUseSuperFields then begin
+        if pT^.txFirst_Dissection <> nil then
+          Exit;
+        if WorkTranList.ItemCount = tblCoding.ActiveRow then
+          Move := fnIsLast
+        else if tblCoding.ActiveRow - 1 = 0 then
+          Move := fnIsFirst
+        else
+          Move := fnNothing;
+        OldAccount := pT.txAccount;
+        if SuperFieldsUtils.EditSuperFields( pT, Move, FSuperTop, FSuperLeft, BankAccount) then begin
 
-          AccountEdited(pT); // Cleanup any changes
+            AccountEdited(pT); // Cleanup any changes
 
-          SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned, (OldAccount <> pT.txAccount));
+            SuggestedMem.SetSuggestedTransactionState(BankAccount, pT, tssUnScanned, (OldAccount <> pT.txAccount));
 
-          RedrawRow;
+            RedrawRow;
 
-          case Move  of
-             fnGoBack: begin
-                  tblCoding.ActiveRow := tblCoding.ActiveRow - 1;
-                  DoEditSuperFields;
-               end;
-             fnGoForward: begin
-                  tblCoding.ActiveRow := tblCoding.ActiveRow + 1;
-                  DoEditSuperFields;
-               end
-          end;
-      end;
+            case Move  of
+               fnGoBack: begin
+                    tblCoding.ActiveRow := tblCoding.ActiveRow - 1;
+                    DoEditSuperFields;
+                 end;
+               fnGoForward: begin
+                    tblCoding.ActiveRow := tblCoding.ActiveRow + 1;
+                    DoEditSuperFields;
+                 end
+            end;
+        end;
+    end;
+    FSuperTop := -999;
+    FSuperLeft := -999;
+  finally
+    fSuperDialogOpen := false;
   end;
-  FSuperTop := -999;
-  FSuperLeft := -999;
 end;
                                                        
 

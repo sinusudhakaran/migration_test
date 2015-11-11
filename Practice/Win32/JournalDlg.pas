@@ -307,7 +307,8 @@ type
     PayeeRow           : Integer;
     Undo               : Boolean;
 
-    SetFormSize: Boolean;
+    SetFormSize,
+    fSuperDialogOpen : Boolean;
     FSuperTop, FSuperLeft: Integer;
 
     DefaultEditableCols : set of byte;
@@ -5144,7 +5145,8 @@ begin
    If INI_ShowCodeHints and ( HintMsg<>'' ) then
    begin
      // Make sure the mouse is on the form
-     if PtInRect( tblJournal.BoundsRect, ScreenToClient( Mouse.CursorPos ) ) then
+     if PtInRect( tblJournal.BoundsRect, ScreenToClient( Mouse.CursorPos ) ) and
+          (not fSuperDialogOpen )  then
      begin
        R := GetCellRect( RowNum, ColNum );
        NewHints.ShowCustomHint( FHint, R, HintMsg );
@@ -5238,49 +5240,54 @@ var
   Move: TFundNavigation;
   OldAccount: BK5CODESTR;
 begin
-  if not FCanUseSuperFundFields then
-    Exit;
+  fSuperDialogOpen := true;
+  try
+    if not FCanUseSuperFundFields then
+      Exit;
 
-  if not ValidDataRow( tblJournal.ActiveRow ) then
-     Exit;
-  if not tblJournal.StopEditingState(True) then
-    Exit;
+    if not ValidDataRow( tblJournal.ActiveRow ) then
+       Exit;
+    if not tblJournal.StopEditingState(True) then
+      Exit;
 
-  //get current dissection line
-  pD   := WorkJournal.Items[ tblJournal.ActiveRow-1 ];
-  if WorkJournal.Count = tblJournal.ActiveRow then
-    Move := fnIsLast
-  else if tblJournal.ActiveRow - 1 = 0 then
-    Move := fnIsFirst
-  else
-    Move := fnNothing;
+    //get current dissection line
+    pD   := WorkJournal.Items[ tblJournal.ActiveRow-1 ];
+    if WorkJournal.Count = tblJournal.ActiveRow then
+      Move := fnIsLast
+    else if tblJournal.ActiveRow - 1 = 0 then
+      Move := fnIsFirst
+    else
+      Move := fnNothing;
 
-  OldAccount := pD.dtAccount;
-  if SuperFieldsUtils.EditSuperFields( pTran, pD, Move, FSuperTop, FSuperLeft, Bank_Account) then
-    begin
-      if pD.dtAccount <> OldAccount then
-        AccountEdited(pD);
-      tblJournal.InvalidateRow( tblJournal.ActiveRow);
-      tblJournal.Refresh;
-
-      pD^.dtHas_Been_Edited := true;
-
-      if Move = fnGoForward then
+    OldAccount := pD.dtAccount;
+    if SuperFieldsUtils.EditSuperFields( pTran, pD, Move, FSuperTop, FSuperLeft, Bank_Account) then
       begin
-        tblJournal.ActiveRow := tblJournal.ActiveRow + 1;
-        DoEditsuperFields;
-      end
-      else if Move = fnGoBack then
-      begin
-        tblJournal.ActiveRow := tblJournal.ActiveRow - 1;
-        DoEditsuperFields;
-      end
-      else
-      begin
-        FSuperTop := -999;
-        FSuperLeft := -999;
+        if pD.dtAccount <> OldAccount then
+          AccountEdited(pD);
+        tblJournal.InvalidateRow( tblJournal.ActiveRow);
+        tblJournal.Refresh;
+
+        pD^.dtHas_Been_Edited := true;
+
+        if Move = fnGoForward then
+        begin
+          tblJournal.ActiveRow := tblJournal.ActiveRow + 1;
+          DoEditsuperFields;
+        end
+        else if Move = fnGoBack then
+        begin
+          tblJournal.ActiveRow := tblJournal.ActiveRow - 1;
+          DoEditsuperFields;
+        end
+        else
+        begin
+          FSuperTop := -999;
+          FSuperLeft := -999;
+        end;
       end;
-    end;
+  finally
+    fSuperDialogOpen := false;
+  end;
 end;
 
 procedure TdlgJournal.celAmountOwnerDraw(Sender: TObject;
