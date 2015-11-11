@@ -1147,13 +1147,18 @@ begin
       ccMouse              : ColNum := AcctCol;
     end;
 
-    PayeeCol, JobCol: case Command of
-      ccLeft, ccPageLeft   : ColNum := NarrationCol;
-      ccRight, ccPageRight : if GSTClassEditable then
-                               ColNum := GSTCodeCol
-                             else
-                               ColNum := AmountCol;
-      ccMouse              : ColNum := NarrationCol;
+    PayeeCol, JobCol: begin
+      if fDlgEditMode in ALL_MASTER then
+      begin
+        case Command of
+          ccLeft, ccPageLeft   : ColNum := NarrationCol;
+          ccRight, ccPageRight : if GSTClassEditable then
+                                   ColNum := GSTCodeCol
+                                 else
+                                   ColNum := AmountCol;
+          ccMouse              : ColNum := NarrationCol;
+        end;
+      end;
     end;
 
     GSTCodeCol : begin
