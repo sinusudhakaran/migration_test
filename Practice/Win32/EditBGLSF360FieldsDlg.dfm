@@ -129,6 +129,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Options = []
       PictureMask = '#,###,###,###.##'
       TabOrder = 0
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
@@ -151,6 +152,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Options = []
       PictureMask = '#,###,###,###.##'
       TabOrder = 1
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
@@ -173,6 +175,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Options = []
       PictureMask = '#,###,###,###.##'
       TabOrder = 2
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -195,6 +198,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Options = []
       PictureMask = '#,###,###,###.##'
       TabOrder = 3
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -313,6 +317,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       PictureMask = '#,###,###,###.##'
       TabOrder = 1
       OnChange = nfShareBrokerageChange
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
@@ -337,6 +342,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       PictureMask = '#,###,###,###.##'
       TabOrder = 2
       OnChange = nfShareConsiderationChange
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {00000000000000000000}
     end
@@ -359,6 +365,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Options = []
       PictureMask = '#,###,###,###.##'
       TabOrder = 3
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -578,6 +585,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfForeignIncomeTaxOffset: TOvcNumericField
         Left = 407
         Top = 151
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 407
         ExplicitTop = 151
         RangeHigh = {F6285CFFFFF802952040}
@@ -586,6 +594,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfAUFrankingCreditsFromNZCompany: TOvcNumericField
         Left = 407
         Top = 181
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 407
         ExplicitTop = 181
         RangeHigh = {F6285CFFFFF802952040}
@@ -594,6 +603,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfTFNAmountsWithheld: TOvcNumericField
         Left = 551
         Top = 12
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 551
         ExplicitTop = 12
         RangeHigh = {F6285CFFFFF802952040}
@@ -602,6 +612,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfNonResidentWithholdingTax: TOvcNumericField
         Left = 551
         Top = 39
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 551
         ExplicitTop = 39
         RangeHigh = {F6285CFFFFF802952040}
@@ -610,6 +621,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfLICDeductions: TOvcNumericField
         Left = 551
         Top = 67
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 551
         ExplicitTop = 67
         RangeHigh = {F6285CFFFFF802952040}
@@ -635,6 +647,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       Options = []
       PictureMask = '#,###,###,###.##'
       TabOrder = 1
+      OnKeyPress = ForcePositiveAmountKeyPress
       RangeHigh = {F6285CFFFFF802952040}
       RangeLow = {5C8FC2F5FF276BEE1CC0}
     end
@@ -684,6 +697,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfFranked: TOvcNumericField
         Left = 128
         OnChange = frameFrankingFrankedChange
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 128
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
@@ -691,6 +705,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       inherited nfUnfranked: TOvcNumericField
         Left = 128
         OnChange = frameFrankingUnfrankedChange
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 128
         RangeHigh = {F6285CFFFFF802952040}
         RangeLow = {00000000000000000000}
@@ -699,6 +714,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
         Left = 128
         Top = 56
         OnChange = frameFrankingFrankingCreditsChange
+        OnKeyPress = ForcePositiveAmountKeyPress
         ExplicitLeft = 128
         ExplicitTop = 56
         RangeHigh = {F6285CFFFFF802952040}
@@ -798,6 +814,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 260
             Top = 2
             OnChange = tsAustralianIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             ExplicitTop = 2
             RangeHigh = {F6285CFFFFF802952040}
@@ -807,6 +824,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 260
             Top = 29
             OnChange = tsAustralianIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             ExplicitTop = 29
             RangeHigh = {F6285CFFFFF802952040}
@@ -853,16 +871,19 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           end
           inherited nfFranked: TOvcNumericField
             OnChange = frameFrankingFrankedChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
           inherited nfUnfranked: TOvcNumericField
             OnChange = frameFrankingUnfrankedChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
           inherited nfFrankingCredits: TOvcNumericField
             OnChange = frameFrankingFrankingCreditsChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
           end
@@ -887,6 +908,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 2
           OnChange = tsAustralianIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -894,10 +916,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsCapitalGains: TTabSheet
         Caption = 'Capital Gains'
         ImageIndex = -1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblCGTConcession: TLabel
           Left = 6
           Top = 86
@@ -1047,7 +1065,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 1
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1113,6 +1131,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           inherited nfCGTDiscounted: TOvcNumericField
             Left = 260
             OnChange = tsCapitalGainsTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
@@ -1121,6 +1140,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 260
             Top = 28
             OnChange = tsCapitalGainsTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             ExplicitTop = 28
             RangeHigh = {F6285CFFFFF802952040}
@@ -1130,6 +1150,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 260
             Top = 55
             OnChange = tsCapitalGainsTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             ExplicitTop = 55
             RangeHigh = {F6285CFFFFF802952040}
@@ -1156,7 +1177,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 2
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1180,7 +1201,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 3
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1204,7 +1225,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 4
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1228,7 +1249,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 5
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1252,7 +1273,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 6
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1276,7 +1297,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 7
           OnChange = tsCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1284,10 +1305,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsForeignIncome: TTabSheet
         Caption = 'Foreign Income'
         ImageIndex = -1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lblAssessableForeignSourceIncome: TLabel
           Left = 6
           Top = 6
@@ -1427,6 +1444,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 0
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -1450,6 +1468,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 1
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -1473,6 +1492,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 2
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -1496,6 +1516,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 4
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -1519,6 +1540,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 5
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -1542,6 +1564,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 6
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {5C8FC2F5FF276BEE1CC0}
         end
@@ -1634,6 +1657,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           inherited nfForeignIncomeTaxOffset: TOvcNumericField
             Left = 245
             OnChange = tsForeignIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 245
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {5C8FC2F5FF276BEE1CC0}
@@ -1642,6 +1666,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 245
             Top = 29
             OnChange = tsForeignIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 245
             ExplicitTop = 29
             RangeHigh = {F6285CFFFFF802952040}
@@ -1651,6 +1676,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 245
             Top = 66
             OnChange = tsForeignIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 245
             ExplicitTop = 66
             RangeHigh = {F6285CFFFFF802952040}
@@ -1660,6 +1686,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 245
             Top = 92
             OnChange = tsForeignIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 245
             ExplicitTop = 92
             RangeHigh = {F6285CFFFFF802952040}
@@ -1669,6 +1696,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 245
             Top = 117
             OnChange = tsForeignIncomeTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 245
             ExplicitTop = 117
             RangeHigh = {F6285CFFFFF802952040}
@@ -1695,6 +1723,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 7
           OnChange = tsForeignIncomeTabOnChange
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1702,10 +1731,6 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsNonCashCapitalGains: TTabSheet
         Caption = 'Non-Cash Capital Gains/Losses'
         ImageIndex = -1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object lpCGTCapitalLosses: TLabel
           Left = 393
           Top = 84
@@ -1742,7 +1767,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           PictureMask = '#,###,###,###.##'
           TabOrder = 1
           OnChange = tsNonCashCapitalGainsTabOnChange
-          OnKeyPress = nfTFNCreditsKeyPress
+          OnKeyPress = ForcePositiveAmountKeyPress
           RangeHigh = {F6285CFFFFF802952040}
           RangeLow = {00000000000000000000}
         end
@@ -1808,6 +1833,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
           inherited nfCGTDiscounted: TOvcNumericField
             Left = 260
             OnChange = tsNonCashCapitalGainsTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             RangeHigh = {F6285CFFFFF802952040}
             RangeLow = {00000000000000000000}
@@ -1816,6 +1842,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 260
             Top = 27
             OnChange = tsNonCashCapitalGainsTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             ExplicitTop = 27
             RangeHigh = {F6285CFFFFF802952040}
@@ -1825,6 +1852,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
             Left = 260
             Top = 53
             OnChange = tsNonCashCapitalGainsTabOnChange
+            OnKeyPress = ForcePositiveAmountKeyPress
             ExplicitLeft = 260
             ExplicitTop = 53
             RangeHigh = {F6285CFFFFF802952040}
@@ -2382,7 +2410,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     Left = 672
     Top = 8
     Bitmap = {
-      494C010105001800380010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101050018003C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

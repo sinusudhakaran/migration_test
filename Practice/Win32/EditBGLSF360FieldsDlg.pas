@@ -151,7 +151,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure nfTFNCreditsKeyPress(Sender: TObject; var Key: Char);
     procedure btnBackClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -183,6 +182,8 @@ type
     procedure tsNonCashCapitalGainsTabOnChange(
       Sender: TObject);
     procedure tsForeignIncomeTabOnChange(Sender: TObject);
+    procedure ForcePositiveAmountKeyPress(Sender: TObject;
+      var Key: Char);
 (*    procedure pcDistributionDrawTab(Control: TCustomTabControl;
       TabIndex: Integer; const Rect: TRect; Active: Boolean); *)
   private
@@ -1167,6 +1168,14 @@ begin
 end;
 
 
+procedure TdlgEditBGLSF360Fields.ForcePositiveAmountKeyPress(
+  Sender: TObject; var Key: Char);
+begin
+  //ignore minus key
+  if Key = '-' then
+    Key := #0;
+end;
+
 procedure TdlgEditBGLSF360Fields.cmbxAccountKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -1716,14 +1725,6 @@ end;
 procedure TdlgEditBGLSF360Fields.nfShareConsiderationChange(Sender: TObject);
 begin
   ShareConsiderationModified := true;
-end;
-
-procedure TdlgEditBGLSF360Fields.nfTFNCreditsKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  //ignore minus key
-  if Key = '-' then
-    Key := #0;
 end;
 
 procedure TdlgEditBGLSF360Fields.frameFrankingFrankedChange(Sender: TObject);
