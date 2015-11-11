@@ -430,6 +430,7 @@ type
     FLastKeyPress: TDateTime;
     fMDIChildSortedIndex : integer;
 
+    function IsFormActiveTab() : boolean;
     procedure SetLastKeyPress;
     procedure SetUpHelp;
     procedure LoadWorkTranList;
@@ -2695,7 +2696,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmCoding.DoMainFrmToolBarResize(Sender: TObject);
 begin
-  if Showing then
+  if IsFormActiveTab then
   begin
     CloseSuggMemPopup();
 
@@ -4360,6 +4361,16 @@ begin
      AddCommand(KeyMapName,70,$02 or $04,0,0,tcLaunchFingertips);    {ctrl+shift+D}
 {$ENDIF}
    end;
+end;
+
+function TfrmCoding.IsFormActiveTab: boolean;
+var
+  CurrentMDICaption : string;
+  CurrentMDIIndex : integer;
+begin
+  CurrentMDICaption := frmMain.GetMDICurrentChildCaption;
+  CurrentMDIIndex := frmMain.GetMDIIndexFromCaption(CurrentMDICaption);
+  Result := (fMDIChildSortedIndex = CurrentMDIIndex);
 end;
 
 function TfrmCoding.JobEdited(pT: pTransaction_Rec): Boolean;
