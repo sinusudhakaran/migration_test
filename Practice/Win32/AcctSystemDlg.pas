@@ -405,6 +405,11 @@ var
       btnFromFolder.Enabled := Value;
    end;
 
+   function IsMYOBLedger :Boolean;
+   begin
+     Result := ((MyClient.clFields.clCountry = whNewZealand) and (SelectedSystem = snMYOBOnlineLedger)) or
+          ((MyClient.clFields.clCountry = whAustralia) and (SelectedSystem = saMYOBOnlineLedger));
+   end;
 begin
   if Assigned(Sender)
   and Insetup then
@@ -448,13 +453,14 @@ begin
 //DN BGL360- UI changes  lblFrom.Visible := (SelectedSystem <> saBGL360);
 //DN BGL360- UI changes    eFrom.Visible := lblFrom.Visible;
 //DN BGL360- UI changes    btnFromFolder.Visible := lblFrom.Visible;
-  eFrom.Visible := (not(SelectedSystem in [saBGL360, saMYOBOnlineLedger, snMYOBOnlineLedger])); //DN BGL360- UI changes
+  eFrom.Visible := (not((SelectedSystem in [saBGL360]) or IsMYOBLedger)); //DN BGL360- UI changes
+
   btnFromFolder.Visible := eFrom.Visible; //DN BGL360- UI changes
 
   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
   lblBGL360FundName.Visible := btnConnectBGL.Visible;
 
-  btnConnectMYOB.Visible := (SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger]);
+  btnConnectMYOB.Visible := IsMYOBLedger;
   lblSaveTo.Visible := (not btnConnectMYOB.Visible);
   eTo.Visible := lblSaveTo.Visible;
   btnToFolder.Visible := lblSaveTo.Visible;
@@ -502,7 +508,7 @@ begin
       FreeAndNil(BGLServer);
     end;
   end
-  else if SelectedSystem in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+  else if IsMYOBLedger then
   begin
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'MYOB Login'
@@ -542,6 +548,12 @@ var
   SubIndex : integer;
   OldID, NewID : string;
   RefreshYourChart: Boolean;
+
+  function IsMYOBLedger(SelectedSystem : Byte) :Boolean;
+  begin
+    Result := ((MyClient.clFields.clCountry = whNewZealand) and (SelectedSystem = snMYOBOnlineLedger)) or
+          ((MyClient.clFields.clCountry = whAustralia) and (SelectedSystem = saMYOBOnlineLedger));
+  end;
 begin
   LCLRec := nil;
   FInWizard := InWizard;
@@ -710,7 +722,7 @@ begin
 
      OldLoadFrom := clLoad_Client_Files_From;
 
-     if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+     if IsMYOBLedger(clAccounting_System_Used) then
        OldID := MyClient.clExtra.cemyMYOBClientIDSelected
      else if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
        OldID := MyClient.clExtra.ceBGLFundIDSelected;
@@ -748,7 +760,7 @@ begin
           end;
 
           if (((clCountry = whAustralia) and (clAccounting_System_Used = saBGL360)) or
-              (clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger])) then
+              (IsMYOBLedger(clAccounting_System_Used))) then
           begin
 
             if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
@@ -756,7 +768,7 @@ begin
               NewID := MyClient.clExtra.ceBGLFundIDSelected;
               sName := 'Fund';
             end
-            else if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+            else if IsMYOBLedger(clAccounting_System_Used) then
             begin
               NewID := MyClient.clExtra.cemyMYOBClientIDSelected;
               sName := 'Client';
@@ -772,7 +784,7 @@ begin
                                 ( Trim(NewId) <> Trim(OldID) );
 
             if RefreshYourChart and
-               (clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger]) then
+               (IsMYOBLedger(clAccounting_System_Used)) then
             begin
               RefreshYourChart := CheckFormyMYOBTokens;
 
@@ -785,10 +797,10 @@ begin
                   LogUtil.LogMsg(lmDebug, UnitName, 'Refresh Chart failed due to invalid access tokens. Need a sign in to MYOB again.');
               end;
             end;
-            
+
             if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
             begin
-              if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+              if IsMYOBLedger(clAccounting_System_Used) then
                 Import32.RefreshChart // Practice Ledger
               else
                 RefreshChart; // BGL 360
