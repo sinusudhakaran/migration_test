@@ -73,7 +73,8 @@ uses
   MALLOC,
   SuggestedMems,
   IOStream,
-  windows;
+  windows,
+  bkdeio;
 
 const
   DebugMe : Boolean = FALSE;
@@ -269,6 +270,12 @@ var
       P2^.txTransaction_Extension := P1^.txTransaction_Extension;
       P2^.txBank_Account := P1^.txBank_Account;
       P2^.txClient := P1^.txClient;
+
+      P2^.txFirst_Dissection := P1^.txFirst_Dissection;
+      P2^.txLast_Dissection := P1^.txLast_Dissection;
+      P2^.txNext_Transaction := P1^.txNext_Transaction;
+      P2^.txNext_Transaction_By_Type := P1^.txNext_Transaction_By_Type;
+      P2^.txMatched_By := P1^.txMatched_By;
     finally
       S.Free;
     end;
@@ -280,13 +287,6 @@ var
     fillchar( P2^, sizeof( P2^ ), 0 );
     move( P1^, P2^, sizeof( P2^ ) );
   end;
-
-      P2^.txFirst_Dissection := P1^.txFirst_Dissection;
-      P2^.txLast_Dissection := P1^.txLast_Dissection;
-      P2^.txNext_Transaction := P1^.txNext_Transaction;
-      P2^.txNext_Transaction_By_Type := P1^.txNext_Transaction_By_Type;
-      P2^.txNext_Transaction_By_Type := P1^.txNext_Transaction_By_Type;
-
 
 *)
 
@@ -579,13 +579,15 @@ begin
                     MemorisationLine := MX.mdLines.MemorisationLine_At(i);
                     if ( MemorisationLine.mlAccount <> '') or ( Split[i] <> 0) then
                       begin
-                        New( Dissection );
-                        FillChar( Dissection^, Dissection_Rec_Size, 0);
-                        Dissection.dsBank_Account := aTransaction.txBank_Account;
+//                        New( Dissection );
+                        Dissection := New_Dissection_Rec;
+//                        FillChar( Dissection^, Dissection_Rec_Size, 0);
+                        Dissection^.dsBank_Account := aTransaction.txBank_Account;
+                        Dissection^.dsDissection_Extension := New_Dissection_Extension_Rec;
                         with Dissection^ do
                           begin
-                            dsRecord_Type := tkBegin_Dissection;
-                            dsEOR := tkEnd_Dissection;
+//                            dsRecord_Type := tkBegin_Dissection;
+//                            dsEOR := tkEnd_Dissection;
                             dsTransaction  := aTransaction;
                             if HasAlternativeChartCode (aClient.clFields.clCountry,aClient.clFields.clAccounting_System_Used ) then
                                dsAccount := aCLient.clChart.MatchAltCode(MemorisationLine.mlAccount)
@@ -804,13 +806,15 @@ begin
                           begin
                             PayeeLine := Payee.pdLines.PayeeLine_At(i);
 
-                            New( Dissection );
-                            FillChar( Dissection^, Dissection_Rec_Size, 0 );
-                            Dissection.dsBank_Account := aTransaction.txBank_Account;
+//                            New( Dissection );
+//                            FillChar( Dissection^, Dissection_Rec_Size, 0 );
+                            Dissection := New_Dissection_Rec;
+                            Dissection^.dsBank_Account := aTransaction.txBank_Account;
+                            Dissection^.dsDissection_Extension := New_Dissection_Extension_Rec;
                             With Dissection^ do
                             begin
-                               dsRecord_Type  := tkBegin_Dissection;
-                               dsEOR          := tkEnd_Dissection;
+//                               dsRecord_Type  := tkBegin_Dissection;
+//                               dsEOR          := tkEnd_Dissection;
                                dsTransaction  := aTransaction;
                                dsAccount      := PayeeLine.plAccount;
                                dsAmount       := PayeeSplit[i];
