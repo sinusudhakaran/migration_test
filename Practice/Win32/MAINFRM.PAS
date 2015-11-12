@@ -1672,18 +1672,11 @@ begin
          end;
 
 ///////// Start LeanEngage code
-       // DN - Change #89926 Remove the check for Support Staff but force to test API site
-         if ( AdminSystem.fdFields.fdBankLink_Code =
-                cLeanEngage_Support_Practice_Code ) // Make sure this is an MYOB IT Support Practice Code
-         then
-           cLeanEngageApp_Key := cLeanEngage_TestAPIKey; //Force it to go to the TestAPI
-       // DN - Change #89926 Remove the check for Support Staff but force to test API site
-
 (* DN - Change #89926 Remove the check for Support Staff
         if ( AdminSystem.fdFields.fdBankLink_Code <>
                 cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
          then begin DN - Change #89926 Remove the check for Support Staff *)
-         
+
          // Start the intialisation of this
            mniHelpProvideFeedback.Enabled := true; //User is notSupport and should be subscribed to LeanEngage
            if DebugMe then
@@ -3980,10 +3973,14 @@ var
 begin
   sIdentityID := '';
 // Setup the key for different environments
-    if INI_LeanEngage_System_Switch = cLeanEngage_TestSwitch then
+ // DN - Change #89926 Remove the check for Support Staff but force to test API site
+    if ( INI_LeanEngage_System_Switch = cLeanEngage_TestSwitch ) or
+    ( AdminSystem.fdFields.fdBankLink_Code =
+          cLeanEngage_Support_Practice_Code ) then // Make sure this is an MYOB IT Support Practice Code
       cLeanEngageApp_Key := cLeanEngage_TestAPIKey
     else
       cLeanEngageApp_Key := cLeanEngage_ProdAPIKey;
+
     sIdentityID := CurrUser.Code + AdminSystem.fdFields.fdPractice_Name_for_Reports;
   if not (StartupParam_Action in System_Actions) and
          ((CurrUser.Code <> 'BANKLNK5') and
