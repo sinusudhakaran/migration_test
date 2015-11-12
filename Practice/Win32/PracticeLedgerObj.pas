@@ -188,7 +188,7 @@ var
   end;
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   Inc(NoOfEntries );
   with MyClient.clFields, Bank_Account.baFields, Transaction^ do
@@ -288,7 +288,7 @@ begin
     end;
   end;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.BuildJournalData;
@@ -301,7 +301,7 @@ var
   DissRec: pDissection_Rec;
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   Inc(NoOfEntries );
   with MyClient.clFields,Bank_Account.baFields, Transaction^ do
@@ -358,7 +358,7 @@ begin
     FJournalsData.Sort();
 
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 
@@ -559,7 +559,7 @@ begin
   Result := False;
 
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   if not Assigned(AdminSystem) then
     Exit;
@@ -642,7 +642,7 @@ begin
     Result := True;
   finally
     if DebugMe then
-      LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+      LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
     Accounts.Clear;
     FreeAndNil(Accounts);
   end;
@@ -656,7 +656,7 @@ var
   i: Integer;
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   for i := 0 to Pred(Selected.Count) do
   begin
@@ -665,7 +665,7 @@ begin
         ((TypeOfTrans = ttJournals) and (BA.baFields.baAccount_Type in [btCashJournals, btAccrualJournals]))) then
     begin
       if DebugMe then
-        LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' bank account selected for extract: ' + BA.baFields.baBank_Account_Number);
+        LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' bank account selected for extract: ' + BA.baFields.baBank_Account_Number);
 
       if (TypeOfTrans = ttbank) then
       begin
@@ -684,7 +684,7 @@ begin
     end;
   end;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' end');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' end');
 end;
 
 procedure TPracticeLedger.RefreshChartFromPLAPI;
@@ -762,7 +762,7 @@ begin
   Result := True;
 
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   if Trim(aBatchRef) = '' then
     Exit;
@@ -809,7 +809,7 @@ begin
     FreeAndNil(Response);
   Result := True;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
@@ -835,7 +835,7 @@ var
   end;
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   if TypeOfTrans = ttbank then
   begin
@@ -892,7 +892,7 @@ begin
     end;
   end;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
@@ -907,7 +907,7 @@ const
 begin
   Result := False;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   try
     if TypeOfTrans = ttbank then
@@ -949,7 +949,7 @@ begin
     FreeAndNil(Response);
   Result := True;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
@@ -962,12 +962,12 @@ var
   BankAcToExport: TBankAccountData;
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' begins');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
   if ((TypeOfTrans = ttbank) and Assigned(FBankAcctsToExport)) then
   begin
     if DebugMe then
-      LogUtil.LogMsg(lmInfo, UnitName, ' Exporting bank transactions');
+      LogUtil.LogMsg(lmDebug, UnitName, ' Exporting bank transactions');
 
     for i := 0 to FBankAcctsToExport.Count - 1 do
     begin
@@ -985,8 +985,8 @@ begin
 
           if DebugMe then
           begin
-            LogUtil.LogMsg(lmInfo, UnitName, 'PL bank transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + BankAcToExport.BatchRef);
-            LogUtil.LogMsg(lmInfo, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
+            LogUtil.LogMsg(lmDebug, UnitName, 'PL bank transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + BankAcToExport.BatchRef);
+            LogUtil.LogMsg(lmDebug, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
           end;
 
           //send to api
@@ -1017,7 +1017,7 @@ begin
   begin
     FromIndex := 0;
     if DebugMe then
-      LogUtil.LogMsg(lmInfo, UnitName, ' Exporting journal transactions');
+      LogUtil.LogMsg(lmDebug, UnitName, ' Exporting journal transactions');
 
     for i := 1 to Ceil(FJournalsData.ItemCount/MAXENTRIES) do
     begin
@@ -1028,8 +1028,8 @@ begin
 
         if DebugMe then
         begin
-          LogUtil.LogMsg(lmInfo, UnitName, 'PL journal transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + FJournalsData.BatchRef);
-          LogUtil.LogMsg(lmInfo, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
+          LogUtil.LogMsg(lmDebug, UnitName, 'PL journal transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + FJournalsData.BatchRef);
+          LogUtil.LogMsg(lmDebug, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
         end;
 
         //send to api
@@ -1056,7 +1056,7 @@ begin
     end;
   end;
   if DebugMe then
-    LogUtil.LogMsg(lmInfo, UnitName, TheMethod + ' ends');
+    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 { PracticeLedgerThread }
