@@ -332,9 +332,9 @@ begin
 
       except
          on E : ERefreshFailed do begin
-            Msg := ( 'Error Refreshing Chart:');
+            Msg := ( 'Error refreshing chart:');
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-            HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True);
+            HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
             exit;
          end;
       end; {except}

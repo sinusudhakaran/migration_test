@@ -221,9 +221,9 @@ begin
        end;
     except
       on E : exception do begin
-        Msg := Format( 'Error Refreshing Chart %s.', [ChartFileName] );
+        Msg := Format( 'Error refreshing chart %s.', [ChartFileName] );
         LogUtil.LogMsg( lmError, UNIT_NAME, THIS_METHOD_NAME + ' : ' + Msg );
-        HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True);
+        HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
       end;
     end;
   end;  {with }

@@ -186,15 +186,15 @@ begin
 
       except
          on E : ERefreshFailed do begin
-            Msg := Format( 'Error Refreshing Chart %s.', [ TasBookFileName] );
+            Msg := Format( 'Error refreshing chart %s.', [ TasBookFileName] );
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-            HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True);
+            HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
             exit;
          end;
          on E : EInOutError do begin //Normally EExtractData but File I/O only
-            Msg := Format( 'Error Refreshing Chart %s.', [ TasBookFileName] );
+            Msg := Format( 'Error refreshing chart %s.', [ TasBookFileName] );
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-            HelpfulErrorMsg( Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True);
+            HelpfulErrorMsg( Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
             exit;
          end;
       end; {except}

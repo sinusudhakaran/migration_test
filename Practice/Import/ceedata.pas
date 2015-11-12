@@ -118,9 +118,9 @@ Begin { RefreshChart }
       Except 
          On E : EExtractData Do 
          Begin 
-            Msg := Format('Error Refreshing Chart %s.', [ChtFileName]);
+            Msg := Format('Error refreshing chart %s.', [ChtFileName]);
             LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg); 
-            HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True); 
+            HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True); 
             exit;
          End; 
       End;

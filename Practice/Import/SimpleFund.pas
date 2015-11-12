@@ -222,9 +222,9 @@ begin
       end;
     except
       on E : EInOutError do begin //Normally EExtractData but File I/O only
-          Msg := Format( 'Error Refreshing Chart %s.', [ChartFileName] );
+          Msg := Format( 'Error refreshing chart %s.', [ChartFileName] );
           LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-          HelpfulErrorMsg( Msg + #13'The existing chart has not been modified.'+#13, 0, False,  E.Message, True);
+          HelpfulErrorMsg( Msg + #13'The existing chart has not been modified.', 0, False,  E.Message, True);
           exit;
       end;
     end;
@@ -292,9 +292,9 @@ begin
   except
     on E : EInOutError do //Normally EExtractData but File I/O only
     begin
-      Msg := Format( 'Error Refreshing Chart %s.', [FilePath] );
+      Msg := Format( 'Error refreshing chart %s.', [FilePath] );
       LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-      HelpfulErrorMsg( Msg+#13'The existing chart has not been modified.'#13, 0, False, E.Message, True);
+      HelpfulErrorMsg( Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
       exit;
     end;
   end;
@@ -362,7 +362,7 @@ begin
       else begin
         Msg := 'Error Refreshing Chart the Service could not be reached, please try again later.';
         LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-        HelpfulErrorMsg( Msg + #13+#13+'The existing chart has not been modified.', 0 );
+        HelpfulErrorMsg( Msg + #13#13+'The existing chart has not been modified.', 0 );
       end;
 
   finally
