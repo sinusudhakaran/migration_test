@@ -267,15 +267,28 @@ var
       Write_Transaction_Rec(P1^, S);
       S.Position := 0;
       Read_Transaction_Rec(P2^, S);
-      P2^.txTransaction_Extension := P1^.txTransaction_Extension;
-      P2^.txBank_Account := P1^.txBank_Account;
-      P2^.txClient := P1^.txClient;
 
-      P2^.txFirst_Dissection := P1^.txFirst_Dissection;
-      P2^.txLast_Dissection := P1^.txLast_Dissection;
-      P2^.txNext_Transaction := P1^.txNext_Transaction;
-      P2^.txNext_Transaction_By_Type := P1^.txNext_Transaction_By_Type;
-      P2^.txMatched_By := P1^.txMatched_By;
+      P2^.txBank_Seq                  := P1^.txBank_Seq;
+      P2^.txFirst_Dissection          := P1^.txFirst_Dissection;
+      P2^.txLast_Dissection           := P1^.txLast_Dissection;
+      P2^.txNext_Transaction          := P1^.txNext_Transaction;
+      P2^.txNext_Transaction_By_Type  := P1^.txNext_Transaction_By_Type;
+      P2^.txMatched_By                := P1^.txMatched_By;
+      P2^.txMatched_In_Resync         := P1^.txMatched_In_Resync;
+      P2^.txTemp_Admin_LRN            := P1^.txTemp_Admin_LRN;
+      P2^.txUPC_Status                := P1^.txUPC_Status;
+      P2^.txTemp_Balance              := P1^.txTemp_Balance;
+      P2^.txTemp_Tag                  := P1^.txTemp_Tag;
+      P2^.txDate_Change               := P1^.txDate_Change;
+      P2^.txBank_Account              := P1^.txBank_Account;
+      P2^.txClient                    := P1^.txClient;
+      P2^.txTemp_Forex_Rate           := P1^.txTemp_Forex_Rate;
+      P2^.txTemp_Base_Amount          := P1^.txTemp_Base_Amount;
+      P2^.txTemp_Prov_Entered_By      := P1^.txTemp_Prov_Entered_By;
+      P2^.txTemp_Prov_Date_Time       := P1^.txTemp_Prov_Date_Time;
+      P2^.txSuggested_Manual_Count    := P1^.txSuggested_Manual_Count;
+      P2^.txTransaction_Extension     := P1^.txTransaction_Extension;
+
     finally
       S.Free;
     end;
