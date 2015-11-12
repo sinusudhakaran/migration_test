@@ -688,18 +688,19 @@ begin
             ( mNon_Cash_CGT_Other <> 0) or
             ( mNon_Cash_CGT_Capital_Losses <> 0) or
             ( mShareBrokerage <> 0) or
-            ( mShareConsideration <> 0) or
+//            ( mShareConsideration <> 0) or
+            ShareConsiderationModified or
             ( mShareGSTAmount <> 0) or
             ( dCGTDate <> 0) or
             ( mComponent <> 0) or
-            ( mUnits <> 0) or
-            ( mAccount <>  '' ) or
+//            ( mUnits <> 0) or
+//            ( mAccount <>  '' ) or
             ( mShareGSTRate <> '' ) or
-            ( dCash_Date <> 0) or
-            ( dAccrual_Date <> 0) or
-            ( dRecord_Date <> 0 ) or
-            ( dContract_Date <> 0 ) or
-            ( dSettlement_Date <> 0 );
+            ( dCash_Date <> -1) or              // Dates reset to -1
+            ( dAccrual_Date <> -1) or           // Dates reset to -1
+            ( dRecord_Date <> -1 ) or           // Dates reset to -1
+            ( dContract_Date <> -1 ) or         // Dates reset to -1
+            ( dSettlement_Date <> -1 );         // Dates reset to -1
 end;
 
 
@@ -1099,7 +1100,8 @@ end;
 procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
 begin
   SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', 0, 0, 0, 0, 0 );
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nfUnits.AsFloat * 10000,
+    edtAccount.Text, '', 0, 0, 0, 0, 0 );
 
   UnfrankedModified := False;
   ShareConsiderationModified := false;
