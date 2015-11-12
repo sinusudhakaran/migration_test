@@ -773,6 +773,8 @@ begin
     aJson.Add('tax_rate', TaxRate);
     aJson.Add('tax_amount', abs(TaxAmount) );
     aJson.Add('is_credit', IsCredit);
+    aJson.Add('quantity', Quantity);
+    //aJson.Add('payee_number', PayeeNumber);
   end
   else
   begin
@@ -993,6 +995,8 @@ begin
     aJson.Add('amount', (Amount-TaxAmount));
     aJson.Add('tax_rate', TaxRate);
     aJson.Add('tax_amount', TaxAmount);
+    aJson.Add('quantity', Quantity);
+    //aJson.Add('payee_number', PayeeNumber);
   end
   else
   begin
@@ -1116,6 +1120,8 @@ begin
 
     if CoreTransactionId <> '' then
       aJson.Add('core_transaction_id', CoreTransactionId);
+    aJson.Add('quantity', Quantity);
+    //aJson.Add('payee_number', PayeeNumber);
 
     Allocations.Write(aJson, Amount, True);
   end
