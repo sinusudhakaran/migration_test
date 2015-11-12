@@ -99,7 +99,7 @@ Begin
                                     snSolution6CLS3, snSolution6CLS4,
                                     snSolution6MAS41, snSolution6MAS42,
                                     snSolution6CLSY2K,
-                                    snCaseWare, snBK5CSV, snAcclipse
+                                    snCaseWare, snBK5CSV, snAcclipse, snMYOBOnlineLedger
                                      ];
                                      
       whAustralia    :  ContraCodeRequired :=
@@ -110,7 +110,7 @@ Begin
                                     saSolution6CLSY2K, saMGL,
                                     saComparto, saCatSoft,
                                     saMYOBAccountantsOffice, saMYOB_AO_COM,
-                                    saXlon, saBK5CSV, saAcclipse
+                                    saXlon, saBK5CSV, saAcclipse, saMYOBOnlineLedger
                                   ];
    end;
 end;
