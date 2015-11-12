@@ -351,7 +351,7 @@ begin
          
       except
          on E : ERefreshFailed do begin
-            Msg := ( 'Error refreshing chart: ');
+            Msg := Format( 'Error refreshing chart %s.', [ QBWFileName] );
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
             HelpfulErrorMsg(Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
             exit;
