@@ -71,6 +71,7 @@ type
     SuperTotalNon_Cash_CGT_Indexation              : Money;
     SuperTotalNon_Cash_CGT_Other_Method            : Money;
     SuperTotalNon_Cash_CGT_Capital_Losses          : Money;
+    SuperTotalShare_Consideration                  : Money;
     SuperTotalShare_Brokerage                      : Money;
     SuperTotalShare_GST_Amount                     : Money;
 
@@ -1741,6 +1742,7 @@ begin
     Mgr.SuperTotalNon_Cash_CGT_Indexation          := Mgr.SuperTotalNon_Cash_CGT_Indexation + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation;
     Mgr.SuperTotalNon_Cash_CGT_Other_Method        := Mgr.SuperTotalNon_Cash_CGT_Other_Method + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method;
     Mgr.SuperTotalNon_Cash_CGT_Capital_Losses      := Mgr.SuperTotalNon_Cash_CGT_Capital_Losses + TranRec.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses;
+    Mgr.SuperTotalShare_Consideration              := Mgr.SuperTotalShare_Consideration + TranRec.txTransaction_Extension^.teSF_Share_Consideration;
     Mgr.SuperTotalShare_Brokerage                  := Mgr.SuperTotalShare_Brokerage + TranRec.txTransaction_Extension^.teSF_Share_Brokerage;
     Mgr.SuperTotalShare_GST_Amount                 := Mgr.SuperTotalShare_GST_Amount + TranRec.txTransaction_Extension^.teSF_Share_GST_Amount;
   end;
@@ -1975,6 +1977,7 @@ begin
     Mgr.SuperTotalNon_Cash_CGT_Indexation          := Mgr.SuperTotalNon_Cash_CGT_Indexation + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Indexation;
     Mgr.SuperTotalNon_Cash_CGT_Other_Method        := Mgr.SuperTotalNon_Cash_CGT_Other_Method + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method;
     Mgr.SuperTotalNon_Cash_CGT_Capital_Losses      := Mgr.SuperTotalNon_Cash_CGT_Capital_Losses + DissRec.dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses;
+    Mgr.SuperTotalShare_Consideration              := Mgr.SuperTotalShare_Consideration + DissRec.dsDissection_Extension^.deSF_Share_Consideration;
     Mgr.SuperTotalShare_Brokerage                  := Mgr.SuperTotalShare_Brokerage + DissRec.dsDissection_Extension^.deSF_Share_Brokerage;
     Mgr.SuperTotalShare_GST_Amount                 := Mgr.SuperTotalShare_GST_Amount + DissRec.dsDissection_Extension^.deSF_Share_GST_Amount;
   end;

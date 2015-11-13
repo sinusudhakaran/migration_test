@@ -1017,7 +1017,52 @@ begin
         end;
       end
       else
-        FBkReport.PutString('');
+        if (aReportColumnItem.DataUnit = BKTE) then begin // Transaction Extension Record
+          case aReportColumnItem.DataToken of
+            tkteSF_Other_Income                            :
+              PutSuperMoney(TravMgr.SuperTotalOther_Income);
+            tkteSF_Other_Trust_Deductions                  :
+              PutSuperMoney(TravMgr.SuperTotalOther_Trust_Deductions);
+            tkteSF_CGT_Concession_Amount                   :
+              PutSuperMoney(TravMgr.SuperTotalCGT_Concession_Amount);
+            tkteSF_CGT_ForeignCGT_Before_Disc              :
+              PutSuperMoney(TravMgr.SuperTotalCGT_ForeignCGT_Before_Disc);
+            tkteSF_CGT_ForeignCGT_Indexation               :
+              PutSuperMoney(TravMgr.SuperTotalCGT_ForeignCGT_Indexation);
+            tkteSF_CGT_ForeignCGT_Other_Method             :
+              PutSuperMoney(TravMgr.SuperTotalCGT_ForeignCGT_Other_Method);
+            tkteSF_CGT_TaxPaid_Indexation                  :
+              PutSuperMoney(TravMgr.SuperTotalCGT_TaxPaid_Indexation);
+            tkteSF_CGT_TaxPaid_Other_Method                :
+              PutSuperMoney(TravMgr.SuperTotalCGT_TaxPaid_Other_Method);
+            tkteSF_Other_Net_Foreign_Income                :
+              PutSuperMoney(TravMgr.SuperTotalOther_Net_Foreign_Income);
+            tkteSF_Cash_Distribution                       :
+              PutSuperMoney(TravMgr.SuperTotalCash_Distribution);
+            tkteSF_AU_Franking_Credits_NZ_Co               :
+              PutSuperMoney(TravMgr.SuperTotalAU_Franking_Credits_NZ_Co);
+            tkteSF_Non_Res_Witholding_Tax                  :
+              PutSuperMoney(TravMgr.SuperTotalNon_Res_Witholding_Tax);
+            tkteSF_LIC_Deductions                          :
+              PutSuperMoney(TravMgr.SuperTotalLIC_Deductions);
+            tkteSF_Non_Cash_CGT_Discounted_Before_Discount :
+              PutSuperMoney(TravMgr.SuperTotalNon_Cash_CGT_Discounted_Before_Discount);
+            tkteSF_Non_Cash_CGT_Indexation                 :
+              PutSuperMoney(TravMgr.SuperTotalNon_Cash_CGT_Indexation);
+            tkteSF_Non_Cash_CGT_Other_Method               :
+              PutSuperMoney(TravMgr.SuperTotalNon_Cash_CGT_Other_Method);
+            tkteSF_Non_Cash_CGT_Capital_Losses             :
+              PutSuperMoney(TravMgr.SuperTotalNon_Cash_CGT_Capital_Losses);
+            tkteSF_Share_Brokerage                         :
+              PutSuperMoney(TravMgr.SuperTotalShare_Brokerage);
+            tkteSF_Share_Consideration                        :
+              PutSuperMoney(TravMgr.SuperTotalShare_Consideration);
+            tkteSF_Share_GST_Amount                        :
+              PutSuperMoney(TravMgr.SuperTotalShare_GST_Amount);
+          end;
+        end
+        else
+          FBkReport.PutString('');
 end;
 
 procedure TLedgerReportColumnList.OutputTransaction(
