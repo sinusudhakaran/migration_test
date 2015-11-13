@@ -136,8 +136,8 @@ end;
 
 procedure GetFirmsAndBusinesses(aIsLoadBusiness:Boolean);
 begin
-  PracticeLedgerThread := TPracticeLedgerThread.CreateThread(False,aIsLoadBusiness);
-  Application.ProcessMessages;
+  //PracticeLedgerThread := TPracticeLedgerThread.CreateThread(False,aIsLoadBusiness);
+  //Application.ProcessMessages;
 end;
 { TPracticeLedger }
 
@@ -766,50 +766,53 @@ begin
 
   if Trim(aBatchRef) = '' then
     Exit;
-
-  RequestJson :=  TlkJSONobject.Create();
   try
-    RequestJson.Add('batch_ref', aBatchRef);
-    if TypeOfTrans = ttbank then
-    begin
-      sURL := Format(PRACINI_CashbookAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
-      FDataRequestType := drtRollback;
-    end
-    else
-    begin
-      sURL := Format(PRACINI_CashbookAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
-      FDataRequestType := drtRollback;
+    RequestJson :=  TlkJSONobject.Create();
+    try
+      RequestJson.Add('batch_ref', aBatchRef);
+      if TypeOfTrans = ttbank then
+      begin
+        sURL := Format(PRACINI_CashbookAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+        FDataRequestType := drtRollback;
+      end
+      else
+      begin
+        sURL := Format(PRACINI_CashbookAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+        FDataRequestType := drtRollback;
+      end;
+
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestJson));
+
+      if not DoDeleteSecureJson(sURL, RequestJson,RespStr, aError) then
+        Exit;
+
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+      if Assigned(FDataResponse) then
+      begin
+        Response := FDataResponse as TlkJSONObject;
+        aRespStr := TlkJSON.GenerateText(Response);
+      end;
+    except
+      on E: Exception do
+      begin
+        aError := 'Exception running PracticeLedger.RollbackBatch, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
     end;
-
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestJson));
-
-    if not DoDeleteSecureJson(sURL, RequestJson,RespStr, aError) then
-      Exit;
-
-    //Wait til data gets transferred completely
-    while (FDataTransferStarted) do
-      ;
-
-    aError := FDataError;
+    Result := True;
+  finally
     if Assigned(FDataResponse) then
-    begin
-      Response := FDataResponse as TlkJSONObject;
-      aRespStr := TlkJSON.GenerateText(Response);
-    end;
-  except
-    on E: Exception do
-    begin
-      aError := 'Exception running PracticeLedger.RollbackBatch, Error Message : ' + E.Message;
-      LogUtil.LogMsg(lmError, UnitName, aError);
-      Exit;
-    end;
+      FreeAndNil(FDataResponse);
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
+
   end;
-  if Assigned(Response) then
-    FreeAndNil(Response);
-  Result := True;
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
 
 procedure TPracticeLedger.SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
@@ -908,48 +911,55 @@ begin
   Result := False;
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
-
+  Response := nil;
   try
-    if TypeOfTrans = ttbank then
-    begin
-      sURL := Format(PRACINI_CashbookAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
-      FDataRequestType := drtTransactions;
-    end
-    else
-    begin
-      sURL := Format(PRACINI_CashbookAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
-      FDataRequestType := drtJournals;
+    try
+      if TypeOfTrans = ttbank then
+      begin
+        sURL := Format(PRACINI_CashbookAPITransactionsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+        FDataRequestType := drtTransactions;
+      end
+      else
+      begin
+        sURL := Format(PRACINI_CashbookAPIJournalsURL, [MyClient.clExtra.cemyMYOBClientIDSelected]);
+        FDataRequestType := drtJournals;
+      end;
+
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestData));
+
+      if not DoHttpSecureJson(sURL, RequestData, RespStr, aError) then
+        Exit;
+
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aError := FDataError;
+      if Assigned(FDataResponse) then
+      begin
+        Response := FDataResponse as TlkJSONObject; // This is like a create , so destroy at the end
+        aRespStr := TlkJSON.GenerateText(Response);
+        Result := True;
+      end
+      else if Trim(FDataError) = '' then
+        FDataError := 'Error in exporting data to MYOB Ledger';
+
+    except
+      on E: Exception do
+      begin
+        aError := 'Exception running PracticeLedger.UploadToAPI, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aError);
+        Exit;
+      end;
     end;
-
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestData));
-
-    if not DoHttpSecureJson(sURL, RequestData, RespStr, aError) then
-      Exit;
-
-    //Wait til data gets transferred completely
-    while (FDataTransferStarted) do
-      ;
-
-    aError := FDataError;
+  finally
     if Assigned(FDataResponse) then
-    begin
-      Response := FDataResponse as TlkJSONObject; // This is like a create , so destroy at the end
-      aRespStr := TlkJSON.GenerateText(Response);
-    end;
-  except
-    on E: Exception do
-    begin
-      aError := 'Exception running PracticeLedger.UploadToAPI, Error Message : ' + E.Message;
-      LogUtil.LogMsg(lmError, UnitName, aError);
-      Exit;
-    end;
+      FreeAndNil(FDataResponse);
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
   end;
-  if Assigned(Response) then
-    FreeAndNil(Response);
-  Result := True;
-  if DebugMe then
-    LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
+
 end;
 
 procedure TPracticeLedger.UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
