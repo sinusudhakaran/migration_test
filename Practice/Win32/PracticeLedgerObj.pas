@@ -123,6 +123,10 @@ begin
           UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
           UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
           WriteUsersINI(CurrUser.Code);
+          PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
+          PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+          PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+          
         end
         else
         begin
