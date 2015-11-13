@@ -1536,6 +1536,8 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     lblRecordDate.Left    := 510;
     case Value of
       ttDistribution, ttDividend : begin
+        SetFields( [ lblContractDate, eContractDate,
+          lblSettlementDate, eSettlementDate ], false );
         SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
           lblRecordDate, eRecordDate ], true );
         case Value of
