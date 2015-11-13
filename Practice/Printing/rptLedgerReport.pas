@@ -3502,6 +3502,27 @@ begin
   SuperTotalOther_Tax_Credit              := 0;
   SuperTotalNon_Resident_Tax              := 0;
   SuperTotalForeign_Capital_Gains_Credit  := 0;
+
+  SuperTotalOther_Income                         := 0;
+  SuperTotalOther_Trust_Deductions               := 0;
+  SuperTotalCGT_Concession_Amount                := 0;
+  SuperTotalCGT_ForeignCGT_Before_Disc           := 0;
+  SuperTotalCGT_ForeignCGT_Indexation            := 0;
+  SuperTotalCGT_ForeignCGT_Other_Method          := 0;
+  SuperTotalCGT_TaxPaid_Indexation               := 0;
+  SuperTotalCGT_TaxPaid_Other_Method             := 0;
+  SuperTotalOther_Net_Foreign_Income             := 0;
+  SuperTotalCash_Distribution                    := 0;
+  SuperTotalAU_Franking_Credits_NZ_Co            := 0;
+  SuperTotalNon_Res_Witholding_Tax               := 0;
+  SuperTotalLIC_Deductions                       := 0;
+  SuperTotalNon_Cash_CGT_Discounted_Before_Discount := 0;
+  SuperTotalNon_Cash_CGT_Indexation              := 0;
+  SuperTotalNon_Cash_CGT_Other_Method            := 0;
+  SuperTotalNon_Cash_CGT_Capital_Losses          := 0;
+  SuperTotalShare_Consideration                  := 0;
+  SuperTotalShare_Brokerage                      := 0;
+  SuperTotalShare_GST_Amount                     := 0;
 end;
 
 end.
