@@ -1277,9 +1277,9 @@ begin
     else if TransType = ttShareTrade then
       AddShareTradetEntities();
 
-    inc(NoOfEntries);
   end;
 
+  inc(NoOfEntries);
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
@@ -1458,8 +1458,6 @@ begin
       AddInterestEntities(True)
     else if TransType = ttShareTrade then
       AddShareTradetEntities(True);
-
-    inc(NoOfEntries);
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
