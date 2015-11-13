@@ -688,8 +688,8 @@ begin
             ( mNon_Cash_CGT_Other <> 0) or
             ( mNon_Cash_CGT_Capital_Losses <> 0) or
             ( mShareBrokerage <> 0) or
-//            ( mShareConsideration <> 0) or
-            ShareConsiderationModified or
+            ( ( mShareConsideration <> 0) and ( TransactionType = ttShareTrade ) ) or
+//            ShareConsiderationModified or
             ( mShareGSTAmount <> 0) or
             ( dCGTDate <> 0) or
             ( mComponent <> 0) or
@@ -1550,7 +1550,7 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
             Configure_Dividend;
           end;
         end;
-      end;  
+      end;
       ttInterest     : begin
         SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
           lblRecordDate, eRecordDate, lblContractDate, eContractDate,

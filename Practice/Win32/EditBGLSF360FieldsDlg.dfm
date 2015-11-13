@@ -753,6 +753,10 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
       object tsAustralianIncome: TTabSheet
         Caption = 'Australian Income'
         ImageIndex = -1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object lblLessOtherAllowableTrustDeductions: TLabel
           Left = 6
           Top = 163
@@ -2422,7 +2426,7 @@ object dlgEditBGLSF360Fields: TdlgEditBGLSF360Fields
     Left = 672
     Top = 8
     Bitmap = {
-      494C010105001800400010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010105001800440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
