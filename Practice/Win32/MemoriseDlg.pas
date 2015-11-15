@@ -372,6 +372,7 @@ type
     ffrmSpinner : TfrmSpinner;
     FIssueHint : THintWindow;
     fAllowRefreshTran : boolean;
+    fCopied : boolean;
 
     function GetCellRect(const RowNum, ColNum: Integer): TRect;
 
@@ -438,6 +439,7 @@ type
 
     procedure SetAccount(aAccount : TBank_Account);
   public
+    procedure FillData(aMem : TMemorisation);
     procedure FillSplitData(aMem : TMemorisation);
     procedure SaveToMemRec(var pM : TMemorisation; pT : pTransaction_Rec; IsMaster: Boolean; var aNunOfSplitLines : integer; ATempMem: boolean = false);
 
@@ -447,6 +449,7 @@ type
     property CalledFromRecommendedMems: boolean read fCalledFromRecommendedMems write fCalledFromRecommendedMems;
 
     property BankAccount : TBank_Account read fBankAccount write SetAccount;
+    property Copied : boolean read fCopied write fCopied;
   end;
 
   //----------------------------------------------------------------------------
@@ -3093,8 +3096,12 @@ begin
 
          SourceTransaction := Tr;
 
-         if Assigned(pM) then
+         Copied := Assigned(pM);
+         if Copied then
+         begin
+           FillData(pM);
            FillSplitData(pM);
+         end;
 
          if pM.mdFields.mdFrom_Master_List then
            DlgEditMode := demMasterCreate;
@@ -3290,115 +3297,16 @@ begin
 
        LocaliseForm;
 
-       with pM do begin
-          cmbType.Text := inttostr(mdFields.mdType) + ':' + MyClient.clFields.clShort_Name[mdFields.mdType];
-          //set edit boxes
-          eRef.Text              := mdFields.mdReference;
-          case MyClient.clFields.clCountry of
-             whNewZealand : begin
-                eCode.Text             := mdFields.mdAnalysis;
-                eStatementDetails.Text := StringReplace(mdFields.mdStatement_Details, '&&', '&', [rfReplaceAll]);
-                ePart.Text             := mdFields.mdParticulars;
-                eOther.Text            := mdFields.mdOther_Party;
-             end;
-             whAustralia, whUK : begin
-                eCode.Text             := mdFields.mdParticulars;
-                eStatementDetails.Text := StringReplace(mdFields.mdStatement_Details, '&&', '&', [rfReplaceAll]);
-                ePart.Text             := '';
-                eOther.Text            := '';
-             end;
-          end;
+       Loading := true;
 
-          if mdFields.mdFrom_Date > 0 then begin
-             cbFrom.Checked := True;
-             EdateFrom.AsStDate :=  BKNull2St(mdFields.mdFrom_Date);
-          end else
-             EdateFrom.AsStDate := -1;
+       FillData(pM);
 
-          if mdFields.mdUntil_Date > 0 then begin
-             cbTo.Checked := True;
-             EdateTo.AsStDate :=  BKNull2St(mdFields.mdUntil_Date);
-          end else
-             EdateTo.AsStDate := -1;
+       UpdateControls();
 
-          eNotes.Text     := mdFields.mdNOtes;
-          //set amount and combo
-          AmountToMatch   := mdFields.mdAmount;
-          if AmountToMatch < 0 then
-          begin
-            AmountMultiplier := -1;
-            cbMinus.ItemIndex := 0;
-          end
-          else
-          begin
-            AmountMultiplier := 1;
-            cbMinus.ItemIndex := 1;
-          end;
-          nValue.AsFloat  := Money2Double( AmountToMatch) * AmountMultiplier;
-          //set check boxes, set loading so click events dont fire
-          Loading := true;
-
-          cRef.Checked    := mdFields.mdMatch_on_Refce;
-          case MyClient.clFields.clCountry of
-             whNewZealand : begin
-                cCode.Checked  := mdFields.mdMatch_on_Analysis;
-                chkStatementDetails.Checked := mdFields.mdMatch_On_Statement_Details;
-                cPart.Checked  := mdFields.mdMatch_on_Particulars;
-                cOther.Checked := mdFields.mdMatch_on_Other_Party;
-             end;
-             whAustralia, whUK : begin
-                cCode.Checked  := mdFields.mdMatch_on_Particulars;
-                chkStatementDetails.Checked := mdFields.mdMatch_On_Statement_Details;
-                cPart.Checked  := false;
-                cOther.Checked := false;
-             end;
-          end;
-
-          cNotes.Checked  := mdFields.mdMatch_on_Notes;
-
-          cValue.Checked  := mdFields.mdMatch_on_Amount <> mxNo;
-          AmountMatchType := mdFields.mdMatch_on_Amount;
-          if AmountMultiplier = -1 then
-          begin
-            //need to reverse the match type because real value is -ve
-            case AmountMatchType of
-              mxAmtGreaterThan    : AmountMatchType := mxAmtLessThan;
-              mxAmtGreaterOrEqual : AmountMatchType := mxAmtLessOrEqual;
-              mxAmtLessThan       : AmountMatchType := mxAmtGreaterThan;
-              mxAmtLessOrEqual    : AmountMatchType := mxAmtGreaterOrEqual;
-            end;
-          end;
-          SetComboIndexByIntObject( AmountMatchType, cmbValue);
-
-          if mdFields.mdUse_Accounting_System then
-          begin
-
-             chkAccountSystem.Checked := True;
-             if not assigned(adminSystem) then
-             begin
-                // Better have something...
-                // Can be Au only
-                cbAccounting.items.Clear;
-                with MyClient.clFields do for i := saMin to saMax do begin
-                   if ((not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used)) then
-                      cbAccounting.items.AddObject(saNames[i], TObject( i ) );
-                end;
-             end;
-             AccountingSystem := mdFields.mdAccounting_System;
-
-             // Better see them...
-             chkAccountSystem.Visible := True;
-             cbAccounting.Visible := True;
-          end else begin
-             chkAccountSystem.Checked := False;
-             AccountingSystem := MyClient.clFields.clAccounting_System_Used;
-          end;
-          UpdateControls();
-
-          Loading := false;
+       Loading := false;
           //fill detail
-          FillSplitData(pM);
-       end;
+       FillSplitData(pM);
+
        //Show Total Line
        UpdateTotal;
 
@@ -3417,7 +3325,7 @@ begin
 
        //**********************
        FormResult := ShowModal();
-       
+
        case FormResult of
          mrok :
          begin
@@ -3793,6 +3701,7 @@ begin
   AutoSize(chkAccountSystem);
 
   if (not (eStatementDetails.Text = '')) and
+    (not fCopied) and
     (DlgEditMode in ALL_CREATE) then
     chkStatementDetails.checked := true;
 
@@ -4326,6 +4235,125 @@ begin
     Self.CompleteAmount;
     if Col > -1 then
       ActiveCol := Col;
+  end;
+end;
+
+procedure TdlgMemorise.FillData(aMem: TMemorisation);
+var
+  AmountMatchType : byte;
+  I : integer;
+begin
+  cmbType.Text := inttostr(aMem.mdFields.mdType) + ':' + MyClient.clFields.clShort_Name[aMem.mdFields.mdType];
+  eRef.Text := aMem.mdFields.mdReference;
+
+  case MyClient.clFields.clCountry of
+    whNewZealand : begin
+      eCode.Text             := aMem.mdFields.mdAnalysis;
+      eStatementDetails.Text := StringReplace(aMem.mdFields.mdStatement_Details, '&&', '&', [rfReplaceAll]);
+      ePart.Text             := aMem.mdFields.mdParticulars;
+      eOther.Text            := aMem.mdFields.mdOther_Party;
+    end;
+    whAustralia, whUK : begin
+      eCode.Text             := aMem.mdFields.mdParticulars;
+      eStatementDetails.Text := StringReplace(aMem.mdFields.mdStatement_Details, '&&', '&', [rfReplaceAll]);
+      ePart.Text             := '';
+      eOther.Text            := '';
+    end;
+  end;
+
+  if aMem.mdFields.mdFrom_Date > 0 then
+  begin
+    cbFrom.Checked := True;
+    EdateFrom.AsStDate :=  BKNull2St(aMem.mdFields.mdFrom_Date);
+  end
+  else
+    EdateFrom.AsStDate := -1;
+
+  if aMem.mdFields.mdUntil_Date > 0 then
+  begin
+    cbTo.Checked := True;
+    EdateTo.AsStDate :=  BKNull2St(aMem.mdFields.mdUntil_Date);
+  end
+  else
+    EdateTo.AsStDate := -1;
+
+  eNotes.Text := aMem.mdFields.mdNOtes;
+  //set amount and combo
+  AmountToMatch := aMem.mdFields.mdAmount;
+
+  if AmountToMatch < 0 then
+  begin
+    AmountMultiplier := -1;
+    cbMinus.ItemIndex := 0;
+  end
+  else
+  begin
+    AmountMultiplier := 1;
+    cbMinus.ItemIndex := 1;
+  end;
+
+  nValue.AsFloat := Money2Double( AmountToMatch) * AmountMultiplier;
+  //set check boxes, set loading so click events dont fire
+  Loading := true;
+
+  cRef.Checked := aMem.mdFields.mdMatch_on_Refce;
+  case MyClient.clFields.clCountry of
+    whNewZealand : begin
+      cCode.Checked  := aMem.mdFields.mdMatch_on_Analysis;
+      chkStatementDetails.Checked := aMem.mdFields.mdMatch_On_Statement_Details;
+      cPart.Checked  := aMem.mdFields.mdMatch_on_Particulars;
+      cOther.Checked := aMem.mdFields.mdMatch_on_Other_Party;
+    end;
+    whAustralia, whUK : begin
+      cCode.Checked  := aMem.mdFields.mdMatch_on_Particulars;
+      chkStatementDetails.Checked := aMem.mdFields.mdMatch_On_Statement_Details;
+      cPart.Checked  := false;
+      cOther.Checked := false;
+    end;
+  end;
+
+  cNotes.Checked  := aMem.mdFields.mdMatch_on_Notes;
+
+  cValue.Checked  := aMem.mdFields.mdMatch_on_Amount <> mxNo;
+  AmountMatchType := aMem.mdFields.mdMatch_on_Amount;
+  if AmountMultiplier = -1 then
+  begin
+    //need to reverse the match type because real value is -ve
+    case AmountMatchType of
+      mxAmtGreaterThan    : AmountMatchType := mxAmtLessThan;
+      mxAmtGreaterOrEqual : AmountMatchType := mxAmtLessOrEqual;
+      mxAmtLessThan       : AmountMatchType := mxAmtGreaterThan;
+      mxAmtLessOrEqual    : AmountMatchType := mxAmtGreaterOrEqual;
+    end;
+  end;
+  SetComboIndexByIntObject( AmountMatchType, cmbValue);
+
+  if aMem.mdFields.mdUse_Accounting_System then
+  begin
+    chkAccountSystem.Checked := True;
+    if not assigned(adminSystem) then
+    begin
+      // Better have something...
+      // Can be Au only
+      cbAccounting.items.Clear;
+
+      for i := saMin to saMax do
+      begin
+        if ((not Software.ExcludeFromAccSysList(MyClient.clFields.clCountry, i)) or
+           ( i = MyClient.clFields.claccounting_system_used)) then
+          cbAccounting.items.AddObject(saNames[i], TObject( i ) );
+      end;
+    end;
+    AccountingSystem := aMem.mdFields.mdAccounting_System;
+
+    // Better see them...
+    chkAccountSystem.Visible := True;
+    cbAccounting.Visible := True;
+  end
+  else
+  begin
+    chkAccountSystem.Checked := False;
+    AccountingSystem := MyClient.clFields.clAccounting_System_Used;
   end;
 end;
 
