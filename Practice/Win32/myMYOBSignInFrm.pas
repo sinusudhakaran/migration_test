@@ -129,6 +129,8 @@ begin
     if CurrUser.MYOBEmailAddress <> Trim(edtEmail.Text) then
     begin
       SaveUser;
+      PracticeLedger.Firms.Clear;
+      PracticeLedger.Businesses.Clear;
     end;
 
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;

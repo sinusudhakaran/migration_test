@@ -2161,7 +2161,7 @@ begin
       ltPracticeLedger : LicenseTypeStr := 'PL';
     end;
     if (not Business.Visibility) or
-       ((Trim(aFirmID) <> '') and (Business.FirmID <> aFirmID) and (Pos(LicenseTypeStr,Business.LicenseCode) <= 0)) then
+       ((Trim(aFirmID) = '') or (Business.FirmID <> aFirmID) or (Pos(LicenseTypeStr,Business.LicenseCode) <= 0)) then
       FreeAndNil(Business)
     else
       Add(Business);
