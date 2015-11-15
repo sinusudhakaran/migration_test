@@ -106,7 +106,12 @@ begin
       (Trim(UserINI_myMYOB_Random_Key) <> '')) then
   begin
     if ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now + 1/180))) then
-      Result := True
+    begin
+      Result := True;
+      PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
+      PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
+      PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+    end
     else if (Trim(UserINI_myMYOB_Refresh_Token) <> '') then
     begin
       //Use refresh token to get access token
