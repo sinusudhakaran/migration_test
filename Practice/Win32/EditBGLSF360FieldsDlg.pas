@@ -276,7 +276,8 @@ type
                          dAccrual_Date,
                          dRecord_Date,
                          dContract_Date,
-                         dSettlement_Date : integer
+                         dSettlement_Date : integer;
+                         CallSetTransaction : boolean = true
                          );
 
     procedure SetInfo(iDate : integer; sNarration: string; mAmount : Money);
@@ -795,7 +796,8 @@ procedure TdlgEditBGLSF360Fields.SetFields(
             dAccrual_Date,
             dRecord_Date,
             dContract_Date,
-            dSettlement_Date : integer
+            dSettlement_Date : integer;
+            CallSetTransaction : boolean = true
             );
 
 begin
@@ -914,7 +916,7 @@ begin
     SetNumericValue(fmeDividend_ForeignIncome_Tax.nfLICDeductions,                  mLICDeductions, RevenuePercentage);
   end;
 
-  TranAccount := mAccount;
+//  TranAccount := mAccount;
 
   edtAccount.Text := mAccount;
   edtAccount.Hint := MyClient.clChart.FindDesc( mAccount );
@@ -951,7 +953,10 @@ begin
 
   nfUnits.AsFloat := mUnits / 10000;
 
-  TranAccount := mAccount;
+  fTranAccount := mAccount; //Instead of setting the property (and forcing the write method) rather just set the variable;
+  if CallSetTransaction then // If CallSetTransaction is set then call the write method
+    SetTranAccount( fTranAccount );
+
 //DN Redundant Code  RefreshChartCodeCombo();
 //DN Redundant Code  FCurrentAccountIndex := cmbxAccount.ItemIndex;
 
@@ -1101,7 +1106,7 @@ procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
 begin
   SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nfUnits.AsFloat * 10000,
-    edtAccount.Text, '', 0, 0, 0, 0, 0 );
+    edtAccount.Text, '', 0, 0, 0, 0, 0, false );
 
   UnfrankedModified := False;
   ShareConsiderationModified := false;
