@@ -105,7 +105,7 @@ begin
   if ((Trim(UserINI_myMYOB_Access_Token) <> '') and
       (Trim(UserINI_myMYOB_Random_Key) <> '')) then
   begin
-    if ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now + 1/180))) then
+    if ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now))) then
     begin
       Result := True;
       PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
@@ -119,10 +119,14 @@ begin
       begin
         PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
         PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
+
+        if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+          Exit;
+
         if PracticeLedger.RefreshTheToken(sError, InvalidPass) then
         begin
           Result := True;
-          
+
           UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
           UserINI_myMYOB_Random_Key := PracticeLedger.RandomKey;
           UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;

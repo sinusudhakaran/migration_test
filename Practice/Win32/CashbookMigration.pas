@@ -286,7 +286,8 @@ uses
   JobObj,
   CountryUtils,
   dateUtils,
-  Variants;
+  Variants,
+  WarningMoreFrm;
 
 const
   UnitName = 'CashbookMigration';
@@ -734,6 +735,12 @@ begin
     try
       sURL := PRACINI_CashbookAPIBusinessesURL;
       FDataRequestType := drtBusiness;
+      
+      if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+      begin
+        HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+        Exit;
+      end;
 
       if not DoHttpSecureJson(sURL, nil, RespStr, aError) then
         Exit;
@@ -807,6 +814,11 @@ begin
     try
       sURL := Format(PRACINI_CashbookAPICOAURL,[aBusinessID]);
       FDataRequestType := drtCOA;
+      if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+      begin
+        HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+        Exit;
+      end;
 
       if not DoHttpSecureJson(sURL, nil, RespStr, aError) then
         Exit;
@@ -2698,7 +2710,7 @@ var
   Token : string;
   NoOfSecondsToExpire : Integer;
 begin
-  result := false;
+  Result := false;
   aInvalidPass := false;
 
   //Initialize token just before a login
@@ -2706,6 +2718,12 @@ begin
   FRefreshToken := '';
   NoOfSecondsToExpire := 0;
   FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
+
+  if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+  begin
+    HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+    Exit;
+  end;
 
   // Setup REST request
   PostData := nil;
@@ -2810,6 +2828,12 @@ begin
     try
       sURL := PRACINI_CashbookAPIFirmsURL;
       FDataRequestType := drtFirm;
+      
+      if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+      begin
+        HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+        Exit;
+      end;
 
       if not DoHttpSecureJson(sURL, nil, RespStr, aError) then
         Exit;

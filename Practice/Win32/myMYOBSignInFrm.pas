@@ -129,8 +129,15 @@ begin
     if CurrUser.MYOBEmailAddress <> Trim(edtEmail.Text) then
     begin
       SaveUser;
+      
       PracticeLedger.Firms.Clear;
       PracticeLedger.Businesses.Clear;
+    end;
+
+    if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+    begin
+      HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+      Exit;
     end;
 
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
@@ -154,6 +161,7 @@ begin
       UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
       UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
       WriteUsersINI(CurrUser.Code);
+      btnSignIn.Default := False;
       if (FormShowType in [fsSignIn, fsFirmForceSignIn]) and (ShowFirmSelection) then
       begin
         // Get Firms
@@ -429,61 +437,29 @@ var
   i: Integer;
 begin
   //get the user_rec again as the admin system may have changed in the mean time.
-  eUser := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
-  StoredLRN := eUser.usLRN; {user pointer about to be destroyed}
-  StoredName := eUser.usCode;
-
-  if LoadAdminSystem(true, ThisMethodName ) Then
+  if Assigned(CurrUser) then
   begin
-    pu := AdminSystem.fdSystem_User_List.FindLRN(StoredLRN);
-    if not Assigned(pu) Then
+    eUser := AdminSystem.fdSystem_User_List.FindCode(CurrUser.Code);
+    if Assigned(eUser) then
     begin
-      UnlockAdmin;
-      HelpfulErrorMsg('The User ' + StoredName + ' can no longer be found in the Admin System.', 0);
-      Exit;
-    end;
-    pu^.usMYOBEMail := Trim(edtEmail.Text);
+      StoredLRN := eUser.usLRN; {user pointer about to be destroyed}
+      StoredName := eUser.usCode;
 
-    FileList := TStringList.Create;
-    try
-      if AdminSystem.fdSystem_Client_File_List.ItemCount > 0  then
+      if LoadAdminSystem(true, ThisMethodName ) Then
       begin
-        //Create a dummy client LRN so that file access will be denied
-        for i := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+        pu := AdminSystem.fdSystem_User_List.FindLRN(StoredLRN);
+
+        if not Assigned(pu) Then
         begin
-          pCF := AdminSystem.fdSystem_Client_File_List.Client_File_At( i );
-
-          if AdminSystem.fdSystem_File_Access_List.Allow_Access( pu^.usLRN, pCF^.cfLRN ) then
-          begin
-            FileList.Add(IntToStr( pCF^.cfLRN ));
-            {NewLVItem := lvFiles.Items.Add;
-            NewLVItem.caption := pCF^.cfFile_Code;
-            NewLVItem.SubItems.AddObject( pCF^.cfFile_Name, Pointer( pCF^.cfLRN ));
-            NewLVItem.ImageIndex := 0;}
-          end;
+          UnlockAdmin;
+          HelpfulErrorMsg('The User ' + StoredName + ' can no longer be found in the Admin System.', 0);
+          Exit;
         end;
-      end;
-
-      //Clear out the existing information, this will allow access to all files
-      AdminSystem.fdSystem_File_Access_List.Delete_User( pu^.usLRN );
-      if FileList.Count > 0 then
-      begin
-        for i := 0 to Pred(FileList.Count ) do
-          AdminSystem.fdSystem_File_Access_List.Insert_Access_Rec( pu^.usLRN, StrToInt(Trim (FileList.Strings[i])) );
-      end
-      else //create a dummy client LRN so that file access will be denied
-        AdminSystem.fdSystem_File_Access_List.Insert_Access_Rec(  pu^.usLRN, 0 )
-    finally
-      if Assigned(FileList) then
-      begin
-        FileList.Clear;
-        FreeAndNil(FileList);
+        pu^.usMYOBEMail := Trim(edtEmail.Text);
+        CurrUser.MYOBEmailAddress := Trim(edtEmail.Text);
+        SaveAdminSystem;
       end;
     end;
-
-    //*** Flag Audit ***
-    SystemAuditMgr.FlagAudit(arUsers);
-    SaveAdminSystem;
   end;
 end;
 
