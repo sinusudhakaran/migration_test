@@ -703,7 +703,9 @@ begin
               DeleteMem(MemorisedList, BA, SystemMem, Prefix);
             end;
           end;
-        end;
+        end
+        else
+          MemorisedList.DelFreeItem(pM);
       end;
 
       //Set changed to true so that CES reloads edited transactions
