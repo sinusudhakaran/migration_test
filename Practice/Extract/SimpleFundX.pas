@@ -98,6 +98,17 @@ Var
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+function FormatFloatBlankForZeroForXml(AFloat: comp; ADecimalPlaces: integer = 2;
+                           AdivBy: integer = 100; AllowZero: boolean = false;
+                           NeedCommaSeparator:Boolean=False): string;
+begin
+  if aFloat <> 0 then
+    result := FormatFloatForXml(AFloat, ADecimalPlaces, AdivBy, AllowZero, NeedCommaSeparator )
+  else
+    result := '';
+end;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 function ExtractFieldHelper: TExtractFieldHelper;
 begin
    if not Assigned(FExtractFieldHelper) then
@@ -447,9 +458,9 @@ begin
   AddFieldNode(aNode, 'Account_Code', AccountCode);
 end;
 
-Procedure AddShareTradetEntities(IsDissection:Boolean=False);//(var TransactionNode: IXMLNode);
+Procedure AddShareTradeEntities(IsDissection:Boolean=False);//(var TransactionNode: IXMLNode);
 const
-  ThisMethodName = 'AddShareTradetEntities';
+  ThisMethodName = 'AddShareTradeEntities';
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' begins ');
   if DebugMe then
@@ -462,10 +473,10 @@ begin
   // Units
   if IsDissection then
     AddFieldNode(TransactionNode, 'Units',
-             FormatFloatForXml(Dissection^.dsQuantity, 4, 10000, True), Globals.PRACINI_ExtractZeroAmounts)
+             FormatFloatBlankForZeroForXml(Dissection^.dsQuantity, 4, 10000, True), (*Globals.PRACINI_ExtractZeroAmounts *) True )
   else
     AddFieldNode(TransactionNode, 'Units',
-             FormatFloatForXml(Transaction^.txQuantity, 4, 10000, True), Globals.PRACINI_ExtractZeroAmounts);
+             FormatFloatBlankForZeroForXml(Transaction^.txQuantity, 4, 10000, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
 
   if IsDissection then
   begin
@@ -614,17 +625,17 @@ begin
     AddFieldNode(
       TransactionNode,
       'Dividends_Franked',
-      FormatFloatForXml(Abs(Dissection^.dsSF_Franked), 2, 100, True), Globals.PRACINI_ExtractZeroAmounts);
+      FormatFloatBlankForZeroForXml(Abs(Dissection^.dsSF_Franked), 2, 100, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
     // Dividends_Unfranked
     AddFieldNode(
       TransactionNode,
       'Dividends_Unfranked',
-      FormatFloatForXml(Abs(Dissection^.dsSF_Unfranked), 2, 100, True), Globals.PRACINI_ExtractZeroAmounts);
+      FormatFloatBlankForZeroForXml(Abs(Dissection^.dsSF_Unfranked), 2, 100, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
     // Franking_Credits
     AddFieldNode(
       TransactionNode,
       'Franking_Credits',
-      FormatFloatForXml(Abs(Dissection^.dsSF_Imputed_Credit), 2, 100, True), Globals.PRACINI_ExtractZeroAmounts);
+      FormatFloatBlankForZeroForXml(Abs(Dissection^.dsSF_Imputed_Credit), 2, 100, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
     // Assessable_Foreign_Source_Income
     AddFieldNode(
       TransactionNode,
@@ -662,17 +673,17 @@ begin
     AddFieldNode(
       TransactionNode,
       'Dividends_Franked',
-      FormatFloatForXml(Abs(Transaction^.txSF_Franked), 2, 100, True), Globals.PRACINI_ExtractZeroAmounts);
+      FormatFloatBlankForZeroForXml(Abs(Transaction^.txSF_Franked), 2, 100, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
     // Dividends_Unfranked
     AddFieldNode(
       TransactionNode,
       'Dividends_Unfranked',
-      FormatFloatForXml(Abs(Transaction^.txSF_Unfranked), 2, 100, True), Globals.PRACINI_ExtractZeroAmounts);
+      FormatFloatBlankForZeroForXml(Abs(Transaction^.txSF_Unfranked), 2, 100, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
     // Franking_Credits
     AddFieldNode(
       TransactionNode,
       'Franking_Credits',
-      FormatFloatForXml(Abs(Transaction^.txSF_Imputed_Credit), 2, 100, True), Globals.PRACINI_ExtractZeroAmounts);
+      FormatFloatBlankForZeroForXml(Abs(Transaction^.txSF_Imputed_Credit), 2, 100, True), (*Globals.PRACINI_ExtractZeroAmounts *) True );
     // Assessable_Foreign_Source_Income
     AddFieldNode(
       TransactionNode,
@@ -1275,7 +1286,7 @@ begin
     else if TransType = ttInterest then
       AddInterestEntities()
     else if TransType = ttShareTrade then
-      AddShareTradetEntities();
+      AddShareTradeEntities();
 
   end;
 
@@ -1457,7 +1468,7 @@ begin
     else if TransType = ttInterest then
       AddInterestEntities(True)
     else if TransType = ttShareTrade then
-      AddShareTradetEntities(True);
+      AddShareTradeEntities(True);
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends');
 end;
