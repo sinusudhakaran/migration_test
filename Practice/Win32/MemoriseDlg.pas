@@ -454,13 +454,14 @@ type
 
   //----------------------------------------------------------------------------
   function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
-                         pM: TMemorisation = nil; FromRecommendedMems: boolean = false): boolean;
+                         pM: TMemorisation = nil; FromRecommendedMems: boolean = false; aCopied : boolean = false): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
   function CreateMemorisation(BA : TBank_Account;
                               pM : TMemorisation;
-                              FromRecommendedMems: boolean = false): boolean;
+                              FromRecommendedMems: boolean = false;
+                              aCopied : boolean = false): boolean;
   function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
 
 //------------------------------------------------------------------------------
@@ -2987,7 +2988,7 @@ end;
 
 //------------------------------------------------------------------------------
 function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean;
-                       pM: TMemorisation = nil; FromRecommendedMems: boolean = false) : boolean;
+                       pM: TMemorisation = nil; FromRecommendedMems: boolean = false; aCopied : boolean = false) : boolean;
 // create a new memorisation based on the transaction
 //
 // parameters: ba   Bank Account that transaction and memorisation belong to
@@ -3096,12 +3097,12 @@ begin
 
          SourceTransaction := Tr;
 
-         Copied := Assigned(pM);
+         Copied := aCopied;
          if Copied then
-         begin
            FillData(pM);
+
+         if Assigned(pM) then
            FillSplitData(pM);
-         end;
 
          if pM.mdFields.mdFrom_Master_List then
            DlgEditMode := demMasterCreate;
@@ -3169,7 +3170,8 @@ end;
 //------------------------------------------------------------------------------
 function CreateMemorisation(BA : TBank_Account;
                             pM: TMemorisation;
-                            FromRecommendedMems: boolean): boolean;
+                            FromRecommendedMems: boolean;
+                            aCopied : boolean): boolean;
 var
   MemorisationLine: pMemorisation_Line_Rec;
   tr: pTransaction_Rec;
@@ -3185,7 +3187,7 @@ begin
 
     IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
 
-    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems);
+    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied);
   finally
     Dispose_Transaction_Rec( tr );
 //DN    Free_Transaction_Rec_Dynamic_Fields(tr^);
@@ -3297,8 +3299,6 @@ begin
 
        LocaliseForm;
 
-       Loading := true;
-
        FillData(pM);
 
        UpdateControls();
@@ -3402,7 +3402,7 @@ begin
              FillSplitData(pMCopy);
 
              // OK pressed, and insert mem?
-             Result := CreateMemorisation(BA, pMCopy);
+             Result := CreateMemorisation(BA, pMCopy, false, true);
            finally
              FreeAndNil(pMCopy);
            end;
