@@ -489,7 +489,7 @@ Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   If BKTXIO.IsATransaction_Rec( P ) then
   Begin
-    if ((not FLoading) and NewAuditID) then
+    if (not FLoading) then
     begin
       Inc( FLastSeq );
       P^.txSequence_No  := FLastSeq;
