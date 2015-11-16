@@ -1468,7 +1468,7 @@ end;
 procedure TdlgEditBGLSF360Fields.SetTransactionType(
   const Value: TTransactionTypes);
 
-  procedure SetFields( aFields : array of TControl; aVisible : boolean );
+  procedure SetFieldsVisible( aFields : array of TControl; aVisible : boolean );
   var
     i : integer;
   begin
@@ -1478,12 +1478,12 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
   procedure ShowAllHeaderFields;
   begin
-    SetFields( [ lblEntryType, sfEntryType ], true );
+    SetFieldsVisible( [ lblEntryType, sfEntryType ], true );
   end;
 
   procedure HideAllHeaderFields;
   begin
-    SetFields( [ lblCashDate, eCashDate,
+    SetFieldsVisible( [ lblCashDate, eCashDate,
       lblAccrualDate, eAccrualDate, lblRecordDate, eRecordDate, lblContractDate,
       eContractDate, lblSettlementDate, eSettlementDate, lblEntryType,
       sfEntryType ], false );
@@ -1536,9 +1536,9 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
     lblRecordDate.Left    := 510;
     case Value of
       ttDistribution, ttDividend : begin
-        SetFields( [ lblContractDate, eContractDate,
+        SetFieldsVisible( [ lblContractDate, eContractDate,
           lblSettlementDate, eSettlementDate ], false );
-        SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
+        SetFieldsVisible( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
           lblRecordDate, eRecordDate ], true );
         case Value of
           ttDistribution : begin
@@ -1554,7 +1554,7 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
         end;
       end;
       ttInterest     : begin
-        SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
+        SetFieldsVisible( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
           lblRecordDate, eRecordDate, lblContractDate, eContractDate,
           lblSettlementDate, eSettlementDate ], false );
         sfEntryType.Text      := 'Interest';
@@ -1562,9 +1562,9 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
         Configure_Interest;
       end;
       ttShareTrade   : begin
-        SetFields( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
+        SetFieldsVisible( [ lblCashDate, eCashDate, lblAccrualDate, eAccrualDate,
           lblRecordDate, eRecordDate ], false );
-        SetFields( [ lblContractDate, eContractDate,
+        SetFieldsVisible( [ lblContractDate, eContractDate,
           lblSettlementDate, eSettlementDate ], true );
         sfEntryType.Text      := 'Share Trade';
         lblContractDate.Left      := 490;
@@ -1587,7 +1587,9 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
 begin
   try
-    SetupFields( Value );
+  btnClearClick( Self );
+  
+  SetupFields( Value );
   finally
     fTransactionType := Value;
   end;
