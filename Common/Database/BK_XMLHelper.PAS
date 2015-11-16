@@ -1909,6 +1909,7 @@ begin
 	SetInt64Attr(Result, 'SFForeignCapitalGainsCredit', mlSF_Foreign_Capital_Gains_Credit);
 	SetBoolAttr(Result, 'SFCapitalGainsFractionHalf', mlSF_Capital_Gains_Fraction_Half);
 	SetIntAttr(Result, 'AuditRecordID', mlAudit_Record_ID);
+	SetInt64Attr(Result, 'SFImputedCredit', mlSF_Imputed_Credit);
 	SetInt64Attr(Result, 'SFOtherIncome', mlSF_Other_Income);
 	SetInt64Attr(Result, 'SFOtherTrustDeductions', mlSF_Other_Trust_Deductions);
 	SetInt64Attr(Result, 'SFCGTConcessionAmount', mlSF_CGT_Concession_Amount);
@@ -1992,6 +1993,7 @@ begin
 	mlSF_Foreign_Capital_Gains_Credit := GetInt64Attr(Result, 'SFForeignCapitalGainsCredit');
 	mlSF_Capital_Gains_Fraction_Half := GetBoolAttr(Result, 'SFCapitalGainsFractionHalf');
 	mlAudit_Record_ID := GetIntAttr(Result, 'AuditRecordID');
+	mlSF_Imputed_Credit := GetInt64Attr(Result, 'SFImputedCredit');
 	mlSF_Other_Income := GetInt64Attr(Result, 'SFOtherIncome');
 	mlSF_Other_Trust_Deductions := GetInt64Attr(Result, 'SFOtherTrustDeductions');
 	mlSF_CGT_Concession_Amount := GetInt64Attr(Result, 'SFCGTConcessionAmount');

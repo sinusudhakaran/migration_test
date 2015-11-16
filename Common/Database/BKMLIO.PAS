@@ -87,32 +87,33 @@ CONST
    tkmlSF_Foreign_Capital_Gains_Credit  = 185 ;
    tkmlSF_Capital_Gains_Fraction_Half   = 186 ;
    tkmlAudit_Record_ID                  = 187 ;
-   tkmlSF_Other_Income                  = 188 ;
-   tkmlSF_Other_Trust_Deductions        = 189 ;
-   tkmlSF_CGT_Concession_Amount         = 190 ;
-   tkmlSF_CGT_ForeignCGT_Before_Disc    = 191 ;
-   tkmlSF_CGT_ForeignCGT_Indexation     = 192 ;
-   tkmlSF_CGT_ForeignCGT_Other_Method   = 193 ;
-   tkmlSF_CGT_TaxPaid_Indexation        = 194 ;
-   tkmlSF_CGT_TaxPaid_Other_Method      = 195 ;
-   tkmlSF_Other_Net_Foreign_Income      = 196 ;
-   tkmlSF_Cash_Distribution             = 197 ;
-   tkmlSF_AU_Franking_Credits_NZ_Co     = 198 ;
-   tkmlSF_Non_Res_Witholding_Tax        = 199 ;
-   tkmlSF_LIC_Deductions                = 200 ;
-   tkmlSF_Non_Cash_CGT_Discounted_Before_Discount = 201 ;
-   tkmlSF_Non_Cash_CGT_Indexation       = 202 ;
-   tkmlSF_Non_Cash_CGT_Other_Method     = 203 ;
-   tkmlSF_Non_Cash_CGT_Capital_Losses   = 204 ;
-   tkmlSF_Share_Brokerage               = 205 ;
-   tkmlSF_Share_Consideration           = 206 ;
-   tkmlSF_Share_GST_Amount              = 207 ;
-   tkmlSF_Share_GST_Rate                = 208 ;
-   tkmlSF_Cash_Date                     = 209 ;
-   tkmlSF_Accrual_Date                  = 210 ;
-   tkmlSF_Record_Date                   = 211 ;
-   tkmlSF_Contract_Date                 = 212 ;
-   tkmlSF_Settlement_Date               = 213 ;
+   tkmlSF_Imputed_Credit                = 188 ;
+   tkmlSF_Other_Income                  = 189 ;
+   tkmlSF_Other_Trust_Deductions        = 190 ;
+   tkmlSF_CGT_Concession_Amount         = 191 ;
+   tkmlSF_CGT_ForeignCGT_Before_Disc    = 192 ;
+   tkmlSF_CGT_ForeignCGT_Indexation     = 193 ;
+   tkmlSF_CGT_ForeignCGT_Other_Method   = 194 ;
+   tkmlSF_CGT_TaxPaid_Indexation        = 195 ;
+   tkmlSF_CGT_TaxPaid_Other_Method      = 196 ;
+   tkmlSF_Other_Net_Foreign_Income      = 197 ;
+   tkmlSF_Cash_Distribution             = 198 ;
+   tkmlSF_AU_Franking_Credits_NZ_Co     = 199 ;
+   tkmlSF_Non_Res_Witholding_Tax        = 200 ;
+   tkmlSF_LIC_Deductions                = 201 ;
+   tkmlSF_Non_Cash_CGT_Discounted_Before_Discount = 202 ;
+   tkmlSF_Non_Cash_CGT_Indexation       = 203 ;
+   tkmlSF_Non_Cash_CGT_Other_Method     = 204 ;
+   tkmlSF_Non_Cash_CGT_Capital_Losses   = 205 ;
+   tkmlSF_Share_Brokerage               = 206 ;
+   tkmlSF_Share_Consideration           = 207 ;
+   tkmlSF_Share_GST_Amount              = 208 ;
+   tkmlSF_Share_GST_Rate                = 209 ;
+   tkmlSF_Cash_Date                     = 210 ;
+   tkmlSF_Accrual_Date                  = 211 ;
+   tkmlSF_Record_Date                   = 212 ;
+   tkmlSF_Contract_Date                 = 213 ;
+   tkmlSF_Settlement_Date               = 214 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -179,6 +180,7 @@ Begin
       F.WriteMoneyValue( tkmlSF_Foreign_Capital_Gains_Credit , mlSF_Foreign_Capital_Gains_Credit );
       F.WriteBooleanValue( tkmlSF_Capital_Gains_Fraction_Half , mlSF_Capital_Gains_Fraction_Half );
       F.WriteIntegerValue( tkmlAudit_Record_ID , mlAudit_Record_ID );
+      F.WriteMoneyValue( tkmlSF_Imputed_Credit , mlSF_Imputed_Credit );
       F.WriteMoneyValue( tkmlSF_Other_Income , mlSF_Other_Income );
       F.WriteMoneyValue( tkmlSF_Other_Trust_Deductions , mlSF_Other_Trust_Deductions );
       F.WriteMoneyValue( tkmlSF_CGT_Concession_Amount , mlSF_CGT_Concession_Amount );
@@ -268,6 +270,7 @@ Begin
          tkmlSF_Foreign_Capital_Gains_Credit  : mlSF_Foreign_Capital_Gains_Credit := F.ReadMoneyValue;
          tkmlSF_Capital_Gains_Fraction_Half   : mlSF_Capital_Gains_Fraction_Half := F.ReadBooleanValue;
          tkmlAudit_Record_ID                  : mlAudit_Record_ID := F.ReadIntegerValue;
+         tkmlSF_Imputed_Credit                : mlSF_Imputed_Credit := F.ReadMoneyValue;
          tkmlSF_Other_Income                  : mlSF_Other_Income := F.ReadMoneyValue;
          tkmlSF_Other_Trust_Deductions        : mlSF_Other_Trust_Deductions := F.ReadMoneyValue;
          tkmlSF_CGT_Concession_Amount         : mlSF_CGT_Concession_Amount := F.ReadMoneyValue;
@@ -570,6 +573,11 @@ begin
   if (P1.mlAudit_Record_ID <> P2.mlAudit_Record_ID) then begin
     P3.mlAudit_Record_ID := P1.mlAudit_Record_ID;
     ChangedFields[i] := tkmlAudit_Record_ID;
+    Inc(i);
+  end;
+  if (P1.mlSF_Imputed_Credit <> P2.mlSF_Imputed_Credit) then begin
+    P3.mlSF_Imputed_Credit := P1.mlSF_Imputed_Credit;
+    ChangedFields[i] := tkmlSF_Imputed_Credit;
     Inc(i);
   end;
   if (P1.mlSF_Other_Income <> P2.mlSF_Other_Income) then begin

@@ -345,6 +345,14 @@ namespace BankLink.Practice.BooksIO
 
 
 		/// <summary>
+		/// SFImputedCredit property
+		/// </summary>
+		[XmlAttribute("SFImputedCredit", DataType = "long")]
+		public Int64 SFImputedCredit { get; set; }
+
+
+
+		/// <summary>
 		/// SFOtherIncome property
 		/// </summary>
 		[XmlAttribute("SFOtherIncome", DataType = "long")]
@@ -606,32 +614,33 @@ namespace BankLink.Practice.BooksIO
 			s.WriteMoneyValue(185, SFForeignCapitalGainsCredit);
 			s.WriteBooleanValue(186, SFCapitalGainsFractionHalf);
 			s.WriteInt32Value(187, AuditRecordID);
-			s.WriteMoneyValue(188, SFOtherIncome);
-			s.WriteMoneyValue(189, SFOtherTrustDeductions);
-			s.WriteMoneyValue(190, SFCGTConcessionAmount);
-			s.WriteMoneyValue(191, SFCGTForeignCGTBeforeDisc);
-			s.WriteMoneyValue(192, SFCGTForeignCGTIndexation);
-			s.WriteMoneyValue(193, SFCGTForeignCGTOtherMethod);
-			s.WriteMoneyValue(194, SFCGTTaxPaidIndexation);
-			s.WriteMoneyValue(195, SFCGTTaxPaidOtherMethod);
-			s.WriteMoneyValue(196, SFOtherNetForeignIncome);
-			s.WriteMoneyValue(197, SFCashDistribution);
-			s.WriteMoneyValue(198, SFAUFrankingCreditsNZCo);
-			s.WriteMoneyValue(199, SFNonResWitholdingTax);
-			s.WriteMoneyValue(200, SFLICDeductions);
-			s.WriteMoneyValue(201, SFNonCashCGTDiscountedBeforeDiscount);
-			s.WriteMoneyValue(202, SFNonCashCGTIndexation);
-			s.WriteMoneyValue(203, SFNonCashCGTOtherMethod);
-			s.WriteMoneyValue(204, SFNonCashCGTCapitalLosses);
-			s.WriteMoneyValue(205, SFShareBrokerage);
-			s.WriteMoneyValue(206, SFShareConsideration);
-			s.WriteMoneyValue(207, SFShareGSTAmount);
-			s.WriteShortStringValue(208, SFShareGSTRate);
-			s.WriteJulDateValue(209, SFCashDate);
-			s.WriteJulDateValue(210, SFAccrualDate);
-			s.WriteJulDateValue(211, SFRecordDate);
-			s.WriteJulDateValue(212, SFContractDate);
-			s.WriteJulDateValue(213, SFSettlementDate);
+			s.WriteMoneyValue(188, SFImputedCredit);
+			s.WriteMoneyValue(189, SFOtherIncome);
+			s.WriteMoneyValue(190, SFOtherTrustDeductions);
+			s.WriteMoneyValue(191, SFCGTConcessionAmount);
+			s.WriteMoneyValue(192, SFCGTForeignCGTBeforeDisc);
+			s.WriteMoneyValue(193, SFCGTForeignCGTIndexation);
+			s.WriteMoneyValue(194, SFCGTForeignCGTOtherMethod);
+			s.WriteMoneyValue(195, SFCGTTaxPaidIndexation);
+			s.WriteMoneyValue(196, SFCGTTaxPaidOtherMethod);
+			s.WriteMoneyValue(197, SFOtherNetForeignIncome);
+			s.WriteMoneyValue(198, SFCashDistribution);
+			s.WriteMoneyValue(199, SFAUFrankingCreditsNZCo);
+			s.WriteMoneyValue(200, SFNonResWitholdingTax);
+			s.WriteMoneyValue(201, SFLICDeductions);
+			s.WriteMoneyValue(202, SFNonCashCGTDiscountedBeforeDiscount);
+			s.WriteMoneyValue(203, SFNonCashCGTIndexation);
+			s.WriteMoneyValue(204, SFNonCashCGTOtherMethod);
+			s.WriteMoneyValue(205, SFNonCashCGTCapitalLosses);
+			s.WriteMoneyValue(206, SFShareBrokerage);
+			s.WriteMoneyValue(207, SFShareConsideration);
+			s.WriteMoneyValue(208, SFShareGSTAmount);
+			s.WriteShortStringValue(209, SFShareGSTRate);
+			s.WriteJulDateValue(210, SFCashDate);
+			s.WriteJulDateValue(211, SFAccrualDate);
+			s.WriteJulDateValue(212, SFRecordDate);
+			s.WriteJulDateValue(213, SFContractDate);
+			s.WriteJulDateValue(214, SFSettlementDate);
 			s.WriteToken(146);
 		}
 
@@ -774,81 +783,84 @@ namespace BankLink.Practice.BooksIO
 				AuditRecordID = s.ReadInt32Value("AuditRecordID");
 				break;
 			case 188 :
-				SFOtherIncome = s.ReadMoneyValue("SFOtherIncome");
+				SFImputedCredit = s.ReadMoneyValue("SFImputedCredit");
 				break;
 			case 189 :
-				SFOtherTrustDeductions = s.ReadMoneyValue("SFOtherTrustDeductions");
+				SFOtherIncome = s.ReadMoneyValue("SFOtherIncome");
 				break;
 			case 190 :
-				SFCGTConcessionAmount = s.ReadMoneyValue("SFCGTConcessionAmount");
+				SFOtherTrustDeductions = s.ReadMoneyValue("SFOtherTrustDeductions");
 				break;
 			case 191 :
-				SFCGTForeignCGTBeforeDisc = s.ReadMoneyValue("SFCGTForeignCGTBeforeDisc");
+				SFCGTConcessionAmount = s.ReadMoneyValue("SFCGTConcessionAmount");
 				break;
 			case 192 :
-				SFCGTForeignCGTIndexation = s.ReadMoneyValue("SFCGTForeignCGTIndexation");
+				SFCGTForeignCGTBeforeDisc = s.ReadMoneyValue("SFCGTForeignCGTBeforeDisc");
 				break;
 			case 193 :
-				SFCGTForeignCGTOtherMethod = s.ReadMoneyValue("SFCGTForeignCGTOtherMethod");
+				SFCGTForeignCGTIndexation = s.ReadMoneyValue("SFCGTForeignCGTIndexation");
 				break;
 			case 194 :
-				SFCGTTaxPaidIndexation = s.ReadMoneyValue("SFCGTTaxPaidIndexation");
+				SFCGTForeignCGTOtherMethod = s.ReadMoneyValue("SFCGTForeignCGTOtherMethod");
 				break;
 			case 195 :
-				SFCGTTaxPaidOtherMethod = s.ReadMoneyValue("SFCGTTaxPaidOtherMethod");
+				SFCGTTaxPaidIndexation = s.ReadMoneyValue("SFCGTTaxPaidIndexation");
 				break;
 			case 196 :
-				SFOtherNetForeignIncome = s.ReadMoneyValue("SFOtherNetForeignIncome");
+				SFCGTTaxPaidOtherMethod = s.ReadMoneyValue("SFCGTTaxPaidOtherMethod");
 				break;
 			case 197 :
-				SFCashDistribution = s.ReadMoneyValue("SFCashDistribution");
+				SFOtherNetForeignIncome = s.ReadMoneyValue("SFOtherNetForeignIncome");
 				break;
 			case 198 :
-				SFAUFrankingCreditsNZCo = s.ReadMoneyValue("SFAUFrankingCreditsNZCo");
+				SFCashDistribution = s.ReadMoneyValue("SFCashDistribution");
 				break;
 			case 199 :
-				SFNonResWitholdingTax = s.ReadMoneyValue("SFNonResWitholdingTax");
+				SFAUFrankingCreditsNZCo = s.ReadMoneyValue("SFAUFrankingCreditsNZCo");
 				break;
 			case 200 :
-				SFLICDeductions = s.ReadMoneyValue("SFLICDeductions");
+				SFNonResWitholdingTax = s.ReadMoneyValue("SFNonResWitholdingTax");
 				break;
 			case 201 :
-				SFNonCashCGTDiscountedBeforeDiscount = s.ReadMoneyValue("SFNonCashCGTDiscountedBeforeDiscount");
+				SFLICDeductions = s.ReadMoneyValue("SFLICDeductions");
 				break;
 			case 202 :
-				SFNonCashCGTIndexation = s.ReadMoneyValue("SFNonCashCGTIndexation");
+				SFNonCashCGTDiscountedBeforeDiscount = s.ReadMoneyValue("SFNonCashCGTDiscountedBeforeDiscount");
 				break;
 			case 203 :
-				SFNonCashCGTOtherMethod = s.ReadMoneyValue("SFNonCashCGTOtherMethod");
+				SFNonCashCGTIndexation = s.ReadMoneyValue("SFNonCashCGTIndexation");
 				break;
 			case 204 :
-				SFNonCashCGTCapitalLosses = s.ReadMoneyValue("SFNonCashCGTCapitalLosses");
+				SFNonCashCGTOtherMethod = s.ReadMoneyValue("SFNonCashCGTOtherMethod");
 				break;
 			case 205 :
-				SFShareBrokerage = s.ReadMoneyValue("SFShareBrokerage");
+				SFNonCashCGTCapitalLosses = s.ReadMoneyValue("SFNonCashCGTCapitalLosses");
 				break;
 			case 206 :
-				SFShareConsideration = s.ReadMoneyValue("SFShareConsideration");
+				SFShareBrokerage = s.ReadMoneyValue("SFShareBrokerage");
 				break;
 			case 207 :
-				SFShareGSTAmount = s.ReadMoneyValue("SFShareGSTAmount");
+				SFShareConsideration = s.ReadMoneyValue("SFShareConsideration");
 				break;
 			case 208 :
-				SFShareGSTRate = s.ReadShortStringValue("SFShareGSTRate");
+				SFShareGSTAmount = s.ReadMoneyValue("SFShareGSTAmount");
 				break;
 			case 209 :
-				SFCashDate = s.ReadJulDateValue("SFCashDate");
+				SFShareGSTRate = s.ReadShortStringValue("SFShareGSTRate");
 				break;
 			case 210 :
-				SFAccrualDate = s.ReadJulDateValue("SFAccrualDate");
+				SFCashDate = s.ReadJulDateValue("SFCashDate");
 				break;
 			case 211 :
-				SFRecordDate = s.ReadJulDateValue("SFRecordDate");
+				SFAccrualDate = s.ReadJulDateValue("SFAccrualDate");
 				break;
 			case 212 :
-				SFContractDate = s.ReadJulDateValue("SFContractDate");
+				SFRecordDate = s.ReadJulDateValue("SFRecordDate");
 				break;
 			case 213 :
+				SFContractDate = s.ReadJulDateValue("SFContractDate");
+				break;
+			case 214 :
 				SFSettlementDate = s.ReadJulDateValue("SFSettlementDate");
 				break;
 			case BeginToken :
