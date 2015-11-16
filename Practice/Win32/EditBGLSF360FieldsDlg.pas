@@ -228,6 +228,7 @@ type
     function GetNonCashCapitalGainsTabModified : boolean;
     procedure SetNonCashCapitalGainsTabModified( aValue : boolean );
     function anyValuesModified(aInValues: array of double): boolean;
+    procedure ClearSuperFundFields;
 
   public
     { Public declarations }
@@ -489,10 +490,61 @@ function TdlgEditBGLSF360Fields.GetFields( var mImputedCredit : Money;
 //
 // Result:      Returns true if any of the fields are no zero
 //- - - - - - - - - - - - - - - - - - - -
+
+procedure ClearAllPrior;
+begin
+  mImputedCredit                           := 0;
+  mTaxFreeDist                             := 0;
+  mTaxExemptDist                           := 0;
+  mTaxDeferredDist                         := 0;
+  mTFNCredits                              := 0;
+  mForeignIncome                           := 0;
+  mForeignTaxCredits                       := 0;
+  mCapitalGains                            := 0;
+  mDiscountedCapitalGains                  := 0;
+  mOtherExpenses                           := 0;
+  mCapitalGainsOther                       := 0;
+  mFranked                                 := 0;
+  mUnfranked                               := 0;
+  mInterest                                := 0;
+  mOtherIncome                             := 0;
+  mOtherTrustDeductions                    := 0;
+  mCGTConcessionAmount                     := 0;
+  mForeignCGTBeforeDiscount                := 0;
+  mForeignCGTIndexationMethod              := 0;
+  mForeignCGTOtherMethod                   := 0;
+  mTaxPaidBeforeDiscount                   := 0;
+  mTaxPaidIndexationMethod                 := 0;
+  mTaxPaidOtherMethod                      := 0;
+  mOtherNetForeignSourceIncome             := 0;
+  mCashDistribution                        := 0;
+  mAUFrankingCreditsFromNZCompany          := 0;
+  mNonResidentWithholdingTax               := 0;
+  mLICDeductions                           := 0;
+  mNon_Cash_CGT_Discounted_Before_Discount := 0;
+  mNon_Cash_CGT_Indexation                 := 0;
+  mNon_Cash_CGT_Other                      := 0;
+  mNon_Cash_CGT_Capital_Losses             := 0;
+  mShareBrokerage                          := 0;
+  mShareConsideration                      := 0;
+  mShareGSTAmount                          := 0;
+  dCGTDate                                 := 0;
+  mComponent                               := 0;
+  mUnits                                   := 0;
+  mAccount                                 := '';
+  mShareGSTRate                            := '';
+  dCash_Date                               := 0;
+  dAccrual_Date                            := 0;
+  dRecord_Date                             := 0;
+  dContract_Date                           := 0;
+  dSettlement_Date                         := 0;
+end;
+
 var
   ChartIndex : integer;
 begin
-
+  ClearAllPrior;
+  
   case TransactionType of
     ttDistribution : begin
     // ** Panel Distribution Panel **
@@ -1102,7 +1154,7 @@ begin
   end;
 end;
 
-procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
+procedure TdlgEditBGLSF360Fields.ClearSuperFundFields;
 begin
   SetFields ( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nfUnits.AsFloat * 10000,
@@ -1110,6 +1162,11 @@ begin
 
   UnfrankedModified := False;
   ShareConsiderationModified := false;
+end;
+
+procedure TdlgEditBGLSF360Fields.btnClearClick(Sender: TObject);
+begin
+  ClearSuperFundFields;
 end;
 
 procedure TdlgEditBGLSF360Fields.btnNextClick(Sender: TObject);
@@ -1450,6 +1507,9 @@ procedure TdlgEditBGLSF360Fields.SetTranAccount(const Value: string);
 var
   liControlCode : integer;
 begin
+  if fTranAccount <> Value then
+    ClearSuperFundFields;
+
   fTranAccount := Value;
   try
     if trim( Value ) <> '' then
@@ -1592,9 +1652,7 @@ procedure TdlgEditBGLSF360Fields.SetTransactionType(
 
 begin
   try
-  btnClearClick( Self );
-  
-  SetupFields( Value );
+   SetupFields( Value );
   finally
     fTransactionType := Value;
   end;
