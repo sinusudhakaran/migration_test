@@ -1163,6 +1163,10 @@ begin
   AdminSystem.fdFields.fdBGLRefreshToken   := '';
   AdminSystem.fdFields.fdBGLTokenType      := '';
   AdminSystem.Save;
+
+  HelpfulInfoMsg( 'BGL authorisation has been refreshed.', 0 );
+  LogUtil.LogMsg(lmInfo, 'AdminOptionsDlg', 'BGL authorisation has been refreshed.');
+
 //  AdminSystem.fdFields.fdBGLTokenExpiresAt := StrToDateTime('1900');
 end;
 
