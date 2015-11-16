@@ -105,7 +105,8 @@ uses
    CountryUtils,
    SystemMemorisationList,
    SYDEFS,
-   ForexHelpers;
+   ForexHelpers,
+   SimpleFundX;
 
 const
   NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
@@ -2554,6 +2555,26 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure ListMemDetail(Sender : TObject);
+var
+  lsEntryType : string;
+
+  function GetTransactionTypeString( aValue : string ) : string;
+  var
+    liControlCode : integer;
+  begin
+    if trim( aValue ) <> '' then
+      liControlCode := StripBGL360ControlAccountCode( aValue )
+    else
+      liControlCode := -1;
+    case liControlCode of
+      cttanDistribution      : result := 'Distribution';
+      cttanDividend          : result := 'Dividend';
+      cttanInterest          : result := 'Interest';
+      cttanShareTradeRangeStart..cttanShareTradeRangeEnd : result := 'Share Trade';
+      else
+        result := 'Other';
+    end;
+  end;
 
   procedure RenderMemorisation( BA : TBank_Account; Mem : TMemorisation);
   var
@@ -2618,7 +2639,7 @@ procedure ListMemDetail(Sender : TObject);
 
       AddTextLine('Applies', mem.DateText);
 
-      if mem.mdFields.mdMatch_on_Refce then      
+      if mem.mdFields.mdMatch_on_Refce then
         AddTextLine('Reference',mem.mdFields.mdReference);
 
       if mem.mdFields.mdMatch_on_Particulars then begin
@@ -2730,50 +2751,15 @@ procedure ListMemDetail(Sender : TObject);
 
                   end;
                saBGL360 : begin
-(*
-tktxSF_Imputed_Credit        : Result := 'Franking CR';
-//          tktxSF_CGT_Date              : Result := 'CGT Date';
-tktxSF_Interest              : Result := 'Gross Interest';
-tktxSF_Capital_Gains_Foreign_Disc : Result := 'Tax Paid CR Before Disc';
-tktxSF_Tax_Free_Dist         : Result := 'Tax Free';
-tktxSF_Tax_Exempt_Dist       : Result := 'Tax Exempt';
-tktxSF_Tax_Deferred_Dist     : Result := 'Tax Deferred';
-tktxSF_TFN_Credits           : Result := 'TFN Withheld';
-tktxSF_Foreign_Income        : Result := 'Foreign Income';
-tktxSF_Foreign_Tax_Credits   : Result := 'Foreign Tax CR';
-tktxSF_Other_Expenses        : Result := 'Other Expenses';
-tktxSF_Capital_Gains_Indexed : Result := 'CG Indexed';
-tktxSF_Capital_Gains_Disc    : Result := 'CG Discounted';
-tktxSF_Capital_Gains_Other   : Result := 'CG Other';
+                 lsEntryType := GetTransactionTypeString( MemLine.mlAccount );
+                 if lsEntryType <> 'Other' then
+                   AddTextLine('Entry Type', lsEntryType, MemLine.mlLine_Type = mltPercentage);
 
-tkteSF_Other_Income                            : Result := 'Other Income';
-tkteSF_Other_Trust_Deductions                  : Result := 'Trust Deductions';
-tkteSF_CGT_Concession_Amount                   : Result := 'CGT Concession';
-tkteSF_CGT_ForeignCGT_Before_Disc              : Result := 'Foreign CG Before Disc';
-tkteSF_CGT_ForeignCGT_Indexation               : Result := 'Foreign CG Indexed';
-tkteSF_CGT_ForeignCGT_Other_Method             : Result := 'Foreign CG Other';
-tkteSF_CGT_TaxPaid_Indexation                  : Result := 'Tax Paid CR Indexed';
-tkteSF_CGT_TaxPaid_Other_Method                : Result := 'Tax Paid CR Other';
-tkteSF_Other_Net_Foreign_Income                : Result := 'Other Net Foreign Income';
-tkteSF_Cash_Distribution                       : Result := 'Cash Distribution';
-tkteSF_AU_Franking_Credits_NZ_Co               : Result := 'AU Franking CR from NZ Co.';
-tkteSF_Non_Res_Witholding_Tax                  : Result := 'Non-Resident Tax';
-tkteSF_LIC_Deductions                          : Result := 'LIC Deduction';
-tkteSF_Non_Cash_CGT_Discounted_Before_Discount : Result := 'Non-Cash CG Before Disc';
-tkteSF_Non_Cash_CGT_Indexation                 : Result := 'Non-Cash CG Indexed';
-tkteSF_Non_Cash_CGT_Other_Method               : Result := 'Non-Cash CG Other';
-tkteSF_Non_Cash_CGT_Capital_Losses             : Result := 'Non-Cash Capital Losses';
-tkteSF_Share_Brokerage                         : Result := 'Brokerage';
-tkteSF_Share_Consideration                     : Result := 'Consideration';
-tkteSF_Share_GST_Amount                        : Result := 'GST Amount';
-tkteSF_Share_GST_Rate                          : Result := 'GST Rate';
-tkteSF_Cash_Date                               : Result := 'Cash Date';
-tkteSF_Accrual_Date                            : Result := 'Accrual Date';
-tkteSF_Record_Date                             : Result := 'Record Date';
-tkteSF_Contract_Date                           : Result := 'Contract Date';
-tkteSF_Settlement_Date                         : Result := 'Settlement Date';
-
-*)
+                 AddValueLine('Franking CR', MemLine.mlSF_Imputed_Credit, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('Gross Interest', MemLine.mlSF_Interest, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('Tax Paid CR Before Disc', MemLine.mlSF_Capital_Gains_Foreign_Disc, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('TFN Withheld', MemLine.mlSF_TFN_Credits, MemLine.mlLine_Type = mltPercentage);
+                 AddValueLine('Foreign Tax CR', MemLine.mlSF_Foreign_Tax_Credits, MemLine.mlLine_Type = mltPercentage);
                  AddValueLine('Tax Free', MemLine.mlSF_Tax_Free_Dist, MemLine.mlLine_Type = mltPercentage);
                  AddValueLine('Tax Exempt', MemLine.mlSF_Tax_Exempt_Dist, MemLine.mlLine_Type = mltPercentage);
                  AddValueLine('Tax Deferred', MemLine.mlSF_Tax_Deferred_Dist, MemLine.mlLine_Type = mltPercentage);
