@@ -754,6 +754,7 @@ F|SF Foreign Capital Gains Credit|$
 F|SF Capital Gains Fraction Half|Y
 F|Audit Record ID|L
 C|Temp Tag|L
+F|SF Imputed Credit|$
 F|SF_Other_Income|$
 F|SF_Other_Trust_Deductions|$
 F|SF_CGT_Concession_Amount|$
