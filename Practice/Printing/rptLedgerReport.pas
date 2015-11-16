@@ -74,6 +74,12 @@ type
     SuperTotalShare_Consideration                  : Money;
     SuperTotalShare_Brokerage                      : Money;
     SuperTotalShare_GST_Amount                     : Money;
+    SuperTotalSF_Share_GST_Rate                    : string;
+    SuperTotalSF_Cash_Date                         : integer;
+    SuperTotalSF_Accrual_Date                      : integer;
+    SuperTotalSF_Record_Date                       : integer;
+    SuperTotalSF_Contract_Date                     : integer;
+    SuperTotalSF_Settlement_Date                   : integer;
 
     procedure ClearSuper;
   end;
@@ -1745,6 +1751,12 @@ begin
     Mgr.SuperTotalShare_Consideration              := Mgr.SuperTotalShare_Consideration + TranRec.txTransaction_Extension^.teSF_Share_Consideration;
     Mgr.SuperTotalShare_Brokerage                  := Mgr.SuperTotalShare_Brokerage + TranRec.txTransaction_Extension^.teSF_Share_Brokerage;
     Mgr.SuperTotalShare_GST_Amount                 := Mgr.SuperTotalShare_GST_Amount + TranRec.txTransaction_Extension^.teSF_Share_GST_Amount;
+    Mgr.SuperTotalSF_Share_GST_Rate                := TranRec.txTransaction_Extension^.teSF_Share_GST_Rate;
+    Mgr.SuperTotalSF_Cash_Date                     := TranRec.txTransaction_Extension^.teSF_Cash_Date;
+    Mgr.SuperTotalSF_Accrual_Date                  := TranRec.txTransaction_Extension^.teSF_Accrual_Date;
+    Mgr.SuperTotalSF_Record_Date                   := TranRec.txTransaction_Extension^.teSF_Record_Date;
+    Mgr.SuperTotalSF_Contract_Date                 := TranRec.txTransaction_Extension^.teSF_Contract_Date;
+    Mgr.SuperTotalSF_Settlement_Date               := TranRec.txTransaction_Extension^.teSF_Settlement_Date; 
   end;
 end;
 
@@ -1980,6 +1992,12 @@ begin
     Mgr.SuperTotalShare_Consideration              := Mgr.SuperTotalShare_Consideration + DissRec.dsDissection_Extension^.deSF_Share_Consideration;
     Mgr.SuperTotalShare_Brokerage                  := Mgr.SuperTotalShare_Brokerage + DissRec.dsDissection_Extension^.deSF_Share_Brokerage;
     Mgr.SuperTotalShare_GST_Amount                 := Mgr.SuperTotalShare_GST_Amount + DissRec.dsDissection_Extension^.deSF_Share_GST_Amount;
+    Mgr.SuperTotalSF_Share_GST_Rate                := DissRec.dsDissection_Extension^.deSF_Share_GST_Rate;
+    Mgr.SuperTotalSF_Cash_Date                     := DissRec.dsDissection_Extension^.deSF_Cash_Date;
+    Mgr.SuperTotalSF_Accrual_Date                  := DissRec.dsDissection_Extension^.deSF_Accrual_Date;
+    Mgr.SuperTotalSF_Record_Date                   := DissRec.dsDissection_Extension^.deSF_Record_Date;
+    Mgr.SuperTotalSF_Contract_Date                 := DissRec.dsDissection_Extension^.deSF_Contract_Date;
+    Mgr.SuperTotalSF_Settlement_Date               := DissRec.dsDissection_Extension^.deSF_Settlement_Date;
   end;
 end;
 
@@ -3523,6 +3541,12 @@ begin
   SuperTotalShare_Consideration                  := 0;
   SuperTotalShare_Brokerage                      := 0;
   SuperTotalShare_GST_Amount                     := 0;
+  SuperTotalSF_Share_GST_Rate                    := '';
+  SuperTotalSF_Cash_Date                         := -1;
+  SuperTotalSF_Accrual_Date                      := -1;
+  SuperTotalSF_Record_Date                       := -1;
+  SuperTotalSF_Contract_Date                     := -1;
+  SuperTotalSF_Settlement_Date                   := -1;
 end;
 
 end.

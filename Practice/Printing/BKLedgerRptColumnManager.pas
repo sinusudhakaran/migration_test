@@ -979,6 +979,12 @@ begin
 
         //Non amount columns
         tktxSF_CGT_Date                      : BkReport.SkipColumn;
+        tkteSF_Share_GST_Rate                : BkReport.SkipColumn;
+        tkteSF_Cash_Date                     : BkReport.SkipColumn;
+        tkteSF_Accrual_Date                  : BkReport.SkipColumn;
+        tkteSF_Record_Date                   : BkReport.SkipColumn;
+        tkteSF_Contract_Date                 : BkReport.SkipColumn;
+        tkteSF_Settlement_Date               : BkReport.SkipColumn;
         tktxSF_Fund_Code                     : BkReport.SkipColumn;
         tktxSF_Fund_ID                       : BkReport.SkipColumn;
         tktxSF_Member_Account_Code           : BkReport.SkipColumn;
@@ -1059,6 +1065,23 @@ begin
               PutSuperMoney(TravMgr.SuperTotalShare_Consideration);
             tkteSF_Share_GST_Amount                        :
               PutSuperMoney(TravMgr.SuperTotalShare_GST_Amount);
+            tkteSF_Share_GST_Rate                          :
+              FBkReport.PutString(TravMgr.SuperTotalSF_Share_GST_Rate);
+            tkteSF_Cash_Date                               :
+              FBkReport.PutString(bkDate2Str(
+                TravMgr.SuperTotalSF_Cash_Date ) );
+            tkteSF_Accrual_Date                            :
+              FBkReport.PutString(bkDate2Str(
+                TravMgr.SuperTotalSF_Accrual_Date ) );
+            tkteSF_Record_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                TravMgr.SuperTotalSF_Record_Date ) );
+            tkteSF_Contract_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                TravMgr.SuperTotalSF_Contract_Date ) );
+            tkteSF_Settlement_Date                             :
+              FBkReport.PutString(bkDate2Str(
+                TravMgr.SuperTotalSF_Settlement_Date ) );
           end;
         end
         else
@@ -1303,7 +1326,7 @@ begin
               case ColumnItem.DataToken of
                 CALC_NET                 : ColumnItem.WidthPercent := 12.0;
                 CALC_AVG_NET             : ColumnItem.WidthPercent := 12.0;
-                CALC_ENTRY_TYPE          : ColumnItem.WidthPercent := 6.0;
+                CALC_ENTRY_TYPE          : ColumnItem.WidthPercent := 6.7;
               end
             else ;
   end;
