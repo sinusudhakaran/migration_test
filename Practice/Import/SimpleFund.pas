@@ -190,8 +190,9 @@ begin
       try
         if (clAccounting_System_Used = saBGL360) then begin
 //BGL360 fetches from API and no longer from CSV File          ReadCSVFile(ChartFileName, NewChart)
-          if not FetchCOAFromAPI( NewChart ) then begin // Could not retreive the chart
-            Msg := 'Please select a Fund to refresh the chart from, via Other Functions | Accounting System';
+          if ( MyClient.clExtra.ceBGLFundIDSelected = '' ) or
+           ( not FetchCOAFromAPI( NewChart ) ) then begin // Could not retreive the chart
+            Msg := 'Please select a Fund to refresh the chart from, via Other Functions | Accounting System.';
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : Fund not selected.'  );
             HelpfulErrorMsg( 'Please select a Fund to refresh the chart from, ' +
               'via Other Functions | Accounting System' + #13+#13+
@@ -222,9 +223,9 @@ begin
       end;
     except
       on E : EInOutError do begin //Normally EExtractData but File I/O only
-          Msg := Format( 'Error refreshing chart %s.', [ChartFileName] );
+          Msg := Format( 'Error Refreshing Chart %s.', [ChartFileName] );
           LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-          HelpfulErrorMsg( Msg + #13'The existing chart has not been modified.', 0, False,  E.Message, True);
+          HelpfulErrorMsg( Msg + #13'The existing chart has not been modified.'+#13, 0, False,  E.Message, True);
           exit;
       end;
     end;
