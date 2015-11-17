@@ -965,10 +965,14 @@ begin
 
      SetUnLocked(not ( txLocked or (txDate_Transferred <> 0)));
 
-     sBtnSuper.Visible    := FCanUseSuperFundFields
-                          and (not ( txLocked or (txDate_Transferred <> 0))); 
-     EditSuperFields1.Visible := sBtnSuper.Visible;
-     ClearSuperfundDetails1.Visible:= sBtnSuper.Visible;
+     sBtnSuper.Visible    := FCanUseSuperFundFields;
+//DN #89960 - BGL360: Display Super button on Journal     sBtnSuper.Visible    := FCanUseSuperFundFields
+//DN #89960 - BGL360: Display Super button on Journal                          and (not ( txLocked or (txDate_Transferred <> 0)));
+
+      EditSuperFields1.Visible := sBtnSuper.Visible;
+      ClearSuperfundDetails1.Visible:= sBtnSuper.Visible;
+      ClearSuperfundDetails1.Enabled :=
+        pJ^.dtSuper_Fields_Edited and (not txLocked) and (txDate_Transferred = 0);
 
      if not btnChart.Visible then
      begin
@@ -982,7 +986,7 @@ begin
      end
      else if not sbtnSuper.Visible then
       btnView.Left := sbtnSuper.Left;
-      
+
      if sbtnSuper.Visible then
       lblStatus.Left := lblStatus.Left + sbtnSuper.Width;
 
