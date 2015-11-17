@@ -390,7 +390,8 @@ procedure TdlgAcctSystem.cmbSystemChange(Sender: TObject);
 var
   SelectedSystem : integer;
   BGLServer: TBGLServer;
-  
+  OldCursor : TCursor;
+
    procedure SetSaveToField(Value: Boolean);
    begin
       lblSaveTo.Enabled := Value;
@@ -510,26 +511,32 @@ begin
   end
   else if IsMYOBLedger then
   begin
-    if not (CheckFormyMYOBTokens) then
-      btnConnectMYOB.Caption := 'MYOB Login'
-    else
-      btnConnectMYOB.Caption := 'MYOB Client';
+    OldCursor := Screen.Cursor;
+    try
+      Screen.Cursor := crHourGlass;
+      if not (CheckFormyMYOBTokens) then
+        btnConnectMYOB.Caption := 'MYOB Login'
+      else
+        btnConnectMYOB.Caption := 'MYOB Client';
 
-    lblFirmName.Caption := 'No Firm selected';
-    lblFirmName.Font.Color := clRed;
-    if (Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmName)<>'')) then
-    begin
-      lblFirmName.Caption := 'MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
-      lblFirmName.Font.Color := clWindowText;
-    end;
+      lblFirmName.Caption := 'No Firm selected';
+      lblFirmName.Font.Color := clRed;
+      if (Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmName)<>'')) then
+      begin
+        lblFirmName.Caption := 'MYOB Firm: ' + AdminSystem.fdFields.fdmyMYOBFirmName;
+        lblFirmName.Font.Color := clWindowText;
+      end;
 
-    lblPLClientName.Caption := 'No Client selected';
-    lblPLClientName.Font.Color := clRed;
+      lblPLClientName.Caption := 'No Client selected';
+      lblPLClientName.Font.Color := clRed;
 
-    if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
-    begin
-      lblPLClientName.Caption := 'MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
-      lblPLClientName.Font.Color := clWindowText;
+      if Trim(MyClient.clExtra.cemyMYOBClientNameSelected) <> '' then
+      begin
+        lblPLClientName.Caption := 'MYOB Client: '+ MyClient.clExtra.cemyMYOBClientNameSelected;
+        lblPLClientName.Font.Color := clWindowText;
+      end;
+    finally
+      Screen.Cursor := OldCursor;
     end;
   end;
 end;
@@ -1303,12 +1310,17 @@ begin
           begin
             Screen.Cursor := OldCursor;
             ShowConnectionError(sError);
+            Exit;
           end;
         finally
           Screen.Cursor := OldCursor;
         end;
-
-        if SelectBusinessFrm.ShowModal = mrOk then
+        if (PracticeLedger.Businesses.Count = 0) then
+        begin
+          HelpfulWarningMsg('There are no Ledgers available. Please create a MYOB Ledger to continue.', 0);
+          Exit;
+        end
+        else if SelectBusinessFrm.ShowModal = mrOk then
         begin
           MyClient.clExtra.cemyMYOBClientIDSelected := SelectBusinessFrm.SelectedBusinessID;
           MyClient.clExtra.cemyMYOBClientNameSelected := SelectBusinessFrm.SelectedBusinessName;
