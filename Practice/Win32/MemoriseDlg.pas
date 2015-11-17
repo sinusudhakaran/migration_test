@@ -2497,7 +2497,8 @@ begin
        //Warn the user if the selected transaction does not match the criteria
        if (assigned(SourceTransaction)) and
           (not CalledFromRecommendedMems) and
-          (not mxUtils.CanMemorise( SourceTransaction, TempMem)) then
+          (not mxUtils.CanMemorise( SourceTransaction, TempMem)) and
+          (not copied) then
        begin
          if AskYesNo( 'Confirm Criteria',
                       'The currently selected transaction will NOT be memorised because the "Match On" criteria does not match it. Any other transactions that match the criteria WILL be memorised.'#13#13+
