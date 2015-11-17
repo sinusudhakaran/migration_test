@@ -30,7 +30,7 @@ uses
   Globals, sysutils, InfoMoreFrm, bkconst,   bkchio,
   bkdefs, ovcDate, ErrorMoreFrm, dbaseReader, stDateSt, WarningMoreFrm, 
   ChartUtils, GenUtils, bkDateUtils, Progress, LogUtil, bk5Except, WinUtils,
-  Classes, glConst, uBGLServer;
+  Classes, glConst, uBGLServer, INISettings;
 
 const
   SF_FILE  = 'CHART.DBF';
@@ -313,8 +313,11 @@ var
   i          : integer;
 begin
   result := false;
-  RESTServer := TBGLServer.Create( nil, PRACINI_BGL360_Client_ID,
-    PRACINI_BGL360_Client_Secret, PRACINI_BGL360_API_URL );
+  RESTServer :=
+    TBGLServer.Create( nil,
+      DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
+      DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
+      Globals.PRACINI_BGL360_API_URL);
   try
     if assigned( MyClient ) then
       RestServer.Set_Auth_Tokens( AdminSystem.fdFields.fdBGLAccessToken,
