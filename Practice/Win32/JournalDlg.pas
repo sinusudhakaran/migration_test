@@ -972,7 +972,7 @@ begin
       EditSuperFields1.Visible := sBtnSuper.Visible;
       ClearSuperfundDetails1.Visible:= sBtnSuper.Visible;
       ClearSuperfundDetails1.Enabled :=
-        pJ^.dtSuper_Fields_Edited and (not txLocked) and (txDate_Transferred = 0);
+        pJ^.dtSF_Super_Fields_Edited and (not txLocked) and (txDate_Transferred = 0);
 
      if not btnChart.Visible then
      begin
