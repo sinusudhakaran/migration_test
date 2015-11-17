@@ -424,6 +424,7 @@ type
                                  var DoneIt: Boolean;
                                  aHasPotentialIssue : boolean = false);
   protected
+    procedure SetShowMoreOptions(aValue : Boolean);
     procedure RefreshAccTranControls();
 
     procedure SetDlgEditMode(aValue : TDlgEditMode);
@@ -450,18 +451,25 @@ type
 
     property BankAccount : TBank_Account read fBankAccount write SetAccount;
     property Copied : boolean read fCopied write fCopied;
+    property ShowMoreOptions : boolean read fShowMoreOptions write SetShowMoreOptions;
   end;
 
   //----------------------------------------------------------------------------
-  function MemoriseEntry(BA: TBank_Account; tr: pTransaction_Rec; var IsAMasterMem: boolean;
-                         pM: TMemorisation = nil; FromRecommendedMems: boolean = false; aCopied : boolean = false): boolean;
+  function MemoriseEntry(BA: TBank_Account;
+                         tr: pTransaction_Rec;
+                         var IsAMasterMem: boolean;
+                         pM: TMemorisation = nil;
+                         FromRecommendedMems: boolean = false;
+                         aCopied : boolean = false;
+                         aShowMoreOptions : boolean = false): boolean;
   function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
                             var pM: TMemorisation; var DeleteSelectedMem: boolean;
                             IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
   function CreateMemorisation(BA : TBank_Account;
                               pM : TMemorisation;
                               FromRecommendedMems: boolean = false;
-                              aCopied : boolean = false): boolean;
+                              aCopied : boolean = false;
+                              aShowMoreOptions : boolean = false): boolean;
   function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
 
 //------------------------------------------------------------------------------
@@ -2156,6 +2164,12 @@ begin
   UpdateTotal;
 end;
 
+procedure TdlgMemorise.SetShowMoreOptions(aValue: Boolean);
+begin
+  fShowMoreOptions := aValue;
+  UpdateMoreOptions();
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cmbValueChange(Sender: TObject);
 begin
@@ -2988,8 +3002,13 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function MemoriseEntry(BA : TBank_Account; tr : pTransaction_Rec; var IsAMasterMem : boolean;
-                       pM: TMemorisation = nil; FromRecommendedMems: boolean = false; aCopied : boolean = false) : boolean;
+function MemoriseEntry(BA : TBank_Account;
+                       tr : pTransaction_Rec;
+                       var IsAMasterMem : boolean;
+                       pM: TMemorisation = nil;
+                       FromRecommendedMems: boolean = false;
+                       aCopied : boolean = false;
+                       aShowMoreOptions : boolean = false) : boolean;
 // create a new memorisation based on the transaction
 //
 // parameters: ba   Bank Account that transaction and memorisation belong to
@@ -3016,6 +3035,8 @@ begin
    try
       with MemDlg, tr^ do
       begin
+        ShowMoreOptions := aShowMoreOptions;
+
          DlgEditMode := demCreate;
          CalledFromRecommendedMems := FromRecommendedMems;
 
@@ -3172,7 +3193,8 @@ end;
 function CreateMemorisation(BA : TBank_Account;
                             pM: TMemorisation;
                             FromRecommendedMems: boolean;
-                            aCopied : boolean): boolean;
+                            aCopied : boolean;
+                            aShowMoreOptions : boolean): boolean;
 var
   MemorisationLine: pMemorisation_Line_Rec;
   tr: pTransaction_Rec;
@@ -3188,7 +3210,7 @@ begin
 
     IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
 
-    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied);
+    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied, aShowMoreOptions);
   finally
     Dispose_Transaction_Rec( tr );
 //DN    Free_Transaction_Rec_Dynamic_Fields(tr^);
@@ -3403,7 +3425,7 @@ begin
              FillSplitData(pMCopy);
 
              // OK pressed, and insert mem?
-             Result := CreateMemorisation(BA, pMCopy, false, true);
+             Result := CreateMemorisation(BA, pMCopy, false, true, ShowMoreOptions);
            finally
              FreeAndNil(pMCopy);
            end;
