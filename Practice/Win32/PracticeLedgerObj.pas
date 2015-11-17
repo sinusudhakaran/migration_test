@@ -827,7 +827,8 @@ begin
       FreeAndNil(FDataResponse);
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
-
+    if Assigned(RequestJson) then
+      FreeAndNil(RequestJson);
   end;
 end;
 
