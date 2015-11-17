@@ -114,7 +114,6 @@ type
     FRandomKey : string;
 
     procedure ProcessLargeReceivedData;
-    function ProcessErrorMessage(aErrorMessage: TlkJSONbase): string;
   protected
     FLicenseType : TLicenceType;
     FLargeJsonData : string;
@@ -124,6 +123,8 @@ type
     FDataResponse : TlkJSONbase;
     FMappingsData : TMappingsData;
 
+    function ProcessErrorMessage(aErrorMessage: TlkJSONbase): string;
+    
     procedure LogHttpDebugSend(aCall : string;
                                aHeaders: THttpHeaders;
                                aPostData: TStringList); overload;
@@ -951,6 +952,7 @@ begin
       end;
     end;
 
+    FHttpRequester.HTTPMethod := aVerb;
     if (aVerb = 'GET') then
     begin
       FHttpRequester.Get(aURL);
@@ -964,9 +966,8 @@ begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + aResponse);
     end
-    else //delete
+    else if (aVerb = 'DELETE') then//delete
     begin
-      FHttpRequester.HTTPMethod := 'DELETE';
       FHttpRequester.PostData := aRequest;
       FHttpRequester.Put(aURL);
 

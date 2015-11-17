@@ -525,8 +525,11 @@ begin
         UploadTransAndJournals(Selected, ttBank);
 
         //send journals
-        PrepareTransAndJournalsToExport(Selected, ttJournals, FromDate, ToDate);
-        UploadTransAndJournals(Selected, ttJournals);
+        if Not FExportTerminated then
+        begin
+          PrepareTransAndJournalsToExport(Selected, ttJournals, FromDate, ToDate);
+          UploadTransAndJournals(Selected, ttJournals);
+        end;
 
         if Not FExportTerminated then
         Begin
@@ -916,15 +919,15 @@ function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
-  RespStr : string;
   Response : TlkJSONObject;
 const
   TheMethod = 'UploadTransactions';
 begin
   Result := False;
+  aRespStr:= '';
+  aError := '';
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
-  Response := nil;
   try
     try
       if TypeOfTrans = ttbank then
@@ -941,23 +944,18 @@ begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestData));
 
-      if not DoHttpSecureJson(sURL, RequestData, RespStr, aError) then
-        Exit;
+      Result := DoHttpSecureJson(sURL, RequestData, aRespStr, aError);
 
       //Wait til data gets transferred completely
-      while (FDataTransferStarted) do
-        ;
+      //while (FDataTransferStarted) do
+        //;
 
-      aError := FDataError;
-      if Assigned(FDataResponse) then
+      (*if Assigned(FDataResponse) then  // Might have some error back
       begin
         Response := FDataResponse as TlkJSONObject; // This is like a create , so destroy at the end
         aRespStr := TlkJSON.GenerateText(Response);
-        Result := True;
-      end
-      else if Trim(FDataError) = '' then
-        FDataError := 'Error in exporting data to MYOB Ledger';
-
+        aError := ProcessErrorMessage(Response);
+      end;*)
     except
       on E: Exception do
       begin
@@ -969,6 +967,7 @@ begin
   finally
     if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
+
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
   end;
@@ -981,7 +980,7 @@ const
 var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
-  ErrorStr,RespStr : string;
+  ErrorStr,DelErrorStr, RespStr : string;
   BankAcToExport: TBankAccountData;
 begin
   if DebugMe then
@@ -1016,14 +1015,15 @@ begin
           if not UploadToAPI(RequestJson,RespStr, ErrorStr,False, TypeOfTrans) then
           begin
             LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-            HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
             //Rollback all batches transferred
 
-            if not RollbackBatch(BankAcToExport.BatchRef,RespStr, ErrorStr,False, TypeOfTrans) then
+            if not RollbackBatch(BankAcToExport.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
             begin
-              LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-              HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
+              LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
+              //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, DelErrorStr, True);
             end;
+
+            HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
 
             FExportTerminated := True;
             Exit;
@@ -1059,14 +1059,14 @@ begin
         if not UploadToAPI(RequestJson, RespStr, ErrorStr, False, TypeOfTrans) then
         begin
           LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-          HelpfulErrorMsg('Exception in journal export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
-
           //Rollback all batches transferred
-          if not RollbackBatch(FJournalsData.BatchRef,RespStr, ErrorStr,False, TypeOfTrans) then
+          if not RollbackBatch(FJournalsData.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
           begin
-            LogUtil.LogMsg(lmError, UnitName, ErrorStr);
-            HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
+            LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
+            //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
           end;
+
+          HelpfulErrorMsg('Exception in journal export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
 
           FExportTerminated := True;
           Exit;
