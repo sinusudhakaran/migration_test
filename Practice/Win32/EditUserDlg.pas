@@ -167,7 +167,7 @@ Type
     function UserIsBanklinkOnlineAdmin: Boolean;
 
     function UserLoggedInChanged: Boolean;
-    
+
     procedure StoreOldValues;
     function HasUserValueChanged : Boolean;
     function GetCurrentCode : string;
@@ -218,7 +218,9 @@ uses
   PickNewPrimaryUser,
   progress,
   INISettings,
-  AuthenticationFailedFrm, bkBranding, bkProduct;
+  AuthenticationFailedFrm,
+  bkBranding, bkProduct,
+  IniFiles;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -1357,6 +1359,10 @@ begin { TdlgEditUser.Execute }
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
     edtEmailId.Text := User.usMYOBEMail;
+    //Reset user tokens
+    if Trim(edtEmailId.Text) = '' then
+      ResetMYOBTokensInUsersINI(User.usCode);
+
     if UseBankLinkOnline and User.usAllow_Banklink_Online then
     begin
       Screen.Cursor := crHourGlass;

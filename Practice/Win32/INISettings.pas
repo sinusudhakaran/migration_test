@@ -37,6 +37,7 @@ procedure ReadMemorisationINI(aClientCode : string);
 
 function EncryptAToken(aToken: string;var RandomKey: string):string;
 function DecryptAToken(aToken: string;RandomKey: string):string;
+procedure ResetMYOBTokensInUsersINI(userCode : string);
 
 //------------------------------------------------------------------------------
 implementation
@@ -111,6 +112,7 @@ const
    GrpPracBankLinkOnline = 'BankLinkOnline';
    GrpPracThirdParty = 'ThirdParty';
    GrpPracmyMYOB = 'MYOB';
+
    //Mems Ini groups
    GrpMemsSupport = 'Support';
 
@@ -1492,6 +1494,29 @@ begin
   begin
     //EncryptedKey := OpenSSLEncription.SimpleRSAEncrypt(KeyString, GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN);
     //Result := EncryptedToken + KEY_DELIMMITER + EncryptedKey;
+  end;
+end;
+
+procedure ResetMYOBTokensInUsersINI(userCode: string);
+var
+  Filename : string;
+  IniFile : TIniFile;
+begin
+  Filename := ExecDir + UserCode + '.INI';
+  IniFile := TIniFile.Create( Filename);
+  try
+    //Reset MYOB token per user settings
+    UserINI_myMYOB_Access_Token := '';
+    UserINI_myMYOB_Random_Key := '';
+    UserINI_myMYOB_Refresh_Token := '';
+    UserINI_myMYOB_Expires_TokenAt := 0;
+
+    IniFile.WriteString(GrpPracmyMYOB, 'MYOBRandomKey', UserINI_myMYOB_Random_Key);
+    IniFile.WriteString(GrpPracmyMYOB, 'MYOBAccessToken', UserINI_myMYOB_Access_Token);
+    IniFile.WriteString(GrpPracmyMYOB, 'MYOBRefreshToken', UserINI_myMYOB_Refresh_Token);
+    IniFile.WriteDateTime(GrpPracmyMYOB, 'MYOBExpiresAt', UserINI_myMYOB_Expires_TokenAt);
+  finally
+    FreeAndNil(IniFile);
   end;
 end;
 
