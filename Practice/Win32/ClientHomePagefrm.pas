@@ -847,6 +847,10 @@ begin
 
   if assigned(FLEFeedbackForm) then
     FLEFeedbackForm.Show;
+
+  lblClientName.Font.Color := TopTitleColor;
+  if Assigned(MyClient) and MyClient.clFields.clFile_Read_Only then
+    lblClientName.Font.Color := clRed;
 end;
 
 procedure TfrmClientHomePage.FormDeactivate(Sender: TObject);
@@ -988,9 +992,7 @@ end;
 procedure TfrmClientHomePage.FormShow(Sender: TObject);
 begin
   try
-     
      ClientTree.SetFocus;
-
   except
   end;
 end;
