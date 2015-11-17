@@ -2395,12 +2395,15 @@ begin //SendSceduledEmail
                      else
                        cmdLineHlp := cmdLineHlp + MailObj.Recipients.Strings[counter];
                    end;
-                   
-                   cmdLine := cmdLine + ' -to ' +cmdLineHlp;
+
+                   cmdLine := cmdLine + ' -to ' + StringReplace(Trim(cmdLineHlp), ',',';',[rfReplaceAll, rfIgnoreCase]);
+                   if Trim(MailObj.CarbonCopy.CommaText) <> '' then
+                     cmdLine := cmdLine + ' -cc '+ StringReplace(Trim(MailObj.CarbonCopy.CommaText), ',',';',[rfReplaceAll, rfIgnoreCase]);
+
                    if not SameStr(MailObj.Subject, '')  then
                      cmdLine := cmdLine + ' -subject ' + MailObj.Subject;
 
-                   //in order to send RTF let's use OLE  
+                   //in order to send RTF let's use OLE
                    cmdLine := cmdLine + ' -ole true;';
                    if not SameStr(MailObj.EMail.Text, '') then
                    begin
@@ -2412,7 +2415,7 @@ begin //SendSceduledEmail
                      end;
                      MailObj.EMail.SaveToFile(RTFFileBodyToSendPath);
                      cmdLine := cmdLine + ' -rtf '+ RTFFileBodyToSendPath;
-                   end;                   
+                   end;
 
                    if MailObj.Attachments.Count > 0 then
                    begin
