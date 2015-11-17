@@ -2042,7 +2042,7 @@ procedure TdlgHistorical.btnOKClick(Sender: TObject);
 begin
   if Provisional and (not IsNoFutureTransactionsAvailable) then
   begin
-    HelpfulWarningMsg('Transaction(s) has future date. Please fix that before proceed ',0);
+    HelpfulWarningMsg('Transaction(s) have future dates. Please amend the dates before proceeding.',0);
     Exit;
   end
   else
