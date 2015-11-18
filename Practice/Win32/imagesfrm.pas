@@ -82,12 +82,14 @@ type
     imgGraySuggMemCircle: TImage;
     imgGridColArrow: TImage;
     BlueLightBmp: TImage;
+    imgGraySuggMemCircleAltColor: TImage;
+    imgBlueSuggMemCircleAltColor: TImage;
     procedure FormCreate(Sender: TObject);
   private
 
-  public                              
-    { Public declarations }
+  public
     CustomLoginBitmapLoaded : boolean;
+    procedure UpdateSuggMemBubbleUpdateAltColor(aAltLineColor : integer);
   end;
 
 const
@@ -259,6 +261,61 @@ function IniColor (const Name :string; AColor : TColor):TColor;
 begin
   Result := GetPrivateProfileInt('Colors',Pchar(Name),AColor,
       Pchar(ChangeFileExt(Application.ExeName,'.ini')));
+end;
+
+procedure TAppImages.UpdateSuggMemBubbleUpdateAltColor(aAltLineColor : integer);
+var
+  ImageRect : TRect;
+  XIndex, YIndex : integer;
+  PixelColor : TColor;
+  AltScaleValue : double;
+  CircleScaleValue : double;
+  AltRed, AltGreen, AltBlue : byte;
+  BluRed, BluGreen, BluBlue : byte;
+  Red, Green, Blue : byte;
+  WhiteByte, GrayByte : byte;
+begin
+  WhiteByte := 255;
+  GrayByte  := 128;
+  AltRed    := Byte(aAltLineColor);
+  AltGreen  := Byte(aAltLineColor shr 8);
+  AltBlue   := Byte(aAltLineColor shr 16);
+  BLuRed    := 0;
+  BLuGreen  := 91;
+  BLuBlue   := 154;
+
+  ImageRect.Left := 0;
+  ImageRect.Top  := 0;
+  ImageRect.Right := imgBlueSuggMemCircleAltColor.Picture.Bitmap.Width-1;
+  ImageRect.Bottom := imgBlueSuggMemCircleAltColor.Picture.Bitmap.Height-1;
+
+  imgBlueSuggMemCircleAltColor.Picture.Bitmap.Canvas.CopyRect(ImageRect,
+    imgBlueSuggMemCircle.Picture.Bitmap.Canvas, ImageRect);
+
+  imgGraySuggMemCircleAltColor.Picture.Bitmap.Canvas.CopyRect(ImageRect,
+    imgGraySuggMemCircle.Picture.Bitmap.Canvas, ImageRect);
+
+  for YIndex := 0 to ImageRect.Bottom do
+  begin
+    for XIndex := 0 to ImageRect.Right do
+    begin
+      PixelColor := imgGraySuggMemCircle.Picture.Bitmap.Canvas.Pixels[XIndex,YIndex];
+      AltScaleValue := (Byte(PixelColor) - GrayByte) / 127; // value inbetween 0 and 1
+      CircleScaleValue := 1 - AltScaleValue;
+
+      Red   := byte(trunc((AltRed * AltScaleValue) + (BLuRed * CircleScaleValue)));
+      Green := byte(trunc((AltGreen * AltScaleValue) + (BLuGreen * CircleScaleValue)));
+      Blue  := byte(trunc((AltBlue * AltScaleValue) + (BLuBlue * CircleScaleValue)));
+
+      imgBlueSuggMemCircleAltColor.Picture.Bitmap.Canvas.Pixels[XIndex,YIndex] := RGB(Red, Green, Blue);
+
+      Red   := byte(trunc((AltRed * AltScaleValue) + (GrayByte * CircleScaleValue)));
+      Green := byte(trunc((AltGreen * AltScaleValue) + (GrayByte * CircleScaleValue)));
+      Blue  := byte(trunc((AltBlue * AltScaleValue) + (GrayByte * CircleScaleValue)));
+
+      imgGraySuggMemCircleAltColor.Picture.Bitmap.Canvas.Pixels[XIndex,YIndex] := RGB(Red, Green, Blue);
+    end;
+  end;
 end;
 
 end.

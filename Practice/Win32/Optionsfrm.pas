@@ -365,6 +365,7 @@ begin
   if UserINI_GS_Grid_Alternate_Color <> ceAlternateColour.SelectedColor then
   begin
     UserINI_GS_Grid_Alternate_Color := ceAlternateColour.SelectedColor;
+    AppImages.UpdateSuggMemBubbleUpdateAltColor(ceAlternateColour.SelectedColor);
     INISettings.WriteUsersINI(CurrUser.Code);
 
     ActiveForm := GetActiveForm;

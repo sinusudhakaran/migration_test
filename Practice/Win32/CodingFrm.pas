@@ -1270,6 +1270,7 @@ begin
 
   SuggestedMem.DoneProcessingEvent.Add(DoSuggestedMemsDoneProcessing);
   frmMain.OnToolBarResize.Add(DoMainFrmToolBarResize);
+  AppImages.UpdateSuggMemBubbleUpdateAltColor(AltLineColor);
 end;
 
 //------------------------------------------------------------------------------
@@ -10559,12 +10560,24 @@ begin
   DstRect.Right  := MidCircleX - CircleHalfWidth + 13;
   DstRect.Bottom := MidCircleY + 13;
 
-  // Draw end section of Circle, includes middle
-  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
-     (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
-    TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircle.Picture.Bitmap, SrcRect, clwhite)
+  if CellAttr.caColor = AltLineColor then
+  begin
+    // Draw end section of Circle, includes middle
+    if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+       (SelectedSuggestedMemId = PaintSuggMemsData.Id) then
+      TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircleAltColor.Picture.Bitmap, SrcRect, clwhite)
+    else
+      TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircleAltColor.Picture.Bitmap, SrcRect, clwhite);
+  end
   else
-    TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircle.Picture.Bitmap, SrcRect, clwhite);
+  begin
+    // Draw end section of Circle, includes middle
+    if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+       (SelectedSuggestedMemId = PaintSuggMemsData.Id) then
+      TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircle.Picture.Bitmap, SrcRect, clwhite)
+    else
+      TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircle.Picture.Bitmap, SrcRect, clwhite);
+  end;
 
   SrcRect.Left   := 103-((CircleHalfWidth*2)-13);
   SrcRect.Top    := 0;
@@ -10579,11 +10592,24 @@ begin
   if DstRect.Right > CellRect.Right then
     DstRect.Right := CellRect.Right;
 
-  if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
-     (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
-    TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircle.Picture.Bitmap, SrcRect, clwhite)
+  if CellAttr.caColor = AltLineColor then
+  begin
+    // Draw end section of Circle, includes middle
+    if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+       (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
+      TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircleAltColor.Picture.Bitmap, SrcRect, clwhite)
+    else
+      TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircleAltColor.Picture.Bitmap, SrcRect, clwhite);
+  end
   else
-    TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircle.Picture.Bitmap, SrcRect, clwhite);
+  begin
+    // Draw end section of Circle, includes middle
+    if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
+       (SelectedSuggestedMemId = PaintSuggMemsData.Id)then
+      TableCanvas.BrushCopy(DstRect, AppImages.imgBlueSuggMemCircle.Picture.Bitmap, SrcRect, clwhite)
+    else
+      TableCanvas.BrushCopy(DstRect, AppImages.imgGraySuggMemCircle.Picture.Bitmap, SrcRect, clwhite);
+  end;
 
   // Draw Text
   if (SelectedSuggestedMemId > TRAN_SUGG_NOT_FOUND) and
