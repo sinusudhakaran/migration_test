@@ -99,8 +99,6 @@ var
 { TBanklinkOnlineServices }
 
 class function TBanklinkOnlineTaggingServices.TestDataService: Boolean;
-var
-  Response: WideString;
 begin
   {
   Result := False;
@@ -132,7 +130,6 @@ var
   TransactionNode: IXMLNode;
   Dissection: pDissection_Rec;
   DissectionNode: IXMLNode;
-  TransactionGuid: String;
   IdNode: IXMLNode;
   TransactionCoreId: Int64;
 begin
@@ -306,7 +303,6 @@ class procedure TBanklinkOnlineTaggingServices.BankAccountsToXML(ParentNode: IXM
 var
   Index: Integer;
   BankAccount: TBank_Account;
-  TransactionNode: IXMLNode;
   TempTransExported: Integer;
   BankAccountNode: IXMLNode;
   StepSize: Double;
@@ -416,10 +412,8 @@ var
   RootNode: IXMLNode;
   Index: Integer;
   IIndex: Integer;
-  CompressedXml: String;
   Client: TClientObj;
   ClientProgressSize: Double;
-  ExportedClient: TExportedClient;
   ErrorReported: Boolean;
   AccountsExported: Integer;
   ClientBankAccountVendors: TBloArrayOfDataPlatformBankAccount;
@@ -733,7 +727,6 @@ end;
 // Update account vendors for a client
 class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDetail: TBloClientReadDetail; Client: TClientObj; OriginalVendors, ModifiedVendors: TBloArrayOfGuid; ProgressForm: ISingleProgressForm);
 var
-  Index: Integer;
   IIndex: Integer;
   BankAccount: TBank_Account;
   ClientProgressSize: Double;
@@ -774,7 +767,7 @@ class procedure TBanklinkOnlineTaggingServices.UpdateAccountVendors(ClientReadDe
 var
   AccountVendors: TBloDataPlatformSubscription;
   ClientVendorsAdded, ClientVendorsRemoved, NewAccountVendors : TBloArrayOfGuid;
-  OrgVenIndex, ModVenIndex, AccountVendorsLength, AccCurIndex, Index: integer;
+  OrgVenIndex, ModVenIndex, Index: integer;
   FoundVendor: boolean;
   ClientGuid: TBloGuid;
   AccountVendorGuid : WideString;

@@ -299,9 +299,7 @@ end;
 function TInstitutions.SaveToFile(aFileName: string): boolean;
 var
   BloArrayOfInstitution : TBloArrayOfInstitution;
-  NewInstitutionItem : TInstitutionItem;
   ItemIndex : integer;
-  CountryIndex : integer;
   CsvFile   : TStringList;
 begin
   Result := (ProductConfigService.GetInstitutionList(BloArrayOfInstitution) in [bloSuccess, bloFailedNonFatal] );
@@ -333,10 +331,8 @@ var
   CommaLine : TStringList;  //holds all fields for a line
   CsvParse  : TCsvParser;
   LineNo    : integer;
-  Index     : integer;
   FoundInstitutionItem : TInstitutionItem;
 begin
-  Result := false;
   CsvFile   := TStringList.Create;
   CommaLine := TStringlist.Create;
   CsvParse  := TCsvParser.Create;

@@ -920,7 +920,6 @@ function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
-  Response : TlkJSONObject;
 const
   TheMethod = 'UploadTransactions';
 begin

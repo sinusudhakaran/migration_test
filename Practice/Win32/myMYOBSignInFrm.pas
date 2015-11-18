@@ -432,9 +432,6 @@ var
   StoredLRN   : Integer;
   StoredName  : string;
   pu          : pUser_Rec;
-  pCF    : pClient_File_Rec;
-  FileList : TStringList;
-  i: Integer;
 begin
   //get the user_rec again as the admin system may have changed in the mean time.
   if Assigned(CurrUser) then

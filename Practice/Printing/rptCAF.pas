@@ -228,7 +228,6 @@ var
   BankText : string;
   TempCurrYPos : integer;
   OutputLeft, OutputTop, OutputRight, OutputBottom : integer;
-  CurrXPos : integer;
   BoxMargin2 : integer;
   XPosOneThirds, XPosTwoThirds : integer;
   XPosOneHalf : integer;
@@ -625,9 +624,6 @@ var
   CAFQRDataAccount : TCAFQRDataAccount;
   QrCodeImage : TImage;
   InstIndex : integer;
-  InstCode : string;
-  InstSlashPos : integer;
-  IsRuralInstSelected : boolean;
   Day, Month, Year : word;
 {$ENDIF}
 begin

@@ -241,7 +241,6 @@ end;
 function TEncryptOpenSSL.ReadRSAPrivateKey(AFileName: string): pRSA;
 var
   Keyfile: pBIO;
-  rsa: pRSA;
 
   // Callback for encrypted private key
   function Passwordcallback(buffer  : PCharacter;
@@ -268,7 +267,6 @@ end;
 function TEncryptOpenSSL.ReadRSAPublicKey(AFileName: string): pRSA;
 var
   Keyfile: pBIO;
-  rsa: pRSA;
 
   // Callback for encrypted private key
   function Passwordcallback(buffer  : PCharacter;
@@ -358,7 +356,6 @@ const
         const int passwordIterations = 2;                 // Can be any number, usually 1 or 2
         const int keySize = 256;                          // Allowed values: 192, 128 or 256}
 var
-  KeyString : string;
   OutString : string;
 begin
   Result := '';
@@ -394,8 +391,6 @@ end;
 function TEncryptOpenSSL.EncodeSHA256(InBuffer, Salt: Pointer; InBufferSize, SaltSize: Integer; OutBuffer: PAnsiChar): Integer;
 var
   psha256Rec : pSHA256_CTX;
-  Temp: array[0..31] of Byte;
-  localbuf : Pansichar;
 begin
   Result := 0;
 
@@ -644,7 +639,6 @@ function TEncryptOpenSSL.AESEncrypt(PasswordBytes: PAnsiChar; InText: string; va
 var
   AESkey     : AES_KEY;
   pAESkey    : pAES_KEY;
-  KeyData    : pChar;
   InData     : PChar;
   InDataSize : integer;
   OutData    : PChar;
@@ -733,10 +727,8 @@ var
   psha256Rec : pSHA256_CTX;
   InDataSize : integer;
   OutData : Pointer;
-  HashIndex : integer;
   SaltDataSize : integer;
-  Index: Integer;
-begin                                
+begin
   Result := '';
 
   New(psha256Rec);
@@ -798,7 +790,6 @@ end;
 function TEncryptOpenSSL.SHA256DerivePassword(InString: string; SaltText : String; Iterations : integer): AnsiString;
 var
   IterationNumber : integer;
-  psha256Rec : pSHA256_CTX;
   OutBuffer: PAnsiChar;
   Temp: String;
 begin
@@ -1031,7 +1022,6 @@ var
   ExponentNode: IXMLNode;
   Modulus, Exponent : pBIGNUM;
   EVPKey : pEVP_PKEY;
-  NewRSA : pRSA;
 begin
   Result := nil;
   Modulus := nil;
@@ -1133,7 +1123,6 @@ end;
 function TPEMKey.InitializeKey(const KeyFile: String): pRSA;
 var
   KeyData: pBIO;
-  rsa: pRSA;
 
   // Callback for encrypted private key
   function Passwordcallback(buffer  : PCharacter;

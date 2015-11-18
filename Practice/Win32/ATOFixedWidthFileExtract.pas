@@ -11,9 +11,8 @@ uses
 
 type
   //----------------------------------------------------------------------------
-  TATOPayeeData = class
+  {TATOPayeeData = class
   private
-    fPayeeABNNumber : longword;
     fPayeeNonIndividualBusinessName : string;
     fPayeeAddress1 : string;
     fPayeeSuburb : string;
@@ -23,7 +22,7 @@ type
     fPayeeTaxWithheld : longword;
     fPayeeTotalGst : longword;
     fPayeeAmendmentIndicator : string;
-  end;
+  end;}
 
   //----------------------------------------------------------------------------
   TATOFixedWidthFileExtract = class
@@ -168,8 +167,6 @@ end;
 procedure TATOFixedWidthFileExtract.WriteNumericData(aValue : longword; aLength : integer);
 var
   Data : string;
-  DataLength : integer;
-  Index : integer;
 begin
   Data := trim(inttostr(aValue));
   Data := InsFillerZeros(Data, aLength);

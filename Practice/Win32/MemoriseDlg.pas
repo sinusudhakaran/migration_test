@@ -574,24 +574,17 @@ procedure TMasterTreeThread.RefreshMasterMemTree();
 var
   SearchPrefix : string;
   CltClient : TClientObj;
-  BackupClient : TClientObj;
   ClientFileRec : pClient_File_Rec;
   AdminClientIndex : integer;
   BankAccIndex : integer;
   BankAcc : TBank_Account;
-  ClientFileCode : string;
-  SysAccRec : pSystem_Bank_Account_Rec;
   FoundFirstAccount : boolean;
   FoundFirstClientAccount : boolean;
   RootNode : TTreeNode;
   ClientNode : TTreeNode;
   AccNode : TTreeNode;
-  TranIndex : integer;
-  TranRec : pTransaction_Rec;
   TempMem : TMemorisation;
   Institution : string;
-  SysIndex : integer;
-  Found : boolean;
   NunOfSplitLines : integer;
   InstitutionList : TStringList;
   FoundAcc : pSystem_Bank_Account_Rec;
@@ -1920,9 +1913,6 @@ end;//RowtmrTimer
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.UpdateControls;
-var
-  i          : integer;
-  GSTEdited  : Boolean;
 
   //----------------------------------------------------------------------------
   procedure SetJobPayee(Value: Boolean);
@@ -2765,8 +2755,6 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.RefreshMasterMemTree;
-var
-  screenPos : TPoint;
 begin
   pnlMessage.Visible := false;
   ffrmSpinner.ShowSpinner('Calculating',
@@ -3018,11 +3006,9 @@ function MemoriseEntry(BA : TBank_Account;
 var
   MemDlg : TdlgMemorise;
   Memorised_Trans : TMemorisation;
-  BankPrefix : BankPrefixStr;
 //  MasterMemList : TMaster_Memorisations_List;
   MasterMemList : TMemorisations_List;
   SystemMemorisation: pSystem_Memorisation_List_Rec;
-  pAcct : pAccount_Rec;
   NunOfSplitLines : integer;
 begin
    result := false;
@@ -3196,7 +3182,6 @@ function CreateMemorisation(BA : TBank_Account;
                             aCopied : boolean;
                             aShowMoreOptions : boolean): boolean;
 var
-  MemorisationLine: pMemorisation_Line_Rec;
   tr: pTransaction_Rec;
   IsAMasterMem : boolean;
 begin
@@ -3275,16 +3260,12 @@ var
 
 var
   MemDlg : TdlgMemorise;
-  pAcct : pAccount_Rec;
   i : integer;
-  AmountMatchType : byte;
   MemLine : pMemorisation_Line_Rec;
   Memorised_Trans: TMemorisation;
   SaveSeq: integer;
   pM_SequenceNo: integer;
-  Memorised_Trans_SequenceNo: integer;
   FormResult : Integer;
-  Mems: TMemorisations_List;
   pMCopy: TMemorisation;
   LineIndex : integer;
   CodedTo   : string;

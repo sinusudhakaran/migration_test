@@ -513,7 +513,6 @@ end;
 
 function CalcShareConsideration(Value: Money; Rate: Money) : Money;
 begin
-  result := 0;
   if Money2Double(Value) <= 0 then // Transaction is a disposal
     result := abs( Value) + Rate
   else                       // Transaction is a purchase
@@ -989,7 +988,6 @@ end;
 function EditBGL360Fields( ParentTrans : pTransaction_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
-  iTransaction_Extension : integer;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm );
@@ -1141,7 +1139,6 @@ end;
 function EditBGL360Fields( ParentTrans : pTransaction_Rec; pWJ : pWorkJournal_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
-  iTransaction_Extension : integer;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
@@ -1278,7 +1275,6 @@ end;
 function EditBGL360Fields( ParentTrans : pTransaction_Rec; pWD : pWorkDissect_Rec; var Move: TFundNavigation; var T, L: Integer) : boolean; overload;
 var
   SuperForm : TdlgEditBGLSF360Fields;
-  iTransaction_Extension : integer;
 begin
   result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create( Application.MainForm);
@@ -1416,8 +1412,6 @@ var
   ForDate: Integer;
   Narration: string;
   Amount: Money;
-  iTransaction_Extension : integer;
-
 begin
   Result := false;
   SuperForm := TdlgEditBGLSF360Fields.Create(Application.MainForm);

@@ -732,6 +732,7 @@ var
   RespStr : string;
 begin
   Result := False;
+  JsonObject := nil;
   try
     try
       sURL := PRACINI_CashbookAPIBusinessesURL;
@@ -752,9 +753,10 @@ begin
 
       aError := FDataError;
       if Assigned(FDataResponse) then
+      begin
         JsonObject := (FDataResponse as TlkJSONObject);
-
-      RespStr := TlkJSON.GenerateText(JsonObject);
+        RespStr := TlkJSON.GenerateText(JsonObject);
+      end;
 
       if DebugMe then
         LogUtil.LogMsg(lmInfo, UnitName, RespStr);
@@ -811,6 +813,7 @@ var
   RespStr : string;
 begin
   Result := False;
+  JsonObject := nil;
   try
     try
       sURL := Format(PRACINI_CashbookAPICOAURL,[aBusinessID]);
@@ -830,8 +833,10 @@ begin
 
       aError := FDataError;
       if Assigned(FDataResponse) then
+      begin
         JsonObject := (FDataResponse as TlkJSONObject);
-      RespStr := TlkJSON.GenerateText(FDataResponse);
+        RespStr := TlkJSON.GenerateText(FDataResponse);
+      end;
       if Assigned(aChartOfAccounts) and Assigned(JsonObject) then
       begin
         aChartOfAccounts.Read(aBusinessID,JsonObject);
@@ -2825,6 +2830,7 @@ var
   RespStr : string;
 begin
   Result := false;
+  List := nil;
   try
     try
       sURL := PRACINI_CashbookAPIFirmsURL;
@@ -2845,9 +2851,10 @@ begin
 
       aError := FDataError;
       if Assigned(FDataResponse) then
+      begin
         List := (FDataResponse as TlkJSONlist);
-
-      RespStr := TlkJSON.GenerateText(List);
+        RespStr := TlkJSON.GenerateText(List);
+      end;
       if DebugMe then
         LogUtil.LogMsg(lmInfo, UnitName, RespStr);
 

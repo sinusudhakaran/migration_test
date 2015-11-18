@@ -2238,8 +2238,6 @@ var
   ClientEmail, PracticeEmail, PracticeEmailList: string;
   EmailBody: string;
   Msg: string;
-  NoEmail: string;
-  ClientObj : TClientObj;
   EmailCount: integer;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
@@ -2392,8 +2390,6 @@ var
    Attributes  : Integer;
    aClient        : TClientObj;
    RemapAccounts : Boolean;
-   Users         : TBloArrayOfUserRead;
-   BlankSubscription : TBloArrayOfGuid;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
