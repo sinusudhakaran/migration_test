@@ -1399,11 +1399,11 @@ begin
     if ((TransType= ttOtherTx) and (Transaction.txGST_Amount <> 0)) then
     begin
       // GST_Rate
-      Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective, Transaction.txGST_Class);
+(*      Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective, Transaction.txGST_Class);
       AddFieldNode(
         TransactionNode,
         'GST_Rate',
-        FormatFloatForXml(Rate, 0, 10000), false );
+        FormatFloatForXml(Rate, 0, 10000), false ); *)
       // GST_Amount
       AddFieldNode(
         TransactionNode,
@@ -1563,13 +1563,13 @@ begin
       FormatFloatForXml(Dissection^.dsAmount, 2, 100, true), true);
 
     // Output GST?
-    if (Dissection.dsGST_Amount <> 0) then
+    if ((TransType= ttOtherTx) and (Dissection.dsGST_Amount <> 0 ) ) then
     begin
       // GST_Rate
-      Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective,
+(*      Rate := GetGSTClassPercent(MyClient, Transaction.txDate_Effective,
                 Dissection.dsGST_Class);
       AddFieldNode( TransactionNode, 'GST_Rate',
-        FormatFloatForXml(Rate, 0, 10000) );
+        FormatFloatForXml(Rate, 0, 10000) ); *)
       // GST_Amount
       AddFieldNode( TransactionNode, 'GST_Amount',
         FormatFloatForXml(Abs(Dissection^.dsGST_Amount), 2, 100) );
