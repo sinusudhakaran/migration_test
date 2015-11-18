@@ -2138,8 +2138,8 @@ const
        // sffIdxBGL360_Accrual Date
        // sffIdxBGL360_Record_Date
      //Australian Income Tab
-       'Franked Amount',                            // sffIdxBGL360_Franked_Amount
-       'Unfranked Amount',                          // sffIdxBGL360_Unfranked_Amount
+       'Franked',                            // sffIdxBGL360_Franked_Amount
+       'Unfranked',                          // sffIdxBGL360_Unfranked_Amount
 
        'Franking Credits',                          // sffIdxBGL360_Franking_Credits
 
@@ -2169,11 +2169,11 @@ const
        'Cash Distribution',                         // sffIdxBGL360_Cash_Distribution
 
        'Foreign Income Tax Offset',                 // sffIdxBGL360_Foreign_Income_Tax_Offset
-       'AU Franking Credits from an NZ Company',    // sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company
+       'AU Franking Credits from NZ Company',    // sffIdxBGL360_AU_Franking_Credits_from_an_NZ_Company
 
        'TFN Amounts Withheld',                      // sffIdxBGL360_TFN_Amounts_Withheld
        'Non-Resident Withholding Tax',              // sffIdxBGL360_Non_Resident_Withholding_Tax
-       'LIC Deductions',                            // sffIdxBGL360_LIC_Deductions
+       'LIC Deduction',                            // sffIdxBGL360_LIC_Deductions
 
        'Tax Exempted Amounts',                      // sffIdxBGL360_Tax_Exempted_Amounts
        'Tax Free Amounts',                          // sffIdxBGL360_Tax_Free_Amounts
