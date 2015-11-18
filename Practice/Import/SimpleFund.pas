@@ -190,15 +190,15 @@ begin
       try
         if (clAccounting_System_Used = saBGL360) then begin
 //BGL360 fetches from API and no longer from CSV File          ReadCSVFile(ChartFileName, NewChart)
-          if ( MyClient.clExtra.ceBGLFundIDSelected = '' ) or
-           ( not FetchCOAFromAPI( NewChart ) ) then begin // Could not retreive the chart
+          if ( MyClient.clExtra.ceBGLFundIDSelected = '' ) then begin
             Msg := 'Please select a Fund to refresh the chart from, via Other Functions | Accounting System.';
             LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : Fund not selected.'  );
-            HelpfulErrorMsg( 'Please select a Fund to refresh the chart from, ' +
-              'via Other Functions | Accounting System' + #13+#13+
-              'The existing chart has not been modified.', 0 );
+            HelpfulErrorMsg( Msg + #13#13'The existing chart has not been modified.', 0 );
             exit;
-          end;
+           end;
+
+           if not FetchCOAFromAPI( NewChart ) then
+             exit;
         end
         else
           ReadDBaseFile(clCode, ExtractFilePath(ChartFileName), NewChart);
@@ -223,13 +223,12 @@ begin
       end;
     except
       on E : EInOutError do begin //Normally EExtractData but File I/O only
-          Msg := Format( 'Error Refreshing Chart %s.', [ChartFileName] );
-          LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-          HelpfulErrorMsg( Msg + #13'The existing chart has not been modified.'+#13, 0, False,  E.Message, True);
-          exit;
+        Msg := Format( 'Error refreshing chart %s.', [ChartFileName] );
+        LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
+        HelpfulErrorMsg( Msg+#13'The existing chart has not been modified.', 0, False, E.Message, True);
       end;
     end;
-  end;  {with}  
+  end;  {with}
 end;
 
 procedure ReadCSVFile(FilePath: string; NewChart: TChart);
@@ -312,15 +311,17 @@ var
   NewAccount  : pAccount_Rec;
   RESTServer : TBGLServer;
   i          : integer;
+  AppearsToBeNetworkError : boolean;
 begin
   result := false;
+  AppearsToBeNetworkError := false;
   RESTServer :=
     TBGLServer.Create( nil,
       DecryptAToken(Globals.PRACINI_BGL360_Client_ID,Globals.PRACINI_Random_Key),
       DecryptAToken(Globals.PRACINI_BGL360_Client_Secret,Globals.PRACINI_Random_Key),
       Globals.PRACINI_BGL360_API_URL);
   try
-    if assigned( MyClient ) then
+    if assigned( MyClient ) then                          
       RestServer.Set_Auth_Tokens( AdminSystem.fdFields.fdBGLAccessToken,
         AdminSystem.fdFields.fdBGLTokenType, AdminSystem.fdFields.fdBGLRefreshToken,
         AdminSystem.fdFields.fdBGLTokenExpiresAt );
@@ -361,12 +362,19 @@ begin
                 end;
           end;
           result := true;
-        end;
+        end
+        else
+          AppearsToBeNetworkError := true;
       end
-      else begin
-        Msg := 'Error Refreshing Chart the Service could not be reached, please try again later.';
+      else
+        AppearsToBeNetworkError := true;
+
+      if AppearsToBeNetworkError then begin
+        Msg := Format( 'Error refreshing chart from fund %s.',
+          [ MyClient.clExtra.ceBGLFundNameSelected ] );
         LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : ' + Msg );
-        HelpfulErrorMsg( Msg + #13#13+'The existing chart has not been modified.', 0 );
+        HelpfulErrorMsg( Msg+#13'The existing chart has not been modified.', 0,
+          False, 'BGL Service could not be reached, please try again later.', True);
       end;
 
   finally
