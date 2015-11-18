@@ -550,7 +550,8 @@ begin
   else
     TableCanvas.Font.Style := [];
 
-  if tblSuggMems.ActiveRow = RowNum then
+  if (tblSuggMems.ActiveRow = RowNum) and
+     (tblSuggMems.ActiveCol = ColNum) then
   begin
     TableCanvas.Font.Color  := clWhite;
     TableCanvas.Brush.Color := bkBranding.SelectionColor;
