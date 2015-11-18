@@ -2,7 +2,7 @@ unit PromoWindowObj;
 
 interface
 
-uses Classes, SysUtils, contnrs, ipshttps, uHttpLib, uLKJSON, Graphics,
+uses LogUtil, Classes, SysUtils, contnrs, ipshttps, uHttpLib, uLKJSON, Graphics,
   ExtCtrls, Windows, WinUtils, SYDEFS;
 
 type
@@ -224,7 +224,7 @@ const
 implementation
 
 uses Dialogs, Math, Variants,IdBaseComponent, IdComponent, IdTCPConnection,
-      IdTCPClient,IdHTTP, Forms, Globals, DateUtils, LogUtil, bkURLs;
+      IdTCPClient,IdHTTP, Forms, Globals, DateUtils, bkURLs;
 
 var
   DebugMe : Boolean = False;
@@ -1028,8 +1028,6 @@ end;
 initialization
   //InitializeCriticalSection(CritSect);
   DisplayPromoContents := TDisplayContents.Create;
-
-  StartPromoThread;
   DebugMe := DebugUnit(UnitName);
 
 finalization

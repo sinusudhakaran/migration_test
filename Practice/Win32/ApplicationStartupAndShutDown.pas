@@ -52,7 +52,8 @@ uses
   UsageUtils, BKHelp,
   ThirdPartyHelper,
   IPClientLocking,
-  bkProduct;
+  bkProduct,
+  PromoWindowObj;
 
 const
   UnitName = 'AppStartupShutDown';
@@ -155,10 +156,11 @@ begin
   ThirdPartyHelper.CheckForThirdPartyDLL;
 
   StartUpStep := 'Reading practice settings';
-  
+
   //Read Practice INI settings
   ReadPracticeINI;
-
+  
+  StartPromoThread;
   //Check if version no has changed, if it has write a new line in the log file
   if PRACINI_CurrentVersion <> WINUTILS.GetAppVersionStr then
   begin
