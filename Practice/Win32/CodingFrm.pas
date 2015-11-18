@@ -7830,6 +7830,15 @@ begin
    if (MDIChildSortedIndex > -1) and
      (tcWindows.Visible) then
     ActivateCurrentTabUsingMDI(MDIChildSortedIndex);
+
+  lblAcctDetails.Font.Color := bkBranding.TopTitleColor;
+  lblTransRange.Font.Color := bkBranding.TopTitleColor;
+
+  if Assigned(MyClient) and MyClient.clFields.clFile_Read_Only then
+  begin
+    lblAcctDetails.Font.Color := clRed;
+    lblTransRange.Font. Color := clRed;
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmCoding.FormDeactivate(Sender: TObject);
