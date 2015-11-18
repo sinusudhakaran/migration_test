@@ -184,6 +184,7 @@ type
     procedure tsForeignIncomeTabOnChange(Sender: TObject);
     procedure ForcePositiveAmountKeyPress(Sender: TObject;
       var Key: Char);
+    procedure btnOKClick(Sender: TObject);
 (*    procedure pcDistributionDrawTab(Control: TCustomTabControl;
       TabIndex: Integer; const Rect: TRect; Active: Boolean); *)
   private
@@ -1104,6 +1105,11 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgEditBGLSF360Fields.btnBackClick(Sender: TObject);
 begin
+  if ( TransactionType = ttShareTrade ) and ( nfUnits.asFloat = 0 ) and ( not MemOnly )  then
+    HelpfulWarningMsg( format( 'Units should be specified if this is a purchase or ' +
+      'disposal, otherwise this will be treated as a revaluation in %s.',
+      [ bkConst.saNames[ MyClient.clFields.clAccounting_System_Used ] ] ), 0 );
+
   FMoveDirection := fnGoBack;
   ModalResult := mrOk;
 end;
@@ -1171,7 +1177,21 @@ end;
 
 procedure TdlgEditBGLSF360Fields.btnNextClick(Sender: TObject);
 begin
+  if ( TransactionType = ttShareTrade ) and ( nfUnits.asFloat = 0 ) and ( not MemOnly )  then
+    HelpfulWarningMsg( format( 'Units should be specified if this is a purchase or ' +
+      'disposal, otherwise this will be treated as a revaluation in %s.',
+      [ bkConst.saNames[ MyClient.clFields.clAccounting_System_Used ] ] ), 0 );
   FMoveDirection := fnGoForward;
+  ModalResult := mrOk;
+end;
+
+procedure TdlgEditBGLSF360Fields.btnOKClick(Sender: TObject);
+begin
+  if ( TransactionType = ttShareTrade ) and ( nfUnits.asFloat = 0 ) and ( not MemOnly ) then
+    HelpfulWarningMsg( format( 'Units should be specified if this is a purchase or ' +
+      'disposal, otherwise this will be treated as a revaluation in %s.',
+      [ bkConst.saNames[ MyClient.clFields.clAccounting_System_Used ] ] ), 0 );
+
   ModalResult := mrOk;
 end;
 
