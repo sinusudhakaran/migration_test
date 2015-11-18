@@ -83,6 +83,7 @@ uses
   SYctIO,
   bkBranding,
   UpgradeMemorisations,
+  CodingFormConst,
   RecommendedMems;
 // ----------------------------------------------------------------------------
 
@@ -4390,6 +4391,19 @@ const
     end;
   end;
 
+  // Exception code for Suggested Mem only to be done after upgrade
+  procedure UpgradeToVersion187;
+  var
+    AccIndex : integer;
+    BankAcc : TBank_Account;
+  begin
+    for AccIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
+    begin
+      BankAcc := aClient.clBank_Account_List.Bank_Account_At(AccIndex);
+      BankAcc.baFields.baColumn_Order[ ceSuggestedMemCount] := 255;
+    end;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4781,6 +4795,13 @@ begin
       begin
         UpgradeToVersion185;
         clFile_Version := 185;
+      end;
+
+      // Added column
+      if (CLFile_Version < 187) then
+      begin
+        UpgradeToVersion187;
+        clFile_Version := 187;
       end;
    end;
 end;

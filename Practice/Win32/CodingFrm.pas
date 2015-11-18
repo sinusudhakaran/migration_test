@@ -7848,8 +7848,10 @@ procedure TfrmCoding.LoadLayoutForThisAcct;
 //if no width information is provide assume that no settings have been saved for this
 //column and use the defaults
 var
-   i : integer;
-   ColDefn : pColumnDefn;
+  i : integer;
+  ColDefn : pColumnDefn;
+  AccReqPos : integer;
+  SuggReqPos : integer;
 begin
    //build set of columns that are editable by default
    SetupColDefaultSets;
@@ -7876,6 +7878,48 @@ begin
          end;
       end;
    end;
+
+   // Exception code for Suggested Mem only to be done after upgrade
+   if BankAccount.baFields.baColumn_Order[ ceSuggestedMemCount] = 255 then
+   begin
+     AccReqPos := ColumnFmtList.ColumnDefn_At(ColumnFmtList.GetColNumOfField(ceAccount))^.cdRequiredPosition;
+     SuggReqPos := ColumnFmtList.ColumnDefn_At(ColumnFmtList.GetColNumOfField(ceSuggestedMemCount))^.cdRequiredPosition;
+
+     if not (AccReqPos = (SuggReqPos-1)) then
+     begin
+       if AccReqPos > SuggReqPos then
+       begin
+         // Move sugg column forward after Acc column
+         for i := 0 to Pred( ColumnFmtList.ItemCount ) do
+         begin
+           ColDefn := ColumnFmtList.ColumnDefn_At(i);
+
+           if ColDefn^.cdRequiredPosition = SuggReqPos then
+             ColDefn^.cdRequiredPosition := AccReqPos
+           else if (ColDefn^.cdRequiredPosition > SuggReqPos) and
+                   (ColDefn^.cdRequiredPosition <= AccReqPos) then
+             ColDefn^.cdRequiredPosition := ColDefn^.cdRequiredPosition - 1;
+         end;
+       end
+       else
+       begin
+         // Move sugg column backward after Acc column
+         for i := 0 to Pred( ColumnFmtList.ItemCount ) do
+         begin
+           ColDefn := ColumnFmtList.ColumnDefn_At(i);
+
+           if ColDefn^.cdFieldID = ceSuggestedMemCount then
+             ColDefn^.cdRequiredPosition := AccReqPos + 1
+           else if (ColDefn^.cdRequiredPosition < SuggReqPos) and
+                   (ColDefn^.cdRequiredPosition > AccReqPos) then
+             ColDefn^.cdRequiredPosition := ColDefn^.cdRequiredPosition + 1;
+         end;
+       end;
+     end;
+
+     BankAccount.baFields.baColumn_Order[ ceSuggestedMemCount] := AccReqPos;
+   end;
+
    //now resort list into correct order
    ColumnFmtList.ReOrder;
 end;
