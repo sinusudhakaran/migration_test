@@ -492,7 +492,7 @@ object dlgJournal: TdlgJournal
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akBottom]
-      ItemHeight = 13
+      ItemHeight = 0
       TabOrder = 2
     end
     object eDateUntil: TOvcPictureField

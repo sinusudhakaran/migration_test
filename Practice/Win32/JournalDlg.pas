@@ -972,7 +972,8 @@ begin
       EditSuperFields1.Visible := sBtnSuper.Visible;
       ClearSuperfundDetails1.Visible:= sBtnSuper.Visible;
       ClearSuperfundDetails1.Enabled :=
-        pJ^.dtSF_Super_Fields_Edited and (not txLocked) and (txDate_Transferred = 0);
+        pWorkJournal_Rec( WorkJournal.Items[tblJournal.ActiveRow-1] )^.dtSF_Super_Fields_Edited and
+          (not txLocked) and (txDate_Transferred = 0);
 
      if not btnChart.Visible then
      begin
