@@ -7860,6 +7860,8 @@ procedure TfrmCoding.LoadLayoutForThisAcct;
 var
   i : integer;
   ColDefn : pColumnDefn;
+  AccReqIndex : integer;
+  SuggReqIndex : integer;
   AccReqPos : integer;
   SuggReqPos : integer;
 begin
