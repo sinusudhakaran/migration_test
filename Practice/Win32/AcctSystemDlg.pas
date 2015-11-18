@@ -1216,10 +1216,11 @@ begin
           end;
         end
         else
-          ShowMessage('No BGL 360 fund list retrieved');
+          HelpfulErrorMsg( 'Unable to retrieve the fund list from BGL. ' +
+            'Please try again later.', 0 );
       end
       else
-        ShowMessage('BGL Authentication Failed');
+        HelpfulErrorMsg( 'BGL Authentication failed. Please try again.', 0 );
     end;
   finally
     FreeAndNil(BGLServer);

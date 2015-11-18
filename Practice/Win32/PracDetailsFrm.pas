@@ -743,7 +743,7 @@ begin
                   AdminSystem.fdFields.fdBGLTokenExpiresAt);
 
         if BGLServer.CheckForAuthentication then
-          ShowMessage('BGL Server Sign in completed successfully');
+          HelpfulInfoMsg( 'BGL Server Sign in completed successfully', 0 );
 
         btnConnectBGL.Enabled := not BGLServer.CheckTokensExist;
       end;
