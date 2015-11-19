@@ -459,22 +459,26 @@ type
     property ShowMoreOptions : boolean read fShowMoreOptions write SetShowMoreOptions;
   end;
 
-  //----------------------------------------------------------------------------
-  function MemoriseEntry(BA: TBank_Account;
-                         tr: pTransaction_Rec;
-                         var IsAMasterMem: boolean;
-                         pM: TMemorisation = nil;
-                         FromRecommendedMems: boolean = false;
-                         aCopied : boolean = false;
-                         aShowMoreOptions : boolean = false): boolean;
-  function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
-                            var pM: TMemorisation; var DeleteSelectedMem: boolean;
-                            IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
   function CreateMemorisation(BA : TBank_Account;
                               pM : TMemorisation;
                               FromRecommendedMems: boolean = false;
                               aCopied : boolean = false;
                               aShowMoreOptions : boolean = false): boolean;
+  function MemoriseEntry(aBankAccount: TBank_Account;
+                         aTrans: pTransaction_Rec;
+                         var aIsAMasterMem: boolean;
+                         aMem: TMemorisation = nil;
+                         aFromRecommendedMems: boolean = false;
+                         aCopied : boolean = false;
+                         aShowMoreOptions : boolean = false): boolean;
+
+  function EditMemorisation(aBankAccount: TBank_Account;
+                            aMemorisedList: TMemorisations_List;
+                            var aMem: TMemorisation;
+                            var aDeleteSelectedMem: boolean;
+                            aIsCopy: Boolean = False;
+                            aCopySaveSeq: integer = -1;
+                            aPrefix : string = ''): boolean;
   function AsFloatSort(List: TStringList; Index1, Index2: Integer): Integer;
 
 //------------------------------------------------------------------------------
@@ -572,6 +576,441 @@ var
   DebugMe  : boolean = false;
   sDOLLAR  : string[1] = '$';
   sPERCENT : string[1] = '%';
+
+//------------------------------------------------------------------------------
+function CreateMemorisation(BA : TBank_Account;
+                            pM : TMemorisation;
+                            FromRecommendedMems : boolean;
+                            aCopied : boolean;
+                            aShowMoreOptions : boolean): boolean;
+var
+  tr : pTransaction_Rec;
+  IsAMasterMem : boolean;
+begin
+  // Create new transaction from provided details, which we will pass into EditMemorisation, which
+  // has been designed expecting a transaction to provide it with details
+  tr := Create_New_Transaction;
+
+  try
+    tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
+    tr.txType               := pM.mdFields.mdType;
+
+    IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
+
+    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied, aShowMoreOptions);
+  finally
+    Dispose_Transaction_Rec( tr );
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function MemoriseEntry(aBankAccount: TBank_Account;
+                       aTrans: pTransaction_Rec;
+                       var aIsAMasterMem: boolean;
+                       aMem: TMemorisation = nil;
+                       aFromRecommendedMems: boolean = false;
+                       aCopied : boolean = false;
+                       aShowMoreOptions : boolean = false) : boolean;
+var
+  MemDlg : TdlgMemorise;
+  Memorised_Trans : TMemorisation;
+  MasterMemList : TMemorisations_List;
+  SystemMemorisation: pSystem_Memorisation_List_Rec;
+  NunOfSplitLines : integer;
+begin
+  result := false;
+  aIsAMasterMem := false;
+
+  if not Assigned(aTrans) then
+    exit;
+
+  MemDlg := TdlgMemorise.Create(Application.MainForm);
+  try
+    MemDlg.ShowMoreOptions := aShowMoreOptions;
+
+    MemDlg.DlgEditMode := demCreate;
+    MemDlg.CalledFromRecommendedMems := aFromRecommendedMems;
+
+    MemDlg.PopulateCmbType(aBankAccount, aTrans.txType);
+
+    BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
+
+    if Assigned(aBankAccount) then
+      MemDlg.BankAccount := aBankAccount;
+
+    MemDlg.EditMem := nil;
+    MemDlg.EditMemorisedList := nil;
+
+    if Assigned(aBankAccount) and ((aBankAccount.IsManual and MemDlg.chkMaster.Enabled) or MemDlg.BankAccount.IsAForexAccount) then
+    begin
+      MemDlg.chkMaster.Enabled := False;
+      MemDlg.AllowMasterMemorised := False;
+    end;
+
+    MemDlg.LocaliseForm;
+
+    if MemDlg.chkMaster.Enabled then
+    begin
+      MemDlg.AccountingSystem := MyClient.clFields.clAccounting_System_Used;
+    end;
+
+    MemDlg.chkMasterClick(nil);
+
+    MemDlg.GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
+
+    MemDlg.cmbType.ItemIndex := MemDlg.cmbType.Items.IndexOfObject(TObject(aTrans^.txType));
+
+    MemDlg.eRef.text      := aTrans^.txReference;
+
+    //only use first line
+    if Pos( #13, aTrans^.txNotes) > 0 then
+      MemDlg.eNotes.Text := Copy( aTrans^.txNotes, 1, Pos( #13, aTrans^.txNOtes) -1)
+    else
+      MemDlg.eNotes.text := aTrans^.txNotes;
+
+    MemDlg.AmountToMatch := aTrans^.txAmount;
+
+    if MemDlg.AmountToMatch < 0 then
+    begin
+      MemDlg.AmountMultiplier := -1;
+      MemDlg.cbMinus.ItemIndex := 0;
+    end
+    else
+    begin
+      MemDlg.AmountMultiplier := 1;
+      MemDlg.cbMinus.ItemIndex := 1;
+    end;
+
+    MemDlg.nValue.AsFloat := GenUtils.Money2Double( MemDlg.AmountToMatch) * MemDlg.AmountMultiplier;
+
+    case MyClient.clFields.clCountry of
+      whNewZealand : begin
+        MemDlg.eOther.Text   := aTrans^.txOther_Party;
+        MemDlg.eCode.Text    := aTrans^.txAnalysis;
+        MemDlg.ePart.text    := aTrans^.txParticulars;
+        MemDlg.eStatementDetails.Text := StringReplace(aTrans^.txStatement_Details, '&&', '&', [rfReplaceAll]);
+      end;
+      whAustralia, whUK : begin
+        MemDlg.eCode.Text    := aTrans^.txParticulars; { Shows the Bank Type Information }
+        MemDlg.eOther.Text   := '';
+        MemDlg.ePart.Text    := '';
+        MemDlg.eStatementDetails.Text := StringReplace(aTrans^.txStatement_Details, '&&', '&', [rfReplaceAll]);
+      end;
+    end;
+
+    //initialise form
+    MemDlg.tblSplitInEdit  := false;
+
+    //init data, Filled in Create
+    MemDlg.SplitData[1].Amount := 100.0;
+
+    //set init values
+    MemDlg.cmbValue.ItemIndex := -1;
+    MemDlg.UpdateTotal;
+
+    MemDlg.SourceTransaction := aTrans;
+
+    MemDlg.Copied := aCopied;
+    if MemDlg.Copied then
+      MemDlg.FillData(aMem);
+
+    if Assigned(aMem) then
+      MemDlg.FillSplitData(aMem);
+
+    if aMem.mdFields.mdFrom_Master_List then
+      MemDlg.DlgEditMode := demMasterCreate;
+
+    //**************************
+    if MemDlg.ShowModal = mrOK then
+    begin
+    //**************************
+      //{have enough data to create a memorised entry record
+
+       //have details of the new master memorisation, now need to update to relevant location
+      if (MemDlg.DlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
+      begin
+        Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
+        //memorise to relevant master file then reload to get new global list
+        MemDlg.BankPrefix := mxFiles32.GetBankPrefix( aBankAccount.baFields.baBank_Account_Number);
+
+        //--ADD MASTER MEM---
+        if LoadAdminSystem(true, 'MemoriseEntry') then
+        begin
+          MemDlg.SaveToMemRec(Memorised_Trans, aTrans, True, NunOfSplitLines);
+          SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(MemDlg.BankPrefix);
+          if not Assigned(SystemMemorisation) then
+          begin
+            MasterMemList := TMemorisations_List.Create(SystemAuditMgr);
+            try
+              SystemMemorisation := AdminSystem.SystemMemorisationList.AddMemorisation(MemDlg.BankPrefix, MasterMemList);
+            finally
+              MasterMemList.Free;
+            end;
+          end;
+          MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+          //insert into list
+          Memorised_Trans.mdFields.mdFrom_Master_List := true;
+          Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * MemDlg.AmountMultiplier;
+          MasterMemList.Insert_Memorisation(Memorised_Trans);
+          aIsAMasterMem := True;
+          //*** Flag Audit ***
+          SystemAuditMgr.FlagAudit(arMasterMemorisations);
+          SaveAdminSystem;
+        end
+        else
+          HelpfulErrorMsg('Could not add master memorisation at this time. Admin System unavailable.', 0);
+      end
+      else
+      begin
+        Memorised_Trans := TMemorisation.Create(MyClient.ClientAuditMgr);
+        MemDlg.SaveToMemRec(Memorised_Trans, aTrans, False, NunOfSplitLines);
+        Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * MemDlg.AmountMultiplier;
+        aBankAccount.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
+      end;
+
+      if aTrans^.txDate_Transferred <> 0 then
+        HelpfulInfoMsg('The transaction was memorised OK.' + #13+#13+
+                       'The transaction had already been transferred '+
+                       'into your accounting software so the code won''t change '+
+                       'when you close this dialog.  All future transactions that match the cr'+
+                       'iteria you entered will be coded automatically.',0);
+
+      Result := true;
+    end; {execute}
+  finally
+    FreeAndNil(MemDlg);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function EditMemorisation(aBankAccount: TBank_Account;
+                          aMemorisedList: TMemorisations_List;
+                          var aMem: TMemorisation;
+                          var aDeleteSelectedMem: boolean;
+                          aIsCopy: Boolean = False;
+                          aCopySaveSeq: integer = -1;
+                          aPrefix : string = ''): boolean;
+const
+  ThisMethodName = 'EditMemorisation';
+
+var
+  SystemMemorisation : pSystem_Memorisation_List_Rec;
+  MemDlg : TdlgMemorise;
+  i : integer;
+  MemLine : pMemorisation_Line_Rec;
+  Memorised_Trans : TMemorisation;
+  SaveSeq : integer;
+  pM_SequenceNo : integer;
+  FormResult : Integer;
+  pMCopy : TMemorisation;
+  LineIndex : integer;
+  CodedTo   : string;
+  MemDesc   : string;
+  CodeType  : string;
+  NunOfSplitLines : integer;
+
+  //----------------------------------------------------------------------------
+  procedure ReplaceMem(var aMem: TMemorisation; const aMemSequenceNo: integer);
+  var
+    MemList : TMemorisations_List;
+    MemIndex : integer;
+    Mem : TMemorisation;
+  begin
+    MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
+    for MemIndex := MemList.First to MemList.Last do
+    begin
+      Mem := MemList.Memorisation_At(MemIndex);
+      if not assigned(Mem) then
+        continue;
+      if (Mem.mdFields.mdSequence_No <> aMemSequenceNo) then
+        continue;
+      aMem := Mem;
+    end;
+  end;
+
+begin
+  Result := false;
+  if not Assigned(aMem) then
+    Exit;
+
+  MemDlg := TdlgMemorise.Create(Application.MainForm);
+  try
+    MemDlg.EditMem := aMem;
+    if aMem.mdFields.mdFrom_Master_List then
+      MemDlg.DlgEditMode := demMasterEdit
+    else
+      MemDlg.DlgEditMode := demEdit;
+
+    MemDlg.PopulateCmbType(aBankAccount, aMem.mdFields.mdType);
+    BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
+
+    MemDlg.EditMemorisedList := aMemorisedList;
+    MemDlg.ExistingCode := '';
+    //Controls will be initialise in the FormCreate method
+    //load memorisation into form
+
+    if (aBankAccount = nil) then
+      MemDlg.BankPrefix := aPrefix
+    else
+      MemDlg.BankAccount := aBankAccount;
+
+    MemDlg.LocaliseForm;
+
+    MemDlg.FillData(aMem);
+
+    MemDlg.UpdateControls();
+
+    MemDlg.Loading := false;
+      //fill detail
+    MemDlg.FillSplitData(aMem);
+
+    //Show Total Line
+    MemDlg.UpdateTotal;
+
+    MemDlg.AllowMasterMemorised := False; // Sounds wrong, but also used for 'Can I Change MasterMem'.. You Cannot ...
+    // Don't show 'Copy to New' if we've come from recommended mems
+    //turn off editing of gst col if master
+    //or if using Ledger Elite
+
+    MemDlg.GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
+
+    if MemDlg.DlgEditMode in ALL_MASTER then
+      MemDlg.GSTClassEditable := False;
+
+    if not MemDlg.GSTClassEditable then
+      MemDlg.ColGSTCode.Font.Color := clGrayText;
+
+    MemDlg.SourceTransaction := nil;
+
+    //**********************
+    FormResult := MemDlg.ShowModal();
+
+    case FormResult of
+      mrok : begin
+        //save new values back
+        if (MemDlg.DlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
+        begin
+          //---EDIT MASTER MEM---
+          if aCopySaveSeq = -1 then
+            SaveSeq := aMem.mdFields.mdSequence_No
+          else
+            SaveSeq := aCopySaveSeq;
+
+          // WORKAROUND:
+          pM_SequenceNo := aMem.mdFields.mdSequence_No;
+
+          if LoadAdminSystem(true, ThisMethodName) then
+          begin
+            SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(MemDlg.BankPrefix);
+            if not Assigned(SystemMemorisation) then
+            begin
+              UnlockAdmin;
+              HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+              Exit;
+            end
+            else if not Assigned(SystemMemorisation.smMemorisations) then
+            begin
+              UnlockAdmin;
+              HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
+              Exit;
+            end
+            else
+            begin
+              // WORKAROUND:
+              ReplaceMem(aMem, pM_SequenceNo);
+
+              MemDlg.EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
+              //Find and save memorisation
+              for i := MemDlg.EditMemorisedList.First to MemDlg.EditMemorisedList.Last do
+              begin
+                Memorised_Trans := MemDlg.EditMemorisedList.Memorisation_At(i);
+                if Assigned(Memorised_Trans) then
+                begin
+                  if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then
+                  begin
+                    MemDlg.SaveToMemRec(Memorised_Trans, nil, MemDlg.DlgEditMode in ALL_MASTER, NunOfSplitLines);
+                    Break;
+                  end;
+                end;
+              end;
+              //*** Flag Audit ***
+              SystemAuditMgr.FlagAudit(arMasterMemorisations);
+              SaveAdminSystem;
+            end;
+          end
+          else
+            HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
+        end
+        else
+        begin
+          MemDlg.SaveToMemRec(aMem, nil, MemDlg.DlgEditMode in ALL_MASTER, NunOfSplitLines);
+        end;
+
+        Result := true;
+      end;
+
+      mrCopy : begin
+        // Create memorisation
+        pMCopy := TMemorisation.Create(MyClient.ClientAuditMgr);
+        try
+          MemDlg.SaveToMemRec(pMCopy, nil, ((MemDlg.DlgEditMode in ALL_MASTER) and (Assigned(AdminSystem))), NunOfSplitLines);
+
+          if ((MemDlg.DlgEditMode in ALL_MASTER) and (Assigned(AdminSystem))) then
+            pMCopy.mdFields.mdFrom_Master_List := true;
+
+          MemDlg.FillSplitData(pMCopy);
+
+          // OK pressed, and insert mem?
+          Result := CreateMemorisation(aBankAccount, pMCopy, false, true, MemDlg.ShowMoreOptions);
+        finally
+          FreeAndNil(pMCopy);
+        end;
+      end;
+
+      mrDelete : begin
+        CodedTo := '';
+        for LineIndex := aMem.mdLines.First to aMem.mdLines.Last do
+        begin
+          MemLine := aMem.mdLines.MemorisationLine_At(LineIndex);
+          if MemLine^.mlAccount <> '' then
+            CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
+        end;
+        CodeType := MyClient.clFields.clShort_Name[aMem.mdFields.mdType];
+        MemDesc := #13 +'Coded To '+CodedTo + #13 + 'Entry Type is '+IntToStr(aMem.mdFields.mdType) + ':' + CodeType;
+
+        if aMem.mdFields.mdFrom_Master_List then
+          LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Master Memorisation '+ MemDesc)
+        else
+          LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Memorisation '+ MemDesc);
+
+        if aMem.mdFields.mdFrom_Master_List then
+          aDeleteSelectedMem := True
+        else
+          aBankAccount.baMemorisations_List.DelFreeItem(aMem);
+
+        Result := True;
+      end
+      else if aIsCopy then
+      begin
+        //need to remove the copy..
+        if aMem.mdFields.mdFrom_Master_List then
+        begin
+          aMemorisedList.DelFreeItem(aMem);
+          if (MemDlg.ModalResult <> mrCancel) then
+            aDeleteSelectedMem := True;
+        end
+        else
+        begin
+          aBankAccount.baMemorisations_List.DelFreeItem(aMem);
+        end;
+        Result := True;
+      end;
+    end;
+
+  finally
+    FreeAndNil(MemDlg);
+  end;
+end;
 
 //------------------------------------------------------------------------------
 { TMasterTreeThread }
@@ -3025,473 +3464,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function MemoriseEntry(BA : TBank_Account;
-                       tr : pTransaction_Rec;
-                       var IsAMasterMem : boolean;
-                       pM: TMemorisation = nil;
-                       FromRecommendedMems: boolean = false;
-                       aCopied : boolean = false;
-                       aShowMoreOptions : boolean = false) : boolean;
-// create a new memorisation based on the transaction
-//
-// parameters: ba   Bank Account that transaction and memorisation belong to
-//             tr   Transaction to base memorisation on
-//
-// Returns true if ok pressed and memorisation added
-var
-  MemDlg : TdlgMemorise;
-  Memorised_Trans : TMemorisation;
-//  MasterMemList : TMaster_Memorisations_List;
-  MasterMemList : TMemorisations_List;
-  SystemMemorisation: pSystem_Memorisation_List_Rec;
-  NunOfSplitLines : integer;
-begin
-   result := false;
-   IsAMasterMem := false;
-
-   if not Assigned(tr) then
-     exit;
-
-   MemDlg := TdlgMemorise.Create(Application.MainForm);
-   try
-      with MemDlg, tr^ do
-      begin
-        ShowMoreOptions := aShowMoreOptions;
-
-         DlgEditMode := demCreate;
-         CalledFromRecommendedMems := FromRecommendedMems;
-
-         PopulateCmbType(BA, tr.txType);
-
-         BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-
-         if Assigned(Ba) then
-           BankAccount := BA;
-
-         EditMem := nil;
-         EditMemorisedList := nil;
-
-         if Assigned(Ba) and ((ba.IsManual and chkMaster.Enabled) or fBankAccount.IsAForexAccount) then
-         begin
-           chkMaster.Enabled := False;
-           AllowMasterMemorised := False;
-         end;
-
-         LocaliseForm;
-
-         if chkMaster.Enabled then begin
-            AccountingSystem := MyClient.clFields.clAccounting_System_Used;
-         end;
-         chkMasterClick(nil);
-
-         GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
-
-         cmbType.ItemIndex := cmbType.Items.IndexOfObject(TObject(txType));
-
-         eRef.text      := txReference;
-
-         //only use first line
-         if Pos( #13, txNotes) > 0 then
-           eNotes.Text := Copy( txNotes, 1, Pos( #13, txNOtes) -1)
-         else
-           eNotes.text    := txNotes;
-
-         AmountToMatch := txAmount;
-
-         if AmountToMatch < 0 then
-         begin
-           AmountMultiplier := -1;
-           cbMinus.ItemIndex := 0;
-         end
-         else
-         begin
-           AmountMultiplier := 1;
-           cbMinus.ItemIndex := 1;
-         end;
-
-         nValue.AsFloat := GenUtils.Money2Double( AmountToMatch) * AmountMultiplier;
-
-         case MyClient.clFields.clCountry of
-            whNewZealand :
-               Begin
-                  eOther.Text   := txOther_Party;
-                  eCode.Text    := txAnalysis;
-                  ePart.text    := txParticulars;
-                  eStatementDetails.Text := StringReplace(txStatement_Details, '&&', '&', [rfReplaceAll]);
-               end;
-            whAustralia, whUK :
-               Begin
-                  eCode.Text    := txParticulars; { Shows the Bank Type Information }
-                  eOther.Text   := '';
-                  ePart.Text    := '';
-                  eStatementDetails.Text := StringReplace(txStatement_Details, '&&', '&', [rfReplaceAll]);
-               end;
-         end;
-
-         //initialise form
-         tblSplitInEdit  := false;
-
-         //init data, Filled in Create
-         SplitData[1].Amount := 100.0;
-
-         //set init values
-         cmbValue.ItemIndex := -1;
-         UpdateTotal;
-
-         SourceTransaction := Tr;
-
-         Copied := aCopied;
-         if Copied then
-           FillData(pM);
-
-         if Assigned(pM) then
-           FillSplitData(pM);
-
-         if pM.mdFields.mdFrom_Master_List then
-           DlgEditMode := demMasterCreate;
-
-         //**************************
-         if ShowModal = mrOK then begin
-         //**************************
-            //{have enough data to create a memorised entry record
-
-             //have details of the new master memorisation, now need to update to relevant location
-             if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
-             begin
-               Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
-               //memorise to relevant master file then reload to get new global list
-               BankPrefix := mxFiles32.GetBankPrefix( ba.baFields.baBank_Account_Number);
-
-               //--ADD MASTER MEM---
-               if LoadAdminSystem(true, 'MemoriseEntry') then begin
-                 SaveToMemRec(Memorised_Trans, Tr, True, NunOfSplitLines);
-                 SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
-                 if not Assigned(SystemMemorisation) then begin
-                   MasterMemList := TMemorisations_List.Create(SystemAuditMgr);
-                   try
-                     SystemMemorisation := AdminSystem.SystemMemorisationList.AddMemorisation(BankPrefix, MasterMemList);
-                   finally
-                     MasterMemList.Free;
-                   end;
-                 end;
-                 MasterMemList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                 //insert into list
-                 Memorised_Trans.mdFields.mdFrom_Master_List := true;
-                 Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
-                 MasterMemList.Insert_Memorisation(Memorised_Trans);
-                 IsAMasterMem := True;
-                 //*** Flag Audit ***
-                 SystemAuditMgr.FlagAudit(arMasterMemorisations);
-                 SaveAdminSystem;
-               end else
-                 HelpfulErrorMsg('Could not add master memorisation at this time. Admin System unavailable.', 0);
-               //--END ADD MASTER MEM---
-
-             end
-             else begin
-               Memorised_Trans := TMemorisation.Create(MyClient.ClientAuditMgr);
-               SaveToMemRec(Memorised_Trans, Tr, False, NunOfSplitLines);
-               Memorised_Trans.mdFields.mdAmount := abs(Memorised_Trans.mdFields.mdAmount) * AmountMultiplier;
-               ba.baMemorisations_List.Insert_Memorisation(Memorised_Trans);
-             end;
-
-             if txDate_Transferred <> 0 then
-                HelpfulInfoMsg('The transaction was memorised OK.' + #13+#13+
-                               'The transaction had already been transferred '+
-                               'into your accounting software so the code won''t change '+
-                               'when you close this dialog.  All future transactions that match the cr'+
-                               'iteria you entered will be coded automatically.',0);
-
-             Result := true;
-         end; {execute}
-        end; {with}
-   finally
-     MemDlg.Free;
-   end;
-end;
-
-//------------------------------------------------------------------------------
-function CreateMemorisation(BA : TBank_Account;
-                            pM: TMemorisation;
-                            FromRecommendedMems: boolean;
-                            aCopied : boolean;
-                            aShowMoreOptions : boolean): boolean;
-var
-  tr: pTransaction_Rec;
-  IsAMasterMem : boolean;
-begin
-  // Create new transaction from provided details, which we will pass into EditMemorisation, which
-  // has been designed expecting a transaction to provide it with details
-  tr := Create_New_Transaction;
-
-  try
-    tr.txStatement_Details  := pM.mdFields.mdStatement_Details;
-    tr.txType               := pM.mdFields.mdType;
-
-    IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
-
-    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied, aShowMoreOptions);
-  finally
-    Dispose_Transaction_Rec( tr );
-//DN    Free_Transaction_Rec_Dynamic_Fields(tr^);
-//DN    FreeMem(tr, sizeof(tr));
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function EditMemorisation(BA: TBank_Account; MemorisedList: TMemorisations_List;
-  var pM: TMemorisation; var DeleteSelectedMem: boolean;
-  IsCopy: Boolean = False; CopySaveSeq: integer = -1; aPrefix : string = ''): boolean;
-// edits an existing memorisation
-//
-// parameters: pM   Memorisation to edit
-//
-// Returns true if ok pressed
-
-{ WORKAROUND:
-  When we fixed the FreeItem for memorisation lists because it was leaking
-  memory, it turned out that when LoadAdminSystem is called, all memorisation
-  entries are re-created, but the old ones are still being used! For example:
-  pM, Memorised_Trans, etc. All AVs.
-
-  As a workaround the Sequence_No of a memorisation is stored, and used to find
-  the 'new' memorisation in the SystemMemorisation field. This works, but
-  unfortunately had to be done four times.
-
-  Because pM is used after this function, the variable type had to be changed to
-  "var" for pM. This works for the recursive version in this function as well.
-
-  High risk change (because of the area it is in), and will require lots of
-  testing. In case of problems, a rollback will never really solve the real
-  problems that are in this area. In general, re-creating objects in the middle
-  of things is not a good idea.
-}
-
-const
-  ThisMethodName = 'EditMemorisation';
-
-var
-  // Access required here for ReplaceMem
-  SystemMemorisation: pSystem_Memorisation_List_Rec;
-
-  //----------------------------------------------------------------------------
-  procedure ReplaceMem(var aMem: TMemorisation; const aMemSequenceNo: integer);
-  var
-    MemList: TMemorisations_List;
-    i: integer;
-    Mem: TMemorisation;
-  begin
-    MemList := TMemorisations_List(SystemMemorisation.smMemorisations);
-    for i := MemList.First to MemList.Last do
-    begin
-      Mem := MemList.Memorisation_At(i);
-      if not assigned(Mem) then
-        continue;
-      if (Mem.mdFields.mdSequence_No <> aMemSequenceNo) then
-        continue;
-      aMem := Mem;
-    end;
-  end;
-
-var
-  MemDlg : TdlgMemorise;
-  i : integer;
-  MemLine : pMemorisation_Line_Rec;
-  Memorised_Trans: TMemorisation;
-  SaveSeq: integer;
-  pM_SequenceNo: integer;
-  FormResult : Integer;
-  pMCopy: TMemorisation;
-  LineIndex : integer;
-  CodedTo   : string;
-  MemDesc   : string;
-  CodeType  : string;
-  NunOfSplitLines : integer;
-
-begin
-  Result := false;
-  if not Assigned(pM) then
-    Exit;
-
-  MemDlg := TdlgMemorise.Create(Application.MainForm);
-  with MemDlg do
-  begin
-    try
-       EditMem := pM;
-       if pM.mdFields.mdFrom_Master_List then
-         fDlgEditMode := demMasterEdit
-       else
-         fDlgEditMode := demEdit;
-
-       PopulateCmbType(BA, pM.mdFields.mdType);
-       BKHelpSetUp(MemDlg, BKH_Chapter_5_Memorisations);
-
-       EditMemorisedList := MemorisedList;
-       ExistingCode := '';
-       //Controls will be initialise in the FormCreate method
-       //load memorisation into form
-
-       if (BA = nil) then
-         BankPrefix := aPrefix
-       else
-         BankAccount := BA;
-
-       LocaliseForm;
-
-       FillData(pM);
-
-       UpdateControls();
-
-       Loading := false;
-          //fill detail
-       FillSplitData(pM);
-
-       //Show Total Line
-       UpdateTotal;
-
-       AllowMasterMemorised := False; // Sounds wrong, but also used for 'Can I Change MasterMem'.. You Cannot ...
-       // Don't show 'Copy to New' if we've come from recommended mems
-       //turn off editing of gst col if master
-       //or if using Ledger Elite
-
-       GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
-       if fDlgEditMode in ALL_MASTER then GSTClassEditable := False;
-
-       if not GSTClassEditable then
-         ColGSTCode.Font.Color := clGrayText;
-
-       SourceTransaction := nil;
-
-       //**********************
-       FormResult := ShowModal();
-
-       case FormResult of
-         mrok :
-         begin
-           //save new values back
-           if (fDlgEditMode in ALL_MASTER) and Assigned(AdminSystem) then
-           begin
-             //---EDIT MASTER MEM---
-             if CopySaveSeq = -1 then
-               SaveSeq := pM.mdFields.mdSequence_No
-             else
-               SaveSeq := CopySaveSeq;
-
-             // WORKAROUND:
-             pM_SequenceNo := pM.mdFields.mdSequence_No;
-
-             if LoadAdminSystem(true, ThisMethodName) then 
-             begin
-               SystemMemorisation := AdminSystem.SystemMemorisationList.FindPrefix(BankPrefix);
-               if not Assigned(SystemMemorisation) then 
-               begin
-                 UnlockAdmin;
-                 HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
-                 Exit;
-               end 
-               else if not Assigned(SystemMemorisation.smMemorisations) then 
-               begin
-                 UnlockAdmin;
-                 HelpfulErrorMsg('The master memorisation can no longer be found in the Admin System.', 0);
-                 Exit;
-               end 
-               else 
-               begin
-                 // WORKAROUND:
-                 ReplaceMem(pM, pM_SequenceNo);
-
-                 EditMemorisedList := TMemorisations_List(SystemMemorisation.smMemorisations);
-                 //Find and save memorisation
-                 for i := EditMemorisedList.First to EditMemorisedList.Last do 
-                 begin
-                   Memorised_Trans := EditMemorisedList.Memorisation_At(i);
-                   if Assigned(Memorised_Trans) then begin
-                     if (Memorised_Trans.mdFields.mdSequence_No = SaveSeq) then 
-                     begin
-                       SaveToMemRec(Memorised_Trans, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
-                       Break;
-                     end;
-                   end;
-                 end;
-                 //*** Flag Audit ***
-                 SystemAuditMgr.FlagAudit(arMasterMemorisations);
-                 SaveAdminSystem;
-               end;
-             end 
-             else
-               HelpfulErrorMsg('Could not update master memorisation at this time. Admin System unavailable.', 0);
-             //---END EDIT MASTER MEM---
-           end
-           else
-           begin
-             SaveToMemRec(pM, nil, fDlgEditMode in ALL_MASTER, NunOfSplitLines);
-           end;
-           Result := true;
-         end;
-
-         mrCopy : begin
-           // Create memorisation
-           pMCopy := TMemorisation.Create(MyClient.ClientAuditMgr);
-           try
-             SaveToMemRec(pMCopy, nil, ((fDlgEditMode in ALL_MASTER) and (Assigned(AdminSystem))), NunOfSplitLines);
-
-             if ((fDlgEditMode in ALL_MASTER) and (Assigned(AdminSystem))) then
-               pMCopy.mdFields.mdFrom_Master_List := true;
-
-             FillSplitData(pMCopy);
-
-             // OK pressed, and insert mem?
-             Result := CreateMemorisation(BA, pMCopy, false, true, ShowMoreOptions);
-           finally
-             FreeAndNil(pMCopy);
-           end;
-         end;
-
-         mrDelete : begin
-           CodedTo := '';
-           for LineIndex := pM.mdLines.First to pM.mdLines.Last do
-           begin
-             MemLine := pM.mdLines.MemorisationLine_At(LineIndex);
-             if MemLine^.mlAccount <> '' then
-               CodedTo := CodedTo + MemLine^.mlaccount+ ' ';
-           end;
-           CodeType := MyClient.clFields.clShort_Name[pM.mdFields.mdType];
-           MemDesc := #13 +'Coded To '+CodedTo + #13 + 'Entry Type is '+IntToStr(pM.mdFields.mdType) + ':' + CodeType;
-
-           if pM.mdFields.mdFrom_Master_List then
-             LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Master Memorisation '+ MemDesc)
-           else
-             LogUtil.LogMsg(lmInfo, UnitName, 'User Deleted Memorisation '+ MemDesc);
-
-           if pM.mdFields.mdFrom_Master_List then
-             DeleteSelectedMem := True
-           else
-             ba.baMemorisations_List.DelFreeItem(pM);
-
-           Result := True;
-         end
-         else if iscopy then begin
-             //need to remove the copy..
-             if pM.mdFields.mdFrom_Master_List then begin
-                 MemorisedList.DelFreeItem(pM);
-                 if (ModalResult <> mrCancel) then
-                   DeleteSelectedMem := True;
-
-             end else begin
-                 ba.baMemorisations_List.DelFreeItem(pM);
-             end;
-             Result := True;
-         end;
-       end;
-    //**********************
-
-    finally
-       Free;
-    end;
-  end;
-end;
-//------------------------------------------------------------------------------
-
 function TdlgMemorise.HasJobs: Boolean;
 var
   i: Integer;
