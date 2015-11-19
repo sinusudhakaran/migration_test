@@ -98,7 +98,7 @@ object dlgEditBank: TdlgEditBank
         BevelInner = bvRaised
         BevelOuter = bvLowered
         Color = clInfoBk
-        TabOrder = 8
+        TabOrder = 9
         object lblPeriod: TLabel
           Left = 24
           Top = 86
@@ -278,7 +278,7 @@ object dlgEditBank: TdlgEditBank
         Height = 24
         BorderStyle = bsNone
         MaxLength = 60
-        TabOrder = 2
+        TabOrder = 3
         Text = 'eName'
         OnExit = eNumberExit
       end
@@ -288,7 +288,7 @@ object dlgEditBank: TdlgEditBank
         Width = 553
         Height = 35
         BevelOuter = bvNone
-        TabOrder = 3
+        TabOrder = 4
         DesignSize = (
           553
           35)
@@ -340,7 +340,7 @@ object dlgEditBank: TdlgEditBank
         Width = 561
         Height = 57
         BevelOuter = bvNone
-        TabOrder = 5
+        TabOrder = 6
         object lblBank: TLabel
           Left = 16
           Top = 16
@@ -428,7 +428,7 @@ object dlgEditBank: TdlgEditBank
         Width = 602
         Height = 82
         BevelOuter = bvNone
-        TabOrder = 6
+        TabOrder = 7
         object lblType: TLabel
           Left = 0
           Top = 37
@@ -492,7 +492,7 @@ object dlgEditBank: TdlgEditBank
         Width = 129
         Height = 25
         Caption = 'Select &Fund'
-        TabOrder = 7
+        TabOrder = 8
         OnClick = btnLedgerIDClick
       end
       object cmbCurrency: TComboBox
@@ -516,7 +516,7 @@ object dlgEditBank: TdlgEditBank
         Width = 553
         Height = 34
         BevelOuter = bvNone
-        TabOrder = 4
+        TabOrder = 5
         DesignSize = (
           553
           34)
@@ -570,7 +570,7 @@ object dlgEditBank: TdlgEditBank
         Width = 631
         Height = 35
         BevelOuter = bvNone
-        TabOrder = 9
+        TabOrder = 2
         object lblExtractAccountNumberAs: TLabel
           Left = 24
           Top = 7

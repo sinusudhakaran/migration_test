@@ -164,11 +164,13 @@ var
    MyDlg      : TdlgSelect;
    BA         : TBank_Account;
    i          : integer;
-   TrxCount   : Integer;   
+   TrxCount   : Integer;
    NumChecked : Integer;
    NewItem    : TListItem;
    AList      : TStringList;
    lbExtractAccountNumberAs : boolean;
+   PreviousCol,
+   CurrentCol,
    ColumnExtractAccountNumberAs : TListColumn;
 begin
    Result     := NIL;
@@ -194,13 +196,14 @@ begin
              MyClient.clFields.clCountry,
              MyClient.clFields.clAccounting_System_Used);
          if lbExtractAccountNumberAs then begin
-
-
-           ColumnExtractAccountNumberAs := TListColumn( lvAccountsEx.Columns.Add ); // Insert( 2 );
-//           Add;
-//           ColumnExtractAccountNumberAs.Index := 2;
-           ColumnExtractAccountNumberAs.Caption := 'Extract Account No';
-           ColumnExtractAccountNumberAs.Width := 180;
+           ColumnExtractAccountNumberAs := TListColumn( lvAccountsEx.Columns.Add ); 
+           for I := lvAccountsEx.Columns.Count - 1 downto 3 do begin
+             TListColumn( lvAccountsEx.Columns[ i ] ).Assign( TListColumn( lvAccountsEx.Columns[ pred( i ) ] ) );
+           end;
+           TListColumn( lvAccountsEx.Columns[ 2 ] ).Caption := 'Extract Account No';
+           TListColumn( lvAccountsEx.Columns[ 2 ] ).Width := 180;
+           lvAccountsEx.UpdateItems(0, MAXINT);
+           MyDlg.Width := MyDlg.Width + TListColumn( lvAccountsEx.Columns[ 2 ] ).Width;
          end;
 
          with MyClient.clBank_Account_List do

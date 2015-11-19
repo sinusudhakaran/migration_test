@@ -104,6 +104,7 @@ type
     edExtractAccountNumberAs: TEdit;
 
     procedure FormCreate(Sender: TObject);
+    procedure HideControlAndShiftRestUp( aControlToHide : TControl );
     procedure HideExtractAccountNumberAs;
     procedure HideGainLoss;
     procedure SetUpHelp;
@@ -317,6 +318,30 @@ begin
     cmbCurrency.Items.EndUpdate;
     Screen.Cursor := Cursor;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TdlgEditBank.HideControlAndShiftRestUp( aControlToHide : TControl );
+var
+  i: integer;
+  Control: TControl;
+begin
+  aControlToHide.Visible := false;
+
+  for i := 0 to tbDetails.ControlCount-1 do
+  begin
+    Control := tbDetails.Controls[i];
+
+    // Above us?
+    if (Control.Top <= aControlToHide.Top) then
+      continue;
+
+    // Move it up
+    Control.Top := Control.Top - aControlToHide.Height;
+  end;
+
+  // Shorten the whole form
+  Height := Height - aControlToHide.Height;
 end;
 
 //------------------------------------------------------------------------------
@@ -1016,14 +1041,14 @@ begin
   if not ShowGainLoss then
     ShowGainLoss := cmbCurrency.Enabled and (cmbCurrency.Items.Count > 1);
   if not ShowGainLoss then
-    HideGainLoss;
+    HideControlAndShiftRestUp( pnlGainLoss );
 
   if Software.CanExtractAccountNumberAs(
            MyClient.clFields.clCountry,
            MyClient.clFields.clAccounting_System_Used) then
     edExtractAccountNumberAs.Text := BankAcct.baFields.baExtract_Account_Number
   else
-    HideExtractAccountNumberAs;
+    HideControlAndShiftRestUp( pnlExtractAccountNumberAs );
 
   if BankAcct.IsAJournalAccount then
   begin
