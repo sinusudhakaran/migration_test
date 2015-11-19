@@ -53,7 +53,11 @@ uses
    globals,
    imagesfrm,
    StStrS,
-   GenUtils, TravUtils, bkDefs;
+   GenUtils,
+   TravUtils,
+   bkDefs,
+   Software,
+   WarningMoreFrm;
 
 {$R *.DFM}
 
@@ -164,14 +168,16 @@ var
    NumChecked : Integer;
    NewItem    : TListItem;
    AList      : TStringList;
+   lbExtractAccountNumberAs : boolean;
+   ColumnExtractAccountNumberAs : TListColumn;
 begin
    Result     := NIL;
-   
+
    if not ( Assigned( MyClient) ) then exit;
 
    MyDlg := TdlgSelect.Create(Application.MainForm);
    try
-      with MyDlg do 
+      with MyDlg do
       begin
          Caption    := 'Extract Data: Select the account(s) you want to process' ;
          lvAccountsEx.MultiSelect := True;
@@ -181,8 +187,22 @@ begin
           'Select an Account by checking the "Select" box next to it|'+
           'Select an Account by checking the "Select" box next to it';
 
-         SortCol    := 1;     
-                  
+         SortCol    := 1;
+
+         lbExtractAccountNumberAs :=
+           Software.CanExtractAccountNumberAs(
+             MyClient.clFields.clCountry,
+             MyClient.clFields.clAccounting_System_Used);
+         if lbExtractAccountNumberAs then begin
+
+
+           ColumnExtractAccountNumberAs := TListColumn( lvAccountsEx.Columns.Add ); // Insert( 2 );
+//           Add;
+//           ColumnExtractAccountNumberAs.Index := 2;
+           ColumnExtractAccountNumberAs.Caption := 'Extract Account No';
+           ColumnExtractAccountNumberAs.Width := 180;
+         end;
+
          with MyClient.clBank_Account_List do
          Begin
             For i := 0 to Pred( ItemCount ) do
@@ -197,6 +217,9 @@ begin
                      NewItem.Caption := ' ';
                      NewItem.ImageIndex := -1;
                      NewItem.SubItems.AddObject( baBank_Account_Number, BA );
+
+                     if lbExtractAccountNumberAs then
+                       NewItem.SubItems.Add( baExtract_Account_Number );
                      NewItem.SubItems.Add( baBank_Account_Name );
                      NewItem.SubItems.Add( IntToStr( TrxCount ) );
                      if ( TrxCount > 0 ) then
@@ -215,7 +238,18 @@ begin
             Begin
                With lvAccountsEx.Items[i] do
                Begin
-                 if Checked then Inc( NumChecked );
+                 if Checked then begin
+                   if lvAccountsEx.Items[ i ].SubItems.Objects[ 0 ] is TBank_Account then
+                     if ( lvAccountsEx.Items[ i ].SubItems.Objects[ 0 ] as TBank_Account ).baFields.baAccount_Type in
+                       [ btCashJournals, btAccrualJournals ] then begin
+                         HelpfulWarningMsg( 'Before you can extract these entries, ' +
+                           'you must specify an Extract Account Number for ' +
+                           'journals. To do this, go to Other Functions | Bank ' +
+                           'Accounts and edit the journal. ', 0 );
+                         Exit;  
+                       end;
+                   Inc( NumChecked );
+                 end;
                end;
             end;
             if NumChecked = 0 then Exit;

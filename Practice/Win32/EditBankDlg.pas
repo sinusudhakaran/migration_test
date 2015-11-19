@@ -375,6 +375,7 @@ begin
    eNumber.Hint     :=
                     'Enter the Bank Account Number|' +
                     'Enter the Bank Account Number';
+
    cmbCurrency.Hint :=
                     'Select the currency for this Bank Account|' +
                     'Select the currency for this Bank Account';
@@ -998,7 +999,8 @@ begin
   end
   else
     eNumber.Text := BankAcct.baFields.baBank_Account_Number;
-                            
+
+
   //Set currency
   lblCurrency.Visible := (BankAcct.IsManual) and SupportsForeignCurrencies;
 
@@ -1016,9 +1018,11 @@ begin
   if not ShowGainLoss then
     HideGainLoss;
 
-  if not Software.CanExtractAccountNumberAs(
+  if Software.CanExtractAccountNumberAs(
            MyClient.clFields.clCountry,
            MyClient.clFields.clAccounting_System_Used) then
+    edExtractAccountNumberAs.Text := BankAcct.baFields.baExtract_Account_Number
+  else
     HideExtractAccountNumberAs;
 
   if BankAcct.IsAJournalAccount then
@@ -1181,6 +1185,11 @@ begin
       BAL_OVERDRAWN : ;
       BAL_UNKNOWN : Amount := UNKNOWN;
     end;
+
+    if Software.CanExtractAccountNumberAs(
+             MyClient.clFields.clCountry,
+             MyClient.clFields.clAccounting_System_Used) then
+      BankAcct.baFields.baExtract_Account_Number := trim( edExtractAccountNumberAs.Text );
 
     if rbAnalysisEnabled.Checked then
       BankAcct.baFields.baAnalysis_Coding_Level := acEnabled
