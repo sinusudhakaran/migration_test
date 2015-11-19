@@ -117,6 +117,7 @@ end;
 procedure TFrmOptionsScreen.FormCreate(Sender: TObject);
 begin
   dtDate.Date := Now;
+  StartPromoThread;
 end;
 
 initialization
