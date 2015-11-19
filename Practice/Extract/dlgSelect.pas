@@ -231,7 +231,7 @@ begin
                         NewItem.Checked := False;
                   end;
                end;         
-            end;         
+            end;
          end;
       
          if ( MyDlg.ShowModal = mrOK ) then
@@ -243,8 +243,8 @@ begin
                Begin
                  if Checked then begin
                    if lvAccountsEx.Items[ i ].SubItems.Objects[ 0 ] is TBank_Account then
-                     if ( lvAccountsEx.Items[ i ].SubItems.Objects[ 0 ] as TBank_Account ).baFields.baAccount_Type in
-                       [ btCashJournals, btAccrualJournals ] then begin
+                     if ( ( lvAccountsEx.Items[ i ].SubItems.Objects[ 0 ] as TBank_Account ).baFields.baAccount_Type in
+                       [ btCashJournals, btAccrualJournals ] ) and ( trim( ( lvAccountsEx.Items[ i ].SubItems.Objects[ 0 ] as TBank_Account ).baFields.baExtract_Account_Number ) = '' ) then begin
                          HelpfulWarningMsg( 'Before you can extract these entries, ' +
                            'you must specify an Extract Account Number for ' +
                            'journals. To do this, go to Other Functions | Bank ' +

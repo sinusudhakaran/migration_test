@@ -585,7 +585,7 @@ object dlgEditBank: TdlgEditBank
           Width = 357
           Height = 24
           BorderStyle = bsNone
-          MaxLength = 60
+          MaxLength = 20
           TabOrder = 0
           OnExit = eNumberExit
         end

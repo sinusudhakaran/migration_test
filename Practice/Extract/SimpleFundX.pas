@@ -66,7 +66,8 @@ uses
   Traverse,
   TravUtils,
   YesNoDlg,
-  GSTCalc32;
+  GSTCalc32,
+  Software;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1257,6 +1258,44 @@ begin
   end;
 end;
 
+procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs, aBankAccountNumber: string; var aBSB, aAccountNumber : string );
+var
+  lsBSB,
+  lsAccountNumber : string;
+
+  function StripOutBSBAndAccountNum( aInStr : string; var aBSB, aAccountNumber : string ) : boolean;
+  begin
+    result := false;
+    aInStr := Trim( aInStr );
+    if length( aInStr ) < 7 then // String is too short
+      exit
+    else begin
+      aBSB := copy( aInStr, 1, 6 ); // BSB Number is the first 6 characters
+      aAccountNumber := copy( aInStr, 7, length( aInStr ) ); // Account Number is the rest
+      result := ( length( aBSB ) > 0 ) and ( length( aAccountNumber ) > 0 );
+    end;
+  end;
+begin
+  aExtractAccountNumberAs :=                                         // Get the ExtractAccountNumberAS regardless
+    StringReplace( aExtractAccountNumberAs, ' ', '',
+      [ rfReplaceAll, rfIgnoreCase ] );
+
+  ProcessDiskCode( trim( aBankAccountNumber ),
+    lsBSB, lsAccountNumber);                                         // Get the normal Bank Account number
+
+  if (not Software.CanExtractAccountNumberAs(                        // ExtractAccountNumberAs field CANNOT be used, get Normals
+           MyClient.clFields.clCountry,
+           MyClient.clFields.clAccounting_System_Used) ) or          // Else ExtractAccountNumberAs field can be used BUT,
+      ( aExtractAccountNumberAs = '' ) or                            // ExtractAccountNumberAs is blank
+      ( not StripOutBSBAndAccountNum(                                // ExtractAccountNumberAs field can be used BUT is in the incorrect format
+              aExtractAccountNumberAs, aBSB, aAccountNumber ) ) then begin
+    aBSB           := lsBSB;                                         // Use the normal BSB number
+    aAccountNumber := lsAccountNumber;                               // Use the normal Bank Account number
+  end;
+end;
+
+
+
 procedure DoClassSuperIPTransaction;
 const
   ThisMethodName = 'DoClassSuperIPTransaction';
@@ -1269,12 +1308,14 @@ var
   sAcctHead : string;
   AccountCode : Integer;
   TransType : TTransactionTypes;
+  lsExtractAccountNumberAs : string;
 
   procedure AddField(const Name, Value: string);
   begin
      if Value > '' then
         FFields.Add(Name + '=' + Value );
   end;
+
 
 begin
   if DebugMe then
@@ -1295,14 +1336,35 @@ begin
 
     AddGuid(FTransactionNode, 'Unique_Reference',
       Uppercase(Transaction^.txExternal_GUID), 15);
+
     // BSB and Bank_Account_No
-    ProcessDiskCode(
+    RetrieveBSBAndAccountNum(
+      TBank_Account(Transaction^.txBank_Account).baFields.baExtract_Account_Number,
       TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
-        BSB, AccountNum);
+      BSB, AccountNum );
 
+(*    lsExtractAccountNumberAs :=
+      StringReplace(
+        trim( TBank_Account(Transaction^.txBank_Account).baFields.baExtract_Account_Number ), ' ', '',
+        [rfReplaceAll, rfIgnoreCase] );
+    if (not Software.CanExtractAccountNumberAs(  // ExtractAccountNumberAs field CANNOT be used
+             MyClient.clFields.clCountry,
+             MyClient.clFields.clAccounting_System_Used) ) or // ExtractAccountNumberAs field  can be used BUT,
+        ( lsExtractAccountNumberAs = '' ) then                // ExtractAccountNumberAs is blank
 
+      ProcessDiskCode( // Use the nromal Bank Account number
+        TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+          BSB, AccountNum)
+    else
+      if not StripOutBSBAndAccountNum( lsExtractAccountNumberAs, BSB, AccountNum ) then // ExtractAccountNumberAs field  can be used BUT, incorrect format
+        ProcessDiskCode( // Use the nromal Bank Account number
+          TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+            BSB, AccountNum); *)
+
+    // Export the pre-initialised BSB and AccountNum fields
     AddFieldNode(FTransactionNode, 'BSB', BSB);
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+
     // Transaction_Date
     AddFieldNode(FTransactionNode, 'Transaction_Date',
       Date2Str(Transaction^.txDate_Effective, FDateMask));
@@ -1462,12 +1524,49 @@ begin
     TransactionUtils.CheckExternalGUID(Dissection);
     AddGuid(FTransactionNode, 'Unique_Reference',
       Uppercase(Dissection^.dsExternal_GUID), 15);
+
+
     // BSB and Bank_Account_No
-    ProcessDiskCode(
+    RetrieveBSBAndAccountNum(
+      TBank_Account(Transaction^.txBank_Account).baFields.baExtract_Account_Number,
+      TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+      BSB, AccountNum );
+
+(*    ProcessDiskCode(
       TBank_Account(Dissection^.dsBank_Account).baFields.baBank_Account_Number,
         BSB, AccountNum);
     AddFieldNode(FTransactionNode, 'BSB', BSB);
     AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+(*    // BSB and Bank_Account_No
+    lsExtractAccountNumberAs :=
+      StringReplace(
+        trim( TBank_Account(Transaction^.txBank_Account).baFields.baExtract_Account_Number ), ' ', '',
+        [rfReplaceAll, rfIgnoreCase] );
+    if (not Software.CanExtractAccountNumberAs(  // ExtractAccountNumberAs field CANNOT be used
+             MyClient.clFields.clCountry,
+             MyClient.clFields.clAccounting_System_Used) ) or // ExtractAccountNumberAs field  can be used BUT,
+        ( lsExtractAccountNumberAs = '' ) then                // ExtractAccountNumberAs is blank
+
+      ProcessDiskCode( // Use the nromal Bank Account number
+        TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+          BSB, AccountNum)
+    else
+      if not StripOutBSBAndAccountNum( lsExtractAccountNumberAs, BSB, AccountNum ) then // ExtractAccountNumberAs field  can be used BUT, incorrect format
+        ProcessDiskCode( // Use the nromal Bank Account number
+          TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+            BSB, AccountNum);
+
+    // Export the initiated BSB and AccountNum fields
+    AddFieldNode(FTransactionNode, 'BSB', BSB);
+    AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+*)
+
+    // Export the pre-initialised BSB and AccountNum fields
+    AddFieldNode(FTransactionNode, 'BSB', BSB);
+    AddFieldNode(FTransactionNode, 'Bank_Account_No', AccountNum);
+
+
+
     // Transaction_Date
     AddFieldNode(FTransactionNode, 'Transaction_Date',
       Date2Str(Dissection^.dsTransaction^.txDate_Effective, FDateMask));
