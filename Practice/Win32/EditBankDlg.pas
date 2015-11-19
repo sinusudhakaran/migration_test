@@ -99,8 +99,12 @@ type
     sbtnGainLossChart: TSpeedButton;
     lblGainLossDesc: TLabel;
     eGainLoss: TEdit;
+    pnlExtractAccountNumberAs: TPanel;
+    lblExtractAccountNumberAs: TLabel;
+    edExtractAccountNumberAs: TEdit;
 
     procedure FormCreate(Sender: TObject);
+    procedure HideExtractAccountNumberAs;
     procedure HideGainLoss;
     procedure SetUpHelp;
     procedure sbtnCodeClick(Sender: TObject);
@@ -316,6 +320,29 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgEditBank.HideExtractAccountNumberAs;
+var
+  i: integer;
+  Control: TControl;
+begin
+  pnlExtractAccountNumberAs.Visible := false;
+
+  for i := 0 to tbDetails.ControlCount-1 do
+  begin
+    Control := tbDetails.Controls[i];
+
+    // Above us?
+    if (Control.Top <= pnlExtractAccountNumberAs.Top) then
+      continue;
+
+    // Move it up
+    Control.Top := Control.Top - pnlExtractAccountNumberAs.Height;
+  end;
+
+  // Shorten the form
+  Height := Height - pnlExtractAccountNumberAs.Height;
+end;
+
 procedure TdlgEditBank.HideGainLoss;
 var
   i: integer;
@@ -988,6 +1015,11 @@ begin
     ShowGainLoss := cmbCurrency.Enabled and (cmbCurrency.Items.Count > 1);
   if not ShowGainLoss then
     HideGainLoss;
+
+  if not Software.CanExtractAccountNumberAs(
+           MyClient.clFields.clCountry,
+           MyClient.clFields.clAccounting_System_Used) then
+    HideExtractAccountNumberAs;
 
   if BankAcct.IsAJournalAccount then
   begin

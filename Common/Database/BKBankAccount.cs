@@ -439,6 +439,14 @@ namespace BankLink.Practice.BooksIO
 		public String ExchangeGainLossCode { get; set; }
 
 
+
+		/// <summary>
+		/// ExtractAccountNumber property
+		/// </summary>
+		[XmlAttribute("ExtractAccountNumber", DataType = "string")]
+		public String ExtractAccountNumber { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -508,6 +516,7 @@ namespace BankLink.Practice.BooksIO
 			s.WriteInt32Value(204, CoreAccountID);
 			s.WriteShortStringValue(205, SecureOnlineCode);
 			s.WriteShortStringValue(206, ExchangeGainLossCode);
+			s.WriteShortStringValue(207, ExtractAccountNumber);
 			s.WriteToken(151);
 		}
 
@@ -690,6 +699,9 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 206 :
 				ExchangeGainLossCode = s.ReadShortStringValue("ExchangeGainLossCode");
+				break;
+			case 207 :
+				ExtractAccountNumber = s.ReadShortStringValue("ExtractAccountNumber");
 				break;
 			case BeginToken :
 			case EndToken :

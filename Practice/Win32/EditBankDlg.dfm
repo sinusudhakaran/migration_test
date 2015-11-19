@@ -3,7 +3,7 @@ object dlgEditBank: TdlgEditBank
   Top = 217
   BorderStyle = bsDialog
   Caption = 'Edit Bank Account Details'
-  ClientHeight = 531
+  ClientHeight = 606
   ClientWidth = 639
   Color = clBtnFace
   ParentFont = True
@@ -19,12 +19,14 @@ object dlgEditBank: TdlgEditBank
     Left = 0
     Top = 0
     Width = 639
-    Height = 494
+    Height = 569
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 494
     object tbDetails: TTabSheet
       Caption = '&Details'
+      ExplicitHeight = 466
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -35,7 +37,7 @@ object dlgEditBank: TdlgEditBank
       end
       object Label1: TLabel
         Left = 24
-        Top = 44
+        Top = 79
         Width = 69
         Height = 13
         Caption = 'Account &Name'
@@ -49,7 +51,7 @@ object dlgEditBank: TdlgEditBank
       end
       object lblClause: TLabel
         Left = 3
-        Top = 433
+        Top = 468
         Width = 615
         Height = 26
         Caption = 
@@ -74,7 +76,7 @@ object dlgEditBank: TdlgEditBank
       end
       object lblLedgerID: TLabel
         Left = 159
-        Top = 293
+        Top = 328
         Width = 410
         Height = 16
         AutoSize = False
@@ -90,7 +92,7 @@ object dlgEditBank: TdlgEditBank
       end
       object gCalc: TPanel
         Left = 22
-        Top = 319
+        Top = 354
         Width = 593
         Height = 109
         BevelInner = bvRaised
@@ -271,7 +273,7 @@ object dlgEditBank: TdlgEditBank
       end
       object eName: TEdit
         Left = 136
-        Top = 40
+        Top = 75
         Width = 422
         Height = 24
         BorderStyle = bsNone
@@ -282,7 +284,7 @@ object dlgEditBank: TdlgEditBank
       end
       object pnlContra: TPanel
         Left = 0
-        Top = 72
+        Top = 107
         Width = 553
         Height = 35
         BevelOuter = bvNone
@@ -334,7 +336,7 @@ object dlgEditBank: TdlgEditBank
       end
       object pnlBankOnly: TPanel
         Left = 8
-        Top = 142
+        Top = 177
         Width = 561
         Height = 57
         BevelOuter = bvNone
@@ -422,7 +424,7 @@ object dlgEditBank: TdlgEditBank
       end
       object pnlManual: TPanel
         Left = 24
-        Top = 200
+        Top = 235
         Width = 602
         Height = 82
         BevelOuter = bvNone
@@ -486,7 +488,7 @@ object dlgEditBank: TdlgEditBank
       end
       object btnLedgerID: TButton
         Left = 24
-        Top = 288
+        Top = 323
         Width = 129
         Height = 25
         Caption = 'Select &Fund'
@@ -510,7 +512,7 @@ object dlgEditBank: TdlgEditBank
       end
       object pnlGainLoss: TPanel
         Left = 0
-        Top = 104
+        Top = 139
         Width = 553
         Height = 34
         BevelOuter = bvNone
@@ -560,6 +562,32 @@ object dlgEditBank: TdlgEditBank
           OnExit = eCodeExit
           OnKeyPress = eCodeKeyPress
           OnKeyUp = eCodeKeyUp
+        end
+      end
+      object pnlExtractAccountNumberAs: TPanel
+        Left = 0
+        Top = 38
+        Width = 631
+        Height = 35
+        BevelOuter = bvNone
+        TabOrder = 9
+        object lblExtractAccountNumberAs: TLabel
+          Left = 24
+          Top = 7
+          Width = 132
+          Height = 13
+          Caption = 'Extract Account Number As'
+          FocusControl = edExtractAccountNumberAs
+        end
+        object edExtractAccountNumberAs: TEdit
+          Left = 201
+          Top = 3
+          Width = 357
+          Height = 24
+          BorderStyle = bsNone
+          MaxLength = 60
+          TabOrder = 0
+          OnExit = eNumberExit
         end
       end
     end
@@ -652,12 +680,13 @@ object dlgEditBank: TdlgEditBank
   end
   object pnlFooter: TPanel
     Left = 0
-    Top = 494
+    Top = 569
     Width = 639
     Height = 37
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 494
     DesignSize = (
       639
       37)

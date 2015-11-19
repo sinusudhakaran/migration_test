@@ -857,6 +857,7 @@ F|Core_Account_ID|L
 F|Secure_Online_Code|S|20
 F|Exchange Gain Loss Code|S|20
 C|Suggested UnProcessed Count|L
+F|Extract Account Number|S|20
 E
 
 N|Transaction|tx|160

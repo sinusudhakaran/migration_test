@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 770;
-   BK_IOLIB_Date    = '16/11/15';
+   BK_IOLIB_Version : Integer = 771;
+   BK_IOLIB_Date    = '19/11/15';
    BK_FILE_VERSION  = 187;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -953,6 +953,7 @@ Type
       baSecure_Online_Code               : String[ 20 ];       { Stored }
       baExchange_Gain_Loss_Code          : String[ 20 ];       { Stored }
       baSuggested_UnProcessed_Count      : Integer;
+      baExtract_Account_Number           : String[ 20 ];       { Stored }
       baEOR                              : Byte;
    end;
 

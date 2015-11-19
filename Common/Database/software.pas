@@ -24,6 +24,7 @@ type
 {  ---------------------------------------------------------  }
 Function CanExtractData( aCountry, aType : Byte ): Boolean;
 Function CanExtractInNewFormat( aCountry, aType : Byte ): Boolean;
+Function CanExtractAccountNumberAs( aCountry, aType : Byte ) : boolean;
 Function ContraCodeRequired( aCountry, aType : Byte ): Boolean;
 //Function FloppyDiskRequired( aCountry, aType : Byte ): Boolean;
 Function IsHAPAS( aCountry, aType : Byte ): Boolean;
@@ -127,6 +128,18 @@ Begin
                           CanExtractInNewFormat := TRUE;
    end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Function CanExtractAccountNumberAs( aCountry, aType : Byte ) : boolean;
+begin
+   result := false;
+   Case aCountry of
+      whNewZealand   : result := false;
+      whAustralia    : If aType in [ saBGL360 ] then
+                          result := true;
+   end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Function IsHAPAS( aCountry, aType : Byte ): Boolean;
 

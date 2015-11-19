@@ -2097,6 +2097,7 @@ begin
 	SetIntAttr(Result, 'CoreAccountID', baCore_Account_ID);
 	SetTextAttr(Result, 'SecureOnlineCode', baSecure_Online_Code);
 	SetTextAttr(Result, 'ExchangeGainLossCode', baExchange_Gain_Loss_Code);
+	SetTextAttr(Result, 'ExtractAccountNumber', baExtract_Account_Number);
 
 	CNode := nil;
 	CCNode := nil;
@@ -2168,6 +2169,7 @@ begin
 	baCore_Account_ID := GetIntAttr(Result, 'CoreAccountID');
 	baSecure_Online_Code := GetTextAttr(Result, 'SecureOnlineCode');
 	baExchange_Gain_Loss_Code := GetTextAttr(Result, 'ExchangeGainLossCode');
+	baExtract_Account_Number := GetTextAttr(Result, 'ExtractAccountNumber');
 	except
 		on E: Exception do ReRaise (E, 'Reading TBank_Account_Rec');
 	end;
