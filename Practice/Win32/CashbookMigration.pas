@@ -24,7 +24,7 @@ const
 type
 
   TDataRequestType = (drtSignIn, drtFirm, drtBusiness, drtCOA, drtTransactions,
-                      drtJournals,drtRollback);
+                      drtJournals,drtRollback, drtMigrateClient);
   //----------------------------------------------------------------------------
   TClientMigrationState = (cmsAccessSysDB,
                            cmsAccessCltDB,
@@ -1023,6 +1023,8 @@ begin
         LogUtil.LogMsg(lmDebug, UnitName, 'Request : ' + aRequest);
     end;
 
+    FHttpRequester.HTTPMethod := aVerb;
+    
     if (aVerb = 'GET') then
     begin
       FHttpRequester.Get(aURL);
@@ -1122,6 +1124,7 @@ begin
     else
       sVerb := 'POST';
 
+    FDataRequestType := drtMigrateClient;
     // Headers
     Headers.ContentType := CASHBOOK_CONTENT_TYPE;
     Headers.Accept := CASHBOOK_ACCEPT;
@@ -2291,6 +2294,16 @@ begin
         Exit;
       end;
     end;
+    drtMigrateClient:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'Error running cashbook Migration , Error Message : No response from Server.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
   end;
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + FLargeJsonData);
@@ -2835,7 +2848,7 @@ begin
     try
       sURL := PRACINI_CashbookAPIFirmsURL;
       FDataRequestType := drtFirm;
-      
+
       if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
       begin
         HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);

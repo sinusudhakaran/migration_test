@@ -284,7 +284,16 @@ const
   ThisMethodName = 'RunCashBookMigrationWizard';
 var
   Wizard : TFrmCashBookMigrationWiz;
+  sError : string;
 begin
+  if Assigned(MYClient) then
+  begin
+    sError := 'You have client file ' + MYClient.clFields.clCode + ' open. Please close before proceeding with the Cashbook migration.' ;
+    HelpfulWarningMsg(sError, 0);
+    LogUtil.LogMsg(lmDebug, UnitName, sError);
+    Exit;
+  end;
+  
   MigrateCashbook.MarkSelectedClients(ord(fsOpen), aSelectClients);
   try
     Wizard := TFrmCashBookMigrationWiz.Create(Application.MainForm); // FormCreate
