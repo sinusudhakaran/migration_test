@@ -104,6 +104,8 @@ type
     fSourceTransaction : pTransaction_Rec;
     fBankPrefix : string;
     fDoneThreadEvent : TDoneThreadEvent;
+    fApplyToAccSystem : boolean;
+    fAccountSystemAppliedto : byte;
 
     procedure RefreshMasterMemTree();
   public
@@ -115,6 +117,8 @@ type
     property SourceTransaction : pTransaction_Rec read fSourceTransaction write fSourceTransaction;
     property BankPrefix : string read fBankPrefix write fBankPrefix;
     property DoneThreadEvent : TDoneThreadEvent read fDoneThreadEvent write fDoneThreadEvent;
+    property ApplyToAccSystem : boolean read fApplyToAccSystem write fApplyToAccSystem;
+    property AccountSystemAppliedto : byte read fAccountSystemAppliedto write fAccountSystemAppliedto;
   end;
 
   //----------------------------------------------------------------------------
@@ -327,6 +331,7 @@ type
     procedure tblTranMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure mnuMatchStatementDetailsClick(Sender: TObject);
+    procedure cbAccountingChange(Sender: TObject);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -618,6 +623,10 @@ begin
             if CltClient.clExtra.ceBlock_Client_Edit_Mems then
               Continue;
 
+            if (ApplyToAccSystem) and
+               (AccountSystemAppliedto <> CltClient.clFields.clAccounting_System_Used) then
+              Continue;
+
             for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
             begin
               BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
@@ -663,6 +672,10 @@ begin
               Continue;
 
             if CltClient.clExtra.ceBlock_Client_Edit_Mems then
+              Continue;
+
+            if (ApplyToAccSystem) and
+               (AccountSystemAppliedto <> CltClient.clFields.clAccounting_System_Used) then
               Continue;
 
             //Screen.Cursor := crHourglass;
@@ -1085,9 +1098,28 @@ procedure TdlgMemorise.chkAccountSystemClick(Sender: TObject);
 begin
   fDirty := true;
   cbAccounting.Enabled := chkAccountSystem.Checked;
+
+  if not Loading then
+  begin
+    if fDlgEditMode in ALL_NO_MASTER then
+      TerminateMasterThread();
+    RefreshAccTranControls();
+  end;
 end;
 
 //------------------------------------------------------------------------------
+procedure TdlgMemorise.cbAccountingChange(Sender: TObject);
+begin
+  fDirty := true;
+
+  if not Loading then
+  begin
+    if fDlgEditMode in ALL_NO_MASTER then
+      TerminateMasterThread();
+    RefreshAccTranControls();
+  end;
+end;
+
 procedure TdlgMemorise.cbFromClick(Sender: TObject);
 begin
   fDirty := true;
@@ -2767,12 +2799,15 @@ begin
   treView.Items.Clear;
   FreeAndNil(fMasterTreeThread);
   fMasterTreeThread := TMasterTreeThread.Create(true);
-  fMasterTreeThread.MasterTreeView    := treView;
-  fMasterTreeThread.SourceBankAccount := BankAccount;
-  fMasterTreeThread.SourceTransaction := SourceTransaction;
-  fMasterTreeThread.DlgMemorise       := Self;
-  fMasterTreeThread.BankPrefix        := BankPrefix;
-  fMasterTreeThread.DoneThreadEvent   := AfterRefreshMasterMemTreeEvent;
+  fMasterTreeThread.MasterTreeView         := treView;
+  fMasterTreeThread.SourceBankAccount      := BankAccount;
+  fMasterTreeThread.SourceTransaction      := SourceTransaction;
+  fMasterTreeThread.DlgMemorise            := Self;
+  fMasterTreeThread.BankPrefix             := BankPrefix;
+  fMasterTreeThread.DoneThreadEvent        := AfterRefreshMasterMemTreeEvent;
+  fMasterTreeThread.ApplyToAccSystem       := chkAccountsystem.Checked;
+  fMasterTreeThread.AccountSystemAppliedto := GetAccountingSystem;
+
   fMasterTreeThread.Resume;
 end;
 
