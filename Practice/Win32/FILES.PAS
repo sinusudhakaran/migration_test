@@ -1362,6 +1362,7 @@ begin
 
      // The Client has been opened by the user we can start the mems scan timer
      SuggestedMem.StartMemScan(true);
+     MyClient.UpdateMemsIni();
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;

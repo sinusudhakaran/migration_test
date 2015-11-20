@@ -92,6 +92,7 @@ type
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
+    procedure UpdateMemsIni();
 
 {$IFDEF ParserDll}
 {$ELSE}
@@ -687,22 +688,6 @@ begin
            clTemp_Old_Download_From   := clDownload_From;
         end;
 
-        if MEMSINI_SupportOptions = meiResetMems then
-        begin
-          MEMSINI_SupportOptions := meiFullfunctionality;
-          SuggestedMem.SetMainState();
-          SuggestedMem.ResetAll(Self);
-          WriteMemorisationINI_WithLock(clFields.clCode);
-        end;
-
-        if MEMSINI_SupportOptions = meiLogAllMems then
-        begin
-          MEMSINI_SupportOptions := meiFullfunctionality;
-          SuggestedMem.SetMainState();
-          SuggestedMem.ResetLogging(Self);
-          WriteMemorisationINI_WithLock(clFields.clCode);
-        end;
-
         FOpened := true;
   {$ENDIF}
     finally
@@ -962,6 +947,25 @@ end;
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TClientObj.UpdateMemsIni();
+begin
+  if MEMSINI_SupportOptions = meiResetMems then
+  begin
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetAll(Self);
+    WriteMemorisationINI_WithLock(clFields.clCode);
+  end;
+
+  if MEMSINI_SupportOptions = meiLogAllMems then
+  begin
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetLogging(Self);
+    WriteMemorisationINI_WithLock(clFields.clCode);
+  end;
+end;
+
 procedure TClientObj.UpdateRefs;
 const
   ThisMethodName = 'TClientObj.UpdateRefs';
