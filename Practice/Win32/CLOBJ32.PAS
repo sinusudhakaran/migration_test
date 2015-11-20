@@ -945,27 +945,6 @@ begin
   end;
 end;
 
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TClientObj.UpdateMemsIni();
-begin
-  if MEMSINI_SupportOptions = meiResetMems then
-  begin
-    MEMSINI_SupportOptions := meiFullfunctionality;
-    SuggestedMem.SetMainState();
-    SuggestedMem.ResetAll(Self);
-    WriteMemorisationINI_WithLock(clFields.clCode);
-  end;
-
-  if MEMSINI_SupportOptions = meiLogAllMems then
-  begin
-    MEMSINI_SupportOptions := meiFullfunctionality;
-    SuggestedMem.SetMainState();
-    SuggestedMem.ResetLogging(Self);
-    WriteMemorisationINI_WithLock(clFields.clCode);
-  end;
-end;
-
 procedure TClientObj.UpdateRefs;
 const
   ThisMethodName = 'TClientObj.UpdateRefs';
@@ -993,6 +972,28 @@ begin
   Result := FClientCopy;
 end;
 {$ENDIF}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TClientObj.UpdateMemsIni();
+begin
+  if MEMSINI_SupportOptions = meiResetMems then
+  begin
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetAll(Self);
+    WriteMemorisationINI_WithLock(clFields.clCode);
+  end;
+
+  if MEMSINI_SupportOptions = meiLogAllMems then
+  begin
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetLogging(Self);
+    WriteMemorisationINI_WithLock(clFields.clCode);
+  end;
+end;
+
 
 Function TClientObj.GetCurrentCRC : LongInt;
 const
