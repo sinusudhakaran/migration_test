@@ -1300,7 +1300,7 @@ begin
       end;
     end;
 
-    if ShowClientScreen then
+    if ((CheckFormyMYOBTokens) and ShowClientScreen and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID) <> '')) then
     begin
       SelectBusinessFrm := TSelectBusinessForm.Create(Self);
       try

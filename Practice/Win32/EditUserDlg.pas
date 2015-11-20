@@ -1359,9 +1359,6 @@ begin { TdlgEditUser.Execute }
     chkShowPracticeLogo.Checked := User.usShow_Practice_Logo;
     chkCanAccessBankLinkOnline.Checked := User.usAllow_Banklink_Online;
     edtEmailId.Text := User.usMYOBEMail;
-    //Reset user tokens
-    if Trim(edtEmailId.Text) = '' then
-      ResetMYOBTokensInUsersINI(User.usCode);
 
     if UseBankLinkOnline and User.usAllow_Banklink_Online then
     begin
@@ -1444,7 +1441,7 @@ begin { TdlgEditUser.Execute }
   if chkCanAccessBankLinkOnline.Checked then
   begin
     ShowResetPassword;
-    
+
     btnResetPassword.Enabled := AllowResetPassword;
   end;
 
@@ -1536,6 +1533,11 @@ begin { EditUser }
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
           pu.usMYOBEMail := Trim(edtEmailId.Text);
+
+          //Reset user tokens
+          if Trim(edtEmailId.Text) = '' then
+            ResetMYOBTokensInUsersINI(pu.usCode);
+
           if Password <> pu.usPassword then
           begin
             pu.usUsing_Mixed_Case_Password := True;
