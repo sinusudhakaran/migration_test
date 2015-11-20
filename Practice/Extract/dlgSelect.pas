@@ -254,7 +254,8 @@ begin
                            'you must specify an Extract Account Number for ' +
                            'journals. To do this, go to Other Functions | Bank ' +
                            'Accounts and edit the journal. ', 0 );
-                         Exit;  
+                         result := SelectBankAccountsForExport( D1, D2, AccountSet );
+                         Exit;
                        end;
                    Inc( NumChecked );
                  end;
