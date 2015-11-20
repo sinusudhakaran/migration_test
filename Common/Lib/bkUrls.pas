@@ -242,7 +242,7 @@ begin
   {$ifdef DEBUG }
     Result := 'https://api-staging.bgl360.com.au/'
   {$else}
-    Result := 'https://api-staging.bgl360.com.au/';
+    Result := 'https://api.bgl360.com.au/';
   {$endif}
 end;
 
