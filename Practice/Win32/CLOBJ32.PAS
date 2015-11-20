@@ -92,7 +92,6 @@ type
 {$ENDIF}
   public
     procedure Open(FileCode, FileExtension : String);
-    procedure UpdateMemsIni();
 
 {$IFDEF ParserDll}
 {$ELSE}
@@ -100,6 +99,7 @@ type
     procedure SaveToDataStream( var S : TIOStream; DefaultSize : integer = 0);
     procedure ReadFromDataStream( var S : TIOStream);
     procedure SimpleRead(FileCode: string; Stream: TStream);
+    procedure UpdateMemsIni();
 
 
     function SaveClientToStream: TBigMemoryStream;
@@ -281,22 +281,6 @@ end;
 
 {$IFNDEF ParserDLL}
 
-function TClientObj.CurrencySymbol: String;
-begin
-  Result := whCurrencySymbols[ clFields.clCountry ];
-end;
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-function TClientObj.DepositEntryType: Byte;
-begin
-  Result := whDepositEntryType[ clFields.clCountry ];
-end;
-
-{$ENDIF}
-
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TClientObj.UpdateMemsIni();
 begin
@@ -316,6 +300,21 @@ begin
     WriteMemorisationINI_WithLock(clFields.clCode);
   end;
 end;
+
+function TClientObj.CurrencySymbol: String;
+begin
+  Result := whCurrencySymbols[ clFields.clCountry ];
+end;
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function TClientObj.DepositEntryType: Byte;
+begin
+  Result := whDepositEntryType[ clFields.clCountry ];
+end;
+
+{$ENDIF}
 
 destructor TClientObj.Destroy;
 const
