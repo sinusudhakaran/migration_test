@@ -80,15 +80,18 @@ type
   TDlgEditMode = (
     demCreate,
     demEdit,
+    demCopy,
     demMasterCreate,
-    demMasterEdit
+    demMasterEdit,
+    demMasterCopy
   );
 
 const
   ALL_EDIT = [demEdit, demMasterEdit];
-  ALL_CREATE = [demCreate, demMasterCreate];
-  ALL_MASTER = [demMasterEdit, demMasterCreate];
-  ALL_NO_MASTER = [demEdit, demCreate];
+  ALL_CREATE = [demCreate, demMasterCreate, demCopy, demMasterCopy];
+  ALL_MASTER = [demMasterEdit, demMasterCreate, demMasterCopy];
+  ALL_NO_MASTER = [demEdit, demCreate, demCopy];
+  ALL_COPY = [demMasterCopy, demCopy];
 
 type
   TdlgMemorise = class;
@@ -365,8 +368,6 @@ type
     fBankAccount : TBank_Account;
     fBankPrefix : string;
 
-    fTempByte : Byte;
-    fTempInteger : integer;
     fTempString : string;
     fTempAmount : double;
     fTempSuggMem : pMemTranSortedListRec;
@@ -463,15 +464,16 @@ type
                               pM : TMemorisation;
                               FromRecommendedMems: boolean = false;
                               aCopied : boolean = false;
-                              aShowMoreOptions : boolean = false): boolean;
+                              aShowMoreOptions : boolean = false;
+                              aPrefix : string = ''): boolean;
   function MemoriseEntry(aBankAccount: TBank_Account;
                          aTrans: pTransaction_Rec;
                          var aIsAMasterMem: boolean;
                          aMem: TMemorisation = nil;
                          aFromRecommendedMems: boolean = false;
                          aCopied : boolean = false;
-                         aShowMoreOptions : boolean = false): boolean;
-
+                         aShowMoreOptions : boolean = false;
+                         aPrefix : string = ''): boolean;
   function EditMemorisation(aBankAccount: TBank_Account;
                             aMemorisedList: TMemorisations_List;
                             var aMem: TMemorisation;
@@ -582,7 +584,8 @@ function CreateMemorisation(BA : TBank_Account;
                             pM : TMemorisation;
                             FromRecommendedMems : boolean;
                             aCopied : boolean;
-                            aShowMoreOptions : boolean): boolean;
+                            aShowMoreOptions : boolean;
+                            aPrefix : string): boolean;
 var
   tr : pTransaction_Rec;
   IsAMasterMem : boolean;
@@ -597,7 +600,7 @@ begin
 
     IsAMasterMem := pM.mdFields.mdFrom_Master_List; // this value is not used
 
-    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied, aShowMoreOptions);
+    result := MemoriseEntry(BA, tr, IsAMasterMem, pM, FromRecommendedMems, aCopied, aShowMoreOptions, aPrefix);
   finally
     Dispose_Transaction_Rec( tr );
   end;
@@ -607,10 +610,11 @@ end;
 function MemoriseEntry(aBankAccount: TBank_Account;
                        aTrans: pTransaction_Rec;
                        var aIsAMasterMem: boolean;
-                       aMem: TMemorisation = nil;
-                       aFromRecommendedMems: boolean = false;
-                       aCopied : boolean = false;
-                       aShowMoreOptions : boolean = false) : boolean;
+                       aMem: TMemorisation;
+                       aFromRecommendedMems: boolean;
+                       aCopied : boolean;
+                       aShowMoreOptions : boolean;
+                       aPrefix : string) : boolean;
 var
   MemDlg : TdlgMemorise;
   Memorised_Trans : TMemorisation;
@@ -626,9 +630,19 @@ begin
 
   MemDlg := TdlgMemorise.Create(Application.MainForm);
   try
+    MemDlg.Loading := true;
     MemDlg.ShowMoreOptions := aShowMoreOptions;
 
-    MemDlg.DlgEditMode := demCreate;
+    if aCopied then
+    begin
+      if aMem.mdFields.mdFrom_Master_List then
+        MemDlg.DlgEditMode := demMasterCopy
+      else
+        MemDlg.DlgEditMode := demCopy;
+    end
+    else
+      MemDlg.DlgEditMode := demCreate;
+
     MemDlg.CalledFromRecommendedMems := aFromRecommendedMems;
 
     MemDlg.PopulateCmbType(aBankAccount, aTrans.txType);
@@ -653,8 +667,6 @@ begin
     begin
       MemDlg.AccountingSystem := MyClient.clFields.clAccounting_System_Used;
     end;
-
-    MemDlg.chkMasterClick(nil);
 
     MemDlg.GSTClassEditable := Software.CanAlterGSTClass( MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used );
 
@@ -712,13 +724,15 @@ begin
 
     MemDlg.Copied := aCopied;
     if MemDlg.Copied then
+    begin
+      MemDlg.BankPrefix := aPrefix;
       MemDlg.FillData(aMem);
+    end;
 
     if Assigned(aMem) then
       MemDlg.FillSplitData(aMem);
 
-    if aMem.mdFields.mdFrom_Master_List then
-      MemDlg.DlgEditMode := demMasterCreate;
+    MemDlg.Loading := false;
 
     //**************************
     if MemDlg.ShowModal = mrOK then
@@ -787,9 +801,9 @@ function EditMemorisation(aBankAccount: TBank_Account;
                           aMemorisedList: TMemorisations_List;
                           var aMem: TMemorisation;
                           var aDeleteSelectedMem: boolean;
-                          aIsCopy: Boolean = False;
-                          aCopySaveSeq: integer = -1;
-                          aPrefix : string = ''): boolean;
+                          aIsCopy: Boolean;
+                          aCopySaveSeq: integer;
+                          aPrefix : string): boolean;
 const
   ThisMethodName = 'EditMemorisation';
 
@@ -835,6 +849,7 @@ begin
 
   MemDlg := TdlgMemorise.Create(Application.MainForm);
   try
+    MemDlg.Loading := true;
     MemDlg.EditMem := aMem;
     if aMem.mdFields.mdFrom_Master_List then
       MemDlg.DlgEditMode := demMasterEdit
@@ -860,8 +875,7 @@ begin
 
     MemDlg.UpdateControls();
 
-    MemDlg.Loading := false;
-      //fill detail
+    //fill detail
     MemDlg.FillSplitData(aMem);
 
     //Show Total Line
@@ -882,6 +896,7 @@ begin
 
     MemDlg.SourceTransaction := nil;
 
+    MemDlg.Loading := false;
     //**********************
     FormResult := MemDlg.ShowModal();
 
@@ -961,7 +976,7 @@ begin
           MemDlg.FillSplitData(pMCopy);
 
           // OK pressed, and insert mem?
-          Result := CreateMemorisation(aBankAccount, pMCopy, false, true, MemDlg.ShowMoreOptions);
+          Result := CreateMemorisation(aBankAccount, pMCopy, false, true, MemDlg.ShowMoreOptions, MemDlg.BankPrefix);
         finally
           FreeAndNil(pMCopy);
         end;
@@ -1026,7 +1041,6 @@ var
   FoundFirstClientAccount : boolean;
   RootNode : TTreeNode;
   ClientNode : TTreeNode;
-  AccNode : TTreeNode;
   TempMem : TMemorisation;
   Institution : string;
   NunOfSplitLines : integer;
@@ -1148,7 +1162,7 @@ begin
               end;
 
               if (FoundFirstAccount and FoundFirstClientAccount) then
-                AccNode := fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
+                fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
             end;
 
           finally
@@ -1505,41 +1519,50 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cRefClick(Sender: TObject);
 begin
-  fDirty := true;
+  eRef.enabled := cRef.Checked;
 
-  eRef.enabled  := cRef.Checked;
   if not Loading then
-    if eRef.enabled then eRef.SetFocus;
+  begin
+    fDirty := true;
+    if eRef.enabled then
+      eRef.SetFocus;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cPartClick(Sender: TObject);
 begin
-  fDirty := true;
-
   ePart.enabled := cPart.Checked;
+
   if not Loading then
-    if ePart.enabled then ePart.setFocus;
+  begin
+    fDirty := true;
+    if ePart.enabled then
+      ePart.setFocus;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cOtherClick(Sender: TObject);
 begin
-  fDirty := true;
-
   eOther.Enabled := cOther.Checked;
+
   if not Loading then
-    if eOther.enabled then eOther.setFocus;
+  begin
+    fDirty := true;
+    if eOther.enabled then
+      eOther.setFocus;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.chkAccountSystemClick(Sender: TObject);
 begin
-  fDirty := true;
   cbAccounting.Enabled := chkAccountSystem.Checked;
 
   if not Loading then
   begin
+    fDirty := true;
     if fDlgEditMode in ALL_NO_MASTER then
       TerminateMasterThread();
     RefreshAccTranControls();
@@ -1549,10 +1572,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cbAccountingChange(Sender: TObject);
 begin
-  fDirty := true;
-
   if not Loading then
   begin
+    fDirty := true;
     if fDlgEditMode in ALL_NO_MASTER then
       TerminateMasterThread();
     RefreshAccTranControls();
@@ -1561,7 +1583,8 @@ end;
 
 procedure TdlgMemorise.cbFromClick(Sender: TObject);
 begin
-  fDirty := true;
+  if not Loading then
+    fDirty := true;
 
   eDateFrom.Enabled := cbFrom.Checked;
 end;
@@ -1569,7 +1592,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cbMinusChange(Sender: TObject);
 begin
-  fDirty := true;
+  if not Loading then
+    fDirty := true;
 
   case cbMinus.ItemIndex of
     0: AmountMultiplier := -1;
@@ -1580,7 +1604,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cbToClick(Sender: TObject);
 begin
-  fDirty := true;
+  if not Loading then
+    fDirty := true;
 
   eDateTo.Enabled := cbTo.Checked;
 end;
@@ -1588,11 +1613,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cCodeClick(Sender: TObject);
 begin
-  fDirty := true;
-
   eCode.Enabled := cCode.Checked;
+
   if not Loading then
-    if eCode.enabled then eCode.setFocus;
+  begin
+    fDirty := true;
+    if eCode.enabled then
+      eCode.setFocus;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1605,7 +1633,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.cEntryClick(Sender: TObject);
 begin
-  fDirty := true;
+  if not Loading then
+    fDirty := true;
 end;
 
 //------------------------------------------------------------------------------
@@ -1665,7 +1694,6 @@ end;
 procedure TdlgMemorise.btnOKClick(Sender: TObject);
 var
   BA: string;
-  EntryType: byte;
 begin      
   if OKtoPost then
   begin
@@ -1674,8 +1702,6 @@ begin
       BA := ''
     else
       BA := fBankAccount.baFields.baBank_Account_Number;
-
-    EntryType := GetTxTypeFromCmbType;
 
     TerminateMasterThread();
 
@@ -1854,7 +1880,9 @@ var
   tempNo   : integer;
   tempID   : string;
 begin
-  fDirty := true;
+  if not Loading then
+    fDirty := true;
+
   btnCancel.Cancel := false;
 
   tblSplitInEdit := false;
@@ -2407,7 +2435,7 @@ procedure TdlgMemorise.UpdateControls;
 
 begin
   case fDlgEditMode of
-    demCreate : begin
+    demCreate, demCopy : begin
       Caption := 'Memorisation';
       btnCopy.Visible := false;
       btnDelete.Visible := false;
@@ -2419,7 +2447,7 @@ begin
       btnDelete.Visible := true;
       btnOk.Caption := 'Updat&e';
     end;
-    demMasterCreate : begin
+    demMasterCreate, demMasterCopy : begin
       Caption := 'MASTER Memorisation';
       btnCopy.Visible := false;
       btnDelete.Visible := false;
@@ -3495,17 +3523,24 @@ var
    i          : integer;
    GSTEdited  : Boolean;
 begin
+  if loading then
+    Exit;
+
   fDirty := true;
   if chkMaster.Checked then
   begin
-    if (DlgEditMode in ALL_EDIT) then
+    if (DlgEditMode in ALL_COPY) then
+      DlgEditMode := demMasterCopy
+    else if (DlgEditMode in ALL_EDIT) then
       DlgEditMode := demMasterEdit
     else
       DlgEditMode := demMasterCreate;
   end
   else
   begin
-    if (DlgEditMode in ALL_EDIT) then
+    if (DlgEditMode in ALL_COPY) then
+      DlgEditMode := demCopy
+    else if (DlgEditMode in ALL_EDIT) then
       DlgEditMode := demEdit
     else
       DlgEditMode := demCreate;
@@ -3515,8 +3550,7 @@ begin
 
   chkAccountSystemClick(nil);
 
-  if Loading
-  or (DlgEditMode in ALL_EDIT) then
+  if (DlgEditMode in ALL_EDIT) then
     Exit;
   //must be in create mode
   //if checked then make sure we have default GST Classes.
@@ -3643,11 +3677,14 @@ end;
 
 procedure TdlgMemorise.cNotesClick(Sender: TObject);
 begin
-  fDirty := true;
-
   eNotes.Enabled := cNOtes.Checked;
+
   if not Loading then
-    if eNOtes.enabled then eNotes.setFocus;
+  begin
+    fDirty := true;
+    if eNOtes.enabled then
+      eNotes.setFocus;
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgMemorise.FormResize(Sender: TObject);
@@ -3702,7 +3739,7 @@ begin
                               ( AdminSystem.fdFields.fdMagic_Number = MyClient.clFields.clMagic_Number) and
                               ( MyClient.clFields.clDownload_From = dlAdminSystem ) and
                               ( (DlgEditMode in ALL_CREATE)) and
-                              ( (Assigned(fBankAccount) and not fBankAccount.baFields.baIs_A_Manual_Account) ) and
+                              ( (not Assigned(fBankAccount)) or (Assigned(fBankAccount) and not fBankAccount.baFields.baIs_A_Manual_Account) ) and
                               ( not ClientFileRec^.cfForeign_File );
   end;
   chkMaster.Enabled := AllowMasterMemorised;
@@ -3758,11 +3795,14 @@ end;
 
 procedure TdlgMemorise.chkStatementDetailsClick(Sender: TObject);
 begin
-  fDirty := true;
-
   eStatementDetails.Enabled := chkStatementDetails.Checked;
+
   if not Loading then
-    if eStatementDetails.enabled then eStatementDetails.setFocus;
+  begin
+    fDirty := true;
+    if eStatementDetails.enabled then
+      eStatementDetails.setFocus;
+  end;
 end;
 
 procedure TdlgMemorise.ClearSuperfundDetails1Click(Sender: TObject);
@@ -3774,8 +3814,6 @@ end;
 
 procedure TdlgMemorise.cValueClick(Sender: TObject);
 begin
-  fDirty := true;
-
   cmbValue.Enabled := cValue.Checked;
   nValue.Enabled   := cValue.Checked;
   cbMinus.Enabled  := cValue.Checked;
@@ -3791,12 +3829,17 @@ begin
   SetFirstLineDefaultAmount;
 
   if not Loading then
-    if cmbValue.enabled then cmbValue.setFocus;
+  begin
+    fDirty := true;
+    if cmbValue.enabled then
+      cmbValue.setFocus;
+  end;
 end;
 
 procedure TdlgMemorise.nValueChange(Sender: TObject);
 begin
-  fDirty := true;
+  if not Loading then
+    fDirty := true;
 
   AmountToMatch := Double2Money( nValue.AsFloat) * AmountMultiplier;
   UpdateTotal;
@@ -4305,7 +4348,6 @@ begin
 
   nValue.AsFloat := Money2Double( AmountToMatch) * AmountMultiplier;
   //set check boxes, set loading so click events dont fire
-  Loading := true;
 
   cRef.Checked := aMem.mdFields.mdMatch_on_Refce;
   case MyClient.clFields.clCountry of

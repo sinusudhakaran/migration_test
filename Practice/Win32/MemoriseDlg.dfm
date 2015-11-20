@@ -260,7 +260,7 @@ object dlgMemorise: TdlgMemorise
           Margins.Bottom = 1
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 16
           Sorted = True
           TabOrder = 2
           OnChange = cbAccountingChange
@@ -317,7 +317,16 @@ object dlgMemorise: TdlgMemorise
         OnMouseDown = tblSplitMouseDown
         OnUserCommand = tblSplitUserCommand
         CellData = (
-          'dlgMemorise.Header')
+          'dlgMemorise.Header'
+          'dlgMemorise.ColAcct'
+          'dlgMemorise.ColDesc'
+          'dlgMemorise.colNarration'
+          'dlgMemorise.ColPayee'
+          'dlgMemorise.colJob'
+          'dlgMemorise.ColGSTCode'
+          'dlgMemorise.ColAmount'
+          'dlgMemorise.ColPercent'
+          'dlgMemorise.colLineType')
         RowData = (
           24)
         ColData = (
@@ -622,7 +631,14 @@ object dlgMemorise: TdlgMemorise
         OnGetCellAttributes = tblTranGetCellAttributes
         OnMouseDown = tblTranMouseDown
         CellData = (
-          'dlgMemorise.tranHeader')
+          'dlgMemorise.tranHeader'
+          'dlgMemorise.colTranDate'
+          'dlgMemorise.colReference'
+          'dlgMemorise.colAnalysis'
+          'dlgMemorise.colTranAccount'
+          'dlgMemorise.colTranAmount'
+          'dlgMemorise.colTranStatementDetails'
+          'dlgMemorise.colTranCodedBy')
         RowData = (
           24)
         ColData = (
@@ -736,7 +752,7 @@ object dlgMemorise: TdlgMemorise
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 1
       OnChange = eStatementDetailsChange
@@ -1052,7 +1068,7 @@ object dlgMemorise: TdlgMemorise
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentCtl3D = False
       ParentFont = False
       TabOrder = 15
