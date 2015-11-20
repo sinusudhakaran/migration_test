@@ -49,10 +49,12 @@ type
     FOldFirmIndex : Integer;
     FForcedSignInSucceed : Boolean;
     FShowClientSelection : Boolean;
+    FIsSignIn : Boolean;
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
     procedure SaveUser;
+    procedure UpdateControls;
   public
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
@@ -121,6 +123,15 @@ var
   InvalidPass: boolean;
   BusinessFrm : TSelectBusinessForm;
 begin
+  if Not FIsSignIn then
+  begin
+    FIsSignIn := not FIsSignIn;
+    UpdateControls;
+    Exit;
+  end;
+
+  UpdateControls;
+  Application.ProcessMessages;
   FProcessingLogin := True;
   FForcedSignInSucceed := False;
   OldCursor := Screen.Cursor;
@@ -129,7 +140,7 @@ begin
     if CurrUser.MYOBEmailAddress <> Trim(edtEmail.Text) then
     begin
       SaveUser;
-      
+
       PracticeLedger.Firms.Clear;
       PracticeLedger.Businesses.Clear;
     end;
@@ -143,7 +154,7 @@ begin
     PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
     PracticeLedger.EncryptToken(UserINI_myMYOB_Access_Token);
 
-    // my.MYOB login
+    //my.MYOB login
     if not PracticeLedger.Login(edtEmail.Text, edtPassword.Text, sError, InvalidPass) then
     begin
       Screen.Cursor := OldCursor;
@@ -156,13 +167,16 @@ begin
     end
     else
     begin
+      lblForgotPassword.Visible := True;
+      FIsSignIn := not FIsSignIn;
+      UpdateControls;
       UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
       UserINI_myMYOB_Random_Key := PracticeLedger.RandomKey;
       UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
       UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
       WriteUsersINI(CurrUser.Code);
       btnSignIn.Default := False;
-      if (FormShowType in [fsSignIn, fsFirmForceSignIn]) and (ShowFirmSelection) then
+      if (FormShowType in [fsSignIn, fsFirmForceSignIn, fsSelectFirm]) and (ShowFirmSelection) then
       begin
         // Get Firms
         FormShowType := fsSelectFirm;
@@ -212,6 +226,10 @@ begin
       else if (FormShowType = fsSignIn) then
         btnOKClick(Self);
     end;
+    edtPassword.Enabled := edtEmail.Enabled;
+    lblEmail.Enabled := edtEmail.Enabled;
+    lblPassword.Enabled := edtEmail.Enabled;
+
   finally
     Screen.Cursor := OldCursor;
     FProcessingLogin := False;
@@ -269,6 +287,7 @@ var
   sError: string;
   OldCursor: TCursor;
 begin
+  FIsSignIn := True;
   FProcessingLogin := False;
   edtPassword.Text := '';
   edtEmail.Text := CurrUser.MYOBEmailAddress;
@@ -279,13 +298,14 @@ begin
   pnlFirmSelection.Visible := False;
   pnlLogin.Visible := False;
   btnOK.Visible := True;
-
+  lblForgotPassword.Visible := True;
   case FormShowType of
     fsSignIn :
     begin
       pnlLogin.Visible := True;
       Self.Height := 185;
       btnOK.Visible := False;
+      lblForgotPassword.Visible := False;
     end;
     fsFirmForceSignIn :
     begin
@@ -468,6 +488,25 @@ begin
   HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
                   'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
                   0, false, aError, true);
+end;
+
+procedure TmyMYOBSignInForm.UpdateControls;
+begin
+  if FIsSignIn then
+  begin
+    edtEmail.Enabled := True;
+    btnSignIn.Caption := 'Login';
+  end
+  else
+  begin
+    edtEmail.Enabled := False;
+    btnSignIn.Caption := 'Logout';
+  end;
+
+  edtPassword.Enabled := edtEmail.Enabled;
+  lblEmail.Enabled := edtEmail.Enabled;
+  lblPassword.Enabled := edtEmail.Enabled;
+  lblForgotPassword.Visible := (not FIsSignIn);
 end;
 
 end.
