@@ -745,7 +745,8 @@ begin
       begin
         Memorised_Trans := TMemorisation.Create(SystemAuditMgr);
         //memorise to relevant master file then reload to get new global list
-        MemDlg.BankPrefix := mxFiles32.GetBankPrefix( aBankAccount.baFields.baBank_Account_Number);
+        if Assigned(aBankAccount) then
+          MemDlg.BankPrefix := mxFiles32.GetBankPrefix( aBankAccount.baFields.baBank_Account_Number);
 
         //--ADD MASTER MEM---
         if LoadAdminSystem(true, 'MemoriseEntry') then
