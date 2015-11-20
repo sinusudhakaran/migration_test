@@ -1532,11 +1532,13 @@ begin { EditUser }
           pu.usEMail_Address  := Trim( eMail.text);
           pu.usDirect_Dial    := eDirectDial.Text;
           pu.usShow_Printer_Choice := cbPrintDialogOption.Checked;
-          pu.usMYOBEMail := Trim(edtEmailId.Text);
 
           //Reset user tokens
-          if Trim(edtEmailId.Text) = '' then
+          if ((Trim(edtEmailId.Text) = '') or
+              (pu.usMYOBEMail <> Trim(edtEmailId.Text))) then
             ResetMYOBTokensInUsersINI(pu.usCode);
+
+          pu.usMYOBEMail := Trim(edtEmailId.Text);
 
           if Password <> pu.usPassword then
           begin
