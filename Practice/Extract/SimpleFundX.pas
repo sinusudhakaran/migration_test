@@ -414,6 +414,44 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
+procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs, aBankAccountNumber: string; var aBSB, aAccountNumber : string );
+var
+  lsBSB,
+  lsAccountNumber : string;
+
+  function StripOutBSBAndAccountNum( aInStr : string; var aBSB, aAccountNumber : string ) : boolean;
+  begin
+    result := false;
+    aInStr := Trim( aInStr );
+    if length( aInStr ) < 7 then // String is too short
+      exit
+    else begin
+      aBSB := copy( aInStr, 1, 6 ); // BSB Number is the first 6 characters
+      aAccountNumber := copy( aInStr, 7, length( aInStr ) ); // Account Number is the rest
+      result := ( length( aBSB ) > 0 ) and ( length( aAccountNumber ) > 0 );
+    end;
+  end;
+begin
+  aExtractAccountNumberAs :=                                         // Get the ExtractAccountNumberAS regardless
+    StringReplace( aExtractAccountNumberAs, ' ', '',
+      [ rfReplaceAll, rfIgnoreCase ] );
+
+  ProcessDiskCode( trim( aBankAccountNumber ),
+    lsBSB, lsAccountNumber);                                         // Get the normal Bank Account number
+
+  if (not Software.CanExtractAccountNumberAs(                        // ExtractAccountNumberAs field CANNOT be used, get Normals
+           MyClient.clFields.clCountry,
+           MyClient.clFields.clAccounting_System_Used) ) or          // Else ExtractAccountNumberAs field can be used BUT,
+      ( aExtractAccountNumberAs = '' ) or                            // ExtractAccountNumberAs is blank
+      ( not StripOutBSBAndAccountNum(                                // ExtractAccountNumberAs field can be used BUT is in the incorrect format
+              aExtractAccountNumberAs, aBSB, aAccountNumber ) ) then begin
+    aBSB           := lsBSB;                                         // Use the normal BSB number
+    aAccountNumber := lsAccountNumber;                               // Use the normal Bank Account number
+  end;
+end;
+
+
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure DoAccountHeader;
@@ -439,7 +477,12 @@ begin
   FBalancesNode.AppendChild(FAccountNode);
   AddFieldNode(FAccountNode, 'BalanceDate', Date2Str(Traverse_From, FdateMask ));
   AddFieldNode(FAccountNode, 'BalanceAmount', FormatFloatForXml(OpenBalance, 2, 100, true));
-  ProcessDiskCode(Bank_Account.baFields.baBank_Account_Number, BSB, AccountNum);
+  // BSB and Bank_Account_No
+  RetrieveBSBAndAccountNum( Bank_Account.baFields.baExtract_Account_Number,
+    Bank_Account.baFields.baBank_Account_Number, BSB, AccountNum );
+
+//  ProcessDiskCode(Bank_Account.baFields.baBank_Account_Number, BSB, AccountNum);
+
   AddFieldNode(FAccountNode, 'BSB', BSB);
   AddFieldNode(FAccountNode, 'Bank_Account_No', AccountNum);
   AddFieldNode(FAccountNode, 'Balance_Type', '10'); // 10 = Opening Balance, 15 = Closing Balance
@@ -1255,42 +1298,6 @@ begin
     else
       lsControlCode := copy( Value, 1, pred( liPos ) ); // Fetch the first characters (or the whole acocunt code if not a sub account)
     result := StrToIntDef(  lsControlCode ,0 );
-  end;
-end;
-
-procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs, aBankAccountNumber: string; var aBSB, aAccountNumber : string );
-var
-  lsBSB,
-  lsAccountNumber : string;
-
-  function StripOutBSBAndAccountNum( aInStr : string; var aBSB, aAccountNumber : string ) : boolean;
-  begin
-    result := false;
-    aInStr := Trim( aInStr );
-    if length( aInStr ) < 7 then // String is too short
-      exit
-    else begin
-      aBSB := copy( aInStr, 1, 6 ); // BSB Number is the first 6 characters
-      aAccountNumber := copy( aInStr, 7, length( aInStr ) ); // Account Number is the rest
-      result := ( length( aBSB ) > 0 ) and ( length( aAccountNumber ) > 0 );
-    end;
-  end;
-begin
-  aExtractAccountNumberAs :=                                         // Get the ExtractAccountNumberAS regardless
-    StringReplace( aExtractAccountNumberAs, ' ', '',
-      [ rfReplaceAll, rfIgnoreCase ] );
-
-  ProcessDiskCode( trim( aBankAccountNumber ),
-    lsBSB, lsAccountNumber);                                         // Get the normal Bank Account number
-
-  if (not Software.CanExtractAccountNumberAs(                        // ExtractAccountNumberAs field CANNOT be used, get Normals
-           MyClient.clFields.clCountry,
-           MyClient.clFields.clAccounting_System_Used) ) or          // Else ExtractAccountNumberAs field can be used BUT,
-      ( aExtractAccountNumberAs = '' ) or                            // ExtractAccountNumberAs is blank
-      ( not StripOutBSBAndAccountNum(                                // ExtractAccountNumberAs field can be used BUT is in the incorrect format
-              aExtractAccountNumberAs, aBSB, aAccountNumber ) ) then begin
-    aBSB           := lsBSB;                                         // Use the normal BSB number
-    aAccountNumber := lsAccountNumber;                               // Use the normal Bank Account number
   end;
 end;
 
