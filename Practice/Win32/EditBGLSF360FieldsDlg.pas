@@ -1137,7 +1137,7 @@ begin
   SelectedCode := edtAccount.Text;
 (*DN Redundant Code*)
 
-  if PickAccount(SelectedCode, HasChartBeenRefreshed, BGL360AccountsFilter, true, true, [ doShowInactive ]) then
+  if PickAccount(SelectedCode, HasChartBeenRefreshed, BGL360AccountsFilter, true, true, [ (*doShowInactive*) ]) then
   begin
     edtAccount.Text := SelectedCode;
     edtAccount.Hint := MyClient.clChart.FindDesc( SelectedCode );
