@@ -8578,6 +8578,9 @@ var
       ShowCodingHint( RowNum, ColNum, CustomHint );
   end;
 begin
+  if windowstate <> wsMaximized then
+    Exit;
+
   if not ValidDataRow(RowNum) then
      exit;
 
