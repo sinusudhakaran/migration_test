@@ -1314,7 +1314,7 @@ begin
               tkteSF_Share_Brokerage                         : ColumnItem.WidthPercent := 12.0;
               tkteSF_Share_Consideration                     : ColumnItem.WidthPercent := 12.0;
               tkteSF_Share_GST_Amount                        : ColumnItem.WidthPercent := 12.0;
-              tkteSF_Share_GST_Rate                          : ColumnItem.WidthPercent := 4.0;
+              tkteSF_Share_GST_Rate                          : ColumnItem.WidthPercent := 4.5;
               tkteSF_Cash_Date                               : ColumnItem.WidthPercent := 10.0;
               tkteSF_Accrual_Date                            : ColumnItem.WidthPercent := 10.0;
               tkteSF_Record_Date                             : ColumnItem.WidthPercent := 10.0;
