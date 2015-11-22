@@ -33,6 +33,8 @@ type
   private
     { Private declarations }
     SortCol : integer;
+
+    fEntriesColumn : integer;
   public
     { Public declarations }
   end;
@@ -65,9 +67,11 @@ uses
 
 procedure TdlgSelect.FormCreate(Sender: TObject);
 begin
-   bkXPThemes.ThemeForm( Self);
-   lvAccountsEx.items.clear;
-   SetUpHelp;
+  fEntriesColumn           := 3;
+
+  bkXPThemes.ThemeForm( Self);
+  lvAccountsEx.items.clear;
+  SetUpHelp;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSelect.SetUpHelp;
@@ -78,7 +82,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSelect.FormShow(Sender: TObject);
 begin
-   keybd_event(vk_down,0,0,0);
+  keybd_event(vk_down,0,0,0);
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSelect.lvAccountsExCompare(Sender: TObject; Item1,
@@ -87,13 +91,32 @@ var
   Key1,Key2 : ShortString;
   Num1, Num2 : integer;
 begin
+  if SortCol <> fEntriesColumn then
+    if SortCol <> 0 then begin
+      Key1 := Item1.SubItems.Strings[SortCol-1];
+      Key2 := Item2.SubItems.Strings[SortCol-1];
+      Compare := StStrS.CompStringS(Key1,Key2);
+    end
+    else
+  else begin
+    Key1 := Item1.SubItems.Strings[SortCol-1];
+    Key2 := Item2.SubItems.Strings[SortCol-1];
+
+    Num1 := Str2Long(Key1);
+    Num2 := Str2Long(Key2);
+
+    if num1 > num2 then Compare := -1 else
+    if num1 < num2 then Compare := 1 else
+    Compare := 0;
+  end;
+(*
   case SortCol of
   0: begin
        Key1 := Item1.Caption;
        Key2 := Item2.Caption;
        Compare := StStrS.CompStringS(Key1,Key2);
      end;
-  3: begin
+  3 : begin
        Key1 := Item1.SubItems.Strings[SortCol-1];
        Key2 := Item2.SubItems.Strings[SortCol-1];
 
@@ -110,7 +133,7 @@ begin
        Key2 := Item2.SubItems.Strings[SortCol-1];
        Compare := StStrS.CompStringS(Key1,Key2);
      end;
-  end;
+  end; *)
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgSelect.lvAccountsExColumnClick(Sender: TObject;
@@ -169,9 +192,7 @@ var
    NewItem    : TListItem;
    AList      : TStringList;
    lbExtractAccountNumberAs : boolean;
-   PreviousCol,
-   CurrentCol,
-   ColumnExtractAccountNumberAs : TListColumn;
+   fExtractAccountNoColumn  : TListColumn;
 begin
    Result     := NIL;
 
@@ -196,12 +217,14 @@ begin
              MyClient.clFields.clCountry,
              MyClient.clFields.clAccounting_System_Used);
          if lbExtractAccountNumberAs then begin
-           ColumnExtractAccountNumberAs := TListColumn( lvAccountsEx.Columns.Add ); 
+           fExtractAccountNoColumn := TListColumn( lvAccountsEx.Columns.Add );;
            for I := lvAccountsEx.Columns.Count - 1 downto 3 do begin
              TListColumn( lvAccountsEx.Columns[ i ] ).Assign( TListColumn( lvAccountsEx.Columns[ pred( i ) ] ) );
            end;
            TListColumn( lvAccountsEx.Columns[ 2 ] ).Caption := 'Extract Account No';
            TListColumn( lvAccountsEx.Columns[ 2 ] ).Width := 180;
+           fEntriesColumn           := 4;
+
            lvAccountsEx.UpdateItems(0, MAXINT);
            MyDlg.Width := MyDlg.Width + TListColumn( lvAccountsEx.Columns[ 2 ] ).Width;
          end;
