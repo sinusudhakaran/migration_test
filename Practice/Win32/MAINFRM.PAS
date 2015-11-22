@@ -1632,6 +1632,7 @@ begin
     else
     begin
        //Self.Tag := 0; case 7071 - everything now goes screen center
+
        if Assigned(AdminSystem) then
        begin
          if AdminSystem.fdFields.fdUse_BankLink_Online then
@@ -5101,6 +5102,9 @@ begin
   begin
     MyClient.clFields.clLast_Auto_Save_CRC := MyClient.clFields.clCurrent_CRC;
 
+    if ( not FAdminSystemFound ) and
+       ( MyClient.clFields.clAccounting_System_Used = saBGL360 )then            // Books users may not Refresh Chart
+      mniOFRefreshChart.Enabled := false;
 
     FormResize(Self);
     RefreshHomepage([HRP_Init]);

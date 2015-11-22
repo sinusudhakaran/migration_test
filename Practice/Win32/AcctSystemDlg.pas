@@ -459,7 +459,9 @@ begin
   btnFromFolder.Visible := eFrom.Visible; //DN BGL360- UI changes
 
   btnConnectBGL.Visible := (SelectedSystem = saBGL360);
+  btnConnectBGL.Enabled := ( Assigned( AdminSystem) or AdminExists );
   lblBGL360FundName.Visible := btnConnectBGL.Visible;
+  lblBGL360FundName.Enabled := btnConnectBGL.Enabled;
 
   btnConnectMYOB.Visible := IsMYOBLedger;
   lblSaveTo.Visible := (not btnConnectMYOB.Visible);
