@@ -23,10 +23,8 @@ object dlgEditBank: TdlgEditBank
     ActivePage = tbDetails
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 494
     object tbDetails: TTabSheet
       Caption = '&Details'
-      ExplicitHeight = 466
       object lblNo: TLabel
         Left = 24
         Top = 12
@@ -574,9 +572,9 @@ object dlgEditBank: TdlgEditBank
         object lblExtractAccountNumberAs: TLabel
           Left = 24
           Top = 7
-          Width = 132
+          Width = 131
           Height = 13
-          Caption = 'Extract Account Number As'
+          Caption = 'Extract Account Number as'
           FocusControl = edExtractAccountNumberAs
         end
         object edExtractAccountNumberAs: TEdit
@@ -686,7 +684,6 @@ object dlgEditBank: TdlgEditBank
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 494
     DesignSize = (
       639
       37)
