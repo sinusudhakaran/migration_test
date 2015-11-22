@@ -737,7 +737,7 @@ begin
     try
       sURL := PRACINI_CashbookAPIBusinessesURL;
       FDataRequestType := drtBusiness;
-      
+
       if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
       begin
         HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
@@ -773,7 +773,7 @@ begin
       end;
     end;
   finally
-    if Assigned(FDataResponse) then    
+    if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
   end;
 
@@ -2169,6 +2169,8 @@ begin
     end;
   finally
     FreeAndNil(MigUpload);
+    if Assigned(FDataResponse) then
+      FreeAndNil(FDataResponse);
   end;
 end;
 
