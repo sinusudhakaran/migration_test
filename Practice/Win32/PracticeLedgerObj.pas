@@ -823,6 +823,8 @@ begin
     end;
     Result := True;
   finally
+    SetDefaultTransferMethod;
+    
     if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
     if DebugMe then
@@ -1022,12 +1024,12 @@ begin
               LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
               //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, DelErrorStr, True);
             end;
-
             HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
 
             FExportTerminated := True;
             Exit;
           end;
+
           SetTransferredFlag(Selected,TypeOfTrans, FromIndex);
         finally
           FreeAndNil(RequestJson);

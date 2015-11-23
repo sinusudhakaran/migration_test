@@ -238,7 +238,7 @@ type
                             var aNumErrorClients : integer) : TMigrationStatus;
 
     function CheckForValidTokens:Boolean;
-
+    procedure SetDefaultTransferMethod;
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
     property MappingsData : TMappingsData read fMappingsData write fMappingsData;
     property HasProvisionalAccountsAndMoved : boolean read fHasProvisionalAccountsAndMoved;
@@ -2413,6 +2413,11 @@ begin
     if Assigned(FDataResponse) then    
       FreeAndNil(FDataResponse);
   end;
+end;
+
+procedure TCashbookMigration.SetDefaultTransferMethod;
+begin
+  FHttpRequester.HTTPMethod := 'GET';
 end;
 
 function TCashbookMigration.StartedDataTransfer: Boolean;

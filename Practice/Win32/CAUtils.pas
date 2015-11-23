@@ -18,7 +18,7 @@ unit CAUtils;
 //------------------------------------------------------------------------------
 interface
 uses
-   clObj32;
+   clObj32, SysUtils;
 
 function IsCASystems( aClient : TClientObj) : boolean; overload;
 function CASystemsGSTOK( aClient : TClientObj; const Rate : Byte) : boolean; overload;
@@ -85,8 +85,8 @@ end;
 function IsCASystems( aClient : TClientObj) : boolean; overload;
 Const
    ThisMethodName = 'IsCASystems';
-   AU_Systems = [ saGLMAN, saMYOBAccountantsOffice, saMYOB_AO_COM ];
-   NZ_Systems = [ snGLMAN, snMYOB_AO_COM];
+   AU_Systems = [ saGLMAN, saMYOBAccountantsOffice, saMYOB_AO_COM , saMYOBOnlineLedger];
+   NZ_Systems = [ snGLMAN, snMYOB_AO_COM, snMYOBOnlineLedger];
    UK_Systems = [  ];
 
 Begin
@@ -116,28 +116,46 @@ Const
    vMin = 1;
    vMax = 8;
    ValidCodes : Array[ vMin..vMax ] of String[1] = ( 'I','O','E','Z','1','2','3','4' );
+
+   ValidPLNZCodes : Array [1..5] of String[3] = ('GST', 'E', 'NTR', 'Z', 'I');
+   ValidPLAUCodes : Array [1..8] of String[3] = ('CAP', 'EXP', 'FRE', 'GNR', 'GST', 'INP', 'ITS', 'NTR');
 Var
    GSTCode : String[GST_CLASS_CODE_LENGTH];
    i       : Byte;
 Begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   { Rate 0 is OK }
-   Result := true;
-   if Rate = 0 then Exit;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  { Rate 0 is OK }
+  Result := True;
+  if Rate = 0 then Exit;
 
-   with aClient.clFields do
-   begin
-      GSTCode := '';
-      If Rate in [ 1..MAX_GST_CLASS ] then
-      Begin
-         //only need to compare the first character
-         GSTCode := Copy( clGST_Class_Codes[ Rate ],1,1);
-         For i := vMin to vMax do If GSTCode = ValidCodes[ i ] then exit;
+  with aClient.clFields do
+  begin
+    GSTCode := '';
+    if Rate in [ 1..MAX_GST_CLASS ] then
+    Begin
+      //only need to compare the first character
+      if ((clCountry = whNewZealand) and (clAccounting_System_Used =  snMYOBOnlineLedger)) then
+      begin
+        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,3);
+        if Trim(GSTCode) <> ''  then
+          for i := 1 to 5 do If Trim(GSTCode) = ValidPLNZCodes[ i ] then Exit;
+      end
+      else if ((clCountry = whAustralia) and (clAccounting_System_Used =  saMYOBOnlineLedger)) then
+      begin
+        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,3);
+        if Trim(GSTCode) <> ''  then
+          for i := vMin to vMax do If Trim(GSTCode) = ValidPLAUCodes[ i ] then Exit;
+      end
+      else
+      begin
+        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,1);
+        for i := vMin to vMax do If GSTCode = ValidCodes[ i ] then Exit;
       end;
-      Result := False;
-   end;
+    end;
+    Result := False;
+  end;
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //------------------------------------------------------------------------------
 
