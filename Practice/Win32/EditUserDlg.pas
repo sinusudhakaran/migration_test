@@ -220,7 +220,8 @@ uses
   INISettings,
   AuthenticationFailedFrm,
   bkBranding, bkProduct,
-  IniFiles;
+  IniFiles,
+  PracticeLedgerObj;
 
 Const
   UNITNAME = 'EDITUSERDLG';
@@ -1536,7 +1537,14 @@ begin { EditUser }
           //Reset user tokens
           if ((Trim(edtEmailId.Text) = '') or
               (pu.usMYOBEMail <> Trim(edtEmailId.Text))) then
+          begin
             ResetMYOBTokensInUsersINI(pu.usCode);
+            if Assigned(PracticeLedger) then
+            begin
+              PracticeLedger.Firms.Clear;
+              PracticeLedger.Businesses.Clear;
+            end;
+          end;
 
           pu.usMYOBEMail := Trim(edtEmailId.Text);
 
