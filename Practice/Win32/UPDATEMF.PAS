@@ -638,7 +638,13 @@ begin
 
      //Other Functions
      if ClientFileOpen then begin
-        mniOFRefreshChart.Enabled  := not MyClient.clFields.clChart_Is_Locked and CanRefreshChart(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used);
+       if ( not assigned( AdminSystem ) ) and
+          ( MyClient.clFields.clAccounting_System_Used = saBGL360 ) then            // Books users may not Refresh Chart
+         mniOFRefreshChart.Enabled := false
+       else
+         mniOFRefreshChart.Enabled  := not MyClient.clFields.clChart_Is_Locked and
+           CanRefreshChart(MyClient.clFields.clCountry,
+             MyClient.clFields.clAccounting_System_Used);
         mniRemapChart.Visible :=  (UsingAdmin xor RestrictedUser);
         if (MyClient.clFields.clFile_Read_Only) then
         begin
