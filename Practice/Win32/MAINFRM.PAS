@@ -5102,10 +5102,6 @@ begin
   begin
     MyClient.clFields.clLast_Auto_Save_CRC := MyClient.clFields.clCurrent_CRC;
 
-    if ( not FAdminSystemFound ) and
-       ( MyClient.clFields.clAccounting_System_Used = saBGL360 )then            // Books users may not Refresh Chart
-      mniOFRefreshChart.Enabled := false;
-
     FormResize(Self);
     RefreshHomepage([HRP_Init]);
 

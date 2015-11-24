@@ -639,7 +639,7 @@ begin
      //Other Functions
      if ClientFileOpen then begin
        if ( not assigned( AdminSystem ) ) and
-          ( MyClient.clFields.clAccounting_System_Used = saBGL360 ) then            // Books users may not Refresh Chart
+          ( MyClient.clFields.clAccounting_System_Used in [ snMYOBOnlineLedger, saBGL360, saMYOBOnlineLedger ] ) then            // Books users may not Refresh Chart
          mniOFRefreshChart.Enabled := false
        else
          mniOFRefreshChart.Enabled  := not MyClient.clFields.clChart_Is_Locked and

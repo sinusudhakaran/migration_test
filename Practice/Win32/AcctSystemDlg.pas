@@ -464,6 +464,7 @@ begin
   lblBGL360FundName.Enabled := btnConnectBGL.Enabled;
 
   btnConnectMYOB.Visible := IsMYOBLedger;
+  btnConnectMYOB.Enabled := ( Assigned( AdminSystem) or AdminExists );
   lblSaveTo.Visible := (not btnConnectMYOB.Visible);
   eTo.Visible := lblSaveTo.Visible;
   btnToFolder.Visible := lblSaveTo.Visible;
