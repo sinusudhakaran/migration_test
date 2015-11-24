@@ -951,7 +951,6 @@ object frmCAF: TfrmCAF
             '(The link will include your practice code, to ensure that the da' +
             'ta gets delivered to you.)')
         TabOrder = 0
-        ExplicitHeight = 116
       end
     end
   end

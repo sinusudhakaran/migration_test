@@ -1557,7 +1557,8 @@ begin
   if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
   begin
     FMailSubject := 'Bank feed for American Express bank account/s';
-    Link := '"https://qwww316.americanexpress.com/iFormsSecure/auth_reg/en_AU/iforms.do?cuid=RatingsAndReview_en_AU&evtsrc=link&evttype=0&cpid=email009%20&myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
+    //Link := '"https://qwww316.americanexpress.com/iFormsSecure/auth_reg/en_AU/iforms.do?cuid=RatingsAndReview_en_AU&evtsrc=link&evttype=0&cpid=email009%20&myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
+    Link := 'http://myob.com.au/AMEX?myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
 
     LoadMailTemplateFromResource := True;
     MailReplaceStrings.Add('AMEXBANKLINKSITE='+Link);
