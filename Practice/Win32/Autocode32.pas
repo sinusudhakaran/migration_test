@@ -325,21 +325,25 @@ begin
         If txDate_Transferred <> 0 then
            Exit; // Transfered, don't change
 
-        if txHas_Been_Edited then begin
-           // Check if this is actualy True..
-           if txAccount > '' then begin
-              //TFS 12252 - update alternative account codes when chart has been refreshed
-              if HasAlternativeChartCode(aClient.clFields.clCountry, aClient.clFields.clAccounting_System_Used) then
-              begin
-                txAccount := aCLient.clChart.MatchAltCode(txAccount);
-                Exit; // Must be True
-              end;
-           end;
-           if txSF_Super_Fields_Edited then
-              if txCoded_By in [cbManualSuper,cbECodingManual] then
-                 Exit; // Must be True
-           txHas_Been_Edited := False;// was not True
-           //WasEdited := true;
+        if txHas_Been_Edited then
+        begin
+          // Check if this is actualy True..
+          if txAccount > '' then
+          begin
+            //TFS 12252 - update alternative account codes when chart has been refreshed
+            if HasAlternativeChartCode(aClient.clFields.clCountry, aClient.clFields.clAccounting_System_Used) then
+            begin
+              txAccount := aCLient.clChart.MatchAltCode(txAccount);
+              Exit; // Must be True
+            end;
+          end;
+
+          if txSF_Super_Fields_Edited then
+            if txCoded_By in [cbManualSuper,cbECodingManual] then
+              Exit; // Must be True
+
+          if txAccount = '' then
+            txHas_Been_Edited := False;// was not True
         end;
 
 
