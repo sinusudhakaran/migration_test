@@ -299,7 +299,7 @@ begin
     edtRootFolder.Text := ExtractFilePath(Application.ExeName) + 'WebSite';
     ForceDirectories(edtRootFolder.Text);
     StartServer := True;
-    btnConnectClick(Self);
+    //btnConnectClick(Self);
   end;
 end;
 
