@@ -16,6 +16,7 @@ object frmSuggMemPopup: TfrmSuggMemPopup
   Font.Style = [fsBold]
   OldCreateOrder = False
   PopupMode = pmExplicit
+  Scaled = False
   Visible = True
   OnCreate = FormCreate
   PixelsPerInch = 96

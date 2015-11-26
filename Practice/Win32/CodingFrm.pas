@@ -106,7 +106,7 @@ type
     EditCopy1: TEditCopy;
     EditCut1: TEditCut;
     EditPaste1: TEditPaste;
-    EditSelectAll1: TEditSelectAll;
+    EditSelectAll1: TEditSelectAll;            
     EditUndo1: TEditUndo;
     pmiNotesSelectAll: TMenuItem;
     N3: TMenuItem;
@@ -434,6 +434,7 @@ type
     procedure SetLastKeyPress;
     procedure SetUpHelp;
     procedure LoadWorkTranList;
+    procedure UpdateWorkTranList;
     procedure InitController;
     procedure SetColDefPosition(aBankPrefix : string);
     procedure SetupColumnFmtList(var ColFmt: TColFmtList);
@@ -2687,11 +2688,9 @@ var
 begin
   UpdateSuggestedMemLabel;
 
-  ActiveRow := tblCoding.ActiveRow;
-
-  LoadWorkTranList;
-  tblCoding.ActiveRow := ActiveRow;
+  UpdateWorkTranList;
   tblCoding.Refresh;
+
   RefreshHomepage ([HPR_ExchangeGainLoss_Message]);
 end;
 
@@ -11015,6 +11014,23 @@ begin
 
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Exit UpdateTabs');
+end;
+
+procedure TfrmCoding.UpdateWorkTranList;
+var
+  Index : integer;
+  WorkTran : pTransaction_Rec;
+  SuggMemsData : TSuggMemSortedListRec;
+begin
+  for Index := 0 to WorkTranList.ItemCount-1 do
+  begin
+    WorkTran := WorkTranList.transaction_at(Index);
+
+    WorkTran^.txSuggested_Mem_Index := TRAN_SUGG_NOT_FOUND;
+
+    SuggestedMem.GetSuggestionUsedByTransaction(BankAccount, WorkTran, MyClient.clChart, SuggMemsData);
+    WorkTran^.txSuggested_Manual_Count := SuggMemsData.ManualCount;
+  end;
 end;
 
 //------------------------------------------------------------------------------
