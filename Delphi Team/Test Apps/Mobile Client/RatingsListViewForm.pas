@@ -81,7 +81,7 @@ const
 procedure TfrmMainForm.lvwRatingsUpdateObjects( const Sender: TObject; const AItem: TListViewItem );
 var
   TextLabel: TListItemText;
-  MonthIcon: TListItemRatingIcon;
+  MonthIcon: TListItemCodingIcon;
 begin
   TextLabel := AItem.Objects.FindObject( sCode ) as TListItemText;
   if TextLabel = nil then
@@ -114,98 +114,98 @@ begin
     TextLabel.Height := 20;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sJanuary ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sJanuary ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sJanuary;
     MonthIcon.PlaceOffset.X := -350;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sFebruary ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sFebruary ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sFebruary;
     MonthIcon.PlaceOffset.X := -330;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sMarch ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sMarch ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sMarch;
     MonthIcon.PlaceOffset.X := -310;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sApril ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sApril ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sApril;
     MonthIcon.PlaceOffset.X := -290;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sMay ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sMay ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sMay;
     MonthIcon.PlaceOffset.X := -270;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sJune ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sJune ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sJune;
     MonthIcon.PlaceOffset.X := -250;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sJuly ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sJuly ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sJuly;
     MonthIcon.PlaceOffset.X := -230;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sAugust ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sAugust ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sAugust;
     MonthIcon.PlaceOffset.X := -210;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sSeptember ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sSeptember ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sSeptember;
     MonthIcon.PlaceOffset.X := -190;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sOctober ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sOctober ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sOctober;
     MonthIcon.PlaceOffset.X := -170;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sNovember ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sNovember ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sNovember;
     MonthIcon.PlaceOffset.X := -150;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sDecember ) as TListItemRatingIcon;
+  MonthIcon := AItem.Objects.FindObject( sDecember ) as TListItemCodingIcon;
   if MonthIcon = nil then
   begin
-    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon := TListItemCodingIcon.Create( AItem );
     MonthIcon.Name := sDecember;
     MonthIcon.PlaceOffset.X := -130;
   end;
@@ -233,7 +233,7 @@ end;
 procedure TfrmMainForm.LinkFillControlToField1FilledListItem( Sender: TObject; const AEditor: IBindListEditorItem );
 var
   Item: TListViewItem;
-  RatingIcon: TListItemRatingIcon;
+  RatingIcon: TListItemCodingIcon;
   TextLabel: TListItemText;
   RatingField, TextField: TField;
   Client : TStringList;
@@ -255,45 +255,45 @@ begin
       if ( TextLabel <> nil ) then
         TextLabel.Text := Client.Strings[1];
 
-      RatingIcon := Item.Objects.FindObject( sJanuary ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sJanuary ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType:= StrToIntDef(Client.Strings[2],1);
 
-      RatingIcon := Item.Objects.FindObject( sFebruary ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sFebruary ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[3],1);
 
-      RatingIcon := Item.Objects.FindObject( sMarch ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sMarch ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[4],1);
 
-      RatingIcon := Item.Objects.FindObject( sApril ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sApril ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[5],1);
 
-      RatingIcon := Item.Objects.FindObject( sMay ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sMay ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[6],1);
-      RatingIcon := Item.Objects.FindObject( sJune ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sJune ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[7],1);
-      RatingIcon := Item.Objects.FindObject( sJuly ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sJuly ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[8],1);
-      RatingIcon := Item.Objects.FindObject( sAugust ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sAugust ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[9],1);
-      RatingIcon := Item.Objects.FindObject( sSeptember ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sSeptember ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[10],1);
-      RatingIcon := Item.Objects.FindObject( sOctober ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sOctober ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[11],1);
-      RatingIcon := Item.Objects.FindObject( sNovember ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sNovember ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[12],1);
 
-      RatingIcon := Item.Objects.FindObject( sDecember ) as TListItemRatingIcon;
+      RatingIcon := Item.Objects.FindObject( sDecember ) as TListItemCodingIcon;
       if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[13],1);
     finally

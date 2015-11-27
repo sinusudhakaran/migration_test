@@ -10,7 +10,7 @@ uses
 
 type
 
-  TListItemRatingIcon = class( TListItemObject )
+  TListItemCodingIcon = class( TListItemObject )
   private
     FCodingType: Integer;
     FRatingPaths: TObjectList<TPathData>;
@@ -35,7 +35,7 @@ uses
 {== TListItemRatingIcon Methods ==}
 {=================================}
 
-constructor TListItemRatingIcon.Create( const AOwner: TListItem );
+constructor TListItemCodingIcon.Create( const AOwner: TListItem );
 var
   PathData: TPathData;
 begin
@@ -72,13 +72,13 @@ begin
 end;
 
 
-destructor TListItemRatingIcon.Destroy;
+destructor TListItemCodingIcon.Destroy;
 begin
   FRatingPaths.Free;
   inherited;
 end;
 
-procedure TListItemRatingIcon.Render( const Canvas: TCanvas; const DrawItemIndex: Integer;
+procedure TListItemCodingIcon.Render( const Canvas: TCanvas; const DrawItemIndex: Integer;
                                       const DrawStates: TListItemDrawStates;
                                       const SubPassNo: Integer );
 var
