@@ -32,27 +32,10 @@ type
     ToolBar1: TToolBar;
     Label1: TLabel;
     lvwRatings: TListView;
-    cdsRatings: TClientDataSet;
     BindSourceDB1: TBindSourceDB;
     BindingsList1: TBindingsList;
     LinkFillControlToField1: TLinkFillControlToField;
-    Lang1: TLang;
     PrototypeBindSource1: TPrototypeBindSource;
-    cdsClients: TClientDataSet;
-    cdsClientsCode: TStringField;
-    cdsClientsName: TStringField;
-    cdsClientsJan: TStringField;
-    cdsClientsFeb: TStringField;
-    cdsClientsMar: TStringField;
-    cdsClientsApr: TStringField;
-    cdsClientsMay: TStringField;
-    cdsClientsJun: TStringField;
-    cdsClientsJul: TStringField;
-    cdsClientsAug: TStringField;
-    cdsClientsSep: TStringField;
-    cdsClientsOct: TStringField;
-    cdsClientsNov: TStringField;
-    cdsClientsDec: TStringField;
     procedure lvwRatingsUpdateObjects(const Sender: TObject; const AItem: TListViewItem);
     procedure LinkFillControlToField1FilledListItem(Sender: TObject; const AEditor: IBindListEditorItem);
     procedure FormResize(Sender: TObject);
@@ -95,16 +78,6 @@ const
   sFullCoding = 'FullCoding';
   sNone = 'Nothing';
 
-  sProductCost     = 'Cost';
-  sOverallScore    = 'OverallScore';
-  sRatingChopping  = 'Chopping';
-  sRatingSlicing   = 'Slicing';
-  sRatingShredding = 'Shredding';
-  sRatingPureeing  = 'Pureeing';
-  sRatingGrating   = 'Grating';
-  sRatingNoise     = 'Noise';
-
-
 procedure TfrmMainForm.lvwRatingsUpdateObjects( const Sender: TObject; const AItem: TListViewItem );
 var
   TextLabel: TListItemText;
@@ -118,8 +91,8 @@ begin
     TextLabel.Align := TListItemAlign.Trailing;
     TextLabel.VertAlign := TListItemAlign.Center;
     TextLabel.TextAlign := TTextAlign.taCenter;
-    TextLabel.PlaceOffset.X := -400;
-    TextLabel.PlaceOffset.Y := 3;
+    TextLabel.PlaceOffset.X := -430;
+    TextLabel.PlaceOffset.Y := -4;
     TextLabel.Font.Size := 13;
     TextLabel.Width := 40;
     TextLabel.Height := 18;
@@ -133,11 +106,12 @@ begin
     TextLabel.Align := TListItemAlign.Trailing;
     TextLabel.VertAlign := TListItemAlign.Center;
     TextLabel.TextAlign := TTextAlign.taCenter;
-    TextLabel.PlaceOffset.X := -400;
+    TextLabel.PlaceOffset.X := -410;
     TextLabel.PlaceOffset.Y := 10;
-    TextLabel.Font.Size := 13;
-    TextLabel.Width := 30;
-    TextLabel.Height := 18;
+    TextLabel.Font.Size := 16;
+//    TextLabel.TextColor := TAlphaColorRec.ColorToRGB(red);
+    TextLabel.Width := 50;
+    TextLabel.Height := 20;
   end;
 
   MonthIcon := AItem.Objects.FindObject( sJanuary ) as TListItemRatingIcon;
@@ -241,7 +215,7 @@ procedure TfrmMainForm.FormShow(Sender: TObject);
 begin
 
 
-  cdsClients.CreateDataSet;
+  {cdsClients.CreateDataSet;
   cdsClients.Open;
   cdsClients.Insert;
   cdsClients.FieldByName('Code').AsString := '434';
@@ -249,7 +223,7 @@ begin
   cdsClients.FieldByName('Jan').AsString := '1';
   cdsClients.FieldByName('Feb').AsString := '1';
   cdsClients.FieldByName('Mar').AsString := '1';
-  cdsClients.Post;
+  cdsClients.Post;}
 
   PrototypeBindSource1.Active := True;
   lvwRatings.EditMode := False;
@@ -274,27 +248,23 @@ begin
 
       TextLabel := Item.Objects.FindObject( sCode ) as TListItemText;
 //      TextField := BindSourceDB1.DataSet.FindField( sCode );
-      if ( TextField <> nil ) and ( TextLabel <> nil ) then
-        TextLabel.Text := '$' + Client.Strings[0];
+      if ( TextLabel <> nil ) then
+        TextLabel.Text := Client.Strings[0];
 
       TextLabel := Item.Objects.FindObject( sName ) as TListItemText;
-      TextField := BindSourceDB1.DataSet.FindField( sName );
-      if ( TextField <> nil ) and ( TextLabel <> nil ) then
+      if ( TextLabel <> nil ) then
         TextLabel.Text := Client.Strings[1];
 
       RatingIcon := Item.Objects.FindObject( sJanuary ) as TListItemRatingIcon;
-      RatingField := BindSourceDB1.DataSet.FindField( sJanuary );
-      if ( RatingField <> nil ) and ( RatingIcon <> nil ) then
+      if ( RatingIcon <> nil ) then
         RatingIcon.CodingType:= StrToIntDef(Client.Strings[2],1);
 
       RatingIcon := Item.Objects.FindObject( sFebruary ) as TListItemRatingIcon;
-      RatingField := BindSourceDB1.DataSet.FindField( sFebruary );
-      if ( RatingField <> nil ) and ( RatingIcon <> nil ) then
+      if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[3],1);
 
       RatingIcon := Item.Objects.FindObject( sMarch ) as TListItemRatingIcon;
-      RatingField := BindSourceDB1.DataSet.FindField( sMarch );
-      if ( RatingField <> nil ) and ( RatingIcon <> nil ) then
+      if ( RatingIcon <> nil ) then
         RatingIcon.CodingType := StrToIntDef(Client.Strings[4],1);
 
       RatingIcon := Item.Objects.FindObject( sApril ) as TListItemRatingIcon;
