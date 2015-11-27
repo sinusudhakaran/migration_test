@@ -1,0 +1,381 @@
+unit RatingsListViewForm;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  FMX.StdCtrls,
+  FMX.ListView.Types,
+  FMX.ListView,
+  Data.DB,
+  Datasnap.DBClient,
+  System.Rtti,
+  System.Bindings.Outputs,
+  Fmx.Bind.Editors,
+  Data.Bind.EngExt,
+  Fmx.Bind.DBEngExt,
+  Data.Bind.Components,
+  Data.Bind.DBScope, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
+  FMX.Controls.Presentation, Data.Bind.ObjectScope;
+
+type
+  TfrmMainForm = class(TForm)
+    ToolBar1: TToolBar;
+    Label1: TLabel;
+    lvwRatings: TListView;
+    cdsRatings: TClientDataSet;
+    BindSourceDB1: TBindSourceDB;
+    BindingsList1: TBindingsList;
+    LinkFillControlToField1: TLinkFillControlToField;
+    Lang1: TLang;
+    PrototypeBindSource1: TPrototypeBindSource;
+    cdsClients: TClientDataSet;
+    cdsClientsCode: TStringField;
+    cdsClientsName: TStringField;
+    cdsClientsJan: TStringField;
+    cdsClientsFeb: TStringField;
+    cdsClientsMar: TStringField;
+    cdsClientsApr: TStringField;
+    cdsClientsMay: TStringField;
+    cdsClientsJun: TStringField;
+    cdsClientsJul: TStringField;
+    cdsClientsAug: TStringField;
+    cdsClientsSep: TStringField;
+    cdsClientsOct: TStringField;
+    cdsClientsNov: TStringField;
+    cdsClientsDec: TStringField;
+    procedure lvwRatingsUpdateObjects(const Sender: TObject; const AItem: TListViewItem);
+    procedure LinkFillControlToField1FilledListItem(Sender: TObject; const AEditor: IBindListEditorItem);
+    procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    Clients : TStringList;
+  public
+  end;
+
+var
+  frmMainForm: TfrmMainForm;
+
+implementation
+
+{$R *.fmx}
+
+uses
+  FMX.Objects,
+  RatingListItems;
+
+const
+  sCode = 'Code';
+  sName = 'Name';
+  sJanuary = 'Jan';
+  sFebruary = 'Feb';
+  sMarch = 'Mar';
+  sApril = 'Apr';
+  sMay = 'May';
+  sJune = 'Jun';
+  sJuly = 'Jul';
+  sAugust = 'Aug';
+  sSeptember = 'Sep';
+  sOctober = 'Oct';
+  sNovember = 'Nov';
+  sDecember = 'Dec';
+
+  sNoCding = 'NoCoding';
+  sPartialCoding = 'PartialCoding';
+  sFullCoding = 'FullCoding';
+  sNone = 'Nothing';
+
+  sProductCost     = 'Cost';
+  sOverallScore    = 'OverallScore';
+  sRatingChopping  = 'Chopping';
+  sRatingSlicing   = 'Slicing';
+  sRatingShredding = 'Shredding';
+  sRatingPureeing  = 'Pureeing';
+  sRatingGrating   = 'Grating';
+  sRatingNoise     = 'Noise';
+
+
+procedure TfrmMainForm.lvwRatingsUpdateObjects( const Sender: TObject; const AItem: TListViewItem );
+var
+  TextLabel: TListItemText;
+  MonthIcon: TListItemRatingIcon;
+begin
+  TextLabel := AItem.Objects.FindObject( sCode ) as TListItemText;
+  if TextLabel = nil then
+  begin
+    TextLabel := TListItemText.Create( AItem );
+    TextLabel.Name := sCode;
+    TextLabel.Align := TListItemAlign.Trailing;
+    TextLabel.VertAlign := TListItemAlign.Center;
+    TextLabel.TextAlign := TTextAlign.taCenter;
+    TextLabel.PlaceOffset.X := -400;
+    TextLabel.PlaceOffset.Y := 3;
+    TextLabel.Font.Size := 13;
+    TextLabel.Width := 40;
+    TextLabel.Height := 18;
+  end;
+
+  TextLabel := AItem.Objects.FindObject( sName ) as TListItemText;
+  if TextLabel = nil then
+  begin
+    TextLabel := TListItemText.Create( AItem );
+    TextLabel.Name := sName;
+    TextLabel.Align := TListItemAlign.Trailing;
+    TextLabel.VertAlign := TListItemAlign.Center;
+    TextLabel.TextAlign := TTextAlign.taCenter;
+    TextLabel.PlaceOffset.X := -400;
+    TextLabel.PlaceOffset.Y := 10;
+    TextLabel.Font.Size := 13;
+    TextLabel.Width := 30;
+    TextLabel.Height := 18;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sJanuary ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sJanuary;
+    MonthIcon.PlaceOffset.X := -350;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sFebruary ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sFebruary;
+    MonthIcon.PlaceOffset.X := -330;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sMarch ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sMarch;
+    MonthIcon.PlaceOffset.X := -310;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sApril ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sApril;
+    MonthIcon.PlaceOffset.X := -290;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sMay ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sMay;
+    MonthIcon.PlaceOffset.X := -270;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sJune ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sJune;
+    MonthIcon.PlaceOffset.X := -250;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sJuly ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sJuly;
+    MonthIcon.PlaceOffset.X := -230;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sAugust ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sAugust;
+    MonthIcon.PlaceOffset.X := -210;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sSeptember ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sSeptember;
+    MonthIcon.PlaceOffset.X := -190;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sOctober ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sOctober;
+    MonthIcon.PlaceOffset.X := -170;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sNovember ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sNovember;
+    MonthIcon.PlaceOffset.X := -150;
+  end;
+
+  MonthIcon := AItem.Objects.FindObject( sDecember ) as TListItemRatingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemRatingIcon.Create( AItem );
+    MonthIcon.Name := sDecember;
+    MonthIcon.PlaceOffset.X := -130;
+  end;
+end;
+
+procedure TfrmMainForm.FormShow(Sender: TObject);
+begin
+
+
+  cdsClients.CreateDataSet;
+  cdsClients.Open;
+  cdsClients.Insert;
+  cdsClients.FieldByName('Code').AsString := '434';
+  cdsClients.FieldByName('Name').AsString := 'sinu';
+  cdsClients.FieldByName('Jan').AsString := '1';
+  cdsClients.FieldByName('Feb').AsString := '1';
+  cdsClients.FieldByName('Mar').AsString := '1';
+  cdsClients.Post;
+
+  PrototypeBindSource1.Active := True;
+  lvwRatings.EditMode := False;
+
+end;
+
+procedure TfrmMainForm.LinkFillControlToField1FilledListItem( Sender: TObject; const AEditor: IBindListEditorItem );
+var
+  Item: TListViewItem;
+  RatingIcon: TListItemRatingIcon;
+  TextLabel: TListItemText;
+  RatingField, TextField: TField;
+  Client : TStringList;
+begin
+  // Code to assign to the list item as it is being updated by LiveBindings
+  if AEditor.CurrentIndex >= 0 then
+  begin
+    Item := lvwRatings.Items[ AEditor.CurrentIndex ];
+    Client := TStringList.Create;
+    try
+      Client.CommaText := Clients.Strings[AEditor.CurrentIndex];
+
+      TextLabel := Item.Objects.FindObject( sCode ) as TListItemText;
+//      TextField := BindSourceDB1.DataSet.FindField( sCode );
+      if ( TextField <> nil ) and ( TextLabel <> nil ) then
+        TextLabel.Text := '$' + Client.Strings[0];
+
+      TextLabel := Item.Objects.FindObject( sName ) as TListItemText;
+      TextField := BindSourceDB1.DataSet.FindField( sName );
+      if ( TextField <> nil ) and ( TextLabel <> nil ) then
+        TextLabel.Text := Client.Strings[1];
+
+      RatingIcon := Item.Objects.FindObject( sJanuary ) as TListItemRatingIcon;
+      RatingField := BindSourceDB1.DataSet.FindField( sJanuary );
+      if ( RatingField <> nil ) and ( RatingIcon <> nil ) then
+        RatingIcon.CodingType:= StrToIntDef(Client.Strings[2],1);
+
+      RatingIcon := Item.Objects.FindObject( sFebruary ) as TListItemRatingIcon;
+      RatingField := BindSourceDB1.DataSet.FindField( sFebruary );
+      if ( RatingField <> nil ) and ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[3],1);
+
+      RatingIcon := Item.Objects.FindObject( sMarch ) as TListItemRatingIcon;
+      RatingField := BindSourceDB1.DataSet.FindField( sMarch );
+      if ( RatingField <> nil ) and ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[4],1);
+
+      RatingIcon := Item.Objects.FindObject( sApril ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[5],1);
+
+      RatingIcon := Item.Objects.FindObject( sMay ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[6],1);
+      RatingIcon := Item.Objects.FindObject( sJune ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[7],1);
+      RatingIcon := Item.Objects.FindObject( sJuly ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[8],1);
+      RatingIcon := Item.Objects.FindObject( sAugust ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[9],1);
+      RatingIcon := Item.Objects.FindObject( sSeptember ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[10],1);
+      RatingIcon := Item.Objects.FindObject( sOctober ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[11],1);
+      RatingIcon := Item.Objects.FindObject( sNovember ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[12],1);
+
+      RatingIcon := Item.Objects.FindObject( sDecember ) as TListItemRatingIcon;
+      if ( RatingIcon <> nil ) then
+        RatingIcon.CodingType := StrToIntDef(Client.Strings[13],1);
+    finally
+      FreeAndNil(Client);
+    end;
+  end;
+end;
+
+
+
+
+procedure TfrmMainForm.FormCreate(Sender: TObject);
+begin
+  Clients := TStringList.Create;
+  Clients.Add('1, sinu, 1,1,1,1,1,1,1,1,2,1,1,1');
+  Clients.Add('2, vinu, 1,3,2,1,1,1,1,1,1,1,1,1');
+  Clients.Add('3, tinu, 1,1,1,1,1,1,1,3,1,1,1,1');
+  Clients.Add('4, renu, 1,1,1,1,1,2,1,1,1,1,1,1');
+  Clients.Add('5, manu, 1,1,1,1,1,1,1,1,1,1,1,1');
+  Clients.Add('6, venu, 1,1,1,2,1,1,1,1,1,1,1,1');
+  Clients.Add('7, binu, 1,1,1,1,2,1,1,1,3,1,1,1');
+  Clients.Add('8, minu, 1,1,2,1,1,2,1,1,1,1,1,1');
+  Clients.Add('9, kinu,1,1,1,1,1,2,1,1,1,3,1,1');
+  Clients.Add('10, linu, 1,1,2,1,1,1,1,2,1,1,2,1');
+end;
+
+procedure TfrmMainForm.FormResize(Sender: TObject);
+(*
+var
+  Item: TListViewItem;
+  RatingIcon: TListItemRatingIcon;
+  PortraitMode: Boolean;
+*)
+begin
+  (*
+  PortraitMode := Width < Height;
+
+  lvwRatings.BeginUpdate;
+  try
+    for Item in lvwRatings.Items do
+    begin
+      RatingIcon := Item.Objects.FindObject( sRatingPureeing ) as TListItemRatingIcon;
+      if RatingIcon <> nil then
+      begin
+        RatingIcon.Visible := PortraitMode;
+      end;
+    end;
+  finally
+    lvwRatings.EndUpdate;
+  end;
+  *)
+end;
+
+
+end.
