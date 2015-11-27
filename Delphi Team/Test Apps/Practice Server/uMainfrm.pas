@@ -365,86 +365,38 @@ begin
   ResponseInfo.ContentType := 'text/plain';
   // requested document
   RequestedDocument := RequestInfo.Document;
-
   // log request
   Log('Client: ' + RequestInfo.RemoteIP + ' request for: ' + RequestedDocument + '?' + RequestInfo.Params.Text);
 
-  if (Pos('ValidateLogin' , RequestedDocument) > 0) then
-  begin
-    ValidatedUser := ValidatePracticeUser(RequestInfo.Params);
-
-    if ValidatedUser then
-    begin
-      ResponseInfo.ContentText := 'User is valid';
-      ResponseInfo.ResponseNo := 200;
-    end
-    else
-    begin
-      ResponseInfo.ResponseNo := 200;
-      ResponseInfo.ContentText := 'User/Password is invalid';
-    end;
-  end
-  else if (Pos('GetClients', RequestedDocument) > 0) then
-  begin
-    Response := TlkJSONobject.Create;
-    BuildClientList(Response);
-    ResponseInfo.ContentText := TlkJSON.GenerateText(Response);
-    ResponseInfo.ResponseNo := 200;
-  end;
-  // 001
-  if Copy(RequestedDocument, 1, 1) <> '/' then
-    // invalid request
+  if Copy(RequestedDocument, 1, 1) <> '/' then // invalid request
     raise Exception.Create('invalid request: ' + RequestedDocument);
 
-  // 002
-  // convert all '/' to '\'
-  FileName := RequestedDocument;
-  I := Pos('/', FileName);
-  while I > 0 do
+  if ((Pos('ValidateLogin' , RequestedDocument) > 0) or
+   (Pos('GetClients', RequestedDocument) > 0)) then
   begin
-    FileName[I] := '\';
-    I := Pos('/', FileName);
-  end;
-  // locate requested file
-  FileName := edtRootFolder.Text + FileName;
-
-  try
-    // check whether file or folder was requested
-    if AnsiLastChar(FileName)^ = '\' then
-      // folder - reroute to default document
-      CheckFileName := FileName + edtDefaultDoc.Text
-    else
-      // file - use it
-      CheckFileName := FileName;
-    if FileExists(CheckFileName) then
+    if (Pos('ValidateLogin' , RequestedDocument) > 0) then
     begin
-      // file exists
-      if LowerCase(ExtractFileExt(CheckFileName)) = '.ehtm' then
+      ValidatedUser := ValidatePracticeUser(RequestInfo.Params);
+
+      if ValidatedUser then
       begin
-        // Extended HTML - send through internal tag parser
-        EHTMLParser := TPageProducer.Create(Self);
-        try
-          // set source file name
-          EHTMLParser.HTMLFile := CheckFileName;
-          // set event handler
-          EHTMLParser.OnHTMLTag := pgpEHTMLHTMLTag;
-          // parse !
-          ResponseInfo.ContentText := EHTMLParser.Content;
-        finally
-          EHTMLParser.Free;
-        end;
+        ResponseInfo.ContentText := 'User is valid';
+        ResponseInfo.ResponseNo := 200;
       end
       else
       begin
-        // return file as-is
-        // log
-        Log('Returning Document: ' + CheckFileName);
-        // open file stream
-        ResponseInfo.ContentStream :=
-          TFileStream.Create(CheckFileName, fmOpenRead or fmShareCompat);
+        ResponseInfo.ResponseNo := 200;
+        ResponseInfo.ContentText := 'User/Password is invalid';
       end;
+    end
+    else if (Pos('GetClients', RequestedDocument) > 0) then
+    begin
+      Response := TlkJSONobject.Create;
+      BuildClientList(Response);
+      ResponseInfo.ContentText := TlkJSON.GenerateText(Response);
+      ResponseInfo.ResponseNo := 200;
     end;
-  finally
+
     if Assigned(ResponseInfo.ContentStream) then
     begin
       // response stream does exist
