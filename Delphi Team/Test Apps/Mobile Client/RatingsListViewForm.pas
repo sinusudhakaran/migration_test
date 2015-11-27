@@ -11,6 +11,7 @@ uses
   FMX.Types,
   FMX.Controls,
   FMX.Forms,
+  FMX.Platform,
   FMX.Graphics,
   FMX.Dialogs,
   FMX.StdCtrls,
@@ -83,23 +84,120 @@ procedure TfrmMainForm.lvwRatingsUpdateObjects( const Sender: TObject; const AIt
 var
   TextLabel: TListItemText;
   MonthIcon: TListItemCodingIcon;
+  ObjCount : Integer;
+  ScreenSvc: IFMXScreenService;
+  ScreenSize : string;
+  Gap : integer;
+  Start : integer;
+const
+  CodingScreenWidth = 300;
 begin
-  TextLabel := AItem.Objects.FindObject( sCode ) as TListItemText;
-  if TextLabel = nil then
+  if TPlatformServices.Current.SupportsPlatformService(IFMXScreenService, IInterface(ScreenSvc)) then
   begin
-    TextLabel := TListItemText.Create( AItem );
-    TextLabel.Name := sCode;
-    TextLabel.Align := TListItemAlign.Trailing;
-    TextLabel.VertAlign := TListItemAlign.Center;
-    TextLabel.TextAlign := TTextAlign.taCenter;
-    TextLabel.PlaceOffset.X := -430;
-    TextLabel.PlaceOffset.Y := -4;
-    TextLabel.TextColor := TAlphaColors.Purple;
-    TextLabel.Font.Size := 13;
-    TextLabel.Width := 40;
-    TextLabel.Height := 18;
+    ScreenSize := Format('Resolution: %fX%f', [ScreenSvc.GetScreenSize.X, ScreenSvc.GetScreenSize.Y]);
   end;
 
+  Gap := (Screen.Size.Width - 150 ) div 13;
+  Start := -5;
+
+  MonthIcon := AItem.Objects.FindObject( sDecember ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sDecember;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sNovember ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sNovember;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sOctober ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sOctober;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sSeptember ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sSeptember;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sAugust ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sAugust;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sJuly ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sJuly;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sJune ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sJune;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sMay ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sMay;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sApril ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sApril;
+    MonthIcon.PlaceOffset.X :=Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sMarch ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sMarch;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sFebruary ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sFebruary;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+  Start := Start - Gap;
+  MonthIcon := AItem.Objects.FindObject( sJanuary ) as TListItemCodingIcon;
+  if MonthIcon = nil then
+  begin
+    MonthIcon := TListItemCodingIcon.Create( AItem );
+    MonthIcon.Name := sJanuary;
+    MonthIcon.PlaceOffset.X := Start;
+  end;
+
+  Start := Start - Gap - 30;
   TextLabel := AItem.Objects.FindObject( sName ) as TListItemText;
   if TextLabel = nil then
   begin
@@ -108,109 +206,38 @@ begin
     TextLabel.Align := TListItemAlign.Trailing;
     TextLabel.VertAlign := TListItemAlign.Center;
     TextLabel.TextAlign := TTextAlign.taCenter;
-    TextLabel.PlaceOffset.X := -410;
+    TextLabel.PlaceOffset.X := Start;
     TextLabel.PlaceOffset.Y := 10;
     TextLabel.Font.Size := 16;
     TextLabel.TextColor := TAlphaColors.Violet;
     TextLabel.Width := 50;
     TextLabel.Height := 20;
   end;
-
-  MonthIcon := AItem.Objects.FindObject( sJanuary ) as TListItemCodingIcon;
-  if MonthIcon = nil then
+ TextLabel := AItem.Objects.FindObject( sCode ) as TListItemText;
+  if TextLabel = nil then
   begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sJanuary;
-    MonthIcon.PlaceOffset.X := -350;
+    TextLabel := TListItemText.Create( AItem );
+    TextLabel.Name := sCode;
+    TextLabel.Align := TListItemAlign.Trailing;
+    TextLabel.VertAlign := TListItemAlign.Center;
+    TextLabel.TextAlign := TTextAlign.taCenter;
+    TextLabel.PlaceOffset.X := Start;//Screen.Size.Width div 2 - CodingScreenWidth div 2;//-430;
+    TextLabel.PlaceOffset.Y := -4;
+    TextLabel.TextColor := TAlphaColors.Purple;
+    TextLabel.Font.Size := 13;
+    TextLabel.Width := 40;
+    TextLabel.Height := 18;
   end;
 
-  MonthIcon := AItem.Objects.FindObject( sFebruary ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sFebruary;
-    MonthIcon.PlaceOffset.X := -330;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sMarch ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sMarch;
-    MonthIcon.PlaceOffset.X := -310;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sApril ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sApril;
-    MonthIcon.PlaceOffset.X := -290;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sMay ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sMay;
-    MonthIcon.PlaceOffset.X := -270;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sJune ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sJune;
-    MonthIcon.PlaceOffset.X := -250;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sJuly ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sJuly;
-    MonthIcon.PlaceOffset.X := -230;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sAugust ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sAugust;
-    MonthIcon.PlaceOffset.X := -210;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sSeptember ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sSeptember;
-    MonthIcon.PlaceOffset.X := -190;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sOctober ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sOctober;
-    MonthIcon.PlaceOffset.X := -170;
-  end;
 
-  MonthIcon := AItem.Objects.FindObject( sNovember ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sNovember;
-    MonthIcon.PlaceOffset.X := -150;
-  end;
-
-  MonthIcon := AItem.Objects.FindObject( sDecember ) as TListItemCodingIcon;
-  if MonthIcon = nil then
-  begin
-    MonthIcon := TListItemCodingIcon.Create( AItem );
-    MonthIcon.Name := sDecember;
-    MonthIcon.PlaceOffset.X := -130;
-  end;
 end;
 
 procedure TfrmMainForm.FormShow(Sender: TObject);
