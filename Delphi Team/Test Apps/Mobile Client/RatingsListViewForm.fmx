@@ -1,27 +1,32 @@
 object frmMainForm: TfrmMainForm
   Left = 0
   Top = 0
-  Caption = 'Form8'
   ClientHeight = 548
-  ClientWidth = 477
+  ClientWidth = 501
+  Position = ScreenCenter
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
-  DesignerMasterStyle = 2
+  DesignerMasterStyle = 3
   object ToolBar1: TToolBar
-    Size.Width = 477.000000000000000000
-    Size.Height = 44.000000000000000000
+    Size.Width = 501.000000000000000000
+    Size.Height = 48.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     object Label1: TLabel
       Align = Contents
-      Size.Width = 477.000000000000000000
-      Size.Height = 44.000000000000000000
+      StyledSettings = []
+      Size.Width = 501.000000000000000000
+      Size.Height = 48.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = 'toollabel'
+      TextSettings.Font.Family = 'Comic Sans MS'
+      TextSettings.Font.Size = 25.000000000000000000
+      TextSettings.Font.Style = [fsBold]
+      TextSettings.FontColor = claPurple
       TextSettings.HorzAlign = Center
       Text = 'Practice 5 Clients'
     end
@@ -32,9 +37,10 @@ object frmMainForm: TfrmMainForm
     HeaderAppearanceClassName = 'TListHeaderObjects'
     FooterAppearanceClassName = 'TListHeaderObjects'
     OnUpdateObjects = lvwRatingsUpdateObjects
+    AlternatingColors = True
     Align = Client
-    Size.Width = 477.000000000000000000
-    Size.Height = 504.000000000000000000
+    Size.Width = 501.000000000000000000
+    Size.Height = 500.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     ItemAppearanceObjects.ItemObjects.Text.Font.Size = 15.000000000000000000
@@ -51,6 +57,38 @@ object frmMainForm: TfrmMainForm
     ItemAppearanceObjects.ItemObjects.Detail.Align = Leading
     ItemAppearanceObjects.ItemObjects.Detail.PlaceOffset.X = 1.000000000000000000
     ItemAppearanceObjects.ItemObjects.Detail.PlaceOffset.Y = -2.000000000000000000
+    ItemAppearanceObjects.HeaderObjects.Text.TextColor = claLavender
+    ItemAppearanceObjects.FooterObjects.Text.TextColor = claLavender
+  end
+  object GradientAnimation1: TGradientAnimation
+    Duration = 0.200000002980232200
+    PropertyName = 'Fill.Gradient'
+    StartValue.Points = <
+      item
+        Color = xFFF2CFCF
+        Offset = 0.000000000000000000
+      end
+      item
+        Color = claWhite
+        Offset = 1.000000000000000000
+      end>
+    StartValue.StartPosition.X = 0.500000000000000000
+    StartValue.StartPosition.Y = 1.000000000000000000
+    StartValue.StopPosition.X = 0.499999970197677600
+    StartValue.StopPosition.Y = 0.000000000000000000
+    StopValue.Points = <
+      item
+        Color = xFFFEFAFA
+        Offset = 0.000000000000000000
+      end
+      item
+        Color = claWhite
+        Offset = 1.000000000000000000
+      end>
+    StopValue.StartPosition.X = 0.500000000000000000
+    StopValue.StartPosition.Y = 1.000000000000000000
+    StopValue.StopPosition.X = 0.499999970197677600
+    StopValue.StopPosition.Y = 0.000000000000000000
   end
   object BindSourceDB1: TBindSourceDB
     ScopeMappings = <>
@@ -153,7 +191,7 @@ object frmMainForm: TfrmMainForm
         ReadOnly = False
       end>
     ScopeMappings = <>
-    Left = 164
+    Left = 156
     Top = 72
   end
 end

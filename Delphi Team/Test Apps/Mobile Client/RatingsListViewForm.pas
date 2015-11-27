@@ -25,7 +25,7 @@ uses
   Fmx.Bind.DBEngExt,
   Data.Bind.Components,
   Data.Bind.DBScope, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
-  FMX.Controls.Presentation, Data.Bind.ObjectScope;
+  FMX.Controls.Presentation, Data.Bind.ObjectScope, FMX.Ani;
 
 type
   TfrmMainForm = class(TForm)
@@ -36,6 +36,7 @@ type
     BindingsList1: TBindingsList;
     LinkFillControlToField1: TLinkFillControlToField;
     PrototypeBindSource1: TPrototypeBindSource;
+    GradientAnimation1: TGradientAnimation;
     procedure lvwRatingsUpdateObjects(const Sender: TObject; const AItem: TListViewItem);
     procedure LinkFillControlToField1FilledListItem(Sender: TObject; const AEditor: IBindListEditorItem);
     procedure FormResize(Sender: TObject);
@@ -93,6 +94,7 @@ begin
     TextLabel.TextAlign := TTextAlign.taCenter;
     TextLabel.PlaceOffset.X := -430;
     TextLabel.PlaceOffset.Y := -4;
+    TextLabel.TextColor := TAlphaColors.Purple;
     TextLabel.Font.Size := 13;
     TextLabel.Width := 40;
     TextLabel.Height := 18;
@@ -109,7 +111,7 @@ begin
     TextLabel.PlaceOffset.X := -410;
     TextLabel.PlaceOffset.Y := 10;
     TextLabel.Font.Size := 16;
-//    TextLabel.TextColor := TAlphaColorRec.ColorToRGB(red);
+    TextLabel.TextColor := TAlphaColors.Violet;
     TextLabel.Width := 50;
     TextLabel.Height := 20;
   end;
@@ -308,7 +310,7 @@ end;
 procedure TfrmMainForm.FormCreate(Sender: TObject);
 begin
   Clients := TStringList.Create;
-  Clients.Add('1, sinu, 1,1,1,1,1,1,1,1,2,1,1,1');
+  Clients.Add('1, sinu, 0,1,1,0,1,1,1,1,2,1,1,3');
   Clients.Add('2, vinu, 1,3,2,1,1,1,1,1,1,1,1,1');
   Clients.Add('3, tinu, 1,1,1,1,1,1,1,3,1,1,1,1');
   Clients.Add('4, renu, 1,1,1,1,1,2,1,1,1,1,1,1');

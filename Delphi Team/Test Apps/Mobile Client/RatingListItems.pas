@@ -86,16 +86,13 @@ var
 begin
   if SubPassNo <> 0 then
     Exit;
-  if FCodingType < 1 then
-    Exit;
 
-  PathData := FRatingPaths.Items[ FCodingType - 1 ];
+  Canvas.Fill.Color := TAlphaColors.Purple;
 
   case FCodingType of
-    0 : Canvas.Fill.Color := TAlphaColors.Aliceblue;
-    1 : Canvas.Fill.Color := TAlphaColors.Purple;
-    2 : Canvas.Fill.Color := TAlphaColors.Green;
-    3 : Canvas.Fill.Color := TAlphaColors.Brown;
+    1 : begin PathData := FRatingPaths.Items[0]; Canvas.Fill.Color := TAlphaColors.GreenYellow; end;
+    2 : begin PathData := FRatingPaths.Items[1];Canvas.Fill.Color := TAlphaColors.Red; end;
+    0,3 : PathData := FRatingPaths.Items[2];
   end;
 
   PathData.FitToRect( LocalRect );
