@@ -1001,7 +1001,7 @@ begin
     end;
     if (aContent.ValidEndDate > 0) then
     begin
-      if (FDateToValidate > aContent.ValidStartDate) then
+      if (FDateToValidate > aContent.ValidEndDate) then
         Result := False;
     end;
   end;
