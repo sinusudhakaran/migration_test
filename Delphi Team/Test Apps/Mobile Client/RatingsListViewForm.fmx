@@ -3,7 +3,7 @@ object frmMainForm: TfrmMainForm
   Top = 0
   BorderStyle = Single
   ClientHeight = 548
-  ClientWidth = 501
+  ClientWidth = 332
   Position = ScreenCenter
   WindowState = wsMaximized
   FormFactor.Width = 320
@@ -14,14 +14,14 @@ object frmMainForm: TfrmMainForm
   OnShow = FormShow
   DesignerMasterStyle = 3
   object ToolBar1: TToolBar
-    Size.Width = 501.000000000000000000
+    Size.Width = 332.000000000000000000
     Size.Height = 48.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     object Label1: TLabel
       Align = Contents
       StyledSettings = []
-      Size.Width = 501.000000000000000000
+      Size.Width = 332.000000000000000000
       Size.Height = 48.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = 'toollabel'
@@ -41,7 +41,7 @@ object frmMainForm: TfrmMainForm
     OnUpdateObjects = lvwRatingsUpdateObjects
     AlternatingColors = True
     Align = Client
-    Size.Width = 501.000000000000000000
+    Size.Width = 332.000000000000000000
     Size.Height = 500.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
