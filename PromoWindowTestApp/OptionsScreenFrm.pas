@@ -34,6 +34,7 @@ type
     procedure btnPromosClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
@@ -44,6 +45,7 @@ var
   FrmOptionsScreen: TFrmOptionsScreen;
 
 implementation
+
 
 {$R *.dfm}
 
@@ -118,6 +120,11 @@ procedure TFrmOptionsScreen.FormCreate(Sender: TObject);
 begin
   dtDate.Date := Now;
   StartPromoThread;
+end;
+
+procedure TFrmOptionsScreen.FormShow(Sender: TObject);
+begin
+  Self.Caption := 'Promo window test application ' + GetAppVersionStr;
 end;
 
 initialization

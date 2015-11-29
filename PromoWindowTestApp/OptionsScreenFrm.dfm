@@ -5,7 +5,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   ClientHeight = 376
-  ClientWidth = 388
+  ClientWidth = 417
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,6 +15,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label2: TLabel
@@ -41,24 +42,25 @@ object FrmOptionsScreen: TFrmOptionsScreen
   object pnlControls: TPanel
     Left = 0
     Top = 338
-    Width = 388
+    Width = 417
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
     TabOrder = 6
+    ExplicitWidth = 388
     object ShapeBorder: TShape
       Left = 0
       Top = 0
-      Width = 388
+      Width = 417
       Height = 1
       Align = alTop
       Pen.Color = clSilver
       ExplicitWidth = 535
     end
     object btnPromos: TBitBtn
-      Left = 147
+      Left = 176
       Top = 7
       Width = 152
       Height = 25
@@ -67,7 +69,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
       OnClick = btnPromosClick
     end
     object btnClose: TBitBtn
-      Left = 305
+      Left = 334
       Top = 7
       Width = 75
       Height = 25
@@ -79,7 +81,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
   object gbContentTypes: TGroupBox
     Left = 8
     Top = 8
-    Width = 337
+    Width = 393
     Height = 57
     Caption = 'Login Type'
     TabOrder = 0
@@ -105,7 +107,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
   object gbUserTypes: TGroupBox
     Left = 8
     Top = 84
-    Width = 369
+    Width = 393
     Height = 57
     Caption = 'User Types'
     TabOrder = 1
@@ -154,7 +156,7 @@ object FrmOptionsScreen: TFrmOptionsScreen
   object gbCountry: TGroupBox
     Left = 16
     Top = 156
-    Width = 233
+    Width = 185
     Height = 57
     Caption = 'Geography'
     TabOrder = 2
