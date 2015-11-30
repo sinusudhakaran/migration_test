@@ -367,11 +367,11 @@ begin
         begin
           AccountCode := aBankAccount.baSuggested_Account_List.GetPRec(AccountIndex)^.saAccount;
           Account_Rec := aChart.FindCode(AccountCode);
-          if not Assigned(Account_Rec) then
+          if not Assigned(Account_Rec) or (Account_Rec^.chInactive) then
+          begin
+            UncodedCount := UncodedCount + aBankAccount.baSuggested_Account_Link_List.GetPRec(AccountLinkIndex)^.slCount;
             Continue;
-
-          if Account_Rec^.chInactive then
-            Continue;
+          end;
         end;
 
         inc(ManualAccountCount);
