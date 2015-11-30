@@ -1170,8 +1170,8 @@ end;
 //------------------------------------------------------------------------------
 function TSuggestedMems.IsSuggestionInIgnoreList(const aBankAccount: TBank_Account; const aSuggestion: pSuggested_Mem_Rec): boolean;
 const
-  IGNORE_LIST : Array[1..3] of string =
-    ('and','the','ltd');
+  IGNORE_LIST : Array[1..4] of string =
+    ('and','the','ltd','mrs');
 var
   PhraseIndex : integer;
   MatchedPhrase : string;
