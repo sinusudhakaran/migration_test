@@ -125,7 +125,7 @@ begin
   fTestClient.clBank_Account_List.Insert( BankAcc);
 
   //create transactions
-  pTranRec := BankAcc.baTransaction_List.New_Transaction;
+  pTranRec := BankAcc.baTransaction_List.Setup_New_Transaction;
 
   pTranRec^.txDate_Presented  := Apr01_2004;
   pTranRec.txDate_Effective   := Apr01_2004;
@@ -143,7 +143,7 @@ begin
   BankAcc.baTransaction_List.Insert_Transaction_Rec( pTranRec);
 
   //create dissected
-  pTranRec := BankAcc.baTransaction_List.New_Transaction;
+  pTranRec := BankAcc.baTransaction_List.Setup_New_Transaction;
 
   pTranRec^.txDate_Presented  := Apr02_2004;
   pTranRec.txDate_Effective   := Apr02_2004;
@@ -186,7 +186,7 @@ begin
   BankAcc.baFields.baCurrency_Code := 'NZD';
   fTestClient.clBank_Account_List.Insert( BankAcc);
 
-  pTranRec := BankAcc.baTransaction_List.New_Transaction;
+  pTranRec := BankAcc.baTransaction_List.Setup_New_Transaction;
 
   pTranRec^.txDate_Presented  := Apr03_2004;
   pTranRec.txDate_Effective   := Apr03_2004;
@@ -204,7 +204,7 @@ begin
   BankAcc.baTransaction_List.Insert_Transaction_Rec( pTranRec);
 
   //create dissected
-  pTranRec := BankAcc.baTransaction_List.New_Transaction;
+  pTranRec := BankAcc.baTransaction_List.Setup_New_Transaction;
 
   pTranRec^.txDate_Presented  := Apr04_2004;
   pTranRec.txDate_Effective   := Apr04_2004;

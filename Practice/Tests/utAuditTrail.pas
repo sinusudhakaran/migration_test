@@ -123,7 +123,7 @@ begin
     bk5testClient.clBank_Account_List.Insert(ba);
 
     //Transaction
-    pT := ba.baTransaction_List.New_Transaction;
+    pT := ba.baTransaction_List.Setup_New_Transaction;
     pT^.txDate_Presented  := Apr01_2004;
     pT.txDate_Effective   := Apr01_2004;
     pT.txAmount           := 6000;
