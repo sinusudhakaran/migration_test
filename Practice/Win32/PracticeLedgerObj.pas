@@ -26,12 +26,8 @@ type
     procedure BuildBankTransactionData;
     procedure BuildJournalData;
     procedure UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
-    function UploadToAPI(RequestData: TlkJSONobject;
-            var aRespStr, aError: string;
-            aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
 
     //Get COA from PL api and add to chart
-    function FetchCOAFromAPI(NewChart: TChart):Boolean;
     procedure SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
     //Call Rollback api to rollback a batch of transaction
     function RollbackBatch(aBatchRef: string;
@@ -46,6 +42,12 @@ type
     destructor Destroy;override;
     //Refresh chart
     procedure RefreshChartFromPLAPI;
+    function FetchCOAFromAPI(NewChart: TChart):Boolean;
+
+    //Upload transactions
+    function UploadToAPI(RequestData: TlkJSONobject;
+            var aRespStr, aError: string;
+            aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
 
     //Export data to pl api
     function ExportDataToAPI(FromDate, ToDate : Integer;
@@ -973,7 +975,6 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
   end;
-
 end;
 
 procedure TPracticeLedger.UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);

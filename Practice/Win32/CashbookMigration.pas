@@ -249,6 +249,7 @@ type
     property EncryptedToken : string read FToken write FToken;
     property RefreshToken : string read FRefreshToken write FRefreshToken;
     property TokenExpiresAt : TDateTime read FTokenExpiresAt write FTokenExpiresAt;
+    property DataRequestType : TDataRequestType read FDataRequestType write FDataRequestType;
   end;
 
   //----------------------------------------------------------------------------
