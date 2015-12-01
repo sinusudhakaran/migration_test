@@ -275,7 +275,7 @@ procedure TAuditTrailTestCase.Setup;
 begin
   inherited;
   //Create admin system
-  NewAdminSystem(whNewZealand, 'MEMTEST', 'Test Admin system for unit testing');
+  NewAdminSystem(whUK, 'MEMTEST', 'Test Admin system for unit testing');
   AdminSystem.TestSystemFileName := DATADIR + 'TESTSYSTEM.DB';
   AdminSystem.Save;
   SystemAuditMgr.Country := whUK;
