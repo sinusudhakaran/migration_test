@@ -22,8 +22,8 @@ uses
   utToDo in '..\Tests\utToDo.pas',
   utBudget in '..\Tests\utBudget.pas',
   utTPRExtact in '..\Tests\utTPRExtact.pas',
-  //utRecommendedMems in '..\Tests\utRecommendedMems.pas',
-  utCashbookChartExport in '..\Tests\utCashbookChartExport.pas';
+  utCashbookChartExport in '..\Tests\utCashbookChartExport.pas',
+  utPracticeLedger in '..\Tests\utPracticeLedger.pas';
 
 {$R *.RES}
 
