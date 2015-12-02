@@ -22,7 +22,6 @@ type
     FExportTerminated : Boolean;
 
     //Export data functions
-    procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
     procedure BuildBankTransactionData;
     procedure BuildJournalData;
     procedure UploadTransAndJournals(Selected:TStringList;TypeOfTrans: TTransType);
@@ -40,9 +39,13 @@ type
 
     constructor Create;override;
     destructor Destroy;override;
+
     //Refresh chart
     procedure RefreshChartFromPLAPI;
     function FetchCOAFromAPI(NewChart: TChart):Boolean;
+    function ProcessChartOfAccounts(NewChart: TChart;Accounts: TChartOfAccountsData):Boolean;
+
+    procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 
     //Upload transactions
     function UploadToAPI(RequestData: TlkJSONobject;
@@ -56,6 +59,7 @@ type
 
     //This function will be called from DoTransaction which is a hooked event to Traverse to filter the export transactions
     procedure AddTransactionToExpList;
+    function GetBankAccount(aIndex: Integer):TBankAccountData;
   end;
 
   TPracticeLedgerThread = class(TThread)
@@ -211,7 +215,7 @@ begin
     if (txDate_Transferred > 0) then
       Exit;
 
-    if ( txFirst_Dissection = nil ) then
+    //if ( txFirst_Dissection = nil ) then
     begin
       //txDate_Transferred := CurrentDate;
       S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
@@ -565,11 +569,7 @@ var
   Accounts : TChartOfAccountsData;
   sError: string;
   SupportNumber: string;
-  UnknownGSTCodesFound: Boolean;
-  i: Integer;
-  Account: TChartOfAccountData;
-  NewAccount  : pAccount_Rec;
-
+  UnknownGSTCodesFound : Boolean;
   SignInFrm : TmyMYOBSignInForm;
 const
   TheMethod = 'FetchCOAFromAPI';
@@ -626,34 +626,8 @@ begin
                       0, false, sError, true);
       Exit;
     end;
-    UnknownGSTCodesFound := False;
-    for i := 0 to Accounts.Count - 1 do
-    begin
-      Account := Accounts.ItemAs(i);
-      if Assigned(Account) then
-      begin
-        if (NewChart.FindCode(Account.Code) <> nil) then
-          LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
-            Account.Code +' found in MYOB Ledger API' )
-        else
-        begin
-          NewAccount := New_Account_Rec;
-          NewAccount^.chAccount_Code := Account.Code;
+    UnknownGSTCodesFound:= ProcessChartOfAccounts(NewChart ,Accounts);
 
-          {At the moment we are guessing al accounts are normal accounts}
-          NewAccount^.chAccount_Type        := Ord('N');
-          NewAccount^.chPosting_Allowed     := True;//AccountType[1] <> 'C';
-          NewAccount^.chAccount_Description := Account.Name;
-          NewAccount^.chGST_Class := GSTCalc32.GetGSTClassNo( MyClient, Account.GstType);
-          if ( NewAccount^.chGST_Class = 0 ) and ( Account.GstType <> '' ) then
-          begin
-             LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Ledger: '+ Account.Code );
-             UnknownGSTCodesFound := True;
-          end;
-          NewChart.Insert(NewAccount);
-        end;
-      end;
-    end;
     if UnknownGSTCodesFound then
       LogUtil.LogMsg( lmError, UnitName, TheMethod + ' : The new chart file contained unknown GST Indicators' );
 
@@ -664,6 +638,12 @@ begin
     Accounts.Clear;
     FreeAndNil(Accounts);
   end;
+end;
+
+function TPracticeLedger.GetBankAccount(aIndex: Integer): TBankAccountData;
+begin
+  if ((FBankAcctsToExport.Count > 0)  and (aIndex < FBankAcctsToExport.Count)) then  
+    Result := TBankAccountData(FBankAcctsToExport.ItemAs(aIndex));
 end;
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
@@ -687,6 +667,8 @@ begin
 
       if (TypeOfTrans = ttbank) then
       begin
+        if not Assigned(FBankAcctsToExport) then
+          FBankAcctsToExport := TBankAccountsData.Create(TBankAccountData);
         FBankAcctToExport := TBankAccountData(FBankAcctsToExport.Add);
         FBankAcctToExport.BankAccountNumber := MappingsData.UpdateSysCode(BA.baFields.baContra_Account_Code);
       end;
@@ -703,6 +685,43 @@ begin
   end;
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' end');
+end;
+
+function TPracticeLedger.ProcessChartOfAccounts(
+  NewChart: TChart;Accounts: TChartOfAccountsData): Boolean;
+var
+  i: Integer;
+  NewAccount  : pAccount_Rec;
+  Account: TChartOfAccountData;
+begin
+  Result := False;
+  for i := 0 to Accounts.Count - 1 do
+  begin
+    Account := Accounts.ItemAs(i);
+    if Assigned(Account) then
+    begin
+      if (NewChart.FindCode(Account.Code) <> nil) then
+        LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
+          Account.Code +' found in MYOB Ledger API' )
+      else
+      begin
+        NewAccount := New_Account_Rec;
+        NewAccount^.chAccount_Code := Account.Code;
+
+        {At the moment we are guessing al accounts are normal accounts}
+        NewAccount^.chAccount_Type        := Ord('N');
+        NewAccount^.chPosting_Allowed     := True;//AccountType[1] <> 'C';
+        NewAccount^.chAccount_Description := Account.Name;
+        NewAccount^.chGST_Class := GSTCalc32.GetGSTClassNo( MyClient, Account.GstType);
+        if ( NewAccount^.chGST_Class = 0 ) and ( Account.GstType <> '' ) then
+        begin
+           LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Ledger: '+ Account.Code );
+           Result := True;
+        end;
+        NewChart.Insert(NewAccount);
+      end;
+    end;
+  end;
 end;
 
 procedure TPracticeLedger.RefreshChartFromPLAPI;
@@ -1113,7 +1132,7 @@ begin
     begin
       PracticeLedger.Firms.Clear;
       PracticeLedger.Businesses.Clear;
-      
+
       if not PracticeLedger.GetFirms(PracticeLedger.Firms, sError) then
         LogUtil.LogMsg(lmError,UnitName, sError);
 
