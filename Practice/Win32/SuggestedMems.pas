@@ -39,6 +39,7 @@ const
   MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled. ' + #13 +
                                'Please contact Support if you wish to enable this.';
   MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
+  PARTIAL_MATCH_MIN_TRANS = 149;
 
 type
   TFoundCreate = (fcFound, fcCreated);
@@ -123,6 +124,7 @@ type
 
     procedure SetMainState();
     Procedure NewClientMainState();
+    procedure ResetAccount(const aBankAccount: TBank_Account);
     procedure ResetAll(const aClient: TClientObj);
     procedure ResetLogging(const aClient: TClientObj);
 
@@ -136,6 +138,7 @@ type
     function DetermineStatus(const aBankAccount : TBank_Account; const aChart : TChart): string;
 
     function DoCreateNewMemorisation(const aBankAccount : TBank_Account; const aChart : TChart; aSuggId : integer) : boolean;
+    procedure RunMemScan();
 
     property MainState : byte read fMainState write fMainState;
     property NoMoreRecord : boolean read fNoMoreRecord;
@@ -1222,6 +1225,7 @@ var
   Date_Effective : integer;
   Days, Months, Years : Integer;
 begin
+  RunMems2 := true;
   ScannedOnce := false;
   if MyClient.clBank_Account_List.ItemCount = 0 then
     Exit;
@@ -1236,7 +1240,6 @@ begin
     // Get Account
     BankAccount := MyClient.clBank_Account_List.Bank_Account_At(fAccountIndex);
 
-    RunMems2 := true;
     if fNewAccount then
     begin
       if fAccountIndex = 0 then
@@ -1288,8 +1291,10 @@ begin
       end;
 
       // Disable Mems v2 when there are less than 150 transactions AND the oldest transaction is less than 3 months ago
-      if (BankAccount.baTransaction_List.ItemCount < 150) and (Years = 0) and (Months < 3) then
-        RunMems2 := false;
+      if (BankAccount.baTransaction_List.ItemCount <= PARTIAL_MATCH_MIN_TRANS) and (Years = 0) and (Months < 3) then
+        RunMems2 := false
+      else
+        RunMems2 := true;
 
       fNewAccount := false;
     end;
@@ -1660,13 +1665,42 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TSuggestedMems.ResetAccount(const aBankAccount: TBank_Account);
+var
+  TranIndex : integer;
+  TranRec : pTransaction_Rec;
+  TranIndexRec : pTran_Suggested_Index_Rec;
+begin
+  if aBankAccount.IsAJournalAccount then
+    Exit;
+
+  StopMemScan();
+  try
+    fTranIndex := 0;
+    aBankAccount.baFields.baSuggested_UnProcessed_Count := aBankAccount.baTransaction_List.ItemCount;
+    for TranIndex := 0 to aBankAccount.baTransaction_List.ItemCount-1  do
+    begin
+      TranRec := aBankAccount.baTransaction_List.Transaction_At(TranIndex);
+      TranIndexRec := aBankAccount.baTransaction_List.GetIndexPRec(TranIndex);
+      TranRec^.txSuggested_Mem_State := tssUnScanned;
+      TranIndexRec^.tiSuggested_Mem_State := tssUnScanned;
+    end;
+
+    aBankAccount.baTran_Suggested_Link_List.DeleteFreeAll();
+    aBankAccount.baSuggested_Mem_List.DeleteFreeAll();
+    aBankAccount.baSuggested_Account_List.DeleteFreeAll();
+    aBankAccount.baSuggested_Account_Link_List.DeleteFreeAll();
+    aBankAccount.baSuggested_Phrase_List.DeleteFreeAll();
+  finally
+    StartMemScan();
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TSuggestedMems.ResetAll(const aClient: TClientObj);
 var
   BankAccIndex : integer;
   BankAccount: TBank_Account;
-  TranIndex : integer;
-  TranRec : pTransaction_Rec;
-  TranIndexRec : pTran_Suggested_Index_Rec;
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'ResetAll, Client ' + aClient.clFields.clCode);
@@ -1675,28 +1709,12 @@ begin
     StopMemScan();
     fNewAccount := true;
     fAccountIndex := 0;
-    fTranIndex := 0;
 
     for BankAccIndex := 0 to aClient.clBank_Account_List.ItemCount-1 do
     begin
       BankAccount := aClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-      if BankAccount.IsAJournalAccount then
-        Continue;
 
-      BankAccount.baFields.baSuggested_UnProcessed_Count := BankAccount.baTransaction_List.ItemCount;
-      for TranIndex := 0 to BankAccount.baTransaction_List.ItemCount-1  do
-      begin
-        TranRec := BankAccount.baTransaction_List.Transaction_At(TranIndex);
-        TranIndexRec := BankAccount.baTransaction_List.GetIndexPRec(TranIndex);
-        TranRec^.txSuggested_Mem_State := tssUnScanned;
-        TranIndexRec^.tiSuggested_Mem_State := tssUnScanned;
-      end;
-
-      BankAccount.baTran_Suggested_Link_List.DeleteFreeAll();
-      BankAccount.baSuggested_Mem_List.DeleteFreeAll();
-      BankAccount.baSuggested_Account_List.DeleteFreeAll();
-      BankAccount.baSuggested_Account_Link_List.DeleteFreeAll();
-      BankAccount.baSuggested_Phrase_List.DeleteFreeAll();
+      ResetAccount(BankAccount);
     end;
   finally
     StartMemScan();
@@ -1718,6 +1736,17 @@ begin
     begin
       BankAccount.baSuggested_Mem_List.GetPRec(SuggestedMemIndex).smHas_Changed := true;
     end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMems.RunMemScan;
+begin
+  StopMemScan();
+  try
+    MemScan();
+  finally
+    StartMemScan();
   end;
 end;
 

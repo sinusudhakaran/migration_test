@@ -485,6 +485,7 @@ const
 var
   NewTran_Suggested_Index_Rec : pTran_Suggested_Index_Rec;
   NewTran_Transaction_Code_Index_Rec : pTran_Transaction_Code_Index_Rec;
+  TranIndex : integer;
 Begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
   If BKTXIO.IsATransaction_Rec( P ) then
@@ -521,6 +522,10 @@ Begin
                                                 ((not FLoading) and NewAuditID));
 
       fTran_Suggested_Index.Insert(NewTran_Suggested_Index_Rec);
+
+      // When the Transaction count exceeds then PARTIAL_MATCH_MIN_TRANS redo Suggested mems
+      if ItemCount = PARTIAL_MATCH_MIN_TRANS then
+        SuggestedMem.ResetAccount(TBank_Account(fBank_Account));
     end;
 
     // Build Transaction Core ID Index

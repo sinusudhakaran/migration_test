@@ -23,7 +23,6 @@ type
     ManualAcountCount  : integer;
     IsExactMatch       : boolean;
     IsHidden           : boolean;
-    IsHiddenForSession : boolean;
   end;
 
 const
@@ -172,7 +171,6 @@ begin
   NewSuggMem^.ManualAcountCount  := aSuggMemSortedItem.ManualAcountCount;
   NewSuggMem^.IsExactMatch       := aSuggMemSortedItem.IsExactMatch;
   NewSuggMem^.IsHidden           := aSuggMemSortedItem.IsHidden;
-  NewSuggMem^.IsHiddenForSession := aSuggMemSortedItem.IsHiddenForSession;
   NewSuggMem^.UnCodedCount       := aSuggMemSortedItem.TotalCount - aSuggMemSortedItem.ManualCount;
 
   Insert(NewSuggMem);
