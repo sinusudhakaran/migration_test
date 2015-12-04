@@ -240,6 +240,7 @@ type
     fBankAccountNumber : string;
     FBatchRef : string;
     fTransactions : TTransactionsData;
+    FBankAccountName: string;
   public
     constructor Create(Collection: TCollection); override;
     destructor  Destroy; override;
@@ -248,6 +249,7 @@ type
     procedure Write(const aJson: TlkJSONobject;FromIndex, TransCount: Integer);overload;
 
     property BankAccountNumber : string read fBankAccountNumber write fBankAccountNumber;
+    property BankAccountName : string read FBankAccountName write  FBankAccountName;
     property BatchRef : string read FBatchRef write FBatchRef;
     property Transactions : TTransactionsData read fTransactions write fTransactions;
   end;

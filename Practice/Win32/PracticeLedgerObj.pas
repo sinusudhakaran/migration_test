@@ -642,7 +642,8 @@ end;
 
 function TPracticeLedger.GetBankAccount(aIndex: Integer): TBankAccountData;
 begin
-  if ((FBankAcctsToExport.Count > 0)  and (aIndex < FBankAcctsToExport.Count)) then  
+  Result := Nil;
+  if ((FBankAcctsToExport.Count > 0)  and (aIndex < FBankAcctsToExport.Count)) then
     Result := TBankAccountData(FBankAcctsToExport.ItemAs(aIndex));
 end;
 
@@ -671,6 +672,7 @@ begin
           FBankAcctsToExport := TBankAccountsData.Create(TBankAccountData);
         FBankAcctToExport := TBankAccountData(FBankAcctsToExport.Add);
         FBankAcctToExport.BankAccountNumber := MappingsData.UpdateSysCode(BA.baFields.baContra_Account_Code);
+        FBankAcctToExport.BankAccountName := BA.baFields.baBank_Account_Name;
       end;
 
       Traverse.Clear;
@@ -865,15 +867,19 @@ var
   TransRec: pTransaction_Rec;
   BA : TBank_Account ;
 
-  function GetBankAccount(aAcctNo : string):TBank_Account;
+  function GetABankAccount(aAcctNo, aAcctName : string):TBank_Account;
   var
     j: Integer;
   begin
     Result := nil;
     for j := 0 to Selected.Count - 1 do
     begin
-      if TBank_Account(Selected.Objects[j]).baFields.baContra_Account_Code =  aAcctNo then
+      if ((TBank_Account(Selected.Objects[j]).baFields.baContra_Account_Code =  aAcctNo) and
+          (TBank_Account(Selected.Objects[j]).baFields.baBank_Account_Name =  aAcctName))then
+      begin
         Result := TBank_Account(Selected.Objects[j]);
+        Break;
+      end;
     end;
   end;
 begin
@@ -887,7 +893,7 @@ begin
     else
       ToIndex := FromIndex + MAXENTRIES;
 
-    BA := GetBankAccount(FBankAcctToExport.BankAccountNumber);
+    BA := GetABankAccount(FBankAcctToExport.BankAccountNumber, FBankAcctToExport.BankAccountName);
     if Assigned(BA) then
     begin
       for i := FromIndex to ToIndex - 1 do
@@ -918,7 +924,7 @@ begin
     begin
       stDate := DateStringToStDate('yyyy-mm-dd', TJournalData(FJournalsData.Items[i]).Date, Epoch);
       SeqNo := TJournalData(FJournalsData.Items[i]).SequenceNo;
-      BA := GetBankAccount(TJournalData(FJournalsData.Items[i]).JournalContraCode);
+      BA := GetABankAccount(TJournalData(FJournalsData.Items[i]).JournalContraCode, TJournalData(FJournalsData.Items[i]).JournalAccountName);
 
       if Assigned(BA) then
       begin
