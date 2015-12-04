@@ -61,7 +61,9 @@ var
   begin
     Promos := TPromoDisplayFrm.Create(Nil);
     try
+      Promos.Scaled := False;
       Promos.ShowModal;
+      Promos.Scaled := True;
     finally
       FreeAndNil(Promos);
     end;
@@ -119,7 +121,9 @@ end;
 procedure TFrmOptionsScreen.FormCreate(Sender: TObject);
 begin
   dtDate.Date := Now;
-  StartPromoThread;
+  //Screen.PixelsPerInch := 100;
+  Scaled := False;
+  
 end;
 
 procedure TFrmOptionsScreen.FormShow(Sender: TObject);
@@ -129,6 +133,7 @@ end;
 
 initialization
   ReadPracticeINI;
+  StartPromoThread;
 
 end.
 

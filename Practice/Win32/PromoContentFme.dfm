@@ -2,20 +2,19 @@ object PromoContentFrame: TPromoContentFrame
   Left = 0
   Top = 0
   Width = 784
-  Height = 123
+  Height = 147
   Margins.Left = 0
   Margins.Top = 0
   Margins.Right = 0
   Margins.Bottom = 0
   AutoSize = True
-  ParentBackground = False
   TabOrder = 0
-  object lblTitle: TRzLabel
+  object sdfdsf: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 1
+    Top = 27
     Width = 764
-    Height = 25
+    Height = 16
     Margins.Left = 10
     Margins.Top = 1
     Margins.Right = 10
@@ -24,21 +23,22 @@ object PromoContentFrame: TPromoContentFrame
     Caption = 'Title comes here'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -19
-    Font.Name = 'Segoe UI'
-    Font.Style = [fsBold]
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = []
     ParentFont = False
     Layout = tlCenter
+    Visible = False
     WordWrap = True
     BorderSides = []
-    ExplicitWidth = 143
+    ExplicitWidth = 96
   end
   object lblURL: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 52
+    Top = 70
     Width = 764
-    Height = 13
+    Height = 16
     Margins.Left = 10
     Margins.Top = 5
     Margins.Right = 10
@@ -48,15 +48,14 @@ object PromoContentFrame: TPromoContentFrame
     Visible = False
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 48
-    ExplicitWidth = 74
+    ExplicitWidth = 80
   end
   object lblBorder: TRzLabel
     AlignWithMargins = True
     Left = 10
-    Top = 110
+    Top = 131
     Width = 764
-    Height = 13
+    Height = 16
     Margins.Left = 10
     Margins.Top = 0
     Margins.Right = 10
@@ -64,15 +63,35 @@ object PromoContentFrame: TPromoContentFrame
     Align = alTop
     WordWrap = True
     BorderSides = []
-    ExplicitTop = 106
-    ExplicitWidth = 3
+    ExplicitTop = 128
+    ExplicitWidth = 4
+  end
+  object lblTitle: TLabel
+    AlignWithMargins = True
+    Left = 10
+    Top = 1
+    Width = 764
+    Height = 20
+    Margins.Left = 10
+    Margins.Top = 1
+    Margins.Right = 10
+    Margins.Bottom = 5
+    Align = alTop
+    Caption = 'lblTitle'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+    ExplicitWidth = 46
   end
   object reDescription: TBKRichEdit
     AlignWithMargins = True
     Left = 10
-    Top = 31
+    Top = 48
     Width = 764
-    Height = 16
+    Height = 17
     Margins.Left = 10
     Margins.Top = 0
     Margins.Right = 10
@@ -85,12 +104,11 @@ object PromoContentFrame: TPromoContentFrame
     TabOrder = 0
     WantReturns = False
     OnResizeRequest = reDescriptionResizeRequest
-    OnLinkClicked = reDescriptionLinkClicked
   end
   object pnlImageContainer: TPanel
     AlignWithMargins = True
     Left = 10
-    Top = 67
+    Top = 88
     Width = 764
     Height = 43
     Margins.Left = 10
@@ -100,9 +118,9 @@ object PromoContentFrame: TPromoContentFrame
     Align = alTop
     BevelOuter = bvNone
     Caption = ' '
+    Padding.Top = 2
     TabOrder = 1
     Visible = False
-    ExplicitTop = 63
     object imgContainer: TImage
       Left = 260
       Top = 0

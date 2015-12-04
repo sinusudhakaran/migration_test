@@ -151,7 +151,8 @@ begin
       begin
         {Frame is created and the contents will be assigned}
         NewFrame := TPromoContentFrame.Create(Self, Content);
-
+//        Self.ScaleConstraints();
+  //      NewFrame.ScaleBy();
         NewFrame.Parent := pnlFrames;//Self;
         NewFrame.Name := NewFrame.Name + IntToStr(aPageIndex) +  IntToStr(i);
 
@@ -276,6 +277,12 @@ end;
 
 procedure TPromoDisplayFrm.OnURLMouseEnter(Sender: TObject);
 begin
+  if (Assigned(TLabel(Sender).Parent) and (TLabel(Sender).Parent is TPromoContentFrame)) then
+  begin
+    TPromoContentFrame(TLabel(Sender).Parent).lblTitle.Width := TPromoContentFrame(TLabel(Sender).Parent).Width;
+    TPromoContentFrame(TLabel(Sender).Parent).lblTitle.AutoSize := False;
+    TPromoContentFrame(TLabel(Sender).Parent).lblTitle.AutoSize := true;
+  end;
   SetHyperlinkFont(TLabel(Sender).Font);
   Screen.Cursor := crHandPoint;
 end;

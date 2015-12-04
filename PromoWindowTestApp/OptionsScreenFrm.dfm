@@ -4,194 +4,195 @@ object FrmOptionsScreen: TFrmOptionsScreen
   ActiveControl = btnPromos
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  ClientHeight = 376
-  ClientWidth = 417
+  ClientHeight = 492
+  ClientWidth = 475
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 17
   object Label2: TLabel
-    Left = 16
-    Top = 222
-    Width = 68
-    Height = 13
+    Left = 21
+    Top = 290
+    Width = 88
+    Height = 17
     Caption = 'Upgrade From'
   end
   object Label3: TLabel
-    Left = 16
-    Top = 262
-    Width = 56
-    Height = 13
+    Left = 21
+    Top = 343
+    Width = 72
+    Height = 17
     Caption = 'Upgrade To'
   end
   object Label1: TLabel
-    Left = 16
-    Top = 299
-    Width = 62
-    Height = 13
+    Left = 21
+    Top = 391
+    Width = 79
+    Height = 17
     Caption = 'Choose Date'
   end
   object pnlControls: TPanel
     Left = 0
-    Top = 338
-    Width = 417
-    Height = 38
+    Top = 442
+    Width = 475
+    Height = 50
     Align = alBottom
     BevelOuter = bvNone
     Caption = ' '
     ParentBackground = False
     TabOrder = 6
-    ExplicitWidth = 388
+    ExplicitWidth = 545
     object ShapeBorder: TShape
       Left = 0
       Top = 0
-      Width = 417
+      Width = 475
       Height = 1
       Align = alTop
       Pen.Color = clSilver
-      ExplicitWidth = 535
+      ExplicitWidth = 545
     end
     object btnPromos: TBitBtn
-      Left = 176
+      Left = 160
       Top = 7
-      Width = 152
-      Height = 25
+      Width = 199
+      Height = 33
       Caption = 'MYOB Communications'
       TabOrder = 0
       OnClick = btnPromosClick
     end
     object btnClose: TBitBtn
-      Left = 334
+      Left = 367
       Top = 7
-      Width = 75
-      Height = 25
+      Width = 98
+      Height = 33
       Caption = 'Close'
       TabOrder = 1
       OnClick = btnCloseClick
     end
   end
   object gbContentTypes: TGroupBox
-    Left = 8
-    Top = 8
-    Width = 393
-    Height = 57
+    Left = 10
+    Top = 10
+    Width = 455
+    Height = 75
     Caption = 'Login Type'
     TabOrder = 0
     object rbFirstLogin: TRadioButton
-      Left = 24
-      Top = 24
-      Width = 113
-      Height = 17
+      Left = 31
+      Top = 31
+      Width = 148
+      Height = 23
       Caption = 'First Login'
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object rbSecondLogin: TRadioButton
-      Left = 168
-      Top = 24
-      Width = 113
-      Height = 17
+      Left = 220
+      Top = 31
+      Width = 147
+      Height = 23
       Caption = 'Second Login'
       TabOrder = 1
     end
   end
   object gbUserTypes: TGroupBox
-    Left = 8
-    Top = 84
-    Width = 393
-    Height = 57
+    Left = 10
+    Top = 110
+    Width = 454
+    Height = 74
     Caption = 'User Types'
     TabOrder = 1
     object rbAdmin: TRadioButton
-      Left = 24
-      Top = 24
-      Width = 62
-      Height = 17
+      Left = 31
+      Top = 31
+      Width = 81
+      Height = 23
       Caption = 'Admin'
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object rbRestricted: TRadioButton
-      Left = 201
-      Top = 24
-      Width = 78
-      Height = 17
+      Left = 263
+      Top = 31
+      Width = 102
+      Height = 23
       Caption = 'Restricted'
       TabOrder = 2
     end
     object rbNormal: TRadioButton
-      Left = 105
-      Top = 24
-      Width = 61
-      Height = 17
+      Left = 137
+      Top = 31
+      Width = 80
+      Height = 23
       Caption = 'Normal'
       TabOrder = 1
     end
     object rbBooks: TRadioButton
-      Left = 288
-      Top = 24
-      Width = 113
-      Height = 17
+      Left = 377
+      Top = 31
+      Width = 147
+      Height = 23
       Caption = 'Books'
       TabOrder = 3
     end
   end
   object edtVersionFrom: TEdit
-    Left = 141
-    Top = 219
-    Width = 145
-    Height = 21
+    Left = 184
+    Top = 286
+    Width = 190
+    Height = 25
     TabOrder = 3
   end
   object gbCountry: TGroupBox
-    Left = 16
-    Top = 156
-    Width = 185
-    Height = 57
+    Left = 21
+    Top = 204
+    Width = 242
+    Height = 75
     Caption = 'Geography'
     TabOrder = 2
     object rbNZ: TRadioButton
-      Left = 24
-      Top = 24
-      Width = 68
-      Height = 17
+      Left = 31
+      Top = 31
+      Width = 89
+      Height = 23
       Caption = 'nz'
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object rbAU: TRadioButton
-      Left = 120
-      Top = 24
-      Width = 71
-      Height = 17
+      Left = 157
+      Top = 31
+      Width = 93
+      Height = 23
       Caption = 'au'
       TabOrder = 1
     end
   end
   object edtVersionTo: TEdit
-    Left = 141
-    Top = 259
-    Width = 145
-    Height = 21
+    Left = 184
+    Top = 339
+    Width = 190
+    Height = 25
     TabOrder = 4
-    Text = '5.29.1'
+    Text = '5.29.4'
   end
   object dtDate: TDateTimePicker
-    Left = 141
-    Top = 296
-    Width = 103
-    Height = 21
+    Left = 184
+    Top = 387
+    Width = 135
+    Height = 25
     Date = 42269.670096284720000000
     Time = 42269.670096284720000000
     TabOrder = 5

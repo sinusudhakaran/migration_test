@@ -13,15 +13,14 @@ type
                   psStrikeOut, psQuote, psURL);
 
   TPromoContentFrame = class(TFrame)
-    lblTitle: TRzLabel;
+    sdfdsf: TRzLabel;
     lblURL: TRzLabel;
     reDescription: TBKRichEdit;
     pnlImageContainer: TPanel;
     imgContainer: TImage;
     lblBorder: TRzLabel;
+    lblTitle: TLabel;
     procedure reDescriptionResizeRequest(Sender: TObject; Rect: TRect);
-    procedure reDescriptionLinkClicked(Sender: TObject; LinkClicked: string;
-      LinkLine: Integer);
   private
     { Private declarations }
     FStartPosition : Integer;
@@ -55,12 +54,6 @@ uses ShellAPI, LogUtil;
 {$R *.dfm}
 
 { TPromoContentFrame }
-
-procedure TPromoContentFrame.reDescriptionLinkClicked(Sender: TObject;
-  LinkClicked: string; LinkLine: Integer);
-begin
-  ShowMessage(LinkClicked);
-end;
 
 procedure TPromoContentFrame.reDescriptionResizeRequest(Sender: TObject;
   Rect: TRect);
@@ -114,7 +107,7 @@ begin
 
   DPI := GetDevicecaps(lHDC,LogPixelsX);
 
-  if DPI> 100 then  // Large size 120 DPI
+  if DPI > 100 then  // Large size 120 DPI
      Font.size := 8
   else  // Normal size 96
      Font.size := 10;
@@ -131,10 +124,16 @@ begin
   reDescription.Width := Self.Width;
   lblURL.Width := Self.Width;
 
+  lblTitle.AutoSize := False;
   lblTitle.Font.Color := HyperLinkColor;
-  lblTitle.Font.Size := 16;
+  if DPI > 100 then  // Large size 120 DPI
+    lblTitle.Font.Size := 12
+  else  // Normal size 96
+    lblTitle.Font.Size := 16;
+
   lblTitle.Font.Style := [fsBold];
   lblTitle.Caption := Trim(Content.Title);
+  lblTitle.AutoSize := True;
 
   reDescription.HideScrollBars := False;
   reDescription.Clear;
