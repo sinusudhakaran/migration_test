@@ -522,10 +522,6 @@ Begin
                                                 ((not FLoading) and NewAuditID));
 
       fTran_Suggested_Index.Insert(NewTran_Suggested_Index_Rec);
-
-      // When the Transaction count exceeds then PARTIAL_MATCH_MIN_TRANS redo Suggested mems
-      if ItemCount = PARTIAL_MATCH_MIN_TRANS then
-        SuggestedMem.ResetAccount(TBank_Account(fBank_Account));
     end;
 
     // Build Transaction Core ID Index
@@ -571,6 +567,14 @@ Begin
       P^.txAudit_Record_ID := fAuditMgr.NextAuditRecordID;
 
     Inherited Insert( P );
+
+    if (fBank_Account is TBank_Account) and
+       (not (TBank_Account(fBank_Account).IsAJournalAccount)) then
+    begin
+      // When the Transaction count exceeds then PARTIAL_MATCH_MIN_TRANS redo Suggested mems
+      if ItemCount = PARTIAL_MATCH_MIN_TRANS then
+        SuggestedMem.ResetAccount(TBank_Account(fBank_Account));
+    end;
   end;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;

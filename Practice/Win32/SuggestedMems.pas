@@ -39,7 +39,7 @@ const
   MSG_DISABLED_MEMORISATIONS = 'Suggested Memorisations have been disabled. ' + #13 +
                                'Please contact Support if you wish to enable this.';
   MSG_STILL_PROCESSING = ' is still scanning for suggestions, please try again later.';
-  PARTIAL_MATCH_MIN_TRANS = 149;
+  PARTIAL_MATCH_MIN_TRANS = 150;
 
 type
   TFoundCreate = (fcFound, fcCreated);
@@ -1291,7 +1291,7 @@ begin
       end;
 
       // Disable Mems v2 when there are less than 150 transactions AND the oldest transaction is less than 3 months ago
-      if (BankAccount.baTransaction_List.ItemCount <= PARTIAL_MATCH_MIN_TRANS) and (Years = 0) and (Months < 3) then
+      if (BankAccount.baTransaction_List.ItemCount < PARTIAL_MATCH_MIN_TRANS) and (Years = 0) and (Months < 3) then
         RunMems2 := false
       else
         RunMems2 := true;
