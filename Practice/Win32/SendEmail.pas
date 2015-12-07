@@ -345,7 +345,7 @@ begin
          if INI_MAPI_UseExtended then
            MailSentOk := SendViaRedemption
          else
-         begin         
+         begin
            rzMailMAPI.Subject := Subject;
            rzMailMAPI.ClearLists;
            Email.OnPrepareImageforSaving := nil;

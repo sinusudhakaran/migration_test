@@ -41,7 +41,6 @@ const
   PARAM_IS_MAPI = '-mapi';
   PARAM_IS_OLE  = '-ole';
   PARAM_EXPORT =  '-export';
-
 type
   TArrayType = (TO_ARR = 1, CC_ARR = 2, BCC_ARR = 3, ATT_ARR = 4);
 
@@ -66,7 +65,6 @@ var
   isMAPI : boolean;
   EmailSender : TEmailSender64;
   EmailSenderOle : TOutlookOle;
-
 
   function GetCapacity(const sDelemitedText : TStrings) : integer;
   var
@@ -206,12 +204,11 @@ begin
   varStrList := TStringList.Create;
   varStrList.Delimiter := comma;
   Result := 10000;
-
   try
     for i := 0 to ParamCount do
     begin
       sParam := ParamStr(i);
-
+			
       if SameStr(PARAM_TO, sParam) then
       begin
         sParam := ParamStr(i + 1);
@@ -252,9 +249,9 @@ begin
 
       if SameStr(PARAM_IS_RTF, sParam) then
       begin
-        sParam := ParamStr(i + 1);
+        sParam := '"' + ParamStr(i + 1) +'"';
         varStrList.DelimitedText := sParam;
-        sRTFFilePath := Trim(varStrList.Strings[0]);
+        sRTFFilePath := '"' + Trim(varStrList.Strings[0]) + '"';
         varStrList.Clear;
       end;
 
@@ -311,7 +308,6 @@ begin
           for i := 0 to Length(attArray) - 1  do
             EmailSenderOle.AddAttachment(attArray[i]);
          end;
-
          EmailSenderOle.EmailSubject := subj;
          EmailSenderOle.EmailBody := '';
          EmailSenderOle.RTFBodyFilePath := sRTFFilePath;
@@ -374,7 +370,7 @@ begin
   else
   begin
     try
-      ExitCode := ParamsParsingSendEmail;
+		ExitCode := ParamsParsingSendEmail;
     finally
       Application.Terminate;
     end;

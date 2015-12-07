@@ -11,7 +11,7 @@ uses
   FMX.Types,
   FMX.Controls,
   FMX.Dialogs,
-  FMX.Controls.Presentation,
+  //FMX.Controls.Presentation,
   FMX.StdCtrls,
   Winapi.Windows,
   Winapi.Messages,

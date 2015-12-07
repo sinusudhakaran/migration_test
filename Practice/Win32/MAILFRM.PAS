@@ -294,6 +294,9 @@ var
 begin
   Email_Saved := False;
   Email_Body := '';// Less memory
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ' MessageBody : ' + MessageBody);
+
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   //Create Mail Object and message
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -317,6 +320,11 @@ begin
 
            Subject := aSubject;
            Email   := Editor.ERTF;
+           if DebugMe then
+           begin
+             LogUtil.LogMsg(lmDebug, UnitName, 'Subject : ' + Subject);
+             LogUtil.LogMsg(lmDebug, UnitName, 'Email body : Editor.ERTF.Text : ' + Editor.ERTF.Text);
+           end;
            //Add additional lines with version info and practice/client details. If we can find the version
            //string in the email text then this means we're attempting to resend a message which failed
            //earlier, which means we don't need to add a signature because it will already have it
@@ -713,14 +721,19 @@ begin
       wShowWindow := SW_HIDE;
     end;
 
-    s64bitAppPath := ExtractFileDir(Application.ExeName) + '\' + MAPI64BIT;
+    s64bitAppPath := '"' + ExtractFileDir(Application.ExeName) + '\' + MAPI64BIT + '"';
     s64bitAppPath := s64bitAppPath + aCmdLineParams;
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug , UnitName, '64bit app parameters ' + s64bitAppPath);
     Rlst := CreateProcess(nil, PChar(s64bitAppPath + aCmdLineParams), nil, nil, false, REALTIME_PRIORITY_CLASS, nil, nil, StartUpInfo, ProcessInfo);
     if Rlst then
     with ProcessInfo do
     begin
       if WaitForSingleObject(hProcess, INFINITE) <> WAIT_TIMEOUT then
       begin
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug , UnitName, 'Sent email ');
+
         GetExitCodeProcess(ProcessInfo.hProcess, Result);
         CloseHandle(hThread);
         CloseHandle(hProcess);
@@ -879,7 +892,7 @@ begin
           CmdString := CmdString + ' -cc '+ txtCC.Text;
         if Trim(txtSubject.text) <> '' then
           CmdString := CmdString + ' -subject ' + txtSubject.text;
-        CmdString := CmdString + ' -ole true;';
+        CmdString := CmdString + ' -ole true ';
 
         AttachmentsStr := '';
         if Attachments.Count > 0 then
@@ -921,7 +934,7 @@ begin
         Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
         //Save the body to RTF to load it from external EXE and add it to body.
         //The file will be removed in external EXE
-        CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
+        CmdString := CmdString + ' -rtf "'+ RTFFileBodyToSendPath + '"';
       end;
 
       MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
@@ -1107,6 +1120,7 @@ begin
         Attachments.Add( OtherAttachments[i]);
 
       //send mail
+
       if (not IsWoW64) or (INI_Mail_Type = SMTP_MAIL) then
         MailSentOK := CreateMailObjectAndSend( txtRecipient.Text, txtCC.Text, eReturnAddr.text, txtSubject.text,
                                 Editor.ERTF.Text, Attachments, UpdateStatus)
@@ -1119,7 +1133,7 @@ begin
           CmdString := CmdString + ' -cc '+ txtCC.Text;
         if Trim(txtSubject.text) <> '' then
           CmdString := CmdString + ' -subject ' + txtSubject.text;
-        CmdString := CmdString + ' -ole true;';
+        CmdString := CmdString + ' -ole true ';
 
         AttachmentsStr := '';
         if Attachments.Count > 0 then
@@ -1162,7 +1176,7 @@ begin
           Editor.ERTF.SaveToFile(RTFFileBodyToSendPath);
           //Save the body to RTF to load it from external EXE and add it to body.
           //The file will be removed in external EXE
-          CmdString := CmdString + ' -rtf '+ RTFFileBodyToSendPath;
+          CmdString := CmdString + ' -rtf "'+ RTFFileBodyToSendPath + '"';
         end;
 
         MailSentOK := SendEmail64Bit(PChar(CmdString)) = 0;
@@ -1355,7 +1369,8 @@ begin
          end;
        end;
      end;
-
+     if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, ' Email body at the start up : ' + Editor.ERTF.Text);
      DisableForm;
      try
        if Assigned( AdminSystem) then
@@ -2743,6 +2758,7 @@ begin
     Result := Result + CharArr[smbToGet];
   end;
   sCurrentUsrDir := UserDir + RTFTemp;
+
   if not DirectoryExists(sCurrentUsrDir) then
   begin
     if not CreateDir(sCurrentUsrDir) then
@@ -2752,6 +2768,9 @@ begin
   end
   else
     Result := sCurrentUsrDir + '\' + Result + '.rtf';
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, ' Final rtf path : ' + Result);
 end;
 
 procedure TfrmMail.HideClientFiles;
