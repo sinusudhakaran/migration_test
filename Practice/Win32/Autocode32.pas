@@ -984,6 +984,15 @@ begin
             BKTXIO.Free_Transaction_Rec_Dynamic_Fields( aTransaction^);
             Local_Copy_Transaction_Rec(OldTransaction, aTransaction);
           end;
+        end
+        else
+        begin
+          if (OldTransaction^.txHas_Been_Edited) and
+             (OldTranAccount > '') then
+          begin
+            BKTXIO.Free_Transaction_Rec_Dynamic_Fields( aTransaction^);
+            Local_Copy_Transaction_Rec(OldTransaction, aTransaction);
+          end;
         end;
 
         if (OldTranAccount <> txAccount) or
