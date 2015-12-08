@@ -23,9 +23,10 @@ uses
   utBudget in '..\Tests\utBudget.pas',
   utTPRExtact in '..\Tests\utTPRExtact.pas',
   utCashbookChartExport in '..\Tests\utCashbookChartExport.pas',
+  utSuggestedMems in '..\Tests\utSuggestedMems.pas',
   utPracticeLedger in '..\Tests\utPracticeLedger.pas';
-{$R *.res}
 
+{$R *.res}
 begin
   InitLocking;
   TextTestRunner.RunRegisteredTests(rxbHaltOnFailures);
