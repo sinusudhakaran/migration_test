@@ -8075,8 +8075,15 @@ begin
   LoadWorkTranList;
   tblCoding.ActiveRow := ActiveRow;
 
-  pT := WorkTranList.Transaction_At(ActiveRow-1);
-  SelectedSuggestedMemId := pT^.txSuggested_Mem_Index;
+  if (ActiveRow > WorkTranList.ItemCount) then
+  begin
+    SelectedSuggestedMemId := TRAN_NO_SUGG;
+  end
+  else
+  begin
+    pT := WorkTranList.Transaction_At(ActiveRow-1);
+    SelectedSuggestedMemId := pT^.txSuggested_Mem_Index;
+  end;
 
   tblCoding.InvalidateTable();
   tblCoding.SetFocus;
