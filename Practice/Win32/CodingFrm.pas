@@ -4369,6 +4369,12 @@ var
   CurrentMDICaption : string;
   CurrentMDIIndex : integer;
 begin
+  if windowstate <> wsMaximized then
+  begin
+    Result := false;
+    Exit;
+  end;
+
   CurrentMDICaption := frmMain.GetMDICurrentChildCaption;
   CurrentMDIIndex := frmMain.GetMDIIndexFromCaption(CurrentMDICaption);
   Result := (fMDIChildSortedIndex = CurrentMDIIndex);
@@ -8584,9 +8590,6 @@ var
       ShowCodingHint( RowNum, ColNum, CustomHint );
   end;
 begin
-  if windowstate <> wsMaximized then
-    Exit;
-
   if not ValidDataRow(RowNum) then
      exit;
 
