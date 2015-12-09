@@ -718,19 +718,32 @@ var
     PRACINI_BGL360_Client_Secret: string = 'bankLinkSecret';
     {Contentful API URL}
     PRACINI_Contentful_API_URL : string = '';
+
+    PRACINI_Disable_Promo_Window: Boolean = false;
+    PRACINI_Disable_LeanEngage: Boolean = false;
+    
+
 const
-    //LeanEngage
-    cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';
-    cLeanEngage_TestAPIKey = 'axcUDK7vH2HhUZfLvMXgcA';
-    cLeanEngage_ProdAPIKey = 'GEKPKtJyWzmMPxYaKYubWA';
-    cLeanEngage_TestSwitch = 'TEST';
-    cLeanEngage_ProdSwitch = 'PRODUCTION';
-    cLeanEngage_Support_Practice_Code = 'BSUPPORT';
+  //LeanEngage
+  cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';
+  cLeanEngage_TestAPIKey = 'axcUDK7vH2HhUZfLvMXgcA';
+  cLeanEngage_ProdAPIKey = 'GEKPKtJyWzmMPxYaKYubWA';
+  cLeanEngage_TestSwitch = 'TEST';
+  cLeanEngage_ProdSwitch = 'PRODUCTION';
+  cLeanEngage_Support_Practice_Code = 'BSUPPORT';
+
+{$ifdef DEBUG}
+  INI_LeanEngage_System_Switch : string = cLeanEngage_TestSwitch;
+{$else}{ifdef DEBUG}
+  INI_LeanEngage_System_Switch : string = cLeanEngage_ProdSwitch;
+{$endif}{ifdef DEBUG}
 
 
-    cLeanEngageApp_Key : string = cLeanEngage_TestAPIKey;
-    INI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
-    INI_LeanEngage_API_KEY : string = '';
+  cLeanEngageApp_Key : string = cLeanEngage_TestAPIKey;
+  cLeanEngageActive : boolean = false;
+
+  INI_LeanEngage_BASE_URL : string = 'https://www.leanengage.com';
+  INI_LeanEngage_API_KEY : string = '';
 
   // Transaction Type equivalent account numbers
   cttanDistribution = 23800;
@@ -738,12 +751,6 @@ const
   cttanInterest     = 25000;
   cttanShareTradeRangeStart   = 70000;
   cttanShareTradeRangeEnd     = 79999;
-
-  {$ifdef DEBUG}
-    INI_LeanEngage_System_Switch : string = cLeanEngage_TestSwitch;
-  {$else}{ifdef DEBUG}
-    INI_LeanEngage_System_Switch : string = cLeanEngage_ProdSwitch;
-  {$endif}{ifdef DEBUG}
 
 Type
     TMemsSupportOptions = (meiFullfunctionality,

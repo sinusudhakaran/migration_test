@@ -53,7 +53,8 @@ uses
   ThirdPartyHelper,
   IPClientLocking,
   bkProduct,
-  PromoWindowObj;
+  PromoWindowObj,
+  uNPSServer;
 
 const
   UnitName = 'AppStartupShutDown';
@@ -145,6 +146,8 @@ const
   Var
     v1, v2, v3, v4: Word;
 
+    LEConnectionRetries : integer;
+
 begin
   AdminSystem := nil;
 
@@ -159,8 +162,23 @@ begin
 
   //Read Practice INI settings
   ReadPracticeINI;
-  
-  StartPromoThread;
+
+  if not PRACINI_Disable_Promo_Window then begin//Practice has not disabled the PromoWindow
+    StartPromoThread;
+  end
+  else
+    LogUtil.LogMsg( lmInfo, UnitName, 'Promo Window has been disabled in BK5PRAC.INI' );
+
+  if not PRACINI_Disable_LeanEngage then begin //Practice has not disabled LeanEngage
+    LEConnectionRetries := 0;
+    PRACINI_Disable_LeanEngage :=  //Set true if unable to reach LeaneEngage
+      not TestForHttpRouteToServer( INI_LeanEngage_BASE_URL, 3,
+        LEConnectionRetries );
+  end
+  else
+    LogUtil.LogMsg( lmInfo, UnitName, 'LeanEngage has been disabled in BK5PRAC.INI' );
+
+    
   //Check if version no has changed, if it has write a new line in the log file
   if PRACINI_CurrentVersion <> WINUTILS.GetAppVersionStr then
   begin

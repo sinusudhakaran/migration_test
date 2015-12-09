@@ -103,6 +103,14 @@ type
     But if we go for all content types, we can not specify the order, so we need our own sorting
     method to sort the data}
 
+    //This instance is executed within a thread, the Windows File Locking of the log file is not thread safe
+    fOwnerThread : TThread;                   // Owner thread to synchronise to
+    fSynchroniseLogMsgType  : TMessageType;
+    fSynchroniseLogUnitName : string;
+    fSynchroniseLogStat_ID  : byte;
+    fSynchroniseLogLockLog  : Boolean;
+    fSynchroniseLogMessage  : string;
+
     FProcessingData : Boolean;
     {Start of the data transfer function, clear the storage list and make it
     ready for the data receives}
@@ -129,12 +137,20 @@ type
     function GetImageFromURL(aURL: string; var aMainImageBitmap: Graphics.TBitmap):Boolean;
     function SetContentType(aContenetType: string): TContentType;
   public
-    constructor Create;
+    constructor Create; virtual; // Introduce Owner thread to synchronise, log file write, to
     destructor Destroy;override;
     {Builds the url for contentful api}
     function GetContentfulURL(aContentType: TContentType):string;
     {This function talks to contentful api and grabs all available contents}
     function GetContents(aContentType: TContentType;RetryCount : integer; var Retries : integer): Boolean;
+
+    //This instance is executed within a thread, the Windows File Locking of the log file is not thread safe
+    procedure SetAndSynchroniseLogMessage(
+            aSynchroniseLogMsgType : TMessageType; aSynchroniseLogUnitName,
+            aSynchroniseLogMessage : string; aSynchroniseLogStat_ID : byte = 0;
+            aSynchroniseLogLockLog: Boolean = True );
+    procedure SynchroniseLogMessage;
+
 
     function GetDateFromStr(ADateStr: string):TDateTime;
     procedure ProcessJSONData;
@@ -142,6 +158,7 @@ type
     procedure ClearList;
     property Item[Index:Integer] : TContentfulObj read GetContent;
     property ProcessingData : Boolean read FProcessingData write FProcessingData;
+    property OwnerThread : TThread read fOwnerThread write fOwnerThread;
   end;
 
   TDisplayContents = class
@@ -160,11 +177,14 @@ type
     FUpgradeVersionFrom : string;
     FUpgradeVersionTo : string;
     FDateToValidate : TDateTime;
+
     function GetContent(aIndex:Integer):TContentfulObj;
     function GetProcessingData:Boolean;
     procedure SetProcessingData(Value : Boolean);
     procedure TimerStopsContentfulReadTimer(Sender: TObject);
     procedure GetUpgradeVersions(VersionNoFrom:string;var PrevMajorVersion: string; var PrevMinorVersion: string);
+    function GetOwnerThread : TThread;
+    procedure SetOwnerThread( aValue : TThread );
   public
     constructor Create;
     destructor Destroy;override;
@@ -190,6 +210,8 @@ type
     property UpgradeVersionFrom : string read FUpgradeVersionFrom write FUpgradeVersionFrom;
     property UpgradeVersionTo : string read FUpgradeVersionTo write FUpgradeVersionTo;
     property DateToValidate : TDateTime read FDateToValidate write FDateToValidate;
+
+    property OwnerThread : TThread read GetOwnerThread write SetOwnerThread;
   end;
 
   TContentfulThread = class(TThread)
@@ -309,7 +331,8 @@ end;
 
 constructor TContentfulDataList.Create;
 begin
-  inherited;
+  inherited Create;
+  fOwnerThread := nil;
   FContentList:= TObjectList.Create;
   FContentFulResponseJSON := '';
 
@@ -317,6 +340,7 @@ begin
   FipsHTTPS.OnStartTransfer := StartDataTransfer;
   FipsHTTPS.OnEndTransfer := EndDataTransfer;
   FipsHTTPS.OnTransfer := TransferData;
+
 end;
 
 destructor TContentfulDataList.Destroy;
@@ -408,12 +432,17 @@ begin
   except
     on E: Exception do begin
       // Do Nothing, suppress the error
-      LogUtil.LogMsg(lmError, UnitName, ' Error in connecting to Contentful site, tried ' + IntToStr(Retries)+ ' time(s)');
-      LogUtil.LogMsg(lmError, UnitName, E.Message);
+// Windows File Locking of the log file is not thread safe      LogUtil.LogMsg(lmError, UnitName, ' Error in connecting to Contentful site, tried ' + IntToStr(Retries)+ ' time(s)');
+// Windows File Locking of the log file is not thread safe      LogUtil.LogMsg(lmError, UnitName, E.Message);
       FContentFulResponseJSON := E.Message;
       inc( Retries );
       if Retries < RetryCount then
-        GetContents(aContentType, RetryCount, Retries );
+        GetContents(aContentType, RetryCount, Retries )
+      else
+          SetAndSynchroniseLogMessage( lmError, UnitName, // Windows File Locking of the log file is not thread safe
+            format( 'Failed to Get %s (Contentful site), tried %s time(s), %s',
+              [URL, intToStr( pred( Retries ) ), E.Message ] ) );
+
     end;
   end;
 end;
@@ -515,7 +544,8 @@ begin
   ProcessingData := True;
   if DebugMe then
   begin
-    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON);
+    SetAndSynchroniseLogMessage( lmDebug, UnitName, FContentFulResponseJSON ); // Windows File Locking of the log file is not thread safe
+// Windows File Locking of the log file is not thread safe    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON);
     Json := TStringList.Create;
     try
       Json.Add(FContentFulResponseJSON);
@@ -701,6 +731,31 @@ begin
   end;
 end;
 
+procedure TContentfulDataList.SetAndSynchroniseLogMessage(
+            aSynchroniseLogMsgType : TMessageType; aSynchroniseLogUnitName,
+            aSynchroniseLogMessage : string; aSynchroniseLogStat_ID : byte = 0;
+            aSynchroniseLogLockLog: Boolean = True );
+begin
+  fSynchroniseLogMsgType  := aSynchroniseLogMsgType;
+  fSynchroniseLogUnitName := aSynchroniseLogUnitName;
+  fSynchroniseLogMessage  := aSynchroniseLogMessage;
+  fSynchroniseLogStat_ID  := aSynchroniseLogStat_ID;
+  fSynchroniseLogLockLog  := aSynchroniseLogLockLog;
+  if assigned( fOwnerThread ) then
+    fOwnerThread.Synchronize( fOwnerThread, SynchroniseLogMessage );
+end;
+
+procedure TContentfulDataList.SynchroniseLogMessage;
+begin
+  LogUtil.LogMsg(
+    fSynchroniseLogMsgType,
+    fSynchroniseLogUnitName,
+    fSynchroniseLogMessage,
+    fSynchroniseLogStat_ID,
+    fSynchroniseLogLockLog
+  );
+end;
+
 function TContentfulDataList.SetContentType(
   aContenetType: string): TContentType;
 begin
@@ -774,6 +829,13 @@ begin
     Result := TContentfulObj(FDisplayContents.Items[aIndex]);
 end;
 
+function TDisplayContents.GetOwnerThread: TThread;
+begin
+  result := nil;
+  if assigned( SourceContents ) then
+    result := SourceContents.OwnerThread;
+end;
+
 procedure TDisplayContents.GetUpgradeVersions(VersionNoFrom:string;var PrevMajorVersion,
   PrevMinorVersion: string);
 var
@@ -843,7 +905,7 @@ begin
   RetryCount := CONTENT_RETRY_COUNT;
   FSourceContents.ClearList;
   ProcessingData := True;
-  Result := FSourceContents.GetContents(ctAll,1, RetryCount);
+  Result := FSourceContents.GetContents(ctAll, 0, RetryCount);
   if not Result then
     ProcessingData := False;
 end;
@@ -898,6 +960,11 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TDisplayContents.SetOwnerThread(aValue: TThread);
+begin
+  SourceContents.OwnerThread := aValue;
 end;
 
 procedure TDisplayContents.SetProcessingData(Value : Boolean);
@@ -1009,6 +1076,7 @@ end;
 
 { TContentfulThread }
 
+
 procedure TContentfulThread.Execute;
 begin
   FreeOnTerminate := True;
@@ -1017,6 +1085,8 @@ begin
     //EnterCriticalSection(CritSect);
     if Assigned(DisplayPromoContents) then
     begin
+      DisplayPromoContents.OwnerThread := self; // Set owning thread so that LogUtil can write to LogFile
+      
       DisplayPromoContents.ClearList;
       DisplayPromoContents.LoadAllDisplayContents; // Load
     end;

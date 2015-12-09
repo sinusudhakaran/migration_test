@@ -5,7 +5,8 @@ interface
 uses
   Classes, SysUtils, uLKJSON, IdCoder, IdCoderMIME, StrUtils, uHttplib,
   uBaseNPSServer, ipshttps,
-  uLeanEngageLib;
+  uLeanEngageLib,
+  LogUtil;
 
 const
   ENDPOINT_NPS_IDENTIFY = '/api/v1/identify';
@@ -21,7 +22,11 @@ type
 
     fFeedbackURL: string;
     fHasFeedbackURL : boolean;
-    fSynchroniseLogMessage : string;
+    fSynchroniseLogMsgType  : TMessageType;
+    fSynchroniseLogUnitName : string;
+    fSynchroniseLogStat_ID  : byte;
+    fSynchroniseLogLockLog  : Boolean;
+    fSynchroniseLogMessage  : string;
     fOwner : TThread;
   protected
     procedure AddHeaders(Http: TipsHTTPS; EndPoint: String);override;
@@ -31,7 +36,10 @@ type
   public
     constructor Create(Owner : TThread; AuthenticationKey, ServerBaseUrl: String); virtual;
 
-    procedure SetAndSynchroniseLogMessage( aLogMessage : string );
+    procedure SetAndSynchroniseLogMessage(
+                aSynchroniseLogMsgType : TMessageType; aSynchroniseLogUnitName,
+                aSynchroniseLogMessage : string; aSynchroniseLogStat_ID : byte = 0;
+                aSynchroniseLogLockLog: Boolean = True );
     procedure SynchroniseLogMessage;
 
     procedure SetNPSIdentity(Identity: TJsonObject);
@@ -42,14 +50,15 @@ type
     property AuthenticationKey : string read fAuthenticationKey;
   end;
 
-implementation
-uses
-  LogUtil;
+  function TestForHttpRouteToServer( aServerURL : string; aMaxRetry : integer;
+             var aCurrentRetries : integer ) : boolean;
 
+implementation
 const
   unitname = 'uNPSServer';
   DebugAutoSave: Boolean = False;
   AutoSaveUnit = 'AutoSave';
+  ConnectionRetryMax = 3;
 
 var
   DebugMe : boolean = false;
@@ -59,6 +68,35 @@ type
   public
     procedure Assign(List: TStrings);
   end;
+
+function TestForHttpRouteToServer( aServerURL : string; aMaxRetry : integer;
+           var aCurrentRetries : integer ) : boolean;
+var
+  FipsHTTPS: TipsHTTPS;              
+
+begin
+  result := false;
+  FipsHTTPS:= TipsHTTPS.Create(Nil);
+  try
+    try
+      FipsHTTPS.Get( aServerURL );
+      Result := True;
+    except
+      on E: Exception do begin
+        // Do Nothing, suppress the error
+        inc( aCurrentRetries );
+        if aCurrentRetries < aMaxRetry then
+          result := TestForHttpRouteToServer( aServerURL, aMaxRetry, aCurrentRetries )
+        else
+          LogUtil.LogMsg(lmError, UnitName,
+            format( 'Failed to Get %s (LeanEngage site), tried %s time(s), %s',
+              [aServerURL, intToStr( aCurrentRetries ), E.Message ] ) );
+      end;
+    end;
+  finally
+    freeAndNil( FipsHTTPS );
+  end;
+end;
 
 { TNPSServer }
 
@@ -105,22 +143,30 @@ begin
   try
     JsonObject.Add('user_id', UserId);
     if DebugMe then
-      SetAndSynchroniseLogMessage( format( 'Before Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
+      SetAndSynchroniseLogMessage( lmDebug, unitname, format( 'Before Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
         [ UserId, Survey.Serialize ] ) );
 
     Post(ENDPOINT_NPS_GETSURVEY, JsonObject, Survey);
     if DebugMe then
-      SetAndSynchroniseLogMessage( format( 'After Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
+      SetAndSynchroniseLogMessage( lmDebug, unitname, format( 'After Http Post in TNPSServer.GetNPSSurvey(UserId= %s; Survey=%s) )',
         [ UserId, Survey.Serialize ] ) );
   finally
     JsonObject.Free;
   end;
 end;
 
-procedure TNPSServer.SetAndSynchroniseLogMessage(aLogMessage: string);
+procedure TNPSServer.SetAndSynchroniseLogMessage(
+            aSynchroniseLogMsgType : TMessageType; aSynchroniseLogUnitName,
+            aSynchroniseLogMessage : string; aSynchroniseLogStat_ID : byte = 0;
+            aSynchroniseLogLockLog: Boolean = True );
 begin
   if DebugMe then begin
-    fSynchroniseLogMessage := aLogMessage;
+    fSynchroniseLogMsgType  := aSynchroniseLogMsgType;
+    fSynchroniseLogUnitName := aSynchroniseLogUnitName;
+    fSynchroniseLogMessage  := aSynchroniseLogMessage;
+    fSynchroniseLogStat_ID  := aSynchroniseLogStat_ID;
+    fSynchroniseLogLockLog  := aSynchroniseLogLockLog;
+
     fOwner.Synchronize( fOwner, SynchroniseLogMessage );
   end;
 end;
@@ -128,13 +174,19 @@ end;
 procedure TNPSServer.SynchroniseLogMessage;
 begin
   if DebugMe then
-    LogUtil.LogMsg(lmDebug, unitname, fSynchroniseLogMessage );
+    LogUtil.LogMsg(
+      fSynchroniseLogMsgType,
+      fSynchroniseLogUnitName,
+      fSynchroniseLogMessage,
+      fSynchroniseLogStat_ID,
+      fSynchroniseLogLockLog
+    );
 end;
 
 procedure TNPSServer.setEventTrack(UserId: string; MessageContent: TJsonObject);
 begin
   if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'TNPSServer.setEventTrack(UserId= $s; MessageContent: TJsonObject = %s)',
+    SetAndSynchroniseLogMessage( lmDebug, unitname, format( 'TNPSServer.setEventTrack(UserId= $s; MessageContent: TJsonObject = %s)',
         [ UserID, MessageContent.Serialize ] ) );
 
   Post(ENDPOINT_EVENT_TRACK, MessageContent);
@@ -152,11 +204,11 @@ begin
     URLParams.Add('user_id', UserID);
 
     if DebugMe then
-      SetAndSynchroniseLogMessage( format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s )',
+      SetAndSynchroniseLogMessage( lmDebug, unitname, format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s )',
         [ UserID ] ) );
     Get( ENDPOINT_CONVERSATION_RESPONSE, URLParams, FeedBack, 3, Retries );
     if DebugMe then
-      SetAndSynchroniseLogMessage( format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s; Feedback.URL=$)',
+      SetAndSynchroniseLogMessage( lmDebug, unitname, format( 'Before Http Get in TNPSServer.setFeedBackResponse(UserId= $s; Feedback.URL=$)',
         [ UserID, Feedback.Url ] ) );
 
   finally
@@ -167,7 +219,7 @@ end;
 procedure TNPSServer.SetNPSIdentity(Identity: TJsonObject);
 begin
   if DebugMe then
-    SetAndSynchroniseLogMessage( format( 'Before Http Post in TNPSServer.SetNPSIdentity(Identity: TJsonObject = %s)',
+    SetAndSynchroniseLogMessage( lmDebug, unitname, format( 'Before Http Post in TNPSServer.SetNPSIdentity(Identity: TJsonObject = %s)',
       [ Identity.Serialize ] ) );
   Post(ENDPOINT_NPS_IDENTIFY, Identity);
 end;

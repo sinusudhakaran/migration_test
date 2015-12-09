@@ -156,6 +156,8 @@ type
     property Surveys: TNPSSurveys read GetSurveys;
   end;
 
+//  function TestForHttpRouteToServer( aServerURL : string ) : boolean;
+
 implementation
 uses
   LogUtil,
@@ -175,6 +177,11 @@ var
   DebugMe : boolean = false;
 
 { TNPSLeanEngage }
+
+(*function TestForHttpRouteToServer( aServerURL : string ) : boolean;
+begin
+  result := uNPSServer.TestForHttpRouteToServer( aServerURL );
+end; *)
 
 constructor TNPSLeanEngage.Create(aIdentityID, aServerUrl, aServerKey, aCompanyCode,
       aCompanyName, aCountry, aStaffID, aModuleId, aModuleVersion : string);

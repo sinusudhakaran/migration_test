@@ -95,7 +95,20 @@ const
    //Lean Engage Section
    GrpLeanEngage = 'LeanEngage';
 
+   // BGL360 Keys
+   ikBGL360_API_URL       = 'BGL360APIURL';
+   ikRandom_Key           = 'BGL360Key';
+   ikBGL360_Client_ID     = 'BGL360ClientID';
+   ikBGL360_Client_Secret = 'BGL360ClientSecret';
+
+   //Contentful API URL Key
+   ikContentful_API_URL   = 'ContentfulAPIURL';
+
+   //Promo Window Keys
+   ikDisablePromoWindow         = 'DisablePromoWindow';
+
    //Lean Engage Keys
+   ikDisableLeanEngage          = 'DisableLeanEngage';
    ikLeanEngage_BASE_URL        = 'LeanEngageBaseUrl';
    ikLeanEngage_System_Switch   = 'LeanEngageSystemSwitch';
 
@@ -809,13 +822,19 @@ begin
         PRACINI_IPClientLocking_TCPTimeOut := ReadInteger( GrpLocking, 'IPClientLockingTCPTimeOut', 100);
         PRACINI_IPClientLocking_ProcessMessageDelay := ReadInteger( GrpLocking, 'IPClientLockingProcessMessageDelay', 250);
 
+        {Disable LeanEngage Switch}
+        PRACINI_Disable_LeanEngage := ReadBool(GrpPracEnv, ikDisableLeanEngage, false );
+
+        {Disable Promo Window Switch}
+        PRACINI_Disable_Promo_Window := ReadBool(GrpPracEnv, ikDisablePromoWindow, false );
+
         {BGL API URL}
-        PRACINI_BGL360_API_URL := ReadString(GrpPracLinks,'BGL360APIURL', TUrls.DefBGL360APIUrl);
-        PRACINI_Random_Key := ReadString(GrpPracThirdParty,'BGL360Key', OpenSSLEncription.GetRandomKey);
-        PRACINI_BGL360_Client_ID := ReadString(GrpPracThirdParty,'BGL360ClientID', EncryptAToken('bankLinkTest',PRACINI_Random_Key));
-        PRACINI_BGL360_Client_Secret := ReadString(GrpPracThirdParty,'BGL360ClientSecret', EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
+        PRACINI_BGL360_API_URL := ReadString(GrpPracLinks, ikBGL360_API_URL, TUrls.DefBGL360APIUrl);
+        PRACINI_Random_Key := ReadString(GrpPracThirdParty, ikRandom_Key, OpenSSLEncription.GetRandomKey);
+        PRACINI_BGL360_Client_ID := ReadString(GrpPracThirdParty, ikBGL360_Client_ID, EncryptAToken('bankLinkTest',PRACINI_Random_Key));
+        PRACINI_BGL360_Client_Secret := ReadString(GrpPracThirdParty, ikBGL360_Client_Secret, EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
         {Contentful API URL}
-        PRACINI_Contentful_API_URL := ReadString(GrpPracLinks,'ContentfulAPIURL', TUrls.DefContentfulAPIUrl);
+        PRACINI_Contentful_API_URL := ReadString(GrpPracLinks, ikContentful_API_URL, TUrls.DefContentfulAPIUrl);
 
         CreateGuid(Guid);
         StrGuid := TrimedGuid(Guid);

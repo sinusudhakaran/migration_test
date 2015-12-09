@@ -1678,11 +1678,19 @@ begin
                 cLeanEngage_Support_Practice_Code ) // Make sure this is not on MYOB IT Support Practice Code
          then begin DN - Change #89926 Remove the check for Support Staff *)
 
+         // Check that we have been able to reach LeanEngage
+         if not PRACINI_Disable_LeanEngage then begin
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.3 - LeanEngage Reachable, Initialising - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
+
+
          // Start the intialisation of this
            mniHelpProvideFeedback.Enabled := true; //User is notSupport and should be subscribed to LeanEngage
            if DebugMe then
              LogUtil.LogMsg(lmDebug,unitname,
-               format('Form Shown Step 2.3 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               format('Form Shown Step 2.4 - before InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
                [ StartupParam_Action, CurrUser.Code ] ) );
 
            // Add LeanEngage functionality
@@ -1702,7 +1710,7 @@ begin
 
            if DebugMe then
              LogUtil.LogMsg(lmDebug,unitname,
-               format('Form Shown Step 2.4 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
+               format('Form Shown Step 2.5 - After InitialiseLeanEngage - StartupParam_Action = %d, CurrUser.Code = %s',
                [ StartupParam_Action, CurrUser.Code ] ) );
 (* DN - Change #89926 Remove the check for Support Staff
          end  // End LeanEngage active
@@ -1711,6 +1719,15 @@ begin
          end; // End LeanEngage code
 DN - Change #89926 Remove the check for Support Staff *)
 /////////// End LeanEngage code
+         end
+         else begin
+           mniHelpProvideFeedback.Enabled := false;
+
+           if DebugMe then
+             LogUtil.LogMsg(lmDebug,unitname,
+               format('Form Shown Step 2.3 - LeaneEngage Unreachable - StartupParam_Action = %d, CurrUser.Code = %s',
+               [ StartupParam_Action, CurrUser.Code ] ) );
+         end;
        end;
 
        ReloadCustomLogo;
