@@ -8092,7 +8092,9 @@ begin
   end;
 
   tblCoding.InvalidateTable();
-  tblCoding.SetFocus;
+
+  if not EBFind.Focused then
+    tblCoding.SetFocus;
 end;
 
 //------------------------------------------------------------------------------
