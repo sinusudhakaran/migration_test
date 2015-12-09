@@ -978,12 +978,7 @@ begin
            ((txCoded_By <> cbMemorisedM) and (txCoded_By <> cbMemorisedC)) then
         begin
           if (not OldTransaction^.txHas_Been_Edited) then
-            aTransaction^.txGL_Narration := aTransaction^.txStatement_Details
-          else
-          begin
-            BKTXIO.Free_Transaction_Rec_Dynamic_Fields( aTransaction^);
-            Local_Copy_Transaction_Rec(OldTransaction, aTransaction);
-          end;
+            aTransaction^.txGL_Narration := aTransaction^.txStatement_Details;
         end
         else
         begin
