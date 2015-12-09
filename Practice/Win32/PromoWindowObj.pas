@@ -1063,12 +1063,12 @@ begin
   begin
     if (aContent.ValidStartDate > 0) then
     begin
-      if (FDateToValidate < aContent.ValidStartDate) then
+      if (Floor(FDateToValidate) < Floor(aContent.ValidStartDate)) then
         Result := False;
     end;
     if (aContent.ValidEndDate > 0) then
     begin
-      if (FDateToValidate > aContent.ValidEndDate) then
+      if (Floor(FDateToValidate) > Floor(aContent.ValidEndDate)) then
         Result := False;
     end;
   end;
