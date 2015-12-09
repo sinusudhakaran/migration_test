@@ -125,12 +125,49 @@ const
          IsNo := Upcase(VAlue[1]) = 'N'
    end;
 
+   function CheckInvalidMoney(aMoney : Money):Money;
+   var
+    strMoney, strExponential : string;
+    iPos : Integer;
+   begin
+    Result := aMoney;
+
+    strMoney := FloatToStr(aMoney);
+    if DebugMe then
+    begin
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' FloatToStr(aMoney) ' + strMoney);
+      LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' moneytostr(aMoney) ' + money2str(aMoney));
+    end;
+
+    // check E18 in 4.2346E18
+    iPos := Pos('E', strMoney);
+    if iPos > 0 then // if holds exponential floating value
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' found high floating value ' + strMoney);
+
+      strExponential := Copy(strMoney, iPos, Length(strMoney)- iPos + 1);
+      strExponential := StringReplace(strExponential, 'E','',[rfReplaceAll,rfIgnoreCase]);
+      if StrToIntDef(strExponential,0) > 16 then
+      begin
+        LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' System balance reset to Unknown for bank account ' + SAccount.sbAccount_Number + ' ' + SAccount.sbAccount_Name);
+
+        Result := Unknown;
+      end;
+    end;
+   end;
+
    function Str2Money(Value:string; default:Money): Money;
    begin
-       Value := StringReplace( Value, ',', '', [rfReplaceAll]);
-       Value := StringReplace( Value, '(', '-', [rfReplaceAll]);
-       Value := StringReplace( Value, ')', '', [rfReplaceAll]);
-       Result := StrToFloatDef( Value, default) * 100;
+      Value := StringReplace( Value, ',', '', [rfReplaceAll]);
+      Value := StringReplace( Value, '(', '-', [rfReplaceAll]);
+      Value := StringReplace( Value, ')', '', [rfReplaceAll]);
+
+      Default := CheckInvalidMoney(default); // Check default is an invalid float value, then return Unknown constant
+      if default = Unknown then
+        Result := Unknown
+      else
+        Result := StrToFloatDef( Value, default) * 100;
    end;
 
    function CheckText(Value, Old: string): string;
@@ -159,6 +196,8 @@ begin
                SAccount := AdminSystem.NewSystemAccount(LLine[fcAccNo], False);
                SAccount.sbAccount_Name  := LLine[fcAccName];
             end;
+            if DebugMe then
+              LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Account in the system (' + SAccount.sbAccount_Number +') ' + SAccount.sbAccount_Name);
 
             // Update the rest of the details
             SAccount.sbBankLink_Code := CheckText(LLine[fcBanklinkCode], SAccount.sbBankLink_Code);
@@ -169,7 +208,16 @@ begin
             if SAccount.sbAccount_Type = sbtOffsite then begin
                // Don't update from here if they are delivered
                if (LLine.Count > fcBalace) then begin
-                  NewBal := Str2Money(LLine[fcBalace], SAccount.sbCurrent_Balance);
+                  if DebugMe then
+                  begin
+                    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' balance ' + LLine[fcBalace]);
+                    LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' SAccount.sbCurrent_Balance ' + FloatToStr(SAccount.sbCurrent_Balance));
+                  end;
+
+                  if SAccount.sbCurrent_Balance <> Unknown then                  
+                    NewBal := Str2Money(LLine[fcBalace], SAccount.sbCurrent_Balance)
+				  else
+				  	NewBal := Unknown;
 
                   if (LLine.Count > fcLastDate) then begin
                      NewDate := bkStr2Date(LLine[fcLastDate]);
@@ -193,6 +241,8 @@ begin
          end;
          // While we are here, and about to save..
          AdminSystem.fdFields.fdLast_ChargeFile_Date := Date;
+         if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + 'Finished processing charge file');
 
          SaveAdminSystem;
       end;
@@ -204,6 +254,8 @@ end;
 
 
 procedure ProcessChargesFiles;
+const
+  ThisMethodName = 'ProcessChargesFiles';
 var
    BD, ED: TStDate;
    Filename: string;
@@ -241,7 +293,8 @@ procedure ProcessOnlineSecureAccountsFile(const FileName: String);
        Result := Old;
      end;
    end;
-
+const
+  ThisMethodName = 'ProcessOnlineSecureAccountsFile';
 var
   AccountSource: TSecureOnlineAccounts;
   Index: Integer;
@@ -253,6 +306,8 @@ begin
 
     try
       AccountSource.LoadFromFile(FileName);
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + Filename + ' loaded');
 
       while not AccountSource.Eof do
       begin
@@ -281,6 +336,8 @@ begin
         AccountSource.Next;
       end;
     finally
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' ends');
       AccountSource.Free;
     end;
   end;
@@ -767,9 +824,9 @@ begin //ProcessDiskImages
               //       -ve = OD              -ve = IF
               //       +ve = IF              +ve = OD
               if DiskAccount.dbFields.dbOpening_Balance <> Unknown then
-              begin
-                SystemAccount.sbCurrent_Balance := -DiskAccount.dbFields.dbOpening_Balance;
-              end;
+                SystemAccount.sbCurrent_Balance := -DiskAccount.dbFields.dbOpening_Balance
+              else
+                SystemAccount.sbCurrent_Balance := Unknown;
 
               if DiskAccount.dbFields.dbFrequency_ID <> SystemAccount.sbFrequency then begin
                 SystemAccount.sbFrequency := DiskAccount.dbFields.dbFrequency_ID;
@@ -989,6 +1046,9 @@ begin //ProcessDiskImages
 
       LogMsg( lmInfo, Unitname, 'CRITICAL DOWNLOAD STAGE COMPLETED');
       UpdateAppStatus( 'Download Complete, Cleaning Up', '', 90, ProcessMessages_On);
+
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' LastDiskImageNo ' + IntToStr(LastDiskImageNo));
 
       //clean up processed disk images
       for CurrentDiskNo := FirstDiskImageNo to LastDiskImageNo do
