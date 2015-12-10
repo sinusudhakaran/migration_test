@@ -83,6 +83,7 @@ var
 begin
   TotalHeight := 0;
   Result := 1;
+  DisplayPromoContents.SortContentfulData;
   for i := 0 to DisplayPromoContents.Count - 1  do
   begin
     Content := TContentfulObj(DisplayPromoContents.Item[i]);
@@ -101,13 +102,9 @@ begin
     end;
   end;
 
-  if DisplayPromoContents.PromoMainWindowHeight <> 0 then
-    Result := Ceil(TotalHeight/DisplayPromoContents.PromoMainWindowHeight);
-  DisplayPromoContents.NoOfPagesRequired := Result;
-
   PageIndex := 1;
   TotalHeight := 0;
-  DisplayPromoContents.SortContentfulData;
+  // DisplayPromoContents.SortContentfulData;
 
   for i := 0 to DisplayPromoContents.Count - 1 do
   begin
@@ -129,6 +126,10 @@ begin
       end;
     end;
   end;
+
+  Result := PageIndex;
+  DisplayPromoContents.NoOfPagesRequired := Result;
+
 end;
 
 procedure TPromoDisplayFrm.DisplayPage(aPageIndex: Integer);
