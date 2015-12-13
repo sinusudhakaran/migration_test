@@ -1009,7 +1009,7 @@ var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
   ErrorStr,DelErrorStr, RespStr : string;
-  BankAcToExport: TBankAccountData;
+  //BankAcToExport: TBankAccountData;
 begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
@@ -1021,21 +1021,21 @@ begin
 
     for i := 0 to FBankAcctsToExport.Count - 1 do
     begin
-      BankAcToExport := FBankAcctsToExport.ItemAs(i);
-      if BankAcToExport.Transactions.Count <= 0 then
+      FBankAcctToExport := FBankAcctsToExport.ItemAs(i);
+      if FBankAcctToExport.Transactions.Count <= 0 then
         Continue;
 
       FromIndex := 0;
 
-      for j := 1 to Ceil(BankAcToExport.Transactions.Count / MAXENTRIES) do
+      for j := 1 to Ceil(FBankAcctToExport.Transactions.Count / MAXENTRIES) do
       begin
         RequestJson :=  TlkJSONobject.Create();
         try
-          BankAcToExport.Write(RequestJson, FromIndex, MAXENTRIES);
+          FBankAcctToExport.Write(RequestJson, FromIndex, MAXENTRIES);
 
           if DebugMe then
           begin
-            LogUtil.LogMsg(lmDebug, UnitName, 'PL bank transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + BankAcToExport.BatchRef);
+            LogUtil.LogMsg(lmDebug, UnitName, 'PL bank transactions from ' + IntToStr(FromIndex) + ' batch exported - ' + FBankAcctToExport.BatchRef);
             LogUtil.LogMsg(lmDebug, UnitName, 'Data exported :' + TlkJSON.GenerateText(RequestJson));
           end;
 
@@ -1045,7 +1045,7 @@ begin
             LogUtil.LogMsg(lmError, UnitName, ErrorStr);
             //Rollback all batches transferred
 
-            if not RollbackBatch(BankAcToExport.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
+            if not RollbackBatch(FBankAcctToExport.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
             begin
               LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
               //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, DelErrorStr, True);
