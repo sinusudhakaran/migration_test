@@ -711,27 +711,19 @@ var
     PRACINI_IPClientLocking_ProcessMessageDelay : integer;
     PRACINI_IPClientLocking_GROUP_ID : string;
 
-    {BGL 360 API}
+    {BGL 360 API url}
     PRACINI_BGL360_API_URL: string = '';
     PRACINI_Random_Key : string = '';
-    TEST_PRACINI_BGL360_Client_ID: string = 'bankLinkTest';                       //Testing ClientID
-    PRACINI_BGL360_Client_ID: string = 'efa239d1-c884-4d04-9c08-cc4792fc718b';    //Production ClientID
-    TEST_PRACINI_BGL360_Client_Secret: string = 'bankLinkSecret';                 //Testing ClientSecret
-    PRACINI_BGL360_Client_Secret: string = '04fadcd5-33c6-4ad3-9071-ea1c169fd785';//Production ClientSecret
-
+    PRACINI_BGL360_Client_ID: string = 'bankLinkTest';
+    PRACINI_BGL360_Client_Secret: string = 'bankLinkSecret';
     {Contentful API URL}
     PRACINI_Contentful_API_URL : string = '';
 
     PRACINI_Disable_Promo_Window: Boolean = false;
     PRACINI_Disable_LeanEngage: Boolean = false;
-
+    
 
 const
-  {BGL 360 API}
-  cBGL_API_Test_Scope = 'fundList';
-  cBGL_API_Scope      = 'audit';
-
-
   //LeanEngage
   cLeanEngage_PracticeAppID = 'b99ea988-f21c-4dd3-a6bd-327fd615d1cc';
   cLeanEngage_TestAPIKey = 'axcUDK7vH2HhUZfLvMXgcA';
