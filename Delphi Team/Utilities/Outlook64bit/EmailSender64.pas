@@ -116,6 +116,8 @@ implementation
 
 { TEmailSender64 }
 
+// function FileExists removed from here, this should appear
+
 procedure TEmailSender64.AddAttchment(const sPathToFile: string);
 begin
   if not CheckExistAddressExitsInList(sPathToFile, FAttachmentsList) and FileExists(Trim(sPathToFile)) then
