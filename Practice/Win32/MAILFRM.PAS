@@ -2429,7 +2429,7 @@ begin //SendSceduledEmail
                        RTFFileBodyToSendPath := GenerateRndFileName;
                      end;
                      MailObj.EMail.SaveToFile(RTFFileBodyToSendPath);
-                     cmdLine := cmdLine + ' -rtf '+ RTFFileBodyToSendPath;
+                     cmdLine := cmdLine + ' -rtf "'+ RTFFileBodyToSendPath + '"';
                    end;
 
                    if MailObj.Attachments.Count > 0 then
