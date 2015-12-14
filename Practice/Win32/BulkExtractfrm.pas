@@ -68,34 +68,34 @@ implementation
 uses
    HTTPSConnector,
    software,
-   BKUTIL32,
-   Merge32,
+   BKUTIL32, 
+   Merge32, 
    TransactionUtils,
    ExtractCommon,
    Contnrs,
-   baObj32,
+   baObj32, 
    clobj32,
-   SyDefs,
+   SyDefs, 
    bkDefs,
    Admin32,
    AutoCode32,
    BulkExtractResult,
-   imagesfrm,
+   imagesfrm, 
    bkXPThemes,
-   stDate,
-   StDateSt,
+   stDate, 
+   StDateSt, 
    bkdateutils,
    BKconst,
    Files,
-   progress,
+   progress, 
    errorLog,
-   InfoMoreFrm,
-   YesNoDlg,
+   InfoMoreFrm, 
+   YesNoDlg, 
    EnterPwdDlg,
-   ipscore,
+   ipscore, 
    ipshttps,
-   glConst,
-   Globals,
+   glConst, 
+   Globals, 
    Winutils,
    SageHandisoftSuperConst,
    bkProduct,
@@ -176,8 +176,7 @@ type
      procedure AddCountryField(Value: Integer);
      // Superfund/Tax Helpers
      procedure AddBGLFields(Date, Component: Integer);
-     procedure AddBGL360Fields(Date, Component: Integer);
-     procedure AddTaxFields(TaxAmount: Money; TaxClass: Integer);
+     procedure AddTaxFields(TaxAmount: Money; TaxClass: Integer); 
      // Status helpers
      procedure AddStatus(const Value: string;const Log: Boolean = True);
      procedure ClearStatus;
@@ -956,35 +955,19 @@ end;
 
                                     
 function TBulkExtractor.AccountToText(anAccount: TBank_Account): string;
-var
-  lsBSB,
-  lsAccountNumber : string;
-
 begin
    FFields.Clear;
 
    AddField(f_AccountType, IntToStr(anAccount.baFields.baAccount_Type));
    AddField(f_Date, StDateToDateString('dd/mm/yyyy', bulkextractors.cursession.fromdate, false));
    AddField(f_Name, anAccount.baFields.baBank_Account_Name );
-   
-// BGL 360
-   RetrieveBSBAndAccountNum(
-     anAccount.baFields.baExtract_Account_Number,
-     anAccount.baFields.baBank_Account_Number,
-     CanExtractAccountNumberAs(
-       Client.clFields.clCountry,
-       Client.clFields.clAccounting_System_Used ),
-     lsBSB, lsAccountNumber );
-
-   AddField(f_Number, concat( lsBSB, lsAccountNumber ));
-/////////////////////////////////// DN - Redundant code   AddField(f_Number, anAccount.baFields.baBank_Account_Number);
-
+   AddField(f_Number, anAccount.baFields.baBank_Account_Number);
    AddField(f_ContraCode, anAccount.baFields.baContra_Account_Code);
    AddField(f_ContraDesc, LookupChart(anAccount.baFields.baContra_Account_Code) );
 
-   if Software.HasSuperfundLegerID( Client.clFields.clCountry, Client.clFields.clAccounting_System_Used ) then
-      AddNumberField(f_FundID, anAccount.baFields.baDesktop_Super_Ledger_ID )
-   else if Software.HasSuperfundLegerCode( Client.clFields.clCountry, Client.clFields.clAccounting_System_Used ) then
+   if Software.HasSuperfundLegerID(Client.clFields.clCountry,Client.clFields.clAccounting_System_Used) then
+      AddNumberField(f_FundID, anAccount.baFields.baDesktop_Super_Ledger_ID)
+   else if Software.HasSuperfundLegerCode(Client.clFields.clCountry,Client.clFields.clAccounting_System_Used) then
       AddField(f_FundID, anAccount.baFields.baSuperFund_Ledger_Code);
 
    // Bulk extracts need to be able to distinguish between unknown amounts and zero amounts
@@ -998,19 +981,6 @@ begin
    Result := FFields.DelimitedText;
 end;
 
-
-procedure TBulkExtractor.AddBGL360Fields(Date, Component: Integer);
-begin
-  if (Date = 0)
-  or (Date >= mcSwitchDate) then begin
-     if Component in [mcnewMin .. mcnewMax] then
-        AddField(f_MemComp,mcNewNames[Component]);
-
-  end else begin
-      if Component in [mcOldMin .. mcOldMax] then
-         AddField(f_MemComp,mcOldNames[Component]);
-  end;
-end;
 
 procedure TBulkExtractor.AddBGLFields(Date, Component: Integer);
 begin
@@ -1249,11 +1219,9 @@ begin
        // Member, Fund and Transaction fields are more System specific
        case Client.clFields.clAccounting_System_Used of
          saBGLSimpleFund,
-         saBGLSimpleLedger : AddBGLFields(aDiss.dsTransaction.txDate_Effective,
+         saBGLSimpleLedger,
+         saBGL360:  AddBGLFields(aDiss.dsTransaction.txDate_Effective,
                                           aDiss.dsSF_Member_Component);
-
-         saBGL360: AddBGL360Fields( aDiss.dsTransaction.txDate_Effective,
-                                    aDiss.dsSF_Member_Component );
 
          saSupervisor, saSolution6SuperFund: ;
 
@@ -1856,11 +1824,9 @@ begin
        // Fund, Member and Transaction are more system specific
        case Client.clFields.clAccounting_System_Used of
          saBGLSimpleFund,
-         saBGLSimpleLedger : AddBGLFields( aTrans.txDate_Effective,
-                                           aTrans.txSF_Member_Component );
-
-         saBGL360: AddBGL360Fields( aTrans.txDate_Effective,
-                                    aTrans.txSF_Member_Component );
+         saBGLSimpleLedger,
+         saBGL360: AddBGLFields(aTrans.txDate_Effective,
+                                         aTrans.txSF_Member_Component);
 
          saSupervisor, saSolution6SuperFund: ;
 
