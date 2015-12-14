@@ -116,6 +116,14 @@ implementation
 
 { TEmailSender64 }
 
+function FileExists( aFilePath : string ) : boolean;
+var
+  R: dword;
+begin
+  R := GetFileAttributes( PChar( aFilePath ) );
+  Result := ( R <> dword( -1 ) ) and ( (R and FILE_ATTRIBUTE_DIRECTORY) = 0 );
+end;
+
 procedure TEmailSender64.AddAttchment(const sPathToFile: string);
 begin
   if not CheckExistAddressExitsInList(sPathToFile, FAttachmentsList) and FileExists(Trim(sPathToFile)) then

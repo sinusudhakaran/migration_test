@@ -249,9 +249,11 @@ begin
 
       if SameStr(PARAM_IS_RTF, sParam) then
       begin
-        sParam := '"' + ParamStr(i + 1) +'"';
-        varStrList.DelimitedText := sParam;
-        sRTFFilePath := '"' + Trim(varStrList.Strings[0]) + '"';
+        sParam := ParamStr(i + 1);
+//        varStrList.DelimitedText := sParam;
+//        sRTFFilePath := Trim(varStrList.Strings[0]);
+        sRTFFilePath := sParam;
+
         varStrList.Clear;
       end;
 

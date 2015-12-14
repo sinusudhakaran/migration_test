@@ -3,7 +3,8 @@ unit OutlookOle;
 interface
 
 uses
-  Windows, Messages, SysUtils, System.Variants, System.Classes, FMX.Dialogs, FMX.StdCtrls, ComObj, VCL.COMCtrls, VCL.Forms, ActiveX;
+  Windows, Messages, System.SysUtils, System.Variants, System.Classes, FMX.Dialogs, FMX.StdCtrls, ComObj,
+  VCL.COMCtrls, VCL.Forms, ActiveX(*, System.IOUtils*);
 
 type
   TOutlookOle = class
