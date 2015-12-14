@@ -831,8 +831,12 @@ begin
         {BGL API URL}
         PRACINI_BGL360_API_URL := ReadString(GrpPracLinks, ikBGL360_API_URL, TUrls.DefBGL360APIUrl);
         PRACINI_Random_Key := ReadString(GrpPracThirdParty, ikRandom_Key, OpenSSLEncription.GetRandomKey);
-        PRACINI_BGL360_Client_ID := ReadString(GrpPracThirdParty, ikBGL360_Client_ID, EncryptAToken('bankLinkTest',PRACINI_Random_Key));
-        PRACINI_BGL360_Client_Secret := ReadString(GrpPracThirdParty, ikBGL360_Client_Secret, EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
+        PRACINI_BGL360_Client_ID :=
+          ReadString(GrpPracThirdParty, ikBGL360_Client_ID,              // Read PRACINI_BGL360_Client_ID from Inifile, if it EXISTS!!
+          EncryptAToken( PRACINI_BGL360_Client_ID, PRACINI_Random_Key)); // If not use the original constant value declared in Globals.pas
+        PRACINI_BGL360_Client_Secret :=
+          ReadString(GrpPracThirdParty, ikBGL360_Client_Secret,             // Read PRACINI_BGL360_Client_Secret from Inifile, if it EXISTS!!
+          EncryptAToken(PRACINI_BGL360_Client_Secret, PRACINI_Random_Key)); // If not use the original constant value declared in Globals.pas
         {Contentful API URL}
         PRACINI_Contentful_API_URL := ReadString(GrpPracLinks, ikContentful_API_URL, TUrls.DefContentfulAPIUrl);
 
