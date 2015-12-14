@@ -293,6 +293,18 @@ CONST
     BANKLINK_ONLINE_BOOKS_DEFAULT_URL = 'https://www.banklinkonline.com';
     BANKLINK_ONLINE_SERVICES_DEFAULT_URL = 'https://www.banklinkonline.com';
 
+
+    {BGL 360 API}
+    cBGL_API_Test_Scope = 'fundList';
+    cBGL_API_Scope      = 'audit';
+
+    Def_Original_BGL360_Client_ID     = 'bankLinkTest';                          //Testing ClientID
+    Def_Original_BGL360_Client_Secret = 'bankLinkSecret';                        //Testing ClientSecret
+    Def_Production_BGL360_Client_ID     = 'efa239d1-c884-4d04-9c08-cc4792fc718b';  //Production ClientID
+    Def_Production_BGL360_Client_Secret = '04fadcd5-33c6-4ad3-9071-ea1c169fd785';  //Production ClientSecret
+
+
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 var
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -714,10 +726,10 @@ var
     {BGL 360 API}
     PRACINI_BGL360_API_URL: string = '';
     PRACINI_Random_Key : string = '';
-    TEST_PRACINI_BGL360_Client_ID: string = 'bankLinkTest';                       //Testing ClientID
-    PRACINI_BGL360_Client_ID: string = 'efa239d1-c884-4d04-9c08-cc4792fc718b';    //Production ClientID
-    TEST_PRACINI_BGL360_Client_Secret: string = 'bankLinkSecret';                 //Testing ClientSecret
-    PRACINI_BGL360_Client_Secret: string = '04fadcd5-33c6-4ad3-9071-ea1c169fd785';//Production ClientSecret
+    TEST_PRACINI_BGL360_Client_ID: string     = Def_Original_BGL360_Client_ID;       //Testing ClientID
+    TEST_PRACINI_BGL360_Client_Secret: string = Def_Original_BGL360_Client_Secret;   //Testing ClientSecret
+    PRACINI_BGL360_Client_ID: string          = Def_Production_BGL360_Client_ID;     //Production ClientID
+    PRACINI_BGL360_Client_Secret: string      = Def_Production_BGL360_Client_Secret; //Production ClientSecret
 
     {Contentful API URL}
     PRACINI_Contentful_API_URL : string = '';
@@ -727,9 +739,6 @@ var
 
 
 const
-  {BGL 360 API}
-  cBGL_API_Test_Scope = 'fundList';
-  cBGL_API_Scope      = 'audit';
 
 
   //LeanEngage

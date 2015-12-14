@@ -147,6 +147,9 @@ const
    DefInstListLinkUK = 'http://www.banklink.co.uk/institutions.html';
    DefLeanEngageLink = 'https://www.leanengage.com';
 
+//   DefBGLOriginalClientID     = 'bankLinkTest';
+//   DefBGLOriginalClientSecret = 'bankLinkSecret';
+
    UnitName      = 'INISettings';
 
   INIT_VECTOR = '@AT^NK(@YUVK)$#Y';
@@ -824,15 +827,26 @@ begin
 
         {Disable LeanEngage Switch}
         PRACINI_Disable_LeanEngage := ReadBool(GrpPracEnv, ikDisableLeanEngage, false );
-
+                                                                       
         {Disable Promo Window Switch}
         PRACINI_Disable_Promo_Window := ReadBool(GrpPracEnv, ikDisablePromoWindow, false );
 
         {BGL API URL}
         PRACINI_BGL360_API_URL := ReadString(GrpPracLinks, ikBGL360_API_URL, TUrls.DefBGL360APIUrl);
         PRACINI_Random_Key := ReadString(GrpPracThirdParty, ikRandom_Key, OpenSSLEncription.GetRandomKey);
-        PRACINI_BGL360_Client_ID := ReadString(GrpPracThirdParty, ikBGL360_Client_ID, EncryptAToken('bankLinkTest',PRACINI_Random_Key));
-        PRACINI_BGL360_Client_Secret := ReadString(GrpPracThirdParty, ikBGL360_Client_Secret, EncryptAToken('bankLinkSecret',PRACINI_Random_Key));
+        PRACINI_BGL360_Client_ID :=
+          ReadString( GrpPracThirdParty, ikBGL360_Client_ID,              // Read PRACINI_BGL360_Client_ID from Inifile, if it EXISTS!!
+          EncryptAToken( Def_Production_BGL360_Client_ID, PRACINI_Random_Key)); // If not use the original constant value declared in Globals.pas
+        PRACINI_BGL360_Client_Secret :=
+          ReadString( GrpPracThirdParty, ikBGL360_Client_Secret,             // Read PRACINI_BGL360_Client_Secret from Inifile, if it EXISTS!!
+          EncryptAToken( Def_Production_BGL360_Client_Secret, PRACINI_Random_Key)); // If not use the original constant value declared in Globals.pas
+
+        // Ensure that anyone that still has the original default is upgraded to the new default  
+        if sameText( PRACINI_BGL360_Client_ID, EncryptAToken( Def_Original_BGL360_Client_ID, PRACINI_Random_Key)) then
+          PRACINI_BGL360_Client_ID := EncryptAToken( Def_Production_BGL360_Client_ID, PRACINI_Random_Key);
+        if sameText( PRACINI_BGL360_Client_Secret, EncryptAToken( Def_Original_BGL360_Client_Secret, PRACINI_Random_Key)) then
+          PRACINI_BGL360_Client_Secret := EncryptAToken( Def_Production_BGL360_Client_Secret, PRACINI_Random_Key);
+
         {Contentful API URL}
         PRACINI_Contentful_API_URL := ReadString(GrpPracLinks, ikContentful_API_URL, TUrls.DefContentfulAPIUrl);
 
