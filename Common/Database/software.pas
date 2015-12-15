@@ -29,6 +29,8 @@ Function CanExtractInNewFormat( aCountry, aType : Byte ): Boolean;
 function IsBGL360( aCountry, aSystem : byte) : boolean;
 Function CanExtractAccountNumberAs( aCountry, aType : Byte ) : boolean;
 
+//MYOB Ledger
+function IsMYOBLedger( aCountry, aSystem : byte) : boolean;
 
 Function ContraCodeRequired( aCountry, aType : Byte ): Boolean;
 //Function FloppyDiskRequired( aCountry, aType : Byte ): Boolean;
@@ -132,6 +134,15 @@ Begin
       whAustralia    : If aType in [ saGLMAN, saOmicom ] then
                           CanExtractInNewFormat := TRUE;
    end;
+end;
+//-----------------------------------------------------------------------------
+function IsMYOBLedger( aCountry, aSystem : byte) : boolean;
+begin
+  Result := False;
+  Case aCountry of
+    whNewZealand   : Result := (aSystem = snMYOBOnlineLedger );
+    whAustralia    : Result := (aSystem = saMYOBOnlineLedger );
+  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

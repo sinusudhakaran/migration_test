@@ -222,7 +222,7 @@ begin
         lblLedgerCodeToUse.Caption := clCode;
     end;
 
-    if clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+    if IsMYOBLedger(clCountry, clAccounting_System_Used) then
     begin
       pnlSaveTo.Visible := False;
       lblMessage.Caption := 'MYOB BankLink Practice will now export the selected entries into MYOB Ledger';
@@ -324,7 +324,7 @@ begin
     end;
   end; {with myclient}
 
-  if MyClient.clFields.clAccounting_System_Used in [saMYOBOnlineLedger, snMYOBOnlineLedger] then
+  if IsMYOBLedger(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
   begin
     Result := True;
     Exit;

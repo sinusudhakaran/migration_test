@@ -392,25 +392,20 @@ var
   BGLServer: TBGLServer;
   OldCursor : TCursor;
 
-   procedure SetSaveToField(Value: Boolean);
-   begin
-      lblSaveTo.Enabled := Value;
-      eTo.Enabled := Value;
-      btnToFolder.Enabled := Value;
-   end;
+  procedure SetSaveToField(Value: Boolean);
+  begin
+    lblSaveTo.Enabled := Value;
+    eTo.Enabled := Value;
+    btnToFolder.Enabled := Value;
+  end;
 
-   procedure SetCanRefresh(Value: Boolean);
-   begin
-      lblFrom.Enabled := Value;
-      eFrom.Enabled   := Value;
-      btnFromFolder.Enabled := Value;
-   end;
-
-   function IsMYOBLedger :Boolean;
-   begin
-     Result := ((MyClient.clFields.clCountry = whNewZealand) and (SelectedSystem = snMYOBOnlineLedger)) or
-          ((MyClient.clFields.clCountry = whAustralia) and (SelectedSystem = saMYOBOnlineLedger));
-   end;
+  procedure SetCanRefresh(Value: Boolean);
+  begin
+    lblFrom.Enabled := Value;
+    eFrom.Enabled   := Value;
+    btnFromFolder.Enabled := Value;
+  end;
+  
 begin
   if Assigned(Sender)
   and Insetup then
@@ -454,7 +449,7 @@ begin
 //DN BGL360- UI changes  lblFrom.Visible := (SelectedSystem <> saBGL360);
 //DN BGL360- UI changes    eFrom.Visible := lblFrom.Visible;
 //DN BGL360- UI changes    btnFromFolder.Visible := lblFrom.Visible;
-  eFrom.Visible := (not((SelectedSystem in [saBGL360]) or IsMYOBLedger)); //DN BGL360- UI changes
+  eFrom.Visible := (not((SelectedSystem in [saBGL360]) or IsMYOBLedger(MyClient.clFields.clCountry, SelectedSystem))); //DN BGL360- UI changes
 
   btnFromFolder.Visible := eFrom.Visible; //DN BGL360- UI changes
 
@@ -463,7 +458,7 @@ begin
   lblBGL360FundName.Visible := btnConnectBGL.Visible;
   lblBGL360FundName.Enabled := btnConnectBGL.Enabled;
 
-  btnConnectMYOB.Visible := IsMYOBLedger;
+  btnConnectMYOB.Visible := IsMYOBLedger(MyClient.clFields.clCountry, SelectedSystem);
   btnConnectMYOB.Enabled := ( Assigned( AdminSystem) or AdminExists );
   lblSaveTo.Visible := (not btnConnectMYOB.Visible);
   eTo.Visible := lblSaveTo.Visible;
@@ -512,7 +507,7 @@ begin
       FreeAndNil(BGLServer);
     end;
   end
-  else if IsMYOBLedger then
+  else if IsMYOBLedger(MyClient.clFields.clCountry, SelectedSystem) then
   begin
     OldCursor := Screen.Cursor;
     try
@@ -558,12 +553,6 @@ var
   SubIndex : integer;
   OldID, NewID : string;
   RefreshYourChart: Boolean;
-
-  function IsMYOBLedger(SelectedSystem : Byte) :Boolean;
-  begin
-    Result := ((MyClient.clFields.clCountry = whNewZealand) and (SelectedSystem = snMYOBOnlineLedger)) or
-          ((MyClient.clFields.clCountry = whAustralia) and (SelectedSystem = saMYOBOnlineLedger));
-  end;
 begin
   LCLRec := nil;
   FInWizard := InWizard;
@@ -732,7 +721,7 @@ begin
 
      OldLoadFrom := clLoad_Client_Files_From;
 
-     if IsMYOBLedger(clAccounting_System_Used) then
+     if IsMYOBLedger(clCountry, clAccounting_System_Used) then
        OldID := MyClient.clExtra.cemyMYOBClientIDSelected
      else if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
        OldID := MyClient.clExtra.ceBGLFundIDSelected;
@@ -770,7 +759,7 @@ begin
           end;
 
           if (((clCountry = whAustralia) and (clAccounting_System_Used = saBGL360)) or
-              (IsMYOBLedger(clAccounting_System_Used))) then
+              (IsMYOBLedger(clCountry, clAccounting_System_Used))) then
           begin
 
             if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
@@ -778,7 +767,7 @@ begin
               NewID := MyClient.clExtra.ceBGLFundIDSelected;
               sName := 'Fund';
             end
-            else if IsMYOBLedger(clAccounting_System_Used) then
+            else if IsMYOBLedger(clCountry, clAccounting_System_Used) then
             begin
               NewID := MyClient.clExtra.cemyMYOBClientIDSelected;
               sName := 'Client';
@@ -794,7 +783,7 @@ begin
                                 ( Trim(NewId) <> Trim(OldID) );
 
             if RefreshYourChart and
-               (IsMYOBLedger(clAccounting_System_Used)) then
+               (IsMYOBLedger(clCountry, clAccounting_System_Used)) then
             begin
               RefreshYourChart := CheckFormyMYOBTokens;
 
@@ -810,7 +799,7 @@ begin
 
             if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
             begin
-              if IsMYOBLedger(clAccounting_System_Used) then
+              if IsMYOBLedger(clCountry, clAccounting_System_Used) then
                 Import32.RefreshChart // Practice Ledger
               else
                 RefreshChart; // BGL 360
