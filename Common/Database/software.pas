@@ -24,7 +24,12 @@ type
 {  ---------------------------------------------------------  }
 Function CanExtractData( aCountry, aType : Byte ): Boolean;
 Function CanExtractInNewFormat( aCountry, aType : Byte ): Boolean;
+
+// BGL 360 Related
+function IsBGL360( aCountry, aSystem : byte) : boolean;
 Function CanExtractAccountNumberAs( aCountry, aType : Byte ) : boolean;
+
+
 Function ContraCodeRequired( aCountry, aType : Byte ): Boolean;
 //Function FloppyDiskRequired( aCountry, aType : Byte ): Boolean;
 Function IsHAPAS( aCountry, aType : Byte ): Boolean;
@@ -130,6 +135,23 @@ Begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsBGL360( aCountry, aSystem : byte) : boolean;
+begin
+   result := false;
+   Case aCountry of
+      whNewZealand   : result := false;
+      whAustralia    : If aSystem in [ saBGL360 ] then
+                          result := true;
+   end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//***************************************************************************//
+// NB!!! This code has had to be duplicated in the                           //
+// BulkExport/ExtractBGL360.pas file, for the BBE_BGL360 Bulk Export DLL.    //
+// The reason is because this unit includes presentation layer unit's in     //
+// it's uses clause  - DN 30/11/2015                                         //
+//***************************************************************************//
 Function CanExtractAccountNumberAs( aCountry, aType : Byte ) : boolean;
 begin
    result := false;
