@@ -29,7 +29,8 @@ uses
   StDateSt,
   SysUtils,
   OmniXMLUtils,
-  Classes;
+  Classes;     //,
+/////////////////  Software;
 
 const
   BGL360 = 0;
@@ -49,6 +50,7 @@ var // General Extract vars
    //Export Specific
    CurrentClientCode: string;
    CurrentAccount: string;
+//   ExtractAccountAs: string;
    OpenBalance: string;
    BalanceDate: string;
    CurrentContra: string;
@@ -57,6 +59,64 @@ var // General Extract vars
 
 var
    FExtractFieldHelper: TExtractFieldHelper;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//***************************************************************************//
+// NB!!! This code has had to be duplicated from the Database/Software.pas   //
+// file. The reason is because that unit includes presentation layer unit's  //
+// in it's uses clause  - DN 30/11/2015                                      //
+//***************************************************************************//
+Function CanExtractAccountNumberAs( aCountry, aType : Byte ) : boolean;
+begin
+   result := false;
+   Case aCountry of
+      whNewZealand   : result := false;
+      whAustralia    : If aType in [ saBGL360 ] then
+                          result := true;
+   end;
+end;
+
+(**********************************************
+procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs, aBankAccountNumber: string; var aBSB, aAccountNumber : string );
+var
+  lsBSB,
+  lsAccountNumber : string;
+
+  function StripOutBSBAndAccountNum( aInStr : string; var aBSB, aAccountNumber : string ) : boolean;
+  begin
+    result := false;
+    aInStr := Trim( aInStr );
+    if length( aInStr ) < 7 then // String is too short
+      exit
+    else begin
+      aBSB := copy( aInStr, 1, 6 ); // BSB Number is the first 6 characters
+      aAccountNumber := copy( aInStr, 7, length( aInStr ) ); // Account Number is the rest
+      result := ( length( aBSB ) > 0 ) and ( length( aAccountNumber ) > 0 );
+    end;
+  end;
+begin
+  aExtractAccountNumberAs :=                                         // Get the ExtractAccountNumberAS regardless
+    StringReplace( aExtractAccountNumberAs, ' ', '',
+      [ rfReplaceAll, rfIgnoreCase ] );
+
+  ProcessDiskCode( trim( aBankAccountNumber ),
+    lsBSB, lsAccountNumber);                                         // Get the normal Bank Account number
+
+  if
+
+     {**************************************************************************
+     (not CanExtractAccountNumberAs(                        // ExtractAccountNumberAs field CANNOT be used, get Normals
+            MyClient.clFields.clCountry,
+            MyClient.clFields.clAccounting_System_Used) ) or          // Else ExtractAccountNumberAs field can be used BUT,
+     **************************************************************************}
+
+     ( aExtractAccountNumberAs = '' ) or                            // ExtractAccountNumberAs is blank
+     ( not StripOutBSBAndAccountNum(                                // ExtractAccountNumberAs field can be used BUT is in the incorrect format
+             aExtractAccountNumberAs, aBSB, aAccountNumber ) ) then begin
+    aBSB           := lsBSB;                                         // Use the normal BSB number
+    aAccountNumber := lsAccountNumber;                               // Use the normal Bank Account number
+  end;
+end; ******************************************************)
 
 function  ExtractFieldHelper: TExtractFieldHelper;
 begin
@@ -377,11 +437,12 @@ var
   end;
 
 begin
-  ExtractFieldHelper.SetFields(Session.Data);
-  CurrentAccount := ExtractFieldHelper.GetField(f_Number);
-  AccountType := ExtractFieldHelper.GetField(f_AccountType);
+  ExtractFieldHelper.SetFields( Session.Data );
+  CurrentAccount := ExtractFieldHelper.GetField( f_Number );
+//  ExtractAccountAs := ExtractFieldHelper.GetField( f_ExtractNumberAs );
+  AccountType := ExtractFieldHelper.GetField( f_AccountType );
 
-  if (AccountType <> IntToStr(btBank)) then
+  if (AccountType <> IntToStr( btBank )) then
   begin
     Result := er_OK;
     Exit; // Don't include journals
@@ -424,6 +485,7 @@ const // from bkConst // did not want to link it in...
    btOpeningBalances = 5;          //non transferring
    btYearEndAdjustments = 6;       //non transferring
    btStockBalances = 7;
+
 
 procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; TestRun: boolean = false);
 var
@@ -468,7 +530,8 @@ var
               Break; // Thats all we can fit..
         end;
      end;
-     AddField('Other_Reference',id);
+//BulkExtract     AddField('Other_Reference',id);
+     AddField('Unique_Reference',id);
   end;
 
   procedure AddCode(const Value: string);
@@ -517,59 +580,73 @@ begin
 
   LTrans := TransactionsNode.AppendChild(FOutputDocument.CreateElement('Transaction'));
 
-   with ExtractFieldHelper do begin
-     AddField('Transaction_Type','Other Transaction');
-     AddField('Account_Code_Type','Simple Fund');
+  with ExtractFieldHelper do begin
+//BulkExtract    AddField('Transaction_Type','Other_Transaction');
+    AddField('Transaction_Type','Bank_Transaction');
+//BulkExtract    AddField('Account_Code_Type','Simple Fund');
 
-     if TestRun then
-       SetFields(Session.Data);
+    if TestRun then
+      SetFields(Session.Data);
 
-     AddGuid(Uppercase(GetField(f_TransID)));
+    AddGuid(Uppercase(GetField(f_TransID)));
 
-     ProcessDiskCode(CurrentAccount, BSB, AccountNum);
-     AddField('BSB', BSB);
-     AddField('Bank_Account_No', AccountNum);
 
-     AddField('Transaction_Source','Bank Statement');
+    // BSB and Bank_Account_No
 
-     if Session.AccountType in [btBank,btCashJournals] then
-        AddField('Cash','Cash')
-     else
-        AddField('Cash','Non Cash');
+    ProcessDiskCode(CurrentAccount, BSB, AccountNum);
 
-     AddCode(GetField(f_Code));
+(*******************************************************************************
+    RetrieveBSBAndAccountNum(
+      TBank_Account(Transaction^.txBank_Account).baFields.baExtract_Account_Number,
+      TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+      BSB, AccountNum );
 
-     AddField('Transaction_Date',GetField(f_Date));
+////////////////////////////////////////////////////////////////////////////////    RetrieveBSBAndAccountNum( CurrentAccount, CurrentAccount, BSB, AccountNum );
+*******************************************************************************)
 
-     AddText;
+    AddField('BSB', BSB);
+    AddField('Bank_Account_No', AccountNum);
 
-     AddField('Amount',GetField(f_amount, '0'), True);
-     AddField('GST',GetField(f_tax));
-     AddTaxClass(GetField(f_TaxCode));
+//BulkExtract    AddField('Transaction_Source','Bank Statement');
 
-     AddField('Quantity',GetField(f_Quantity));
+//BulkExtract    if Session.AccountType in [btBank,btCashJournals] then
+//BulkExtract       AddField('Cash','Cash')
+//BulkExtract    else
+//BulkExtract       AddField('Cash','Non Cash');
 
-     // Supper fields
-     AddField('CGT_Transaction_Date',GetField(f_CGTDate));
-     AddField('Franked_Dividend',GetField(f_Franked));
-     AddField('UnFranked_Dividend',GetField(f_UnFranked));
-     AddField('Imputation_Credit',GetField(f_Imp_Credit));
+//BulkExtract    AddCode(GetField(f_Code));
 
-     AddField('Tax_Free_Distribution',GetField(f_TF_Dist));
+    AddField('Transaction_Date',GetField(f_Date));
 
-     AddField('Tax_Exempt_Distribution',GetField(f_TE_Dist));
-     AddField('Tax_Defered_Distribution',GetField(f_TD_Dist));
-     AddField('TFN_Credit',GetField(f_TFN_Credit));
-     AddField('Foreign_Income',GetField(f_Frn_Income));
-     AddField('Foreign_Credit',GetField(f_Frn_Credit));
+    AddText;
 
-     AddField('Expenses',GetField(f_OExpences));
+    AddField('Amount',GetField(f_amount, '0'), True);
+    AddField('GST',GetField(f_tax));
+    AddTaxClass(GetField(f_TaxCode));
 
-     AddField('Indexed_Capital_Gain',GetField(f_CGI));
-     AddField('Discount_Capital_Gain',GetField(f_CGD));
-     AddField('Other_Capital_Gain',GetField(f_CGO));
-     AddField('Member_Component',GetField(f_MemComp));
-   end;
+    AddField('Quantity',GetField(f_Quantity));
+
+    // Supper fields
+    AddField('CGT_Transaction_Date',GetField(f_CGTDate));
+    AddField('Franked_Dividend',GetField(f_Franked));
+    AddField('UnFranked_Dividend',GetField(f_UnFranked));
+    AddField('Imputation_Credit',GetField(f_Imp_Credit));
+
+    AddField('Tax_Free_Distribution',GetField(f_TF_Dist));
+
+    AddField('Tax_Exempt_Distribution',GetField(f_TE_Dist));
+    AddField('Tax_Defered_Distribution',GetField(f_TD_Dist));
+    AddField('TFN_Credit',GetField(f_TFN_Credit));
+    AddField('Foreign_Income',GetField(f_Frn_Income));
+    AddField('Foreign_Credit',GetField(f_Frn_Credit));
+
+    AddField('Expenses',GetField(f_OExpences));
+
+    AddField('Indexed_Capital_Gain',GetField(f_CGI));
+    AddField('Discount_Capital_Gain',GetField(f_CGD));
+    AddField('Other_Capital_Gain',GetField(f_CGO));
+    AddField('Member_Component',GetField(f_MemComp));
+  end;
 
    if TestRun then
      TestNode := TransactionsNode;

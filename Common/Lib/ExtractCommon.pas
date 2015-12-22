@@ -24,6 +24,9 @@ uses
    Windows, graphics, SysUtils;
 
 procedure ProcessDiskCode(InputString: string; var Bsb, AccountNum: string);
+procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs,
+            aBankAccountNumber: string; aCanExtractAccountNumberAs : boolean;
+            var aBSB, aAccountNumber : string );
 function FormatFloatForXml(AFloat: comp; ADecimalPlaces: integer = 2;
                            AdivBy: integer = 100; AllowZero: boolean = False;
                            NeedCommaSeparator:Boolean=False): string;
@@ -194,6 +197,9 @@ const
   f_ForeignCGCredit = 'SFForeignCGCredit'; //Foreign Capital Gains Credit
   f_NonResidentTax  = 'SFNonResidentTax';  //Non Resident Tax
 
+  f_ExtractNumberAs = 'ExtractNumberAs'; // The account number to use when extracting (initially only BGL 360)
+
+
   f_CGFraction      = 'CGFrac';     // Capital Gains Fraction;
 
   f_Country      = 'Country';
@@ -308,6 +314,44 @@ begin
   begin
     Bsb := Copy(InputStringNumericOnly, 1, 6);
     AccountNum := Copy(InputStringNumericOnly, 7);
+  end;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs,
+            aBankAccountNumber: string; aCanExtractAccountNumberAs : boolean;
+            var aBSB, aAccountNumber : string );
+var
+  lsBSB,
+  lsAccountNumber : string;
+
+  function StripOutBSBAndAcctNo( aInStr : string; var aBSB, aAccountNumber : string ) : boolean;
+  begin
+    result := false;
+    aInStr := Trim( aInStr );
+    if length( aInStr ) < 7 then // String is too short
+      exit
+    else begin
+      aBSB := copy( aInStr, 1, 6 ); // BSB Number is the first 6 characters
+      aAccountNumber := copy( aInStr, 7, length( aInStr ) ); // Account Number is the rest
+      result := ( length( aBSB ) > 0 ) and ( length( aAccountNumber ) > 0 );
+    end;
+  end;
+begin
+  aExtractAccountNumberAs :=                     // Get the ExtractAccountNumberAS regardless
+    StringReplace( aExtractAccountNumberAs, ' ', '',
+      [ rfReplaceAll, rfIgnoreCase ] );
+
+  ProcessDiskCode( trim( aBankAccountNumber ),
+    lsBSB, lsAccountNumber);                     // Get the normal Bank Account number
+
+  if ( not aCanExtractAccountNumberAs )          // ExtractAccountNumberAs field CANNOT be used, get Normals
+     (***********)   or   (***********)          // Else ExtractAccountNumberAs field can be used BUT,
+     ( aExtractAccountNumberAs = '' ) or         // ExtractAccountNumberAs is blank
+     ( not StripOutBSBAndAcctNo(                 // ExtractAccountNumberAs field can be used BUT is in the incorrect format
+             aExtractAccountNumberAs, aBSB, aAccountNumber ) ) then begin
+    aBSB           := lsBSB;                     // Use the normal BSB number
+    aAccountNumber := lsAccountNumber;           // Use the normal Bank Account number
   end;
 end;
 

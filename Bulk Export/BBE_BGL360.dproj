@@ -3,28 +3,30 @@
   <PropertyGroup>
     <ProjectGuid>{7016e59e-9945-40cf-9ef0-51e7022e60fe}</ProjectGuid>
     <MainSource>BBE_BGL360.dpr</MainSource>
-    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
     <DCC_DependencyCheckOutputName>..\Binaries\BBE_BGL360.dll</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_DebugInformation>False</DCC_DebugInformation>
-    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
-    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
     <DCC_Define>RELEASE</DCC_Define>
-    <DCC_ExeOutput>..\Binaries</DCC_ExeOutput>
+    <DCC_ExeOutput>C:\Testing\DOWDLE_5.28.0.5855_UpToDate</DCC_ExeOutput>
     <DCC_DcuOutput>..\DCU</DCC_DcuOutput>
     <DCC_ObjOutput>..\DCU</DCC_ObjOutput>
     <DCC_HppOutput>..\DCU</DCC_HppOutput>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_DcpOutput>..\DCU</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\Common\Lib;..\Components\SysTools;..\Common\Database</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Common\Lib;..\Components\SysTools;..\Common\Database</DCC_ResourcePath>
-    <DCC_ObjPath>..\Common\Lib;..\Components\SysTools;..\Common\Database</DCC_ObjPath>
-    <DCC_IncludePath>..\Common\Lib;..\Components\SysTools;..\Common\Database</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;C:\DCU;#..\Common\Lib;#..\Components\SysTools;#..\Common\Database;...$(Common)\Core;...$(Dev)\Practice\Win32;...$(Dev)\Practice\Forex;...$(Dev)\Practice\BConnect;C:\TFS\Practice\Dev\Common\Lib;C:\TFS\Practice\Dev\Common\Database;C:\TFS\Practice\Dev\Components\SysTools</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;C:\DCU;#..\Common\Lib;#..\Components\SysTools;#..\Common\Database;...$(Common)\Core;...$(Dev)\Practice\Win32;...$(Dev)\Practice\Forex;...$(Dev)\Practice\BConnect;C:\TFS\Practice\Dev\Common\Lib;C:\TFS\Practice\Dev\Common\Database;C:\TFS\Practice\Dev\Components\SysTools</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;C:\DCU;#..\Common\Lib;#..\Components\SysTools;#..\Common\Database;...$(Common)\Core;...$(Dev)\Practice\Win32;...$(Dev)\Practice\Forex;...$(Dev)\Practice\BConnect;C:\TFS\Practice\Dev\Common\Lib;C:\TFS\Practice\Dev\Common\Database;C:\TFS\Practice\Dev\Components\SysTools</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;C:\DCU;#..\Common\Lib;#..\Components\SysTools;#..\Common\Database;...$(Common)\Core;...$(Dev)\Practice\Win32;...$(Dev)\Practice\Forex;...$(Dev)\Practice\BConnect;C:\TFS\Practice\Dev\Common\Lib;C:\TFS\Practice\Dev\Common\Database;C:\TFS\Practice\Dev\Components\SysTools</DCC_IncludePath>
     <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
+    <DCC_DebugVN>True</DCC_DebugVN>
+    <DCC_MapFile>3</DCC_MapFile>
+    <DCC_RemoteDebug>True</DCC_RemoteDebug>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
@@ -35,16 +37,17 @@
     <DCC_HppOutput>..\DCU</DCC_HppOutput>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_DcpOutput>..\DCU</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\Common\Lib</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Common\Lib</DCC_ResourcePath>
-    <DCC_ObjPath>..\Common\Lib</DCC_ObjPath>
-    <DCC_IncludePath>..\Common\Lib</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\Common\Lib;..\Common\Database</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\Common\Lib;..\Common\Database</DCC_ResourcePath>
+    <DCC_ObjPath>..\Common\Lib;..\Common\Database</DCC_ObjPath>
+    <DCC_IncludePath>..\Common\Lib;..\Common\Database</DCC_IncludePath>
+    <DCC_Optimize>False</DCC_Optimize>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
-<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters><Parameters Name="HostApplication">C:\Practice test\DOWDLE_5.25.0.5099\BK5WIN.EXE</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters><Parameters Name="HostApplication">C:\Testing\DOWDLE_5.28.0.5855_UpToDate\BK5WIN.EXE</Parameters><Parameters Name="DebugCWD">C:\Testing\DOWDLE_5.28.0.5855_UpToDate</Parameters><Parameters Name="DebugSourceDirs">..\Common\Lib;..\Components\SysTools;..\Common\Database;...$(Common)\Core;...$(Dev)\Practice\Win32;...$(Dev)\Practice\Forex;...$(Dev)\Practice\BConnect</Parameters></Parameters><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">5129</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Excluded_Packages>
       
       
       
@@ -54,7 +57,63 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\5.0\Bpl\S403_r70.bpl">TurboPower SysTools 4.03 Run-time package - VCL70</Excluded_Packages>
+      <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\5.0\Bpl\P164_R70.bpl">TurboPower OfficePartner 1.64 Run-time package - VCL70</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
       <Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+      <Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
     </Excluded_Packages><Source><Source Name="MainSource">BBE_BGL360.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
   <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
@@ -64,6 +123,10 @@
     </DelphiCompile>
     <DCCReference Include="..\Common\Lib\ExtractCommon.pas" />
     <DCCReference Include="..\Common\Lib\ExtractHelpers.pas" />
+    <DCCReference Include="C:\Common\Lib\ExtractCommon.pas" />
+    <DCCReference Include="C:\Common\Lib\ExtractHelpers.pas" />
+    <DCCReference Include="Common\Lib\ExtractCommon.pas" />
+    <DCCReference Include="Common\Lib\ExtractHelpers.pas" />
     <DCCReference Include="ExtractBGL360.pas" />
     <DCCReference Include="ExtractHelpers.pas">
       <Form>$R *.res</Form>
