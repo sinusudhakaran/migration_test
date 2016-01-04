@@ -584,15 +584,15 @@ begin
 
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
-    HelpfulErrorMsg('Online Firm should be associated before a refresh chart!',
-                      0, false, 'Make sure admin user setup an Online ledger firm before you do a refrsh chart', true);
+    //HelpfulErrorMsg('Online Firm should be associated before a refresh chart!',
+        //              0, false, 'Make sure admin user setup an Online ledger firm before you do a refrsh chart', true);
     Exit;
   end;
 
   if Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '' then
   begin
-    HelpfulErrorMsg('MYOB online client should be associated before exporting data!',
-                      0, false, 'Make sure you select an Online ledger client before you export data to Online Ledger', true);
+    //HelpfulErrorMsg('MYOB online client should be associated before exporting data!',
+        //              0, false, 'Make sure you select an Online ledger client before you export data to Online Ledger', true);
     Exit;
   end;
 
