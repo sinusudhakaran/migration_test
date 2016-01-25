@@ -257,7 +257,8 @@ var
   SubCode            : string;
   CodeIsActive       : boolean;
   OldTransaction     : pTransaction_Rec;
-
+  DissectionList : TList;
+  FreeTempDissections : Boolean;
   procedure Local_Copy_Transaction_Rec(P1, P2: pTransaction_Rec);
   var
     S: TIOStream;
@@ -307,7 +308,7 @@ begin
   CodeIsActive := true;
   Mask := ConstStr( '#', MaxBk5CodeLen );
   SubCode := '';
-
+  FreeTempDissections := False;
   OldTransaction := BKTXIO.New_Transaction_Rec;
   try
 //    BKTXIO.Copy_Transaction_Rec(aTransaction, OldTransaction);
@@ -408,8 +409,11 @@ begin
            txJob_Code := '';  Job is not Blanked }
 
         AuditIDList := TList.Create;
+        DissectionList := TList.create;
         try
           //Remove any dissections
+          Copy_Dissections_Temporarily(aTransaction, DissectionList);
+          FreeTempDissections := True;
           Dump_Dissections( aTransaction, AuditIDList );
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -652,7 +656,7 @@ begin
                                dsSF_Transaction_ID       := MemorisationLine.mlSF_Trans_ID;
                                dsSF_Transaction_Code     := MemorisationLine.mlSF_Trans_Code;
                                dsSF_Member_Component     := MemorisationLine.mlSF_Member_Component;
-                            // Additional BGL360 fields
+                               // Additional BGL360 fields
                                dsDissection_Extension^.deSF_Accrual_Date                         :=
                                  MemorisationLine.mlSF_Accrual_Date;
                                dsDissection_Extension^.deSF_Cash_Date                            :=
@@ -987,7 +991,30 @@ begin
           begin
             BKTXIO.Free_Transaction_Rec_Dynamic_Fields( aTransaction^);
             Local_Copy_Transaction_Rec(OldTransaction, aTransaction);
+            if (Assigned(DissectionList) and (DissectionList.Count > 0)) then
+            begin
+              ReAssign_Dissections(aTransaction, DissectionList);
+              FreeTempDissections := False;
+            end;
           end;
+        end;
+
+        // Free temporarily added dissections
+        if Assigned(DissectionList) then
+        begin
+          if FreeTempDissections then
+          begin
+            //delete each dissection
+            for i := 0 to DissectionList.Count - 1 do
+            begin
+              Dispose_Dissection_Rec(DissectionList.Items[i]);
+            end;
+          end;
+
+          // clear the dissection list and frre the list
+          DissectionList.Clear;
+          if Assigned(DissectionList) then
+            FreeAndNil(DissectionList);
         end;
 
         if (OldTranAccount <> txAccount) or

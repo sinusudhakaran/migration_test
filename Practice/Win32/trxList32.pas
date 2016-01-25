@@ -134,7 +134,11 @@ type
   end;
 
   procedure Dispose_Transaction_Rec(p: pTransaction_Rec);
+  procedure Dispose_Dissection_Rec(p : PDissection_Rec);
   procedure Dump_Dissections(var p : pTransaction_Rec; AAuditIDList: TList = nil);
+  procedure Copy_Dissection(var aSource , aDest : pDissection_Rec);
+  procedure Copy_Dissections_Temporarily(P: pTransaction_Rec; DissectionList :TList);
+  procedure ReAssign_Dissections(P: pTransaction_Rec; DissectionList :TList);
   procedure AppendDissection( T : pTransaction_Rec; D : pDissection_Rec;
                              AClientAuditManager: TClientAuditManager = nil );
 
@@ -307,6 +311,153 @@ Begin
       BKTXIO.Free_Transaction_Rec_Dynamic_Fields( P^);
       MALLOC.SafeFreeMem( P, Transaction_Rec_Size );
    end;
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+//------------------------------------------------------------------------------
+procedure Copy_Dissection(var aSource , aDest : pDissection_Rec);
+begin
+  aDest.dsRecord_Type := aSource.dsRecord_Type;
+  aDest.dsSequence_No := aSource.dsSequence_No;
+  aDest.dsAccount := aSource.dsAccount;
+  aDest.dsAmount := aSource.dsAmount;
+  aDest.dsGST_Class := aSource.dsGST_Class;
+  aDest.dsGST_Amount := aSource.dsGST_Amount;
+  aDest.dsQuantity := aSource.dsQuantity;
+  aDest.dsOld_Narration := aSource.dsOld_Narration;
+  aDest.dsHas_Been_Edited := aSource.dsHas_Been_Edited;
+  aDest.dsJournal_Type := aSource.dsJournal_Type;
+  aDest.dsGST_Has_Been_Edited := aSource.dsGST_Has_Been_Edited;
+  aDest.dsPayee_Number := aSource.dsPayee_Number;
+  aDest.dsNotes := aSource.dsNotes;
+  aDest.dsECoding_Import_Notes := aSource.dsECoding_Import_Notes;
+  aDest.dsGL_Narration := aSource.dsGL_Narration;
+  aDest.dsLinked_Journal_Date := aSource.dsLinked_Journal_Date;
+  aDest.dsSF_Imputed_Credit := aSource.dsSF_Imputed_Credit;
+  aDest.dsSF_Tax_Free_Dist := aSource.dsSF_Tax_Free_Dist;
+
+  aDest.dsSF_Tax_Exempt_Dist := aSource.dsSF_Tax_Exempt_Dist;
+  aDest.dsSF_Tax_Deferred_Dist := aSource.dsSF_Tax_Deferred_Dist;
+  aDest.dsSF_TFN_Credits := aSource.dsSF_TFN_Credits;
+  aDest.dsSF_Foreign_Income := aSource.dsSF_Foreign_Income;
+  aDest.dsSF_Foreign_Tax_Credits := aSource.dsSF_Foreign_Tax_Credits;
+  aDest.dsSF_Capital_Gains_Indexed := aSource.dsSF_Capital_Gains_Indexed;
+  aDest.dsSF_Capital_Gains_Disc := aSource.dsSF_Capital_Gains_Disc;
+  aDest.dsSF_Super_Fields_Edited := aSource.dsSF_Super_Fields_Edited;
+  aDest.dsSF_Capital_Gains_Other := aSource.dsSF_Capital_Gains_Other;
+  aDest.dsSF_Other_Expenses := aSource.dsSF_Other_Expenses;
+  aDest.dsSF_CGT_Date := aSource.dsSF_CGT_Date;
+  aDest.dsExternal_GUID := aSource.dsExternal_GUID;
+  aDest.dsDocument_Title := aSource.dsDocument_Title;
+
+  aDest.dsDocument_Status_Update_Required := aSource.dsDocument_Status_Update_Required;
+  aDest.dsNotes_Read := aSource.dsNotes_Read;
+  aDest.dsImport_Notes_Read := aSource.dsImport_Notes_Read;
+  aDest.dsReference := aSource.dsReference;
+  aDest.dsSF_Franked := aSource.dsSF_Franked;
+  aDest.dsSF_Unfranked := aSource.dsSF_Unfranked;
+  aDest.dsSF_Interest := aSource.dsSF_Interest;
+  aDest.dsSF_Capital_Gains_Foreign_Disc := aSource.dsSF_Capital_Gains_Foreign_Disc;
+  aDest.dsSF_Rent := aSource.dsSF_Rent;
+  aDest.dsSF_Special_Income := aSource.dsSF_Special_Income;
+
+  aDest.dsSF_Other_Tax_Credit := aSource.dsSF_Other_Tax_Credit;
+  aDest.dsSF_Non_Resident_Tax := aSource.dsSF_Non_Resident_Tax;
+  aDest.dsSF_Member_ID := aSource.dsSF_Member_ID;
+  aDest.dsSF_Foreign_Capital_Gains_Credit := aSource.dsSF_Foreign_Capital_Gains_Credit;
+  aDest.dsSF_Member_Component := aSource.dsSF_Member_Component;
+  aDest.dsPercent_Amount := aSource.dsPercent_Amount;
+  aDest.dsAmount_Type_Is_Percent := (aDest.dsPercent_Amount <> 0);
+  aDest.dsSF_Fund_ID := aSource.dsSF_Fund_ID;
+  aDest.dsSF_Member_Account_ID := aSource.dsSF_Member_Account_ID;
+  aDest.dsSF_Fund_Code := aSource.dsSF_Fund_Code;
+  aDest.dsSF_Member_Account_Code := aSource.dsSF_Member_Account_Code;
+  aDest.dsSF_Transaction_ID := aSource.dsSF_Transaction_ID;
+  aDest.dsSF_Transaction_Code := aSource.dsSF_Transaction_Code;
+  aDest.dsSF_Capital_Gains_Fraction_Half := aSource.dsSF_Capital_Gains_Fraction_Half;
+  aDest.dsAudit_Record_ID := aSource.dsAudit_Record_ID;
+  aDest.dsJob_Code := aSource.dsJob_Code;
+  aDest.dsTax_Invoice := aSource.dsTax_Invoice;
+  aDest.dsForex_Conversion_Rate := aSource.dsForex_Conversion_Rate;
+  aDest.dsForeign_Currency_Amount := aSource.dsForeign_Currency_Amount;
+  aDest.dsForex_Document_Date := aSource.dsForex_Document_Date;
+  aDest.dsOpening_Balance_Currency := aSource.dsOpening_Balance_Currency;
+  aDest.dsTemp_Base_Amount := aSource.dsTemp_Base_Amount;
+
+  if Assigned(aSource.dsDissection_Extension) then
+  begin
+    if not Assigned(aDest.dsDissection_Extension) then
+      aDest.dsDissection_Extension := Create_New_Dissection_Extension;
+      
+    aDest.dsDissection_Extension.deRecord_Type := aSource.dsDissection_Extension.deRecord_Type;
+    aDest.dsDissection_Extension.deSequence_No := aSource.dsDissection_Extension.deSequence_No;
+    aDest.dsDissection_Extension.deSF_Other_Income := aSource.dsDissection_Extension.deSF_Other_Income;
+    aDest.dsDissection_Extension.deSF_Other_Trust_Deductions := aSource.dsDissection_Extension.deSF_Other_Trust_Deductions;
+    aDest.dsDissection_Extension.deSF_CGT_Concession_Amount := aSource.dsDissection_Extension.deSF_CGT_Concession_Amount;
+    aDest.dsDissection_Extension.deSF_CGT_ForeignCGT_Before_Disc := aSource.dsDissection_Extension.deSF_CGT_ForeignCGT_Before_Disc;
+    aDest.dsDissection_Extension.deSF_CGT_ForeignCGT_Indexation := aSource.dsDissection_Extension.deSF_CGT_ForeignCGT_Indexation;
+    aDest.dsDissection_Extension.deSF_CGT_ForeignCGT_Other_Method := aSource.dsDissection_Extension.deSF_CGT_ForeignCGT_Other_Method;
+    aDest.dsDissection_Extension.deSF_CGT_TaxPaid_Indexation := aSource.dsDissection_Extension.deSF_CGT_TaxPaid_Indexation;
+    aDest.dsDissection_Extension.deSF_CGT_TaxPaid_Other_Method := aSource.dsDissection_Extension.deSF_CGT_TaxPaid_Other_Method;
+    aDest.dsDissection_Extension.deSF_Other_Net_Foreign_Income := aSource.dsDissection_Extension.deSF_Other_Net_Foreign_Income;
+    aDest.dsDissection_Extension.deSF_Cash_Distribution := aSource.dsDissection_Extension.deSF_Cash_Distribution;
+    aDest.dsDissection_Extension.deSF_AU_Franking_Credits_NZ_Co := aSource.dsDissection_Extension.deSF_AU_Franking_Credits_NZ_Co;
+    aDest.dsDissection_Extension.deSF_Non_Res_Witholding_Tax := aSource.dsDissection_Extension.deSF_Non_Res_Witholding_Tax;
+    aDest.dsDissection_Extension.deSF_LIC_Deductions := aSource.dsDissection_Extension.deSF_LIC_Deductions;
+    aDest.dsDissection_Extension.deSF_Non_Cash_CGT_Discounted_Before_Discount := aSource.dsDissection_Extension.deSF_Non_Cash_CGT_Discounted_Before_Discount;
+    aDest.dsDissection_Extension.deSF_Non_Cash_CGT_Indexation := aSource.dsDissection_Extension.deSF_Non_Cash_CGT_Indexation;
+    aDest.dsDissection_Extension.deSF_Non_Cash_CGT_Other_Method := aSource.dsDissection_Extension.deSF_Non_Cash_CGT_Other_Method;
+    aDest.dsDissection_Extension.deSF_Non_Cash_CGT_Capital_Losses := aSource.dsDissection_Extension.deSF_Non_Cash_CGT_Capital_Losses;
+    aDest.dsDissection_Extension.deSF_Share_Brokerage := aSource.dsDissection_Extension.deSF_Share_Brokerage;
+    aDest.dsDissection_Extension.deSF_Share_Consideration := aSource.dsDissection_Extension.deSF_Share_Consideration;
+    aDest.dsDissection_Extension.deSF_Share_GST_Amount := aSource.dsDissection_Extension.deSF_Share_GST_Amount;
+    aDest.dsDissection_Extension.deSF_Share_GST_Rate := aSource.dsDissection_Extension.deSF_Share_GST_Rate;
+    aDest.dsDissection_Extension.deSF_Cash_Date := aSource.dsDissection_Extension.deSF_Cash_Date;
+    aDest.dsDissection_Extension.deSF_Accrual_Date := aSource.dsDissection_Extension.deSF_Accrual_Date;
+    aDest.dsDissection_Extension.deSF_Record_Date := aSource.dsDissection_Extension.deSF_Record_Date;
+    aDest.dsDissection_Extension.deSF_Contract_Date := aSource.dsDissection_Extension.deSF_Contract_Date;
+    aDest.dsDissection_Extension.deSF_Settlement_Date := aSource.dsDissection_Extension.deSF_Settlement_Date;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure ReAssign_Dissections(P: pTransaction_Rec; DissectionList :TList);
+var
+  i : Integer;
+begin
+  P^.txFirst_Dissection := nil;
+  P^.txLast_Dissection := nil;
+  for i := 0 to DissectionList.Count - 1 do
+  begin
+    AppendDissection(P, DissectionList.Items[i], nil );
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Copy_Dissections_Temporarily(P: pTransaction_Rec; DissectionList :TList);
+const
+  ThisMethodName = 'Copy_Dissections_Temporarily';
+Var
+   This, New : pDissection_Rec;
+   Next : pDissection_Rec;
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+
+   if ( BKTXIO.IsATransaction_Rec( P ) )  then With P^ do
+   Begin
+      This := pDissection_Rec( txFirst_Dissection );
+      if This <> nil then
+      begin
+        while (This <> nil ) do
+        Begin
+          New := New_Dissection_Rec;
+          Copy_Dissection(This, New);
+          DissectionList.Add(New);
+
+          Next := pDissection_Rec( This^.dsNext );
+          This := Next;
+        end;
+      end;
+   end;
+
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 //------------------------------------------------------------------------------
