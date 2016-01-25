@@ -51,10 +51,13 @@ type
     procedure TestExactMatchWithTwoDifferantCodes;
     procedure TestExactMatchWithDifferantCodedby;
     procedure TestTransactionCodedEdit;
+    procedure TestTransactionUnCodedEdit;
+    procedure TestTransactionDelete;
     procedure TestSuggestionBeingMemorized;
     procedure TestSuggestionWithInActiveChartCode;
     procedure TestSuggestionWithInValidChartCode;
     procedure TestSuggestionIgnoreList;
+    procedure TestSuggestionListAndCountMethodsAreTheSame;
     procedure TestMultipleSuggestions;
   end;
 
@@ -84,6 +87,13 @@ const
   Apr05_2004 = Apr01_2004 + 4;
 
 { TSuggestedMemsTestCase }
+//------------------------------------------------------------------------------
+procedure TSuggestedMemsTestCase.RunAllmMemScan;
+begin
+  while (fBankAcc01.baFields.baSuggested_UnProcessed_Count > 0) do
+    SuggestedMem.RunMemScan();
+end;
+
 //------------------------------------------------------------------------------
 function TSuggestedMemsTestCase.GetNextGuid: string;
 begin
@@ -272,10 +282,15 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMemsTestCase.RunAllmMemScan;
+procedure TSuggestedMemsTestCase.UpdateTransaction(aTranIndex : integer; aAccountCode : string; aCodedBy : byte);
+var
+  TranRec : pTransaction_Rec;
 begin
-  while (fBankAcc01.baFields.baSuggested_UnProcessed_Count > 0) do
-    SuggestedMem.RunMemScan();
+  TranRec := fBankAcc01.baTransaction_List.Transaction_At(aTranIndex);
+  TranRec^.txAccount  := aAccountCode;
+  TranRec^.txCoded_By := aCodedBy;
+
+  SuggestedMem.SetSuggestedTransactionState(fBankAcc01, TranRec, tssUnScanned, true);
 end;
 
 //------------------------------------------------------------------------------
@@ -457,18 +472,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TSuggestedMemsTestCase.UpdateTransaction(aTranIndex : integer; aAccountCode : string; aCodedBy : byte);
-var
-  TranRec : pTransaction_Rec;
-begin
-  TranRec := fBankAcc01.baTransaction_List.Transaction_At(aTranIndex);
-  TranRec^.txAccount  := aAccountCode;
-  TranRec^.txCoded_By := aCodedBy;
-
-  SuggestedMem.SetSuggestedTransactionState(fBankAcc01, TranRec, tssUnScanned, true);
-end;
-
-//------------------------------------------------------------------------------
 procedure TSuggestedMemsTestCase.TestExactMatchWithTwoDifferantCodes;
 var
   SuggMemSortedList : TSuggMemSortedList;
@@ -596,6 +599,87 @@ begin
       Check((SuggMemSortedListRec^.IsExactMatch = true),'This should be an exact match since all statementdetails are the same');
       Check((SuggMemSortedListRec^.IsHidden = false),'IsHidden should be false since this has not been set and defaults to true');
     end;
+  finally
+    FreeAndNil(SuggMemSortedList);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMemsTestCase.TestTransactionUnCodedEdit;
+var
+  SuggMemSortedList : TSuggMemSortedList;
+  SuggMemSortedListRec : pSuggMemSortedListRec;
+  TranIndex : integer;
+begin
+  SuggMemSortedList := TSuggMemSortedList.create;
+
+  try
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetAll(fTestClient);
+    SuggestedMem.StartMemScan(true);
+
+    // Adds 3 exact match transaction and checks that they are added
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-3, -100, '230', cbManual, 'Note 01', 'Big Large Dog', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-2, -110, '230', cbManual, 'Note 01', 'Big Large Dog', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-1, -120, '230', cbManual, 'Note 01', 'Big Large Dog', 1, Round(120 / 9));
+    RunAllmMemScan();
+
+    SuggestedMem.GetSuggestedMems(fBankAcc01, fTestClient.clChart, SuggMemSortedList);
+
+    Check((SuggMemSortedList.ItemCount = 1),'There should only be one Suggestion at this point.');
+
+    for TranIndex := 0 to fBankAcc01.baTransaction_List.ItemCount-1 do
+      UpdateTransaction(TranIndex, '', cbNotCoded);
+
+    RunAllmMemScan();
+
+    SuggMemSortedList.FreeAll();
+    SuggestedMem.GetSuggestedMems(fBankAcc01, fTestClient.clChart, SuggMemSortedList);
+
+    Check((SuggMemSortedList.ItemCount = 0),'There should be no Suggestions since the transactions were uncoded.');
+  finally
+    FreeAndNil(SuggMemSortedList);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TSuggestedMemsTestCase.TestTransactionDelete;
+var
+  SuggMemSortedList : TSuggMemSortedList;
+  SuggMemSortedListRec : pSuggMemSortedListRec;
+  TranIndex : integer;
+begin
+  SuggMemSortedList := TSuggMemSortedList.create;
+
+  try
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetAll(fTestClient);
+    SuggestedMem.StartMemScan(true);
+
+    // Adds 3 exact match transaction and checks that they are added
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-3, -100, '230', cbManual, 'Note 01', 'Big Large Dog', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-2, -110, '230', cbManual, 'Note 01', 'Big Large Dog', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-1, -120, '230', cbManual, 'Note 01', 'Big Large Dog', 1, Round(120 / 9));
+    RunAllmMemScan();
+
+    SuggestedMem.GetSuggestedMems(fBankAcc01, fTestClient.clChart, SuggMemSortedList);
+
+    Check((SuggMemSortedList.ItemCount = 1),'There should only be one Suggestion at this point.');
+
+    for TranIndex := fBankAcc01.baTransaction_List.ItemCount-1 downto 0 do
+    begin
+      SuggestedMem.UpdateAccountWithTransDelete(fBankAcc01, fBankAcc01.baTransaction_List.Transaction_At(TranIndex));
+      fBankAcc01.baTransaction_List.DelFreeItem( fBankAcc01.baTransaction_List.Transaction_At(TranIndex) );
+    end;
+
+    RunAllmMemScan();
+
+    SuggMemSortedList.FreeAll();
+    SuggestedMem.GetSuggestedMems(fBankAcc01, fTestClient.clChart, SuggMemSortedList);
+
+    Check((SuggMemSortedList.ItemCount = 0),'There should be no Suggestions since the transactions were deleted.');
   finally
     FreeAndNil(SuggMemSortedList);
   end;
@@ -749,6 +833,74 @@ begin
     SuggestedMem.GetSuggestedMems(fBankAcc01, fTestClient.clChart, SuggMemSortedList);
 
     Check((SuggMemSortedList.ItemCount = 0),'There should be no Suggestions at this point since the Statement details is in the ignore list.');
+  finally
+    FreeAndNil(SuggMemSortedList);
+  end;
+end;
+
+procedure TSuggestedMemsTestCase.TestSuggestionListAndCountMethodsAreTheSame;
+var
+  SuggMemSortedList : TSuggMemSortedList;
+  SuggMemSortedListRec : pSuggMemSortedListRec;
+begin
+  SuggMemSortedList := TSuggMemSortedList.create;
+
+  try
+    MEMSINI_SupportOptions := meiFullfunctionality;
+    SuggestedMem.SetMainState();
+    SuggestedMem.ResetAll(fTestClient);
+    SuggestedMem.StartMemScan(true);
+
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-200, -100, '230', cbManual, 'Note 01', 'Dog', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-199, -110, '230', cbManual, 'Note 01', 'Dog', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-198, -120, '230', cbManual, 'Note 01', 'Dog', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-197, -100, '230', cbManual, 'Note 01', 'Hello', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-196, -110, '230', cbManual, 'Note 01', 'Hello', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-195, -120, '230', cbManual, 'Note 01', 'Hello', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-194, -100, '230', cbManual, 'Note 01', 'Cat', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-193, -110, '230', cbManual, 'Note 01', 'Cat', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-192, -120, '230', cbManual, 'Note 01', 'Cat', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-191, -100, '230', cbManual, 'Note 01', 'Bye', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-190, -110, '230', cbManual, 'Note 01', 'Bye', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-189, -120, '230', cbManual, 'Note 01', 'Bye', 1, Round(120 / 9));
+
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-188, -100, '230', cbManual, 'Note 01', 'Dog Hello', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-187, -110, '230', cbManual, 'Note 01', 'Dog Hello', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-186, -120, '230', cbManual, 'Note 01', 'Dog Hello', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-185, -100, '230', cbManual, 'Note 01', 'Hello Cat', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-184, -110, '230', cbManual, 'Note 01', 'Hello Cat', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-183, -120, '230', cbManual, 'Note 01', 'Hello Cat', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-182, -100, '230', cbManual, 'Note 01', 'Cat Bye', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-181, -110, '230', cbManual, 'Note 01', 'Cat Bye', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-180, -120, '230', cbManual, 'Note 01', 'Cat Bye', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-179, -100, '230', cbManual, 'Note 01', 'Bye Dog', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-178, -110, '230', cbManual, 'Note 01', 'Bye Dog', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-177, -120, '230', cbManual, 'Note 01', 'Bye Dog', 1, Round(120 / 9));
+
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-176, -100, '230', cbManual, 'Note 01', 'Dog Hello Cat', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-175, -110, '230', cbManual, 'Note 01', 'Dog Hello Cat', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-174, -120, '230', cbManual, 'Note 01', 'Dog Hello Cat', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-173, -100, '230', cbManual, 'Note 01', 'Hello Cat Bye', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-172, -110, '230', cbManual, 'Note 01', 'Hello Cat Bye', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-171, -120, '230', cbManual, 'Note 01', 'Hello Cat Bye', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-170, -100, '230', cbManual, 'Note 01', 'Cat Bye Dog', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-169, -110, '230', cbManual, 'Note 01', 'Cat Bye Dog', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-168, -120, '230', cbManual, 'Note 01', 'Cat Bye Dog', 1, Round(120 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-167, -100, '230', cbManual, 'Note 01', 'Bye Dog Hello', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-166, -110, '230', cbManual, 'Note 01', 'Bye Dog Hello', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-165, -120, '230', cbManual, 'Note 01', 'Bye Dog Hello', 1, Round(120 / 9));
+
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-164, -100, '230', cbManual, 'Note 01', 'Dog Hello Cat Bye', 1, Round(100 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-163, -110, '230', cbManual, 'Note 01', 'Dog Hello Cat Bye', 1, Round(110 / 9));
+    InsertTranIntoAccount(fBankAcc01, CurrentDate()-162, -120, '230', cbManual, 'Note 01', 'Dog Hello Cat Bye', 1, Round(120 / 9));
+
+    RunAllmMemScan();
+
+    SuggestedMem.GetSuggestedMems(fBankAcc01, fTestClient.clChart, SuggMemSortedList);
+
+    Check((SuggMemSortedList.ItemCount = 13),'There should be 13 Suggestions at this point.');
+
+    Check((SuggestedMem.GetSuggestedMemsCount(fBankAcc01, fTestClient.clChart) = 13),'There should be 13 Suggestions at this point.');
   finally
     FreeAndNil(SuggMemSortedList);
   end;
