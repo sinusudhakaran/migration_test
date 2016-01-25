@@ -253,7 +253,10 @@ begin
   Result := 10;
   if ((Data.hWnd <> 0) and
       (SHAppBarMessage(ABM_GETTASKBARPOS, Data) = 1)) then
-    Result := Data.rc.Bottom - Data.rc.Top;
+  begin
+    if Data.rc.Bottom - Data.rc.Top < ((3 div 4) * Screen.Height) then
+      Result := Data.rc.Bottom - Data.rc.Top;
+  end;
 end;
 
 procedure TPromoDisplayFrm.lblLeftArrowClick(Sender: TObject);
