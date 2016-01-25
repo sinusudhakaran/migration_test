@@ -7787,8 +7787,9 @@ procedure TfrmCoding.CloseSuggMemPopup;
 begin
   if Assigned(frmSuggMemPopup) then
     if SuggMemPopup.HandleAllocated then
-      if SuggMemPopup.Showing then
-        SuggMemPopup.Close;
+      if not (fsShowing in SuggMemPopup.FormState) then
+        if SuggMemPopup.Showing then
+          SuggMemPopup.Close;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
