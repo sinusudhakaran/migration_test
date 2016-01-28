@@ -54,6 +54,11 @@ type
              var aCurrentRetries : integer ) : boolean;
 
 implementation
+
+uses
+  WinInet,
+  windows;
+
 const
   unitname = 'uNPSServer';
   DebugAutoSave: Boolean = False;
@@ -69,32 +74,66 @@ type
     procedure Assign(List: TStrings);
   end;
 
+function GetUrlContent(const Url: string): string;
+var
+  NetHandle: HINTERNET;
+  UrlHandle: HINTERNET;
+  Buffer: array[0..1024] of Char;
+  BytesRead: dWord;
+begin
+  Result := '';
+  NetHandle := InternetOpen('Delphi 5.x', INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+
+  if Assigned(NetHandle) then 
+  begin
+    UrlHandle := InternetOpenUrl(NetHandle, PChar(Url), nil, 0, INTERNET_FLAG_RELOAD, 0);
+
+    if Assigned(UrlHandle) then
+      { UrlHandle valid? Proceed with download }
+    begin
+      FillChar(Buffer, SizeOf(Buffer), 0);
+      repeat
+        Result := Result + Buffer;
+        FillChar(Buffer, SizeOf(Buffer), 0);
+        InternetReadFile(UrlHandle, @Buffer, SizeOf(Buffer), BytesRead);
+      until BytesRead = 0;
+      InternetCloseHandle(UrlHandle);
+    end
+    else
+      { UrlHandle is not valid. Raise an exception. }
+      raise Exception.CreateFmt('Cannot open URL %s', [Url]);
+
+    InternetCloseHandle(NetHandle);
+  end
+  else
+    { NetHandle is not valid. Raise an exception }
+    raise Exception.Create('Unable to initialize Wininet');
+end;
+
 function TestForHttpRouteToServer( aServerURL : string; aMaxRetry : integer;
            var aCurrentRetries : integer ) : boolean;
 var
-  FipsHTTPS: TipsHTTPS;              
-
+  Responce : string;
 begin
   result := false;
-  FipsHTTPS:= TipsHTTPS.Create(Nil);
   try
-    try
-      FipsHTTPS.Get( aServerURL );
-      Result := True;
-    except
-      on E: Exception do begin
-        // Do Nothing, suppress the error
-        inc( aCurrentRetries );
-        if aCurrentRetries < aMaxRetry then
-          result := TestForHttpRouteToServer( aServerURL, aMaxRetry, aCurrentRetries )
-        else
-          LogUtil.LogMsg(lmError, UnitName,
-            format( 'Failed to Get %s (LeanEngage site), tried %s time(s), %s',
-              [aServerURL, intToStr( aCurrentRetries ), E.Message ] ) );
-      end;
+    Responce := GetUrlContent( aServerURL );
+
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Responce ' + Responce);
+
+    Result := True;
+  except
+    on E: Exception do begin
+      // Do Nothing, suppress the error
+      inc( aCurrentRetries );
+      if aCurrentRetries < aMaxRetry then
+        result := TestForHttpRouteToServer( aServerURL, aMaxRetry, aCurrentRetries )
+      else
+        LogUtil.LogMsg(lmError, UnitName,
+          format( 'Failed to Get %s (LeanEngage site), tried %s time(s), %s',
+            [aServerURL, intToStr( aCurrentRetries ), E.Message ] ) );
     end;
-  finally
-    freeAndNil( FipsHTTPS );
   end;
 end;
 
