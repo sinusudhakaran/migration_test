@@ -504,6 +504,16 @@ Begin
                               LongToKey( txDate_Effective ) +
                               LongToKey( txSequence_No ); {22}
             end;
+         csDateAndReference :
+          begin
+              Code := GetFormattedReference(p);
+              while Length(Code) < MaxBK5CodeLen do // Make sure are all the same length (weight)
+                 Code := Code + ' ';
+              Result := LongToKey( txBank_Seq ) +
+                        LongToKey( txDate_Effective ) +
+                        Code +
+                        LongToKey ( txSequence_No );
+          end
       else
          begin
             //in the unlikely event of an unknown sort code sort by date
