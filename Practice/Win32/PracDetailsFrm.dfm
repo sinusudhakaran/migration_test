@@ -334,7 +334,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         object lblFirmName: TLabel
           Left = 144
           Top = 112
-          Width = 406
+          Width = 400
           Height = 19
           AutoSize = False
         end

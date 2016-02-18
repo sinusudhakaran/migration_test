@@ -451,6 +451,10 @@ begin
   eMask.Enabled := AccountingSystemSelected;
   lblLoad.Enabled := AccountingSystemSelected and CanRefresh;
   eLoad.Enabled   := AccountingSystemSelected and CanRefresh ;
+
+  lblSave.Enabled := AccountingSystemSelected and CanRefresh;
+  eSave.Enabled   := AccountingSystemSelected and CanRefresh ;
+
   btnLoadFolder.Enabled := AccountingSystemSelected and CanRefresh ;
   btnConnectMYOB.Visible := False;
 
@@ -471,16 +475,15 @@ begin
   end;
   btnLoadFolder.Visible := eLoad.Visible;
 
-  if btnConnectMYOB.Visible then
-  begin
-    lblSave.Visible := False;
-    eSave.Visible := False;
-    btnSaveFolder.Visible := False;
-  end;
+  lblSave.Visible := (not btnConnectMYOB.Visible);
+  eSave.Visible := (not btnConnectMYOB.Visible);
+  btnSaveFolder.Visible := (not btnConnectMYOB.Visible);
 
+  lblFirmName.Visible := False;
   lblFirmName.Caption := '';
   if btnConnectMYOB.Visible then
   begin
+    lblFirmName.Visible := True;
     if Trim(UserINI_myMYOB_Access_Token) = '' then
       btnConnectMYOB.Caption := 'MYOB Login'
     else
