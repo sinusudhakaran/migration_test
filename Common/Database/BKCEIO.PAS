@@ -104,6 +104,8 @@ CONST
    tkceBGLFundNameSelected              = 97 ;
    tkcemyMYOBClientIDSelected           = 98 ;
    tkcemyMYOBClientNameSelected         = 99 ;
+   tkceList_Entries_Show_Summary        = 100 ;
+   tkceList_Entries_GroupBy_Journal_Type = 101 ;
 
 {  -------------------------------------------------------------------  }
 
@@ -196,6 +198,8 @@ Begin
       F.WriteStringValue( tkceBGLFundNameSelected , ceBGLFundNameSelected );
       F.WriteStringValue( tkcemyMYOBClientIDSelected , cemyMYOBClientIDSelected );
       F.WriteStringValue( tkcemyMYOBClientNameSelected , cemyMYOBClientNameSelected );
+      F.WriteBooleanValue( tkceList_Entries_Show_Summary , ceList_Entries_Show_Summary );
+      F.WriteBooleanValue( tkceList_Entries_GroupBy_Journal_Type , ceList_Entries_GroupBy_Journal_Type );
       F.WriteToken( tkEnd_ClientExtra );
    end;
 end; { of Write_ClientExtra_Rec }
@@ -315,6 +319,8 @@ Begin
          tkceBGLFundNameSelected              : ceBGLFundNameSelected := F.ReadStringValue;
          tkcemyMYOBClientIDSelected           : cemyMYOBClientIDSelected := F.ReadStringValue;
          tkcemyMYOBClientNameSelected         : cemyMYOBClientNameSelected := F.ReadStringValue;
+         tkceList_Entries_Show_Summary        : ceList_Entries_Show_Summary := F.ReadBooleanValue;
+         tkceList_Entries_GroupBy_Journal_Type : ceList_Entries_GroupBy_Journal_Type := F.ReadBooleanValue;
          else
             Raise ETokenException.CreateFmt( SUnknownToken, [ Token ] );
       end; { of Case }
@@ -365,7 +371,7 @@ begin
   for i := Low(ChangedFields) to High(ChangedFields) do
     ChangedFields[i] := 0;
   j := 0;
-  for i := tkceTAX_Applies_From to tkcemyMYOBClientNameSelected do begin
+  for i := tkceTAX_Applies_From to tkceList_Entries_GroupBy_Journal_Type do begin
     ChangedFields[j] := i;
     Inc(j);
   end;
@@ -684,6 +690,16 @@ begin
   if (P1.cemyMYOBClientNameSelected <> P2.cemyMYOBClientNameSelected) then begin
     P3.cemyMYOBClientNameSelected := P1.cemyMYOBClientNameSelected;
     ChangedFields[i] := tkcemyMYOBClientNameSelected;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_Show_Summary <> P2.ceList_Entries_Show_Summary) then begin
+    P3.ceList_Entries_Show_Summary := P1.ceList_Entries_Show_Summary;
+    ChangedFields[i] := tkceList_Entries_Show_Summary;
+    Inc(i);
+  end;
+  if (P1.ceList_Entries_GroupBy_Journal_Type <> P2.ceList_Entries_GroupBy_Journal_Type) then begin
+    P3.ceList_Entries_GroupBy_Journal_Type := P1.ceList_Entries_GroupBy_Journal_Type;
+    ChangedFields[i] := tkceList_Entries_GroupBy_Journal_Type;
     Inc(i);
   end;
 

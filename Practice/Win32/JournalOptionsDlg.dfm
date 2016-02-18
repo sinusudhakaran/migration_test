@@ -6,9 +6,9 @@ inherited DlgJournalOptions: TDlgJournalOptions
   TextHeight = 13
   inherited PCOptions: TPageControl
     Height = 295
+    ExplicitHeight = 295
     inherited tsOptions: TTabSheet
-      ExplicitTop = 22
-      ExplicitHeight = 330
+      ExplicitHeight = 267
       object lblFormat: TLabel [2]
         Left = 28
         Top = 160
@@ -122,6 +122,7 @@ inherited DlgJournalOptions: TDlgJournalOptions
       end
     end
     inherited tsAdvanced: TTabSheet
+      ExplicitHeight = 261
       inherited fmeAccountSelector1: TfmeAccountSelector
         inherited lblSelectAccounts: TLabel
           Width = 295
@@ -133,5 +134,6 @@ inherited DlgJournalOptions: TDlgJournalOptions
   end
   inherited pnlControls: TPanel
     Top = 295
+    ExplicitTop = 295
   end
 end

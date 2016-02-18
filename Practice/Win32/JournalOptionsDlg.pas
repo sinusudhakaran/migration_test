@@ -62,6 +62,14 @@ begin
       chkWrapNarration.Visible := True;
       chkWrapNarration.Checked := Params.WrapNarration;
       chkNonBaseCurrency.Visible := False;
+      rbSummary.Checked := Params.ShowSummary;
+      rbDetailed.Checked := not Params.ShowSummary;
+      case Params.SortBy of
+        csDateAndReference : JournalOptDlg.cmbSortOrder.ItemIndex := 0;
+        csDateEffective : JournalOptDlg.cmbSortOrder.ItemIndex := 1;
+        csReference : JournalOptDlg.cmbSortOrder.ItemIndex := 2;
+//        csDateEffective : JournalOptDlg.cmbSortOrder.ItemIndex := 3;
+      end;
 
       if AccountSet = [] then
       begin

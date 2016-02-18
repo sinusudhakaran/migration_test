@@ -1310,6 +1310,8 @@ F|BGLFundIDSelected|S|64
 F|BGLFundNameSelected|S|250
 F|myMYOBClientIDSelected|S|64
 F|myMYOBClientNameSelected|S|250
+F|List Entries Show Summary|Y
+F|List Entries GroupBy Journal Type|Y
 E
 
 N|Deleted Transaction|dx|233

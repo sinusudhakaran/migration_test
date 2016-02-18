@@ -9,8 +9,8 @@ Interface uses MONEYDEF, DATEDEF;
 {  -------------------------------------------------------------------  }
 
 Const
-   BK_IOLIB_Version : Integer = 771;
-   BK_IOLIB_Date    = '19/11/15';
+   BK_IOLIB_Version : Integer = 773;
+   BK_IOLIB_Date    = '05/02/16';
    BK_FILE_VERSION  = 187;  (* Current Version counter for files
                               Changes if structure or method of storing a value would cause
                               data to be represented incorrectly, or an exception to be raised *)
@@ -1463,6 +1463,8 @@ Type
       ceBGLFundNameSelected              : String[ 250 ];       { Stored }
       cemyMYOBClientIDSelected           : String[ 64 ];       { Stored }
       cemyMYOBClientNameSelected         : String[ 250 ];       { Stored }
+      ceList_Entries_Show_Summary        : Boolean;       { Stored }
+      ceList_Entries_GroupBy_Journal_Type : Boolean;       { Stored }
       ceEOR                              : Byte;
    end;
 

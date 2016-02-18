@@ -3484,6 +3484,8 @@ begin
 	SetTextAttr(Result, 'BGLFundNameSelected', ceBGLFundNameSelected);
 	SetTextAttr(Result, 'myMYOBClientIDSelected', cemyMYOBClientIDSelected);
 	SetTextAttr(Result, 'myMYOBClientNameSelected', cemyMYOBClientNameSelected);
+	SetBoolAttr(Result, 'ListEntriesShowSummary', ceList_Entries_Show_Summary);
+	SetBoolAttr(Result, 'ListEntriesGroupByJournalType', ceList_Entries_GroupBy_Journal_Type);
 
 	CNode := nil;
 	CCNode := nil;
@@ -3645,6 +3647,8 @@ begin
 	ceBGLFundNameSelected := GetTextAttr(Result, 'BGLFundNameSelected');
 	cemyMYOBClientIDSelected := GetTextAttr(Result, 'myMYOBClientIDSelected');
 	cemyMYOBClientNameSelected := GetTextAttr(Result, 'myMYOBClientNameSelected');
+	ceList_Entries_Show_Summary := GetBoolAttr(Result, 'ListEntriesShowSummary');
+	ceList_Entries_GroupBy_Journal_Type := GetBoolAttr(Result, 'ListEntriesGroupByJournalType');
 	except
 		on E: Exception do ReRaise (E, 'Reading TClientExtra_Rec');
 	end;

@@ -473,6 +473,22 @@ namespace BankLink.Practice.BooksIO
 		public String myMYOBClientNameSelected { get; set; }
 
 
+
+		/// <summary>
+		/// ListEntriesShowSummary property
+		/// </summary>
+		[XmlAttribute("ListEntriesShowSummary", DataType = "boolean")]
+		public bool ListEntriesShowSummary { get; set; }
+
+
+
+		/// <summary>
+		/// ListEntriesGroupByJournalType property
+		/// </summary>
+		[XmlAttribute("ListEntriesGroupByJournalType", DataType = "boolean")]
+		public bool ListEntriesGroupByJournalType { get; set; }
+
+
 		/// <summary>
 		/// Class Begin Token
 		/// </summary>
@@ -545,6 +561,8 @@ namespace BankLink.Practice.BooksIO
 			s.WriteShortStringValue(97, BGLFundNameSelected);
 			s.WriteShortStringValue(98, myMYOBClientIDSelected);
 			s.WriteShortStringValue(99, myMYOBClientNameSelected);
+			s.WriteBooleanValue(100, ListEntriesShowSummary);
+			s.WriteBooleanValue(101, ListEntriesGroupByJournalType);
 			s.WriteToken(41);
 		}
 
@@ -736,6 +754,12 @@ namespace BankLink.Practice.BooksIO
 				break;
 			case 99 :
 				myMYOBClientNameSelected = s.ReadShortStringValue("myMYOBClientNameSelected");
+				break;
+			case 100 :
+				ListEntriesShowSummary = s.ReadBooleanValue("ListEntriesShowSummary");
+				break;
+			case 101 :
+				ListEntriesGroupByJournalType = s.ReadBooleanValue("ListEntriesGroupByJournalType");
 				break;
 			case BeginToken :
 			case EndToken :

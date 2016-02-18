@@ -1010,6 +1010,8 @@ begin
     FAuditNamesArray[40,97] := 'BGLFundNameSelected';
     FAuditNamesArray[40,98] := 'myMYOBClientIDSelected';
     FAuditNamesArray[40,99] := 'myMYOBClientNameSelected';
+    FAuditNamesArray[40,100] := 'List_Entries_Show_Summary';
+    FAuditNamesArray[40,101] := 'List_Entries_GroupBy_Journal_Type';
 
    FAuditTableArray[233] := 'Deleted_Transaction';
     FAuditNamesArray[233,235] := 'Date_Deleted';

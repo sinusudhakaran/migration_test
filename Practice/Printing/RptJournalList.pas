@@ -415,8 +415,8 @@ begin
   ShowNotes     := aValue.clExtra.ceList_Entries_Show_Notes;
   WrapNarration := aValue.clExtra.ceList_Entries_Wrap_Narration;
   ShowOp        := aValue.clExtra.ceList_Entries_Show_Other_Party;
-  //ShowSummary   := aValue.clExtra.ceList_Entries_Show_Other_Party;
-  //GroupByJournalType := aValue.clExtra.ceList_Entries_Show_Other_Party;
+  ShowSummary   := aValue.clExtra.ceList_Entries_Show_Summary;
+  GroupByJournalType := aValue.clExtra.ceList_Entries_GroupBy_Journal_Type;
 end;
 
 //------------------------------------------------------------------------------
@@ -429,8 +429,8 @@ begin
   aValue.clExtra.ceList_Entries_Show_Notes       := ShowNotes;
   aValue.clExtra.ceList_Entries_Wrap_Narration   := WrapNarration;
   aValue.clExtra.ceList_Entries_Show_Other_Party := ShowOp;
-  //aValue.clExtra.ceList_Entries_Show_Other_Party := ShowSummary;
-  //aValue.clExtra.ceList_Entries_Show_Other_Party := GroupByJournalType;
+  aValue.clExtra.ceList_Entries_Show_Summary := ShowSummary;
+  aValue.clExtra.ceList_Entries_GroupBy_Journal_Type := GroupByJournalType;
 end;
 
 //------------------------------------------------------------------------------
@@ -451,9 +451,9 @@ begin
   TwoColumn     := GetBatchBool('Show_Two_Columns',TwoColumn);
   ShowBalance   := GetBatchBool('Show_Balance',ShowBalance);
   WrapNarration := GetBatchBool('Wrap_Naration',WrapNarration);
-  ShowSummary   := GetBatchBool('Show_Summary',WrapNarration);
-  GroupByJournalType := GetBatchBool('GroupBy_Journal_Type',WrapNarration);
 
+  ShowSummary   := GetBatchBool('Show_Summary',ShowSummary);
+  GroupByJournalType := GetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
   GetBatchAccounts;
 end;
 
@@ -469,6 +469,7 @@ begin
   SetBatchBool('Show_Two_Columns',TwoColumn);
   SetBatchBool('Show_Balance',ShowBalance);
   SetBatchBool('Wrap_Naration',WrapNarration);
+
   SetBatchBool('Show_Summary',ShowSummary);
   SetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
 
