@@ -16,22 +16,23 @@ uses
 type
   //---------------------------------------------------------------------------
   TListJournalsParam = class(TRPTParameters)
+  private
+    fSortBy             : byte;
+    fWrapNarration      : Boolean;
+    fShowSummary        : Boolean;
+    fGroupByJournalType : Boolean;
   protected
     procedure LoadFromClient(aValue : TClientObj); override;
     procedure SaveToClient(aValue : TClientObj); override;
     procedure ReadFromNode(aValue : IXMLNode); override;
     procedure SaveToNode(aValue : IXMLNode); override;
   public
-    JournalOnly : boolean;
-    SortBy      : byte;
-    Include     : byte;
-    TwoColumn   : boolean;
-    ShowBalance : boolean;
-    ShowNotes   : boolean;
-    WrapNarration: Boolean;
-    ShowSummary  : Boolean;
-    GroupByJournalType : Boolean;
-    ShowOP      : boolean;
+    procedure DoJob(aDest : TReportDest);
+
+    property SortBy             : byte    read fSortBy             write fSortBy;
+    property WrapNarration      : Boolean read fWrapNarration      write fWrapNarration;
+    property ShowSummary        : Boolean read fShowSummary        write fShowSummary;
+    property GroupByJournalType : Boolean read fGroupByJournalType write fGroupByJournalType;
   end;
 
   //---------------------------------------------------------------------------
@@ -51,6 +52,8 @@ type
   end;
 
   procedure DoListJournalsReport(aDest : TReportDest; aRptBatch : TReportBase = nil);
+
+
 
 implementation
 
@@ -75,18 +78,13 @@ procedure DoListJournalsReport(aDest : TReportDest;
                                aRptBatch : TReportBase = nil);
 //uses two column layout if set for coding report
 var
-  Job : TListJournalsReport;
-  WorkStr : string;
-  cleft : Double;
   LParams : TListJournalsParam;
-  ExtraWidth : double;  //available if coding style is single col
   HasSomeEntries : Boolean;
   BA : TBank_Account;
   AccountIndex , Button : Integer;
-  MONEY_FORMAT : String;
   ISOCodes : string;
   NonBaseCurrency : Boolean;
-  Country : Byte;
+  MONEY_FORMAT : String;
 begin
   NonBaseCurrency := False;
   LParams := TListJournalsParam.Create(ord(Report_Last), MyClient, aRptBatch,dPeriod );
@@ -99,18 +97,10 @@ begin
       begin
         if not lparams.BatchRun then
         begin
-          // Get the Details..
-
           Lparams.ReportType := ord(REPORT_LIST_JOURNALS);
 
-          // If Batchless.. this is more or less meaningless
           if not EnterJournalOptions('List Journals','Enter the starting and finishing date for the journals you want to list.',
                                 LParams) then exit;
-          // Is a bid odd..
-          LParams.TwoColumn := (LParams.Client.clFields.clCoding_Report_Style = rsTwoColumn);
-          Lparams.Include :=  esAllEntries;
-          LParams.ShowNotes := False;
-          LParams.ShowBalance := False;
 
           AccountIndex := 0;
           while AccountIndex < LParams.AccountList.Count do
@@ -191,209 +181,10 @@ begin
         Continue;
       end;
 
-      Job := TListJournalsReport.Create(ReportTypes.rptListings);
-      job.Params := LParams;
-      try
-        if not job.Params.ShowNotes then
-        begin
-          Job.LoadReportSettings(UserPrintSettings,
-            Job.Params.MakeRptName(Report_List_Names[REPORT_LIST_ENTRIES]));
-          job.Params.JournalOnly := false;
-        end
-        else
-        begin
-          Job.LoadReportSettings(UserPrintSettings,
-             Job.Params.MakeRptName(Report_List_Names[Report_List_Entries_With_Notes]));
-          Job.Params.JournalOnly := false;
-        end;
+      LParams.DoJob(aDest);
 
-
-        //Add Headers
-        AddCommonHeader(Job);
-
-        WorkStr := 'FROM ';
-
-        If Job.Params.FromDate =0 then
-          WorkStr := WorkStr + 'FIRST'
-        else
-          WorkStr := WorkStr + bkDate2Str( Job.Params.FromDate );
-        WorkStr := WorkStr + ' TO ';
-
-        If Job.Params.ToDate=MaxLongInt then
-          WorkStr := WorkStr + 'LAST'
-        else
-          WorkStr := WorkStr + bkDate2Str( Job.Params.ToDate );
-
-        if not Job.Params.ShowNotes then
-          AddJobHeader(Job,siTitle,'LIST ENTRIES '+WorkStr, true)
-        else
-          AddJobHeader(Job,siTitle,'LIST ENTRIES (incl Notes) '+WorkStr, true);
-
-        if (Job.Params.SortBy <> csDateEffective) then
-          WorkStr := 'BY DATE PRESENTED'
-        else
-          WorkStr := 'BY DATE EFFECTIVE';
-
-        if (Job.Params.Include = esAllEntries) then
-          WorkStr := WorkStr + ', ALL ENTRIES'
-        else
-          WorkStr := WorkStr + ', UNCODED/INVALIDLY CODED ENTRIES';
-
-        AddJobHeader(Job,siSubtitle,WorkStr,true);
-
-        AddJobHeader(Job,siSubTitle,'',true);
-        //Build the columns
-        Country := Job.Params.Client.clFields.clCountry;
-        if not Job.Params.ShowNotes then
-        begin
-          {Add Columns: Job,Left Percent, Width Percent, Caption, Alignment}
-          CLeft := Gcleft;
-
-          //extra 10% if available if not showing two columns
-          ExtraWidth := 0.0;
-          case Country of
-            whNewZealand : Begin
-              if not Job.Params.ShowBalance then
-                ExtraWidth := ExtraWidth + 3.0;
-              if not Job.Params.TwoColumn then
-                ExtraWidth := ExtraWidth + 3.0;
-
-              AddColAuto(Job,cleft,2.7 ,Gcgap,'Tfr',jtLeft);
-              AddColAuto(Job,cleft,6.3 ,Gcgap, 'Date'     , jtLeft);
-              AddColAuto(Job,cleft,10 + ExtraWidth ,Gcgap, 'Reference', jtLeft);
-              AddColAuto(Job,cleft,9.0 + ExtraWidth ,Gcgap, 'Analysis' , jtLeft);
-              AddColAuto(Job,cleft,8.0 ,Gcgap, 'Account'  , jtLeft);
-
-              if Job.Params.TwoColumn then  {these should be totalled on}
-              begin
-                Job.CRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Withdrawals',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-                Job.DRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Deposits',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-              end
-              else
-                Job.AmountCol := AddFormatColAuto(Job,cleft,11.0 + Gcgap,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-
-              Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, 'GST', jtRight,MONEY_FORMAT,MONEY_FORMAT, true);
-
-              if Job.Params.ShowOp then
-              begin
-                AddColAuto(Job,cleft,14.0 + ExtraWidth ,Gcgap,'Other Party',jtLeft);
-                AddColAuto(Job,cleft,9.0 + ExtraWidth,Gcgap,'Particulars',jtLeft);
-              end
-              else
-                AddColAuto(Job,cleft,23 + ( 2 * ExtraWidth),Gcgap,'Narration',jtLeft);
-
-              if Job.Params.ShowBalance then
-                Job.BalanceCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Balance',jtRight,BAL_FORMAT,BAL_FORMAT,false);
-            end;
-            whAustralia, whUK :
-            Begin
-              if not Job.Params.ShowBalance then
-                ExtraWidth := ExtraWidth + 4.0;
-              if not Job.Params.TwoColumn then
-                ExtraWidth := ExtraWidth + 4.0;
-
-              AddColAuto(Job,cleft,2.7 ,Gcgap,'Tfr',jtLeft);
-              AddColAuto(Job,cleft,6.3 ,Gcgap,'Date', jtLeft);
-              AddColAuto(Job,cleft,10 + ExtraWidth ,Gcgap,'Reference',jtLeft);
-              AddColAuto(Job,cleft,8.0,Gcgap,'Account',jtLeft);
-
-              if Job.Params.TwoColumn then  {these should be totalled on}
-              begin
-                Job.CRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Withdrawals',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-                Job.DRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Deposits',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-              end
-              else
-                Job.AmountCol := AddFormatColAuto(Job,cleft,11.0,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-
-              Job.TaxCol := AddFormatColAuto( Job, cLeft, 8, Gcgap, Localise( Country, 'GST') , jtRight,MONEY_FORMAT,MONEY_FORMAT, true);
-              AddColAuto(Job,cLeft, 23.8 + ( 2 * ExtraWidth ),Gcgap, 'Narration',jtLeft);
-
-              if Job.Params.ShowBalance then
-                Job.BalanceCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Balance',jtRight,BAL_FORMAT,BAL_FORMAT,false);
-            end;
-          end; { Case Country }
-        end
-        else
-        begin
-          //do list entries report with notes, this report is landscape by default
-          {Add Columns: Job,Left Percent, Width Percent, Caption, Alignment}
-          CLeft := GcLeft;
-          ExtraWidth := 0.0;
-
-          case Country of
-            whNewZealand : begin
-              if not Job.Params.ShowBalance then
-                ExtraWidth := ExtraWidth + 8.6/5;
-              if not Job.Params.TwoColumn then
-                ExtraWidth := ExtraWidth + 8.6/5;
-
-              AddColAuto(Job,cleft,2.0 ,GcGap,'Tfr',jtLeft);
-              AddColAuto(Job,cleft,4.5 ,GcGap, 'Date'     , jtLeft);
-              AddColAuto(Job,cleft,8.0 + ExtraWidth ,GcGap, 'Reference', jtLeft);
-              AddColAuto(Job,cleft,7.0 + ExtraWidth ,GcGap, 'Analysis' , jtLeft);
-              AddColAuto(Job,cleft,7.0 ,Gcgap, 'Account'  , jtLeft);
-
-              if Job.Params.TwoColumn then  {these should be totalled on}
-              begin
-                Job.CRAmountCol := AddFormatColAuto(Job,cLeft,8.0,Gcgap,'Withdrawals',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-                Job.DRAmountCol := AddFormatColAuto(Job,cLeft,8.0,Gcgap,'Deposits',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-              end
-              else
-                Job.AmountCol := AddFormatColAuto(Job,cleft,8.0,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-
-              if Job.Params.ShowOp then begin
-                 AddColAuto(Job,cleft,10.0 + ExtraWidth,Gcgap,'Other Party',jtLeft);
-                 AddColAuto(Job,cleft,8.0 + ExtraWidth,Gcgap,'Particulars',jtLeft);
-              end
-              else
-                 AddColAuto(Job,cleft,18 + ( 2 * ExtraWidth),Gcgap,'Narration',jtLeft);
-
-              if Job.Params.ShowBalance then
-                Job.BalanceCol := AddFormatColAuto(Job,cLeft,8.0,Gcgap,'Balance',jtRight,BAL_FORMAT,BAL_FORMAT,false);
-
-              AddColAuto(Job,cLeft, 25 + ExtraWidth, Gcgap, 'Notes', jtLeft);
-            end;
-            whAustralia, whUK : begin
-              if not Job.Params.ShowBalance then
-                ExtraWidth := ExtraWidth + 3.0;
-              if not Job.Params.TwoColumn then
-                ExtraWidth := ExtraWidth + 3.0;
-
-              AddColAuto(Job,cleft,2.0 ,Gcgap,'Tfr',jtLeft);
-              AddColAuto(Job,cleft,4.5 ,Gcgap,'Date', jtLeft);
-              AddColAuto(Job,cleft,8.0 + ExtraWidth ,Gcgap,'Reference',jtLeft);
-              AddColAuto(Job,cleft,6.2,Gcgap,'Account',jtLeft);
-
-              if Job.Params.TwoColumn then  {these should be totalled on}
-              begin
-                Job.CRAmountCol := AddFormatColAuto(Job,cLeft,8.0,Gcgap,'Withdrawals',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-                Job.DRAmountCol := AddFormatColAuto(Job,cLeft,8.0,Gcgap,'Deposits',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-              end
-              else
-                Job.AmountCol := AddFormatColAuto(Job,cleft,8.0,Gcgap,'Amount',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
-
-              Job.TaxCol := AddFormatColAuto( Job, cLeft, 7, Gcgap, Localise( Country, 'GST' ), jtRight,MONEY_FORMAT,MONEY_FORMAT, true);
-              AddColAuto(Job,cLeft, 19 + ( 2 * ExtraWidth ),Gcgap, 'Narration',jtLeft);
-
-              if Job.Params.ShowBalance then
-                Job.BalanceCol := AddFormatColAuto(Job,cLeft,9.0 ,Gcgap,'Balance',jtRight,BAL_FORMAT,BAL_FORMAT,false);
-
-              AddColAuto(Job,cLeft, 23 ,Gcgap ,'Notes', jtLeft);
-            end;
-          end; { Case Country }
-        end;
-
-        //Add Footers
-        AddCommonFooter(Job);
-
-        Job.Generate(aDest, Lparams);
-
-        if LParams.BatchRun then
-          aRptBatch.RunResult := 'Ok';
-
-      finally
-        FreeAndNil(Job);
-      end;
+      if LParams.BatchRun then
+        aRptBatch.RunResult := 'Ok';
 
     until LParams.RunExit(aDest);
 
@@ -404,32 +195,92 @@ end;
 
 { TListEntriesParam }
 //------------------------------------------------------------------------------
+procedure TListJournalsParam.DoJob(aDest : TReportDest);
+var
+  Job : TListJournalsReport;
+  WorkStr : string;
+  Country : Byte;
+  cleft : Double;
+  ExtraWidth : double;
+  MONEY_FORMAT : String;
+begin
+  Job := TListJournalsReport.Create(ReportTypes.rptListings);
+  job.Params := Self;
+  try
+    Job.LoadReportSettings(UserPrintSettings,
+    Job.Params.MakeRptName(Report_List_Names[REPORT_LIST_ENTRIES]));
+
+    //Add Headers
+    AddCommonHeader(Job);
+
+    WorkStr := 'FROM ';
+
+    If Job.Params.FromDate =0 then
+      WorkStr := WorkStr + 'FIRST'
+    else
+      WorkStr := WorkStr + bkDate2Str( Job.Params.FromDate );
+    WorkStr := WorkStr + ' TO ';
+
+    If Job.Params.ToDate=MaxLongInt then
+      WorkStr := WorkStr + 'LAST'
+    else
+      WorkStr := WorkStr + bkDate2Str( Job.Params.ToDate );
+
+    AddJobHeader(Job,siTitle,'LIST JOURNALS '+WorkStr, true);
+
+    case Job.Params.SortBy of
+      csDateEffective    : WorkStr := 'BY DATE';
+      csDateAndReference : WorkStr := 'BY DATE AND REFERENCE';
+      csReference        : WorkStr := 'BY REFERENCE';
+    end;
+
+    AddJobHeader(Job,siSubtitle,WorkStr,true);
+
+    AddJobHeader(Job,siSubTitle,'',true);
+    //Build the columns
+    Country := Job.Params.Client.clFields.clCountry;
+
+    {Add Columns: Job,Left Percent, Width Percent, Caption, Alignment}
+    CLeft := Gcleft;
+
+    AddColAuto(Job,cleft, 5.3, Gcgap, 'Status', jtLeft);
+    AddColAuto(Job,cleft, 6.3, Gcgap, 'Date', jtLeft);
+    AddColAuto(Job,cleft, 10 + ExtraWidth, Gcgap, 'Reference', jtLeft);
+    AddColAuto(Job,cleft, 8.0, Gcgap, 'Account'  , jtLeft);
+    AddColAuto(Job,cleft, 20.0, Gcgap, 'A/c Desc', jtLeft);
+    AddColAuto(Job,cleft, 23.0, Gcgap, 'Narration', jtLeft);
+
+    Job.DRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Debit',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
+    AddColAuto(Job,cleft, 1.0, Gcgap, '', jtLeft);
+    Job.CRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Credit',jtRight,NUMBER_FORMAT,MONEY_FORMAT,true);
+
+    //Add Footers
+    AddCommonFooter(Job);
+
+    Job.Generate(aDest, Self);
+
+  finally
+    FreeAndNil(Job);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TListJournalsParam.LoadFromClient(aValue: TClientObj);
 begin
   inherited;
 
-  SortBy        := aValue.clExtra.ceList_Entries_Sort_Order;
-  Include       := aValue.clExtra.ceList_Entries_Include;
-  TwoColumn     := aValue.clExtra.ceList_Entries_Two_Column;
-  ShowBalance   := aValue.clExtra.ceList_Entries_Show_Balance;
-  ShowNotes     := aValue.clExtra.ceList_Entries_Show_Notes;
-  WrapNarration := aValue.clExtra.ceList_Entries_Wrap_Narration;
-  ShowOp        := aValue.clExtra.ceList_Entries_Show_Other_Party;
-  ShowSummary   := aValue.clExtra.ceList_Entries_Show_Summary;
+  SortBy             := aValue.clExtra.ceList_Entries_Sort_Order;
+  WrapNarration      := aValue.clExtra.ceList_Entries_Wrap_Narration;
+  ShowSummary        := aValue.clExtra.ceList_Entries_Show_Summary;
   GroupByJournalType := aValue.clExtra.ceList_Entries_GroupBy_Journal_Type;
 end;
 
 //------------------------------------------------------------------------------
 procedure TListJournalsParam.SaveToClient(aValue: TClientObj);
 begin
-  aValue.clExtra.ceList_Entries_Sort_Order       := SortBy;
-  aValue.clExtra.ceList_Entries_Include          := Include;
-  aValue.clExtra.ceList_Entries_Two_Column       := TwoColumn;
-  aValue.clExtra.ceList_Entries_Show_Balance     := ShowBalance;
-  aValue.clExtra.ceList_Entries_Show_Notes       := ShowNotes;
-  aValue.clExtra.ceList_Entries_Wrap_Narration   := WrapNarration;
-  aValue.clExtra.ceList_Entries_Show_Other_Party := ShowOp;
-  aValue.clExtra.ceList_Entries_Show_Summary := ShowSummary;
+  aValue.clExtra.ceList_Entries_Sort_Order           := SortBy;
+  aValue.clExtra.ceList_Entries_Wrap_Narration       := WrapNarration;
+  aValue.clExtra.ceList_Entries_Show_Summary         := ShowSummary;
   aValue.clExtra.ceList_Entries_GroupBy_Journal_Type := GroupByJournalType;
 end;
 
@@ -441,19 +292,10 @@ begin
   else
     SortBy := csDatePresented;
 
-  if SameText( esNames[esAllEntries],GetBatchText('Include', esNames[esAllEntries]))then
-    Include := esAllEntries
-  else
-    Include := esUncodedOnly;
-
-  ShowOp        := GetBatchBool('Show_Other_Party',ShowOp);
-  ShowNotes     := GetBatchBool('Show_Notes',ShowNotes);
-  TwoColumn     := GetBatchBool('Show_Two_Columns',TwoColumn);
-  ShowBalance   := GetBatchBool('Show_Balance',ShowBalance);
   WrapNarration := GetBatchBool('Wrap_Naration',WrapNarration);
-
   ShowSummary   := GetBatchBool('Show_Summary',ShowSummary);
   GroupByJournalType := GetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
+
   GetBatchAccounts;
 end;
 
@@ -463,13 +305,7 @@ begin
   inherited;
 
   setBatchText('Sort',csNames[SortBy]);
-  SetBatchText('Include',esNames[Include]);
-  SetBatchBool('Show_Other_Party',ShowOp);
-  SetBatchBool('Show_Notes',ShowNotes);
-  SetBatchBool('Show_Two_Columns',TwoColumn);
-  SetBatchBool('Show_Balance',ShowBalance);
   SetBatchBool('Wrap_Naration',WrapNarration);
-
   SetBatchBool('Show_Summary',ShowSummary);
   SetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
 
@@ -488,10 +324,7 @@ begin
     TravMgr.Clear;
     TravMgr.SortType := params.SortBy;
 
-    if params.Include = esUncodedOnly then
-      TravMgr.SelectionCriteria := TravList.twAllUncoded
-    else
-      TravMgr.SelectionCriteria := TravList.twAllEntries;
+    TravMgr.SelectionCriteria := TravList.twAllEntries;
 
     TravMgr.ReportJob := Self;
 
@@ -513,19 +346,12 @@ begin
     TravMgr.OnExitEntry       := LE_ExitEntry;
     TravMgr.OnEnterDissection := LE_EnterDissect;
 
-    if params.JournalOnly then
+    for AccountIndex := 0 to params.AccountList.Count - 1 do
     begin
-      for AccountIndex := 0 to params.AccountList.Count - 1 do
-      begin
-        BankAcc := TBank_Account(params.AccountList[AccountIndex]);
+      BankAcc := TBank_Account(params.AccountList[AccountIndex]);
 
-        if BankAcc.IsaJournalAccount then
-          TravMgr.TraverseAccount(BankAcc, params.Fromdate, params.ToDate);
-      end;
-    end
-    else
-    begin
-      TravMgr.TraverseAllAccounts(params.Fromdate, params.Todate);
+      if BankAcc.IsaJournalAccount then
+        TravMgr.TraverseAccount(BankAcc, params.Fromdate, params.ToDate);
     end;
   finally
     FreeAndNil(TravMgr);
@@ -626,8 +452,7 @@ begin
     if (NoteLines > 1) and (not params.WrapNarration) then
       NoteLines := 1;
 
-    if not params.ShowNotes then
-      NoteLines := 0;
+    NoteLines := 0;
 
     MaxLines := NarrLines;
     if (NoteLines > NarrLines) then
@@ -638,13 +463,6 @@ begin
     if (MaxLines = 0) then
     begin
       SkipColumn;
-      if params.ShowBalance then
-      begin
-        if aShowBal then
-          PutMoney(aBal)
-        else
-          SkipColumn;
-      end;
       SkipColumn;
     end else
     begin
@@ -654,13 +472,13 @@ begin
           PutString(NarrList[i])
         else
           SkipColumn;
-        if params.ShowBalance then
+        {if params.ShowBalance then
         begin
           if aShowBal and (i = 0) then
             PutMoney(aBal)
           else
             SkipColumn;
-        end;
+        end;  }
         if (i < NoteLines) then
           PutString(NotesList[i])
         else
