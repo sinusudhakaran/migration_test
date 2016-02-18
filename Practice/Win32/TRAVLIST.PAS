@@ -75,6 +75,7 @@ type
       FIsLastTransaction: boolean;
       FNoTransactions: boolean;
       FOnEnterEntryExt: TTravEventExt;
+      FOnExitEntryExt: TTravEventExt;
       FOnEnterDissectionExt: TTravEventExt;
       FOnEnterAccountExt: TTravEventExt;
       FTransactionsTraversed: Boolean;
@@ -105,6 +106,7 @@ type
       procedure TraverseEntry;
       procedure SetSortMethod(const Value: byte);
       procedure SetOnEnterEntryExt(const Value: TTravEventExt);
+      procedure SetOnExitEntryExt(const Value: TTravEventExt);
       procedure SetOnEnterAccountExt(const Value: TTravEventExt);
       procedure SetOnEnterExchangeGainLoss(const Value: TTravEvent);
     public
@@ -120,6 +122,7 @@ type
       property OnEnterEntry   : TTravEvent read FOnEnterEntry write SetOnEnterEntry;
       property OnEnterEntryExt : TTravEventExt read FOnEnterEntryExt write SetOnEnterEntryExt;
       property OnExitEntry    : TTravEvent read FOnExitEntry write SetOnExitEntry;
+      property OnExitEntryExt : TTravEventExt read FOnExitEntryExt write SetOnExitEntryExt;
       property OnEnterDissection : TTravEvent read FOnEnterDissection write SetOnEnterDissection;
       property OnEnterDissectionExt : TTravEventExt read FOnEnterDissectionExt write SetOnEnterDissectionExt;
       property OnEnterExchangeGainLoss: TTravEvent read FOnEnterExchangeGainLoss write SetOnEnterExchangeGainLoss;
@@ -299,6 +302,7 @@ begin
    FOnEnterEntry         := nil;
    FOnEnterEntryExt      := nil;
    FOnExitEntry          := nil;
+   FOnExitEntryExt       := nil;
    FOnExitAccount        := nil;
    FOnEnterAccount       := nil;
    FOnEnterAccountExt    := nil;
@@ -582,6 +586,13 @@ procedure TTravManager.SetOnEnterEntryExt(const Value: TTravEventExt);
 begin
   FOnEnterEntryExt := Value;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TTravManager.SetOnExitEntryExt(const Value: TTravEventExt);
+begin
+  FOnExitEntryExt := Value;
+end;
+
 procedure TTravManager.SetOnEnterExchangeGainLoss(const Value: TTravEvent);
 begin
   FOnEnterExchangeGainLoss := Value;
@@ -809,6 +820,7 @@ Begin
 
       end;
       if (Assigned(FOnExitEntry)) then FOnExitEntry(Self);
+      if (Assigned(FOnExitEntryExt)) then FOnExitEntryExt(Self);
       Inc( FNumOfEntries );
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );

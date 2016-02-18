@@ -182,6 +182,9 @@ type
     FCurrDetail     : TStringList;
     RenderEngine    : TCustomRenderEngine;  //use base class, don't know
                                             //which one we will need at creation
+
+    function GetFont() : TFont;
+    procedure SetFont(aFont : TFont);
   public
     Sections: array[THFSection] of TRTFBand;
     constructor Create (RptType: TReportType); virtual;
@@ -201,7 +204,9 @@ type
     procedure ClearAllTotals;
     //Routines for adding data to current line, essentially these are formating routines
     procedure PutString ( aString : string);
+    procedure PutStringMultipleColumns ( aString : string; aNumberOfColumns : integer);
     procedure PutInteger( aInteger : longint);
+    procedure PutImage( aImageName : string; aScale : integer);
     procedure PutCurrency( aCurr : currency; IncludeInTotals: Boolean = True); overload;
     procedure PutCurrency( aCurr : Currency; DefaultSign : TSign); overload;
     procedure PutCurrencyTotal(aCurr : currency);
@@ -224,6 +229,7 @@ type
     procedure RequireLines(lines :integer);
     procedure RenderDetailHeader;
     procedure RenderDetailLine(const isnewDetail: Boolean = True; Style: TStyleTypes = siDetail);
+    procedure RenderEmptyLine();
 
     procedure RenderDetailSubSectionTotal(const TotalName : string); overload;
     procedure RenderDetailSubSectionTotal(const TotalName : string; DefaultSign : TSign); overload;
@@ -295,6 +301,8 @@ type
     procedure AfterNewPage(SavedDetail : Boolean); virtual;
 
     procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+
+    property RenderFont : TFont read GetFont write SetFont;
   end;
 
   TWriteColumnValue = procedure(Report: TBKReport; ColumnId: Integer; Value: Variant);
@@ -330,13 +338,17 @@ type
     procedure BeginUpdate;
     procedure EndUpdate;
   end;
-  
+
 Const
   SKIPFIELD = '<SKIP>';
   DATEFIELD = '<DATE>';
   DATETIMEFIELD = '<DATETIME>';
   PAGEFIELD = '<PAGE>';
-  IMGFIELD = '<IMG'; //open for parameters
+  IMGFIELD = '<IMG';
+  IMGSCALEFIELD = '<IMGSCALE';
+  STRFIELD = '<STR';
+  COLSKIPFIELD = '<COLSKIP';
+  ENDFIELD ='>';
   RTFBAND = '<RTF';
   MISSINGFIELD = '<MISSING>';                                      
 
@@ -942,6 +954,17 @@ begin
   FCurrDetail.Text := NewCurrDetail.Text;
 end;
 
+
+function TBKReport.GetFont: TFont;
+begin
+  Result := RenderEngine.Font;
+end;
+
+procedure TBKReport.SetFont(aFont: TFont);
+begin
+  RenderEngine.Font := aFont;
+end;
+
 procedure TBKReport.SetItemStyle(const Value: TStyleTypes);
 begin
   if FItemStyle <> Value then begin
@@ -1089,9 +1112,15 @@ begin
     end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.PutImage(aImageName : string; aScale : integer);
+begin
+  FCurrDetail.Add(IMGFIELD + ' ' + aImageName + ENDFIELD +
+                  IMGSCALEFIELD + ' ' + inttostr(aScale) + ENDFIELD);
+end;
+
 procedure TBKReport.PutInteger(aInteger: Integer);
 begin
-   FCurrDetail.Add(inttoStr(aInteger));
+  FCurrDetail.Add(inttoStr(aInteger));
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutMoney(aMoney: money; IncludeInTotals: Boolean = True);
@@ -1176,6 +1205,14 @@ procedure TBKReport.PutString(aString: string);
 begin
    FCurrDetail.Add(aString);
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.PutStringMultipleColumns(aString: string; aNumberOfColumns: integer);
+begin
+  FCurrDetail.Add(STRFIELD + ' ' + aString + ENDFIELD +
+                  COLSKIPFIELD + ' ' + inttostr(aNumberOfColumns) + ENDFIELD);
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SkipColumn;
 begin
@@ -1327,6 +1364,11 @@ begin
 
   RenderDetailSubTotal(TotalName,True,False,'', Style);
 end;
+procedure TBKReport.RenderEmptyLine;
+begin
+  RenderEngine.RenderEmptyLine;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderRuledLine;
 begin
@@ -1452,7 +1494,6 @@ begin
       ClearStatus;
    end;
 end;
-
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBKReport.GenerateToFax(FaxParameters: TFaxParameters; const FaxTransportType: byte; Params: TRptParameters = nil) : boolean;

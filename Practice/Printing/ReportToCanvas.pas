@@ -50,7 +50,6 @@ uses
 type
    TRenderToCanvasEng = class( TCustomRenderEngine)
    private
-
       PrintJob           : TBKPrintJob;
       DefaultFont        : TFont;
       DefaultRenderStyle : TRenderStyle;
@@ -81,14 +80,16 @@ type
       function  GetDetailPixelRect: TRect;
       function RebuildHeaderFooter(HFCollection : THeaderFooterCollection): Integer;
       procedure SetHeightFromImage(HFLine : THeaderFooterLine);
-      
+
       procedure RenderDetailHeaderWrapped;
+      function FindValueInData(aText : string; aValueType : string; var aValue : string): boolean;
+      function GetImageName(aText : string): string;
    protected
       //RenderText and RenderLine are the only two routines that actually draw onto the canvas
       procedure RenderText(TextValue : string; textRect : TRect; Justify : TJustifyType; RenderStyle :TRenderStyle);
       procedure RenderLine(x,y,width : integer);
       procedure RenderVerticalLine(x,y,width : integer);
-      procedure RenderImage(TextValue : string; textRect : TRect; Justify : TJustifyType; RenderStyle :TRenderStyle; DoNewLine : boolean);
+      procedure RenderImage(TextValue : string; textRect : TRect; Justify : TJustifyType; RenderStyle :TRenderStyle; DoNewLine : boolean; aPercSize : integer = 100);
 
       procedure NewDetailLine;
       procedure NewLine;
@@ -99,6 +100,10 @@ type
       //function  RenderFontHeight(newFont : TFont): integer;
       procedure RenderTotalLine(double: boolean; TotalType: TTotalType);
       procedure RenderDetail(DataString : TStringList);
+
+      function GetFont() : TFont; override;
+      procedure SetFont(aFont : TFont); override;
+
       //This property allows us to access the report that owns this Render Engine
       property  Report : TBKReport read GetReportOwner;
    public
@@ -126,6 +131,7 @@ type
       procedure RenderRuledLineWithColLines(LeaveLines: integer = 0;
         aPenStyle: TPenStyle = psSolid;
         VertColLineType: TVertColLineType = vcFull); override;
+      procedure RenderEmptyLine();                override;
       procedure SingleUnderLine;                  override;
       procedure DoubleUnderLine;                  override;
       procedure ReportNewPage;                    override;
@@ -141,13 +147,14 @@ type
       function  PrintToFax( FaxParam : TFaxParameters) : boolean;
 
       procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText); override;
-      
+
       //Provides access to the underlying TBKPrinter object so that all of its
       //public methods are available when printing directly to the canvas
       property  OutputBuilder : TBKPrintJob read PrintJob;
       property  DetailMMRect : TRect read GetDetailMMRect;
       property  DetailPixelRect : TRect read GetDetailPixelRect;
       property ShowPreviewForm : Boolean read FShowPreviewForm write FShowPreviewForm;
+      property Font : TFont read DefaultFont write DefaultFont;
    end;
 
 function GetAveCharWidth( TestFont : TFont; Text : string) : integer;
@@ -232,6 +239,25 @@ begin
    RenderTotalLine(true, ttNone);
 end;
 
+function TRenderToCanvasEng.FindValueInData(aText : string; aValueType: string; var aValue: string): boolean;
+var
+  Pos1, Pos2 : integer;
+begin
+  Result := false;
+  aValue := '';
+  Pos1 := Pos(aValueType, aText);
+  if Pos1 > 0 then
+  begin
+    Pos1 := Pos1 + Length(aValueType) + 1; //<IMG[space]
+    Pos2 := Pos1;
+    while (Pos2 <= Length(aText)) and (aText[Pos2] <> '>') do
+      Inc(Pos2);
+
+    aValue := Copy(aText, Pos1, Pos2 - Pos1);
+    Result := true;
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TRenderToCanvasEng.GetReportOwner: TBKReport;
 //allows use to refer to a Report object, rather than having to type case the
@@ -292,36 +318,85 @@ var
   text: String;
   lStyle: TRenderStyle;
   TextRect: TRect;
+  ImageName : string;
+  StringValue : string;
+  ColumnsToSkip : integer;
+  ColumnsToSkipStr : string;
+  ImageScale : integer;
+  ImageScaleStr : string;
+  ColumnIndex : integer;
+  TotalColWidth : integer;
 begin
+  if NewPagePending then
+    ReportNewPage;
 
-   if NewPagePending then
-      ReportNewPage;
-   //Report.ItemStyle := siDetail;
-   with Report do
-     for i := 0 to Pred(Columns.ItemCount) do begin
-        aCol := Columns.Report_Column_At(i);
-        if i <= (DataString.Count -1) then
-           text := Datastring[i]
+  ColumnsToSkip := 0;
+
+  with Report do
+    for i := 0 to Pred(Columns.ItemCount) do
+    begin
+      if ColumnsToSkip > 0 then
+      begin
+        dec(ColumnsToSkip);
+        Continue;
+      end;
+
+      aCol := Columns.Report_Column_At(i);
+      if i <= (DataString.Count -1) then
+        text := Datastring[i]
+      else
+        text := MISSINGFIELD;
+
+      if (FindValueInData(Text, IMGFIELD, ImageName)) and
+         (FindValueInData(Text, IMGSCALEFIELD, ImageScaleStr))  and
+         (trystrtoint(ImageScaleStr, ImageScale)) then
+      begin
+        TextRect := MakeRect(aCol.Left, CurrY, ACol.Width, LineSize);
+
+        RenderImage(ImageName, TextRect, jtCenter, aCol.Style, false, ImageScale);
+      end
+      else
+      begin
+        if (FindValueInData(Text, STRFIELD, StringValue)) and
+           (FindValueInData(Text, COLSKIPFIELD, ColumnsToSkipStr)) and
+           (trystrtoint(ColumnsToSkipStr, ColumnsToSkip)) then
+        begin
+          TotalColWidth := 0;
+          for ColumnIndex := i to Pred(Columns.ItemCount) do
+          begin
+            if ColumnIndex > i+ColumnsToSkip then
+              break;
+
+            TotalColWidth := TotalColWidth + Columns.Report_Column_At(ColumnIndex).Width;
+          end;
+
+          Text := StringValue;
+          TextRect := MakeRect(aCol.Left, CurrY, TotalColWidth, LineSize);
+        end
         else
-           text := MISSINGFIELD;
+          TextRect := MakeRect(aCol.Left, CurrY, ACol.Width, LineSize);
+
         if Assigned(aCol.CustomFont) then
-           UseCustomFont(aCol.CustomFont.Name, aCol.CustomFont.Size, aCol.CustomFont.Style);
+          UseCustomFont(aCol.CustomFont.Name, aCol.CustomFont.Size, aCol.CustomFont.Style);
+
         lStyle :=  MergeStyles(Report.ReportStyle.Items[Report.ItemStyle],aCol.Style);
         try
-           // This code does not make sense..
-           // but we do not use colums yet..
-           if Report.ReportStyle.DetailBlinds then
-              if not Report.BlindOn then
-                lstyle.BackColor := clNone;
-           TextRect := MakeRect(aCol.Left, CurrY, ACol.Width, LineSize);
-           RenderText(Text, TextRect, aCol.Alignment, lStyle);
+          // This code does not make sense..
+          // but we do not use colums yet..
+          if Report.ReportStyle.DetailBlinds then
+            if not Report.BlindOn then
+              lstyle.BackColor := clNone;
+
+          RenderText(Text, TextRect, aCol.Alignment, lStyle);
         finally
-           lStyle.Free;
+          lStyle.Free;
         end;
+
         if Assigned(aCol.CustomFont) then
           Report.ReportStyle.Items[Report.ItemStyle].AssignTo(PrintJob);
-     end;        { for }
-   NewDetailLine;
+      end;
+    end;        { for }
+  NewDetailLine;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RequireLines(lines :integer);
@@ -770,6 +845,13 @@ begin
          ClearSubTotals;
     end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TRenderToCanvasEng.RenderEmptyLine;
+begin
+  NewDetailLine;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderRuledLine;
 begin
@@ -1176,6 +1258,7 @@ begin
       end;
    end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.SetHeightFromImage( HFLine : THeaderFooterLine);
 var
@@ -1511,16 +1594,8 @@ begin
          if not PrintJob.UseHeaderFooter then
             Continue;
       //Images
-      Pos1 := Pos(IMGFIELD,aLine.Text);
-      if Pos1 > 0 then begin
-         Pos1 := Pos1 + Length(IMGFIELD) + 1; //<IMG[space]
-         Pos2 := Pos1;
-         while (Pos2 <= Length(aLine.Text)) and (aLine.Text[Pos2] <> '>') do
-              Inc(Pos2);
-         DisplayText := Copy(aLine.Text, Pos1, Pos2 - Pos1);
-
-         LineWidth := OutputAreaWidth;
-
+      if FindValueInData(aLine.Text, IMGFIELD, DisplayText) then
+      begin
          {work out alignment ... if centered then use width of page }
          left := 0;
 
@@ -1762,7 +1837,7 @@ begin
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderImage(TextValue : string; textRect : TRect;
-  Justify : TJustifyType; RenderStyle :TRenderStyle; DoNewLine : boolean);
+  Justify : TJustifyType; RenderStyle :TRenderStyle; DoNewLine : boolean; aPercSize : integer);
 var
   ImgLineSize : LongInt;
   Picture : TPicture;
@@ -1837,7 +1912,12 @@ begin
           BottomRight := PrintJob.ConvertToDC(BottomRight);
         end;
 
-
+        if aPercSize <> 100 then
+        begin
+          PictureRect.Right   := PictureRect.Left + trunc((PictureRect.Right - PictureRect.Left) * ((aPercSize)/100));
+          PictureRect.Bottom := PictureRect.Top + trunc((PictureRect.Bottom - PictureRect.Top) * ((aPercSize)/100));
+          //aPercSize
+        end;
 
        //PictureRect := Rect(5,5,100,50);
        (*
@@ -1936,6 +2016,36 @@ begin
       result.BottomRight := ConvertToDC( MMRect.BottomRight);
    end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TRenderToCanvasEng.GetFont: TFont;
+begin
+  Result := DefaultFont;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TRenderToCanvasEng.SetFont(aFont: TFont);
+begin
+  DefaultFont := aFont;
+end;
+
+function TRenderToCanvasEng.GetImageName(aText : string): string;
+var
+  Pos1, Pos2 : integer;
+begin
+  Result := '';
+  Pos1 := Pos(IMGFIELD, aText);
+  if Pos1 > 0 then
+  begin
+    Pos1 := Pos1 + Length(IMGFIELD) + 1; //<IMG[space]
+    Pos2 := Pos1;
+    while (Pos2 <= Length(aText)) and (aText[Pos2] <> '>') do
+      Inc(Pos2);
+
+    Result := Copy(aText, Pos1, Pos2 - Pos1);
+  end;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.DoAfterPrintStuff(Sender: TObject);
 begin

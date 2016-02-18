@@ -33,6 +33,9 @@ type
    protected
       FOnAfterNewPage : TProcedurePtr;
       Owner : TObject;
+
+      function GetFont() : TFont; virtual; abstract;
+      procedure SetFont(aFont : TFont); virtual; abstract;
    public
       constructor Create( aOwner : TObject); virtual;
 
@@ -58,7 +61,8 @@ type
       procedure RenderVerticalColumnLine(ColNo: Integer); virtual;
       procedure RenderAllVerticalColumnLines; virtual;
       procedure RenderRuledLineWithColLines(LeaveLines: integer = 0;
-        aPenStyle: TPenStyle = psSolid; VertColLineType: TVertColLineType = vcFull); virtual; 
+        aPenStyle: TPenStyle = psSolid; VertColLineType: TVertColLineType = vcFull); virtual;
+      procedure RenderEmptyLine(); virtual; abstract;
       procedure UseCustomFont( aFontname : string; aFontSize : integer; aFontStyle : TFontStyles; aLineSize : integer); virtual; abstract;
       procedure UseDefaultFont; virtual; abstract;
       function GetTextLength(s: string): Integer; virtual;
@@ -70,6 +74,7 @@ type
       procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText); virtual;
 
       property  OnAfterNewPage : TProcedurePtr read FOnAfterNewPage write FOnAfterNewPage;
+      property Font : TFont read GetFont write SetFont;
    end;
 
 //******************************************************************************
