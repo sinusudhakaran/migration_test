@@ -117,7 +117,8 @@ uses
    CustomDocEditorFrm,
    AuditReportOptionsDlg,
    Files,
-   RptContractorPayee;
+   RptContractorPayee,
+   RptJournalList;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const
@@ -386,7 +387,7 @@ begin
       if RunNow then case ReportType of
          REPORT_LIST_CHART         : DoChartListReport(Destination,RptBatch);
          REPORT_LIST_ENTRIES       : DoListEntriesReport(Destination,false,RptBatch);
-         REPORT_LIST_JOURNALS      : DoListEntriesReport(Destination,true,RptBatch);
+         REPORT_LIST_JOURNALS      : DoListJournalsReport(Destination, RptBatch);
          REPORT_LIST_BANKACCTS     : DoListBankAccountsReport(Destination,RptBatch);
          REPORT_LIST_PAYEE         : DoListPayeesReport(Destination,RptBatch);
          REPORT_LIST_MANUAL        : DoListManualAccountsReport(Destination,RptBatch);

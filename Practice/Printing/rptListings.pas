@@ -5,7 +5,18 @@ unit RptListings;
 interface
 
 uses
-  ReportDefs, PrintMgrObj, FaxParametersObj, OvcDate, moneydef, Classes, UBatchBase;
+  ReportDefs,
+  PrintMgrObj,
+  FaxParametersObj,
+  OvcDate,
+  moneydef,
+  Classes,
+  baobj32,
+  UBatchBase;
+
+const
+  NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
+  BAL_FORMAT = '#,##0.00 "OD ";#,##0.00 "IF "; ';
 
   function  DoChartListReport(Dest : TReportDest;
                               Settings : TPrintManagerObj;
@@ -58,6 +69,19 @@ uses
   function DoTestFax( Dest : TReportDest; Settings : TPrintManagerObj; FaxParams : TFaxParameters = nil) : boolean; overload;
   function DoTestFax( Dest : TReportDest) : boolean; overload;
 
+  Procedure LE_EnterAccount(Sender : TObject);
+  Procedure LE_ExitAccount(Sender : TObject);
+  procedure LE_EnterEntry(Sender : Tobject);
+
+  Procedure LE_EnterAccount_Pres(Sender : TObject);
+  Procedure LE_ExitAccount_Pres(Sender : TObject);
+  procedure LE_EnterEntry_Pres(Sender : Tobject);
+
+  procedure LE_ExitEntry(Sender : TObject);
+  procedure LE_EnterDissect(Sender : TObject);
+
+  function LE_HasTransactions(StartDate, EndDate: Integer; BA: TBank_Account): Boolean;
+
 //******************************************************************************
 implementation
 
@@ -86,7 +110,6 @@ uses
    travList,
    signUtils,
    sysutils,
-   baobj32,
    bkDateUtils,
    Admin32,
    GenUtils,
@@ -109,12 +132,9 @@ uses
    SimpleFundX;
 
 const
-  NUMBER_FORMAT = '#,##0.00;(#,##0.00);-';
   NUMBER_FORMAT_SIGNED = '#,##0.00;-#,##0.00;-';
   PERCENT_FORMAT = '#.####;(#.####);-';
   QUANTITY_FORMAT = '###,###,###.####;(###,###,###.####);-';
-
-  BAL_FORMAT = '#,##0.00 "OD ";#,##0.00 "IF "; ';
   NullCode = '<NULLCODE>';
 
 type
