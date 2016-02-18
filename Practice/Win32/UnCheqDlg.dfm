@@ -117,30 +117,18 @@ object dlgUnCheque: TdlgUnCheque
       Top = 0
       Width = 592
       Height = 175
+      ActivePage = fmeCheques.tbsAll
       Align = alClient
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 592
+      ExplicitHeight = 175
       inherited tbsAll: TTabSheet
         ExplicitLeft = 4
         ExplicitTop = 24
-        ExplicitWidth = 569
-        ExplicitHeight = 117
+        ExplicitWidth = 584
+        ExplicitHeight = 147
         inherited lbAllCheques: TListBox
-          AlignWithMargins = True
-          Left = 3
-          Top = 3
-          Width = 578
-          Height = 141
-          Align = alClient
-          BevelInner = bvNone
-          BevelOuter = bvNone
-          BorderStyle = bsNone
-        end
-      end
-      inherited tblPresented: TTabSheet
-        ExplicitLeft = 4
-        ExplicitTop = 24
-        ExplicitWidth = 569
-        ExplicitHeight = 117
-        inherited lbPresented: TListBox
           AlignWithMargins = True
           Left = 3
           Top = 3
@@ -156,11 +144,32 @@ object dlgUnCheque: TdlgUnCheque
           ExplicitHeight = 141
         end
       end
-      inherited tbsUnpresented: TTabSheet
+      inherited tblPresented: TTabSheet
         ExplicitLeft = 4
         ExplicitTop = 24
         ExplicitWidth = 569
         ExplicitHeight = 117
+        inherited lbPresented: TListBox
+          AlignWithMargins = True
+          Left = 3
+          Top = 3
+          Width = 563
+          Height = 111
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          ExplicitLeft = 3
+          ExplicitTop = 3
+          ExplicitWidth = 563
+          ExplicitHeight = 111
+        end
+      end
+      inherited tbsUnpresented: TTabSheet
+        ExplicitLeft = 4
+        ExplicitTop = 24
+        ExplicitWidth = 584
+        ExplicitHeight = 147
         inherited lbUnpresented: TListBox
           AlignWithMargins = True
           Left = 3
@@ -171,6 +180,10 @@ object dlgUnCheque: TdlgUnCheque
           BevelInner = bvNone
           BevelOuter = bvNone
           BorderStyle = bsNone
+          ExplicitLeft = 3
+          ExplicitTop = 3
+          ExplicitWidth = 578
+          ExplicitHeight = 141
         end
       end
     end
@@ -299,9 +312,6 @@ object dlgUnCheque: TdlgUnCheque
     BevelOuter = bvNone
     Caption = ' '
     TabOrder = 3
-    ExplicitLeft = -6
-    ExplicitTop = 410
-    ExplicitWidth = 593
     DesignSize = (
       595
       41)
