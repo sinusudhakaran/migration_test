@@ -241,6 +241,7 @@ begin
          fdWeb_Export_Format            := 255;
          fdFile_Version                 := SYDEFS.SY_FILE_VERSION;
          fdExtract_Quantity_Decimal_Places := 4;
+         fdMaximum_Narration_Extract    := 200;
          fdCollect_Usage_Data           := True;
       end;
       SetEntryTypes;
