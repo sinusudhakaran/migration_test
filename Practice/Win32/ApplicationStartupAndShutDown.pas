@@ -169,6 +169,7 @@ begin
   else
     LogUtil.LogMsg( lmInfo, UnitName, 'Promo Window has been disabled in BK5PRAC.INI' );
 
+  PRACINI_Disable_LeanEngage := true;
   if not PRACINI_Disable_LeanEngage then begin //Practice has not disabled LeanEngage
     LEConnectionRetries := 0;
     PRACINI_Disable_LeanEngage :=  //Set true if unable to reach LeaneEngage

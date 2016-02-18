@@ -3549,7 +3549,7 @@ begin
 
   UpdateControls();
 
-  chkAccountSystemClick(nil);
+  cbAccounting.Enabled := chkAccountSystem.Checked;
 
   if (DlgEditMode in ALL_EDIT) then
     Exit;

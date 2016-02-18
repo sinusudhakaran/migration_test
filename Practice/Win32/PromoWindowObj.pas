@@ -555,8 +555,17 @@ begin
     end;
   end;
 
-  BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON) as TlkJSONobject;
+  try
+    BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON) as TlkJSONobject;
+  except
+    //LogUtil.LogMsg(lmError,UnitName,'Error from Contentful website : ' + FContentFulResponseJSON);
+    Exit;
+  end;
   Items := BaseJSONObject.Field['items'];
+
+  if not Assigned(Items) then
+    Exit;
+
   Assets := nil;
   if Assigned(BaseJSONObject.Field['includes']) and Assigned(BaseJSONObject.Field['includes'].Field['Asset']) then
     Assets := BaseJSONObject.Field['includes'].Field['Asset'];
