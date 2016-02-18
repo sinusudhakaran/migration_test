@@ -29,6 +29,8 @@ type
     ShowBalance : boolean;
     ShowNotes   : boolean;
     WrapNarration: Boolean;
+    ShowSummary  : Boolean;
+    GroupByJournalType : Boolean;
     ShowOP      : boolean;
   end;
 
@@ -59,14 +61,14 @@ uses
   RptListings,
   baObj32,
   Globals,
-  CodeDateDlg,
   bkdateutils,
   WarningMoreFrm,
   InfoMoreFrm,
   NewReportUtils,
   ReportTypes,
   CountryUtils,
-  BKHelp;
+  BKHelp,
+  JournalOptionsDlg;
 
 //------------------------------------------------------------------------------
 procedure DoListJournalsReport(aDest : TReportDest;
@@ -102,12 +104,10 @@ begin
           Lparams.ReportType := ord(REPORT_LIST_JOURNALS);
 
           // If Batchless.. this is more or less meaningless
-          if not EnterPrintDateRangeOptions('List Journals','Enter the starting and finishing date for the journals you want to list.',
-                                LParams.FromDate, LParams.ToDate, BKH_List_journals, true,
-                                [], Button, LParams, LParams.WrapNarration, NonBaseCurrency, True, False,[btCashJournals..btStockBalances]) then exit;
+          if not EnterJournalOptions('List Journals','Enter the starting and finishing date for the journals you want to list.',
+                                LParams) then exit;
           // Is a bid odd..
           LParams.TwoColumn := (LParams.Client.clFields.clCoding_Report_Style = rsTwoColumn);
-          LParams.SortBy := csDateEffective; // Just to be sure...
           Lparams.Include :=  esAllEntries;
           LParams.ShowNotes := False;
           LParams.ShowBalance := False;
@@ -415,6 +415,8 @@ begin
   ShowNotes     := aValue.clExtra.ceList_Entries_Show_Notes;
   WrapNarration := aValue.clExtra.ceList_Entries_Wrap_Narration;
   ShowOp        := aValue.clExtra.ceList_Entries_Show_Other_Party;
+  //ShowSummary   := aValue.clExtra.ceList_Entries_Show_Other_Party;
+  //GroupByJournalType := aValue.clExtra.ceList_Entries_Show_Other_Party;
 end;
 
 //------------------------------------------------------------------------------
@@ -427,6 +429,8 @@ begin
   aValue.clExtra.ceList_Entries_Show_Notes       := ShowNotes;
   aValue.clExtra.ceList_Entries_Wrap_Narration   := WrapNarration;
   aValue.clExtra.ceList_Entries_Show_Other_Party := ShowOp;
+  //aValue.clExtra.ceList_Entries_Show_Other_Party := ShowSummary;
+  //aValue.clExtra.ceList_Entries_Show_Other_Party := GroupByJournalType;
 end;
 
 //------------------------------------------------------------------------------
@@ -447,6 +451,8 @@ begin
   TwoColumn     := GetBatchBool('Show_Two_Columns',TwoColumn);
   ShowBalance   := GetBatchBool('Show_Balance',ShowBalance);
   WrapNarration := GetBatchBool('Wrap_Naration',WrapNarration);
+  ShowSummary   := GetBatchBool('Show_Summary',WrapNarration);
+  GroupByJournalType := GetBatchBool('GroupBy_Journal_Type',WrapNarration);
 
   GetBatchAccounts;
 end;
@@ -463,6 +469,8 @@ begin
   SetBatchBool('Show_Two_Columns',TwoColumn);
   SetBatchBool('Show_Balance',ShowBalance);
   SetBatchBool('Wrap_Naration',WrapNarration);
+  SetBatchBool('Show_Summary',ShowSummary);
+  SetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
 
   SaveBatchAccounts;
 end;
