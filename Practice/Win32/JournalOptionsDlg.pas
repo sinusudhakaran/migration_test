@@ -64,11 +64,11 @@ begin
       chkNonBaseCurrency.Visible := False;
       rbSummary.Checked := Params.ShowSummary;
       rbDetailed.Checked := not Params.ShowSummary;
+      chkGroupBy.Checked := Params.GroupByJournalType;
       case Params.SortBy of
         csDateAndReference : JournalOptDlg.cmbSortOrder.ItemIndex := 0;
         csDateEffective : JournalOptDlg.cmbSortOrder.ItemIndex := 1;
         csReference : JournalOptDlg.cmbSortOrder.ItemIndex := 2;
-//        csDateEffective : JournalOptDlg.cmbSortOrder.ItemIndex := 3;
       end;
 
       if AccountSet = [] then
@@ -113,7 +113,6 @@ begin
         0 : Params.SortBy := csDateAndReference;
         1 : Params.SortBy := csDateEffective;
         2 : Params.SortBy := csReference;
-        3 : Params.SortBy := csDateEffective;
        end;
        Params.ShowSummary := JournalOptDlg.rbSummary.Checked;
        Params.GroupByJournalType := JournalOptDlg.chkGroupBy.Checked;

@@ -1,17 +1,17 @@
 inherited DlgJournalOptions: TDlgJournalOptions
   Caption = 'Journal Report Options'
-  ClientHeight = 340
-  ExplicitHeight = 368
+  ClientHeight = 335
+  ExplicitHeight = 363
   PixelsPerInch = 96
   TextHeight = 13
   inherited PCOptions: TPageControl
-    Height = 295
+    Height = 290
     ExplicitHeight = 295
     inherited tsOptions: TTabSheet
       ExplicitHeight = 267
       object lblFormat: TLabel [2]
         Left = 28
-        Top = 160
+        Top = 150
         Width = 45
         Height = 23
         AutoSize = False
@@ -20,7 +20,7 @@ inherited DlgJournalOptions: TDlgJournalOptions
       end
       object lblSortOrder: TLabel [3]
         Left = 28
-        Top = 189
+        Top = 179
         Width = 72
         Height = 23
         AutoSize = False
@@ -28,6 +28,8 @@ inherited DlgJournalOptions: TDlgJournalOptions
         FocusControl = DateSelector.eDateTo
       end
       inherited DateSelector: TfmeDateSelector
+        Height = 56
+        ExplicitHeight = 56
         inherited eDateFrom: TOvcPictureField
           Left = 74
           Epoch = 0
@@ -56,37 +58,36 @@ inherited DlgJournalOptions: TDlgJournalOptions
         end
       end
       inherited radButton1: TRadioButton
-        Top = 215
+        Top = 205
         TabOrder = 7
-        ExplicitTop = 215
+        ExplicitTop = 205
       end
       inherited radButton2: TRadioButton
-        Top = 220
+        Top = 210
         TabOrder = 8
-        ExplicitTop = 220
+        ExplicitTop = 210
       end
       inherited chkWrapNarration: TCheckBox
-        Top = 217
+        Top = 207
         TabOrder = 4
-        ExplicitTop = 217
+        ExplicitTop = 207
       end
       inherited chkNonBaseCurrency: TCheckBox
-        Top = 217
+        Top = 207
         TabOrder = 5
-        ExplicitTop = 217
+        ExplicitTop = 207
       end
       object chkGroupBy: TCheckBox
         Left = 28
-        Top = 242
+        Top = 236
         Width = 245
         Height = 17
         Caption = 'Group by Journal Type'
         TabOrder = 6
-        Visible = False
       end
       object rbSummary: TRadioButton
         Left = 102
-        Top = 160
+        Top = 150
         Width = 137
         Height = 17
         Caption = 'Summary'
@@ -97,7 +98,7 @@ inherited DlgJournalOptions: TDlgJournalOptions
       end
       object rbDetailed: TRadioButton
         Left = 268
-        Top = 160
+        Top = 150
         Width = 137
         Height = 17
         Caption = 'Detailed'
@@ -106,19 +107,16 @@ inherited DlgJournalOptions: TDlgJournalOptions
       end
       object cmbSortOrder: TComboBox
         Left = 102
-        Top = 186
+        Top = 176
         Width = 164
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        ItemIndex = 0
         TabOrder = 3
-        Text = 'Date + Reference'
         Items.Strings = (
           'Date + Reference'
           'Date'
-          'Reference'
-          'As Entered')
+          'Reference')
       end
     end
     inherited tsAdvanced: TTabSheet
@@ -133,7 +131,7 @@ inherited DlgJournalOptions: TDlgJournalOptions
     end
   end
   inherited pnlControls: TPanel
-    Top = 295
+    Top = 290
     ExplicitTop = 295
   end
 end
