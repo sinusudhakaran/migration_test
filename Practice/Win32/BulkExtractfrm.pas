@@ -1044,7 +1044,7 @@ end;
 
 procedure TBulkExtractor.AddDateField(const Name: string; Value: Integer);
 begin
-   if Value (*<*)> 0 then
+   if Value > 0 then
       FFields.Add(Name + '=' + StDateToDateString('dd/mm/yyyy',Value,False));
 end;
 

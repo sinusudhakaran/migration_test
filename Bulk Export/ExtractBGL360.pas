@@ -523,35 +523,6 @@ const
       SetNodeTextStr(ToNode,Name,Value);
   end;
 
-//BulkExport  procedure AddFieldNode(const Name,Value: string; AllowEmpty: boolean = false);
-//BulkExport  begin
-//BulkExport     if (Value > '') or AllowEmpty then
-//BulkExport        SetNodeTextStr(LTrans,Name,Value);
-//BulkExport  end;
-
-  procedure AddAccountCodeNode(var aNode: IXMLNode; AccountCode: string);
-  const
-    PRACTICEINIFILENAME = 'BK5PRAC.INI';    //DATADIR
-  var
-    PracIniFile: TIniFile;
-    ExecDir : string;
-
-  begin
-    if (AccountCode = '') then
-    begin
-      ExecDir                   := ExtractFilePath(Application.ExeName);
-      PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
-      try
-        AccountCode := PracIniFile.ReadString(BGL360code, 'ExtractCode', '91000');
-        if AccountCode = '' then
-          AccountCode := '91000'; // default account code for uncoded transactions
-      finally
-        PracIniFile.Free;
-      end;
-    end;
-    AddFieldNode(aNode, 'Account_Code', AccountCode);
-  end;
-
   procedure AddTaxClass(var ToNode: IxmlNode; const Value: string);
   begin
      if Length(Value) > 0 then
@@ -1055,19 +1026,6 @@ begin
       GetField(f_amount, '0'),
       True);
 
-(*
-    lsTemp := GetField( fBGL360_GST_Amount, '0' );
-    // Output GST?
-//    if ((TransType= ttOtherTx) and (strToInt( GetField( fBGL360_GST_Amount, '0' ) )  <> 0)) then
-    if ((TransType= ttOtherTx) and (strToInt( lsTemp )  <> 0)) then
-    begin
-      // GST_Amount
-      AddFieldNode(
-        TransactionTypeNode,
-        fBGL360_GST_Amount,
-        GetField( fBGL360_GST_Amount ), false );
-    end;
-*)
     if TransType = ttDistribution then
       AddDistributionEntities()
     else if TransType = ttDividend then
@@ -1076,40 +1034,6 @@ begin
       AddInterestEntities()
     else if TransType = ttShareTrade then
       AddShareTradeEntities();
-(*(*(*(*(*(**}*}*}*}*}*)
-
-
-
-
-
-
-(*    AddFieldNode( LTrans, 'GST',GetField(f_tax));
-    AddTaxClass(GetField(f_TaxCode));
-
-    AddFieldNode( LTrans, 'Quantity',GetField(f_Quantity));
-
-    // Supper fields
-    AddFieldNode( LTrans, 'CGT_Transaction_Date',GetField(f_CGTDate));
-    AddFieldNode( LTrans, 'Franked_Dividend',GetField(f_Franked));
-    AddFieldNode( LTrans, 'UnFranked_Dividend',GetField(f_UnFranked));
-    AddFieldNode( LTrans, 'Imputation_Credit',GetField(f_Imp_Credit));
-
-    AddFieldNode( LTrans, 'Tax_Free_Distribution',GetField(f_TF_Dist));
-
-    AddFieldNode( LTrans, 'Tax_Exempt_Distribution',GetField(f_TE_Dist));
-    AddFieldNode( LTrans, 'Tax_Defered_Distribution',GetField(f_TD_Dist));
-    AddFieldNode( LTrans, 'TFN_Credit',GetField(f_TFN_Credit));
-    AddFieldNode( LTrans, 'Foreign_Income',GetField(f_Frn_Income));
-    AddFieldNode( LTrans, 'Foreign_Credit',GetField(f_Frn_Credit));
-
-    AddFieldNode( LTrans, 'Expenses',GetField(f_OExpences));
-
-    AddFieldNode( LTrans, 'Indexed_Capital_Gain',GetField(f_CGI));
-    AddFieldNode( LTrans, 'Discount_Capital_Gain',GetField(f_CGD));
-    AddFieldNode( LTrans, 'Other_Capital_Gain',GetField(f_CGO));
-    AddFieldNode( LTrans, 'Member_Component',GetField(f_MemComp)); *)
-
-
   end;
 
    if TestRun then
