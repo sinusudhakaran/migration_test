@@ -29,8 +29,8 @@ uses
   StDateSt,
   SysUtils,
   OmniXMLUtils,
-  Classes;     //,
-/////////////////  Software;
+  Classes,
+  IniFiles;     
 
 const
   BGL360 = 0;
@@ -50,7 +50,7 @@ var // General Extract vars
    //Export Specific
    CurrentClientCode: string;
    CurrentAccount: string;
-//   ExtractAccountAs: string;
+   ExtractAccountAs: string;
    OpenBalance: string;
    BalanceDate: string;
    CurrentContra: string;
@@ -76,7 +76,7 @@ begin
    end;
 end;
 
-(**********************************************
+(**********************************************)
 procedure RetrieveBSBAndAccountNum( aExtractAccountNumberAs, aBankAccountNumber: string; var aBSB, aAccountNumber : string );
 var
   lsBSB,
@@ -105,6 +105,10 @@ begin
   if
 
      {**************************************************************************
+      /////////////////////////////////////////////////////
+      //No longer necessary, ExtractNumberAs is passed in//
+      /////////////////////////////////////////////////////
+
      (not CanExtractAccountNumberAs(                        // ExtractAccountNumberAs field CANNOT be used, get Normals
             MyClient.clFields.clCountry,
             MyClient.clFields.clAccounting_System_Used) ) or          // Else ExtractAccountNumberAs field can be used BUT,
@@ -116,7 +120,7 @@ begin
     aBSB           := lsBSB;                                         // Use the normal BSB number
     aAccountNumber := lsAccountNumber;                               // Use the normal Bank Account number
   end;
-end; ******************************************************)
+end; (******************************************************)
 
 function  ExtractFieldHelper: TExtractFieldHelper;
 begin
@@ -181,7 +185,7 @@ begin
    BaseNode := EnsureNode(OutputDocument,'BGL_Import_Export');
    SetNodeTextStr(BaseNode,'Supplier','MYOB BankLink');
    SetNodeTextStr(BaseNode,'Product','SF360');
-   SetNodeTextStr(BaseNode,'Import_Export_Version','5.0');
+   SetNodeTextStr(BaseNode,'Import_Export_Version','5.2');
 
    TransactionsNode := nil;
 end;
@@ -439,7 +443,9 @@ var
 begin
   ExtractFieldHelper.SetFields( Session.Data );
   CurrentAccount := ExtractFieldHelper.GetField( f_Number );
-//  ExtractAccountAs := ExtractFieldHelper.GetField( f_ExtractNumberAs );
+//BulkExtract
+  ExtractAccountAs := ExtractFieldHelper.GetField( f_ExtractNumberAs );
+
   AccountType := ExtractFieldHelper.GetField( f_AccountType );
 
   if (AccountType <> IntToStr( btBank )) then
@@ -486,37 +492,84 @@ const // from bkConst // did not want to link it in...
    btYearEndAdjustments = 6;       //non transferring
    btStockBalances = 7;
 
-
 procedure WriteBGLFields(var Session: TExtractSession; var TestNode: IxmlNode; TestRun: boolean = false);
+type
+  TTransactionTypes = (ttDistribution, ttDividend, ttInterest, ttShareTrade, ttOtherTx );
+
 var
   AccountNum : String;
   BSB        : String;
   LTrans     : IXMLNode;
+  ContraEntries: IXMLNode;
+  Entry: IXMLNode;
+  EntryTypeDetail: IXMLNode;
+  TransactionTypeNode : IXMLNode;
+  sAcctHead : string;
+  iAccountCode : Integer;
+  TransType : TTransactionTypes;
+  lsTemp : string;
 
-  procedure AddField(const Name,Value: string; AllowEmpty: boolean = false);
+const
+  cttanDistribution = 23800;
+  cttanDividend     = 23900;
+  cttanInterest     = 25000;
+//  cttanShareTrade   = 70000;
+  cttanShareTradeRangeStart   = 70000;
+  cttanShareTradeRangeEnd     = 79999;
+
+  procedure AddFieldNode(var ToNode: IxmlNode; const Name, Value: string; AllowEmpty: boolean = false);
   begin
-     if (Value > '') or AllowEmpty then
-        SetNodeTextStr(LTrans,Name,Value);
+    if (Value <> '') or AllowEmpty then
+      SetNodeTextStr(ToNode,Name,Value);
   end;
 
-  procedure AddTaxClass(const Value: string);
+//BulkExport  procedure AddFieldNode(const Name,Value: string; AllowEmpty: boolean = false);
+//BulkExport  begin
+//BulkExport     if (Value > '') or AllowEmpty then
+//BulkExport        SetNodeTextStr(LTrans,Name,Value);
+//BulkExport  end;
+
+  procedure AddAccountCodeNode(var aNode: IXMLNode; AccountCode: string);
+  const
+    PRACTICEINIFILENAME = 'BK5PRAC.INI';    //DATADIR
+  var
+    PracIniFile: TIniFile;
+    ExecDir : string;
+
+  begin
+    if (AccountCode = '') then
+    begin
+      ExecDir                   := ExtractFilePath(Application.ExeName);
+      PracIniFile := TIniFile.Create(ExecDir + PRACTICEINIFILENAME);
+      try
+        AccountCode := PracIniFile.ReadString(BGL360code, 'ExtractCode', '91000');
+        if AccountCode = '' then
+          AccountCode := '91000'; // default account code for uncoded transactions
+      finally
+        PracIniFile.Free;
+      end;
+    end;
+    AddFieldNode(aNode, 'Account_Code', AccountCode);
+  end;
+
+  procedure AddTaxClass(var ToNode: IxmlNode; const Value: string);
   begin
      if Length(Value) > 0 then
         case Value[1] of
-        '1' :AddField('GST_Rate','100%');
-        '2' :AddField('GST_Rate','75%');
+        '1' :AddFieldNode( LTrans, 'GST_Rate','100%');
+        '2' :AddFieldNode( LTrans, 'GST_Rate','75%');
         //'3' :AddField('GST_Rate','48.5%');  // BGL Spec
-        '3' :AddField('GST_Rate','46.5%');    // ATO See case 7664
-        '4' :AddField('GST_Rate','0% (ITD)');
-        '5' :AddField('GST_Rate','0% (ITA)');
-        '6' :AddField('GST_Rate','GST Free');
-        else AddField('GST_Rate','N/A');
+        '3' :AddFieldNode( LTrans, 'GST_Rate','46.5%');    // ATO See case 7664
+        '4' :AddFieldNode( LTrans, 'GST_Rate','0% (ITD)');
+        '5' :AddFieldNode( LTrans, 'GST_Rate','0% (ITA)');
+        '6' :AddFieldNode( LTrans, 'GST_Rate','GST Free');
+        else AddFieldNode( LTrans, 'GST_Rate','N/A');
         end
      else
-        AddField('GST_Rate','N/A')
+        AddFieldNode( ToNode, 'GST_Rate','N/A')
   end;
 
-  procedure AddGuid(const Value: string);
+  procedure AddGuid(var ToNode: IxmlNode; const Value: string);
   var id: string;
       i,o : integer;
   begin   //1234567890123456789
@@ -531,32 +584,45 @@ var
         end;
      end;
 //BulkExtract     AddField('Other_Reference',id);
-     AddField('Unique_Reference',id);
+     AddFieldNode( ToNode, 'Unique_Reference',id);
   end;
 
-  procedure AddCode(const Value: string);
+  procedure AddCode(var ToNode: IxmlNode; const Value: string);
   begin
      if Value = '' then
-        AddField('Account_Code',DefaultCode)
+        AddFieldNode( ToNode, 'Account_Code',DefaultCode)
      else
-        AddField('Account_Code',Value);
+        AddFieldNode( ToNode, 'Account_Code',Value);
   end;
 
-  procedure AddText;
-  var Ref, Nar: string;
+  procedure AddText( var ToNode: IxmlNode);
+  const
+    GetMaxNarrationLength = 150;
+
+  var
+    Ref,
+    Nar: string;
+    NarrationLength : integer;
+
   begin
 
-      Nar := ExtractFieldHelper.GetField(f_Narration);
-      Ref := ExtractFieldHelper.GetField(f_ChequeNo);
-      if Ref > '' then
-         if Nar > '' then
-            Ref := Nar + ' BL Ref: ' + Ref
-         else
-            Ref := 'BL Ref: ' + Ref
-      else
-         Ref := Nar;
+    Nar := ExtractFieldHelper.GetField(f_Narration);
+    Ref := ExtractFieldHelper.GetField(f_ChequeNo);
+    if Ref > '' then
+       if Nar > '' then
+          Ref := Nar + ' BL Ref: ' + Ref
+       else
+          Ref := 'BL Ref: ' + Ref
+    else
+       Ref := Nar;
 
-      AddField('Text',Ref,True);
+    if GetMaxNarrationLength <= 150 then
+      NarrationLength := GetMaxNarrationLength
+    else
+      NarrationLength := 150;
+
+    Ref := copy( Ref, 1, NarrationLength );
+    AddFieldNode( ToNode, 'Text',Ref,True);
   end;
 
   procedure StrToFile(const FileName, SourceString : string);
@@ -571,6 +637,311 @@ var
     end;
   end;
 
+  function StripBGL360ControlAccountCode( Value : string ) : integer;
+  var
+    liPos  : integer;
+    lsControlCode : string;
+  begin
+    Result := 0;
+    Value := trim( Value );
+    if Value <> '' then begin
+      liPos := pos( '/', Value);  // Fetch the control account code, if this is a sub account type
+      if liPos = 0 then           // Not a sub account type, so fetch the whole code
+        lsControlCode := Value
+      else
+        lsControlCode := copy( Value, 1, pred( liPos ) ); // Fetch the first characters (or the whole acocunt code if not a sub account)
+      result := StrToIntDef(  lsControlCode ,0 );
+    end;
+  end;
+
+  Procedure AddShareTradeEntities;//(var TransactionNode: IXMLNode);
+  const
+    ThisMethodName = 'AddShareTradeEntities';
+  begin
+    with ExtractFieldHelper do begin
+      // Units
+      AddFieldNode(TransactionTypeNode, fBGL360_Units,
+        GetField( fBGL360_Units, '' ), True );
+      // Contract_date
+      AddFieldNode(TransactionTypeNode, fBGL360_Contract_date,
+        GetField( fBGL360_Contract_date, '' ) );
+      // Settlement_date
+      AddFieldNode(TransactionTypeNode, fBGL360_Settlement_date,
+        GetField( fBGL360_Settlement_date, '' ) );
+      // Brokerage
+      AddFieldNode( TransactionTypeNode, fBGL360_Brokerage,
+        GetField( fBGL360_Brokerage, '' ) );
+      // GST_Rate
+      if Trim(GetField( fBGL360_GST_Rate, '0' ) ) <> '0'  then
+        AddFieldNode(
+          TransactionTypeNode,
+          fBGL360_GST_Rate,
+          GetField( fBGL360_GST_Rate, '' ) );
+      // GST_Amount
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_GST_Amount,
+        GetField( fBGL360_GST_Amount, '' ) );
+      // Consideration
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Consideration,
+        GetField( fBGL360_Consideration, '' ) );
+    end;
+  end;
+
+  Procedure AddInterestEntities;//(var TransactionTypeNode: IXMLNode);
+  const
+    ThisMethodName = 'AddInterestEntities';
+  begin
+    with ExtractFieldHelper do begin
+      // Interest
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Interest,
+        GetField( fBGL360_Interest, '' ) );
+      // Other_Income
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Other_Income,
+        GetField( fBGL360_Other_Income, '' ) );
+      // TFN_Amounts_withheld
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_TFN_Amounts_withheld,
+        GetField( fBGL360_TFN_Amounts_Withheld, '' ) );
+      // Non_Resident_Withholding_Tax
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Non_Resident_Withholding_Tax,
+        GetField( fBGL360_Non_Resident_Withholding_Tax, '' ) );
+    end;
+  end;
+
+  Procedure AddDividendEntities(IsDissection:Boolean=False);//(var TransactionTypeNode: IXMLNode);
+  const
+    ThisMethodName = 'AddDividendEntities';
+  begin
+    with ExtractFieldHelper do begin
+      // Dividends_Franked
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Dividends_Franked,
+        GetField( fBGL360_Dividends_Franked, '' ), True );
+      // Dividends_Unfranked
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Dividends_Unfranked,
+        GetField( fBGL360_Dividends_Unfranked, '' ), True );
+      // Franking_Credits
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Franking_Credits,
+        GetField( fBGL360_Franking_Credits, '' ), True );
+      // Assessable_Foreign_Source_Income
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Assessable_Foreign_Source_Income,
+        GetField( fBGL360_Assessable_Foreign_Source_Income, '' ) );
+      // Foreign_Income_Tax_Paid_Offset_Credits
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Income_Tax_Paid_Offset_Credits,
+        GetField( fBGL360_Foreign_Income_Tax_Paid_Offset_Credits, '' ) );
+      // Australian_Franking_Credits_from_a_New_Zealand_Company
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company,
+        GetField( fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company, '' ) );
+      // TFN_Amounts_withheld
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_TFN_Amounts_withheld,
+        GetField( fBGL360_TFN_Amounts_withheld, '' ) );
+      // Non_Resident_Withholding_Tax
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Non_Resident_Withholding_Tax,
+        GetField( fBGL360_Non_Resident_Withholding_Tax, '' ) );
+      // LIC_Deduction
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_LIC_Deductions,
+        GetField( fBGL360_LIC_Deductions, '' ) );
+    end;
+  end;
+
+  Procedure AddDistributionEntities(IsDissection:Boolean=False);//(var TransactionTypeNode: IXMLNode);
+  const
+    ThisMethodName = 'AddDistributionEntities';
+  begin
+    with ExtractFieldHelper do begin
+      // Dividends_Franked
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Dividends_Franked,
+        GetField( fBGL360_Dividends_Franked, '' ) );
+      // Dividends_Unfranked
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Dividends_Unfranked,
+        GetField( fBGL360_Dividends_Unfranked, '' ) );
+      // Franking_Credits
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Franking_Credits,
+        GetField( fBGL360_Franking_Credits, '' ) );
+      // Interest
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Interest,
+        GetField( fBGL360_Interest, '' ) );
+      // Other_Income
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Other_Income,
+        GetField( fBGL360_Other_Income, '' ) );
+
+      // Less_Other_Allowable_Trust_Deductions
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Less_Other_Allowable_Trust_Deductions,
+        GetField( fBGL360_Less_Other_Allowable_Trust_Deductions, '' ) );
+      // Discounted_Capital_Gain_Before_Discount
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Discounted_Capital_Gain_Before_Discount,
+        GetField( fBGL360_Discounted_Capital_Gain_Before_Discount, '' ) );
+      // Capital_Gains_CGT_Concessional_Amount
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Capital_Gains_CGT_Concessional_Amount,
+        GetField( fBGL360_Capital_Gains_CGT_Concessional_Amount, '' ) );
+      // Capital_Gain_Indexation_Method
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Capital_Gain_Indexation_Method,
+        GetField( fBGL360_Capital_Gain_Indexation_Method, '' ) );
+      // Capital_Gain_Other_Method
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Capital_Gain_Other_Method,
+        GetField( fBGL360_Capital_Gain_Other_Method, '' ) );
+      // Foreign_Discounted_Capital_Gains_Before_Discount
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount,
+        GetField( fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount, '' ) );
+      // Foreign_Capital_Gains_Indexation_Method
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Capital_Gains_Indexation_Method,
+        GetField( fBGL360_Foreign_Capital_Gains_Indexation_Method, '' ) );
+      // Foreign_Capital_Gains_Other_Method
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Capital_Gains_Other_Method,
+        GetField( fBGL360_Foreign_Capital_Gains_Other_Method, '' ) );
+
+      // Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid,
+        GetField( fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid, '' ) );
+      // Foreign_Capital_Gains_Indexation_Method_Tax_Paid
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid,
+        GetField( fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid, '' ) );
+      // Foreign_Capital_Gains_Other_Method_Tax_Paid
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid,
+        GetField( fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid, '' ) );
+
+      // Assessable_Foreign_Source_Income
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Assessable_Foreign_Source_Income,
+        GetField( fBGL360_Assessable_Foreign_Source_Income, '' ) );
+      // Foreign_Income_Tax_Paid_Offset_Credits
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Foreign_Income_Tax_Paid_Offset_Credits,
+        GetField( fBGL360_Foreign_Income_Tax_Paid_Offset_Credits, '' ) );
+      // Australian_Franking_Credits_from_a_New_Zealand_Company
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company,
+        GetField( fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company, '' ) );
+      // Other_Net_Foreign_Source_Income
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Other_Net_Foreign_Source_Income,
+        GetField( fBGL360_Other_Net_Foreign_Source_Income, '' ) );
+      // Cash_Distribution
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Cash_Distribution,
+        GetField( fBGL360_Cash_Distribution, '' ) );
+      // Tax_Exempted_Amounts
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Tax_Exempted_Amounts,
+        GetField( fBGL360_Tax_Exempted_Amounts, '' ) );
+      // Tax_Free_Amounts
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Tax_Free_Amounts,
+        GetField( fBGL360_Tax_Free_Amounts, '' ) );
+      // Tax_Deferred_amounts
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Tax_Deferred_amounts,
+        GetField( fBGL360_Tax_Deferred_amounts, '' ) );
+      // TFN_Amounts_withheld
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_TFN_Amounts_withheld,
+        GetField( fBGL360_TFN_Amounts_withheld, '' ) );
+      // Non_Resident_Withholding_Tax
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Non_Resident_Withholding_Tax,
+        GetField( fBGL360_Non_Resident_Withholding_Tax, '' ) );
+      // Other_Expenses
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Other_Expenses,
+        GetField( fBGL360_Other_Expenses, '' ) );
+      // LIC_Deduction
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_LIC_Deductions,
+        GetField( fBGL360_LIC_Deductions, '' ) );
+      // Discounted_Capital_Gain_Before_Discount_Non_Cash
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash,
+        GetField( fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash, '' ) );
+      // Capital_Gains_Indexation_Method_Non_Cash
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Capital_Gains_Indexation_Method_Non_Cash,
+        GetField( fBGL360_Capital_Gains_Indexation_Method_Non_Cash, '' ) );
+      // Capital_Gains_Other_Method_Non_Cash
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Capital_Gains_Other_Method_Non_Cash,
+        GetField( fBGL360_Capital_Gains_Other_Method_Non_Cash, '' ) );
+      // Capital_Losses_Non_Cash
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_Capital_Losses_Non_Cash,
+        GetField( fBGL360_Capital_Losses_Non_Cash, '' ) );
+    end;
+  end;
+
 begin
   if TestRun then
   begin
@@ -581,71 +952,164 @@ begin
   LTrans := TransactionsNode.AppendChild(FOutputDocument.CreateElement('Transaction'));
 
   with ExtractFieldHelper do begin
-//BulkExtract    AddField('Transaction_Type','Other_Transaction');
-    AddField('Transaction_Type','Bank_Transaction');
-//BulkExtract    AddField('Account_Code_Type','Simple Fund');
+    AddFieldNode( LTrans, 'Transaction_Type','Bank_Transaction');
 
     if TestRun then
       SetFields(Session.Data);
 
-    AddGuid(Uppercase(GetField(f_TransID)));
-
+    AddGuid( LTrans, Uppercase(GetField(f_TransID)));
 
     // BSB and Bank_Account_No
-
-    ProcessDiskCode(CurrentAccount, BSB, AccountNum);
-
-(*******************************************************************************
     RetrieveBSBAndAccountNum(
-      TBank_Account(Transaction^.txBank_Account).baFields.baExtract_Account_Number,
-      TBank_Account(Transaction^.txBank_Account).baFields.baBank_Account_Number,
+      GetField( f_ExtractNumberAs ),
+      CurrentAccount,
       BSB, AccountNum );
 
-////////////////////////////////////////////////////////////////////////////////    RetrieveBSBAndAccountNum( CurrentAccount, CurrentAccount, BSB, AccountNum );
-*******************************************************************************)
 
-    AddField('BSB', BSB);
-    AddField('Bank_Account_No', AccountNum);
+    AddFieldNode( LTrans, 'BSB', BSB);
+    AddFieldNode( LTrans, 'Bank_Account_No', AccountNum);
 
-//BulkExtract    AddField('Transaction_Source','Bank Statement');
+                                                  ;
+    AddFieldNode( LTrans, 'Transaction_Date',GetField(f_Date));
 
-//BulkExtract    if Session.AccountType in [btBank,btCashJournals] then
-//BulkExtract       AddField('Cash','Cash')
-//BulkExtract    else
-//BulkExtract       AddField('Cash','Non Cash');
+    AddText( LTrans );
 
-//BulkExtract    AddCode(GetField(f_Code));
+    AddFieldNode( LTrans, 'Amount',
+      SwapNegAndPosAmounts( GetField(f_amount, '0') ),
+      True);
 
-    AddField('Transaction_Date',GetField(f_Date));
+    ContraEntries := OutputDocument.CreateElement('Contra_Entries');
 
-    AddText;
+    LTrans.AppendChild(ContraEntries);
+    // Entry
+    Entry := OutputDocument.CreateElement('Entry');
+    ContraEntries.AppendChild(Entry);
 
-    AddField('Amount',GetField(f_amount, '0'), True);
-    AddField('GST',GetField(f_tax));
+    iAccountCode := StripBGL360ControlAccountCode( GetField(f_Code) );
+
+    if iAccountCode = cttanDistribution then
+    begin
+      sAcctHead := 'Distribution_Transaction';
+      TransType := ttDistribution;
+    end
+    else if iAccountCode = cttanDividend then
+    begin
+      sAcctHead := 'Dividend_Transaction';
+      TransType := ttDividend;
+    end
+    else if iAccountCode = cttanInterest then
+    begin
+      sAcctHead := 'Interest_Transaction';
+      TransType := ttInterest;
+    end
+    else if ( iAccountCode >= cttanShareTradeRangeStart ) and
+            ( iAccountCode <= cttanShareTradeRangeEnd ) then //DN Refactored out, since range was introduced ((AccountCode >= cttanShareTradeRangeStart) and (AccountCode <= cttanShareTradeRangeEnd)) then
+    begin
+      sAcctHead := 'Share_Trade_Transaction';
+      TransType := ttShareTrade;
+    end
+    else
+    begin
+      sAcctHead := 'Other_Transaction';
+      TransType := ttOtherTx;
+    end;
+
+    // Entry_Type
+    AddFieldNode(Entry, 'Entry_Type', sAcctHead);
+
+    // Entry_Type_Detail
+    EntryTypeDetail := OutputDocument.CreateElement('Entry_Type_Detail');
+    Entry.AppendChild(EntryTypeDetail);
+
+    TransactionTypeNode := OutputDocument.CreateElement(sAcctHead);
+    EntryTypeDetail.AppendChild(TransactionTypeNode);
+
+    AddCode(TransactionTypeNode, GetField(f_Code));
+//    AddFieldNode( TransactionTypeNode, 'Amount', GetField(f_amount, '0'), true);
+
+
+
+    if TransType in [ ttDividend, ttDistribution] then
+    begin
+      // AccrualDate
+      AddFieldNode(TransactionTypeNode, fBGL360_Accrual_Date,
+        GetField( fBGL360_Accrual_Date, '' ), false );
+      // CashDate
+      AddFieldNode(TransactionTypeNode, fBGL360_Cash_Date,
+        GetField( fBGL360_Cash_Date, '' ), false );
+      // RecordDate
+      AddFieldNode(TransactionTypeNode, fBGL360_Record_Date,
+        GetField( fBGL360_Record_Date, '' ), false );
+    end
+    else if TransType = ttInterest then
+    begin
+      if Trim(GetField(f_amount, '')) = '' then
+      begin
+        AddFieldNode(LTrans, 'BSB', BSB);
+        AddFieldNode(LTrans, 'Bank_Account_No', AccountNum);
+      end;
+    end;
+
+    // Amount
+    AddFieldNode( TransactionTypeNode, f_Amount,
+      GetField(f_amount, '0'),
+      True);
+
+(*
+    lsTemp := GetField( fBGL360_GST_Amount, '0' );
+    // Output GST?
+//    if ((TransType= ttOtherTx) and (strToInt( GetField( fBGL360_GST_Amount, '0' ) )  <> 0)) then
+    if ((TransType= ttOtherTx) and (strToInt( lsTemp )  <> 0)) then
+    begin
+      // GST_Amount
+      AddFieldNode(
+        TransactionTypeNode,
+        fBGL360_GST_Amount,
+        GetField( fBGL360_GST_Amount ), false );
+    end;
+*)
+    if TransType = ttDistribution then
+      AddDistributionEntities()
+    else if TransType = ttDividend then
+      AddDividendEntities()
+    else if TransType = ttInterest then
+      AddInterestEntities()
+    else if TransType = ttShareTrade then
+      AddShareTradeEntities();
+(*(*(*(*(*(**}*}*}*}*}*)
+
+
+
+
+
+
+(*    AddFieldNode( LTrans, 'GST',GetField(f_tax));
     AddTaxClass(GetField(f_TaxCode));
 
-    AddField('Quantity',GetField(f_Quantity));
+    AddFieldNode( LTrans, 'Quantity',GetField(f_Quantity));
 
     // Supper fields
-    AddField('CGT_Transaction_Date',GetField(f_CGTDate));
-    AddField('Franked_Dividend',GetField(f_Franked));
-    AddField('UnFranked_Dividend',GetField(f_UnFranked));
-    AddField('Imputation_Credit',GetField(f_Imp_Credit));
+    AddFieldNode( LTrans, 'CGT_Transaction_Date',GetField(f_CGTDate));
+    AddFieldNode( LTrans, 'Franked_Dividend',GetField(f_Franked));
+    AddFieldNode( LTrans, 'UnFranked_Dividend',GetField(f_UnFranked));
+    AddFieldNode( LTrans, 'Imputation_Credit',GetField(f_Imp_Credit));
 
-    AddField('Tax_Free_Distribution',GetField(f_TF_Dist));
+    AddFieldNode( LTrans, 'Tax_Free_Distribution',GetField(f_TF_Dist));
 
-    AddField('Tax_Exempt_Distribution',GetField(f_TE_Dist));
-    AddField('Tax_Defered_Distribution',GetField(f_TD_Dist));
-    AddField('TFN_Credit',GetField(f_TFN_Credit));
-    AddField('Foreign_Income',GetField(f_Frn_Income));
-    AddField('Foreign_Credit',GetField(f_Frn_Credit));
+    AddFieldNode( LTrans, 'Tax_Exempt_Distribution',GetField(f_TE_Dist));
+    AddFieldNode( LTrans, 'Tax_Defered_Distribution',GetField(f_TD_Dist));
+    AddFieldNode( LTrans, 'TFN_Credit',GetField(f_TFN_Credit));
+    AddFieldNode( LTrans, 'Foreign_Income',GetField(f_Frn_Income));
+    AddFieldNode( LTrans, 'Foreign_Credit',GetField(f_Frn_Credit));
 
-    AddField('Expenses',GetField(f_OExpences));
+    AddFieldNode( LTrans, 'Expenses',GetField(f_OExpences));
 
-    AddField('Indexed_Capital_Gain',GetField(f_CGI));
-    AddField('Discount_Capital_Gain',GetField(f_CGD));
-    AddField('Other_Capital_Gain',GetField(f_CGO));
-    AddField('Member_Component',GetField(f_MemComp));
+    AddFieldNode( LTrans, 'Indexed_Capital_Gain',GetField(f_CGI));
+    AddFieldNode( LTrans, 'Discount_Capital_Gain',GetField(f_CGD));
+    AddFieldNode( LTrans, 'Other_Capital_Gain',GetField(f_CGO));
+    AddFieldNode( LTrans, 'Member_Component',GetField(f_MemComp)); *)
+
+
   end;
 
    if TestRun then

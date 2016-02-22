@@ -176,7 +176,7 @@ type
      procedure AddCountryField(Value: Integer);
      // Superfund/Tax Helpers
      procedure AddBGLFields(Date, Component: Integer);
-     procedure AddBGL360Fields(Date, Component: Integer);
+     procedure AddBGL360ComponentFields(Date, Component: Integer);
      procedure AddTaxFields(TaxAmount: Money; TaxClass: Integer);
      // Status helpers
      procedure AddStatus(const Value: string;const Log: Boolean = True);
@@ -999,7 +999,7 @@ begin
 end;
 
 
-procedure TBulkExtractor.AddBGL360Fields(Date, Component: Integer);
+procedure TBulkExtractor.AddBGL360ComponentFields(Date, Component: Integer);
 begin
   if (Date = 0)
   or (Date >= mcSwitchDate) then begin
@@ -1044,7 +1044,7 @@ end;
 
 procedure TBulkExtractor.AddDateField(const Name: string; Value: Integer);
 begin
-   if Value <> 0 then
+   if Value (*<*)> 0 then
       FFields.Add(Name + '=' + StDateToDateString('dd/mm/yyyy',Value,False));
 end;
 
@@ -1176,6 +1176,192 @@ begin
 end;
 
 function TBulkExtractor.DissectionToText(const Index: Integer; aDiss: pDissection_Rec): string;
+
+  procedure AddBGL360Fields;
+  begin
+//  fBGL360_Accrual_Date
+    AddDateField(fBGL360_Accrual_Date, aDiss^.dsDissection_Extension^.deSF_Accrual_Date);
+//  fBGL360_Cash_Date
+    AddDateField(fBGL360_Cash_Date, aDiss^.dsDissection_Extension^.deSF_Cash_Date);
+//  fBGL360_Record_Date
+    AddDateField(fBGL360_Record_Date, aDiss^.dsDissection_Extension^.deSF_Record_Date);
+
+   //Distribution Entry Type
+       {// sffIdxBGL360_Entry Type}
+       {// sffIdxBGL360_Units}
+       {// sffIdxBGL360_Cash_Date}
+       {// sffIdxBGL360_Accrual Date}
+       {// sffIdxBGL360_Record_Date}
+
+
+///////////// ***************** Share Trade Tab ***************** ////////////////
+//    fBGL360_Units
+      AddQtyField(fBGL360_Units {fQuantity}, aDiss^.dsQuantity);
+//    fBGL360_Contract_Date
+      AddDateField(fBGL360_Contract_Date, aDiss^.dsDissection_Extension^.deSF_Contract_Date);
+//    fBGL360_Settlement_Date
+      AddDateField(fBGL360_Settlement_Date, aDiss^.dsDissection_Extension^.deSF_Settlement_Date);
+//    fBGL360_Brokerage
+      AddMoneyField( fBGL360_Brokerage,
+        abs( aDiss^.dsDissection_Extension^.deSF_Share_Brokerage ) ) ;
+//    fBGL360_GST_Rate
+      AddNumberField( fBGL360_GST_Rate,
+        Abs( StrToIntDef( aDiss^.dsDissection_Extension^.deSF_Share_GST_Rate, 0 ) ) );
+//    fBGL360_GST_Amount
+      AddMoneyField( fBGL360_GST_Amount,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Share_GST_Amount ) );
+//    fBGL360_Consideration
+      AddMoneyField( fBGL360_Consideration,
+        ( aDiss^.dsDissection_Extension^.deSF_Share_Consideration ) );
+///////////// ***************** Share Trade Tab ***************** ////////////////
+
+///////////// ***************** Dividend / Distribution Tabs ***************** ////////////////
+//    fBGL360_Dividends_Franked
+      AddMoneyField( fBGL360_Dividends_Franked,
+        abs(aDiss^.dsSF_Franked) );
+//    fBGL360_Dividends_Unfranked
+      AddMoneyField( fBGL360_Dividends_Unfranked,
+        abs(aDiss^.dsSF_Unfranked) );
+//    fBGL360_Franking_Credits
+      AddMoneyField( fBGL360_Franking_Credits,
+        Abs(aDiss^.dsSF_Imputed_Credit) );
+///////////// ***************** Dividend / Distribution Tabs ***************** ////////////////
+
+///////////// ***************** Distribution / Interest Tabs ***************** ////////////////
+//   fBGL360_Interest
+      AddMoneyField( fBGL360_Interest,
+        Abs( aDiss^.dsSF_Interest) );
+//    fBGL360_Other_Income
+      AddMoneyField( fBGL360_Other_Income,
+        Abs(aDiss^.dsDissection_Extension^.deSF_Other_Income ) );
+///////////// ***************** Distribution / Interest Tabs ***************** ////////////////
+
+///////////// ***************** Distribution ***************** ////////////////
+//    fBGL360_Less_Other_Allowable_Trust_Deductions
+      AddMoneyField( fBGL360_Less_Other_Allowable_Trust_Deductions,
+        Abs(aDiss^.dsDissection_Extension^.deSF_Other_Trust_Deductions ) );
+//    fBGL360_Discounted_Capital_Gain_Before_Discount
+      AddMoneyField( fBGL360_Discounted_Capital_Gain_Before_Discount,
+        Abs(aDiss^.dsSF_Capital_Gains_Disc) );
+//    fBGL360_Capital_Gains_CGT_Concessional_Amount
+      AddMoneyField( fBGL360_Capital_Gains_CGT_Concessional_Amount,
+        Abs(aDiss^.dsDissection_Extension^.deSF_CGT_Concession_Amount ) );
+//    fBGL360_Capital_Gain_Indexation_Method
+      AddMoneyField( fBGL360_Capital_Gain_Indexation_Method,
+        Abs( aDiss^.dsSF_Capital_Gains_Indexed) );
+//    fBGL360_Capital_Gain_Other_Method
+      AddMoneyField( fBGL360_Capital_Gain_Other_Method,
+        Abs( aDiss^.dsSF_Capital_Gains_Other) );
+//    fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount
+      AddMoneyField( fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount,
+        Abs( aDiss^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Before_Disc ) );
+//    fBGL360_Foreign_Capital_Gains_Indexation_Method
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Indexation_Method,
+        Abs( aDiss^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Indexation ) );
+//    fBGL360_Foreign_Capital_Gains_Other_Method
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Other_Method,
+        Abs( aDiss^.dsDissection_Extension^.deSF_CGT_ForeignCGT_Other_Method ) );
+//    fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid
+      AddMoneyField( fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid,
+        Abs( aDiss^.dsSF_Capital_Gains_Foreign_Disc ) );
+//    fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid,
+        Abs( aDiss^.dsDissection_Extension^.deSF_CGT_TaxPaid_Indexation ) );
+//    fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid,
+        Abs( aDiss^.dsDissection_Extension^.deSF_CGT_TaxPaid_Other_Method ) );
+///////////// ***************** Distribution ***************** ////////////////
+
+///////////// ***************** Distribution / Dividend ***************** ////////////////
+//    fBGL360_Assessable_Foreign_Source_Income
+      AddMoneyField( fBGL360_Assessable_Foreign_Source_Income,
+        Abs( aDiss^.dsSF_Foreign_Income ) );
+//    fBGL360_Foreign_Income_Tax_Paid_Offset_Credits
+      AddMoneyField( fBGL360_Foreign_Income_Tax_Paid_Offset_Credits,
+        Abs( aDiss^.dsSF_Foreign_Tax_Credits ) );
+//    fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company
+      AddMoneyField( fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company,
+        Abs( aDiss^.dsDissection_Extension^.deSF_AU_Franking_Credits_NZ_Co ) );
+///////////// ***************** Distribution / Dividend ***************** ////////////////
+
+///////////// ***************** Distribution ***************** ////////////////
+//    fBGL360_Other_Net_Foreign_Source_Income
+      AddMoneyField( fBGL360_Other_Net_Foreign_Source_Income,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Other_Net_Foreign_Income ) );
+//    fBGL360_Cash_Distribution
+      AddMoneyField( fBGL360_Cash_Distribution,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Cash_Distribution ) );
+//    fBGL360_Tax_Exempted_Amounts
+      AddMoneyField( fBGL360_Tax_Exempted_Amounts,
+        Abs( aDiss^.dsSF_Tax_Exempt_Dist ) );
+//    fBGL360_Tax_Free_Amounts
+      AddMoneyField( fBGL360_Tax_Free_Amounts,
+        Abs( aDiss^.dsSF_Tax_Free_Dist ) );
+//    fBGL360_Tax_Deferred_amounts
+      AddMoneyField( fBGL360_Tax_Deferred_amounts,
+        Abs( aDiss^.dsSF_Tax_Deferred_Dist ) );
+///////////// ***************** Distribution ***************** ////////////////
+
+///////////// ***************** Distribution / Dividend  / Interest tabs ***************** ////////////////
+//    fBGL360_TFN_Amounts_withheld
+      AddMoneyField( fBGL360_TFN_Amounts_withheld,
+        Abs( aDiss^.dsSF_TFN_Credits ) );
+//    fBGL360_Non_Resident_Withholding_Tax
+      AddMoneyField( fBGL360_Non_Resident_Withholding_Tax,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax ) );
+///////////// ***************** Distribution / Dividend  / Interest tabs ***************** ////////////////
+
+///////////// ***************** Distribution Tab ***************** ////////////////
+//    fBGL360_Other_Expenses
+      AddMoneyField( fBGL360_Other_Expenses,
+        Abs( aDiss^.dsSF_Other_Expenses ) );
+//    fBGL360_Other_Net_Foreign_Source_Income
+      AddMoneyField( fBGL360_Other_Net_Foreign_Source_Income,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Other_Net_Foreign_Income ) );
+//    fBGL360_Cash_Distribution
+      AddMoneyField( fBGL360_Cash_Distribution,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Cash_Distribution ) );
+//    fBGL360_Tax_Exempted_Amounts
+      AddMoneyField( fBGL360_Tax_Exempted_Amounts,
+      Abs( aDiss^.dsSF_Tax_Exempt_Dist ) );
+//    fBGL360_Tax_Free_Amounts
+      AddMoneyField( fBGL360_Tax_Free_Amounts,
+      Abs( aDiss^.dsSF_Tax_Free_Dist ) );
+//    fBGL360_Tax_Deferred_amounts
+      AddMoneyField( fBGL360_Tax_Deferred_amounts,
+      Abs( aDiss^.dsSF_Tax_Deferred_Dist ) );
+//    fBGL360_TFN_Amounts_withheld
+      AddMoneyField( fBGL360_TFN_Amounts_withheld,
+      Abs( aDiss^.dsSF_TFN_Credits ) );
+//    fBGL360_Non_Resident_Withholding_Tax
+      AddMoneyField( fBGL360_Non_Resident_Withholding_Tax,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Non_Res_Witholding_Tax ) );
+//    fBGL360_Other_Expenses
+      AddMoneyField( fBGL360_Other_Expenses,
+      Abs( aDiss^.dsSF_Other_Expenses ) );
+///////////// ***************** Distribution Tab ***************** ////////////////
+
+///////////// ***************** Distribution / Dividend Tabs ***************** ////////////////
+//    fBGL360_LIC_Deduction
+      AddMoneyField( fBGL360_LIC_Deductions,
+        Abs( aDiss^.dsDissection_Extension^.deSF_LIC_Deductions ) );
+///////////// ***************** Distribution / Dividend Tabs ***************** ////////////////
+
+///////////// ***************** Distribution Tab ***************** ////////////////
+//    fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash
+      AddMoneyField( fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Non_Cash_CGT_Discounted_Before_Discount ) );
+//    fBGL360_Capital_Gains_Indexation_Method_Non_Cash
+      AddMoneyField( fBGL360_Capital_Gains_Indexation_Method_Non_Cash,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Non_Cash_CGT_Indexation ) );
+//    fBGL360_Capital_Gains_Other_Method_Non_Cash
+      AddMoneyField( fBGL360_Capital_Gains_Other_Method_Non_Cash,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Non_Cash_CGT_Other_Method ) );
+//    fBGL360_Capital_Losses_Non_Cash
+      AddMoneyField( fBGL360_Capital_Losses_Non_Cash,
+        Abs( aDiss^.dsDissection_Extension^.deSF_Non_Cash_CGT_Capital_Losses ) );
+///////////// ***************** Distribution Tab ***************** ////////////////
+  end;
 begin
    FFields.Clear;
    AddNumberField(f_Line,FlineCount);
@@ -1184,107 +1370,115 @@ begin
    // Any other IDs
 
    case Ft_TransID of
-     tr_BNotes   : AddNumberField(f_TransID, aDiss.dsTransaction.txECoding_Transaction_UID);
-     tr_GUID     : AddField(f_TransID,aDiss.dsExternal_GUID);
+     tr_BNotes   : AddNumberField(f_TransID, aDiss^.dsTransaction.txECoding_Transaction_UID);
+     tr_GUID     : AddField(f_TransID,aDiss^.dsExternal_GUID);
    end;
 
-   AddDateField(f_Date,aDiss.dsTransaction.txDate_Effective);
-   AddMoneyField(f_Amount,aDiss.dsAmount);
+   AddDateField(f_Date,aDiss^.dsTransaction.txDate_Effective);
+   AddMoneyField(f_Amount,aDiss^.dsAmount);
 
-   AddTaxFields(aDiss.dsGST_Amount, aDiss.dsGST_Class);
+   AddTaxFields(aDiss^.dsGST_Amount, aDiss^.dsGST_Class);
 
-   AddQtyField(f_Quantity, ADiss.dsQuantity);
-   AddNumberField(f_TransType, aDiss.dsTransaction.txType);
+   AddQtyField(f_Quantity, aDiss^.dsQuantity);
+   AddNumberField(f_TransType, aDiss^.dsTransaction.txType);
 
    // Naratives
    AddField(f_Reference, TransactionUtils.getDsctReference(aDiss, BankAccount.baFields.baAccount_Type));
-   AddField(f_Analysis, aDiss.dsTransaction.txAnalysis);
-   AddField(f_OtherParty, aDiss.dsTransaction.txOther_Party);
-   AddField(f_Particulars, aDiss.dsTransaction.txParticulars);
-   AddField(f_Narration, aDiss.dsGL_Narration);
+   AddField(f_Analysis, aDiss^.dsTransaction.txAnalysis);
+   AddField(f_OtherParty, aDiss^.dsTransaction.txOther_Party);
+   AddField(f_Particulars, aDiss^.dsTransaction.txParticulars);
+
+   if trim( aDiss^.dsGL_Narration ) <> '' then
+     AddField(f_Narration, aDiss^.dsGL_Narration)
+   else
+     AddField(f_Narration, aDiss^.dsTransaction^.txGL_Narration);
+
    AddField(f_Notes, GetFullNotes(aDiss));
 
    // Coding
-   AddField(f_Code,aDiss.dsAccount);
-   AddField(f_Desc,LookupChart(aDiss.dsAccount));
+   AddField(f_Code,aDiss^.dsAccount);
+   AddField(f_Desc,LookupChart(aDiss^.dsAccount));
    // Job
-   AddField(f_JobCode, aDiss.dsJob_Code);
-   AddField(f_JobDesc, lookupJob(aDiss.dsJob_Code));
+   AddField(f_JobCode, aDiss^.dsJob_Code);
+   AddField(f_JobDesc, lookupJob(aDiss^.dsJob_Code));
 
    // Superfund...
    // Superfund...
    if IsSuperFund(Client.clFields.clCountry,Client.clFields.clAccounting_System_Used) then begin
 
        // Common Money Fields
-       AddDateField(f_CGTDate,aDiss.dsSF_CGT_Date);
+       AddDateField(f_CGTDate,aDiss^.dsSF_CGT_Date);
 
-       AddMoneyField(f_Franked,aDiss.dsSF_Franked);
-       AddMoneyField(f_UnFranked,aDiss.dsSF_UnFranked);
+       AddMoneyField(f_Franked,aDiss^.dsSF_Franked);
+       AddMoneyField(f_UnFranked,aDiss^.dsSF_UnFranked);
 
-       AddMoneyField(f_Imp_Credit,aDiss.dsSF_Imputed_Credit);
-       AddMoneyField(f_TFN_Credit,aDiss.dsSF_TFN_Credits);
-       AddMoneyField(f_Frn_Credit,aDiss.dsSF_Foreign_Tax_Credits);
+       AddMoneyField(f_Imp_Credit,aDiss^.dsSF_Imputed_Credit);
+       AddMoneyField(f_TFN_Credit,aDiss^.dsSF_TFN_Credits);
+       AddMoneyField(f_Frn_Credit,aDiss^.dsSF_Foreign_Tax_Credits);
 
-       AddMoneyField(f_TF_Dist,aDiss.dsSF_Tax_Free_Dist);
-       AddMoneyField(f_TE_Dist,aDiss.dsSF_Tax_Exempt_Dist);
-       AddMoneyField(f_TD_Dist,aDiss.dsSF_Tax_Deferred_Dist);
+       AddMoneyField(f_TF_Dist,aDiss^.dsSF_Tax_Free_Dist);
+       AddMoneyField(f_TE_Dist,aDiss^.dsSF_Tax_Exempt_Dist);
+       AddMoneyField(f_TD_Dist,aDiss^.dsSF_Tax_Deferred_Dist);
 
-       AddMoneyField(f_CGI,aDiss.dsSF_Capital_Gains_Indexed);
-       AddMoneyField(f_CGD,aDiss.dsSF_Capital_Gains_Disc);
-       AddMoneyField(f_CGO,aDiss.dsSF_Capital_Gains_Other);
+       AddMoneyField(f_CGI,aDiss^.dsSF_Capital_Gains_Indexed);
+       AddMoneyField(f_CGD,aDiss^.dsSF_Capital_Gains_Disc);
+       AddMoneyField(f_CGO,aDiss^.dsSF_Capital_Gains_Other);
 
-       AddMoneyField(f_Frn_Income,aDiss.dsSF_Foreign_Income);
-       AddMoneyField(f_CGO,aDiss.dsSF_Capital_Gains_Other);
+       AddMoneyField(f_Frn_Income,aDiss^.dsSF_Foreign_Income);
+       AddMoneyField(f_CGO,aDiss^.dsSF_Capital_Gains_Other);
 
-       AddMoneyField(f_OExpences,aDiss.dsSF_Other_Expenses);
-       AddMoneyField(f_Interest, aDiss.dsSF_Interest);
-       AddMoneyField(f_ForeignCG, aDiss.dsSF_Capital_Gains_Other);
-       AddMoneyField(f_ForeignDiscCG, aDiss.dsSF_Capital_Gains_Foreign_Disc);
-       AddMoneyField(f_Rent, aDiss.dsSF_Rent);
-       AddMoneyField(f_SpecialIncome, aDiss.dsSF_Special_Income);
-       AddMoneyField(f_ForeignCGCredit, aDiss.dsSF_Foreign_Capital_Gains_Credit);
-       AddMoneyField(f_OT_Credit, aDiss.dsSF_Other_Tax_Credit);
-       AddMoneyField(f_NonResidentTax, aDiss.dsSF_Non_Resident_Tax);
+       AddMoneyField(f_OExpences,aDiss^.dsSF_Other_Expenses);
+       AddMoneyField(f_Interest, aDiss^.dsSF_Interest);
+       AddMoneyField(f_ForeignCG, aDiss^.dsSF_Capital_Gains_Other);
+       AddMoneyField(f_ForeignDiscCG, aDiss^.dsSF_Capital_Gains_Foreign_Disc);
+       AddMoneyField(f_Rent, aDiss^.dsSF_Rent);
+       AddMoneyField(f_SpecialIncome, aDiss^.dsSF_Special_Income);
+       AddMoneyField(f_ForeignCGCredit, aDiss^.dsSF_Foreign_Capital_Gains_Credit);
+       AddMoneyField(f_OT_Credit, aDiss^.dsSF_Other_Tax_Credit);
+       AddMoneyField(f_NonResidentTax, aDiss^.dsSF_Non_Resident_Tax);
 
        // Member, Fund and Transaction fields are more System specific
        case Client.clFields.clAccounting_System_Used of
          saBGLSimpleFund,
-         saBGLSimpleLedger : AddBGLFields(aDiss.dsTransaction.txDate_Effective,
-                                          aDiss.dsSF_Member_Component);
+         saBGLSimpleLedger : AddBGLFields(aDiss^.dsTransaction.txDate_Effective,
+                                          aDiss^.dsSF_Member_Component);
 
-         saBGL360: AddBGL360Fields( aDiss.dsTransaction.txDate_Effective,
-                                    aDiss.dsSF_Member_Component );
+         saBGL360: begin
+           AddBGL360ComponentFields( aDiss^.dsTransaction.txDate_Effective,
+                                    aDiss^.dsSF_Member_Component );
+           AddBGL360Fields;
+         end;
 
          saSupervisor, saSolution6SuperFund: ;
 
          saDesktopSuper: begin
-               if aDiss.dsSF_Transaction_ID <> -1 then
-                  AddNumberField(f_SFTransID, aDiss.dsSF_Transaction_ID);
+               if aDiss^.dsSF_Transaction_ID <> -1 then
+                  AddNumberField(f_SFTransID, aDiss^.dsSF_Transaction_ID);
 
-               if aDiss.dsSF_Fund_ID <> -1 then
-                  AddNumberField(f_FundID, aDiss.dsSF_Fund_ID);
+               if aDiss^.dsSF_Fund_ID <> -1 then
+                  AddNumberField(f_FundID, aDiss^.dsSF_Fund_ID);
 
-               if aDiss.dsSF_Member_Account_ID <> -1 then
-                  AddNumberField(f_MemID, aDiss.dsSF_Member_Account_ID);
+               if aDiss^.dsSF_Member_Account_ID <> -1 then
+                  AddNumberField(f_MemID, aDiss^.dsSF_Member_Account_ID);
 
-               if aDiss.dsSF_Capital_Gains_Foreign_Disc <> 0 then
-                  AddFractionField(f_CGFraction, aDiss.dsSF_Capital_Gains_Fraction_Half);
+               if aDiss^.dsSF_Capital_Gains_Foreign_Disc <> 0 then
+                  AddFractionField(f_CGFraction, aDiss^.dsSF_Capital_Gains_Fraction_Half);
            end;
 
          saClassSuperIp: begin
-               AddField(f_FundID, aDiss.dsSF_Fund_Code);
-               AddField(f_MemID, aDiss.dsSF_Member_Account_Code);
-               AddFractionField(f_CGFraction, aDiss.dsSF_Capital_Gains_Fraction_Half);
+               AddField(f_FundID, aDiss^.dsSF_Fund_Code);
+               AddField(f_MemID, aDiss^.dsSF_Member_Account_Code);
+               AddFractionField(f_CGFraction, aDiss^.dsSF_Capital_Gains_Fraction_Half);
             end;
 
          saSageHandisoftSuperfund:
-            if aDiss.dsSF_Transaction_ID <> -1 then begin
-               AddField(f_SFTransID, TypesArray[TTxnTypes(aDiss.dsSF_Transaction_ID)]);
-               AddField(f_SFTransCode, aDiss.dsSF_Transaction_Code);
+            if aDiss^.dsSF_Transaction_ID <> -1 then begin
+               AddField(f_SFTransID, TypesArray[TTxnTypes(aDiss^.dsSF_Transaction_ID)]);
+               AddField(f_SFTransCode, aDiss^.dsSF_Transaction_Code);
             end;
 
          saSuperMate:  begin
-               AddField(f_MemID, aDiss.dsSF_Member_ID);
+               AddField(f_MemID, aDiss^.dsSF_Member_ID);
 
             end;
        end;
@@ -1782,6 +1976,193 @@ end;
 
 function TBulkExtractor.TransactionToText(aTrans: pTransaction_Rec): string;
 
+  procedure AddBGL360Fields;
+  begin
+//  fBGL360_Accrual_Date
+    if True then
+    
+    AddDateField(fBGL360_Accrual_Date, aTrans^.txTransaction_Extension^.teSF_Accrual_Date);
+//  fBGL360_Cash_Date
+    AddDateField(fBGL360_Cash_Date, aTrans^.txTransaction_Extension^.teSF_Cash_Date);
+//  fBGL360_Record_Date
+    AddDateField(fBGL360_Record_Date, aTrans^.txTransaction_Extension^.teSF_Record_Date);
+
+   //Distribution Entry Type
+       {// sffIdxBGL360_Entry Type}
+       {// sffIdxBGL360_Units}
+       {// sffIdxBGL360_Cash_Date}
+       {// sffIdxBGL360_Accrual Date}
+       {// sffIdxBGL360_Record_Date}
+
+
+///////////// ***************** Share Trade Tab ***************** ////////////////
+//    fBGL360_Units
+      AddQtyField(fBGL360_Units {fQuantity}, aTrans^.txQuantity);
+//    fBGL360_Contract_Date
+      AddDateField(fBGL360_Contract_Date, aTrans^.txTransaction_Extension^.teSF_Contract_Date);
+//    fBGL360_Settlement_Date
+      AddDateField(fBGL360_Settlement_Date, aTrans^.txTransaction_Extension^.teSF_Settlement_Date);
+//    fBGL360_Brokerage
+      AddMoneyField( fBGL360_Brokerage,
+        abs( aTrans^.txTransaction_Extension^.teSF_Share_Brokerage ) ) ;
+//    fBGL360_GST_Rate
+      AddNumberField( fBGL360_GST_Rate,
+        Abs( StrToIntDef( aTrans^.txTransaction_Extension^.teSF_Share_GST_Rate, 0 ) ) );
+//    fBGL360_GST_Amount
+      AddMoneyField( fBGL360_GST_Amount,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Share_GST_Amount ) );
+//    fBGL360_Consideration
+      AddMoneyField( fBGL360_Consideration,
+        ( aTrans^.txTransaction_Extension^.teSF_Share_Consideration ) );
+///////////// ***************** Share Trade Tab ***************** ////////////////
+
+///////////// ***************** Dividend / Distribution Tabs ***************** ////////////////
+//    fBGL360_Dividends_Franked
+      AddMoneyField( fBGL360_Dividends_Franked,
+        abs(aTrans^.txSF_Franked) );
+//    fBGL360_Dividends_Unfranked
+      AddMoneyField( fBGL360_Dividends_Unfranked,
+        abs(aTrans^.txSF_Unfranked) );
+//    fBGL360_Franking_Credits
+      AddMoneyField( fBGL360_Franking_Credits,
+        Abs(aTrans^.txSF_Imputed_Credit) );
+///////////// ***************** Dividend / Distribution Tabs ***************** ////////////////
+
+///////////// ***************** Distribution / Interest Tabs ***************** ////////////////
+//   fBGL360_Interest
+      AddMoneyField( fBGL360_Interest,
+        Abs( aTrans^.txSF_Interest) );
+//    fBGL360_Other_Income
+      AddMoneyField( fBGL360_Other_Income,
+        Abs(aTrans^.txTransaction_Extension^.teSF_Other_Income ) );
+///////////// ***************** Distribution / Interest Tabs ***************** ////////////////
+
+///////////// ***************** Distribution ***************** ////////////////
+//    fBGL360_Less_Other_Allowable_Trust_Deductions
+      AddMoneyField( fBGL360_Less_Other_Allowable_Trust_Deductions,
+        Abs(aTrans^.txTransaction_Extension^.teSF_Other_Trust_Deductions ) );
+//    fBGL360_Discounted_Capital_Gain_Before_Discount
+      AddMoneyField( fBGL360_Discounted_Capital_Gain_Before_Discount,
+        Abs(aTrans^.txSF_Capital_Gains_Disc) );
+//    fBGL360_Capital_Gains_CGT_Concessional_Amount
+      AddMoneyField( fBGL360_Capital_Gains_CGT_Concessional_Amount,
+        Abs(aTrans^.txTransaction_Extension^.teSF_CGT_Concession_Amount ) );
+//    fBGL360_Capital_Gain_Indexation_Method
+      AddMoneyField( fBGL360_Capital_Gain_Indexation_Method,
+        Abs( aTrans^.txSF_Capital_Gains_Indexed) );
+//    fBGL360_Capital_Gain_Other_Method
+      AddMoneyField( fBGL360_Capital_Gain_Other_Method,
+        Abs( aTrans^.txSF_Capital_Gains_Other) );
+//    fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount
+      AddMoneyField( fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount,
+        Abs( aTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Before_Disc ) );
+//    fBGL360_Foreign_Capital_Gains_Indexation_Method
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Indexation_Method,
+        Abs( aTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Indexation ) );
+//    fBGL360_Foreign_Capital_Gains_Other_Method
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Other_Method,
+        Abs( aTrans^.txTransaction_Extension^.teSF_CGT_ForeignCGT_Other_Method ) );
+//    fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid
+      AddMoneyField( fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid,
+        Abs( aTrans^.txSF_Capital_Gains_Foreign_Disc ) );
+//    fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid,
+        Abs( aTrans^.txTransaction_Extension^.teSF_CGT_TaxPaid_Indexation ) );
+//    fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid
+      AddMoneyField( fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid,
+        Abs( aTrans^.txTransaction_Extension^.teSF_CGT_TaxPaid_Other_Method ) );
+///////////// ***************** Distribution ***************** ////////////////
+
+///////////// ***************** Distribution / Dividend ***************** ////////////////
+//    fBGL360_Assessable_Foreign_Source_Income
+      AddMoneyField( fBGL360_Assessable_Foreign_Source_Income,
+        Abs( aTrans^.txSF_Foreign_Income ) );
+//    fBGL360_Foreign_Income_Tax_Paid_Offset_Credits
+      AddMoneyField( fBGL360_Foreign_Income_Tax_Paid_Offset_Credits,
+        Abs( aTrans^.txSF_Foreign_Tax_Credits ) );
+//    fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company
+      AddMoneyField( fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company,
+        Abs( aTrans^.txTransaction_Extension^.teSF_AU_Franking_Credits_NZ_Co ) );
+///////////// ***************** Distribution / Dividend ***************** ////////////////
+
+///////////// ***************** Distribution ***************** ////////////////
+//    fBGL360_Other_Net_Foreign_Source_Income
+      AddMoneyField( fBGL360_Other_Net_Foreign_Source_Income,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income ) );
+//    fBGL360_Cash_Distribution
+      AddMoneyField( fBGL360_Cash_Distribution,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Cash_Distribution ) );
+//    fBGL360_Tax_Exempted_Amounts
+      AddMoneyField( fBGL360_Tax_Exempted_Amounts,
+        Abs( aTrans^.txSF_Tax_Exempt_Dist ) );
+//    fBGL360_Tax_Free_Amounts
+      AddMoneyField( fBGL360_Tax_Free_Amounts,
+        Abs( aTrans^.txSF_Tax_Free_Dist ) );
+//    fBGL360_Tax_Deferred_amounts
+      AddMoneyField( fBGL360_Tax_Deferred_amounts,
+        Abs( aTrans^.txSF_Tax_Deferred_Dist ) );
+///////////// ***************** Distribution ***************** ////////////////
+
+///////////// ***************** Distribution / Dividend  / Interest tabs ***************** ////////////////
+//    fBGL360_TFN_Amounts_withheld
+      AddMoneyField( fBGL360_TFN_Amounts_withheld,
+        Abs( aTrans^.txSF_TFN_Credits ) );
+//    fBGL360_Non_Resident_Withholding_Tax
+      AddMoneyField( fBGL360_Non_Resident_Withholding_Tax,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax ) );
+///////////// ***************** Distribution / Dividend  / Interest tabs ***************** ////////////////
+
+///////////// ***************** Distribution Tab ***************** ////////////////
+//    fBGL360_Other_Expenses
+      AddMoneyField( fBGL360_Other_Expenses,
+        Abs( aTrans^.txSF_Other_Expenses ) );
+//    fBGL360_Other_Net_Foreign_Source_Income
+      AddMoneyField( fBGL360_Other_Net_Foreign_Source_Income,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Other_Net_Foreign_Income ) );
+//    fBGL360_Cash_Distribution
+      AddMoneyField( fBGL360_Cash_Distribution,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Cash_Distribution ) );
+//    fBGL360_Tax_Exempted_Amounts
+      AddMoneyField( fBGL360_Tax_Exempted_Amounts,
+      Abs( aTrans^.txSF_Tax_Exempt_Dist ) );
+//    fBGL360_Tax_Free_Amounts
+      AddMoneyField( fBGL360_Tax_Free_Amounts,
+      Abs( aTrans^.txSF_Tax_Free_Dist ) );
+//    fBGL360_Tax_Deferred_amounts
+      AddMoneyField( fBGL360_Tax_Deferred_amounts,
+      Abs( aTrans^.txSF_Tax_Deferred_Dist ) );
+//    fBGL360_TFN_Amounts_withheld
+      AddMoneyField( fBGL360_TFN_Amounts_withheld,
+      Abs( aTrans^.txSF_TFN_Credits ) );
+//    fBGL360_Non_Resident_Withholding_Tax
+      AddMoneyField( fBGL360_Non_Resident_Withholding_Tax,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Non_Res_Witholding_Tax ) );
+//    fBGL360_Other_Expenses
+      AddMoneyField( fBGL360_Other_Expenses,
+      Abs( aTrans^.txSF_Other_Expenses ) );
+///////////// ***************** Distribution Tab ***************** ////////////////
+
+///////////// ***************** Distribution / Dividend Tabs ***************** ////////////////
+//    fBGL360_LIC_Deduction
+      AddMoneyField( fBGL360_LIC_Deductions,
+        Abs( aTrans^.txTransaction_Extension^.teSF_LIC_Deductions ) );
+///////////// ***************** Distribution / Dividend Tabs ***************** ////////////////
+
+///////////// ***************** Distribution Tab ***************** ////////////////
+//    fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash
+      AddMoneyField( fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Discounted_Before_Discount ) );
+//    fBGL360_Capital_Gains_Indexation_Method_Non_Cash
+      AddMoneyField( fBGL360_Capital_Gains_Indexation_Method_Non_Cash,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Indexation ) );
+//    fBGL360_Capital_Gains_Other_Method_Non_Cash
+      AddMoneyField( fBGL360_Capital_Gains_Other_Method_Non_Cash,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Other_Method ) );
+//    fBGL360_Capital_Losses_Non_Cash
+      AddMoneyField( fBGL360_Capital_Losses_Non_Cash,
+        Abs( aTrans^.txTransaction_Extension^.teSF_Non_Cash_CGT_Capital_Losses ) );
+///////////// ***************** Distribution Tab ***************** ////////////////
+  end;
 begin
    FFields.Clear;
    AddNumberField(f_Line,FlineCount);
@@ -1859,8 +2240,11 @@ begin
          saBGLSimpleLedger : AddBGLFields( aTrans.txDate_Effective,
                                            aTrans.txSF_Member_Component );
 
-         saBGL360: AddBGL360Fields( aTrans.txDate_Effective,
+         saBGL360: begin
+           AddBGL360ComponentFields( aTrans.txDate_Effective,
                                     aTrans.txSF_Member_Component );
+           AddBGL360Fields;
+         end;
 
          saSupervisor, saSolution6SuperFund: ;
 

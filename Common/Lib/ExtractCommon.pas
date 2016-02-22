@@ -199,6 +199,81 @@ const
 
   f_ExtractNumberAs = 'ExtractNumberAs'; // The account number to use when extracting (initially only BGL 360)
 
+//////////////////////////////////////////
+//       fBGL360_Entry_Type      = 'Entry Type';
+       fBGL360_Units           = 'Units';
+       fBGL360_Cash_Date       = 'CashDate';
+       fBGL360_Accrual_Date    = 'AccrualDate';
+       fBGL360_Record_Date     = 'RecordDate';
+       fBGL360_Contract_Date   = 'Contract_date';
+       fBGL360_Settlement_Date = 'Settlement_date';
+
+   //Distribution Entry Type
+     //Australian Income Tab
+       fBGL360_Dividends_Franked = 'Dividends_Franked';
+       fBGL360_Dividends_Unfranked = 'Dividends_Unfranked';
+       fBGL360_Franking_Credits = 'Franking_Credits';
+     //Australian Income Tab
+
+     //Capital Gains Tab
+       fBGL360_Discounted_Capital_Gain_Before_Discount          = 'Discounted_Capital_Gain_Before_Discount';
+
+       fBGL360_Capital_Gain_Indexation_Method = 'Capital_Gain_Indexation_Method';
+       fBGL360_Capital_Gain_Other_Method = 'Capital_Gain_Other_Method';
+       fBGL360_Capital_Gains_CGT_Concessional_Amount = 'Capital_Gains_CGT_Concessional_Amount';
+
+       fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount = 'Foreign_Discounted_Capital_Gains_Before_Discount';
+       fBGL360_Foreign_Capital_Gains_Indexation_Method = 'Foreign_Capital_Gains_Indexation_Method';
+       fBGL360_Foreign_Capital_Gains_Other_Method = 'Foreign_Capital_Gains_Other_Method';
+       fBGL360_Foreign_Capital_Gains_Other_Method_Tax_Paid = 'Foreign_Capital_Gains_Other_Method_Tax_Paid';
+
+       fBGL360_Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid = 'Foreign_Discounted_Capital_Gains_Before_Discount_Tax_Paid';
+       fBGL360_Foreign_Capital_Gains_Indexation_Method_Tax_Paid = 'Foreign_Capital_Gains_Indexation_Method_Tax_Paid';
+     //Capital Gains Tab
+
+     //ForeignIncome Tab
+       fBGL360_Assessable_Foreign_Source_Income = 'Assessable_Foreign_Source_Income';
+       fBGL360_Foreign_Income_Tax_Paid_Offset_Credits = 'Foreign_Income_Tax_Paid_Offset_Credits';
+       fBGL360_Other_Net_Foreign_Source_Income = 'Other_Net_Foreign_Source_Income';
+       fBGL360_Cash_Distribution = 'Cash_Distribution';
+
+
+       fBGL360_Foreign_Income_Tax_Offset = 'Foreign Income Tax Offset';
+       fBGL360_Australian_Franking_Credits_from_a_New_Zealand_Company = 'Australian_Franking_Credits_from_a_New_Zealand_Company';
+       fBGL360_TFN_Amounts_Withheld = 'TFN_Amounts_withheld';
+       fBGL360_Non_Resident_Withholding_Tax = 'Non_Resident_Withholding_Tax';
+       fBGL360_LIC_Deductions = 'LIC_Deduction';
+       fBGL360_Tax_Exempted_Amounts = 'Tax_Exempted_Amounts';
+       fBGL360_Tax_Free_Amounts     = 'Tax_Free_Amounts';
+       fBGL360_Tax_Deferred_amounts = 'Tax_Deferred_amounts';
+       fBGL360_Other_Expenses = 'Other_Expenses';
+     //ForeignIncome Tab
+
+     //Non-Cash Capital Gains Tab
+       fBGL360_Discounted_Capital_Gain_Before_Discount_Non_Cash = 'Discounted_Capital_Gain_Before_Discount_Non_Cash';
+       fBGL360_Capital_Gains_Indexation_Method_Non_Cash         = 'Capital_Gains_Indexation_Method_Non_Cash';
+       fBGL360_Capital_Gains_Other_Method_Non_Cash              = 'Capital_Gains_Other_Method_Non_Cash';
+       fBGL360_Capital_Losses_Non_Cash                          = 'Capital_Losses_Non_Cash';
+     //Non-Cash Capital Gains Tab
+
+   //Dividend Entry Type
+       fBGL360_Foreign_Income_Tax_Offset_Credits = 'Foreign Income Tax Offset Credits';
+   //Dividend Entry Type
+
+   //Interest Entry Type
+   //    Interest
+       fBGL360_Interest = 'Interest';
+       fBGL360_Other_Income = 'Other_Income';
+       fBGL360_Less_Other_Allowable_Trust_Deductions = 'Less_Other_Allowable_Trust_Deductions';
+   //Interest Entry Type
+
+   //Share Trade Entry Type
+       fBGL360_Brokerage = 'Brokerage';
+       fBGL360_Consideration = 'Consideration';
+       fBGL360_GST_Amount = 'GST_Amount';
+       fBGL360_GST_Rate = 'GST_Rate';
+   //Share Trade Entry Type
+
 
   f_CGFraction      = 'CGFrac';     // Capital Gains Fraction;
 
