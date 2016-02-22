@@ -99,6 +99,7 @@ function GetFormattedReference(Const T : pTransaction_Rec; Account_Type: Byte = 
 
 function SetFocusSafe( Control : TWinControl) : boolean;
 
+function WrapTextIntoStringList(AOriginalText: string;  ALineLength: integer): TStringList;
 function WrapText(AOriginalText: string;  ALineLength: integer): string;
 
 function MakeCountryPrefix( whNo : byte) : String2;
@@ -841,51 +842,64 @@ begin
    end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function WrapTextIntoStringList(AOriginalText: string;  ALineLength: integer): TStringList;
+var
+  i, j : integer;
+  s1, s2 : String;
+begin
+  Result := TStringList.Create;
+  Result.Text := AOriginalText;
+
+  i := 0;
+  while i < Result.Count do
+  begin
+    if Length (Trim (Result[i])) > ALineLength then
+    begin
+      s1 := Trim (Result[i]);
+      s2 := '';
+      j := ALineLength;
+      while j > 0 do
+      begin
+        if s1[j] = ' ' then
+          break;
+        Dec (j);
+      end;
+
+      //There were no spaces
+      if j <= 0 then
+      begin
+        s2 := Copy (s1, ALineLength + 1, Length (s1));
+        s1 := Copy (s1, 1, ALineLength);
+      end
+      else
+      begin
+        s2 := Copy (s1, j + 1, Length (s1));
+        s1 := Copy (s1, 1, j);
+      end;
+
+      Result[i] := s1;
+      Result.Insert (i + 1, s2);
+    end;
+
+    Inc (i);
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function WrapText(AOriginalText: string;  ALineLength: integer): string;
 var
   SL : TStringList;
-  i, j : integer;
-  s1, s2 : String;
 begin
   Result := '';
   SL := TStringList.Create;
   try
-    SL.Text := AOriginalText;
-    i := 0;
-    while i < SL.Count do
-      begin
-        if Length (Trim (SL[i])) > ALineLength then
-          begin
-            s1 := Trim (sl[i]);
-            s2 := '';
-            j := ALineLength;
-            while j > 0 do
-              begin
-                if s1[j] = ' ' then
-                  break;
-                Dec (j);
-              end;
-            //There were no spaces
-            if j <= 0 then
-              begin
-                s2 := Copy (s1, ALineLength + 1, Length (s1));
-                s1 := Copy (s1, 1, ALineLength);
-              end
-            else
-              begin
-                s2 := Copy (s1, j + 1, Length (s1));
-                s1 := Copy (s1, 1, j);
-              end;
-            sl[i] := s1;
-            sl.Insert (i + 1, s2);
-          end;
-        Inc (i);
-      end;
-    Result := SL.Text;
+    SL := WrapTextIntoStringList(AOriginalText, ALineLength);
+    Result := SL.text;
   finally
     SL.Free;
   end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MakeCountryPrefix( whNo : byte) : String2;
 begin

@@ -182,9 +182,7 @@ type
     FCurrDetail     : TStringList;
     RenderEngine    : TCustomRenderEngine;  //use base class, don't know
                                             //which one we will need at creation
-
-    function GetFont() : TFont;
-    procedure SetFont(aFont : TFont);
+    function GetRendEngCanvas() : TCanvas;
   public
     Sections: array[THFSection] of TRTFBand;
     constructor Create (RptType: TReportType); virtual;
@@ -228,7 +226,7 @@ type
     //calling code with a call to RenderEngine.RenderDetailHeader etc.
     procedure RequireLines(lines :integer);
     procedure RenderDetailHeader;
-    procedure RenderDetailLine(const isnewDetail: Boolean = True; Style: TStyleTypes = siDetail);
+    procedure RenderDetailLine(const isnewDetail: Boolean = True; Style: TStyleTypes = siDetail; aFontOverride : TFont = nil);
     procedure RenderEmptyLine();
 
     procedure RenderDetailSubSectionTotal(const TotalName : string); overload;
@@ -302,7 +300,7 @@ type
 
     procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
 
-    property RenderFont : TFont read GetFont write SetFont;
+    property RendEngCanvas : TCanvas read GetRendEngCanvas;
   end;
 
   TWriteColumnValue = procedure(Report: TBKReport; ColumnId: Integer; Value: Variant);
@@ -955,14 +953,9 @@ begin
 end;
 
 
-function TBKReport.GetFont: TFont;
+function TBKReport.GetRendEngCanvas: TCanvas;
 begin
-  Result := RenderEngine.Font;
-end;
-
-procedure TBKReport.SetFont(aFont: TFont);
-begin
-  RenderEngine.Font := aFont;
+  result := TRenderToCanvasEng(RenderEngine).OutputBuilder.Canvas;
 end;
 
 procedure TBKReport.SetItemStyle(const Value: TStyleTypes);
@@ -1258,12 +1251,16 @@ begin
    RenderEngine.RenderDetailHeader;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.RenderDetailLine(const isnewDetail: Boolean = True; Style: TStyleTypes = siDetail);
+procedure TBKReport.RenderDetailLine(const isnewDetail: Boolean = True; Style: TStyleTypes = siDetail; aFontOverride : TFont = nil);
 begin
-   ItemStyle := Style;
-   RenderEngine.RenderDetailLine;
-   if isNewDetail then
-      NewDetail;
+  ItemStyle := Style;
+
+  if Assigned(aFontOverride) then
+    TRenderToCanvasEng(RenderEngine).OutputBuilder.Canvas.Font := aFontOverride;
+
+  RenderEngine.RenderDetailLine;
+  if isNewDetail then
+    NewDetail;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSubSectionTotal(const TotalName: string);

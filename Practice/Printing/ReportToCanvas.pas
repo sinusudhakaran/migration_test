@@ -36,7 +36,6 @@ uses
    BKPrintJob,
    bkQRPrntr,
    RenderEngineObj,
-   NewReportObj,
    repcols,
    graphics,
    rtfBands,
@@ -44,6 +43,7 @@ uses
    UserReportSettings,
    Progress,
    FaxParametersObj,
+   NewReportObj,
    Contnrs;
 
 
@@ -101,9 +101,6 @@ type
       procedure RenderTotalLine(double: boolean; TotalType: TTotalType);
       procedure RenderDetail(DataString : TStringList);
 
-      function GetFont() : TFont; override;
-      procedure SetFont(aFont : TFont); override;
-
       //This property allows us to access the report that owns this Render Engine
       property  Report : TBKReport read GetReportOwner;
    public
@@ -154,7 +151,6 @@ type
       property  DetailMMRect : TRect read GetDetailMMRect;
       property  DetailPixelRect : TRect read GetDetailPixelRect;
       property ShowPreviewForm : Boolean read FShowPreviewForm write FShowPreviewForm;
-      property Font : TFont read DefaultFont write DefaultFont;
    end;
 
 function GetAveCharWidth( TestFont : TFont; Text : string) : integer;
@@ -167,8 +163,9 @@ uses
   GenUtils,
   SysUtils,
   NewReportUtils,
-
-  ReportImagesObj, Types, ECollect,
+  ReportImagesObj,
+  Types,
+  ECollect,
   SignUtils,
   Math,
   StrUtils;
@@ -2015,18 +2012,6 @@ begin
       result.TopLeft := ConvertToDc( MMRect.TopLeft);
       result.BottomRight := ConvertToDC( MMRect.BottomRight);
    end;
-end;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function TRenderToCanvasEng.GetFont: TFont;
-begin
-  Result := DefaultFont;
-end;
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TRenderToCanvasEng.SetFont(aFont: TFont);
-begin
-  DefaultFont := aFont;
 end;
 
 function TRenderToCanvasEng.GetImageName(aText : string): string;
