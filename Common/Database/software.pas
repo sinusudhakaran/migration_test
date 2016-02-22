@@ -22,6 +22,7 @@ type
    TSuperDialogMode = (sfTrans, sfMem, sfPayee);
 
 {  ---------------------------------------------------------  }
+
 Function CanExtractData( aCountry, aType : Byte ): Boolean;
 Function CanExtractInNewFormat( aCountry, aType : Byte ): Boolean;
 
