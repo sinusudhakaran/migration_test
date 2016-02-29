@@ -150,10 +150,8 @@ type
             aSynchroniseLogMessage : string; aSynchroniseLogStat_ID : byte = 0;
             aSynchroniseLogLockLog: Boolean = True );
     procedure SynchroniseLogMessage;
-
-
     function GetDateFromStr(ADateStr: string):TDateTime;
-    procedure ProcessJSONData;
+    procedure ProcessJSONData(aJSONData:string='');
     function Count : Integer;
     procedure ClearList;
     property Item[Index:Integer] : TContentfulObj read GetContent;
@@ -492,14 +490,17 @@ begin
 
   for i := 0 to aCountry.Count - 1 do
   begin
-    if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'ANY' then
-      Result :=  Result + [gANY]
-    else if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'NZ' then
-      Result :=  Result + [gNZ]
-    else if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'AU' then
-      Result :=  Result + [gAU]
-    else if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'UK' then
-      Result :=  Result + [gUK];
+    if Assigned(aCountry.Child[i]) then
+    begin
+      if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'ANY' then
+        Result :=  Result + [gANY]
+      else if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'NZ' then
+        Result :=  Result + [gNZ]
+      else if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'AU' then
+        Result :=  Result + [gAU]
+      else if UpperCase(VarToStr(aCountry.Child[i].Value)) = 'UK' then
+        Result :=  Result + [gUK];
+    end;
   end;
 end;
 
@@ -522,13 +523,24 @@ begin
     Day := StrToIntDef(tmpList.Strings[0],0);
     Month := StrToIntDef(tmpList.Strings[1],0);
     Year := StrToIntDef(tmpList.Strings[2],0);
-    Result := EncodeDate(Year, Month, Day);
+    if (Day in [1..31]) and
+        (Month in [1..12]) and
+        (Year > 0) then
+    begin
+      try
+        Result := EncodeDate(Year, Month, Day);
+      except
+        SetAndSynchroniseLogMessage( lmDebug, UnitName, 'Invalid date sent from Contentful: ' + aDate ); // Windows File Locking of the log file is not thread safe
+      end;
+    end
+    else
+      SetAndSynchroniseLogMessage( lmDebug, UnitName, 'Invalid date sent from Contentful: ' + aDate ); // Windows File Locking of the log file is not thread safe
   finally
     FreeAndNil(tmpList);
   end;
 end;
 
-procedure TContentfulDataList.ProcessJSONData;
+procedure TContentfulDataList.ProcessJSONData(aJSONData:string='');
 var
   BaseJSONObject : TlkJSONbase;
   Items, Assets : TlkJSONbase;
@@ -539,32 +551,39 @@ var
 
   i : Integer;
   j: Integer;
-  Json : TStringList;
 begin
   ProcessingData := True;
   if DebugMe then
   begin
     SetAndSynchroniseLogMessage( lmDebug, UnitName, FContentFulResponseJSON ); // Windows File Locking of the log file is not thread safe
-// Windows File Locking of the log file is not thread safe    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON);
-    Json := TStringList.Create;
-    try
-      Json.Add(FContentFulResponseJSON);
-      Json.SaveToFile('json.txt');
-    finally
-      FreeAndNil(Json);
-    end;
+    // Windows File Locking of the log file is not thread safe    LogUtil.LogMsg(lmDebug, UnitName, FContentFulResponseJSON);
   end;
+
+  {$IFDEF BK_UNITTESTINGON}
+    if Trim(aJSONData) <> '' then
+      FContentFulResponseJSON := aJSONData;
+  {$ENDIF}
 
   try
     BaseJSONObject := TlkJSON.ParseText(FContentFulResponseJSON) as TlkJSONobject;
   except
-    //LogUtil.LogMsg(lmError,UnitName,'Error from Contentful website : ' + FContentFulResponseJSON);
+    SetAndSynchroniseLogMessage( lmDebug, UnitName, 'JSON data from Contentful website is corrupted.');
     Exit;
   end;
+
+  if not Assigned(BaseJSONObject) then
+  begin
+    SetAndSynchroniseLogMessage( lmDebug, UnitName, 'Contentful data is corrupted. BaseJSONObject is nil');
+    Exit;
+  end;
+
   Items := BaseJSONObject.Field['items'];
 
   if not Assigned(Items) then
+  begin
+    SetAndSynchroniseLogMessage( lmDebug, UnitName, 'Contentful data is corrupted. Items is nil');
     Exit;
+  end;
 
   Assets := nil;
   if Assigned(BaseJSONObject.Field['includes']) and Assigned(BaseJSONObject.Field['includes'].Field['Asset']) then
@@ -575,25 +594,22 @@ begin
     {Read all contents and process it}
     for i := 0 to Items.Count - 1 do
     begin
+      if not(Assigned(Items.Child[i]) and
+          Assigned(Items.Child[i].Field['sys']) and
+          Assigned(Items.Child[i].Field['fields']) and
+          Assigned(Items.Child[i].Field['fields'].Field['title'])) then
+        Continue;
+
       if VarToStr(Items.Child[i].Field['fields'].Field['title'].Value) <> '' then
       begin
         NewContent := TContentfulObj.Create;
 
-        if Assigned(Items.Child[i].Field['sys'].Field['createdAt'])then
-          NewContent.CreatedAt := GetDateFromStr(VarToStr(Items.Child[i].Field['sys'].Field['createdAt'].Value));
-
-        if Assigned(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'])then
-          NewContent.ContentType := SetContentType(VarToStr(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'].Value));
-
-        if NewContent.ContentType = ctUpgrade then
-          NewContent.ContentIndex := 1
-        else if NewContent.ContentType in [ctTechnical, ctMarketing] then
-          NewContent.ContentIndex := 2;
-
         NewContent.Title := VarToStr(Items.Child[i].Field['fields'].Field['title'].Value);
+
         if Assigned(Items.Child[i].Field['fields'].Field['description'])then
           NewContent.Description := StringReplace(VarToStr(Items.Child[i].Field['fields'].Field['description'].Value),
                                     '/n', #13,[rfReplaceAll,rfIgnoreCase]);
+
         if Assigned(Items.Child[i].Field['fields'].Field['url'])then
           NewContent.URL := VarToStr(Items.Child[i].Field['fields'].Field['url'].Value);
 
@@ -614,12 +630,26 @@ begin
         if Assigned(Items.Child[i].Field['fields'].Field['validUpto'])then
           NewContent.ValidEndDate := ProcessDate(VarToStr(Items.Child[i].Field['fields'].Field['validUpto'].Value));
 
+        if Assigned(Items.Child[i].Field['sys'].Field['contentType']) and
+          Assigned(Items.Child[i].Field['sys'].Field['contentType'].Field['sys']) and
+          Assigned(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'])then
+            NewContent.ContentType := SetContentType(VarToStr(Items.Child[i].Field['sys'].Field['contentType'].Field['sys'].Field['id'].Value));
+
+        if NewContent.ContentType = ctUpgrade then
+          NewContent.ContentIndex := 1
+        else if NewContent.ContentType in [ctTechnical, ctMarketing] then
+          NewContent.ContentIndex := 2;
+
+        if Assigned(Items.Child[i].Field['sys'].Field['createdAt'])then
+          NewContent.CreatedAt := GetDateFromStr(VarToStr(Items.Child[i].Field['sys'].Field['createdAt'].Value));
+
+        FContentList.Add(NewContent);
+
         if Assigned(Items.Child[i].Field['fields'].Field['imageFile']) then
         if Assigned(Items.Child[i].Field['fields'].Field['imageFile'].Field['sys']) then
         if Assigned(Items.Child[i].Field['fields'].Field['imageFile'].Field['sys'].Field['id']) then
           NewContent.MainImageID := VarToStr(Items.Child[i].Field['fields'].Field['imageFile'].Field['sys'].Field['id'].Value);
 
-        FContentList.Add(NewContent);
       end;
     end;
     {Read all assets and store it in a temporary list}
@@ -627,29 +657,30 @@ begin
     begin
       for i := 0 to Assets.Count - 1 do
       begin
-        if Assigned(Assets.Child[i].Field['sys']) then
-        if Assigned(Assets.Child[i].Field['sys'].Field['id']) then
+        if Assigned(Assets.Child[i]) and
+          Assigned(Assets.Child[i].Field['sys']) and
+          Assigned(Assets.Child[i].Field['sys'].Field['id']) and
+          Assigned(Assets.Child[i].Field['fields']) and
+          Assigned(Assets.Child[i].Field['fields'].Field['file']) and
+          Assigned(Assets.Child[i].Field['fields'].Field['file'].Field['url']) then
         begin
-          if Assigned(Assets.Child[i].Field['fields']) then
-          if Assigned(Assets.Child[i].Field['fields'].Field['file']) then
-          if Assigned(Assets.Child[i].Field['fields'].Field['file'].Field['url']) then
+          Asset := TContentfulAssetObj.Create;
+
+          Asset.LinkID := VarToStr(Assets.Child[i].Field['sys'].Field['id'].Value);
+          Asset.URL := VarToStr(Assets.Child[i].Field['fields'].Field['file'].Field['url'].Value);
+
+          if Assigned(Assets.Child[i].Field['fields'].Field['title']) then
+            Asset.Title := VarToStr(Assets.Child[i].Field['fields'].Field['title'].Value);
+          if Assigned(Assets.Child[i].Field['fields'].Field['description']) then
+           Asset.Description := VarToStr(Assets.Child[i].Field['fields'].Field['description'].Value);
+          if Assigned(Assets.Child[i].Field['fields'].Field['file'].Field['fileName']) then
+            Asset.FileName := VarToStr(Assets.Child[i].Field['fields'].Field['file'].Field['fileName'].Value);
+          if Assigned(Assets.Child[i].Field['fields'].Field['file'].Field['contentType']) then
           begin
-            Asset := TContentfulAssetObj.Create;
-            Asset.LinkID := VarToStr(Assets.Child[i].Field['sys'].Field['id'].Value);
-            Asset.URL := VarToStr(Assets.Child[i].Field['fields'].Field['file'].Field['url'].Value);
-            if Assigned(Assets.Child[i].Field['fields'].Field['title']) then
-              Asset.Title := VarToStr(Assets.Child[i].Field['fields'].Field['title'].Value);
-            if Assigned(Assets.Child[i].Field['fields'].Field['description']) then
-             Asset.Description := VarToStr(Assets.Child[i].Field['fields'].Field['description'].Value);
-            if Assigned(Assets.Child[i].Field['fields'].Field['file'].Field['fileName']) then
-              Asset.FileName := VarToStr(Assets.Child[i].Field['fields'].Field['file'].Field['fileName'].Value);
-            if Assigned(Assets.Child[i].Field['fields'].Field['file'].Field['contentType']) then
-            begin
-              if Pos('image/', VarToStr(Assets.Child[i].Field['fields'].Field['file'].Field['contentType'].Value)) > 0 then
-                Asset.AssetType := atImage;
-            end;
-            AssetList.Add(Asset);
+            if Pos('image/', VarToStr(Assets.Child[i].Field['fields'].Field['file'].Field['contentType'].Value)) > 0 then
+              Asset.AssetType := atImage;
           end;
+          AssetList.Add(Asset);
         end;
       end;
     end;
@@ -667,16 +698,17 @@ begin
           begin
             Bitmap := Graphics.TBitmap.Create;
             try
-            try
-              GetImageFromURL(Asset.URL, Bitmap);
-              NewContent.MainImageBitmap.Assign(Bitmap);
-              if Assigned(NewContent.MainImageBitmap) then
-              begin
-                NewContent.IsImageAvilable := True;
+              try
+                GetImageFromURL(Asset.URL, Bitmap);
+                if Assigned(Bitmap) then
+                  NewContent.MainImageBitmap.Assign(Bitmap);
+                if Assigned(NewContent.MainImageBitmap) then
+                begin
+                  NewContent.IsImageAvilable := True;
+                end;
+              except
+                // no need to display image , just display data
               end;
-            except
-              // no need to display image , just display data
-            end;
             finally
               FreeAndNil(Bitmap);
             end;
@@ -704,16 +736,19 @@ begin
 
   for i := 0 to aUserTypes.Count - 1 do
   begin
-    if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'PRACTICE' then
-      Result :=  Result + [utPractice]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'ADMIN' then
-      Result :=  Result + [utAdmin]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'NORMAL' then
-      Result :=  Result + [utNormal]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'BOOKS' then
-      Result :=  Result + [utBooks]
-    else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'RESTRICTED' then
-      Result :=  Result + [utRestricted];
+    if Assigned(aUserTypes.Child[i]) then
+    begin
+      if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'PRACTICE' then
+        Result :=  Result + [utPractice]
+      else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'ADMIN' then
+        Result :=  Result + [utAdmin]
+      else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'NORMAL' then
+        Result :=  Result + [utNormal]
+      else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'BOOKS' then
+        Result :=  Result + [utBooks]
+      else if UpperCase(VarToStr(aUserTypes.Child[i].Value)) = 'RESTRICTED' then
+        Result :=  Result + [utRestricted];
+    end;
   end;
 end;
 
@@ -729,14 +764,17 @@ begin
 
   for i := 0 to aVersions.Count - 1 do
   begin
-    sValue := VarToStr(aVersions.Child[i].Value);
-    if UpperCase(sValue) = 'ANY' then
-      sValue := UpperCase(sValue);
+    if Assigned(aVersions.Child[i]) then
+    begin
+      sValue := VarToStr(aVersions.Child[i].Value);
+      if UpperCase(sValue) = 'ANY' then
+        sValue := UpperCase(sValue);
 
-    if Trim(Result) = '' then
-      Result :=  sValue
-    else
-      Result :=  Result + ',' + sValue;
+      if Trim(Result) = '' then
+        Result :=  sValue
+      else
+        Result :=  Result + ',' + sValue;
+    end;
   end;
 end;
 
@@ -1095,7 +1133,7 @@ begin
     if Assigned(DisplayPromoContents) then
     begin
       DisplayPromoContents.OwnerThread := self; // Set owning thread so that LogUtil can write to LogFile
-      
+
       DisplayPromoContents.ClearList;
       DisplayPromoContents.LoadAllDisplayContents; // Load
     end;
