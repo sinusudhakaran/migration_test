@@ -5,6 +5,7 @@ interface
 uses
   Classes,
   NewReportObj,
+  ReportTypes,
   RptParams,
   Repcols,
   MONEYDEF,
@@ -39,15 +40,27 @@ type
   end;
 
   //----------------------------------------------------------------------------
+  TGSTTotal = record
+    gstAccountName    : string[60];
+    gstControlAccount : string[20];
+    gstTotalAmount    : Money;
+  end;
+  pGSTTotal = ^TGSTTotal;
+
+  //----------------------------------------------------------------------------
   TListJournalsReport = class(TBKReport)
   private
-    Params : TListJournalsParam;
-    CRAmountCol : TReportColumn;
-    DRAmountCol : TReportColumn;
-    AmountCol   : TReportColumn;
-    BalanceCol  : TReportColumn;
-    TaxCol      : TReportColumn;
+    Params       : TListJournalsParam;
+    CRAmountCol  : TReportColumn;
+    DRAmountCol  : TReportColumn;
+    AmountCol    : TReportColumn;
+    GSTAmountCol : TReportColumn;
+    QuantityCol  : TReportColumn;
+    GSTTotals    : TList;
   protected
+    procedure ClearGSTTotals();
+    function FindControlAcc(aControlAcc : string; var aIndex : integer) : boolean;
+
     function IsBankAccountIncluded(aAccList : TList; aBankAccountNumber: String): Boolean;
 
     function ValidateCurrentItem(aSender: Tobject; aParam : TListJournalsParam): boolean;
@@ -55,8 +68,12 @@ type
     procedure EnterEntry(Sender : Tobject);
     procedure ExitEntry(Sender : Tobject);
     procedure EnterDissection(Sender : Tobject);
+    procedure RenderGSTControlAccounts(Sender : Tobject);
 
     procedure BKPrint;  override;
+  public
+    constructor Create (RptType: TReportType); override;
+    destructor Destroy; override;
   end;
 
   //----------------------------------------------------------------------------
@@ -73,7 +90,6 @@ uses
   WarningMoreFrm,
   InfoMoreFrm,
   NewReportUtils,
-  ReportTypes,
   CountryUtils,
   BKHelp,
   JournalOptionsDlg,
@@ -83,13 +99,36 @@ uses
   ReportImages,
   GenUtils,
   TransactionUtils,
+  UserReportSettings,
+  PayeeObj,
+  chList32,
   BAutils;
 
 Const
   TRANSFERED_IMG = 'Transfered_Icon';
   LOCKED_IMG = 'Locked_Icon';
   TRANSandLOCKED_IMG = 'TransAndLocked_Icon';
-  COL_NARRATION = 5;
+
+  COL_STATUS     = 0;
+  COL_DATE       = 1;
+  COL_REF        = 2;
+  COL_ACCOUNT    = 3;
+  COL_AC_DESC    = 4;
+  COL_NARRATION  = 5;
+  COL_DEBIT      = 6;
+  COL_GAP1       = 7;
+  COL_CREDIT     = 8;
+  COL_GAP2       = 9;
+  COL_PAYEE      = 10;
+  COL_PAYEE_NAME = 11;
+  COL_JOB        = 12;
+  COL_JOB_NAME   = 13;
+  COL_AMOUNT     = 14;
+  COL_GST_ID     = 15;
+  COL_GST_AMOUNT = 16;
+  COL_QUANTITY   = 17;
+  COL_MAX = COL_QUANTITY;
+
   COL_SHOW_ALL = 99;
 
   btJournalRptNames : Array[ btMin..btMax ] of String[ 25 ] =
@@ -102,6 +141,19 @@ Const
     'Year End Adjustments',
     'Stock Balances',
     'Exchange Gains/Losses');
+
+  COL_SIZES : Array[0..1,0..COL_MAX] of single =
+  ((4.5,7.5,12 ,8  ,20  ,25  ,11 ,1  ,11 ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0),
+   (3.6,4.3,6.4,4.6,10  ,13.7,6  ,0.6,6.3,3.6,6.4,0.6,3.6,5.7,6  ,5.6,6  ,7  ));
+
+  NN_SORT        = 'Sort';
+  NN_WRAP_NARR   = 'Wrap_Naration';
+  NN_SHOW_SUM    = 'Show_Summary';
+  NN_GRP_JNL_TYP = 'GroupBy_Journal_Type';
+
+  MONEY_FORMAT      = '#,##0.00;#,##0.00';
+  MONEY_FORMAT_SIGN = '#,##0.00;-#,##0.00';
+  QUANTITY_FORMAT   = '#,##0.000;#,##0.000';
 
 //------------------------------------------------------------------------------
 // Main Entry point into Report
@@ -249,14 +301,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TListJournalsParam.ReadFromNode(aValue: IXMLNode);
 begin
-  if SameText( csNames[csDateEffective],GetBatchText('Sort', csNames[csDateEffective])) then
+  if SameText( csNames[csDateEffective],GetBatchText(NN_SORT, csNames[csDateEffective])) then
     SortBy := csDateEffective
   else
     SortBy := csDatePresented;
 
-  WrapNarration := GetBatchBool('Wrap_Naration',WrapNarration);
-  ShowSummary   := GetBatchBool('Show_Summary',ShowSummary);
-  GroupByJournalType := GetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
+  WrapNarration := GetBatchBool(NN_WRAP_NARR, WrapNarration);
+  ShowSummary   := GetBatchBool(NN_SHOW_SUM, ShowSummary);
+  GroupByJournalType := GetBatchBool(NN_GRP_JNL_TYP, GroupByJournalType);
 
   GetBatchAccounts;
 end;
@@ -266,207 +318,12 @@ procedure TListJournalsParam.SaveToNode(aValue: IXMLNode);
 begin
   inherited;
 
-  setBatchText('Sort',csNames[SortBy]);
-  SetBatchBool('Wrap_Naration',WrapNarration);
-  SetBatchBool('Show_Summary',ShowSummary);
-  SetBatchBool('GroupBy_Journal_Type',GroupByJournalType);
+  setBatchText(NN_SORT, csNames[SortBy]);
+  SetBatchBool(NN_WRAP_NARR, WrapNarration);
+  SetBatchBool(NN_SHOW_SUM, ShowSummary);
+  SetBatchBool(NN_GRP_JNL_TYP, GroupByJournalType);
 
   SaveBatchAccounts;
-end;
-
-//------------------------------------------------------------------------------
-// TListJournalsReport
-function TListJournalsReport.IsBankAccountIncluded(aAccList : TList; aBankAccountNumber: String): Boolean;
-var
-  AccIndex : Integer;
-  BankAcc  : TBank_Account;
-begin
-  Result := False;
-  for AccIndex := 0 to Pred(aAccList.Count) do
-  begin
-    BankAcc := aAccList[AccIndex];
-    if (BankAcc.baFields.baBank_Account_Number = aBankAccountNumber) then
-    begin
-      Result := True;
-      Break;
-    end;
-  end;
-end;
-
-//------------------------------------------------------------------------------
-function TListJournalsReport.ValidateCurrentItem(aSender: Tobject; aParam : TListJournalsParam): boolean;
-var
-  Mgr : TTravManagerWithNewReport;
-begin
-  Result := false;
-  Mgr := TTravManagerWithNewReport(aSender);
-
-  // Validate if we should process
-  if not Mgr.Bank_Account.IsAJournalAccount then
-    Exit;
-
-  if (not IsBankAccountIncluded(aParam.AccountList, Mgr.Bank_Account.baFields.baBank_Account_Number)) then
-    Exit;
-
-  if not aParam.HasTransactions(Mgr.Bank_Account) then
-    Exit;
-
-  Result := true;
-end;
-
-//------------------------------------------------------------------------------
-procedure TListJournalsReport.EnterEntry(Sender : Tobject);
-Const
-  IMG_SCALE_UP_PERCENT = 150;
-var
-  Mgr : TTravManagerWithNewReport;
-  Rpt : TListJournalsReport;
-  CanvasFont : TFont;
-begin
-  Mgr := TTravManagerWithNewReport(Sender);
-  Rpt := TListJournalsReport( Mgr.ReportJob );
-
-  if not ValidateCurrentItem(Sender, Rpt.Params) then
-    Exit;
-
-  // State Image
-  if (Mgr.Transaction^.txDate_Transferred > 0) and (Mgr.Transaction^.txLocked) then
-    Rpt.PutImage(TRANSandLOCKED_IMG, IMG_SCALE_UP_PERCENT)
-  else if (Mgr.Transaction^.txDate_Transferred > 0) then
-    Rpt.PutImage(TRANSFERED_IMG, IMG_SCALE_UP_PERCENT)
-  else if (Mgr.Transaction^.txLocked) then
-    Rpt.PutImage(LOCKED_IMG, IMG_SCALE_UP_PERCENT)
-  else
-    Rpt.SkipColumn;
-
-  PutString( bkDate2Str ( Mgr.Transaction^.txDate_Effective ) );
-  PutString( GetFormattedReference( Mgr.Transaction));
-  PutStringMultipleColumns( Mgr.Transaction^.txGL_Narration, COL_SHOW_ALL);
-
-  // Sets Line to Bold
-  CanvasFont := TFont.Create;
-  try
-    CanvasFont.Assign(RendEngCanvas.Font);
-    CanvasFont.Style := [fsbold];
-    RenderDetailLine(true, siDetail, CanvasFont);
-  finally
-    FreeAndNil(CanvasFont);
-  end;
-
-  RenderEmptyLine;
-end;
-
-//------------------------------------------------------------------------------
-procedure TListJournalsReport.ExitEntry(Sender: Tobject);
-const
-  JNL_TYPE = 'Journal Type: ';
-var
-  Mgr : TTravManagerWithNewReport;
-  Rpt : TListJournalsReport;
-  slNotes : TStringList;
-  NoteLineIndex : integer;
-begin
-  Mgr := TTravManagerWithNewReport(Sender);
-  Rpt := TListJournalsReport( Mgr.ReportJob );
-
-  if not ValidateCurrentItem(Sender, Rpt.Params) then
-    Exit;
-
-  RendEngCanvas.Font.Style := [];
-  RenderDetailGrandTotal('');
-  RenderEmptyLine;
-
-  slNotes := TStringList.Create;
-  try
-    slNotes := WrapTextIntoStringList(GetFullNotes(Mgr.Transaction), 300);
-    for NoteLineIndex := 0 to slNotes.Count - 1 do
-    begin
-      Rpt.SkipColumn;
-      Rpt.SkipColumn;
-      PutStringMultipleColumns( slNotes.Strings[NoteLineIndex], COL_SHOW_ALL);
-      RendEngCanvas.Font.Style := [];
-      RenderDetailLine();
-    end;
-  finally
-    slNotes.Free;
-  end;
-
-  Rpt.SkipColumn;
-  Rpt.SkipColumn;
-  PutStringMultipleColumns(JNL_TYPE + btJournalRptNames[Mgr.Bank_Account.baFields.baAccount_Type], COL_SHOW_ALL);
-  RendEngCanvas.Font.Style := [];
-  RenderDetailLine();
-
-  RenderEmptyLine;
-  RenderEmptyLine;
-end;
-
-//------------------------------------------------------------------------------
-procedure TListJournalsReport.EnterDissection(Sender: Tobject);
-var
-  Mgr : TTravManagerWithNewReport;
-  Rpt : TListJournalsReport;
-  ExtraLines : TStringList;
-  ExtraIndex : integer;
-begin
-  Mgr := TTravManagerWithNewReport(Sender);
-  Rpt := TListJournalsReport( Mgr.ReportJob );
-
-  if not ValidateCurrentItem(Sender, Rpt.Params) then
-    Exit;
-
-  SkipColumn;
-  SkipColumn;
-
-  PutString(Mgr.Dissection^.dsReference);
-  PutString(Mgr.Dissection^.dsAccount);
-  PutString(Rpt.Params.Client.clChart.FindDesc(Mgr.Dissection^.dsAccount));
-
-  // Wraps the Narration if the option is Set
-  ExtraLines := TStringList.Create();
-  try
-    WrapText(COL_NARRATION, Mgr.Dissection^.dsGL_Narration, ExtraLines);
-
-    if Rpt.Params.WrapNarration then
-    begin
-      for ExtraIndex := 0 to ExtraLines.Count-1 do
-      begin
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-
-        RendEngCanvas.Font.Style := [];
-        RenderDetailLine();
-
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-        SkipColumn;
-
-        PutString(ExtraLines.Strings[ExtraIndex]);
-      end;
-    end;
-
-  finally
-    FreeAndNil(ExtraLines);
-  end;
-
-  if Mgr.Dissection^.dsAmount >= 0 then
-  begin
-    SkipColumn;
-    SkipColumn;
-    PutMoney( Trunc( Mgr.Dissection^.dsAmount ) );
-  end
-  else
-  begin
-    PutMoney( Trunc( Mgr.Dissection^.dsAmount ) );
-    SkipColumn;
-    SkipColumn;
-  end;
-
-  RendEngCanvas.Font.Style := [];
-  RenderDetailLine();
 end;
 
 //------------------------------------------------------------------------------
@@ -477,8 +334,8 @@ var
   Country : Byte;
   cleft : Double;
   ExtraWidth : double;
-  MONEY_FORMAT : String;
   Transfered, Locked, TransAndLocked : TPicture;
+  Show_Detail : integer;
 begin
   Job := TListJournalsReport.Create(ReportTypes.rptListings);
   job.Params := Self;
@@ -516,20 +373,41 @@ begin
     //Build the columns
     Country := Job.Params.Client.clFields.clCountry;
 
+    if Job.Params.ShowSummary then
+      Job.UserReportSettings.s7Orientation := BK_PORTRAIT
+    else
+      Job.UserReportSettings.s7Orientation := BK_LANDSCAPE;
+
     CLeft := Gcleft;
 
-    AddColAuto(Job,cleft, 4.5, Gcgap, 'Status', jtLeft);
-    AddColAuto(Job,cleft, 7.5, Gcgap, 'Date', jtLeft);
-    AddColAuto(Job,cleft, 12 + ExtraWidth, Gcgap, 'Reference', jtLeft);
-    AddColAuto(Job,cleft, 8.0, Gcgap, 'Account'  , jtLeft);
-    AddColAuto(Job,cleft, 20.0, Gcgap, 'A/c Desc', jtLeft);
-    AddColAuto(Job,cleft, 25.0, Gcgap, 'Narration', jtLeft);
+    if Job.Params.ShowSummary then
+      Show_Detail := 0
+    else
+      Show_Detail := 1;
 
-    MONEY_FORMAT := '#,##0.00;#,##0.00';
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_STATUS], Gcgap, 'Status', jtLeft);
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_DATE], Gcgap, 'Date', jtLeft);
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_REF] + ExtraWidth, Gcgap, 'Reference', jtLeft);
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_ACCOUNT], Gcgap, 'Account'  , jtLeft);
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_AC_DESC], Gcgap, 'A/c Desc', jtLeft);
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_NARRATION], Gcgap, 'Narration', jtLeft);
 
-    Job.DRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Debit',jtRight,MONEY_FORMAT,MONEY_FORMAT,true);
-    AddColAuto(Job,cleft, 1.0, Gcgap, '', jtLeft);
-    Job.CRAmountCol := AddFormatColAuto(Job,cLeft,11.0,Gcgap,'Credit',jtRight,MONEY_FORMAT,MONEY_FORMAT,true);
+    Job.DRAmountCol := AddFormatColAuto(Job,cLeft,COL_SIZES[Show_Detail, COL_DEBIT],Gcgap,'Debit',jtRight,MONEY_FORMAT,MONEY_FORMAT,true);
+    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_GAP1], Gcgap, '', jtLeft);
+    Job.CRAmountCol := AddFormatColAuto(Job,cLeft,COL_SIZES[Show_Detail, COL_CREDIT],Gcgap,'Credit',jtRight,MONEY_FORMAT,MONEY_FORMAT,true);
+
+    if not Job.Params.ShowSummary then
+    begin
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_GAP2], Gcgap, 'Payee', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_PAYEE], Gcgap, 'Payee Name', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_PAYEE_NAME], Gcgap, '', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_JOB], Gcgap, 'Job', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_JOB_NAME], Gcgap, 'Job Name', jtLeft);
+      Job.AmountCol := AddFormatColAuto(Job,cLeft,COL_SIZES[Show_Detail, COL_AMOUNT],Gcgap,'Amount',jtRight,MONEY_FORMAT_SIGN,MONEY_FORMAT_SIGN,false);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_GST_ID], Gcgap, 'GST ID', jtLeft);
+      Job.GSTAmountCol := AddFormatColAuto(Job,cLeft,COL_SIZES[Show_Detail, COL_GST_AMOUNT],Gcgap,'GST Amt',jtRight,MONEY_FORMAT_SIGN,MONEY_FORMAT_SIGN,false);
+      Job.QuantityCol := AddFormatColAuto(Job,cLeft,COL_SIZES[Show_Detail, COL_QUANTITY],Gcgap,'Quantity',jtRight,QUANTITY_FORMAT,QUANTITY_FORMAT,false);
+    end;
 
     //Add Footers
     AddCommonFooter(Job);
@@ -580,6 +458,364 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+// TListJournalsReport
+procedure TListJournalsReport.ClearGSTTotals;
+var
+  GSTIndex : integer;
+begin
+  for GSTIndex := 0 to Pred(GSTTotals.Count) do
+    FreeMem( pGSTTotal(GSTTotals.Items[GSTIndex]), SizeOf( TGSTTotal ) );
+
+  GSTTotals.Clear;
+end;
+
+//------------------------------------------------------------------------------
+function TListJournalsReport.FindControlAcc(aControlAcc: string; var aIndex: integer): boolean;
+var
+  GSTIndex : integer;
+begin
+  aIndex := -1;
+  Result := false;
+  for GSTIndex := 0 to Pred(GSTTotals.Count) do
+  begin
+    if pGSTTotal(GSTTotals.Items[GSTIndex])^.gstControlAccount = aControlAcc then
+    begin
+      aIndex := GSTIndex;
+      Result := true;
+      Exit;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TListJournalsReport.IsBankAccountIncluded(aAccList : TList; aBankAccountNumber: String): Boolean;
+var
+  AccIndex : Integer;
+  BankAcc  : TBank_Account;
+begin
+  Result := False;
+  for AccIndex := 0 to Pred(aAccList.Count) do
+  begin
+    BankAcc := aAccList[AccIndex];
+    if (BankAcc.baFields.baBank_Account_Number = aBankAccountNumber) then
+    begin
+      Result := True;
+      Break;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TListJournalsReport.ValidateCurrentItem(aSender: Tobject; aParam : TListJournalsParam): boolean;
+var
+  Mgr : TTravManagerWithNewReport;
+begin
+  Result := false;
+  Mgr := TTravManagerWithNewReport(aSender);
+
+  // Validate if we should process
+  if not Mgr.Bank_Account.IsAJournalAccount then
+    Exit;
+
+  if (not IsBankAccountIncluded(aParam.AccountList, Mgr.Bank_Account.baFields.baBank_Account_Number)) then
+    Exit;
+
+  if not aParam.HasTransactions(Mgr.Bank_Account) then
+    Exit;
+
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
+procedure TListJournalsReport.EnterEntry(Sender : Tobject);
+Const
+  IMG_SCALE_UP_PERCENT = 150;
+var
+  Mgr : TTravManagerWithNewReport;
+  Rpt : TListJournalsReport;
+  CanvasFont : TFont;
+begin
+  Mgr := TTravManagerWithNewReport(Sender);
+  Rpt := TListJournalsReport( Mgr.ReportJob );
+  ClearGSTTotals();
+
+  if not ValidateCurrentItem(Sender, Rpt.Params) then
+    Exit;
+
+  // State Image
+  if (Mgr.Transaction^.txDate_Transferred > 0) and (Mgr.Transaction^.txLocked) then
+    Rpt.PutImage(TRANSandLOCKED_IMG, IMG_SCALE_UP_PERCENT)
+  else if (Mgr.Transaction^.txDate_Transferred > 0) then
+    Rpt.PutImage(TRANSFERED_IMG, IMG_SCALE_UP_PERCENT)
+  else if (Mgr.Transaction^.txLocked) then
+    Rpt.PutImage(LOCKED_IMG, IMG_SCALE_UP_PERCENT)
+  else
+    SkipColumn();
+
+  PutString( bkDate2Str ( Mgr.Transaction^.txDate_Effective ) );
+  PutString( GetFormattedReference( Mgr.Transaction));
+  PutStringMultipleColumns( Mgr.Transaction^.txGL_Narration, COL_SHOW_ALL);
+
+  // Sets Line to Bold
+  if Assigned(RendEngCanvas) then
+  begin
+    // Set font if the Rend Engine Canvas is accesable, there is none in CSV
+    CanvasFont := TFont.Create;
+    try
+      CanvasFont.Assign(RendEngCanvas.Font);
+      CanvasFont.Style := [fsbold];
+      RenderDetailLine(true, siDetail, CanvasFont);
+    finally
+      FreeAndNil(CanvasFont);
+    end;
+  end
+  else
+    RenderDetailLine();
+
+  RenderEmptyLine;
+end;
+
+//------------------------------------------------------------------------------
+procedure TListJournalsReport.ExitEntry(Sender: Tobject);
+const
+  JNL_TYPE = 'Journal Type: ';
+var
+  Mgr : TTravManagerWithNewReport;
+  Rpt : TListJournalsReport;
+  slNotes : TStringList;
+  NoteLineIndex : integer;
+begin
+  Mgr := TTravManagerWithNewReport(Sender);
+  Rpt := TListJournalsReport( Mgr.ReportJob );
+
+  if not ValidateCurrentItem(Sender, Rpt.Params) then
+    Exit;
+
+  RenderGSTControlAccounts(Sender);
+
+  if Assigned(RendEngCanvas) then
+    RendEngCanvas.Font.Style := [];
+
+  RenderDetailGrandTotal('');
+  RenderEmptyLine;
+
+  slNotes := TStringList.Create;
+  try
+    slNotes := WrapTextIntoStringList(GetFullNotes(Mgr.Transaction), 300);
+    for NoteLineIndex := 0 to slNotes.Count - 1 do
+    begin
+      SkipColumns(2);
+      PutStringMultipleColumns( slNotes.Strings[NoteLineIndex], COL_SHOW_ALL);
+
+      if Assigned(RendEngCanvas) then
+        RendEngCanvas.Font.Style := [];
+      RenderDetailLine();
+    end;
+  finally
+    slNotes.Free;
+  end;
+
+  SkipColumns(2);
+  PutStringMultipleColumns(JNL_TYPE + btJournalRptNames[Mgr.Bank_Account.baFields.baAccount_Type], COL_SHOW_ALL);
+
+  if Assigned(RendEngCanvas) then
+    RendEngCanvas.Font.Style := [];
+
+  RenderDetailLine();
+
+  RenderEmptyLine;
+  RenderEmptyLine;
+end;
+
+//------------------------------------------------------------------------------
+procedure TListJournalsReport.EnterDissection(Sender: Tobject);
+var
+  Mgr : TTravManagerWithNewReport;
+  Rpt : TListJournalsReport;
+  ExtraLines : TStringList;
+  ExtraIndex : integer;
+  gstControlAcc : string;
+  gstAccountName : string;
+  FoundIndex : integer;
+  NewGSTTotal : pGSTTotal;
+  Payee: TPayee;
+  Job: PJob_Heading_Rec;
+  ChartRec : pAccount_Rec;
+begin
+  Mgr := TTravManagerWithNewReport(Sender);
+  Rpt := TListJournalsReport( Mgr.ReportJob );
+
+  if not ValidateCurrentItem(Sender, Rpt.Params) then
+    Exit;
+
+  SkipColumns(2);
+
+  PutString(Mgr.Dissection^.dsReference);
+  PutString(Mgr.Dissection^.dsAccount);
+  PutString(Rpt.Params.Client.clChart.FindDesc(Mgr.Dissection^.dsAccount));
+
+  // Wraps the Narration if the option is Set
+  ExtraLines := TStringList.Create();
+  try
+    WrapText(COL_NARRATION, Mgr.Dissection^.dsGL_Narration, ExtraLines);
+
+    if Rpt.Params.WrapNarration then
+    begin
+      for ExtraIndex := 0 to ExtraLines.Count-1 do
+      begin
+        SkipColumns(3);
+        if not Rpt.Params.ShowSummary then
+          SkipColumns(9);
+
+        if Assigned(RendEngCanvas) then
+          RendEngCanvas.Font.Style := [];
+        RenderDetailLine();
+
+        SkipColumns(5);
+
+        PutString(ExtraLines.Strings[ExtraIndex]);
+      end;
+    end;
+
+  finally
+    FreeAndNil(ExtraLines);
+  end;
+
+  if Mgr.Dissection^.dsAmount >= 0 then
+  begin
+    PutMoney( Trunc( Mgr.Dissection^.dsAmount - Mgr.Dissection^.dsGST_Amount ) );
+    SkipColumns(2);
+  end
+  else
+  begin
+    SkipColumns(2);
+    PutMoney( Trunc( Mgr.Dissection^.dsAmount - Mgr.Dissection^.dsGST_Amount ) );
+  end;
+
+  // Is there GST for this Journal Item
+  GSTControlAcc := '';
+  if (Mgr.Dissection^.dsGST_Amount <> 0) then
+  begin
+    gstControlAcc := Rpt.Params.Client.clFields.clGST_Account_Codes[Mgr.Dissection^.dsGST_Class];
+    ChartRec := Rpt.Params.Client.clChart.SearchClosestCode(gstControlAcc);
+    if Assigned(ChartRec) then
+      gstAccountName := ChartRec^.chAccount_Description
+    else
+      gstAccountName := '';
+
+    if trim(GSTControlAcc) <> '' then
+    begin
+      // Does the Control Account exist in the temp list
+      if FindControlAcc(GSTControlAcc, FoundIndex) then
+      begin
+        // Update Total
+        pGSTTotal(GSTTotals.Items[FoundIndex])^.gstTotalAmount :=
+          pGSTTotal(GSTTotals.Items[FoundIndex])^.gstTotalAmount +
+          Mgr.Dissection^.dsGST_Amount;
+      end
+      else
+      begin
+        // Add New Control Account
+        GetMem( NewGSTTotal, SizeOf( TGSTTotal ) ) ;
+        NewGSTTotal^.gstAccountName    := gstAccountName;
+        NewGSTTotal^.gstControlAccount := gstControlAcc;
+        NewGSTTotal^.gstTotalAmount    := Mgr.Dissection^.dsGST_Amount;
+
+        GSTTotals.Add( NewGSTTotal ) ;
+      end;
+    end;
+  end;
+
+  if not Rpt.Params.ShowSummary then
+  begin
+    SkipColumn();
+    // Payees
+    if Mgr.Dissection^.dsPayee_Number > 0 then
+    begin
+      PutString(inttostr(Mgr.Dissection^.dsPayee_Number));
+      Payee := Rpt.Params.Client.clPayee_List.Find_Payee_Number(Mgr.Dissection^.dsPayee_Number);
+      if Assigned(Payee) then
+        PutString(Payee.pdFields.pdName);
+    end
+    else
+      SkipColumns(2);
+
+    // Jobs
+    PutString(Mgr.Dissection^.dsJob_Code);
+    Job := Rpt.Params.Client.clJobs.FindCode(Mgr.Dissection^.dsJob_Code);
+    if Assigned(Job) then
+      PutString(Job.jhHeading)
+    else
+      SkipColumn();
+
+    // Amounts and GST
+    PutMoney( Trunc( Mgr.Dissection^.dsAmount ) );
+    if GSTControlAcc <> '' then
+    begin
+      PutString( Rpt.Params.Client.clFields.clGST_Class_Codes[Mgr.Dissection^.dsGST_Class] );
+      PutMoney( Trunc( Mgr.Dissection^.dsGST_Amount ) );
+    end
+    else
+    begin
+      PutString('None');
+      PutString('-  ');
+    end;
+
+    // Quantity
+    if Mgr.Dissection^.dsQuantity <> 0 then
+      PutMoney( Trunc( Mgr.Dissection^.dsQuantity ) )
+    else
+      PutString('-   ');
+  end;
+
+  if Assigned(RendEngCanvas) then
+    RendEngCanvas.Font.Style := [];
+  RenderDetailLine();
+end;
+
+//------------------------------------------------------------------------------
+procedure TListJournalsReport.RenderGSTControlAccounts(Sender: Tobject);
+var
+  Mgr : TTravManagerWithNewReport;
+  Rpt : TListJournalsReport;
+  GSTIndex : integer;
+  GSTTotal : TGSTTotal;
+begin
+  Mgr := TTravManagerWithNewReport(Sender);
+  Rpt := TListJournalsReport( Mgr.ReportJob );
+
+  for GSTIndex := 0 to Pred(GSTTotals.Count) do
+  begin
+    GSTTotal := pGSTTotal(GSTTotals.Items[GSTIndex])^;
+
+    SkipColumns(2);
+
+    PutString(Mgr.Transaction^.txReference);
+    PutString(GSTTotal.gstControlAccount);
+    PutString(GSTTotal.gstAccountName);
+    PutString(Mgr.Transaction^.txGL_Narration);
+
+    if GSTTotal.gstTotalAmount >= 0 then
+    begin
+      PutMoney( Trunc( GSTTotal.gstTotalAmount ) );
+      SkipColumns(2);
+    end
+    else
+    begin
+      SkipColumns(2);
+      PutMoney( Trunc( GSTTotal.gstTotalAmount ) );
+    end;
+
+    if not Rpt.Params.ShowSummary then
+      SkipColumns(9);
+
+    if Assigned(RendEngCanvas) then
+      RendEngCanvas.Font.Style := [];
+    RenderDetailLine();
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TListJournalsReport.BKPrint;
 var
   TravMgr : TTravManagerWithNewReport;
@@ -609,6 +845,20 @@ begin
   finally
     FreeAndNil(TravMgr);
   end;
+end;
+
+//------------------------------------------------------------------------------
+constructor TListJournalsReport.Create(RptType: TReportType);
+begin
+  inherited;
+  GSTTotals := TList.Create;
+end;
+
+//------------------------------------------------------------------------------
+destructor TListJournalsReport.Destroy;
+begin
+  FreeAndNil(GSTTotals);
+  inherited;
 end;
 
 end.

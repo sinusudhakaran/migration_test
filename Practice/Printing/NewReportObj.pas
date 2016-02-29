@@ -221,6 +221,7 @@ type
     procedure AddPercentage(Value : money; AddTotals : Boolean = True; DefaultSign: TSign = NNone);
 
     procedure SkipColumn;
+    procedure SkipColumns(aNumOfColumns : integer);
     //External routines for actually putting the output on the canvas, rely on protected
     //routines above, they are provided here for compatibility but could be replace in the
     //calling code with a call to RenderEngine.RenderDetailHeader etc.
@@ -955,7 +956,10 @@ end;
 
 function TBKReport.GetRendEngCanvas: TCanvas;
 begin
-  result := TRenderToCanvasEng(RenderEngine).OutputBuilder.Canvas;
+  if (RenderEngine is TRenderToCanvasEng) then
+    result := TRenderToCanvasEng(RenderEngine).OutputBuilder.Canvas
+  else
+    result := nil;
 end;
 
 procedure TBKReport.SetItemStyle(const Value: TStyleTypes);
@@ -1211,6 +1215,16 @@ procedure TBKReport.SkipColumn;
 begin
    FCurrDetail.Add('');
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.SkipColumns(aNumOfColumns: integer);
+var
+  index : integer;
+begin
+  for index := 1 to aNumOfColumns do
+    SkipColumn;
+end;
+
 procedure TBKReport.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
 begin
   RenderEngine.SplitText(Text, ColumnWidth, WrappedText);

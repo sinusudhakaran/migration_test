@@ -4404,6 +4404,12 @@ const
     end;
   end;
 
+  // Default Joutnal Report Parameters
+  procedure UpgradeToVersion188;
+  begin
+    aClient.clExtra.ceList_Entries_Show_Summary := true;
+  end;
+
 begin
    with aClient.clFields do begin
 
@@ -4802,6 +4808,13 @@ begin
       begin
         UpgradeToVersion187;
         clFile_Version := 187;
+      end;
+
+      // Defaults to Journal Report
+      if (CLFile_Version < 188) then
+      begin
+        UpgradeToVersion188;
+        clFile_Version := 188;
       end;
    end;
 end;

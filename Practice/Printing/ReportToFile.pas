@@ -48,6 +48,7 @@ type
    public
       constructor Create( aOwner : TObject; fName : string); reintroduce; virtual;
       //Routines to build total and header lines, they call RenderDetailLine
+      procedure RenderEmptyLine;                  override;
       procedure RenderDetailHeader;               override;
       procedure RenderDetailSubSectionTotal(const TotalName : string);      override;
       procedure RenderDetailSectionTotal(const TotalName : string);         override;
@@ -78,7 +79,6 @@ type
    protected
       procedure RenderTotalLine(double: boolean); override;
    public
-
       procedure RenderDetailLine;                 override;
       procedure RenderTitleLine(Text : string);   override;
       procedure RenderTextLine(Text:string; Underlined : boolean; AddLineIfUnderlined: boolean = True);      override;
@@ -401,6 +401,14 @@ begin
         ClearSubTotals;
    end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TRenderToFileBase.RenderEmptyLine;
+begin
+  inherited;
+  NewDetailLine();
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileBase.RenderDetailRunningTotal(const TotalName : string);
 var
@@ -594,6 +602,7 @@ begin
    end;
    NewDetailLine;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileCSV.RenderRuledLine;
 begin
@@ -850,6 +859,7 @@ begin
    end;
    NewDetailLine;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileFixed.RenderRuledLine;
 var

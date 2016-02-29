@@ -1,14 +1,14 @@
 inherited DlgJournalOptions: TDlgJournalOptions
   Caption = 'Journal Report Options'
-  ClientHeight = 335
-  ExplicitHeight = 363
+  ClientHeight = 304
+  ExplicitHeight = 332
   PixelsPerInch = 96
   TextHeight = 13
   inherited PCOptions: TPageControl
-    Height = 290
-    ExplicitHeight = 295
+    Height = 259
+    ExplicitHeight = 290
     inherited tsOptions: TTabSheet
-      ExplicitHeight = 267
+      ExplicitHeight = 262
       object lblFormat: TLabel [2]
         Left = 28
         Top = 150
@@ -79,11 +79,12 @@ inherited DlgJournalOptions: TDlgJournalOptions
       end
       object chkGroupBy: TCheckBox
         Left = 28
-        Top = 236
+        Top = 233
         Width = 245
         Height = 17
         Caption = 'Group by Journal Type'
         TabOrder = 6
+        Visible = False
       end
       object rbSummary: TRadioButton
         Left = 102
@@ -120,7 +121,7 @@ inherited DlgJournalOptions: TDlgJournalOptions
       end
     end
     inherited tsAdvanced: TTabSheet
-      ExplicitHeight = 261
+      ExplicitHeight = 256
       inherited fmeAccountSelector1: TfmeAccountSelector
         inherited lblSelectAccounts: TLabel
           Width = 295
@@ -131,7 +132,7 @@ inherited DlgJournalOptions: TDlgJournalOptions
     end
   end
   inherited pnlControls: TPanel
-    Top = 290
-    ExplicitTop = 295
+    Top = 259
+    ExplicitTop = 290
   end
 end

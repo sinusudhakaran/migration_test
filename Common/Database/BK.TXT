@@ -1,4 +1,4 @@
-$|BK_FILE_VERSION  = 187;  (* Current Version counter for files
+$|BK_FILE_VERSION  = 188;  (* Current Version counter for files
 $|                           Changes if structure or method of storing a value would cause
 $|                           data to be represented incorrectly, or an exception to be raised *)
 $|
