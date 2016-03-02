@@ -3,34 +3,47 @@ unit MoneyUtils;
 { We can't use %0.2m to return formatted strings because it is hard to test }
 
 // ----------------------------------------------------------------------------
-interface uses MoneyDef, ISO_4217;
+interface
+
+uses
+  MoneyDef,
+  ISO_4217;
 // ----------------------------------------------------------------------------
 
-Function MoneyStrNoSymbol( Const Amount : Money ): String;
-Function BalanceStrNoSymbol( Const Amount : Money ): String;
-Function MoneyStr( Const Amount : Money; Const aCurrencyCode : String ): String;
-Function MoneyStrBrackets( Const Amount : Money; Const aCurrencyCode : String ): String;
-Function BalanceStr( Const Amount : Money; Const aCurrencyCode : String ): String;
-Function FmtBalanceStrNoSymbol: String;
-Function DrCrStr( Const Amount : Money; Const aCurrencyCode : String ): String;
-Function DrCrStrNoSymbol( Const Amount : Money ): String;
+const
+  MONEY_FORMAT      = '#,##0.00;#,##0.00';
+  MONEY_FORMAT_SIGN = '#,##0.00;-#,##0.00';
+  QUANTITY_FORMAT   = '#,##0.000;#,##0.000';
+
+  Function MoneyStrNoSymbol( Const Amount : Money ): String;
+  Function BalanceStrNoSymbol( Const Amount : Money ): String;
+  Function MoneyStr( Const Amount : Money; Const aCurrencyCode : String ): String;
+  Function MoneyStrBrackets( Const Amount : Money; Const aCurrencyCode : String ): String;
+  Function BalanceStr( Const Amount : Money; Const aCurrencyCode : String ): String;
+  Function FmtBalanceStrNoSymbol: String;
+  Function DrCrStr( Const Amount : Money; Const aCurrencyCode : String ): String;
+  Function DrCrStrNoSymbol( Const Amount : Money ): String;
+
+  // ----------------------------------------------------------------------------
+
+  Function FmtMoneyStr( Const aCurrencyCode : String ): String;
+  Function FmtMoneyStrBrackets( Const aCurrencyCode : String ): String;
+  Function FmtBalanceStr( Const aCurrencyCode : String ): String;
+  Function FmtMoneyStrBracketsNoSymbol: String;
+  Function FmtDrCrStr( Const aCurrencyCode : String ): String;
+  Function FmtDrCrStrNoSymbol: String;
+
+  Function CurrencySymbol( Const aCurrencyCode : String ): String;
+
+  Function ForexRate2Str( R : Double ): String;
+  Function ForexPictureMask : String;
 
 // ----------------------------------------------------------------------------
+implementation
 
-Function FmtMoneyStr( Const aCurrencyCode : String ): String;
-Function FmtMoneyStrBrackets( Const aCurrencyCode : String ): String;
-Function FmtBalanceStr( Const aCurrencyCode : String ): String;
-Function FmtMoneyStrBracketsNoSymbol: String;
-Function FmtDrCrStr( Const aCurrencyCode : String ): String;
-Function FmtDrCrStrNoSymbol: String;
-
-Function CurrencySymbol( Const aCurrencyCode : String ): String;
-
-Function ForexRate2Str( R : Double ): String;
-Function ForexPictureMask : String;
-
-// ----------------------------------------------------------------------------
-implementation uses BkConst, SysUtils;
+uses
+  BkConst,
+  SysUtils;
 // ----------------------------------------------------------------------------
 
 {These constants have been replace by those in ISO_4217

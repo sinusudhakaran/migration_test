@@ -83,7 +83,6 @@ type
 
       procedure RenderDetailHeaderWrapped;
       function FindValueInData(aText : string; aValueType : string; var aValue : string): boolean;
-      function GetImageName(aText : string): string;
    protected
       //RenderText and RenderLine are the only two routines that actually draw onto the canvas
       procedure RenderText(TextValue : string; textRect : TRect; Justify : TJustifyType; RenderStyle :TRenderStyle);
@@ -2012,23 +2011,6 @@ begin
       result.TopLeft := ConvertToDc( MMRect.TopLeft);
       result.BottomRight := ConvertToDC( MMRect.BottomRight);
    end;
-end;
-
-function TRenderToCanvasEng.GetImageName(aText : string): string;
-var
-  Pos1, Pos2 : integer;
-begin
-  Result := '';
-  Pos1 := Pos(IMGFIELD, aText);
-  if Pos1 > 0 then
-  begin
-    Pos1 := Pos1 + Length(IMGFIELD) + 1; //<IMG[space]
-    Pos2 := Pos1;
-    while (Pos2 <= Length(aText)) and (aText[Pos2] <> '>') do
-      Inc(Pos2);
-
-    Result := Copy(aText, Pos1, Pos2 - Pos1);
-  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

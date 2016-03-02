@@ -58,6 +58,8 @@ type
     QuantityCol  : TReportColumn;
     GSTTotals    : TList;
   protected
+    function AreCallbackParamsOK(aSender : Tobject) : boolean;
+
     procedure ClearGSTTotals();
     function FindControlAcc(aControlAcc : string; var aIndex : integer) : boolean;
 
@@ -102,9 +104,12 @@ uses
   UserReportSettings,
   PayeeObj,
   chList32,
+  LogUtil,
+  MoneyUtils,
   BAutils;
 
 Const
+  UNIT_NAME = 'RptJournalList';
   TRANSFERED_IMG = 'Transfered_Icon';
   LOCKED_IMG = 'Locked_Icon';
   TRANSandLOCKED_IMG = 'TransAndLocked_Icon';
@@ -151,10 +156,6 @@ Const
   NN_SHOW_SUM    = 'Show_Summary';
   NN_GRP_JNL_TYP = 'GroupBy_Journal_Type';
 
-  MONEY_FORMAT      = '#,##0.00;#,##0.00';
-  MONEY_FORMAT_SIGN = '#,##0.00;-#,##0.00';
-  QUANTITY_FORMAT   = '#,##0.000;#,##0.000';
-
 //------------------------------------------------------------------------------
 // Main Entry point into Report
 procedure DoListJournalsReport(aDest : TReportDest;
@@ -171,6 +172,13 @@ var
   NonBaseCurrency : Boolean;
 begin
   NonBaseCurrency := False;
+
+  if not assigned(MyClient) then
+  begin
+    LogUtil.LogMsg(lmError, UNIT_NAME, 'Client not assigned.');
+    Exit;
+  end;
+
   LParams := TListJournalsParam.Create(ord(Report_Last), MyClient, aRptBatch,dPeriod );
   try
     LParams.GetBatchAccounts;
@@ -338,8 +346,15 @@ var
   Show_Detail : integer;
 begin
   Job := TListJournalsReport.Create(ReportTypes.rptListings);
-  job.Params := Self;
   try
+    job.Params := Self;
+
+    if not assigned(Job.Params.Client) then
+    begin
+      LogUtil.LogMsg(lmError, UNIT_NAME, 'Client not assigned.');
+      Exit;
+    end;
+
     Job.LoadReportSettings(UserPrintSettings,
     Job.Params.MakeRptName(Report_List_Names[REPORT_LIST_ENTRIES]));
 
@@ -459,6 +474,29 @@ end;
 
 //------------------------------------------------------------------------------
 // TListJournalsReport
+function TListJournalsReport.AreCallbackParamsOK(aSender: Tobject): boolean;
+var
+  Mgr : TTravManagerWithNewReport;
+begin
+  Result := false;
+  if not assigned(aSender) then
+    Exit;
+
+  if not(aSender is TTravManagerWithNewReport) then
+    Exit;
+
+  Mgr := TTravManagerWithNewReport(aSender);
+
+  if not assigned(Mgr.ReportJob) then
+    Exit;
+
+  if not(Mgr.ReportJob is TListJournalsReport) then
+    Exit;
+
+  Result := true;
+end;
+
+//------------------------------------------------------------------------------
 procedure TListJournalsReport.ClearGSTTotals;
 var
   GSTIndex : integer;
@@ -535,6 +573,9 @@ var
   Rpt : TListJournalsReport;
   CanvasFont : TFont;
 begin
+  if not AreCallbackParamsOK(Sender) then
+    Exit;
+
   Mgr := TTravManagerWithNewReport(Sender);
   Rpt := TListJournalsReport( Mgr.ReportJob );
   ClearGSTTotals();
@@ -585,6 +626,9 @@ var
   slNotes : TStringList;
   NoteLineIndex : integer;
 begin
+  if not AreCallbackParamsOK(Sender) then
+    Exit;
+
   Mgr := TTravManagerWithNewReport(Sender);
   Rpt := TListJournalsReport( Mgr.ReportJob );
 
@@ -599,9 +643,8 @@ begin
   RenderDetailGrandTotal('');
   RenderEmptyLine;
 
-  slNotes := TStringList.Create;
+  slNotes := WrapTextIntoStringList(GetFullNotes(Mgr.Transaction), 300);
   try
-    slNotes := WrapTextIntoStringList(GetFullNotes(Mgr.Transaction), 300);
     for NoteLineIndex := 0 to slNotes.Count - 1 do
     begin
       SkipColumns(2);
@@ -612,7 +655,7 @@ begin
       RenderDetailLine();
     end;
   finally
-    slNotes.Free;
+    FreeAndNil(slNotes);
   end;
 
   SkipColumns(2);
@@ -642,6 +685,9 @@ var
   Job: PJob_Heading_Rec;
   ChartRec : pAccount_Rec;
 begin
+  if not AreCallbackParamsOK(Sender) then
+    Exit;
+
   Mgr := TTravManagerWithNewReport(Sender);
   Rpt := TListJournalsReport( Mgr.ReportJob );
 

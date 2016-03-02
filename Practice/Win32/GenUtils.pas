@@ -888,15 +888,14 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function WrapText(AOriginalText: string;  ALineLength: integer): string;
 var
-  SL : TStringList;
+  strList : TStringList;
 begin
   Result := '';
-  SL := TStringList.Create;
+  strList := WrapTextIntoStringList(AOriginalText, ALineLength);
   try
-    SL := WrapTextIntoStringList(AOriginalText, ALineLength);
-    Result := SL.text;
+    Result := strList.text;
   finally
-    SL.Free;
+    FreeAndNil(strList);
   end;
 end;
 
