@@ -16,7 +16,6 @@ uses
   utAuditTrail in '..\Tests\utAuditTrail.pas',
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
-  //utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',
   utSimpleFundX in '..\Tests\utSimpleFundX.pas',
   utInstitutionCol in '..\Tests\utInstitutionCol.pas',
   utToDo in '..\Tests\utToDo.pas',
@@ -24,7 +23,9 @@ uses
   utTPRExtact in '..\Tests\utTPRExtact.pas',
   utCashbookChartExport in '..\Tests\utCashbookChartExport.pas',
   utSuggestedMems in '..\Tests\utSuggestedMems.pas',
-  utPracticeLedger in '..\Tests\utPracticeLedger.pas';
+  utPracticeLedger in '..\Tests\utPracticeLedger.pas',
+  utPromoWindow in '..\Tests\utPromoWindow.pas',
+  utPromoDisplayForm in '..\Tests\utPromoDisplayForm.pas';
 
 {$R *.RES}
 

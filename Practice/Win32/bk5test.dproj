@@ -54,6 +54,8 @@
     <DCCReference Include="..\Tests\utMYOB.pas" />
     <DCCReference Include="..\Tests\utPayeeObj.pas" />
     <DCCReference Include="..\Tests\utPracticeLedger.pas" />
+    <DCCReference Include="..\Tests\utPromoDisplayForm.pas" />
+    <DCCReference Include="..\Tests\utPromoWindow.pas" />
     <DCCReference Include="..\Tests\utRecommendedMems.pas" />
     <DCCReference Include="..\Tests\utSimpleFund360Bulk.pas" />
     <DCCReference Include="..\Tests\utSimpleFundX.pas" />
