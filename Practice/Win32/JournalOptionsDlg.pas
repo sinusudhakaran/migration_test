@@ -50,6 +50,12 @@ var
   JournalOptDlg: TDlgJournalOptions;
   AccountSet: TAccountSet;
 begin
+  Result := False;
+  if not (Assigned(Params) and
+          Assigned(Params.Client) and
+          Assigned(MyClient)) then
+    Exit;
+
   JournalOptDlg:= TDlgJournalOptions.Create(Application.MainForm);
   try
     BKHelpSetUp(JournalOptDlg, BKH_List_journals);
