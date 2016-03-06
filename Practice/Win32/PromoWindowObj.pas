@@ -719,9 +719,13 @@ begin
     FipsHTTPS.Connected := False;
   finally
     ProcessingData := False;
-    AssetList.Clear;
-    FreeAndNil(AssetList);
-    FreeAndNil(BaseJSONObject);
+    if Assigned(AssetList) then
+    begin
+      AssetList.Clear;
+      FreeAndNil(AssetList);
+    end;
+    if Assigned(BaseJSONObject) then
+      FreeAndNil(BaseJSONObject);
   end;
 end;
 
