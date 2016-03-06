@@ -637,6 +637,18 @@ begin
    Result := fFields.DelimitedText;
 end;
 
+const
+  c_Amount                    = 'Amount';
+  c_Amount_Value              = '120.00';
+
+  c_Account_Code              = 'Account_Code';
+  c_Distribution_Account_Code = '23800/ASX.DST';
+  c_Dividend_Account_Code     = '23900/ASX.DIV';
+  c_Interest_Account_Code     = '25000/ASX.INT';
+  c_Other_Account_Code        = '20000/GPT.AX';
+  c_Share_Account_Code        = '78200/GPT.AX';
+
+
 procedure TSimpleFund360BulkTestCase.CheckGeneric( asEntry_Type_Detail : string );
 begin
   TransactionsNode    := TestNode;
@@ -668,8 +680,8 @@ begin
   Check(CurrentTransaction.ChildNodes.Item[5].NodeName    = 'Text', Format('Expected node "%s", but found node "%s"', [ 'Text', CurrentTransaction.ChildNodes.Item[3].NodeName ]) );
   Check(CurrentTransaction.ChildNodes.Item[5].Text        = 'Account 1 Tran1', Format('Expected node "%s", but found node "%s"', [  'Account 1 Tran1', CurrentTransaction.ChildNodes.Item[3].Text ]) );
 
-  Check(CurrentTransaction.ChildNodes.Item[6].NodeName    = 'Amount', Format('Expected node "%s", but found node "%s"', [ 'Amount', CurrentTransaction.ChildNodes.Item[4].NodeName ]) );
-  Check(CurrentTransaction.ChildNodes.Item[6].Text        = '-120.00', Format('Expected node "%s", but found node "%s"', [ '-120.00', CurrentTransaction.ChildNodes.Item[4].Text]) );
+  Check(CurrentTransaction.ChildNodes.Item[6].NodeName    = c_Amount, Format('Expected node "%s", but found node "%s"', [ 'Amount', CurrentTransaction.ChildNodes.Item[4].NodeName ]) );
+  Check(CurrentTransaction.ChildNodes.Item[6].Text        = '-' + c_Amount_Value, Format('Expected node "%s", but found node "%s"', [ '-' + c_Amount_Value, CurrentTransaction.ChildNodes.Item[4].Text]) );
 
   Check(ContraEntries.NodeName                            = 'Contra_Entries', Format('Expected node "%s", but found node "%s"', [ 'Contra_Entries', ContraEntries.NodeName ]) );
   Check(Entry.NodeName                                    = 'Entry', Format('Expected node "%s", but found node "%s"', [ 'Entry', Entry.NodeName ]) );
@@ -685,18 +697,18 @@ procedure TSimpleFund360BulkTestCase.CheckBGL360( aiAccount : integer );
 begin
   case aiAccount of
     cttanDistribution : begin
-      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = 'Account_Code',
-        Format('Expected node "%s", but found node "%s"', [ 'Account_Code',
+      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = c_Account_Code,
+        Format('Expected node "%s", but found node "%s"', [ c_Account_Code,
           TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName ]) );
-      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = '23800/ASX.DST',
-        Format('Expected node "%s", but found node "%s"', [ '23800/ASX.DST',
+      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = c_Distribution_Account_Code,
+        Format('Expected node "%s", but found node "%s"', [ c_Distribution_Account_Code,
           TransactionTypeNode.ChildNodes.Item[ 0 ].Text ]) );
 
-      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = 'Amount',
-        Format('Expected node "%s", but found node "%s"', [ 'Amount',
+      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = c_Amount,
+        Format('Expected node "%s", but found node "%s"', [ c_Amount,
           TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName ]) );
-      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = '120.00',
-        Format('Expected node "%s", but found node "%s"', [ '120.00',
+      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = c_Amount_Value,
+        Format('Expected node "%s", but found node "%s"', [ c_Amount_Value,
           TransactionTypeNode.ChildNodes.Item[ 1 ].Text ]) );
 
       Check(TransactionTypeNode.ChildNodes.Item[ 2 ].NodeName = fBGL360_Dividends_Franked,
@@ -904,18 +916,18 @@ begin
 
     end;
     cttanDividend : begin
-      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = 'Account_Code',
-        Format('Expected node "%s", but found node "%s"', [ 'Account_Code',
+      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = c_Account_Code,
+        Format('Expected node "%s", but found node "%s"', [ c_Account_Code,
           TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName ]) );
-      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = '23900/ASX.DIV',
-        Format('Expected node "%s", but found node "%s"', [ '23900/ASX.DIV',
+      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = c_Dividend_Account_Code,
+        Format('Expected node "%s", but found node "%s"', [ c_Dividend_Account_Code,
           TransactionTypeNode.ChildNodes.Item[ 0 ].Text ]) );
 
-      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = 'Amount',
-        Format('Expected node "%s", but found node "%s"', [ 'Amount',
+      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = c_Amount,
+        Format('Expected node "%s", but found node "%s"', [ c_Amount,
           TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName ]) );
-      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = '120.00',
-        Format('Expected node "%s", but found node "%s"', [ '120.00',
+      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = c_Amount_Value,
+        Format('Expected node "%s", but found node "%s"', [ c_Amount_Value,
           TransactionTypeNode.ChildNodes.Item[ 1 ].Text ]) );
 
       Check(TransactionTypeNode.ChildNodes.Item[ 2 ].NodeName = fBGL360_Dividends_Franked,
@@ -983,18 +995,18 @@ begin
 
     end;
     cttanInterest : begin
-      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = 'Account_Code',
-        Format('Expected node "%s", but found node "%s"', [ 'Account_Code',
+      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = c_Account_Code,
+        Format('Expected node "%s", but found node "%s"', [ c_Account_Code,
           TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName ]) );
-      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = '25000/ASX.INT',
-        Format('Expected node "%s", but found node "%s"', [ '25000/ASX.INT',
+      Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = c_Interest_Account_Code,
+        Format('Expected node "%s", but found node "%s"', [ c_Interest_Account_Code,
           TransactionTypeNode.ChildNodes.Item[ 0 ].Text ]) );
 
-      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = 'Amount',
-        Format('Expected node "%s", but found node "%s"', [ 'Amount',
+      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = c_Amount,
+        Format('Expected node "%s", but found node "%s"', [ c_Amount,
           TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName ]) );
-      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = '120.00',
-        Format('Expected node "%s", but found node "%s"', [ '120.00',
+      Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = c_Amount_Value,
+        Format('Expected node "%s", but found node "%s"', [ c_Amount_Value,
           TransactionTypeNode.ChildNodes.Item[ 1 ].Text ]) );
 
       Check(TransactionTypeNode.ChildNodes.Item[ 2 ].NodeName = fBGL360_Interest,
@@ -1029,18 +1041,18 @@ begin
     else begin
       if ( ( aiAccount >= cttanShareTradeRangeStart ) and
             ( aiAccount <= cttanShareTradeRangeEnd ) ) then begin //DN Refactored out, since range was introduced ((AccountCode >= cttanShareTradeRangeStart) and (AccountCode <= cttanShareTradeRangeEnd)) then
-        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = 'Account_Code',
-          Format('Expected node "%s", but found node "%s"', [ 'Account_Code',
+        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = c_Account_Code,
+          Format('Expected node "%s", but found node "%s"', [ c_Account_Code,
             TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName ]) );
-        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = '78200/GPT.AX',
-          Format('Expected node "%s", but found node "%s"', [ '78200/GPT.AX',
+        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = c_Share_Account_Code,
+          Format('Expected node "%s", but found node "%s"', [ c_Share_Account_Code,
             TransactionTypeNode.ChildNodes.Item[ 0 ].Text ]) );
 
-        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = 'Amount',
-          Format('Expected node "%s", but found node "%s"', [ 'Amount',
+        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = c_Amount,
+          Format('Expected node "%s", but found node "%s"', [ c_Amount,
             TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName ]) );
-        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = '120.00',
-          Format('Expected node "%s", but found node "%s"', [ '120.00',
+        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = c_Amount_Value,
+          Format('Expected node "%s", but found node "%s"', [ c_Amount_Value,
             TransactionTypeNode.ChildNodes.Item[ 1 ].Text ]) );
 
         Check(TransactionTypeNode.ChildNodes.Item[ 2 ].NodeName = fBGL360_Units,
@@ -1093,18 +1105,18 @@ begin
             TransactionTypeNode.ChildNodes.Item[ 8 ].Text ]) );
       end
       else begin // Then it must be an Other_Transaction
-        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = 'Account_Code',
-          Format('Expected node "%s", but found node "%s"', [ 'Account_Code',
+        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName = c_Account_Code,
+          Format('Expected node "%s", but found node "%s"', [ c_Account_Code,
             TransactionTypeNode.ChildNodes.Item[ 0 ].NodeName ]) );
-        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = '20000/GPT.AX',
-          Format('Expected node "%s", but found node "%s"', [ '20000/GPT.AX',
+        Check(TransactionTypeNode.ChildNodes.Item[ 0 ].Text = c_Other_Account_Code,
+          Format('Expected node "%s", but found node "%s"', [ c_Other_Account_Code,
             TransactionTypeNode.ChildNodes.Item[ 0 ].Text ]) );
 
-        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = 'Amount',
-          Format('Expected node "%s", but found node "%s"', [ 'Amount',
+        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName = c_Amount,
+          Format('Expected node "%s", but found node "%s"', [ c_Amount,
             TransactionTypeNode.ChildNodes.Item[ 1 ].NodeName ]) );
-        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = '120.00',
-          Format('Expected node "%s", but found node "%s"', [ '120.00',
+        Check(TransactionTypeNode.ChildNodes.Item[ 1 ].Text = c_Amount_Value,
+          Format('Expected node "%s", but found node "%s"', [ c_Amount_Value,
             TransactionTypeNode.ChildNodes.Item[ 1 ].Text ]) );
       end;
     end;
@@ -1142,29 +1154,29 @@ end;
 
 procedure TSimpleFund360BulkTestCase.TestExtractBGL360_Distribution;
 begin
-  RunTestForAccountNumber( '23800/ASX.DST' );
+  RunTestForAccountNumber( c_Distribution_Account_Code );
 end;
 
 procedure TSimpleFund360BulkTestCase.TestExtractBGL360_Dividend;
 begin
-  RunTestForAccountNumber( '23900/ASX.DIV' );
+  RunTestForAccountNumber( c_Dividend_Account_Code );
 
 end;
 
 procedure TSimpleFund360BulkTestCase.TestExtractBGL360_Interest;
 begin
-  RunTestForAccountNumber( '25000/ASX.INT' );
+  RunTestForAccountNumber( c_Interest_Account_Code );
 
 end;
 
 procedure TSimpleFund360BulkTestCase.TestExtractBGL360_OtherTransaction;
 begin
-  RunTestForAccountNumber( '20000/GPT.AX' );
+  RunTestForAccountNumber( c_Other_Account_Code );
 end;
 
 procedure TSimpleFund360BulkTestCase.TestExtractBGL360_ShareTrade;
 begin
-  RunTestForAccountNumber( '78200/GPT.AX' );
+  RunTestForAccountNumber( c_Share_Account_Code );
 
 end;
 
