@@ -4,7 +4,7 @@ object dlgInitCheq: TdlgInitCheq
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
   Caption = 'Add Initial Unpresented Cheques'
-  ClientHeight = 457
+  ClientHeight = 449
   ClientWidth = 632
   Color = clBtnFace
   DefaultMonitor = dmMainForm
@@ -17,7 +17,7 @@ object dlgInitCheq: TdlgInitCheq
   OnKeyPress = FormKeyPress
   DesignSize = (
     632
-    457)
+    449)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -35,7 +35,7 @@ object dlgInitCheq: TdlgInitCheq
   end
   object InfoBmp: TImage
     Left = 8
-    Top = 186
+    Top = 171
     Width = 40
     Height = 40
     AutoSize = True
@@ -130,28 +130,28 @@ object dlgInitCheq: TdlgInitCheq
   end
   object Label5: TLabel
     Left = 52
-    Top = 187
+    Top = 172
     Width = 108
     Height = 13
     Caption = 'Cheques will be dated '
   end
   object lblChequesDate: TLabel
     Left = 54
-    Top = 206
+    Top = 191
     Width = 44
     Height = 13
     Caption = '31/12/00'
   end
   object ShapeBorder: TShape
     Left = 0
-    Top = 230
+    Top = 218
     Width = 633
     Height = 1
     Pen.Color = clSilver
   end
   object Shape2: TShape
     Left = 0
-    Top = 180
+    Top = 163
     Width = 632
     Height = 1
     Align = alTop
@@ -162,7 +162,7 @@ object dlgInitCheq: TdlgInitCheq
     Left = 0
     Top = 0
     Width = 632
-    Height = 180
+    Height = 163
     LockedRows = 0
     TopRow = 0
     ActiveRow = 0
@@ -173,7 +173,6 @@ object dlgInitCheq: TdlgInitCheq
     Align = alTop
     BorderStyle = bsNone
     Color = clWindow
-    ColorUnused = clBtnFace
     Colors.Editing = clWindow
     Controller = OvcController1
     GridPenSet.NormalGrid.NormalColor = clBtnShadow
@@ -225,12 +224,13 @@ object dlgInitCheq: TdlgInitCheq
   end
   object pnlButtons: TPanel
     Left = 0
-    Top = 415
+    Top = 407
     Width = 632
     Height = 42
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 2
+    TabOrder = 1
+    ExplicitTop = 415
     DesignSize = (
       632
       42)
@@ -269,92 +269,35 @@ object dlgInitCheq: TdlgInitCheq
     end
   end
   inline fmeCheques: TfmeExistingCheques
-    Left = 9
-    Top = 235
-    Width = 592
-    Height = 164
-    TabOrder = 1
-    TabStop = True
-    ExplicitLeft = 9
-    ExplicitTop = 235
-    ExplicitHeight = 164
-    inherited label1: TLabel
-      Top = -1
-      ExplicitTop = -1
-    end
-    inherited lblDates: TLabel
-      Top = -1
-      ExplicitTop = -1
-    end
+    Left = 0
+    Top = 225
+    Width = 585
+    Height = 180
+    TabOrder = 2
+    ExplicitTop = 225
+    ExplicitWidth = 585
+    ExplicitHeight = 180
     inherited pgCheques: TPageControl
-      AlignWithMargins = True
-      Left = 3
-      Top = 3
-      Width = 586
-      Height = 158
+      Left = 5
       ActivePage = fmeCheques.tbsAll
-      Align = alClient
-      ExplicitLeft = -1
-      ExplicitTop = -3
-      ExplicitWidth = 592
-      ExplicitHeight = 164
+      Anchors = [akTop]
       inherited tbsAll: TTabSheet
-        ExplicitLeft = 4
-        ExplicitTop = 24
-        ExplicitWidth = 569
-        ExplicitHeight = 117
-        inherited lbAllCheques: TListBox
-          Left = 0
-          Top = 0
-          Width = 578
-          Height = 130
-          Align = alClient
-          BevelInner = bvNone
-          BevelOuter = bvNone
-          BorderStyle = bsNone
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 584
-          ExplicitHeight = 136
-        end
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
       end
       inherited tblPresented: TTabSheet
-        ExplicitLeft = 4
-        ExplicitTop = 24
-        ExplicitWidth = 569
-        ExplicitHeight = 117
-        inherited lbPresented: TListBox
-          AlignWithMargins = True
-          Left = 3
-          Top = 3
-          Width = 578
-          Height = 130
-          Align = alClient
-          BevelInner = bvNone
-          BevelOuter = bvNone
-          BorderStyle = bsNone
-        end
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
       end
       inherited tbsUnpresented: TTabSheet
-        ExplicitLeft = 4
-        ExplicitTop = 24
-        ExplicitWidth = 569
-        ExplicitHeight = 117
-        inherited lbUnpresented: TListBox
-          AlignWithMargins = True
-          Left = 3
-          Top = 3
-          Width = 578
-          Height = 130
-          Align = alClient
-          BevelInner = bvNone
-          BevelOuter = bvNone
-          BorderStyle = bsNone
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 584
-          ExplicitHeight = 136
-        end
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
       end
     end
   end

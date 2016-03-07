@@ -33,12 +33,12 @@ type
     btnCancel: TButton;
     Label1: TLabel;
     ShapeBorder: TShape;
-    fmeCheques: TfmeExistingCheques;
     InfoBmp: TImage;
     Label5: TLabel;
     lblChequesDate: TLabel;
     ShapeBottom: TShape;
     Shape2: TShape;
+    fmeCheques: TfmeExistingCheques;
 
     procedure btnOKClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -141,6 +141,7 @@ begin
 
   lblChequesDate.Font.Style := [fsBold];
   fmeCheques.lblDates.Font.Style := [fsBold];
+  fmeCheques.lblDates.Top := fmeCheques.lblDates.Top + 3;
   if tblCheques.Columns.Count <> Max_Init_Chq_Cols then
      tblCheques.RowLimit := 1
    else

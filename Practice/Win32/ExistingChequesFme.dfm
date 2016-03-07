@@ -2,7 +2,7 @@ object fmeExistingCheques: TfmeExistingCheques
   Left = 0
   Top = 0
   Width = 592
-  Height = 175
+  Height = 177
   TabOrder = 0
   object label1: TLabel
     Left = 10
@@ -20,7 +20,7 @@ object fmeExistingCheques: TfmeExistingCheques
   end
   object pgCheques: TPageControl
     Left = 8
-    Top = 24
+    Top = 32
     Width = 577
     Height = 145
     ActivePage = tbsUnpresented
