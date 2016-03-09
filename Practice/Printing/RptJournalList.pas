@@ -67,6 +67,8 @@ type
 
     function ValidateCurrentItem(aSender: Tobject; aParam : TListJournalsParam): boolean;
 
+    procedure WrapNarration(Sender : Tobject; aValue : string);
+
     procedure EnterEntry(Sender : Tobject);
     procedure ExitEntry(Sender : Tobject);
     procedure EnterDissection(Sender : Tobject);
@@ -565,6 +567,45 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TListJournalsReport.WrapNarration(Sender : Tobject; aValue : string);
+var
+  Mgr : TTravManagerWithNewReport;
+  Rpt : TListJournalsReport;
+  ExtraLines : TStringList;
+  ExtraIndex : integer;
+begin
+  Mgr := TTravManagerWithNewReport(Sender);
+  Rpt := TListJournalsReport( Mgr.ReportJob );
+
+  // Wraps the Narration if the option is Set
+  ExtraLines := TStringList.Create();
+  try
+    WrapText(COL_NARRATION, aValue, ExtraLines);
+
+    if Rpt.Params.WrapNarration then
+    begin
+      for ExtraIndex := 0 to ExtraLines.Count-1 do
+      begin
+        SkipColumns(3);
+        if not Rpt.Params.ShowSummary then
+          SkipColumns(9);
+
+        if Assigned(RendEngCanvas) then
+          RendEngCanvas.Font.Style := [];
+        RenderDetailLine();
+
+        SkipColumns(5);
+
+        PutString(ExtraLines.Strings[ExtraIndex]);
+      end;
+    end;
+
+  finally
+    FreeAndNil(ExtraLines);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 procedure TListJournalsReport.EnterEntry(Sender : Tobject);
 Const
   IMG_SCALE_UP_PERCENT = 150;
@@ -667,7 +708,6 @@ begin
   RenderDetailLine();
 
   RenderEmptyLine;
-  RenderEmptyLine;
 end;
 
 //------------------------------------------------------------------------------
@@ -675,8 +715,6 @@ procedure TListJournalsReport.EnterDissection(Sender: Tobject);
 var
   Mgr : TTravManagerWithNewReport;
   Rpt : TListJournalsReport;
-  ExtraLines : TStringList;
-  ExtraIndex : integer;
   gstControlAcc : string;
   gstAccountName : string;
   FoundIndex : integer;
@@ -700,32 +738,7 @@ begin
   PutString(Mgr.Dissection^.dsAccount);
   PutString(Rpt.Params.Client.clChart.FindDesc(Mgr.Dissection^.dsAccount));
 
-  // Wraps the Narration if the option is Set
-  ExtraLines := TStringList.Create();
-  try
-    WrapText(COL_NARRATION, Mgr.Dissection^.dsGL_Narration, ExtraLines);
-
-    if Rpt.Params.WrapNarration then
-    begin
-      for ExtraIndex := 0 to ExtraLines.Count-1 do
-      begin
-        SkipColumns(3);
-        if not Rpt.Params.ShowSummary then
-          SkipColumns(9);
-
-        if Assigned(RendEngCanvas) then
-          RendEngCanvas.Font.Style := [];
-        RenderDetailLine();
-
-        SkipColumns(5);
-
-        PutString(ExtraLines.Strings[ExtraIndex]);
-      end;
-    end;
-
-  finally
-    FreeAndNil(ExtraLines);
-  end;
+  WrapNarration(Sender, Mgr.Dissection^.dsGL_Narration);
 
   if Mgr.Dissection^.dsAmount >= 0 then
   begin
@@ -839,7 +852,8 @@ begin
     PutString(Mgr.Transaction^.txReference);
     PutString(GSTTotal.gstControlAccount);
     PutString(GSTTotal.gstAccountName);
-    PutString(Mgr.Transaction^.txGL_Narration);
+
+    WrapNarration(Sender, Mgr.Transaction^.txGL_Narration);
 
     if GSTTotal.gstTotalAmount >= 0 then
     begin
