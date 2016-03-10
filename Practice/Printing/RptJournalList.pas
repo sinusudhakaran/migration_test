@@ -822,7 +822,7 @@ begin
 
     // Quantity
     if Mgr.Dissection^.dsQuantity <> 0 then
-      PutMoney( Trunc( Mgr.Dissection^.dsQuantity ) )
+      PutQuantity( Trunc( Mgr.Dissection^.dsQuantity ) )
     else
       PutString('-   ');
   end;
