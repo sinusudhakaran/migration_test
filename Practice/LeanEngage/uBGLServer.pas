@@ -8,8 +8,8 @@ uses
 
 const
   ENDPOINT_BGI360_Authorise         = '/oauth/authorize?response_type=code&client_id=%s&scope=%s';
-  ENDPOINT_BGI360_Auth_Token        = '/oauth/token?grant_type=authorization_code&code=%s&scope=fundList';
-  ENDPOINT_BGI360_Refresh_Token     = '/oauth/token?grant_type=refresh_token&refresh_token=%s&client_id=%s&scope=fundList';
+  ENDPOINT_BGI360_Auth_Token        = '/oauth/token?grant_type=authorization_code&code=%s&scope=%s';
+  ENDPOINT_BGI360_Refresh_Token     = '/oauth/token?grant_type=refresh_token&refresh_token=%s&client_id=%s&scope=%s';
   ENDPOINT_BGI360_Fund_List         = '/fund/list';
   ENDPOINT_BGI360_Chart_Of_Accounts = 'fund/chartAccounts?fundId=%s';
 
@@ -331,15 +331,21 @@ end;
 function TBGLServer.Get_Auth_Code: boolean;
 const
   cURLLeader = '/oauth/authCode?code=';
-  cScope     = 'fundList';
 var
   lUrl : string;
 begin
   result := false;
   fAuth_Code := '';
-  lUrl := TfrmWebHost.GetRedirectedURL( nil,
-            format(fServerBaseUrl + ENDPOINT_BGI360_Authorise,
-              [ fAuthenticationKey, cScope ] ), cURLLeader, true );
+  {$ifdef DEBUG }
+    lUrl := TfrmWebHost.GetRedirectedURL( nil,
+              format(fServerBaseUrl + ENDPOINT_BGI360_Authorise,
+                [ fAuthenticationKey, cBGL_API_Test_Scope ] ), cURLLeader, true );
+  {$else}
+    lUrl := TfrmWebHost.GetRedirectedURL( nil,
+              format(fServerBaseUrl + ENDPOINT_BGI360_Authorise,
+                [ fAuthenticationKey, cBGL_API_Scope ] ), cURLLeader, true );
+  {$endif}
+
   if pos( cURLLeader, lURL ) <> 0 then begin
     fAuth_Code := copy(lURL, pos( cURLLeader, lURL ) + length( cURLLeader ),
                     length( lURL ));
@@ -358,8 +364,13 @@ begin
       SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
         [ Auth_Code] ) );
 
-    result := Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code ]), nil, lsTemp,
+  {$ifdef DEBUG }
+    result := Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code, cBGL_API_Test_Scope ]), nil, lsTemp,
       fAuth_TokenObj );
+  {$else}
+    result := Post( asBasic, format( ENDPOINT_BGI360_Auth_Token, [ Auth_Code, cBGL_API_Scope ]), nil, lsTemp,
+      fAuth_TokenObj );
+  {$endif}
 
 
     result := fAuth_TokenObj.SaveTokens;
@@ -426,9 +437,15 @@ begin
       SetAndSynchroniseLogMessage( format( 'Before Http Post in TBGLServer.Get_Auth_Tokens(Auth_Code= %s) )',
         [ Auth_Code] ) );
 
+  {$ifdef DEBUG }
     result := Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
-      [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey ]), nil, lsTemp,
+      [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey, cBGL_API_Test_Scope ]), nil, lsTemp,
       fAuth_TokenObj );
+  {$else}
+    result := Post( asOAuth, format( ENDPOINT_BGI360_Refresh_Token,
+      [ fAuth_TokenObj.fRefresh_token, fAuthenticationKey, cBGL_API_Scope ]), nil, lsTemp,
+      fAuth_TokenObj );
+  {$endif}
     if result then
       result := fAuth_TokenObj.SaveTokens;
 
