@@ -67,14 +67,12 @@ type
 
     function ValidateCurrentItem(aSender: Tobject; aParam : TListJournalsParam): boolean;
 
-    procedure WrapNarration(Sender : Tobject; aValue : string);
-
     procedure EnterEntry(Sender : Tobject);
     procedure ExitEntry(Sender : Tobject);
     procedure EnterDissection(Sender : Tobject);
     procedure RenderGSTControlAccounts(Sender : Tobject);
 
-    procedure BKPrint;  override;
+    procedure BKPrint; override;
   public
     constructor Create (RptType: TReportType); override;
     destructor Destroy; override;
@@ -150,8 +148,8 @@ Const
     'Exchange Gains/Losses');
 
   COL_SIZES : Array[0..1,0..COL_MAX] of single =
-  ((4.5,7.5,12 ,8  ,20  ,25  ,11 ,1  ,11 ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0),
-   (3.6,4.3,6.4,4.6,10  ,13.7,6  ,0.6,6.3,3.6,6.4,0.6,3.6,5.7,6  ,5.6,6  ,7  ));
+  ((4.6,7.5,8  ,8  ,20  ,27.9,11 ,1  ,11 ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0),
+   (3.6,4.8,5.1,4.6,10  ,14.5,6  ,0.6,6.3,0.6,3.6,6.4,3.6,5.7,6  ,5.6,6  ,6  ));
 
   NN_SORT        = 'Sort';
   NN_WRAP_NARR   = 'Wrap_Naration';
@@ -415,9 +413,9 @@ begin
 
     if not Job.Params.ShowSummary then
     begin
-      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_GAP2], Gcgap, 'Payee', jtLeft);
-      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_PAYEE], Gcgap, 'Payee Name', jtLeft);
-      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_PAYEE_NAME], Gcgap, '', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_GAP2], Gcgap, '', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_PAYEE], Gcgap, 'Payee', jtLeft);
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_PAYEE_NAME], Gcgap, 'Payee Name', jtLeft);
       AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_JOB], Gcgap, 'Job', jtLeft);
       AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_JOB_NAME], Gcgap, 'Job Name', jtLeft);
       Job.AmountCol := AddFormatColAuto(Job,cLeft,COL_SIZES[Show_Detail, COL_AMOUNT],Gcgap,'Amount',jtRight,MONEY_FORMAT_SIGN,MONEY_FORMAT_SIGN,false);
@@ -567,45 +565,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TListJournalsReport.WrapNarration(Sender : Tobject; aValue : string);
-var
-  Mgr : TTravManagerWithNewReport;
-  Rpt : TListJournalsReport;
-  ExtraLines : TStringList;
-  ExtraIndex : integer;
-begin
-  Mgr := TTravManagerWithNewReport(Sender);
-  Rpt := TListJournalsReport( Mgr.ReportJob );
-
-  // Wraps the Narration if the option is Set
-  ExtraLines := TStringList.Create();
-  try
-    WrapText(COL_NARRATION, aValue, ExtraLines);
-
-    if Rpt.Params.WrapNarration then
-    begin
-      for ExtraIndex := 0 to ExtraLines.Count-1 do
-      begin
-        SkipColumns(3);
-        if not Rpt.Params.ShowSummary then
-          SkipColumns(9);
-
-        if Assigned(RendEngCanvas) then
-          RendEngCanvas.Font.Style := [];
-        RenderDetailLine();
-
-        SkipColumns(5);
-
-        PutString(ExtraLines.Strings[ExtraIndex]);
-      end;
-    end;
-
-  finally
-    FreeAndNil(ExtraLines);
-  end;
-end;
-
-//------------------------------------------------------------------------------
 procedure TListJournalsReport.EnterEntry(Sender : Tobject);
 Const
   IMG_SCALE_UP_PERCENT = 150;
@@ -634,8 +593,8 @@ begin
   else
     SkipColumn();
 
-  PutString( bkDate2Str ( Mgr.Transaction^.txDate_Effective ) );
-  PutString( GetFormattedReference( Mgr.Transaction));
+  PutString( bkDate2Str ( Mgr.Transaction^.txDate_Effective ), Rpt.Params.WrapNarration );
+  PutString( GetFormattedReference( Mgr.Transaction), Rpt.Params.WrapNarration);
   PutStringMultipleColumns( Mgr.Transaction^.txGL_Narration, COL_SHOW_ALL);
 
   // Sets Line to Bold
@@ -734,21 +693,20 @@ begin
 
   SkipColumns(2);
 
-  PutString(Mgr.Dissection^.dsReference);
-  PutString(Mgr.Dissection^.dsAccount);
-  PutString(Rpt.Params.Client.clChart.FindDesc(Mgr.Dissection^.dsAccount));
-
-  WrapNarration(Sender, Mgr.Dissection^.dsGL_Narration);
+  PutString(Mgr.Dissection^.dsReference, Rpt.Params.WrapNarration);
+  PutString(Mgr.Dissection^.dsAccount, Rpt.Params.WrapNarration);
+  PutString(Rpt.Params.Client.clChart.FindDesc(Mgr.Dissection^.dsAccount), Rpt.Params.WrapNarration);
+  PutString(Mgr.Dissection^.dsGL_Narration, Rpt.Params.WrapNarration);
 
   if Mgr.Dissection^.dsAmount >= 0 then
   begin
-    PutMoney( Trunc( Mgr.Dissection^.dsAmount - Mgr.Dissection^.dsGST_Amount ) );
+    PutMoney( Trunc( Mgr.Dissection^.dsAmount - Mgr.Dissection^.dsGST_Amount ), true, true);
     SkipColumns(2);
   end
   else
   begin
     SkipColumns(2);
-    PutMoney( Trunc( Mgr.Dissection^.dsAmount - Mgr.Dissection^.dsGST_Amount ) );
+    PutMoney( Trunc( Mgr.Dissection^.dsAmount - Mgr.Dissection^.dsGST_Amount ), true, true );
   end;
 
   // Is there GST for this Journal Item
@@ -791,28 +749,28 @@ begin
     // Payees
     if Mgr.Dissection^.dsPayee_Number > 0 then
     begin
-      PutString(inttostr(Mgr.Dissection^.dsPayee_Number));
+      PutString(inttostr(Mgr.Dissection^.dsPayee_Number), Rpt.Params.WrapNarration);
       Payee := Rpt.Params.Client.clPayee_List.Find_Payee_Number(Mgr.Dissection^.dsPayee_Number);
       if Assigned(Payee) then
-        PutString(Payee.pdFields.pdName);
+        PutString(Payee.pdFields.pdName, Rpt.Params.WrapNarration);
     end
     else
       SkipColumns(2);
 
     // Jobs
-    PutString(Mgr.Dissection^.dsJob_Code);
+    PutString(trim(Mgr.Dissection^.dsJob_Code), Rpt.Params.WrapNarration);
     Job := Rpt.Params.Client.clJobs.FindCode(Mgr.Dissection^.dsJob_Code);
     if Assigned(Job) then
-      PutString(Job.jhHeading)
+      PutString(trim(Job.jhHeading), Rpt.Params.WrapNarration)
     else
       SkipColumn();
 
     // Amounts and GST
-    PutMoney( Trunc( Mgr.Dissection^.dsAmount ) );
+    PutMoney( Trunc( Mgr.Dissection^.dsAmount ), true, true );
     if GSTControlAcc <> '' then
     begin
-      PutString( Rpt.Params.Client.clFields.clGST_Class_Codes[Mgr.Dissection^.dsGST_Class] );
-      PutMoney( Trunc( Mgr.Dissection^.dsGST_Amount ) );
+      PutString( Rpt.Params.Client.clFields.clGST_Class_Codes[Mgr.Dissection^.dsGST_Class], Rpt.Params.WrapNarration );
+      PutMoney( Trunc( Mgr.Dissection^.dsGST_Amount ), true, true);
     end
     else
     begin
@@ -822,7 +780,7 @@ begin
 
     // Quantity
     if Mgr.Dissection^.dsQuantity <> 0 then
-      PutQuantity( Trunc( Mgr.Dissection^.dsQuantity ) )
+      PutQuantity( Trunc( Mgr.Dissection^.dsQuantity ), true )
     else
       PutString('-   ');
   end;
@@ -849,21 +807,20 @@ begin
 
     SkipColumns(2);
 
-    PutString(Mgr.Transaction^.txReference);
-    PutString(GSTTotal.gstControlAccount);
-    PutString(GSTTotal.gstAccountName);
-
-    WrapNarration(Sender, Mgr.Transaction^.txGL_Narration);
+    PutString(Mgr.Transaction^.txReference, Rpt.Params.WrapNarration);
+    PutString(GSTTotal.gstControlAccount, Rpt.Params.WrapNarration);
+    PutString(GSTTotal.gstAccountName, Rpt.Params.WrapNarration);
+    PutString(Mgr.Transaction^.txGL_Narration, Rpt.Params.WrapNarration);
 
     if GSTTotal.gstTotalAmount >= 0 then
     begin
-      PutMoney( Trunc( GSTTotal.gstTotalAmount ) );
+      PutMoney( Trunc( GSTTotal.gstTotalAmount ) , true, true);
       SkipColumns(2);
     end
     else
     begin
       SkipColumns(2);
-      PutMoney( Trunc( GSTTotal.gstTotalAmount ) );
+      PutMoney( Trunc( GSTTotal.gstTotalAmount ) , true, true);
     end;
 
     if not Rpt.Params.ShowSummary then
@@ -882,6 +839,7 @@ var
   AccountIndex : integer;
   BankAcc : TBank_Account;
 begin
+  UpdateColumnCanvasWidths;
   TravMgr := TTravManagerWithNewReport.Create;
   try
     TravMgr.Clear;

@@ -45,6 +45,9 @@ type
     FWidthPercent     : double;
     FStyle            : TRenderStyle;
     FFormatString     : string;
+    FCanvasWidth      : integer;
+    fWrappedStr       : TStringList;
+    fDoWrapStr        : Boolean;
 
     FSubSectionTotal  : Currency;
     FSectionTotal     : currency;
@@ -55,12 +58,12 @@ type
     FTotalCol         : boolean;
     FGrandTotalCol    : boolean;
     FTotalFormat      : string;
-    FColValue: TReportColumn;
-    FColQuantity: TReportColumn;
-    FCaptionLine2: string;
-    FPercentReference: Currency;
-    FIsPercentageCol: Boolean;
-    FCustomFont: TFont;
+    FColValue         : TReportColumn;
+    FColQuantity      : TReportColumn;
+    FCaptionLine2     : string;
+    FPercentReference : Currency;
+    FIsPercentageCol  : Boolean;
+    FCustomFont       : TFont;
 
     procedure SetTotalCol(newValue :boolean);
     procedure SetFormatString(const Value: string);
@@ -102,6 +105,10 @@ type
     property ColValue : TReportColumn read FColValue write SetColValue;
     function IsAverageCol : boolean;
     property CustomFont: TFont read FCustomFont write FCustomFont;
+
+    property CanvasWidth : integer read fCanvasWidth write fCanvasWidth;
+    property WrappedStr : TStringList read fWrappedStr write fWrappedStr;
+    property DoWrapStr : Boolean read fDoWrapStr write fDoWrapStr;
   end;
 
   TReportColumns  = class(TExtdCollection)
@@ -185,9 +192,10 @@ type
 implementation
 {----------------------------------}
 uses
-   globals,
-   math,
-   windows;
+  globals,
+  math,
+  sysutils,
+  windows;
 
 function MergeStyles(ReportStyle: TStyleItem;  RenderStyle: TRenderStyle): TRenderStyle;
   function MergeColor(A, B : TColor): tColor;
@@ -282,11 +290,16 @@ begin
   FPercentReference := 0;
   FIsPercentageCol := False;
   FCustomFont := nil;
+  fDoWrapStr  := false;
+
+  fWrappedStr := TStringList.Create;
 end;
 
 {----------------------------------}
 destructor TReportColumn.Destroy;
 begin
+  Freeandnil(fWrappedStr);
+
   FStyle.Free;
   inherited Destroy;
 end;

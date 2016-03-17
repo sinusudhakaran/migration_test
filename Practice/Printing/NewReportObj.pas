@@ -164,8 +164,8 @@ type
     FFileDest           : Integer;
     FReportFile         : string;
     FFileIsSet          : Boolean;
-    FReportType: TReportType;
-    FReportTypeParams: TReportTypeParams;
+    FReportType         : TReportType;
+    FReportTypeParams   : TReportTypeParams;
 
     FItemStyle: TStyleTypes;
     FBlindOn: Boolean;
@@ -183,6 +183,11 @@ type
     RenderEngine    : TCustomRenderEngine;  //use base class, don't know
                                             //which one we will need at creation
     function GetRendEngCanvas() : TCanvas;
+    function GetTotalLineWidth() : integer;
+    function PrevWordPos(aText : string; aCurrPos : integer) : integer;
+    function GetLengthOfTextThatFitsIntoWidth(aText : string; aWidth : integer) : integer;
+
+    procedure UpdateColumnCanvasWidths();
   public
     Sections: array[THFSection] of TRTFBand;
     constructor Create (RptType: TReportType); virtual;
@@ -201,25 +206,26 @@ type
     procedure ClearRunningTotals;
     procedure ClearAllTotals;
     //Routines for adding data to current line, essentially these are formating routines
-    procedure PutString ( aString : string);
+    procedure PutString(aString : string; aWrap : boolean = false);
     procedure PutStringMultipleColumns ( aString : string; aNumberOfColumns : integer);
-    procedure PutInteger( aInteger : longint);
+    procedure PutInteger( aInteger : longint; aWrap : boolean = false);
     procedure PutImage( aImageName : string; aScale : integer);
-    procedure PutCurrency( aCurr : currency; IncludeInTotals: Boolean = True); overload;
-    procedure PutCurrency( aCurr : Currency; DefaultSign : TSign); overload;
+    procedure PutCurrency( aCurr : currency; IncludeInTotals: Boolean = True; aWrap : boolean = false); overload;
+    procedure PutCurrency( aCurr : Currency; DefaultSign : TSign; aWrap : boolean = false); overload;
     procedure PutCurrencyTotal(aCurr : currency);
-    procedure PutMoney (aMoney : money; IncludeInTotals: Boolean = True); overload;
-    procedure PutMoney (aMoney : money; DefaultSign : TSign); overload;
+    procedure PutMoney (aMoney : money; IncludeInTotals: Boolean = True; aWrap : boolean = false); overload;
+    procedure PutMoney (aMoney : money; DefaultSign : TSign; aWrap : boolean = false); overload;
     procedure PutMoneyTotal (aMoney : money);
     procedure PutMoneyDontAdd (aMoney : money);
-    procedure PutQuantity(aMoney : money); overload;
-    procedure PutQuantity(aMoney : money; DefaultSign : TSign); overload;
+    procedure PutQuantity(aMoney : money; aWrap : boolean = false); overload;
+    procedure PutQuantity(aMoney : money; DefaultSign : TSign; aWrap : boolean = false); overload;
     function FormatPercentString (const Value : Currency ) : string; overload;
     function FormatPercentString (const Value : Currency; ForCol : TReportColumn ):string; Overload;
     function RenderColumnWidth(aColIndex: integer; aText: string): integer;
     procedure PutPercentage(Value : money; AddTotals : Boolean = True; DefaultSign: TSign = NNone);
     procedure AddPercentage(Value : money; AddTotals : Boolean = True; DefaultSign: TSign = NNone);
 
+    procedure SwitchWrapForColumn(aColumn : integer; aValue : boolean);
     procedure SkipColumn;
     procedure SkipColumns(aNumOfColumns : integer);
     //External routines for actually putting the output on the canvas, rely on protected
@@ -300,8 +306,11 @@ type
     procedure AfterNewPage(SavedDetail : Boolean); virtual;
 
     procedure SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
+    function GetTextWidth(aValue : string) : integer;
+    procedure WrapTextForColumn(aColumn: integer);
 
     property RendEngCanvas : TCanvas read GetRendEngCanvas;
+    property TotalLineWidth : integer read GetTotalLineWidth;
   end;
 
   TWriteColumnValue = procedure(Report: TBKReport; ColumnId: Integer; Value: Variant);
@@ -333,7 +342,7 @@ type
     procedure AddColumnText(ColumnId: Integer; const TextLines: array of String; Wrap: Boolean = False); overload;
 
     procedure AddColumnValue(ColumnId: Integer; Value: Variant);
-    
+
     procedure BeginUpdate;
     procedure EndUpdate;
   end;
@@ -352,7 +361,7 @@ Const
   MISSINGFIELD = '<MISSING>';                                      
 
 
-//******************************************************************************
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 implementation
 
 uses
@@ -371,29 +380,32 @@ uses
   WinUtils,
   CustomFileFormats,
   AttachReportToEmailDlg,
+  strutils,
   MailFrm;
 
 const
    UnitName = 'NewReportObj';
 
 { TBKReport }
-
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.AddColumn(aCol: TReportColumn);
 begin
    FColumns.Insert(aCol);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.AddFooter(aFooter: THeaderFooterLine);
 begin
    FFooter.Insert(aFooter);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.AddHeader(aHeader: THeaderFooterLine);
 begin
    FHeader.Insert(aHeader);
 end;
 
-
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.BKPrint;
 begin
   if Assigned(FOnBKPrint) then
@@ -409,6 +421,7 @@ begin
   if Assigned(OnAfterNewPage) then
     FOnAfterNewPage(Self);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TBKReport.Create;
 var I: Integer;
@@ -438,6 +451,7 @@ begin
       Sections[THFSection(I)] := TRTFBand.Create(FReportTypeParams.HF_Sections[ THFSection(I)]);
 
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TBKReport.Destroy;
 var I: Integer;
@@ -468,6 +482,7 @@ begin
        inherited Destroy;
     end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure OpenExcelFile(AFileName: string);
 var
@@ -507,6 +522,7 @@ begin
       V := Null;
     end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.Generate(Dest: TReportDest;Params : TRptParameters = nil; Preview: Boolean = True; AskToOpen: Boolean = True );
 //Create the correct rendering engine object
@@ -879,6 +895,7 @@ begin
    FReportTitle := FUserReportSettings.s7Report_Name;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.NewDetail;
 begin
    BlindOn := not FBlindOn;
@@ -905,6 +922,7 @@ begin
        end;
     end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SetupReport(const Dest: TReportDest);
 //Call the correct setup routines for the destination given
@@ -941,19 +959,57 @@ begin
       end;
    end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SetBlindOn(const Value: Boolean);
 begin
   FBlindOn := Value;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SetCurrDetail(NewCurrDetail : TStringList);
 begin
   FCurrDetail.Clear;
   FCurrDetail.Text := NewCurrDetail.Text;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TBKReport.GetLengthOfTextThatFitsIntoWidth(aText: string; aWidth: integer): integer;
+var
+  TextWidth : integer;
+  StrLen : integer;
+  ResLen : integer;
+  StrSection : string;
+begin
+  TextWidth := GetTextWidth(aText);
 
+  // Does the text not fit into the width?
+  if TextWidth > aWidth then
+  begin
+    StrLen := Length(aText);
+    StrSection := LeftStr(aText, StrLen);
+    TextWidth := GetTextWidth(StrSection);
+
+    // Loop backward through each word until it fits.
+    // if there is only one word in the front and it does not fit then go one
+    // character at a time rather than one word at a time.
+    while (TextWidth > aWidth) do
+    begin
+      ResLen := PrevWordPos(aText, StrLen);
+      if ResLen = -1 then
+        break;
+
+      StrSection := LeftStr(aText, ResLen);
+      TextWidth := GetTextWidth(StrSection);
+      StrLen := ResLen;
+    end;
+    Result := Length(StrSection);
+  end
+  else
+    Result := Length(aText);
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBKReport.GetRendEngCanvas: TCanvas;
 begin
   if (RenderEngine is TRenderToCanvasEng) then
@@ -962,6 +1018,77 @@ begin
     result := nil;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TBKReport.GetTextWidth(aValue : string): integer;
+begin
+  if (RenderEngine is TRenderToCanvasEng) then
+    result := TRenderToCanvasEng(RenderEngine).GetTextLength(aValue)
+  else
+    result := 0;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TBKReport.GetTotalLineWidth : integer;
+begin
+  if (RenderEngine is TRenderToCanvasEng) then
+    result := TRenderToCanvasEng(RenderEngine).OutputBuilder.OutputAreaWidth
+  else
+    result := 0;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TBKReport.PrevWordPos(aText: string; aCurrPos : integer): integer;
+var
+  Index : integer;
+  Found : boolean;
+  StrLen : integer;
+begin
+  // gets the previous word from a set position, if there is no next word go one
+  // character or if there is an error return a -1
+  Result := -1;
+  StrLen := length(aText);
+
+  if (StrLen = 0) or
+     (aCurrPos < 1) or
+     (aCurrPos > StrLen) then
+    Exit;
+
+  Found := false;
+  Index := aCurrPos;
+  while (not Found and (Index > 1) ) do
+  begin
+    if (aText[Index] = ' ') and not
+       (aText[Index-1] = ' ')  then
+      Found := true;
+
+    dec(Index);
+  end;
+
+  if Found then
+    Result := Index
+  else
+    Result := aCurrPos-1;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.UpdateColumnCanvasWidths;
+var
+  ColIndex : integer;
+  TotalLineWidth : integer;
+  ReportColumn : TReportColumn;
+begin
+  TotalLineWidth := GetTotalLineWidth();
+
+  for ColIndex := 0 to Columns.ItemCount - 1 do
+  begin
+    ReportColumn := Columns.Report_Column_At(ColIndex);
+
+    if Assigned(ReportColumn) then
+      ReportColumn.CanvasWidth := trunc(TotalLineWidth * (ReportColumn.WidthPercent/100)) - 20;
+  end;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SetItemStyle(const Value: TStyleTypes);
 begin
   if FItemStyle <> Value then begin
@@ -972,7 +1099,6 @@ begin
         RenderEngine.SetItemStyle(FItemStyle);
   end;
 end;
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SetReportTitle(const Value: string);
@@ -1020,19 +1146,22 @@ begin
   aCol.SectionTotal := aCol.SectionTotal + aCurr;
 
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutCurrency(aCurr: currency; IncludeInTotals: Boolean = True);
+procedure TBKReport.PutCurrency(aCurr: currency; IncludeInTotals: Boolean; aWrap : boolean);
 var
   newIndex : integer;
 begin
   newIndex := FCurrDetail.Count;  { 1 more than the last}
   with FColumns.Report_Column_At(newIndex) do
   begin
-    FCurrDetail.add(FormatFloat(FormatString,aCurr));
+    PutString(FormatFloat(FormatString,aCurr), aWrap);
+
     if IncludeInTotals then
       AddToTotals( aCurr, NewIndex);
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBKReport.FormatPercentString(const Value: Currency): string;
 //var a : Currency;
@@ -1071,8 +1200,9 @@ begin
    else
      Result := ''; //FormatPercentString(0); not the same as 0 .. just no ref
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutCurrency(aCurr: Currency; DefaultSign: TSign);
+procedure TBKReport.PutCurrency(aCurr: Currency; DefaultSign: TSign; aWrap : boolean);
 //this overloaded procedure is used when the sign of the value when displayed
 //is different to the sign of the value for the totals
 var
@@ -1092,10 +1222,11 @@ begin
   newIndex := FCurrDetail.Count;  { 1 more than the last}
   with FColumns.Report_Column_At(newIndex) do
   begin
-    FCurrDetail.add(FormatFloat(FormatString, DisplayAmount));
+    PutString(FormatFloat(FormatString, DisplayAmount), aWrap);
     AddToTotals( aCurr, NewIndex);
   end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutCurrencyTotal(aCurr: currency);
 var
@@ -1108,42 +1239,51 @@ begin
       AddToTotals( aCurr, NewIndex);
     end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutImage(aImageName : string; aScale : integer);
+var
+  Column : integer;
 begin
-  FCurrDetail.Add(IMGFIELD + ' ' + aImageName + ENDFIELD +
-                  IMGSCALEFIELD + ' ' + inttostr(aScale) + ENDFIELD);
+  Column := FCurrDetail.Add(IMGFIELD + ' ' + aImageName + ENDFIELD +
+                            IMGSCALEFIELD + ' ' + inttostr(aScale) + ENDFIELD);
+  SwitchWrapForColumn(Column, false);
 end;
 
-procedure TBKReport.PutInteger(aInteger: Integer);
-begin
-  FCurrDetail.Add(inttoStr(aInteger));
-end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutMoney(aMoney: money; IncludeInTotals: Boolean = True);
-var
-   currAmount : currency;
+procedure TBKReport.PutInteger(aInteger: Integer; aWrap : boolean);
 begin
-   currAmount := aMoney/100;
-   PutCurrency(currAmount, IncludeInTotals);
+  PutString(inttoStr(aInteger), aWrap);
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.PutMoney(aMoney: money; IncludeInTotals: Boolean; aWrap : boolean);
+var
+  currAmount : currency;
+begin
+  currAmount := aMoney/100;
+  PutCurrency(currAmount, IncludeInTotals, aWrap);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutMoney(aMoney: money; DefaultSign: TSign);
+procedure TBKReport.PutMoney(aMoney: money; DefaultSign: TSign; aWrap : boolean);
 var
-   currAmount : currency;
+  currAmount : currency;
 begin
-   currAmount := aMoney/100;
-   PutCurrency(currAmount, DefaultSign);
+  currAmount := aMoney/100;
+  PutCurrency(currAmount, DefaultSign, aWrap);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutMoneyDontAdd(aMoney: money);
 var
   newIndex : integer;
 begin
-   newIndex := FCurrDetail.Count;  { 1 more than the last}
-   with FColumns.Report_Column_At(newIndex) do
-       FCurrDetail.add(FormatFloat(FormatString,aMoney/100));
+  newIndex := FCurrDetail.Count;  { 1 more than the last}
+  with FColumns.Report_Column_At(newIndex) do
+    FCurrDetail.add(FormatFloat(FormatString,aMoney/100));
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutMoneyTotal(aMoney: money);
 var
@@ -1152,8 +1292,8 @@ begin
    currAmount := aMoney/100;
    PutCurrencyTotal(currAmount);
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutPercentage(Value: money; AddTotals : Boolean = True; DefaultSign: TSign = NNone);
 var
    currAmount : currency;
@@ -1171,6 +1311,7 @@ begin
       FCurrDetail.add(formatPercentString(currAmount,FColumns.Report_Column_At(FCurrDetail.Count)))
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.AddPercentage(Value: money; AddTotals: Boolean;
   DefaultSign: TSign);
 begin
@@ -1180,40 +1321,53 @@ begin
    SkipColumn;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.PutQuantity(aMoney: money; aWrap : boolean);
+var
+   currAmount : currency;
+begin
+   currAmount := aMoney/10000;
+   PutCurrency(currAmount, true, aWrap);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.PutQuantity(aMoney : money; DefaultSign : TSign; aWrap : boolean);
+var
+   currAmount : currency;
+begin
+   currAmount := aMoney/10000;
+   PutCurrency(currAmount, DefaultSign, aWrap);
+end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutQuantity(aMoney: money);
+procedure TBKReport.PutString(aString: string; aWrap : boolean);
 var
-   currAmount : currency;
+  Column : integer;
 begin
-   currAmount := aMoney/10000;
-   PutCurrency(currAmount);
-end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutQuantity(aMoney : money; DefaultSign : TSign);
-var
-   currAmount : currency;
-begin
-   currAmount := aMoney/10000;
-   PutCurrency(currAmount, DefaultSign);
-end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-procedure TBKReport.PutString(aString: string);
-begin
-   FCurrDetail.Add(aString);
+  Column := FCurrDetail.Add(aString);
+  if aWrap then
+    WrapTextForColumn(Column)
+  else
+    SwitchWrapForColumn(Column, false);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.PutStringMultipleColumns(aString: string; aNumberOfColumns: integer);
+var
+  Column : integer;
 begin
-  FCurrDetail.Add(STRFIELD + ' ' + aString + ENDFIELD +
-                  COLSKIPFIELD + ' ' + inttostr(aNumberOfColumns) + ENDFIELD);
+  Column := FCurrDetail.Add(STRFIELD + ' ' + aString + ENDFIELD +
+                            COLSKIPFIELD + ' ' + inttostr(aNumberOfColumns) + ENDFIELD);
+  SwitchWrapForColumn(Column, false);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SkipColumn;
+var
+  Column : integer;
 begin
-   FCurrDetail.Add('');
+  Column := FCurrDetail.Add('');
+  SwitchWrapForColumn(Column, false);
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1225,16 +1379,34 @@ begin
     SkipColumn;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SplitText(const Text: String; ColumnWidth: Integer; var WrappedText: TWrappedText);
 begin
   RenderEngine.SplitText(Text, ColumnWidth, WrappedText);
 end;
 
-//******************************************************************************
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.SwitchWrapForColumn(aColumn : integer; aValue: boolean);
+var
+  ReportColumn : TReportColumn;
+begin
+  if aColumn >= Columns.ItemCount then
+    Exit;
+
+  if aColumn < 0 then
+    Exit;
+
+  ReportColumn := Columns.Report_Column_At(aColumn);
+  if Assigned(ReportColumn) then
+    ReportColumn.DoWrapStr := false;
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailGrandTotal(const TotalName : string);
 begin
    RenderEngine.RenderDetailGrandTotal( TotalName);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailGrandTotal(const TotalName : string;DefaultSign: TSign);
 //need to temporarily alter the sign on totals
@@ -1259,11 +1431,13 @@ begin
   //now render amounts
   RenderDetailGrandTotal( TotalName);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailHeader;
 begin
    RenderEngine.RenderDetailHeader;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailLine(const isnewDetail: Boolean = True; Style: TStyleTypes = siDetail; aFontOverride : TFont = nil);
 begin
@@ -1276,11 +1450,13 @@ begin
   if isNewDetail then
     NewDetail;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSubSectionTotal(const TotalName: string);
 begin
   RenderEngine.RenderDetailSubSectionTotal( TotalName);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSubSectionTotal(const TotalName: string;
   DefaultSign: TSign);
@@ -1305,6 +1481,7 @@ begin
   //now render amounts
   RenderDetailSubSectionTotal( TotalName);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ClearSubSectionTotal;
 var
@@ -1314,11 +1491,13 @@ begin
     with Columns.Report_Column_At(i) do
       SubSectionTotal := 0;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSectionTotal(const TotalName : string);
 begin
    RenderEngine.RenderDetailSectionTotal( TotalName);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSectionTotal(const TotalName : string;DefaultSign: TSign);
 //need to temporarily alter the sign on totals
@@ -1343,6 +1522,7 @@ begin
   //now render amounts
   RenderDetailSectionTotal( TotalName);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSubTotal(
   const TotalName : string; NewLine: Boolean = True;
@@ -1351,6 +1531,7 @@ procedure TBKReport.RenderDetailSubTotal(
 begin
    RenderEngine.RenderDetailSubTotal( TotalName, NewLine, KeepTotals, TotalSubName, Style);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailSubTotal(const TotalName : string;DefaultSign: TSign; Style: TStyleTypes = siSectionTotal);
 var
@@ -1375,6 +1556,8 @@ begin
 
   RenderDetailSubTotal(TotalName,True,False,'', Style);
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderEmptyLine;
 begin
   RenderEngine.RenderEmptyLine;
@@ -1385,49 +1568,57 @@ procedure TBKReport.RenderRuledLine;
 begin
    RenderEngine.RenderRuledLine;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderRuledLine(Style : TPenStyle);
 begin
    RenderEngine.RenderRuledLine(Style);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderRuledLineWithColLines(LeaveLines: integer; aPenStyle: TPenStyle;
   VertColLineType: TVertColLineType);
 begin
   RenderEngine.RenderRuledLineWithColLines(LeaveLines, aPenStyle, VertColLineType);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderTextLine(Text: string; Underlined : boolean = false; AddLineIfUnderlined: boolean = True);
 begin
    RenderEngine.RenderTextLine( Text, Underlined, AddLineIfUnderlined);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderTitleLine(Text: string);
 begin
    RenderEngine.RenderTitleLine( Text);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ReportNewPage;
 begin
    RenderEngine.ReportNewPage;
    BlindOn := True;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.SingleUnderLine;
 begin
    RenderEngine.SingleUnderLine;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.DoubleUnderLine;
 begin
    RenderEngine.DoubleUnderLine;
 end;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RequireLines(lines: integer);
 begin
    RenderEngine.RequireLines( lines);
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBKReport.GenerateToFile(const FileName: string; const FileFormat: Integer; Params: TRptParameters = nil): Boolean;
 //Create the file rendering object.  Assumes that valid filename and format are given
@@ -1575,6 +1766,7 @@ procedure TBKReport.RenderMemo(Text: string);
 begin
    RenderEngine.RenderMemo( Text);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ClearGrandTotals;
 var
@@ -1587,6 +1779,7 @@ begin
       PercentReference := 0;
     end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ClearSectionTotal;
 var
@@ -1597,6 +1790,7 @@ begin
     with Columns.Report_Column_At(i) do
          SectionTotal := 0;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ClearSubTotals;
 var
@@ -1607,6 +1801,7 @@ begin
     with Columns.Report_Column_At(i) do
       SubTotal := 0;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ClearAllTotals;
 begin
@@ -1617,6 +1812,7 @@ begin
 
   ClearRunningTotals;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.ClearRunningTotals;
 var i : integer;
@@ -1625,11 +1821,13 @@ begin
     with Columns.Report_Column_At(i) do
       RunningTotal := 0;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailRunningTotal(const TotalName : string);
 begin
   RenderEngine.RenderDetailRunningTotal( TotalName);
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderDetailRunningTotal(const TotalName : string; DefaultSign: TSign);
 var
@@ -1677,33 +1875,39 @@ begin
     end;
   end;
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderAllVerticalColumnLines;
 begin
   RenderEngine.RenderAllVerticalColumnLines;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.RenderColumnLine(ColNo: Integer);
 begin
   RenderEngine.RenderColumnLine(ColNo);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TBKReport.RenderColumnWidth(aColIndex: integer;
   aText: string): integer;
 begin
   Result := RenderEngine.RenderColumnWidth(aColIndex, aText);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.UseCustomFont(aFontname: string; aFontSize: integer; aFontStyle: TFontStyles; aLineSize : integer = 0);
 begin
   RenderEngine.UseCustomFont( aFontname, aFontsize, aFontStyle, aLineSize);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.UseDefaultFont;
 begin
   RenderEngine.UseDefaultFont;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.WrapText(ColID: Integer; TextToWrap: string;
   var ExtraLines: TStringList);
 var
@@ -1746,14 +1950,71 @@ begin
   end;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure TBKReport.WrapTextForColumn(aColumn: integer);
+var
+  ColIndex : integer;
+  TotalLineWidth : integer;
+  ReportColumn : TReportColumn;
+  ColomnWidth : integer;
+  TextWidth : integer;
+  CurrentText : string;
+  LineText : string;
+  CurrStrWidth : integer;
+  StrWidth : integer;
+  FullText : string;
+begin
+  if aColumn >= Columns.ItemCount then
+    Exit;
+
+  if aColumn < 0 then
+    Exit;
+
+  if aColumn >=  CurrDetail.Count then
+    Exit;
+
+  ReportColumn := Columns.Report_Column_At(aColumn);
+  if Assigned(ReportColumn) then
+  begin
+    // Get String Data from Column
+    FullText := CurrDetail.Strings[aColumn];
+
+    ReportColumn.WrappedStr.Clear;
+    ReportColumn.DoWrapStr := true;
+    ColomnWidth := ReportColumn.CanvasWidth;
+
+    // Check if the Full text fits into the column
+    TextWidth := GetTextWidth(FullText);
+    if TextWidth <= ColomnWidth then
+    begin
+      ReportColumn.WrappedStr.Add(FullText);
+    end
+    else
+    begin
+      // Loop through Text and add text that fits into string list
+      CurrentText := FullText;
+      repeat
+        StrWidth := length(CurrentText);
+        CurrStrWidth := GetLengthOfTextThatFitsIntoWidth(CurrentText, ColomnWidth);
+        LineText := leftstr(CurrentText, CurrStrWidth);
+
+        ReportColumn.WrappedStr.Add(LineText);
+
+        if (StrWidth > CurrStrWidth) then
+          CurrentText := rightStr(CurrentText, StrWidth-CurrStrWidth);
+      until (StrWidth <= CurrStrWidth);
+    end;
+  end;
+end;
 
 { TBKReportRecordLines }
-
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.AddColumnText(ColumnId: Integer; const Text: String; Wrap: Boolean = False);
 begin
   AddColumnText(ColumnId, [Text], Wrap);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.AddColumnText(ColumnId: Integer; const TextLines: array of String; Wrap: Boolean = False);
 
   function GetFirstUnassigned(ColumnId: Integer): Integer;
@@ -1816,11 +2077,13 @@ begin
   end;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.AddColumnValue(ColumnId: Integer; Value: Variant);
 begin
   FColumnLines[ColumnId][0] := Value;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.BeginUpdate;
 begin
   Reset;
@@ -1828,6 +2091,7 @@ begin
   NewLines(1);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.Clear;
 var
   Index: Integer;
@@ -1842,6 +2106,7 @@ begin
   FMaxLines := 0;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TBKReportRecordLines.Create(Report: TBKReport; WriteColumnValue: TWriteColumnValue);
 begin
   FReport := Report;
@@ -1852,6 +2117,7 @@ begin
   SetLength(FColumnLines, 0);
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 destructor TBKReportRecordLines.Destroy;
 begin
   SetLength(FColumnLines, 0);
@@ -1859,11 +2125,13 @@ begin
   inherited;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.EndUpdate;
 begin
   PutLines;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.NewLines(NumLines: Integer);
 var
   Index: Integer;
@@ -1888,6 +2156,7 @@ begin
   end;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.PutLines;
 var
   ColumnLineIndex: Integer;
@@ -1914,6 +2183,7 @@ begin
   end;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReportRecordLines.Reset;
 begin
   Clear;

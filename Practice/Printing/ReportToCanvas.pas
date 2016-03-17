@@ -512,59 +512,66 @@ var
   Value,Quantity,Average : currency;
   LStyle: TRenderStyle;
 begin
-    Report.ItemStyle := siGrandTotal;
-    RequireLines(3);
-    RenderTotalLine(false, ttGrand);
-    with Report, PrintJob do begin
-       for i := 0 to Pred(Columns.ItemCount) do        { Iterate }
-           begin
-              aCol := Columns.Report_Column_At(i);
-              {averaging cols}
-              lStyle :=  MergeStyles(Report.ReportStyle.Items[Report.ItemStyle],aCol.Style);
-              try
-              if (aCol.IsAverageCol) and (aCol.isTotalCol) and (aCol.isGrandTotalCol) then
-              begin
-                 if aCol.TotalFormat = '' then FormatS := aCol.FormatString
-                                          else FormatS := aCol.TotalFormat;
+  Report.ItemStyle := siGrandTotal;
+  RequireLines(3);
+  RenderTotalLine(false, ttGrand);
+  with Report, PrintJob do
+  begin
+    for i := 0 to Pred(Columns.ItemCount) do        { Iterate }
+    begin
+      aCol := Columns.Report_Column_At(i);
+      {averaging cols}
+      lStyle :=  MergeStyles(Report.ReportStyle.Items[Report.ItemStyle],aCol.Style);
+      try
+        if (aCol.IsAverageCol) and (aCol.isTotalCol) and (aCol.isGrandTotalCol) then
+        begin
+          if aCol.TotalFormat = '' then
+            FormatS := aCol.FormatString
+          else
+            FormatS := aCol.TotalFormat;
 
-                 Value    := aCol.ColValue.GrandTotal;
-                 Quantity := aCol.ColQuantity.GrandTotal;
+          Value    := aCol.ColValue.GrandTotal;
+          Quantity := aCol.ColQuantity.GrandTotal;
 
-                 if Quantity <> 0.0 then
-                    Average := Value / Quantity
-                 else
-                    Average := 0;
+          if Quantity <> 0.0 then
+            Average := Value / Quantity
+          else
+            Average := 0;
 
-                 RenderText(FormatFloat(FormatS,Average),makeRect(aCol.Left,CurrY,ACol.Width,LineSize),aCol.Alignment,LStyle);
-              end
-              else if aCol.isTotalCol and aCol.isGrandTotalCol then { total cols }
-              begin
-                 if aCol.TotalFormat = '' then FormatS := aCol.FormatString
-                                          else FormatS := aCol.TotalFormat;
+          Report.PutString(FormatFloat(FormatS,Average), true);
+        end
+        else if aCol.isTotalCol and aCol.isGrandTotalCol then { total cols }
+        begin
+          if aCol.TotalFormat = '' then
+            FormatS := aCol.FormatString
+          else
+            FormatS := aCol.TotalFormat;
 
-                 RenderText(FormatFloat(FormatS,aCol.GrandTotal),makeRect(aCol.Left,CurrY,ACol.Width,LineSize),aCol.Alignment,LStyle);
-              end else if Acol.IsPercentageCol then begin
-                  RenderText(FormatPercentString(aCol.GrandTotal,aCol),makeRect(aCol.Left,CurrY,ACol.Width,LineSize),aCol.Alignment,LStyle);
-              end;
-
-
-              {total title}
-              if ( i = 0)
-              and (TotalName > ' ')
-              and ( not ( aCol.isTotalCol or aCol.isAverageCol)) then begin
-                 RenderText( TotalName, makeRect(aCol.Left,CurrY,ACol.Width,LineSize),aCol.Alignment,LStyle);
-              end;
-              finally
-                 lStyle.Free;
-              end;
-           end;
-             { for }
-       NewDetailLine;
-       RenderTotalLine(true, ttGrand);
-
-       {reset totals}
-       ClearGrandTotals;
+          Report.PutString(FormatFloat(FormatS,aCol.GrandTotal), true);
+        end
+        else if Acol.IsPercentageCol then
+        begin
+          Report.PutString(FormatPercentString(aCol.GrandTotal,aCol), true);
+        end
+        else if ( i = 0) and {total title}
+           (TotalName > ' ') and
+           ( not ( aCol.isTotalCol or aCol.isAverageCol)) then
+        begin
+          Report.PutString( TotalName, true);
+        end
+        else
+          Report.SkipColumn;
+      finally
+        lStyle.Free;
+      end;
     end;
+    RenderDetailLine;
+         { for }
+    RenderTotalLine(true, ttGrand);
+
+    {reset totals}
+    ClearGrandTotals;
+  end;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderDetailHeader;
@@ -700,9 +707,77 @@ end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderDetailLine;
+var
+  ReportColumn : TReportColumn;
+  ColumnIndex : integer;
+  WrapIndex : integer;
+  WrapMax : integer;
+  WrapDetail : TStringList;
 begin
-   RenderDetail(Report.CurrDetail);
+  WrapMax := 1;
+  // Get Max amount of Li9ne to Wrap
+  for ColumnIndex := 0 to Report.Columns.ItemCount-1 do
+  begin
+    ReportColumn := Report.Columns.Report_Column_At(ColumnIndex);
+
+    if (ReportColumn.DoWrapStr) and
+       (ReportColumn.WrappedStr.Count > WrapMax) then
+      WrapMax := ReportColumn.WrappedStr.Count;
+  end;
+
+  // Check if we need to Wrap
+  if WrapMax > 1 then
+  begin
+    WrapDetail := TStringList.Create;
+    if Assigned(WrapDetail) then
+    begin
+      try
+        // Loop through each wrapped Line
+        WrapIndex := 1;
+        while (WrapIndex <= WrapMax) do
+        begin
+          // Build up the current wrapped line
+          WrapDetail.Clear;
+          for ColumnIndex := 0 to Report.Columns.ItemCount-1 do
+          begin
+            ReportColumn := Report.Columns.Report_Column_At(ColumnIndex);
+            if (ReportColumn.DoWrapStr) and
+               (ReportColumn.WrappedStr.Count >= WrapIndex) then
+            begin
+              WrapDetail.Add(trim(ReportColumn.WrappedStr.Strings[WrapIndex-1]));
+            end
+            else
+            begin
+              if (WrapIndex = 1) and (ColumnIndex < Report.CurrDetail.Count) then
+                WrapDetail.Add(Report.CurrDetail.Strings[ColumnIndex])
+              else
+                WrapDetail.Add('');
+            end;
+          end;
+          // Render the current wrapped line
+          RenderDetail(WrapDetail);
+
+          inc(WrapIndex);
+        end;
+      finally
+        if Assigned(WrapDetail) then
+          FreeAndNil(WrapDetail);
+      end;
+    end;
+  end
+  else
+    // Do the normal code
+    RenderDetail(Report.CurrDetail);
+
+  // Clear Wrap Fields
+  for ColumnIndex := 0 to Report.Columns.ItemCount-1 do
+  begin
+    ReportColumn := Report.Columns.Report_Column_At(ColumnIndex);
+    ReportColumn.DoWrapStr := false;
+    ReportColumn.WrappedStr.Clear;
+  end;
 end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToCanvasEng.RenderDetailSectionTotal(const TotalName : string);
 {requires 3 lines, draws one line above}
