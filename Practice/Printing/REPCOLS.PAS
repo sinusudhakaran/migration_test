@@ -298,7 +298,8 @@ end;
 {----------------------------------}
 destructor TReportColumn.Destroy;
 begin
-  Freeandnil(fWrappedStr);
+  if Assigned(fWrappedStr) then
+    Freeandnil(fWrappedStr);
 
   FStyle.Free;
   inherited Destroy;
