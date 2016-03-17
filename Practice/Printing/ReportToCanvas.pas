@@ -719,8 +719,8 @@ begin
   for ColumnIndex := 0 to Report.Columns.ItemCount-1 do
   begin
     ReportColumn := Report.Columns.Report_Column_At(ColumnIndex);
-
-    if (ReportColumn.DoWrapStr) and
+    if (assigned(ReportColumn)) and
+       (ReportColumn.DoWrapStr) and
        (ReportColumn.WrappedStr.Count > WrapMax) then
       WrapMax := ReportColumn.WrappedStr.Count;
   end;
@@ -773,8 +773,11 @@ begin
   for ColumnIndex := 0 to Report.Columns.ItemCount-1 do
   begin
     ReportColumn := Report.Columns.Report_Column_At(ColumnIndex);
-    ReportColumn.DoWrapStr := false;
-    ReportColumn.WrappedStr.Clear;
+    if Assigned(ReportColumn) then
+    begin
+      ReportColumn.DoWrapStr := false;
+      ReportColumn.WrappedStr.Clear;
+    end;
   end;
 end;
 

@@ -149,7 +149,7 @@ Const
 
   COL_SIZES : Array[0..1,0..COL_MAX] of single =
   ((4.6,7.5,8  ,8  ,20  ,27.9,11 ,1  ,11 ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0),
-   (3.6,4.8,5.1,4.6,10  ,14.5,6  ,0.6,6.3,0.6,3.6,6.4,3.6,5.7,6  ,5.6,6  ,6  ));
+   (3.6,4.8,5.1,4.6,10  ,14.5,6  ,0.6,6.3,0.6,3.6,6.4,2.9,6.4,6  ,5.6,6  ,6  ));
 
   NN_SORT        = 'Sort';
   NN_WRAP_NARR   = 'Wrap_Naration';
@@ -839,7 +839,8 @@ var
   AccountIndex : integer;
   BankAcc : TBank_Account;
 begin
-  UpdateColumnCanvasWidths;
+  inherited;
+
   TravMgr := TTravManagerWithNewReport.Create;
   try
     TravMgr.Clear;

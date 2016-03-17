@@ -166,6 +166,7 @@ type
     FFileIsSet          : Boolean;
     FReportType         : TReportType;
     FReportTypeParams   : TReportTypeParams;
+    fGapWidth           : integer;
 
     FItemStyle: TStyleTypes;
     FBlindOn: Boolean;
@@ -408,6 +409,9 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TBKReport.BKPrint;
 begin
+  fGapWidth := GetTextWidth('A');
+  UpdateColumnCanvasWidths;
+
   if Assigned(FOnBKPrint) then
     FOnBKPrint(Self);
 
@@ -987,9 +991,6 @@ begin
   if TextWidth > aWidth then
   begin
     StrLen := Length(aText);
-    StrSection := LeftStr(aText, StrLen);
-    TextWidth := GetTextWidth(StrSection);
-
     // Loop backward through each word until it fits.
     // if there is only one word in the front and it does not fit then go one
     // character at a time rather than one word at a time.
@@ -1084,7 +1085,7 @@ begin
     ReportColumn := Columns.Report_Column_At(ColIndex);
 
     if Assigned(ReportColumn) then
-      ReportColumn.CanvasWidth := trunc(TotalLineWidth * (ReportColumn.WidthPercent/100)) - 20;
+      ReportColumn.CanvasWidth := trunc(TotalLineWidth * (ReportColumn.WidthPercent/100)) - fGapWidth;
   end;
 end;
 
@@ -1398,7 +1399,7 @@ begin
 
   ReportColumn := Columns.Report_Column_At(aColumn);
   if Assigned(ReportColumn) then
-    ReportColumn.DoWrapStr := false;
+    ReportColumn.DoWrapStr := aValue;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
