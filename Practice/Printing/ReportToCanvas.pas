@@ -82,7 +82,6 @@ type
       procedure SetHeightFromImage(HFLine : THeaderFooterLine);
 
       procedure RenderDetailHeaderWrapped;
-      function FindValueInData(aText : string; aValueType : string; var aValue : string): boolean;
    protected
       //RenderText and RenderLine are the only two routines that actually draw onto the canvas
       procedure RenderText(TextValue : string; textRect : TRect; Justify : TJustifyType; RenderStyle :TRenderStyle);
@@ -233,25 +232,6 @@ end;
 procedure TRenderToCanvasEng.DoubleUnderLine;
 begin
    RenderTotalLine(true, ttNone);
-end;
-
-function TRenderToCanvasEng.FindValueInData(aText : string; aValueType: string; var aValue: string): boolean;
-var
-  Pos1, Pos2 : integer;
-begin
-  Result := false;
-  aValue := '';
-  Pos1 := Pos(aValueType, aText);
-  if Pos1 > 0 then
-  begin
-    Pos1 := Pos1 + Length(aValueType) + 1; //<IMG[space]
-    Pos2 := Pos1;
-    while (Pos2 <= Length(aText)) and (aText[Pos2] <> '>') do
-      Inc(Pos2);
-
-    aValue := Copy(aText, Pos1, Pos2 - Pos1);
-    Result := true;
-  end;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

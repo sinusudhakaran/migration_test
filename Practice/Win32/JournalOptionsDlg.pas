@@ -111,6 +111,8 @@ begin
     if JournalOptDlg.Execute then
     begin
        {store updates in globals}
+       JournalOptDlg.fmeAccountSelector1.SaveAccounts(Params.Client, Params);
+
        Params.FromDate := JournalOptDlg.dlgDateFrom;
        Params.ToDate   := JournalOptDlg.dlgDateTo;
        Params.WrapNarration := JournalOptDlg.chkWrapNarration.Checked;
@@ -122,7 +124,7 @@ begin
        end;
        Params.ShowSummary := JournalOptDlg.rbSummary.Checked;
        Params.GroupByJournalType := JournalOptDlg.chkGroupBy.Checked;
-       
+
        if not JournalOptDlg.AllowBlank then
        begin
           MyClient.clFields.clPeriod_Start_Date := Params.FromDate;

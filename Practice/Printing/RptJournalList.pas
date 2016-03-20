@@ -356,7 +356,7 @@ begin
     end;
 
     Job.LoadReportSettings(UserPrintSettings,
-    Job.Params.MakeRptName(Report_List_Names[REPORT_LIST_ENTRIES]));
+    Job.Params.MakeRptName(Report_List_Names[Report_List_Journals]));
 
     //Add Headers
     AddCommonHeader(Job);

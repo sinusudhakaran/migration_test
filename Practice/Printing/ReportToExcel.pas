@@ -66,6 +66,9 @@ uses
   SysUtils,
   ComObj;
 
+Const
+  PAGE_WIDTH = 225;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TRenderToFileExcel.Create( aOwner : TObject; fName : string);
 var
@@ -158,12 +161,12 @@ begin
       //Render Report Fooer
       RenderPageFooter;
       //autosize columns
-      for i := 0 to Pred(Report.Columns.ItemCount) do begin
+      {for i := 0 to Pred(Report.Columns.ItemCount) do begin
          with ExcelRange do begin
             Address := ExcelAddress( 0, DetailTopLineNo) + ':' + ExcelAddress( Pred(Report.Columns.ItemCount), CurrentLineNo);
             AsRange.Columns.AutoFit;
          end;
-      end;
+      end;}
       OpExcel1.Workbooks[0].SaveAs(Filename);
    end;
 end;
@@ -220,57 +223,78 @@ end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileExcel.RenderDetailLine;
 var
-   i :integer;
-   text : String;
-   MaxI : integer;
-   aCol : TReportColumn;
+  ColIndex : integer;
+  text : String;
+  MaxI : integer;
+  aCol : TReportColumn;
+  ColumnsToSkip : integer;
+  ColumnsToSkipStr : string;
+  StringValue : string;
 begin
-   with Report do begin
-      MaxI := Pred(Columns.ItemCount);
-      for i := 0 to MaxI do begin
-         if i <= (CurrDetail.Count -1) then
-            text := CurrDetail[i]
-         else
-            text := MISSINGFIELD;
+  ColumnsToSkip := 0;
 
-         with ExcelRange do begin
-            Address := ExcelAddress( i, CurrentLineNo);
-            //format cell
-            aCol := Columns.Report_Column_At(i);
-            if Assigned(aCol.CustomFont) then
-            begin
-              AsRange.Font.Name := aCol.CustomFont.Name;
-              AsRange.Font.Size := aCol.CustomFont.Size;
-            end;
-            if FUseTotalFormat and (aCol.TotalFormat <> '' ) then begin
-              //cell has numeric formatting
-              try
-                 AsRange.NumberFormat :=  FixFormat(aCol.TotalFormat);
-              except // at least we tried...
-              end;
-            end else
-            if aCol.FormatString <> '' then begin
-              //cell has numeric formatting
-              try
-                 AsRange.NumberFormat :=  FixFormat(aCol.FormatString);
-              except // at least we tried...
-              end;
-            end
-            else
-              AsRange.NumberFormat := '@';
-            //set cell alignment
-            {$WARNINGS OFF}
-            case aCol.Alignment of
-               jtRight   : AsRange.HorizontalAlignment := xlchaRight;
-               jtCenter  : AsRange.HorizontalAlignment := xlchaCenter;
-            end;
-             {$WARNINGS ON}
-            //enter value
-            Value   := text;
-         end;
+  MaxI := Pred(Report.Columns.ItemCount);
+  for ColIndex := 0 to MaxI do
+  begin
+    if ColumnsToSkip > 0 then
+    begin
+      dec(ColumnsToSkip);
+      text := '';
+    end
+    else if ColIndex <= (Report.CurrDetail.Count -1) then
+      text := Report.CurrDetail[ColIndex]
+    else
+      text := MISSINGFIELD;
+
+    if (FindValueInData(Text, IMGFIELD, StringValue)) then
+      Text := '';
+
+    if (FindValueInData(Text, STRFIELD, StringValue)) and
+       (FindValueInData(Text, COLSKIPFIELD, ColumnsToSkipStr)) and
+       (trystrtoint(ColumnsToSkipStr, ColumnsToSkip)) then
+      Text := StringValue;
+
+    ExcelRange.Address := ExcelAddress(ColIndex, CurrentLineNo);
+    //format cell
+    aCol := Report.Columns.Report_Column_At(ColIndex);
+
+    if Assigned(aCol.CustomFont) then
+    begin
+      ExcelRange.AsRange.Font.Name := aCol.CustomFont.Name;
+      ExcelRange.AsRange.Font.Size := aCol.CustomFont.Size;
+    end;
+
+    if FUseTotalFormat and (aCol.TotalFormat <> '' ) then
+    begin
+      //cell has numeric formatting
+      try
+         ExcelRange.AsRange.NumberFormat := FixFormat(aCol.TotalFormat);
+      except // at least we tried...
       end;
-   end;
-   NewDetailLine;
+    end
+    else
+    if aCol.FormatString <> '' then
+    begin
+      //cell has numeric formatting
+      try
+         ExcelRange.AsRange.NumberFormat := FixFormat(aCol.FormatString);
+      except // at least we tried...
+      end;
+    end
+    else
+      ExcelRange.AsRange.NumberFormat := '@';
+    //set cell alignment
+    {$WARNINGS OFF}
+    case aCol.Alignment of
+       jtRight   : ExcelRange.AsRange.HorizontalAlignment := xlchaRight;
+       jtCenter  : ExcelRange.AsRange.HorizontalAlignment := xlchaCenter;
+    end;
+     {$WARNINGS ON}
+    //enter value
+    ExcelRange.Value := text;
+    ExcelRange.ColumnWidth := trunc(PAGE_WIDTH * (aCol.WidthPercent/100));
+  end;
+  NewDetailLine;
 end;
 
 procedure TRenderToFileExcel.RenderDetailSubTotal(const TotalName: string;
@@ -465,6 +489,9 @@ var
    i    : integer;
    aCol : TReportColumn;
 begin
+   if not double then
+     NewDetailLine;
+
    with Report do begin
       for i := 0 to Pred(Columns.ItemCount) do begin
          aCol := Columns.Report_Column_At(i);
@@ -481,7 +508,9 @@ begin
          end;
       end;
    end;
-   NewDetailLine;
+
+   if double then
+     NewDetailLine;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileExcel.RenderColumnLine(ColNo: Integer);

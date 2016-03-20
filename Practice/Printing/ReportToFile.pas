@@ -577,30 +577,48 @@ end;
 { TRenderToFileCSV }
 procedure TRenderToFileCSV.RenderDetailLine;
 const
-   Delimiter = ',';
+  Delimiter = ',';
 var
-   i :integer;
-   text : String;
-   MaxI : integer;
+  ColIndex :integer;
+  text : String;
+  MaxI : integer;
+  ColumnsToSkip : integer;
+  ColumnsToSkipStr : string;
+  StringValue : string;
 begin
-   with Report do begin
-      MaxI := Pred(Columns.ItemCount);
-      for i := 0 to MaxI do begin
-         if i <= (CurrDetail.Count -1) then
-            text := CurrDetail[i]
-         else
-            text := MISSINGFIELD;
-         //check doesnt contain delimiter
-         if pos(delimiter, text) > 0 then
-            text := '"'+text+'"';
-         //add a comma unless this is the last col
-         if i < MaxI then
-            Text := Text + Delimiter;
+  ColumnsToSkip := 0;
 
-         Write( FOutputFile, Text);
-      end;
-   end;
-   NewDetailLine;
+  MaxI := Pred(Report.Columns.ItemCount);
+  for ColIndex := 0 to MaxI do
+  begin
+    if ColumnsToSkip > 0 then
+    begin
+      dec(ColumnsToSkip);
+      text := '';
+    end
+    else if ColIndex <= (Report.CurrDetail.Count -1) then
+      text := Report.CurrDetail[ColIndex]
+    else
+      text := MISSINGFIELD;
+
+    if (FindValueInData(Text, IMGFIELD, StringValue)) then
+      Text := '';
+
+    if (FindValueInData(Text, STRFIELD, StringValue)) and
+       (FindValueInData(Text, COLSKIPFIELD, ColumnsToSkipStr)) and
+       (trystrtoint(ColumnsToSkipStr, ColumnsToSkip)) then
+      Text := StringValue;
+
+    //check doesnt contain delimiter
+    if pos(delimiter, text) > 0 then
+      text := '"'+text+'"';
+    //add a comma unless this is the last col
+    if ColIndex < MaxI then
+      Text := Text + Delimiter;
+
+    Write( FOutputFile, Text);
+  end;
+  NewDetailLine;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -663,6 +681,9 @@ var
    i : integer;
    aCol : TReportColumn;
 begin
+   if not double then
+     NewDetailLine;
+
    // We actualy dont want this as a line..
    Report.CurrDetail.Clear;
    with Report do
@@ -678,7 +699,9 @@ begin
             SkipColumn;
       end;
    RenderDetailLine;
-   NewDetailLine;
+
+   if double then
+     NewDetailLine;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -824,40 +847,58 @@ end;
 
 procedure TRenderToFileFixed.RenderDetailLine;
 var
-   i :integer;
-   text : String;
-   MaxI : integer;
-   ColWidth : integer;
-   aCol : TReportColumn;
+  ColIndex :integer;
+  text : String;
+  MaxI : integer;
+  ColWidth : integer;
+  aCol : TReportColumn;
+  ColumnsToSkip : integer;
+  ColumnsToSkipStr : string;
+  StringValue : string;
 begin
-   with Report do begin
-      MaxI := Pred(Columns.ItemCount);
-      for i := 0 to MaxI do begin
-         //Read col width in characters from col obj
-         aCol := Columns.Report_Column_At(i);
-         ColWidth := aCol.Width;
+  ColumnsToSkip := 0;
 
-         if i <= (CurrDetail.Count -1) then
-            text := CurrDetail[i]
-         else
-            text := MISSINGFIELD;
-         //make the text field the correct length
-         while Length( Text) < ColWidth do begin
-            if aCol.Alignment = jtLeft then
-               Text := Text + ' '
-            else
-               Text := ' '+Text;
-         end;
-         //Trim field in case too big
-         if aCol.Alignment = jtLeft then
-            Text := Copy( Text, 1, ColWidth)
-         else
-            Text := Copy( Text, Succ(Length(Text) - ColWidth), ColWidth);
-         //Write out this column plus 1 char seperator
-         Write( FOutputFile, Text, ' ');
-      end;
-   end;
-   NewDetailLine;
+  MaxI := Pred(Report.Columns.ItemCount);
+  for ColIndex := 0 to MaxI do
+  begin
+    //Read col width in characters from col obj
+    aCol := Report.Columns.Report_Column_At(ColIndex);
+    ColWidth := aCol.Width;
+
+    if ColumnsToSkip > 0 then
+    begin
+      dec(ColumnsToSkip);
+      text := '';
+    end
+    else if ColIndex <= (Report.CurrDetail.Count -1) then
+      text := Report.CurrDetail[ColIndex]
+    else
+      text := MISSINGFIELD;
+
+    if (FindValueInData(Text, IMGFIELD, StringValue)) then
+      Text := '';
+
+    if (FindValueInData(Text, STRFIELD, StringValue)) and
+       (FindValueInData(Text, COLSKIPFIELD, ColumnsToSkipStr)) and
+       (trystrtoint(ColumnsToSkipStr, ColumnsToSkip)) then
+      Text := StringValue;
+
+    //make the text field the correct length
+    while Length( Text) < ColWidth do begin
+      if aCol.Alignment = jtLeft then
+         Text := Text + ' '
+      else
+         Text := ' '+Text;
+    end;
+    //Trim field in case too big
+    if aCol.Alignment = jtLeft then
+      Text := Copy( Text, 1, ColWidth)
+    else
+      Text := Copy( Text, Succ(Length(Text) - ColWidth), ColWidth);
+    //Write out this column plus 1 char seperator
+    Write( FOutputFile, Text, ' ');
+  end;
+  NewDetailLine;
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -927,7 +968,10 @@ var
 begin
    //Select which character will make up the line
    if not double then
-      LineChar := '-'
+   begin
+     LineChar := '-';
+     NewDetailLine;
+   end
    else
       LineChar := '=';
    Report.CurrDetail.Clear;
@@ -944,7 +988,9 @@ begin
             SkipColumn;
       end;
    RenderDetailLine;
-   NewDetailLine;
+
+   if double then
+     NewDetailLine;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileFixed.RenderColumnLine(ColNo: Integer);
