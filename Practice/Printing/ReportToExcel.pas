@@ -160,13 +160,7 @@ begin
       Report.BKPrint;
       //Render Report Fooer
       RenderPageFooter;
-      //autosize columns
-      {for i := 0 to Pred(Report.Columns.ItemCount) do begin
-         with ExcelRange do begin
-            Address := ExcelAddress( 0, DetailTopLineNo) + ':' + ExcelAddress( Pred(Report.Columns.ItemCount), CurrentLineNo);
-            AsRange.Columns.AutoFit;
-         end;
-      end;}
+
       OpExcel1.Workbooks[0].SaveAs(Filename);
    end;
 end;
