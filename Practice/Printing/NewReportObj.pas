@@ -782,7 +782,7 @@ begin
                        else
                        begin
                          case FileCheckStatus of
-                           fscException : raise EInOutError.Create('Error Opening File');
+                           fcsException : raise EInOutError.Create('Error Opening File');
                            fcsCanNotOpen, fcsCanNotLock : raise EInOutError.Create('Check that the file is not already open and try again.');
                          end;
                        end;

@@ -56,7 +56,7 @@ const
 Type
   //----------------------------------------------------------------------------
   TFileCheckStatus = (fcsOK,
-                      fscException,
+                      fcsException,
                       fcsCanNotFind,
                       fcsCanNotOpen,
                       fcsCanNotLock);
@@ -298,7 +298,7 @@ begin
     else
       Result := fcsCanNotFind;
   except
-    Result := fscException
+    Result := fcsException
   end;
 end;
 
