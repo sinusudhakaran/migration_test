@@ -54,6 +54,13 @@ const
   UnitName = 'LockUtils';
 
 Type
+  //----------------------------------------------------------------------------
+  TFileCheckStatus = (fcsOK,
+                      fscException,
+                      fcsCanNotFind,
+                      fcsCanNotOpen,
+                      fcsCanNotLock);
+
   TLockState = (lsLocking, lsUnlocking);
 
   //----------------------------------------------------------------------------
@@ -172,6 +179,7 @@ procedure InitLocking(aNetLockingOn : Boolean = false;
                       aServer_IP : string = '';
                       aServer_Port : integer = 0;
                       aGroupId : string = '' );
+function GetFileLockStatus(aFilePath : string) : TFileCheckStatus;
 
 var
   FileLocking : TFileLocking;
@@ -258,6 +266,40 @@ begin
     FileLocking := TWindowsFileLocking.Create;
 
   FileLocking.NetLockingOn := aNetLockingOn;
+end;
+
+//------------------------------------------------------------------------------
+function GetFileLockStatus(aFilePath : string) : TFileCheckStatus;
+var
+  LockPos : DWord;
+  LockFileHandle : Integer;
+begin
+  try
+    if BKFileExists(aFilePath) then
+    begin
+      LockFileHandle := FileCreate(aFilePath);
+      if LockFileHandle > -1 then
+      begin
+        try
+          if LockFile( LockFileHandle, 0, 0, 1, 0 ) then
+          begin
+            Result := fcsOK;
+            UnLockFile(LockFileHandle, 0, 0, 1, 0 );
+          end
+          else
+            Result := fcsCanNotLock;
+        finally
+          FileClose(LockFileHandle)
+        end;
+      end
+      else
+        Result := fcsCanNotOpen;
+    end
+    else
+      Result := fcsCanNotFind;
+  except
+    Result := fscException
+  end;
 end;
 
 { TFileLocking }

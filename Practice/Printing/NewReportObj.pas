@@ -541,6 +541,7 @@ var
   WebID, i,CatID: Integer;
   SelectedCustomFileFormat : TCustomFileFormat;
   HasCustomDefault : boolean;
+  FileCheckStatus : TFileCheckStatus;
 
   function GetFileType : Boolean;
   var
@@ -767,12 +768,23 @@ begin
                      //rfWord
                      rfExcel :
                      begin
-                       try
-                         RenderEngine := TRenderToFileExcel.Create( Self, Filename );
-                       except // Case 8461, anything is better than 'Class not registered'
-                         RenderEngine := nil;
-                         // Also see OfficeFialed in ClientmanagerFrm
-                         raise Exception.Create('"MS Office" options not installed or available');
+                       FileCheckStatus := GetFileLockStatus(Filename);
+                       if FileCheckStatus in [fcsOK,fcsCanNotFind] then
+                       begin
+                         try
+                           RenderEngine := TRenderToFileExcel.Create( Self, Filename );
+                         except // Case 8461, anything is better than 'Class not registered'
+                           RenderEngine := nil;
+                           // Also see OfficeFialed in ClientmanagerFrm
+                           raise Exception.Create('"MS Office" options not installed or available');
+                         end;
+                       end
+                       else
+                       begin
+                         case FileCheckStatus of
+                           fscException : raise EInOutError.Create('Error Opening File');
+                           fcsCanNotOpen, fcsCanNotLock : raise EInOutError.Create('Check that the file is not already open and try again.');
+                         end;
                        end;
                      end;
                      rfPDF,rfAcclipse :
@@ -865,8 +877,9 @@ begin
          end;
 
          on E : EOleError do begin
-            DoError(Format( 'Error Generating Report %s - %s', [  Self.ReportTitle,
-                                                                   '"MS Office" options not installed or available' ] ),True);
+            DoError(Format( 'Error Generating Report %s - %s - %s', [  Self.ReportTitle,
+                                                                       '"MS Office" options not installed or available',
+                                                                       E.Message ]), True);
          end;
       end;
    finally
