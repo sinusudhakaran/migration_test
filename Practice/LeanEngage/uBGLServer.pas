@@ -552,11 +552,16 @@ begin
   end;
 
   try
-    fAccess_Token  := JsonObject.Field['access_token'].Value;
-    fToken_type    := JsonObject.Field['token_type'].Value;
-    fRefresh_token := JsonObject.Field['refresh_token'].Value;
-    fExpires_in    := JsonObject.Field['expires_in'].Value;
-    fScope         := JsonObject.Field['scope'].Value;
+    if assigned( JsonObject.Field['access_token'] ) then
+      fAccess_Token  := VarToStr( JsonObject.Field['access_token'].Value );
+    if assigned( JsonObject.Field['token_type'] ) then
+      fToken_type    := VarToStr( JsonObject.Field['token_type'].Value );
+    if assigned( JsonObject.Field['refresh_token'] ) then
+      fRefresh_token := VarToStr( JsonObject.Field['refresh_token'].Value );
+    if assigned( JsonObject.Field['expires_in'] ) then
+      fExpires_in    := VarToStr( JsonObject.Field['expires_in'].Value );
+    if assigned( JsonObject.Field['scope'] ) then
+      fScope         := VarToStr( JsonObject.Field['scope'].Value );
 
 // Calculate when this token will expire//
     fWill_Expire_At := Now + ( OneSecond * strToInt( fExpires_In ) )
@@ -628,28 +633,37 @@ begin
           ChartAccount := ChartOfAccountsList.Child[Index] as TlkJSONobject;
           Account := TChart_AccountObj.Create;
           try
-            Account.fcode             := ChartAccount[ 'code' ].Value;
-            Account.fname             := ChartAccount[ 'name' ].Value;
-            Account.faccountClass     := ChartAccount[ 'accountClass' ].Value;
-            if Account.fAccountClass = 'Sub Account' then begin                 // If Sub Account then we 
-              Temp := ChartAccount[ 'subChartAccountCode' ].Value;              // have to append the 
+            if Assigned( ChartAccount[ 'code' ] ) then
+              Account.fcode             := VarToStr( ChartAccount[ 'code' ].Value );
+            if Assigned( ChartAccount[ 'name' ] ) then
+              Account.fname             := VarToStr( ChartAccount[ 'name' ].Value );
+            if Assigned( ChartAccount[ 'accountClass' ] ) then
+              Account.faccountClass     := VarToStr( ChartAccount[ 'accountClass' ].Value );
+            if ( Account.fAccountClass = 'Sub Account' ) and ( Assigned( ChartAccount[ 'subChartAccountCode' ] ) ) then begin                 // If Sub Account then we
+              Temp := VarToStr( ChartAccount[ 'subChartAccountCode' ].Value );              // have to append the
               Account.fcode := format( '%s/%s', [ Account.fcode, Temp ] );      // SubChartAccountCode to the Code
             end;
             
-            Account.fsecurityId       := ChartAccount[ 'securityId' ].Value;
-            Account.fsecurityCode     := ChartAccount[ 'securityCode' ].Value;
-            Account.fmarketType       := ChartAccount[ 'marketType' ].Value;
+            if Assigned( ChartAccount[ 'securityId' ] ) then
+              Account.fsecurityId       := VarToStr( ChartAccount[ 'securityId' ].Value );
+            if Assigned( ChartAccount[ 'securityCode' ] ) then
+              Account.fsecurityCode     := VarToStr( ChartAccount[ 'securityCode' ].Value );
+            if Assigned( ChartAccount[ 'marketType' ] ) then
+              Account.fmarketType       := VarToStr( ChartAccount[ 'marketType' ].Value );
 
             if assigned( ChartAccount[ 'chartAccountType' ] ) then
               if ( ChartAccount[ 'chartAccountType' ] is TlkJSONobject ) then begin
-
                 AccountType := ChartAccount[ 'chartAccountType' ] as TlkJSONobject;
                 Account.fchartAccountType := TChart_AccountTypeObj.Create;
                 try
-                  Account.chartAccountType.fTypeLabel := AccountType['label'].Value;
-                  Account.chartAccountType.fMinCode   := AccountType['minCode'].Value;
-                  Account.chartAccountType.fMaxCode   := AccountType['maxCode'].Value;
-                  Account.chartAccountType.fName      := AccountType['name'].Value;
+                  if Assigned( AccountType['label'] ) then
+                    Account.chartAccountType.fTypeLabel := VarToStr( AccountType['label'].Value );
+                  if Assigned( AccountType['minCode'] ) then
+                    Account.chartAccountType.fMinCode   := VarToStr( AccountType['minCode'].Value );
+                  if Assigned( AccountType['maxCode'] ) then
+                    Account.chartAccountType.fMaxCode   := VarToStr( AccountType['maxCode'].Value );
+                  if Assigned( AccountType['name'] ) then
+                    Account.chartAccountType.fName      := VarToStr( AccountType['name'].Value );
                 except
                   freeAndNil( Account.fchartAccountType );
                 end;
@@ -696,42 +710,48 @@ begin
 
   JsonObject := TlkJSON.ParseText(aJson);
 
-  if (JsonObject = nil) then
-  begin
-    Exit;
-  end;
-
+  if assigned( JsonObject ) then
   try
-    if not assigned( JsonObject.Field['funds'] ) then
-      exit;
-
-    if not (JsonObject.Field['funds'] is TlkJSONlist) then
+    // If there is a 'funds' field
+    if assigned( JsonObject.Field['funds'] ) then
     begin
-      Exit;
-    end;
+      // If 'funds' field is TlkJSONList
+      if (JsonObject.Field['funds'] is TlkJSONlist) then
+      begin
+        FundList :=  JsonObject.Field['funds'] as TlkJSONlist;
 
-    FundList :=  JsonObject.Field['funds'] as TlkJSONlist;
+        for Index := 0 to pred( FundList.Count ) do
+        begin
+          // If FundList.Child[Index] is TlkJSONList
+          if ( FundList.Child[Index] is TlkJSONobject ) then begin
+            jFund := FundList.Child[Index] as TlkJSONobject;
+            Fund    := TFundObj.Create;
+            try
+              if Assigned( jFund['fundID'] ) then
+                Fund.fFundID    :=
+(* *** Is mandatory for retrieving COA, therefore if NULL here then allow to fail *** VarToStr( *)
+                  jFund['fundID'].Value
+(* *** Is mandatory for retrieving COA, therefore if NULL here then allow to fail ***  ) *);
+              if Assigned( jFund['fundCode'] ) then
+                Fund.fFundCode  := VarToStr( jFund['fundCode'].Value );
+              if Assigned( jFund['fundName'] ) then
+                Fund.fFundName  := VarToStr( jFund['fundName'].Value );
+              if Assigned( jFund['ABN'] ) then
+                Fund.fABN       := VarToStr( jFund['ABN'].Value );
+              if Assigned( jFund['firmName'] ) then
+                Fund.fFirmName  := VarToStr( jFund['firmName'].Value );
+              if Assigned( jFund['firm'] ) then
+                Fund.fFirm      := VarToStr( jFund['firm'].Value );
+              if Assigned( jFund['fundEmail'] ) then
+                Fund.fFundEmail := VarToStr( jFund['fundEmail'].Value );
 
-    for Index := 0 to pred( FundList.Count ) do
-    begin
-      if ( FundList.Child[Index] is TlkJSONobject ) then begin
-        jFund := FundList.Child[Index] as TlkJSONobject;
-        Fund    := TFundObj.Create;
-        try
-          Fund.fFundID    := jFund['fundID'].Value;
-          Fund.fFundCode  := jFund['fundCode'].Value;
-          Fund.fFundName  := jFund['fundName'].Value;
-          Fund.fABN       := jFund['ABN'].Value;
-          Fund.fFirmName  := jFund['firmName'].Value;
-          Fund.fFirm      := jFund['firm'].Value;
-          Fund.fFundEmail := jFund['fundEmail'].Value;
-
-          FItems.Add( Fund );
-        except
-          FreeAndNil( Fund );
+              FItems.Add( Fund );
+            except
+              FreeAndNil( Fund );
+            end;
+          end;
         end;
       end;
-
     end;
   finally
     JsonObject.Free;
