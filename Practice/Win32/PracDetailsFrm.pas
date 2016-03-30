@@ -974,6 +974,14 @@ begin
 
         if UsebankLinkOnline then
         begin
+          if (ckUseBankLinkOnline.Checked and
+              not fLoading and
+             (Globals.PRACINI_OnlineLink = '')) then
+          begin
+            Globals.PRACINI_OnlineLink := edtURL.Text;
+            WritePracticeINI_WithLock;
+          end;
+
           SetupDataExportSettings;
         end;
 
