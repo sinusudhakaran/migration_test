@@ -63,6 +63,7 @@ type
     function GetBankAccount(aIndex: Integer):TBankAccountData;
 
     function GetTaxCodeSplitUp(APLAcctType,APLTaxCode:string):Byte;
+    function GetTaxCodeMerged(aGST_Class: byte): string;
     function LoadPLGSTTemplate:Boolean;
   end;
 
@@ -82,7 +83,7 @@ const
 
   GSTIncome = 'GSTI';
   GSTOutcome = 'GSTO';
-  GSTUnCategorised = 'UCAT';
+  GSTUnCategorised = 'UNCT';
 
   AT_COSTOFSALES = 'cost_of_sales';
   AT_EXPENSE = 'expense';
@@ -280,7 +281,7 @@ begin
           AllocationItem.Description := DissRec^.dsGL_Narration;
           AllocationItem.Amount := Trunc(DissRec^.dsAmount);
           AllocationItem.TaxAmount := Trunc(DissRec^.dsGST_Amount);
-          AllocationItem.TaxRate := GSTCalc32.GetGSTClassCode( MyClient, DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+          AllocationItem.TaxRate := GetTaxCodeMerged(DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
           if Trim(AllocationItem.TaxRate) = '' then
             AllocationItem.TaxRate := 'NA';
           AllocationItem.Quantity := DissRec^.dsQuantity;
@@ -312,7 +313,7 @@ begin
         AllocationItem.Description := txGL_Narration;
         AllocationItem.Amount := Trunc(txAmount);
         AllocationItem.TaxAmount := Trunc(txGST_Amount);
-        AllocationItem.TaxRate := GSTCalc32.GetGSTClassCode( MyClient, txGST_Class);//GetCashBookGSTType(aGSTMapCol, txGST_Class);
+        AllocationItem.TaxRate := GetTaxCodeMerged( txGST_Class);//GetCashBookGSTType(aGSTMapCol, txGST_Class);
         if Trim(AllocationItem.TaxRate) = '' then
           AllocationItem.TaxRate := 'NA';
         AllocationItem.Quantity := txQuantity;
@@ -371,7 +372,7 @@ begin
       LineItem.Description := DissRec^.dsGL_Narration;
       LineItem.Reference   := TrimLeadZ(DissRec^.dsReference);
       LineItem.TaxAmount   := trunc(DissRec^.dsGST_Amount);
-      LineItem.TaxRate     := GSTCalc32.GetGSTClassCode( MyClient, DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
+      LineItem.TaxRate     := GetTaxCodeMerged( DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
       if Trim(LineItem.TaxRate) = '' then
         LineItem.TaxRate := 'NA';
 
@@ -703,6 +704,24 @@ begin
   Result := GSTCalc32.GetGSTClassNo( MyClient, sTaxCodeSplit);
 end;
 
+function TPracticeLedger.GetTaxCodeMerged(aGST_Class: byte): string;
+var
+  TaxCodeMerge : string;
+begin
+  Result := 'NA';
+
+  if not Assigned(MyClient) then
+    Exit;
+
+  TaxCodeMerge := GSTCalc32.GetGSTClassCode( MyClient, aGST_Class);
+
+  if ((UpperCase(TaxCodeMerge) = GSTIncome) or
+      (UpperCase(TaxCodeMerge) = GSTOutcome)) then
+    TaxCodeMerge := 'GST';
+
+  Result := TaxCodeMerge;
+end;
+
 function TPracticeLedger.LoadPLGSTTemplate: Boolean;
 var
   TemplateFileName : string;
@@ -716,8 +735,6 @@ begin
 
   if LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate ) then
   begin
-    HelpfulInfoMsg('MYOB Ledger GST template loaded from '+TemplateFileName, 0 );
-    //now reload the gst defaults for the client
     GSTUTIL32.ApplyDefaultGST(false);
     Result := True;
   end;

@@ -117,8 +117,8 @@ Const
    vMax = 8;
    ValidCodes : Array[ vMin..vMax ] of String[1] = ( 'I','O','E','Z','1','2','3','4' );
 
-   ValidPLNZCodes : Array [1..5] of String[3] = ('GST', 'E', 'NTR', 'Z', 'I');
-   ValidPLAUCodes : Array [1..8] of String[3] = ('CAP', 'EXP', 'FRE', 'GNR', 'GST', 'INP', 'ITS', 'NTR');
+   ValidPLNZCodes : Array [1..5] of String[4] = ('GST', 'E', 'NTR', 'Z', 'I');
+   ValidPLAUCodes : Array [1..10] of String[4] = ('CAP', 'EXP', 'FRE', 'GNR', 'GST', 'INP', 'ITS', 'NTR', 'GSTI', 'GSTO');
 Var
    GSTCode : String[GST_CLASS_CODE_LENGTH];
    i       : Byte;
@@ -136,15 +136,15 @@ Begin
       //only need to compare the first character
       if ((clCountry = whNewZealand) and (clAccounting_System_Used =  snMYOBOnlineLedger)) then
       begin
-        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,3);
+        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,4);
         if Trim(GSTCode) <> ''  then
           for i := 1 to 5 do If Trim(GSTCode) = ValidPLNZCodes[ i ] then Exit;
       end
       else if ((clCountry = whAustralia) and (clAccounting_System_Used =  saMYOBOnlineLedger)) then
       begin
-        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,3);
+        GSTCode := Copy( clGST_Class_Codes[ Rate ],1,4);
         if Trim(GSTCode) <> ''  then
-          for i := vMin to vMax do If Trim(GSTCode) = ValidPLAUCodes[ i ] then Exit;
+          for i := 1 to High(ValidPLAUCodes) do If Trim(GSTCode) = ValidPLAUCodes[ i ] then Exit;
       end
       else
       begin
