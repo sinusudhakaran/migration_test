@@ -696,12 +696,22 @@ begin
       (LowerCase(APLAcctType) = AT_EQUITY)) then
       sTaxCodeSplit := GSTOutcome
     else if ((LowerCase(APLAcctType) = AT_UNCATEGORISED) or (UpperCase(APLTaxCode) = 'NA' )) then
-      sTaxCodeSplit := GSTUnCategorised
+      sTaxCodeSplit := GSTUnCategorised;
+
+    Result := GSTCalc32.GetGSTClassNo( MyClient, sTaxCodeSplit);
+    {if GSTOutcome is GSTI or GSTO and it's missing in the GST setup , search for GST and use it}
+
+    if ((Result = 0) and
+        ((sTaxCodeSplit = GSTOutcome)  or  (sTaxCodeSplit = GSTIncome))
+        )then
+      Result := GSTCalc32.GetGSTClassNo( MyClient, 'GST');
   end
   else
+  begin
     sTaxCodeSplit := APLTaxCode;
+    Result := GSTCalc32.GetGSTClassNo( MyClient, sTaxCodeSplit);
+  end;
 
-  Result := GSTCalc32.GetGSTClassNo( MyClient, sTaxCodeSplit);
 end;
 
 function TPracticeLedger.GetTaxCodeMerged(aGST_Class: byte): string;
@@ -735,6 +745,8 @@ begin
 
   if LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate ) then
   begin
+    HelpfulInfoMsg('MYOB Ledger GST template loaded from '+TemplateFileName, 0 );
+    //now reload the gst defaults for the client
     GSTUTIL32.ApplyDefaultGST(false);
     Result := True;
   end;
@@ -807,7 +819,9 @@ begin
         NewAccount^.chAccount_Type        := Ord('N');
         NewAccount^.chPosting_Allowed     := True;//AccountType[1] <> 'C';
         NewAccount^.chAccount_Description := Account.Name;
-        NewAccount^.chGST_Class := GetTaxCodeSplitUp(Account.AccountType, Account.GstType);
+        NewAccount^.chGST_Class := 0;
+        if not Account.IsSystemAccount then
+          NewAccount^.chGST_Class := GetTaxCodeSplitUp(Account.AccountType, Account.GstType);
         if ( NewAccount^.chGST_Class = 0 ) and ( Account.GstType <> '' ) then
         begin
            LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Ledger: '+ Account.Code );
