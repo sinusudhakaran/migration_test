@@ -36,6 +36,7 @@ type
     //Couldn't make these private variables and add property since the getfirms and getbusiness need var list to be passed
     Firms : TFirms;// read FFirms write FFirms;
     Businesses : TBusinesses ;//read FBusinesses write FBusinesses;
+    LoadingCOAForTheFirstTime : Boolean;
 
     constructor Create;override;
     destructor Destroy;override;
@@ -60,6 +61,9 @@ type
     //This function will be called from DoTransaction which is a hooked event to Traverse to filter the export transactions
     procedure AddTransactionToExpList;
     function GetBankAccount(aIndex: Integer):TBankAccountData;
+
+    function GetTaxCodeSplitUp(APLAcctType,APLTaxCode:string):Byte;
+    function LoadPLGSTTemplate:Boolean;
   end;
 
   TPracticeLedgerThread = class(TThread)
@@ -75,6 +79,20 @@ type
 const
   UnitName = 'PracticeLedgerObj';
   MAXENTRIES = 200; // Max entries (journal/ bank) can sent to a api at a time
+
+  GSTIncome = 'GSTI';
+  GSTOutcome = 'GSTO';
+  GSTUnCategorised = 'UCAT';
+
+  AT_COSTOFSALES = 'cost_of_sales';
+  AT_EXPENSE = 'expense';
+  AT_OTHEREXPENSE = 'other_expense';
+  AT_ASSET = 'asset';
+  AT_INCOME = 'income';
+  AT_OTHERINCOME = 'other_income';
+  AT_LIABILITY = 'liability';
+  AT_EQUITY = 'equity';
+  AT_UNCATEGORISED = 'uncategorised';
 
 var
   DebugMe : boolean = false;
@@ -98,7 +116,7 @@ uses Globals, bkContactInformation, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
       ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls,
-      INISettings;
+      INISettings, Templates, GSTUTIL32;
 
 function CheckFormyMYOBTokens(aUseRefreshToken:Boolean=True):Boolean;
 var
@@ -385,7 +403,7 @@ constructor TPracticeLedger.Create;
 begin
   inherited;
   FLicenseType := ltPracticeLedger;
-
+  LoadingCOAForTheFirstTime := False;
   Firms := TFirms.Create;
   Businesses := TBusinesses.Create;
 end;
@@ -626,6 +644,12 @@ begin
                       0, false, sError, true);
       Exit;
     end;
+
+    {Load GST Setup only for the first time client set up business, do this ONLY for Australain clients at the moment}
+    if LoadingCOAForTheFirstTime  and (AdminSystem.fdFields.fdCountry = whAustralia) then
+      if not LoadPLGSTTemplate then
+        Exit;
+
     UnknownGSTCodesFound:= ProcessChartOfAccounts(NewChart ,Accounts);
 
     if UnknownGSTCodesFound then
@@ -633,6 +657,7 @@ begin
 
     Result := True;
   finally
+    LoadingCOAForTheFirstTime := False;
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
     Accounts.Clear;
@@ -645,6 +670,57 @@ begin
   Result := Nil;
   if ((FBankAcctsToExport.Count > 0)  and (aIndex < FBankAcctsToExport.Count)) then
     Result := TBankAccountData(FBankAcctsToExport.ItemAs(aIndex));
+end;
+
+function TPracticeLedger.GetTaxCodeSplitUp(APLAcctType,
+  APLTaxCode: string): Byte;
+var
+  sTaxCodeSplit : string;
+begin
+  Result := 0;
+
+  if not Assigned(MyClient) then
+    Exit;
+
+  if ((UpperCase(APLTaxCode) = 'GST') or (UpperCase(APLTaxCode) =  'NA')) then
+  begin
+    if ((LowerCase(APLAcctType) = AT_COSTOFSALES) or
+      (LowerCase(APLAcctType) = AT_EXPENSE) or
+      (LowerCase(APLAcctType) = AT_OTHEREXPENSE) or
+      (LowerCase(APLAcctType) = AT_ASSET)) then
+        sTaxCodeSplit := GSTIncome
+    else if ((LowerCase(APLAcctType) = AT_INCOME) or
+      (LowerCase(APLAcctType) = AT_OTHERINCOME) or
+      (LowerCase(APLAcctType) = AT_LIABILITY) or
+      (LowerCase(APLAcctType) = AT_EQUITY)) then
+      sTaxCodeSplit := GSTOutcome
+    else if ((LowerCase(APLAcctType) = AT_UNCATEGORISED) or (UpperCase(APLTaxCode) = 'NA' )) then
+      sTaxCodeSplit := GSTUnCategorised
+  end
+  else
+    sTaxCodeSplit := APLTaxCode;
+
+  Result := GSTCalc32.GetGSTClassNo( MyClient, sTaxCodeSplit);
+end;
+
+function TPracticeLedger.LoadPLGSTTemplate: Boolean;
+var
+  TemplateFileName : string;
+begin
+  Result := False;
+
+  TemplateFileName := IncludeTrailingPathDelimiter(GLOBALS.TemplateDir) + 'MYOBLedger.TPM';
+
+  if not FileExists(TemplateFileName) then
+    Exit;
+
+  if LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate ) then
+  begin
+    HelpfulInfoMsg('MYOB Ledger GST template loaded from '+TemplateFileName, 0 );
+    //now reload the gst defaults for the client
+    GSTUTIL32.ApplyDefaultGST(false);
+    Result := True;
+  end;
 end;
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
@@ -714,7 +790,7 @@ begin
         NewAccount^.chAccount_Type        := Ord('N');
         NewAccount^.chPosting_Allowed     := True;//AccountType[1] <> 'C';
         NewAccount^.chAccount_Description := Account.Name;
-        NewAccount^.chGST_Class := GSTCalc32.GetGSTClassNo( MyClient, Account.GstType);
+        NewAccount^.chGST_Class := GetTaxCodeSplitUp(Account.AccountType, Account.GstType);
         if ( NewAccount^.chGST_Class = 0 ) and ( Account.GstType <> '' ) then
         begin
            LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Ledger: '+ Account.Code );

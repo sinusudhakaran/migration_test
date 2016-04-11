@@ -797,12 +797,20 @@ begin
               end;
             end;
 
-            if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
+            if RefreshYourChart and IsMYOBLedger(clCountry, clAccounting_System_Used) and PracticeLedger.LoadingCOAForTheFirstTime then
+            begin
+              {No confirmation asked. Force refresh COA}
+              Import32.RefreshChart; // Practice Ledger
+              PracticeLedger.LoadingCOAForTheFirstTime := False;
+              AutoRefreshFlag := True;
+            end
+            else if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
             begin
               if IsMYOBLedger(clCountry, clAccounting_System_Used) then
                 Import32.RefreshChart // Practice Ledger
               else
                 RefreshChart; // BGL 360
+
               AutoRefreshFlag := True;
             end;
           end
@@ -1315,6 +1323,13 @@ begin
         end
         else if SelectBusinessFrm.ShowModal = mrOk then
         begin
+          {If no business is setup already , load GST template.}
+          if ((Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '') and
+              (Trim(MyClient.clExtra.cemyMYOBClientNameSelected)= ''))
+              {or
+              (MyClient.clExtra.cemyMYOBClientIDSelected <> SelectBusinessFrm.SelectedBusinessID)} then
+            PracticeLedger.LoadingCOAForTheFirstTime := True; // this setting will load default MYOB Ledger GST template
+
           MyClient.clExtra.cemyMYOBClientIDSelected := SelectBusinessFrm.SelectedBusinessID;
           MyClient.clExtra.cemyMYOBClientNameSelected := SelectBusinessFrm.SelectedBusinessName;
 
