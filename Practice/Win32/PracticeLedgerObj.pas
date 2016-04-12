@@ -745,7 +745,8 @@ begin
 
   if LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate ) then
   begin
-    HelpfulInfoMsg('MYOB Ledger GST template loaded from '+TemplateFileName, 0 );
+    //HelpfulInfoMsg('MYOB Ledger GST template loaded from '+TemplateFileName, 0 );
+    LogUtil.LogMsg(lmInfo, UnitName, 'MYOB Ledger GST template loaded automatically from '+TemplateFileName);
     //now reload the gst defaults for the client
     GSTUTIL32.ApplyDefaultGST(false);
     Result := True;
