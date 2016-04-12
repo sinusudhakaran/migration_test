@@ -55,7 +55,7 @@ Function SaveChartTo(ClientCode: string; Var aFileName: string; aInitDir: string
 
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
   const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
-  KeepPostingAllowed: boolean = false) : boolean;
+  KeepPostingAllowed: boolean = false; OldChartOnlyKeepAndSetInActive : Boolean = false) : boolean;
 
 Function GetChartFileName( ClientCode  : string;
                            aInitDir    : string;
@@ -209,7 +209,7 @@ End;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
   const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
-  KeepPostingAllowed: boolean = false): boolean;
+  KeepPostingAllowed: boolean = false; OldChartOnlyKeepAndSetInActive : Boolean = false): boolean;
 // Used by each of the import chart routines to merge the new chart list into
 // the existing chart list.
 const
@@ -278,6 +278,19 @@ begin
        end;
      finally
        ChangesList.Free;
+     end;
+
+     // Set Existing Chart Code inactive if it does not exist in new chart if flag is set
+     if OldChartOnlyKeepAndSetInActive then
+     begin
+       for ei := 0 to ClientChart.ItemCount-1 do
+       begin
+         ExistingAccount := ClientChart.Account_At(ei);
+         NewAccount := NewChart.FindCode(ExistingAccount.chAccount_Code);
+         if not ExistingAccount.chInactive and
+            not assigned(NewAccount) then
+           ExistingAccount.chInactive := true;
+       end;
      end;
 
      // Don't delete inactive chart codes
