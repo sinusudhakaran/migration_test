@@ -864,7 +864,7 @@ begin
 
         if NewChart.ItemCount > 0 then
         begin
-           MergeCharts(NewChart,MyClient,False, True,false);
+           MergeCharts(NewChart, MyClient, False, True, false, True);
 
            clLoad_Client_Files_From := '';
            clChart_Last_Updated := CurrentDate;
