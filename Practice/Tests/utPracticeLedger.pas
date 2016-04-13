@@ -35,6 +35,8 @@ type
     procedure TestFirmData;
     procedure TestBusinessData;
     procedure TestImportCOA;
+    procedure TestGSTCodeSplit;
+    procedure TestTaxCodeMerged;
     procedure TestExtractData;
   end;
 
@@ -47,7 +49,56 @@ const
 
 implementation
 
-uses INISettings, Dialogs;
+uses
+  INISettings,
+  Dialogs;
+
+const
+  cttGST = 'GST';
+  cttNA  = 'NA';
+
+  ctiCAP = 1;
+  cttCAP = 'CAP';
+  ctnCAP = 'Capital Acquisitions';
+
+  ctiEXP = 2;
+  cttEXP = 'EXP';
+  ctnEXP = 'Export Sales';
+
+  ctiFRE = 3;
+  cttFRE = 'FRE';
+  ctnFRE = 'GST Free';
+
+  ctiGNR = 4;
+  cttGNR = 'GNR';
+  ctnGNR = 'Not Registered';
+
+  ctiGSTI = 5;
+  cttGSTI = GSTIncome;
+  ctnGSTI = 'Goods & Services Input Tax';
+
+  ctiGSTO = 6;
+  cttGSTO = GSTOutcome;
+  ctnGSTO = 'Goods & Services Output Tax';
+
+  ctiUnCAT = 7;
+  cttUnCAT = GSTUnCategorised;
+  ctnUCAT = 'Goods & Services Uncategorised Tax';
+
+  ctiINP = 8;
+  cttINP = 'INP';
+  ctnINP = 'Input Taxed Purchases';
+
+  ctiITS = 9;
+  cttITS = 'ITS';
+  ctnITS = 'Input Tax Sales';
+
+  ctiNTR = 10;
+  cttNTR = 'NTR';
+  ctnNTR = 'Not Reportable';
+
+
+
 
 procedure TestTPracticeLedger.CreateBK5TestClient;
 var
@@ -70,6 +121,7 @@ begin
   //gst rates (NZ)
   BK5TestClient.clFields.clGST_Applies_From[1] := 138883; // 01 Jan 1980
 
+(*
   {Income}
   BK5TestClient.clFields.clGST_Class_Codes[1]  := 'I';
   BK5TestClient.clFields.clGST_Class_Names[1]  := 'GST on Sales';
@@ -85,6 +137,61 @@ begin
   BK5TestClient.clFields.clGST_Class_Names[3]  := 'Exempt';
   BK5TestClient.clFields.clGST_Class_Types[3]  := gtExempt;
   BK5TestClient.clFields.clGST_Rates[3,1]      := 0;
+  BK5TestClient.ClExtra.ceLocal_Currency_Code  := 'NZD';
+*)
+
+  {Capital Acquisitions}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiCAP]  := cttCAP;
+  BK5TestClient.clFields.clGST_Class_Names[ctiCAP]  := ctnCAP;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiCAP]  := gtOutputTax;
+  BK5TestClient.clFields.clGST_Rates[ctiCAP,1]      := 100000;
+  {Export Sales}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiEXP]  := cttEXP;
+  BK5TestClient.clFields.clGST_Class_Names[ctiEXP]  := ctnEXP;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiEXP]  := gtInputTax;
+  BK5TestClient.clFields.clGST_Rates[ctiEXP,1]      := 0;
+  {GST Free}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiFRE]  := cttFRE;
+  BK5TestClient.clFields.clGST_Class_Names[ctiFRE]  := ctnFRE;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiFRE]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiFRE,1]      := 0;
+  {Not Registered}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiGNR]  := cttGNR;
+  BK5TestClient.clFields.clGST_Class_Names[ctiGNR]  := ctnGNR;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiGNR]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiGNR,1]      := 0;
+  {Goods & Services Input Tax}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiGSTI]  := cttGSTI;
+  BK5TestClient.clFields.clGST_Class_Names[ctiGSTI]  := ctnGSTI;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiGSTI]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiGSTI,1]      := 100000;
+  {Goods & Services Output Tax}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiGSTO]  := cttGSTO;
+  BK5TestClient.clFields.clGST_Class_Names[ctiGSTO]  := ctnGSTO;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiGSTO]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiGSTO,1]      := 100000;
+  {Goods & Services Uncategorised Tax}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiUnCAT]  := cttUnCAT;
+  BK5TestClient.clFields.clGST_Class_Names[ctiUnCAT]  := ctnUCAT;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiUCAT]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiUnCAT,1]      := 100000;
+  {Input Taxed Purchases}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiINP]  := cttINP;
+  BK5TestClient.clFields.clGST_Class_Names[ctiINP]  := ctnINP;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiINP]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiINP,1]      := 0;
+  {Input Tax Sales}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiITS]  := cttITS;
+  BK5TestClient.clFields.clGST_Class_Names[ctiITS]  := ctnITS;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiITS]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiITS,1]      := 0;
+  {Not Reportable}
+  BK5TestClient.clFields.clGST_Class_Codes[ctiNTR]  := cttNTR;
+  BK5TestClient.clFields.clGST_Class_Names[ctiNTR]  := ctnNTR;
+//  BK5TestClient.clFields.clGST_Class_Types[ctiNTR0]  := gtExempt;
+  BK5TestClient.clFields.clGST_Rates[ctiNTR,1]      := 0;
+
+
   BK5TestClient.ClExtra.ceLocal_Currency_Code  := 'NZD';
   MyClient := BK5TestClient;
   //chart
@@ -338,10 +445,35 @@ begin
     NewChart := TChart.Create(MyClient.ClientAuditMgr);
 
     FPracticeLedger.ProcessChartOfAccounts(NewChart ,Accounts);
+
   end;
   CheckTrue(NewChart.ItemCount=6);
 end;
 
+
+procedure TestTPracticeLedger.TestTaxCodeMerged;
+begin
+  CheckEqualsString( ' ', FPracticeLedger.GetTaxCodeMerged( 0 ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ 0 ] ) );
+  CheckEqualsString( cttEXP, FPracticeLedger.GetTaxCodeMerged( ctiEXP ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiEXP ]  ) );
+  CheckEqualsString( cttFRE, FPracticeLedger.GetTaxCodeMerged( ctiFRE ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiFRE ]  ) );
+  CheckEqualsString( cttGNR, FPracticeLedger.GetTaxCodeMerged( ctiGNR ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiGNR ]  ) );
+  CheckEqualsString( cttGST, FPracticeLedger.GetTaxCodeMerged( ctiGSTI ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiGSTI ]  ) );
+  CheckEqualsString( cttGST, FPracticeLedger.GetTaxCodeMerged( ctiGSTO ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiGSTO ]  ) );
+  CheckEqualsString( cttUnCat, FPracticeLedger.GetTaxCodeMerged( ctiUnCat ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiUnCat ]  ) );
+  CheckEqualsString( cttINP, FPracticeLedger.GetTaxCodeMerged( ctiINP ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiINP ]  ) );
+  CheckEqualsString( cttITS, FPracticeLedger.GetTaxCodeMerged( ctiITS ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiITS ]  ) );
+  CheckEqualsString( cttNTR, FPracticeLedger.GetTaxCodeMerged( ctiNTR ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiNTR ]  ) );
+end;
 
 procedure TestTPracticeLedger.TestFirmData;
 var
@@ -362,6 +494,210 @@ begin
   finally
     FreeAndNil(Firms);
   end;
+end;
+
+procedure TestTPracticeLedger.TestGSTCodeSplit;
+begin
+
+{GST}
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttGST]) );
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttGST ] ) );
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttGST ] ) );
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttGST ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttGST ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttGST ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttGST ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttGST ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttGST ] ) );
+
+{Uncategorised}
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttUnCAT]) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttUnCAT ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttUnCAT ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttUnCAT ] ) );
+
+{NA}
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttNA]) );
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttNA ] ) );
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttNA ] ) );
+  CheckEquals( ctiGSTI, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttNA ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttNA ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttNA ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttNA ] ) );
+  CheckEquals( ctiGSTO, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttNA ] ) );
+  CheckEquals( ctiUnCAT, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttNA ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttNA ] ) );
+
+{CAP}
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttCAP ]) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttCAP ] ) );
+  CheckEquals( ctiCAP, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttCAP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttCAP ] ) );
+
+{CAP}
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttEXP ]) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttEXP ] ) );
+  CheckEquals( ctiEXP, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttEXP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttEXP ] ) );
+
+{FRE}
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttFRE ]) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttFRE ] ) );
+  CheckEquals( ctiFRE, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttFRE ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttFRE ] ) );
+
+{GNR}
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttGNR ]) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttGNR ] ) );
+  CheckEquals( ctiGNR, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttGNR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttGNR ] ) );
+
+{INP}
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttINP ]) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttINP ] ) );
+  CheckEquals( ctiINP, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttINP ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttINP ] ) );
+
+{ITS}
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttITS ]) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttITS ] ) );
+  CheckEquals( ctiITS, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttITS ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttITS ] ) );
+
+{NTR}
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_COSTOFSALES, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [AT_COSTOFSALES, cttNTR ]) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHEREXPENSE, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHEREXPENSE, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_ASSET, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_ASSET, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_INCOME, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_INCOME, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_OTHERINCOME, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_OTHERINCOME, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_LIABILITY, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_LIABILITY, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_EQUITY, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttNTR ] ) );
+  CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttNTR ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttNTR ] ) );
 end;
 
 initialization
