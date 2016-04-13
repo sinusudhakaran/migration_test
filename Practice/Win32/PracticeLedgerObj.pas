@@ -516,8 +516,8 @@ begin
 
           if ((not AllowUncoded) and (not TravUtils.AllGSTCoded(BA, FromDate, ToDate))) then
           begin
-            HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded GST entries. ' +
-               'You must code all GST entries before you can extract them.',  0 );
+            HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has transactions with'#13#10'invalid GST codes. ' +
+               'Please update before extracting data.',  0 );
             Exit;
           end;
 
