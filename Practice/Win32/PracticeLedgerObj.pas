@@ -514,6 +514,13 @@ begin
             Exit;
           end;
 
+          if ((not AllowUncoded) and (not TravUtils.AllGSTCoded(BA, FromDate, ToDate))) then
+          begin
+            HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded GST entries. ' +
+               'You must code all GST entries before you can extract them.',  0 );
+            Exit;
+          end;
+
           if ((not AllowUncoded) and (not TravUtils.AllCoded(BA, FromDate, ToDate))) then
           begin
             HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
@@ -658,7 +665,6 @@ begin
 
     Result := True;
   finally
-    LoadingCOAForTheFirstTime := False;
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
     Accounts.Clear;
@@ -838,9 +844,10 @@ procedure TPracticeLedger.RefreshChartFromPLAPI;
 const
   ThisMethodName = 'RefreshChartFromPLAPI';
 var
-  ChartFileName     : string;
-  NewChart          : TChart;
-  Msg               : string;
+  ChartFileName: string;
+  NewChart: TChart;
+  Msg: string;
+  sFinalMessage: string;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -859,6 +866,7 @@ begin
           HelpfulErrorMsg( 'Please select a Client to refresh the chart from, ' +
             'via Other Functions | Accounting System' + #13+#13+
             'The existing chart has not been modified.', 0 );
+          LoadingCOAForTheFirstTime := False;
           Exit;
         end;
 
@@ -876,11 +884,20 @@ begin
            raise EExtractData.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
         end;
 
+        if LoadingCOAForTheFirstTime then
+          sFinalMessage := 'Chart of Accounts and ' + QuotedStr('GST Setup') + ' has been updated.'#13#10
+        else
+          sFinalMessage := 'Chart of Accounts has been updated.'#13#10;
+
+        sFinalMessage := sFinalMessage  + 'Please check GST Setup and add missing ' + QuotedStr('Control Accounts.')+ #13#10;
+        sFinalMessage := sFinalMessage  + 'Please check Bank Accounts and update the' + QuotedStr('Contra Code');
+
+        HelpfulInfoMsg(sFinalMessage, 0 );
         ClearStatus(True);
-        HelpfulInfoMsg( 'The clients chart of accounts has been refreshed.', 0 );
       finally
         ClearStatus(True);
         NewChart.Free;
+        LoadingCOAForTheFirstTime := False;
       end;
     except
       on E : EInOutError do begin //Normally EExtractData but File I/O only

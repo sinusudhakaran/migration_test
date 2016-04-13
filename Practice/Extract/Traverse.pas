@@ -15,7 +15,8 @@ const
    twAllNewEntries         = 2;
    twAllNewUncodedEntries  = 3;
    twAllPresentedEntries   = 4;
-   twAllUnpresentedEntries = 5;  twMax = 5;
+   twAllUnpresentedEntries = 5;
+   twAllGSTUncoded = 6;           twMax = 6;
 
    csByGSTRate             = csMax + 1;
 
@@ -126,31 +127,32 @@ Const
 Var
    Msg : string;
 Begin
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
-   Result := False;
-   If not ( SelectWhich in [ twMin..twMax ] ) Then
-   Begin
-      Msg := 'SelectWhich out of Range';
-      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
-      Raise EInvalidCall.CreateFmt('%s - %s : %s', [UnitName, ThisMethodName,
-         Msg]);
-   end ;
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+  Result := False;
+  If not ( SelectWhich in [ twMin..twMax ] ) Then
+  Begin
+    Msg := 'SelectWhich out of Range';
+    LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
+    Raise EInvalidCall.CreateFmt('%s - %s : %s', [UnitName, ThisMethodName,
+       Msg]);
+  end ;
 
-   With T^ do Case SelectWhich of
-      twAllEntries            : Result := TRUE;
-      twAllUncoded            : Result := BKUTIL32.IsUncoded( T );
-      twAllNewEntries         : Result := ( txDate_Transferred = 0 );
-      twAllNewUncodedEntries  : Result := ( txDate_Transferred = 0 ) and ( BKUTIL32.IsUncoded( T ) );
-      twAllPresentedEntries   : Result := ( txDate_Presented<>0 );
-      twAllUnpresentedEntries : Result := ( txDate_Presented = 0 );
-   end;
+  With T^ do Case SelectWhich of
+    twAllEntries            : Result := TRUE;
+    twAllUncoded            : Result := BKUTIL32.IsUncoded(T);
+    twAllNewEntries         : Result := ( txDate_Transferred = 0 );
+    twAllNewUncodedEntries  : Result := ( txDate_Transferred = 0 ) and (BKUTIL32.IsUncoded(T));
+    twAllPresentedEntries   : Result := ( txDate_Presented<>0 );
+    twAllUnpresentedEntries : Result := ( txDate_Presented = 0 );
+    twAllGSTUncoded         : Result := ( txDate_Transferred = 0 ) and (BKUTIL32.IsGSTUncoded(T));
+  end;
 
-   if Result then
-      if not IncludeZeroAmounts then
-         if HasZeroAmount(T) then
-            Result := False; // Skip the Zero amount ones
+  if Result then
+    if not IncludeZeroAmounts then
+       if HasZeroAmount(T) then
+          Result := False; // Skip the Zero amount ones
 
-   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

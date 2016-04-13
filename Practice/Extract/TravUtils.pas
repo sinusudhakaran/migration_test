@@ -8,6 +8,7 @@ interface uses BaOBJ32, StDate, MoneyDef;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function AllCoded( const AnAccount : TBank_Account; From_Date, To_Date : TStDate ): Boolean;
+function AllGSTCoded( const AnAccount : TBank_Account; From_Date, To_Date : TStDate ): Boolean;
 function CalculateBankContra( const AnAccount : TBank_Account; From_Date, To_Date : TStDate ): Money;
 function HasRequiredGSTContraCodes( const AnAccount : TBank_Account; From_Date, To_Date : TStDate ): Boolean;
 function HasRequiredGSTTypes( const AnAccount : TBank_Account; From_Date, To_Date : TStDate ): Boolean;
@@ -34,7 +35,7 @@ Var
    NumberUncoded : LongInt;
    NumberCoded : integer;
    NumberInvalid : integer;
-
+   NumberGSTUncoded : LongInt;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure CountUncodedEntries;
@@ -43,6 +44,32 @@ const
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Inc( NumberUncoded );
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+procedure CountGSTUncodedEntries;
+const
+   ThisMethodName = 'CountGSTUncodedEntries';
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+   Inc( NumberGSTUncoded );
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
+end;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+function AllGSTCoded( const AnAccount : TBank_Account; From_Date, To_Date : TStDate ): Boolean;
+const
+   ThisMethodName = 'AllGSTCoded';
+Begin
+   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
+   NumberGSTUncoded := 0;
+   Traverse.Clear;
+   Traverse.SetSortMethod( csDateEffective );
+   Traverse.SetSelectionMethod( twAllGSTUncoded );
+   Traverse.SetOnEHProc( CountGSTUncodedEntries );
+   Traverse.TraverseEntriesForAnAccount( AnAccount, From_Date, To_Date );
+   AllGSTCoded := ( NumberGSTUncoded = 0 );
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );
 end;
 

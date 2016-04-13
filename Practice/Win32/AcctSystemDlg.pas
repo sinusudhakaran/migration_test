@@ -99,12 +99,17 @@ type
     WebFormatChanged : Boolean;
 
     FInWizard: Boolean;
+    FOldLoadFrom : String;
+    FOldWebExportFormat: Byte;
+    FOldID: string;
+    FOldName: string;
 //DN Not required    BGLServerNoSignRequired : Boolean;
     procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
     procedure FillSystemList;
     procedure DoReBranding;
     procedure ShowConnectionError(aError : string);
+    procedure SetupInitialSystem(aInWizard:Boolean);
   protected
     procedure UpdateActions; override;
   public
@@ -236,6 +241,190 @@ begin
                     'Enter a directory path  to Extract Data to';
    eTaxLedger.Hint  :=
                     'Enter the Tax Ledger Code used by your Account System for this Client';
+end;
+
+procedure TdlgAcctSystem.SetupInitialSystem(aInWizard:Boolean);
+var
+  LCLRec: pClient_File_Rec;
+  i : Integer;
+begin
+  InSetup := True;
+  try
+    FInWizard := aInWizard;
+    WebFormatChanged := false;
+    okPressed := false;
+    AutoRefreshFlag := False;
+    cmbSystem.Items.Clear;
+    if Assigned(AdminSystem) then
+    begin
+      RefreshAdmin;
+      if CanBulkExtract then begin
+         GBExtract.Visible := True;
+         LCLRec := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+         if Assigned(lCLRec) then begin
+            // Fill in the details
+            CkExtract.Checked := FillExtractorComboBox(cbExtract, LCLRec.cfBulk_Extract_Code, False);
+         end else begin
+            CkExtract.Checked := FillExtractorComboBox(cbExtract, MyClient.clFields.clTemp_FRS_Job_To_Use, False);
+         end;
+      end else
+         GBExtract.Visible := False;
+
+      btnDefault.Visible := True;
+    end
+    else
+    begin
+      btnDefault.Visible := False;
+      GBExtract.Visible := False;
+    end;
+    with MyClient.clFields do
+    begin
+      Insetup := true;
+      cmbWebFormats.Clear;
+      for i := wfMin to wfMax do
+      begin
+        if (wfNames[i] = BRAND_NOTES_ONLINE) then
+        begin
+          if (UseBankLinkOnline and
+              ProductConfigService.OnLine and
+              ProductConfigService.IsNotesOnlineEnabled) or
+              (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
+          begin
+            if not ExcludeFromWebFormatList(clCountry, i) then
+              cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+          end;
+        end
+        else
+        begin
+          if not ExcludeFromWebFormatList(clCountry, i) then
+            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
+        end;
+      end;
+
+      if clWeb_Export_Format = 255 then
+         clWeb_Export_Format := wfDefault;
+
+      case clCountry of
+       whNewZealand :
+         begin
+            gbxTaxInterface.Visible := False;
+            gbType.Visible := False;
+
+            FillSystemList;
+
+            if clAccounting_System_Used in [snMin..snMax] then begin
+               ComboUtils.SetComboIndexByIntObject(claccounting_system_used, cmbSystem);
+            end else
+               ComboUtils.SetComboIndexByIntObject(snOther, cmbSystem);
+
+            cmbTaxInterface.Items.AddObject( tsNames[ tsMin], TObject( tsMin));
+            cmbTaxInterface.ItemIndex := 0;
+            edtSaveTaxTo.Text         := '';
+         end;
+
+       whAustralia :
+         begin
+            if assigned(AdminSystem)
+            and AdminSystem.DualAccountingSystem then begin
+               gbType.Visible := True;
+               if software.IsSuperFund(whAustralia,clAccounting_System_Used) then begin
+                  rbSuper.Checked := True;
+                  ActiveControl := rbSuper;
+               end
+               else begin
+                  rbAccounting.Checked := True;
+                  ActiveControl := rbAccounting;
+               end;
+            end else
+               gbType.Visible := False;
+            FillSystemList;
+
+            if clAccounting_System_Used in [saMin..saMax] then begin
+               ComboUtils.SetComboIndexByIntObject(claccounting_system_used, cmbSystem);
+            end else
+               ComboUtils.SetComboIndexByIntObject(snOther, cmbSystem);
+
+            gbxTaxInterface.Visible  := True;
+
+            for i := tsMin to tsMax do begin
+              cmbTaxInterface.Items.AddObject( tsNames[ tsSortOrder[i]], TObject( tsSortOrder[i]));
+            end;
+            cmbTaxInterface.ItemIndex := 0;
+            ComboUtils.SetComboIndexByIntObject( clTax_Interface_Used, cmbTaxInterface);
+
+            edtSaveTaxTo.Text    := clSave_Tax_Files_To;
+            eTaxLedger.Text      := clTax_Ledger_Code;
+            eTaxLedger.Visible   := clTax_Interface_Used = tsBAS_Sol6ELS;
+            lblTaxLedger.Visible := clTax_Interface_Used = tsBAS_Sol6ELS;
+         end;
+
+       whUK :
+         begin
+            gbxTaxInterface.Visible := False;
+            gbType.Visible := False;
+
+            for i := suMin to suMax do begin
+              if (not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used) then
+                cmbSystem.items.AddObject(suNames[i], TObject( i ) );
+            end;
+            cmbSystem.ItemIndex := suOther;
+            if clAccounting_System_Used in [suMin..suMax] then begin
+               for i := 0 to ( cmbSystem.Items.Count - 1 ) do begin
+                  if ( Integer( cmbSystem.Items.Objects[i] ) = claccounting_system_used ) then begin
+                     cmbSystem.ItemIndex := i;
+                  end;
+               end;
+            end;
+
+            cmbTaxInterface.Items.AddObject( tsNames[ tsMin], TObject( tsMin));
+            cmbTaxInterface.ItemIndex := 0;
+            edtSaveTaxTo.Text         := '';
+         end;
+      end; {case}
+      cmbSystemChange(nil);
+      if (cmbWebFormats.ItemIndex < 0) then
+        ComboUtils.SetComboIndexByIntObject(MyClient.clFields.clWeb_Export_Format, cmbWebFormats);
+
+      //If the client is on notes but the practice is not only then they shouldn't be able to change the web export format off notes.
+      if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
+      begin
+        if not Assigned(AdminSystem) then
+         cmbWebFormats.Enabled := False;
+      end;
+
+      chkLockChart.Checked := clChart_Is_Locked;
+      chkUseCustomLedgerCode.Checked := clUse_Alterate_ID_for_extract;
+      if clUse_Alterate_ID_for_extract then
+      begin
+        edtExtractID.text := clAlternate_Extract_ID;
+        fAlternateID := clAlternate_Extract_ID;
+        edtExtractID.Enabled := true;
+        btnMasLedgerCode.Enabled := true;
+      end
+      else
+      begin
+        edtExtractID.text := clCode;
+        edtExtractID.Enabled := false;
+        btnMasLedgerCode.Enabled := false;
+      end;
+
+      eMask.text  := clAccount_Code_Mask;
+      eFrom.Text  := clLoad_Client_Files_From;
+      eTo.text    := clSave_Client_Files_To;
+
+      FOldLoadFrom := clLoad_Client_Files_From;
+
+      if IsMYOBLedger(clCountry, clAccounting_System_Used) then
+      begin
+        FOldID := MyClient.clExtra.cemyMYOBClientIDSelected;
+        FOldName := MyClient.clExtra.cemyMYOBClientNameSelected;
+      end
+      else if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
+        FOldID := MyClient.clExtra.ceBGLFundIDSelected;
+    end;
+  finally
+    InSetup := False;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -543,214 +732,36 @@ end;
 function TdlgAcctSystem.Execute(var AutoRefreshDone : Boolean; InWizard: Boolean = False) : boolean;
 var
   i : integer;
-  OldLoadFrom : String;
   S, sName : String;
   LCLRec: pClient_File_Rec;
   NotesId : TBloGuid;
-  OldWebExportFormat: Byte;
   BlopiClientDetails: TBloClientReadDetail;
   OffLineSubscription : TBloArrayOfguid;
   SubIndex : integer;
-  OldID, NewID : string;
+  NewID : string;
   RefreshYourChart: Boolean;
+  OldAccountingSystem : Byte;
 begin
   LCLRec := nil;
-  FInWizard := InWizard;
 
-   WebFormatChanged := false;
-   okPressed := false;
-   AutoRefreshFlag := False;
-   cmbSystem.Items.Clear;
-
-   if Assigned(AdminSystem) then begin
-      RefreshAdmin;
-      if CanBulkExtract then begin
-         GBExtract.Visible := True;
-         LCLRec := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
-         if Assigned(lCLRec) then begin
-            // Fill in the details
-            CkExtract.Checked := FillExtractorComboBox(cbExtract, LCLRec.cfBulk_Extract_Code, False);
-         end else begin
-            CkExtract.Checked := FillExtractorComboBox(cbExtract, MyClient.clFields.clTemp_FRS_Job_To_Use, False);
-         end;
-      end else
-         GBExtract.Visible := False;
-
-      btnDefault.Visible := True;
-   end else begin
-      btnDefault.Visible := False;
-      GBExtract.Visible := False;
-   end;
-
-
-   with MyClient.clFields do begin
-      Insetup := true;
-      cmbWebFormats.Clear;
-      for i := wfMin to wfMax do
-      begin
-        if (wfNames[i] = BRAND_NOTES_ONLINE) then
-        begin
-          if (UseBankLinkOnline and
-              ProductConfigService.OnLine and
-              ProductConfigService.IsNotesOnlineEnabled) or
-              (MyClient.clFields.clWeb_Export_Format = wfWebNotes) then
-          begin
-            if not ExcludeFromWebFormatList(clCountry, i) then
-              cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
-          end;
-        end
-        else
-        begin
-          if not ExcludeFromWebFormatList(clCountry, i) then
-            cmbWebFormats.Items.AddObject(wfNames[i], TObject(i));
-        end;
+  SetupInitialSystem(InWizard);
+  with MyClient.clFields do
+  begin
+    Self.ClientHeight := gbxWebExport.Top + 96;
+    //*****************
+    Self.ShowModal;
+    //*****************
+    if okPressed then
+    begin
+      OldAccountingSystem := clAccounting_System_Used;
+      with cmbSystem do begin
+        clAccounting_System_Used := Integer( Items.Objects[ ItemIndex ] );
       end;
 
-      if clWeb_Export_Format = 255 then
-         clWeb_Export_Format := wfDefault;
-
-      case clCountry of
-       whNewZealand :
-         begin
-            gbxTaxInterface.Visible := False;
-            gbType.Visible := False;
-
-            FillSystemList;
-
-            if clAccounting_System_Used in [snMin..snMax] then begin
-               ComboUtils.SetComboIndexByIntObject(claccounting_system_used, cmbSystem);
-            end else
-               ComboUtils.SetComboIndexByIntObject(snOther, cmbSystem);
-
-            cmbTaxInterface.Items.AddObject( tsNames[ tsMin], TObject( tsMin));
-            cmbTaxInterface.ItemIndex := 0;
-            edtSaveTaxTo.Text         := '';
-         end;
-
-       whAustralia :
-         begin
-            if assigned(AdminSystem)
-            and AdminSystem.DualAccountingSystem then begin
-               gbType.Visible := True;
-               if software.IsSuperFund(whAustralia,clAccounting_System_Used) then begin
-                  rbSuper.Checked := True;
-                  ActiveControl := rbSuper;
-               end
-               else begin
-                  rbAccounting.Checked := True;
-                  ActiveControl := rbAccounting;
-               end;
-            end else
-               gbType.Visible := False;
-            FillSystemList;
-
-            if clAccounting_System_Used in [saMin..saMax] then begin
-               ComboUtils.SetComboIndexByIntObject(claccounting_system_used, cmbSystem);
-            end else
-               ComboUtils.SetComboIndexByIntObject(snOther, cmbSystem);
-
-            gbxTaxInterface.Visible  := True;
-
-            for i := tsMin to tsMax do begin
-              cmbTaxInterface.Items.AddObject( tsNames[ tsSortOrder[i]], TObject( tsSortOrder[i]));
-            end;
-            cmbTaxInterface.ItemIndex := 0;
-            ComboUtils.SetComboIndexByIntObject( clTax_Interface_Used, cmbTaxInterface);
-
-            edtSaveTaxTo.Text    := clSave_Tax_Files_To;
-            eTaxLedger.Text      := clTax_Ledger_Code;
-            eTaxLedger.Visible   := clTax_Interface_Used = tsBAS_Sol6ELS;
-            lblTaxLedger.Visible := clTax_Interface_Used = tsBAS_Sol6ELS;
-         end;
-
-       whUK :
-         begin
-            gbxTaxInterface.Visible := False;
-            gbType.Visible := False;
-
-            for i := suMin to suMax do begin
-              if (not Software.ExcludeFromAccSysList(clCountry, i)) or ( i = claccounting_system_used) then
-                cmbSystem.items.AddObject(suNames[i], TObject( i ) );
-            end;
-            cmbSystem.ItemIndex := suOther;
-            if clAccounting_System_Used in [suMin..suMax] then begin
-               for i := 0 to ( cmbSystem.Items.Count - 1 ) do begin
-                  if ( Integer( cmbSystem.Items.Objects[i] ) = claccounting_system_used ) then begin
-                     cmbSystem.ItemIndex := i;
-                  end;
-               end;
-            end;
-
-            cmbTaxInterface.Items.AddObject( tsNames[ tsMin], TObject( tsMin));
-            cmbTaxInterface.ItemIndex := 0;
-            edtSaveTaxTo.Text         := '';
-         end;
-     end; {case}
-     cmbSystemChange(nil);
-     if (cmbWebFormats.ItemIndex < 0) then
-       ComboUtils.SetComboIndexByIntObject(MyClient.clFields.clWeb_Export_Format, cmbWebFormats);
-
-      //If the client is on notes but the practice is not only then they shouldn't be able to change the web export format off notes. 
-     if MyClient.clFields.clWeb_Export_Format = wfWebNotes then
-     begin
-       if not Assigned(AdminSystem) then
-       begin
-         cmbWebFormats.Enabled := False;
-       end;
-     end;
-     
-     chkLockChart.Checked := clChart_Is_Locked;
-     chkUseCustomLedgerCode.Checked := clUse_Alterate_ID_for_extract;
-     if clUse_Alterate_ID_for_extract then
-     begin
-       edtExtractID.text := clAlternate_Extract_ID;
-       fAlternateID := clAlternate_Extract_ID;
-       edtExtractID.Enabled := true;
-       btnMasLedgerCode.Enabled := true;
-     end
-     else
-     begin
-       edtExtractID.text := clCode;
-       edtExtractID.Enabled := false;
-       btnMasLedgerCode.Enabled := false;
-     end;
-
-     eMask.text  := clAccount_Code_Mask;
-     eFrom.Text  := clLoad_Client_Files_From;
-     eTo.text    := clSave_Client_Files_To;
-
-     OldLoadFrom := clLoad_Client_Files_From;
-
-     if IsMYOBLedger(clCountry, clAccounting_System_Used) then
-       OldID := MyClient.clExtra.cemyMYOBClientIDSelected
-     else if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
-       OldID := MyClient.clExtra.ceBGLFundIDSelected;
-
-     Insetup := False;
-
-     Self.ClientHeight := gbxWebExport.Top + 96;
-     //*****************
-     Self.ShowModal;
-     //*****************
-
-     if okPressed then
-     begin
-        with cmbSystem do begin
-           clAccounting_System_Used := Integer( Items.Objects[ ItemIndex ] );
-        end;
-        clChart_Is_Locked           := chkLockChart.Checked;
-        clAccount_Code_Mask         := eMask.text;
-        // Only the directory for BGL 360, could add other systems to this as well
-
-        clSave_Client_Files_To      := Trim( eTo.text);
-        clAlternate_Extract_ID      := Trim(edtExtractID.Text);
-        clUse_Alterate_ID_for_extract := chkUseCustomLedgerCode.Checked;
-        clTax_Ledger_Code           := eTaxLedger.Text;
         if CanRefreshChart( clCountry, clAccounting_System_Used ) then
         begin
-          clLoad_Client_Files_From := Trim( eFrom.text);
           // Set Dialog Question
-          if ( OldLoadFrom = '' ) then begin
+          if ( FOldLoadFrom = '' ) then begin
             S := 'Do you want to Load the Chart now?';
           end
           else begin
@@ -773,14 +784,14 @@ begin
               sName := 'Client';
             end;
 
-            if ( OldID = '' ) then
+            if ( FOldID = '' ) then
               S := 'Do you want to Load the Chart now?'
             else
               S := 'You have changed the ' + sName + ' where the Chart is Loaded From.'#13+
                    'Do you want to Refresh the Chart now?';
 
             RefreshYourChart := ( Trim(NewID) <> '' ) and
-                                ( Trim(NewId) <> Trim(OldID) );
+                                ( Trim(NewId) <> Trim(FOldID) );
 
             if RefreshYourChart and
                (IsMYOBLedger(clCountry, clAccounting_System_Used)) then
@@ -800,9 +811,21 @@ begin
             if RefreshYourChart and IsMYOBLedger(clCountry, clAccounting_System_Used) and PracticeLedger.LoadingCOAForTheFirstTime then
             begin
               {No confirmation asked. Force refresh COA}
-              Import32.RefreshChart; // Practice Ledger
-              PracticeLedger.LoadingCOAForTheFirstTime := False;
-              AutoRefreshFlag := True;
+              S := 'Chart of Accounts and GST Setup will be updated'#13#10'automatically, do you wish to continue?';
+              if (AskYesNo( 'Refresh Chart and GST', S, DLG_YES, 0 ) = DLG_YES ) then
+              begin
+                Import32.RefreshChart; // Practice Ledger
+                PracticeLedger.LoadingCOAForTheFirstTime := False;
+                AutoRefreshFlag := True;
+              end
+              else
+              begin
+                clAccounting_System_Used := OldAccountingSystem;
+                MyClient.clExtra.cemyMYOBClientIDSelected := FOldID;
+                MyClient.clExtra.cemyMYOBClientNameSelected := FOldName;
+
+                Execute(AutoRefreshDone, InWizard);
+              end;
             end
             else if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
             begin
@@ -813,11 +836,13 @@ begin
 
               AutoRefreshFlag := True;
             end;
+            clLoad_Client_Files_From := Trim( eFrom.text);
           end
           else
           begin
+            clLoad_Client_Files_From := Trim( eFrom.text);
             if ( clLoad_Client_Files_From <> '' ) and
-                ( clLoad_Client_Files_From <> OldLoadFrom ) and
+                ( clLoad_Client_Files_From <> FOldLoadFrom ) and
                  ( AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
             begin
               Import32.RefreshChart;
@@ -828,12 +853,18 @@ begin
         else begin
            clLoad_Client_Files_From := '';
         end;
+        clChart_Is_Locked           := chkLockChart.Checked;
+        clAccount_Code_Mask         := eMask.text;
+        // Only the directory for BGL 360, could add other systems to this as well
 
+        clSave_Client_Files_To      := Trim( eTo.text);
+        clAlternate_Extract_ID      := Trim(edtExtractID.Text);
+        clUse_Alterate_ID_for_extract := chkUseCustomLedgerCode.Checked;
+        clTax_Ledger_Code           := eTaxLedger.Text;
         clTax_Interface_Used := ComboUtils.GetComboCurrentIntObject( cmbTaxInterface);
-
         if clWeb_Export_Format <> ComboUtils.GetComboCurrentIntObject(cmbWebFormats) then
         begin
-          OldWebExportFormat := clWeb_Export_Format;
+          FOldWebExportFormat := clWeb_Export_Format;
           clWeb_Export_Format := ComboUtils.GetComboCurrentIntObject(cmbWebFormats);
 
           //Only update the web export format on blopi, if blopi is available and the client is not read-only.
@@ -841,7 +872,7 @@ begin
           begin
             if MyClient.Opened then
             begin
-              if (not FInWizard) and (clWeb_Export_Format = wfWebNotes) and (OldWebExportFormat <> wfWebNotes) then
+              if (not FInWizard) and (clWeb_Export_Format = wfWebNotes) and (FOldWebExportFormat <> wfWebNotes) then
               begin
                 HelpfulInfoMsg('You have selected to use ' + bkBranding.NotesProductName + ' Online for this client. Please confirm the ' + bkBranding.ProductOnlineName + ' details for this client', 0);
 
@@ -855,7 +886,7 @@ begin
                 try
                   if not ProductConfigService.UpdateClientNotesOption(BlopiClientDetails, clWeb_Export_Format) then
                   begin
-                    clWeb_Export_Format := OldWebExportFormat;
+                    clWeb_Export_Format := FOldWebExportFormat;
                   end;
                 finally
                   FreeAndNil(BlopiClientDetails);
@@ -936,7 +967,7 @@ begin
    try
      MyDlg.PopupParent := w_PopupParent;
      MyDlg.PopupMode := pmExplicit;
-     
+
       BKHelpSetUp(MyDlg, ContextID);
       result := MyDlg.Execute(AutoRefreshDone, InWizard);
       AutoRefreshDone := MyDlg.AutoRefreshFlag;
@@ -1329,7 +1360,6 @@ begin
               {or
               (MyClient.clExtra.cemyMYOBClientIDSelected <> SelectBusinessFrm.SelectedBusinessID)} then
             PracticeLedger.LoadingCOAForTheFirstTime := True; // this setting will load default MYOB Ledger GST template
-
           MyClient.clExtra.cemyMYOBClientIDSelected := SelectBusinessFrm.SelectedBusinessID;
           MyClient.clExtra.cemyMYOBClientNameSelected := SelectBusinessFrm.SelectedBusinessName;
 

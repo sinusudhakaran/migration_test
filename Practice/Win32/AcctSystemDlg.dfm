@@ -464,7 +464,7 @@ object dlgAcctSystem: TdlgAcctSystem
     end
     object btnOk: TButton
       Left = 355
-      Top = 8
+      Top = 7
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]

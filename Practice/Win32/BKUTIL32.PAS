@@ -4,11 +4,13 @@ Unit BKUTIL32;
 interface uses BKDEFS,MONEYDEF, BKCONST, clObj32, PayeeObj, StDate;
 {  -----------------------------------------------------------------------  }
 
-function IsCoded( CONST T : pTransaction_Rec ): Boolean; overload;
-Function IsCoded( aClient : TClientObj; CONST T : pTransaction_Rec ): Boolean; overload;
+function IsCoded( CONST T : pTransaction_Rec): Boolean; overload;
+function IsCoded( aClient : TClientObj; CONST T : pTransaction_Rec): Boolean; overload;
+Function IsCoded( aClient : TClientObj; CONST T : pTransaction_Rec; var HasUnCodedGST:Boolean): Boolean; overload;
 
 function IsUncoded( CONST T : pTransaction_Rec ): Boolean; overload;
 function IsUncoded( aClient : TClientObj; CONST T : pTransaction_Rec ): Boolean; overload;
+function IsGSTUncoded( CONST T : pTransaction_Rec): Boolean; overload;
 
 function DissectionMatchesPayee( bkPayee : PayeeObj.TPayee; pT : bkDefs.pTransaction_Rec) : boolean;
 
@@ -87,7 +89,81 @@ Const
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function IsCoded( aClient : TClientObj; CONST T : pTransaction_Rec ): Boolean; overload;
+Function IsCoded( aClient : TClientObj; CONST T : pTransaction_Rec ; var HasUncodedGST:Boolean): Boolean; overload;
+Const
+   ThisMethodName = 'IsCoded';
+Var
+   OK       : Boolean;
+   DS       : pDissection_Rec;
+   IsActive : boolean;
+Var
+   Msg : String;
+Begin
+  HasUncodedGST := False;
+   IsActive := True;
+   If not Assigned( aClient) Then
+   Begin
+      Msg := 'aClient is NIL';
+      LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
+
+      raise EInvalidCall.CreateFmt('%s - %s : %s', [UnitName, ThisMethodName, Msg]);
+   end ;
+
+   With aClient, T^ do
+   Begin
+      If txFirst_Dissection<>NIL then
+      Begin
+         OK := TRUE;
+         DS := txFirst_Dissection;
+         While ( DS<>NIL ) and OK do With DS^, aClient.clFields do
+         Begin
+            OK := aClient.clChart.CanCodeTo( dsAccount, IsActive );
+
+            //check CA systems GST Range
+            if IsCASystems( aClient) and (not CASystemsGSTOK( aClient, dsGST_Class)) then
+            begin
+              ok := false;
+              HasUncodedGST := True;
+            end;
+            DS := dsNext;
+         end;
+      end
+      else
+      with aClient.clfields do  Begin
+         OK := aClient.clChart.CanCodeTo( txAccount, IsActive );
+
+         //check CA Systems GST Range
+         if IsCASystems( aClient) and (not CASystemsGSTOK( aClient, txGST_Class)) then
+         begin
+           ok := false;
+           HasUncodedGST := True;
+         end;
+      end;
+      Result := OK;
+   end;
+end;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsUncoded( aClient : TClientObj; CONST T : pTransaction_Rec): Boolean; overload;
+begin
+   result := not ( IsCoded( aClient, T));
+end;
+
+function IsGSTUncoded( CONST T : pTransaction_Rec): Boolean; overload;
+var
+  HasUnCodedGST : Boolean;
+begin
+  HasUnCodedGST := False;
+  IsCoded( MyClient, T,HasUnCodedGST);
+  Result := HasUnCodedGST;
+end;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsCoded( CONST T : pTransaction_Rec): Boolean; overload;
+//if no client is specified then use the myclient object
+begin
+  Result := IsCoded( MyClient, T);
+end;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsCoded(aClient : TClientObj; CONST T : pTransaction_Rec): Boolean; overload;
 Const
    ThisMethodName = 'IsCoded';
 Var
@@ -132,23 +208,16 @@ Begin
    end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function IsUncoded( aClient : TClientObj; CONST T : pTransaction_Rec ): Boolean; overload;
-begin
-   result := not ( IsCoded( aClient, T));
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function IsCoded( CONST T : pTransaction_Rec ): Boolean; overload;
-//if no client is specified then use the myclient object
-begin
-  result := IsCoded( MyClient, T);
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Function IsUncoded( CONST T : pTransaction_Rec ): Boolean; overload;
+Function IsUncoded( CONST T : pTransaction_Rec): Boolean; overload;
 //if no client is specified then use the myclient object
 Begin
-   result := Not( IsCoded( T ) );
+   result := Not( IsCoded( T) );
+end;
+
+function IsUncoded( CONST T : pTransaction_Rec; var HasUnCodedGST:Boolean ): Boolean; overload;
+//if no client is specified then use the myclient object
+Begin
+   Result := Not( IsCoded(MyClient, T , HasUnCodedGST) );
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
