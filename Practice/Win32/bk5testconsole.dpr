@@ -16,7 +16,7 @@ uses
   utAuditTrail in '..\Tests\utAuditTrail.pas',
   utBudgetImportExport in '..\Tests\utBudgetImportExport.pas',
   utBGL360 in '..\Tests\utBGL360.pas',
-  utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas',
+  utSimpleFund360Bulk in '..\Tests\utSimpleFund360Bulk.pas', //Seems to have a negative effect on auto unit testing 
   utSimpleFundX in '..\Tests\utSimpleFundX.pas',
   utInstitutionCol in '..\Tests\utInstitutionCol.pas',
   utToDo in '..\Tests\utToDo.pas',
