@@ -83,7 +83,7 @@ const
 
   GSTIncome = 'GSTI';
   GSTOutcome = 'GSTO';
-  GSTUnCategorised = 'UNCT';
+  GSTUnCategorised = 'NONE';
 
   AT_COSTOFSALES = 'cost_of_sales';
   AT_EXPENSE = 'expense';
