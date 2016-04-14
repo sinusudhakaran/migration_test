@@ -453,24 +453,37 @@ end;
 
 procedure TestTPracticeLedger.TestTaxCodeMerged;
 begin
+  {Negative cases - Out of Range}
   CheckEqualsString( ' ', FPracticeLedger.GetTaxCodeMerged( 0 ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ 0 ] ) );
+ CheckEqualsString( ' ', FPracticeLedger.GetTaxCodeMerged( 255 ),
+    format('GetTaxCodeMerged failed for TaxCode=%d', [ 255 ] ) );
+
+  {EXP}
   CheckEqualsString( cttEXP, FPracticeLedger.GetTaxCodeMerged( ctiEXP ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiEXP ]  ) );
+  {FRE}
   CheckEqualsString( cttFRE, FPracticeLedger.GetTaxCodeMerged( ctiFRE ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiFRE ]  ) );
+  {GNR}
   CheckEqualsString( cttGNR, FPracticeLedger.GetTaxCodeMerged( ctiGNR ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiGNR ]  ) );
+  {GSTI}
   CheckEqualsString( cttGST, FPracticeLedger.GetTaxCodeMerged( ctiGSTI ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiGSTI ]  ) );
+  {GSTO}
   CheckEqualsString( cttGST, FPracticeLedger.GetTaxCodeMerged( ctiGSTO ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiGSTO ]  ) );
+  {NONE}
   CheckEqualsString( cttUnCat, FPracticeLedger.GetTaxCodeMerged( ctiUnCat ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiUnCat ]  ) );
+  {INP}
   CheckEqualsString( cttINP, FPracticeLedger.GetTaxCodeMerged( ctiINP ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiINP ]  ) );
+  {ITS}
   CheckEqualsString( cttITS, FPracticeLedger.GetTaxCodeMerged( ctiITS ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiITS ]  ) );
+  {NTR}
   CheckEqualsString( cttNTR, FPracticeLedger.GetTaxCodeMerged( ctiNTR ),
     format('GetTaxCodeMerged failed for TaxCode=%d', [ ctiNTR ]  ) );
 end;
@@ -698,6 +711,14 @@ begin
                format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EQUITY, cttNTR ] ) );
   CheckEquals( ctiNTR, FPracticeLedger.GetTaxCodeSplitUp( AT_UNCATEGORISED, cttNTR ),
                format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_UNCATEGORISED, cttNTR ] ) );
+
+{Negative cases}
+  CheckEquals( 0, FPracticeLedger.GetTaxCodeSplitUp( 'Randomness', cttGST ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ 'Randomness', cttGST ]) );
+  CheckEquals( 0, FPracticeLedger.GetTaxCodeSplitUp( AT_EXPENSE, 'Randomness' ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ AT_EXPENSE, 'Randomness' ] ) );
+  CheckEquals( 0, FPracticeLedger.GetTaxCodeSplitUp( 'Randomness', 'Randomness' ),
+               format('GetTaxSplitUp failed for "%s" in "%s".', [ 'Randomness', 'Randomness' ] ) );
 end;
 
 initialization
