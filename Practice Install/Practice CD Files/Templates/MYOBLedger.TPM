@@ -13,10 +13,12 @@ Name=MYOB Ledger
 2|EXP|Export Sales|0|0|0|0|0||0
 3|FRE|GST Free|0|0|0|0|0||0
 4|GNR|Not Registered|0|0|0|0|0||0
-5|GST|Goods & Services Tax|1000|0|0|0|0||0
-6|INP|Input Taxed Purchases|0|0|0|0|0||0
-7|ITS|Input Tax Sales|0|0|0|0|0||0
-8|NTR|Not Reportable|0|0|0|0|0||0
+5|GSTI|Goods & Services Input Tax|1000|0|0|0|0||0
+6|GSTO|Goods & Services Output Tax|1000|0|0|0|0||0
+7|UCAT|Goods & Services Uncategorised Tax|1000|0|0|0|0||0
+8|INP|Input Taxed Purchases|0|0|0|0|0||0
+9|ITS|Input Tax Sales|0|0|0|0|0||0
+10|NTR|Not Reportable|0|0|0|0|0||0
 
 [Chart]
 
