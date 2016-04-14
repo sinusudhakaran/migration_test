@@ -662,7 +662,7 @@ begin
   GSTMapCol := TGSTMapCol(aGSTMapCol);
 
   GSTMapCol.Clear;
-  for GstIndex := 0 to high(MyClient.clfields.clGST_Class_Names) do
+  for GstIndex := 1 to high(MyClient.clfields.clGST_Class_Names) do
   begin
     if MyClient.clfields.clGST_Class_Names[GstIndex] > '' then
     begin
