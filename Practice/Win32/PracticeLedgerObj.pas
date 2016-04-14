@@ -514,18 +514,20 @@ begin
             Exit;
           end;
 
-          if ((not AllowUncoded) and (not TravUtils.AllGSTCoded(BA, FromDate, ToDate))) then
+          if (not AllowUncoded) then
           begin
-            HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has transactions with'#13#10'invalid GST codes. ' +
-               'Please update before extracting data.',  0 );
-            Exit;
-          end;
-
-          if ((not AllowUncoded) and (not TravUtils.AllCoded(BA, FromDate, ToDate))) then
-          begin
-            HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
-               'You must code all the entries before you can extract them.',  0 );
-            Exit;
+            if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
+            begin
+              HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'".' + 
+                 'You need to update these codes before you can export data.',  0 );
+              Exit;
+            end;
+            if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
+            begin
+              HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
+                 'You must code all the entries before you can extract them.',  0 );
+              Exit;
+            end;
           end;
 
           if ((not AllowBlankContra) and (not AllowBlankContra)) then
@@ -885,12 +887,13 @@ begin
         end;
 
         if LoadingCOAForTheFirstTime then
-          sFinalMessage := 'Chart of Accounts and ' + QuotedStr('GST Setup') + ' has been updated.'#13#10
+          sFinalMessage := 'Your chart of accounts and ' + QuotedStr('GST Setup') + ' have been updated.'#13#13
         else
-          sFinalMessage := 'Chart of Accounts has been updated.'#13#10;
+          sFinalMessage := 'Your chart of accounts has been updated.'#13#13;
 
-        sFinalMessage := sFinalMessage  + 'Please check GST Setup and add missing ' + QuotedStr('Control Accounts.')+ #13#10;
-        sFinalMessage := sFinalMessage  + 'Please check Bank Accounts and update the' + QuotedStr('Contra Code');
+        sFinalMessage := sFinalMessage  + 'You need to check a couple of things:' + #13;
+        sFinalMessage := sFinalMessage  + '  1. Add missing control accounts in your GST setup'+ #13;
+        sFinalMessage := sFinalMessage  + '  2. Update contra codes for your bank accounts.';
 
         HelpfulInfoMsg(sFinalMessage, 0 );
         ClearStatus(True);

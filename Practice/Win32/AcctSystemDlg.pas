@@ -412,15 +412,19 @@ begin
       eFrom.Text  := clLoad_Client_Files_From;
       eTo.text    := clSave_Client_Files_To;
 
-      FOldLoadFrom := clLoad_Client_Files_From;
-
+      FOldLoadFrom := '';
+      FOldID := '';
+      FOldName := '';
+      
       if IsMYOBLedger(clCountry, clAccounting_System_Used) then
       begin
         FOldID := MyClient.clExtra.cemyMYOBClientIDSelected;
         FOldName := MyClient.clExtra.cemyMYOBClientNameSelected;
       end
       else if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
-        FOldID := MyClient.clExtra.ceBGLFundIDSelected;
+        FOldID := MyClient.clExtra.ceBGLFundIDSelected
+      else
+        FOldLoadFrom := clLoad_Client_Files_From;        
     end;
   finally
     InSetup := False;
@@ -772,7 +776,8 @@ begin
           if (((clCountry = whAustralia) and (clAccounting_System_Used = saBGL360)) or
               (IsMYOBLedger(clCountry, clAccounting_System_Used))) then
           begin
-
+            clLoad_Client_Files_From := '';
+            FOldLoadFrom := '';
             if (clCountry = whAustralia) and (clAccounting_System_Used = saBGL360) then
             begin
               NewID := MyClient.clExtra.ceBGLFundIDSelected;
@@ -793,49 +798,55 @@ begin
             RefreshYourChart := ( Trim(NewID) <> '' ) and
                                 ( Trim(NewId) <> Trim(FOldID) );
 
-            if RefreshYourChart and
-               (IsMYOBLedger(clCountry, clAccounting_System_Used)) then
+            if RefreshYourChart then
             begin
-              RefreshYourChart := CheckFormyMYOBTokens;
-
-              if not RefreshYourChart then
+              if (IsMYOBLedger(clCountry, clAccounting_System_Used)) then
               begin
-                HelpfulErrorMsg('Refresh Chart can not be done.',
-                    0, false, 'Refresh Chart can not be done due to invalid access tokens. Need a sign in to MYOB again to fix the problem', true);
+                RefreshYourChart := CheckFormyMYOBTokens;
 
-                if DebugMe then
-                  LogUtil.LogMsg(lmDebug, UnitName, 'Refresh Chart failed due to invalid access tokens. Need a sign in to MYOB again.');
-              end;
-            end;
+                if not RefreshYourChart then
+                begin
+                  HelpfulErrorMsg('Refresh Chart can not be done.',
+                      0, false, 'Refresh Chart can not be done due to invalid access tokens. Need a sign in to MYOB again to fix the problem', true);
 
-            if RefreshYourChart and IsMYOBLedger(clCountry, clAccounting_System_Used) and PracticeLedger.LoadingCOAForTheFirstTime then
-            begin
-              {No confirmation asked. Force refresh COA}
-              S := 'Chart of Accounts and GST Setup will be updated'#13#10'automatically, do you wish to continue?';
-              if (AskYesNo( 'Refresh Chart and GST', S, DLG_YES, 0 ) = DLG_YES ) then
-              begin
-                Import32.RefreshChart; // Practice Ledger
-                PracticeLedger.LoadingCOAForTheFirstTime := False;
-                AutoRefreshFlag := True;
+                  if DebugMe then
+                    LogUtil.LogMsg(lmDebug, UnitName, 'Refresh Chart failed due to invalid access tokens. Need a sign in to MYOB again.');
+                  Exit;
+                end;
+
+                if PracticeLedger.LoadingCOAForTheFirstTime then
+                begin
+                  {No confirmation asked. Force refresh COA}
+                  S := 'This will automatically update your chart of accounts and GST setup.' +
+                  'You will need to check some of your settings after this change. Do you want to continue?';
+                  if (AskYesNo('Change accounting system', S, DLG_YES, 0 ) = DLG_YES ) then
+                  begin
+                    Import32.RefreshChart; // Practice Ledger
+                    PracticeLedger.LoadingCOAForTheFirstTime := False;
+                    AutoRefreshFlag := True;
+                  end
+                  else
+                  begin
+                    clAccounting_System_Used := OldAccountingSystem;
+                    MyClient.clExtra.cemyMYOBClientIDSelected := FOldID;
+                    MyClient.clExtra.cemyMYOBClientNameSelected := FOldName;
+
+                    Execute(AutoRefreshDone, InWizard);
+                  end;
+                end
+                else if (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then // normal flow
+                begin
+                  Import32.RefreshChart;
+                  AutoRefreshFlag := True;
+                end;
               end
-              else
+              else if (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
               begin
-                clAccounting_System_Used := OldAccountingSystem;
-                MyClient.clExtra.cemyMYOBClientIDSelected := FOldID;
-                MyClient.clExtra.cemyMYOBClientNameSelected := FOldName;
-
-                Execute(AutoRefreshDone, InWizard);
-              end;
-            end
-            else if RefreshYourChart and (AskYesNo( 'Refresh Chart', S, DLG_YES, 0 ) = DLG_YES ) then
-            begin
-              if IsMYOBLedger(clCountry, clAccounting_System_Used) then
-                Import32.RefreshChart // Practice Ledger
-              else
                 RefreshChart; // BGL 360
-
-              AutoRefreshFlag := True;
+                AutoRefreshFlag := True;
+              end;
             end;
+
             clLoad_Client_Files_From := Trim( eFrom.text);
           end
           else
