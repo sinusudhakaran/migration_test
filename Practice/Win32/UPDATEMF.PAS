@@ -770,7 +770,7 @@ begin
         N21.visible := false;
      end;
 
-     tbOnline.Visible := length(PRACINI_OnlineLink) > 0;
+     tbOnline.Visible := ProductConfigService.OnLine;
 
      // Hide Web Export if no format selected or if OZ
      if ClientFileOpen then begin
