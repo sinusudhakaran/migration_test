@@ -4827,7 +4827,8 @@ begin
       TfrmClientHomePage(obj).ActivateCurrentTabUsingMDI(aMDIIndex);
 
       if assigned(AdminSystem) then
-        frmLEFeedback.Show;
+        if assigned(frmLEFeedback) then
+          frmLEFeedback.Show;
     end;
   end;
 end;
