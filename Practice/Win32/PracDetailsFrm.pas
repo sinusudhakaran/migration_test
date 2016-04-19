@@ -2163,11 +2163,11 @@ begin
     TreeColumn.Width := 450;
 
     if ((FPrac.Id <> '') and ProductConfigService.Registered) or
-       ((FPrac.Id <> '') and (not ProductConfigService.OnLine)) then begin
+       ((FPrac.Id <> '') and (not ProductConfigService.OnLine)) then
+    begin
       //URL
-      edtURL.Text := 'https://' + FPrac.DomainName + '.' +
-                     Copy(TUrls.BooksOnlineDefaultUrl, 13 ,
-                          Length(TUrls.BooksOnlineDefaultUrl));
+      edtURL.Text := ProductConfigService.BanklinkOnlinePracticeURL;
+
       //Primary Contacts
       cbPrimaryContact.Enabled := True;
       AdminRollName := FPrac.GetRoleFromPracUserType(ustSystem, FPrac).RoleName;

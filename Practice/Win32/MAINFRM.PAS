@@ -5629,9 +5629,7 @@ end;
 
 procedure TfrmMain.tbOnlineClick(Sender: TObject);
 begin
-  if length(PRACINI_OnlineLink) = 0 then
-     Exit;
-  ShellExecute(0, 'open', PChar(PRACINI_OnlineLink), nil, nil, SW_NORMAL);
+  ShellExecute(0, 'open', PChar(ProductConfigService.BanklinkOnlinePracticeURL), nil, nil, SW_NORMAL);
 end;
 
 procedure TfrmMain.tbDissectClick(Sender: TObject);

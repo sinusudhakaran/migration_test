@@ -65,6 +65,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDetails: TTabSheet
       Caption = 'Details'
       OnShow = tbsDetailsShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         609
         370)
@@ -275,6 +279,10 @@ object frmPracticeDetails: TfrmPracticeDetails
       Caption = 'Accounting System'
       ImageIndex = 1
       OnShow = tbsInterfacesShow
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbxClientDefault: TGroupBox
         Left = 8
         Top = 4
@@ -344,7 +352,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 324
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbSystemChange
@@ -410,7 +418,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
         end
@@ -452,7 +460,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 322
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbTaxInterfaceChange
@@ -471,6 +479,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsSuperFundSystem: TTabSheet
       Caption = 'Superfund System'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbxSuperSystem: TGroupBox
         Left = 8
         Top = 1
@@ -553,7 +565,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -593,6 +605,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsPracticeManagementSystem: TTabSheet
       Caption = 'Practice Management System'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbxPracticeManagementSystem: TGroupBox
         Left = 8
         Top = 4
@@ -613,7 +629,7 @@ object frmPracticeDetails: TfrmPracticeDetails
           Width = 316
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           Sorted = True
           TabOrder = 0
           OnChange = cmbSuperSystemChange
@@ -623,6 +639,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tsBankLinkOnline: TTabSheet
       Caption = 'BankLink Online'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblURL: TLabel
         Left = 16
         Top = 51
@@ -672,7 +692,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Width = 249
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 2
         OnClick = cbPrimaryContactClick
       end
@@ -719,6 +739,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsDataExport: TTabSheet
       Caption = 'Data Export Settings'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label12: TLabel
         Left = 16
         Top = 20
@@ -763,6 +787,10 @@ object frmPracticeDetails: TfrmPracticeDetails
     object tbsTPRSupplierDetails: TTabSheet
       Caption = 'TPAR Supplier Details'
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblABNNumber: TLabel
         Left = 16
         Top = 43
@@ -1014,7 +1042,7 @@ object frmPracticeDetails: TfrmPracticeDetails
         Font.Height = -13
         Font.Name = 'Tahoma'
         Font.Style = []
-        ItemHeight = 16
+        ItemHeight = 0
         ParentFont = False
         TabOrder = 6
         OnChange = cmbStateChange

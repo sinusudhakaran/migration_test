@@ -299,6 +299,7 @@ type
     function GetServiceActive: Boolean;
     function GetServiceSuspended: Boolean;
     function ErrorOccurred: Boolean;
+    function GetBankLinkOnlinePracticeURL : string;
   public
     procedure FreeClientAccVendorsRecord(aClientAccVendors : TClientAccVendors);
 
@@ -514,6 +515,7 @@ type
     property ServiceSuspended: Boolean read GetServiceSuspended;
 
     property ExceptionRaised: Boolean read FExceptionRaised;
+    property BankLinkOnlinePracticeURL : string read GetBankLinkOnlinePracticeURL;
   end;
 
 Const
@@ -562,6 +564,7 @@ uses
   bkProduct,
   ShlObj,
   DateUtils,
+  bkUrls,
   TransactionUtils;
 
 const
@@ -1224,6 +1227,14 @@ end;
 function TProductConfigService.GetIBizzExportGuid: TBloGuid;
 begin
   Result := VENDOR_EXPORT_GUID_IBIZZ;
+end;
+
+//------------------------------------------------------------------------------
+function TProductConfigService.GetBanklinkOnlinePracticeURL: string;
+begin
+  Result := 'https://' + FPractice.DomainName + '.' +
+            Copy(TUrls.BooksOnlineDefaultUrl, 13 ,
+            Length(TUrls.BooksOnlineDefaultUrl));
 end;
 
 //------------------------------------------------------------------------------
