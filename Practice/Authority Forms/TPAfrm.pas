@@ -1264,28 +1264,29 @@ begin
           edtInstitutionName.Visible := false;
           cmbInstitution.Width := edtBranch.Width;
 
-          if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
-             (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
-          begin
-            pnlRural.Visible := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasRuralCode;
+          if ( cmbInstitution.ItemIndex >= 0 ) then // P5-171 - DN added check for unselected ItemIndex
+            if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
+               (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
+            begin
+              pnlRural.Visible := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasRuralCode;
 
-            if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
-            begin
-              mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
-              mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
-              mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
-            end
-            else
-            begin
-              mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
-              mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
-              mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+              if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
+              begin
+                mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+                mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+                mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+              end
+              else
+              begin
+                mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+                mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+                mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+              end;
+
+              fMaskBsb1 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text);
+              fMaskBsb2 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber2.Text);
+              fMaskBsb3 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber3.Text);
             end;
-
-            fMaskBsb1 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text);
-            fMaskBsb2 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber2.Text);
-            fMaskBsb3 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber3.Text);
-          end;
 
           fOldInstName := cmbInstitution.Text;
         end;

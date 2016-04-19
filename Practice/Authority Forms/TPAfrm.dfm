@@ -77,7 +77,7 @@ object frmTPA: TfrmTPA
         Height = 25
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 17
+        ItemHeight = 0
         TabOrder = 0
         OnChange = cmbInstitutionChange
       end

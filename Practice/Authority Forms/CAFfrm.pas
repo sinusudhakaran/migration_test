@@ -1079,7 +1079,7 @@ begin
   lblBranch.Visible := True;
   edtBranch.Visible := True;
   Bevel4.Visible := True;
-  pnlClient.Visible := True;
+  pnlClient.Visible := True;       
   pnlData.Visible := True;
   if ((cmbInstitution.ItemIndex >= 0) and (Assigned(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])))) then
     FInstitutionCode := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code;
@@ -1175,48 +1175,49 @@ begin
           edtInstitutionName.Visible := false;
           cmbInstitution.Width := edtBranch.Width;
 
-          if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
-             (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
-          begin
-            if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
-            begin                            // order of making it hidden matters
-              pnlData.Visible := False;
-              pnlClient.Visible := False;
-              Bevel4.Visible := False;
-              lblBranch.Visible := False;
-              edtBranch.Visible := False;
-              pnlInstitution.Visible := False;
-              pnlAmexMessage.Visible := True;
-            end;
+          if (cmbInstitution.ItemIndex >= 0) then // P5-171 - DN added check for unselected ItemIndex
+            if (Assigned(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex])) and
+               (cmbInstitution.Items.Objects[cmbInstitution.ItemIndex] is TInstitutionItem) then
+            begin
+              if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
+              begin                            // order of making it hidden matters
+                pnlData.Visible := False;
+                pnlClient.Visible := False;
+                Bevel4.Visible := False;
+                lblBranch.Visible := False;
+                edtBranch.Visible := False;
+                pnlInstitution.Visible := False;
+                pnlAmexMessage.Visible := True;
+              end;
 
-            btnPreview.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
-            btnPrint.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
-            btnFile.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
-            btnImport.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
-            btnClear.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
-            btnEmail.Left := 183;
-            if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
-            begin
-              btnEmail.Left := btnPreview.Left;
-              //Self.ActiveControl := btnEmail;
-              //cmbInstitution.SetFocus;
-            end;
+              btnPreview.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+              btnPrint.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+              btnFile.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+              btnImport.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+              btnClear.Visible := (not(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX'));
+              btnEmail.Left := 183;
+              if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
+              begin
+                btnEmail.Left := btnPreview.Left;
+                //Self.ActiveControl := btnEmail;
+                //cmbInstitution.SetFocus;
+              end;
 
-            if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
-            begin
-              mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
-              mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
-              mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
-            end
-            else
-            begin
-              mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
-              mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
-              mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+              if TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).HasNewMask then
+              begin
+                mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+                mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+                mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).NewMask;
+              end
+              else
+              begin
+                mskAccountNumber1.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+                mskAccountNumber2.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+                mskAccountNumber3.EditMask := TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).AccountEditMask;
+              end;
+              lblAdditionalFormRequired.Visible :=
+                TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).ShowAdditionalForms;
             end;
-            lblAdditionalFormRequired.Visible :=
-              TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).ShowAdditionalForms;
-          end;
           fMaskBsb1 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber1.Text);
           fMaskBsb2 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber2.Text);
           fMaskBsb3 := fMaskHint.RemoveUnusedCharsFromAccNumber(mskAccountNumber3.Text);
