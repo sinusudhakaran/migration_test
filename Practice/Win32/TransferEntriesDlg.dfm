@@ -62,7 +62,6 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 43
     ParentBackground = False
     TabOrder = 2
-    ExplicitLeft = -5
     ExplicitTop = 423
     ExplicitWidth = 622
     ExplicitHeight = 43
@@ -90,7 +89,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 21
     Style = csDropDownList
     Ctl3D = False
-    ItemHeight = 0
+    ItemHeight = 13
     ParentCtl3D = False
     TabOrder = 0
     OnSelect = cmbTempAccountSelect
@@ -102,7 +101,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 21
     Style = csDropDownList
     Ctl3D = False
-    ItemHeight = 0
+    ItemHeight = 13
     ParentCtl3D = False
     TabOrder = 1
     OnSelect = cmbBankAccountSelect
@@ -257,11 +256,11 @@ inherited dlgTransferEntries: TdlgTransferEntries
     ExplicitHeight = 73
     inherited Label2: TLabel
       Left = 3
-      Top = 12
+      Top = 11
       Width = 31
       Height = 16
       ExplicitLeft = 3
-      ExplicitTop = 12
+      ExplicitTop = 11
       ExplicitWidth = 31
       ExplicitHeight = 16
     end
@@ -285,16 +284,17 @@ inherited dlgTransferEntries: TdlgTransferEntries
     end
     inherited Label3: TLabel
       Left = 3
-      Top = 42
+      Top = 38
       Width = 17
       Height = 16
       ExplicitLeft = 3
-      ExplicitTop = 42
+      ExplicitTop = 38
       ExplicitWidth = 17
       ExplicitHeight = 16
     end
     inherited eDateFrom: TOvcPictureField
       Left = 134
+      BorderStyle = bsSingle
       Epoch = 0
       ExplicitLeft = 134
       RangeHigh = {25600D00000000000000}
@@ -302,6 +302,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     end
     inherited eDateTo: TOvcPictureField
       Left = 134
+      BorderStyle = bsSingle
       Epoch = 0
       ExplicitLeft = 134
       RangeHigh = {25600D00000000000000}
