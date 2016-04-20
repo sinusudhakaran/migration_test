@@ -1097,6 +1097,9 @@ begin
             basG1_GSTOption2.AsInteger      := 0;
          end;
 
+         bxfP6T1.AsInteger := 0;
+         if iPAYGInstalmentOptionUsed = 2 then
+           bxfP6T1.AsInteger := basinfo.iTaxInstalmIncome_T1;
 
          bas1A_GSTOption3.AsInteger         := iGSTPayable_1A;
 
@@ -1210,7 +1213,7 @@ begin
    end;
 
    if BasInfo.iPAYGInstalmentOptionUsed <> 3 then
-      BasInfo.iT6_VariedAmount := 0;   
+      BasInfo.iT6_VariedAmount := 0;
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmBAS.ReadEditableFields;
@@ -1945,7 +1948,6 @@ begin
 
    basT6_PAYGOption3.NumericEdit.Enabled   := rbPAYGI_Option3.Checked;
    cmbT4_PAYGOption3.Enabled               := rbPAYGI_Option3.Checked;
-
    Redisplay;
 end;
 procedure TfrmBAS.rbYes_GSTOption1Click(Sender: TObject);

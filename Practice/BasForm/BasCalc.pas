@@ -614,6 +614,9 @@ begin
       then
          iPAYGInstalmentOptionUsed := MyClient.clFields.clBAS_Last_PAYG_Instalment_Option;
 
+      if iPAYGInstalmentOptionUsed = 0 then
+        iPAYGInstalmentOptionUsed := 1; // Default value is set
+        
       //option 1 always selected if Bas G
       if BasFormType in [bsBasG, bsBasY] then begin
          iGSTOptionUsed := 1;
