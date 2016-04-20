@@ -76,6 +76,31 @@ const
   etWithdrawlUK   = 9;
   etDepositUK     = 10;
 
+    // Profile Keys
+  kFile = 'FileName';
+  kSkipLines = 'SkipLines';
+  kHeaderLine = 'HeaderLine';
+  kDelimiter = 'Delimiter';
+  kDateCol = 'DateCol';
+  kAmountType = 'AmountType';
+    vSingle = 'Single';
+    vDouble = 'Double';
+    vSign = 'Sign';
+  kCredidCol = 'CreditCol';
+  kDebidCol = 'DebitCol';
+  kSignCol = 'SignCol';
+  kReverseSign = 'ReverseSign';
+  kDebitReverseSign = 'DebitReverseSign';
+  kCreditReverseSign = 'CreditReverseSign';
+  kRefCol = 'ReferenceCol';
+    kHasCheques = 'HasCheques';
+  kAnalCol = 'AnalysisCol';
+  kNar1Col = 'Narration1Col';
+  kNar2Col = 'Narration2Col';
+  kNar3Col = 'Narration3Col';
+
+  IMPORT_INIFILE = 'Import.ini';
+
 type
   TdlgHistorical = class(TForm)
     stbHistorical: TStatusBar;
@@ -334,6 +359,7 @@ type
     CCode                         : String[3];
     FProvisional: Boolean;
     DittoLineInProgress: Boolean;
+    fHasCheques                   : Boolean;
 
     procedure InitController;
     procedure SetupColumnFmtList;
@@ -398,6 +424,7 @@ type
     procedure SetProvisional(const Value: Boolean);
     function AccountType: string;
     procedure UpdatePanelWidth;
+    function GetIniFile() : string;
   public
     class function CreateAndSetup(aBankAccount: TBank_Account;
                                   AProvisional: Boolean = false): TdlgHistorical;
@@ -406,6 +433,8 @@ type
     procedure AmountEdited(pT: pTransaction_Rec; Doupdate: Boolean = true);
     procedure UpdateChequeNo(pT: pTransaction_Rec);
     property Provisional: Boolean read FProvisional write SetProvisional;
+    property IniFile : string read GetIniFile;
+    property HasCheques : boolean read fHasCheques write fHasCheques;
   end;
 
 function AddHistoricalData : boolean;
@@ -474,6 +503,7 @@ uses
   AuditMgr,
   SYPEIO,
   SuggestedMems,
+  RegistryUtils,
   MAINFRM;
 
 {$R *.DFM}
@@ -565,60 +595,63 @@ type
 
 procedure TdlgHistorical.Setup;
 begin
-   with tblHist do begin
-       AllowRedraw := false;
-        celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
+  fHasCheques := PrivateProfileTextToBoolean(GetPrivateProfileText(IniFile, BankAccount.baFields.baBank_Account_Number, kHasCheques));
 
-      MoneyUtils.BalanceStr( 0, BCode );
-      SetupColumnFmtList;
+  with tblHist do
+  begin
+     AllowRedraw := false;
+      celForexRate.PictureMask := MoneyUtils.ForexPictureMask;
 
-      LoadLayoutForThisAcct(BankAccount.IsManual);
+    MoneyUtils.BalanceStr( 0, BCode );
+    SetupColumnFmtList;
 
-      BuildTableColumns;
+    LoadLayoutForThisAcct(BankAccount.IsManual);
 
-
-      //enter key will end edit and move right
-      CommandOnEnter := ccRight;
-      // Now set tblHist Events
-      OnLockedCellClick          := tblHistLockedCellClick;
-      OnMouseMove                := tblHistMouseMove;
-      OnActiveCellMoving         := tblHistActiveCellMoving;
-      OnGetCellAttributes        := tblHistGetCellAttributes;
-      OnEnteringRow              := tblHistEnteringRow;
-      OnActiveCellChanged        := tblHistActiveCellChanged;
-      OnUserCommand              := tblHistUserCommand;
-      //Data Events
-      OnBeginEdit                := tblHistBeginEdit;
-      OnGetCellData              := tblHistGetCellData;
-      OnEndEdit                  := tblHistEndEdit;
-      OnDoneEdit                 := tblHistDoneEdit;
-
-       //setup sort arrow
-      with hdrColumnHeadings do begin
-         ShowSortArrow      := true;
-         SortArrowColor     := clBtnShadow;
-         SortArrowFillColor := clBtnFace;
-      end;
-      //setup date parameters
-      with celDate do begin
-         Epoch := BKDATEEPOCH;
-         PictureMask := BKDATEFORMAT;
-         MaxLength := Length(BKDATEFORMAT);
-      end;
-      //Set color for alternate lines in the table
-      clStdLineLight := clWindow;
-      clStdLineDark := bkBranding.AlternateCodingLineColor;
-
-      mniSortByNarration.Caption := 'By &Narration';
+    BuildTableColumns;
 
 
-      SetupHelp;
-        //add the first row
-      InsertNewRow( InsertAtEnd ); // Insert a blank row
-      FirstActivate := true;
-      AllowRedraw := true;
-      LastReminderAt := 0;
-   end;
+    //enter key will end edit and move right
+    CommandOnEnter := ccRight;
+    // Now set tblHist Events
+    OnLockedCellClick          := tblHistLockedCellClick;
+    OnMouseMove                := tblHistMouseMove;
+    OnActiveCellMoving         := tblHistActiveCellMoving;
+    OnGetCellAttributes        := tblHistGetCellAttributes;
+    OnEnteringRow              := tblHistEnteringRow;
+    OnActiveCellChanged        := tblHistActiveCellChanged;
+    OnUserCommand              := tblHistUserCommand;
+    //Data Events
+    OnBeginEdit                := tblHistBeginEdit;
+    OnGetCellData              := tblHistGetCellData;
+    OnEndEdit                  := tblHistEndEdit;
+    OnDoneEdit                 := tblHistDoneEdit;
+
+     //setup sort arrow
+    with hdrColumnHeadings do begin
+       ShowSortArrow      := true;
+       SortArrowColor     := clBtnShadow;
+       SortArrowFillColor := clBtnFace;
+    end;
+    //setup date parameters
+    with celDate do begin
+       Epoch := BKDATEEPOCH;
+       PictureMask := BKDATEFORMAT;
+       MaxLength := Length(BKDATEFORMAT);
+    end;
+    //Set color for alternate lines in the table
+    clStdLineLight := clWindow;
+    clStdLineDark := bkBranding.AlternateCodingLineColor;
+
+    mniSortByNarration.Caption := 'By &Narration';
+
+
+    SetupHelp;
+      //add the first row
+    InsertNewRow( InsertAtEnd ); // Insert a blank row
+    FirstActivate := true;
+    AllowRedraw := true;
+    LastReminderAt := 0;
+  end;
 end;
 
 
@@ -1368,6 +1401,11 @@ begin
     end;
   end;
 end;
+function TdlgHistorical.GetIniFile: string;
+begin
+  Result := Globals.DataDir + IMPORT_INIFILE;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TdlgHistorical.SetupEntryTypeList(Country: Byte);
 //Used to fill the Entry Type col combo box, the actual entry type values are
@@ -1986,7 +2024,7 @@ begin
          else begin
             //could be either a cheque or a withdrawl, if reference contains
             //a valid cheque no the set type of cheque
-            if ChequeNo > 0 then
+            if (fHasCheques) and (ChequeNo > 0) then
                pT^.txType := FindETInCombo(etChequeOZ)
             else
                pT^.txType := FindETInCombo(etWithdrawlOZ);
@@ -4544,7 +4582,7 @@ begin
     //Rebuild the table
     BuildTableColumns;
     //Reset the active col in case the col was moved
-    if (CurrentFieldID > 0) then    
+    if (CurrentFieldID > 0) then
       ActiveCol := ColumnFmtList.GetColNumOfField(CurrentFieldID)
     else
       ActiveCol := 0;
@@ -5470,6 +5508,7 @@ begin
    CalculateBalanceColumn;
    CalcClosingBal;
 
+   fHasCheques := PrivateProfileTextToBoolean(GetPrivateProfileText(IniFile, BankAccount.baFields.baBank_Account_Number, kHasCheques));
    Refresh;
 
    //Reminder the user that they should not enter too many before saving

@@ -180,7 +180,6 @@ type
     procedure SetFileLvChanged(const Value: Boolean);
     procedure SetOutLvChanged(const Value: Boolean);
     procedure SetDateMask(const Value: string);
-    procedure SetIniFile(const Value: string);
     function GetIniFile: string;
     function AccountType: string;
     function GetMatchTransactions: TMatchTransactions;
@@ -223,9 +222,7 @@ type
     property DateMask: string read FDateMask write SetDateMask;
     function CurrentDate: Integer;
     procedure SetUpHelp;
-    property IniFile: string read GetIniFile write SetIniFile;
-    function GetPrivateProfileText(App, Key: string; Default: string = ''): string;
-    procedure WritePrivateProfileText(App, Key, Value: string);
+    property IniFile: string read GetIniFile;
     procedure SaveDefaults;
     procedure ApplyDefaults;
     procedure MatchOutItem(Index: Integer);
@@ -264,7 +261,10 @@ uses
   stDate,
   ComBoUtils,
   UsageUtils,
-  stDatest, bkProduct, bkBranding;
+  stDatest,
+  bkProduct,
+  RegistryUtils,
+  bkBranding;
 
 const
   tNone = ' ';
@@ -294,29 +294,6 @@ const
   piReference = 2;
   piAnalysis  = 3;
   piNarration = 4;
-
-  // Profile Keys
-  kFile = 'FileName';
-  kSkipLines = 'SkipLines';
-  kHeaderLine = 'HeaderLine';
-  kDelimiter = 'Delimiter';
-  kDateCol = 'DateCol';
-  kAmountType = 'AmountType';
-    vSingle = 'Single';
-    vDouble = 'Double';
-    vSign = 'Sign';
-  kCredidCol = 'CreditCol';
-  kDebidCol = 'DebitCol';
-  kSignCol = 'SignCol';
-  kReverseSign = 'ReverseSign';
-  kDebitReverseSign = 'DebitReverseSign';
-  kCreditReverseSign = 'CreditReverseSign';
-  kRefCol = 'ReferenceCol';
-    kHasCheques = 'HasCheques';
-  kAnalCol = 'AnalysisCol';
-  kNar1Col = 'Narration1Col';
-  kNar2Col = 'Narration2Col';
-  kNar3Col = 'Narration3Col';
 
 type
   TFileitem = class (TStringList)
@@ -368,9 +345,9 @@ procedure TImportHist.ApplyDefaults;
 var AmountType: string;
 begin
    // date
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDateCol),cbDate);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDateCol),cbDate);
 
-   AmountType := GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType);
+   AmountType := GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kAmountType);
    // Amount
    if AmountType = vSingle then begin
       if rbSingle.Enabled then
@@ -378,39 +355,39 @@ begin
          rbSingle.Checked := true;
          rbDebitCredit.Enabled := true;
       end;
-      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
+      SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
    end else if AmountType = vDouble then begin
       if rbDebitCredit.Enabled then
          rbDebitCredit.Checked := true;
 
-      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
-      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol), CBAmount2);
+      SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
+      SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDebidCol), CBAmount2);
    end else if  AmountType = vSign then begin
       if rbSign.Enabled then
          rbSign.Checked := true;
 
-      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
-      SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol), CBAmount2);
+      SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCredidCol), CBAmount);
+      SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kSignCol), CBAmount2);
    end else
      if rbSingle.Enabled then
        rbDebitCredit.Enabled := true;
 
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign), cbSign);
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebitReverseSign), cbDebitSign);
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCreditReverseSign), cbCreditSign);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kReverseSign), cbSign);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDebitReverseSign), cbDebitSign);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCreditReverseSign), cbCreditSign);
 
 
    // Reference
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol), cbref);
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kHasCheques), cbChequeNumber);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kRefCol), cbref);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kHasCheques), cbChequeNumber);
 
    // Analysis
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAnalCol), cbAna);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kAnalCol), cbAna);
 
    // Narration
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar1Col), cbNar1);
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar2Col), cbNar2);
-   SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar3Col), cbNar3);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kNar1Col), cbNar1);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kNar2Col), cbNar2);
+   SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kNar3Col), cbNar3);
 
 end;
 
@@ -667,6 +644,7 @@ begin
         pt^.txGL_Narration := TOutItem(fOutlist[R]).Strings[fSubnar];
 
         HistTranList.Insert(pT);
+        FHDEForm.HasCheques := cbChequeNumber.checked;
         FHDEForm.AmountEdited(pT,False);
         FHDEForm.UpdateChequeNo(pT);
         incUsage(format('%s Transactions CSV',[AccountType]));
@@ -1167,16 +1145,7 @@ end;
 
 function TImportHist.GetIniFile: string;
 begin
-   if FIniFile = '' then
-      FIniFile := Globals.DataDir + 'Import.ini';
-   Result := FIniFile;
-end;
-
-function TImportHist.GetPrivateProfileText(App, Key: string; Default: string = ''): string;
-var Lbuf: array[0..200] of char;
-begin
-   GetPrivateProfilestring(pchar(App), Pchar(Key), PChar(default), lbuf, sizeof(lbuf), PChar(IniFile));
-   Result := string(lbuf);
+  Result := Globals.DataDir + IMPORT_INIFILE;
 end;
 
 function TImportHist.GetSelectedcol(index: Integer): Boolean;
@@ -2450,60 +2419,50 @@ begin
   end;
 end;
 
-
-procedure TImportHist.WritePrivateProfileText(App, Key, Value: string);
-begin
-   if Value = '' then
-      // Remove the Key
-      WritePrivateProfileString(PChar(App), PChar(Key), nil, PChar(IniFile))
-   else
-      WritePrivateProfileString(PChar(App), PChar(Key), pChar(Value), PChar(IniFile));
-end;
-
 procedure TImportHist.SaveDefaults;
 begin
    // Top
-   WritePrivateProfileText(BankAccount.baFields.baBank_Account_Number, KFile, epath.Text);
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSkipLines, SkipLine.Text);
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kHeaderLine, BoolToStr(chFirstLine.Checked,true));
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDelimiter, cbDelimiter.Text);
+   WritePrivateProfileText(IniFile, BankAccount.baFields.baBank_Account_Number, KFile, epath.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kSkipLines, SkipLine.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kHeaderLine, BoolToStr(chFirstLine.Checked,true));
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDelimiter, cbDelimiter.Text);
 
    // Date..
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDateCol, cbDate.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDateCol, cbDate.Text);
 
    // Amount
    if rbSingle.Checked then begin
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType, vSingle);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, '');
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kAmountType, vSingle);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kSignCol, '');
    end else if RBDebitCredit.Checked then begin
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType, vDouble);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, CBAmount2.Text);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, '');
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kAmountType, vDouble);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDebidCol, CBAmount2.Text);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kSignCol, '');
    end else if rbSign.Checked then begin
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAmountType, vSign);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
-      WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kSignCol, CBAmount.Text);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kAmountType, vSign);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCredidCol, CBAmount.Text);
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDebidCol, '');
+      WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kSignCol, CBAmount.Text);
    end;
 
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kReverseSign, BoolToStr(cbSign.Checked, true));
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kDebitReverseSign, BoolToStr(cbDebitSign.Checked, true));
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kCreditReverseSign, BoolToStr(cbCreditSign.Checked, true));
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kReverseSign, BoolToStr(cbSign.Checked, true));
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kDebitReverseSign, BoolToStr(cbDebitSign.Checked, true));
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kCreditReverseSign, BoolToStr(cbCreditSign.Checked, true));
 
    // Reference
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kRefCol, cbref.Text);
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kHasCheques, BoolToStr(cbChequeNumber.Checked, true));
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kRefCol, cbref.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kHasCheques, BoolToStr(cbChequeNumber.Checked, true));
 
    // Analysis
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kAnalCol, cbAna.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kAnalCol, cbAna.Text);
 
    // Narration
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar1Col, cbNar1.Text);
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar2Col, cbNar2.Text);
-   WritePrivateProfileText(FBankAccount.baFields.baBank_Account_Number, kNar3Col, cbNar3.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kNar1Col, cbNar1.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kNar2Col, cbNar2.Text);
+   WritePrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number, kNar3Col, cbNar3.Text);
 end;
 
 
@@ -2543,9 +2502,9 @@ begin
   else
     MatchTransactions.FillTransList(FBankAccount.baTransaction_List);
 
-  EPath.Text := GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kFile);
-  SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kSkipLines),SkipLine);
-  SetDefault(GetPrivateProfileText(FBankAccount.baFields.baBank_Account_Number,kDelimiter),cbDelimiter);
+  EPath.Text := GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number,kFile);
+  SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number,kSkipLines),SkipLine);
+  SetDefault(GetPrivateProfileText(IniFile, FBankAccount.baFields.baBank_Account_Number,kDelimiter),cbDelimiter);
   BTNBrowseClick(nil);
 end;
 
@@ -2574,7 +2533,7 @@ var Index: Integer;
 begin
    if Value = '' then
       Exit;
-   Index := ComboBox.Items.IndexOf(Value); 
+   Index := ComboBox.Items.IndexOf(Value);
    if Index < 0 then
       Exit;
    if ComboBox.ItemIndex <> Index then begin
@@ -2663,11 +2622,6 @@ end;
 procedure TImportHist.SetHistTranList(const Value: TUnsorted_Transaction_List);
 begin
   FHistTranList := Value;
-end;
-
-procedure TImportHist.SetIniFile(const Value: string);
-begin
-  FIniFile := Value;
 end;
 
 procedure TImportHist.SetOutLvChanged(const Value: Boolean);

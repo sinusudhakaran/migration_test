@@ -1,6 +1,7 @@
 unit RegistryUtils;
 
 interface
+
 uses
   Classes;
 
@@ -11,6 +12,9 @@ function GetCurrentExePath : string;
 function BKHandlerInstalled : boolean;
 function TRFHandlerInstalled : boolean;
 function BNotesInstalled : boolean;
+function GetPrivateProfileText(aIniFile, aApp, aKey: string; aDefault: string = ''): string;
+procedure WritePrivateProfileText(aIniFile, aApp, aKey, aValue: string);
+function PrivateProfileTextToBoolean(aValue : string) : boolean;
 
 Type
   Tassociation = (AS_None, AS_BKHandler, AS_BNotes, AS_TRFHandler);
@@ -26,9 +30,12 @@ Const
   regStr_BK5File  = '.bk5';
 
 implementation
+
 uses
-   SysUtils,
-   Registry, Windows, WinUtils;
+  SysUtils,
+  Registry,
+  Windows,
+  WinUtils;
 
 const
   regKey_BK5Software = '\Software\Banklink';
@@ -333,6 +340,28 @@ begin
   result := false;
 end;
 
+function GetPrivateProfileText(aIniFile, aApp, aKey: string; aDefault: string = ''): string;
+var
+  Lbuf: array[0..200] of char;
+begin
+  GetPrivateProfilestring(pchar(aApp), Pchar(aKey), PChar(aDefault), lbuf, sizeof(lbuf), PChar(aIniFile));
+  Result := string(lbuf);
+end;
 
+procedure WritePrivateProfileText(aIniFile, aApp, aKey, aValue: string);
+begin
+  if aValue = '' then
+    WritePrivateProfileString(PChar(aApp), PChar(aKey), nil, PChar(aIniFile))
+  else
+    WritePrivateProfileString(PChar(aApp), PChar(aKey), pChar(aValue), PChar(aIniFile));
+end;
+
+function PrivateProfileTextToBoolean(aValue : string) : boolean;
+begin
+  if Sametext(aValue, '1') or Sametext(aValue, 'true') then
+    Result := true
+  else
+    Result := false;
+end;
 
 end.
