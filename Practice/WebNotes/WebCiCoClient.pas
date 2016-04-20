@@ -251,6 +251,8 @@ uses
   LogUtil,
   CSDEFS,
   UsageUtils,
+  INIsettings,
+  BankLinkOnlineServices,
   bkBranding;
 
 const
@@ -858,7 +860,15 @@ begin
   if fIsBooks then
     Result := PRACINI_BankLink_Online_Books_URL + PRODUCT_URL_NAME
   else
+  begin
+    if (Globals.PRACINI_OnlineLink = '') then
+    begin
+      Globals.PRACINI_OnlineLink := ProductConfigService.BankLinkOnlinePracticeURL;
+      WritePracticeINI_WithLock;
+    end;
+
     Result := Globals.PRACINI_OnlineLink + PRODUCT_URL_NAME;
+  end;
 end;
 
 //------------------------------------------------------------------------------
