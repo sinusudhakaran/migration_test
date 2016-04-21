@@ -61,10 +61,13 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Width = 622
     Height = 43
     ParentBackground = False
-    TabOrder = 2
+    TabOrder = 4
     ExplicitTop = 423
     ExplicitWidth = 622
     ExplicitHeight = 43
+    DesignSize = (
+      622
+      43)
     inherited ShapeBotBorder: TShape
       Width = 622
       ExplicitWidth = 622
@@ -89,7 +92,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 21
     Style = csDropDownList
     Ctl3D = False
-    ItemHeight = 13
+    ItemHeight = 0
     ParentCtl3D = False
     TabOrder = 0
     OnSelect = cmbTempAccountSelect
@@ -101,7 +104,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Height = 21
     Style = csDropDownList
     Ctl3D = False
-    ItemHeight = 13
+    ItemHeight = 0
     ParentCtl3D = False
     TabOrder = 1
     OnSelect = cmbBankAccountSelect
@@ -248,7 +251,7 @@ inherited dlgTransferEntries: TdlgTransferEntries
     Top = 128
     Width = 458
     Height = 73
-    TabOrder = 4
+    TabOrder = 2
     TabStop = True
     ExplicitLeft = 18
     ExplicitTop = 128
