@@ -799,41 +799,42 @@ begin
             end;
          end;
 
-         if LoadAdminSystem(true, ThisMethodName ) then
-         begin
-           if Dest = ecDestWebX then
-              case aClient.clFields.clWeb_Export_Format of
-              wfWebX :  AddAutomaticToDoItem( aClient.clFields.clCode,
-                                   ttyExportWeb,
-                                   Format( ToDoMsg_Acclipse,
-                                           [ bkDate2Str( DateFrom),
-                                             bkDate2Str( DateTo),
-                                             bkDate2Str(CurrentDate)
-                                           ]),
-                                   0, NextNo);
+         if Assigned( Globals.AdminSystem) then // Check that this a Practice Application!! 
+           if LoadAdminSystem(true, ThisMethodName ) then
+           begin
+             if Dest = ecDestWebX then
+                case aClient.clFields.clWeb_Export_Format of
+                wfWebX :  AddAutomaticToDoItem( aClient.clFields.clCode,
+                                     ttyExportWeb,
+                                     Format( ToDoMsg_Acclipse,
+                                             [ bkDate2Str( DateFrom),
+                                               bkDate2Str( DateTo),
+                                               bkDate2Str(CurrentDate)
+                                             ]),
+                                     0, NextNo);
 
-              wfWebNotes : AddAutomaticToDoItem( aClient.clFields.clCode,
-                                   ttyExportWeb,
-                                   Format( ToDoMsg_Webnotes,
-                                           [ bkDate2Str( DateFrom),
-                                             bkDate2Str( DateTo),
-                                             bkDate2Str(CurrentDate)
-                                           ]),
-                                   0, NextNo);
-              end
+                wfWebNotes : AddAutomaticToDoItem( aClient.clFields.clCode,
+                                     ttyExportWeb,
+                                     Format( ToDoMsg_Webnotes,
+                                             [ bkDate2Str( DateFrom),
+                                               bkDate2Str( DateTo),
+                                               bkDate2Str(CurrentDate)
+                                             ]),
+                                     0, NextNo);
+                end
 
 
-           else
-             AddAutomaticToDoItem( aClient.clFields.clCode,
-                                   ttyExportBNotes,
-                                   Format( ToDoMsg_ManualECoding,
-                                           [ bkDate2Str( DateFrom),
-                                             bkDate2Str( DateTo),
-                                             bkDate2Str(CurrentDate)
-                                           ]),
-                                   0, NextNo);
-            SaveAdminSystem();
-         end;
+             else
+               AddAutomaticToDoItem( aClient.clFields.clCode,
+                                     ttyExportBNotes,
+                                     Format( ToDoMsg_ManualECoding,
+                                             [ bkDate2Str( DateFrom),
+                                               bkDate2Str( DateTo),
+                                               bkDate2Str(CurrentDate)
+                                             ]),
+                                     0, NextNo);
+              SaveAdminSystem();
+           end;
       finally
          //clean up temp dir if sending mail
          if ( Dest = ecDestEMail) then begin
