@@ -20,10 +20,10 @@
     <DCC_HppOutput>..\..\DCU</DCC_HppOutput>
     <DCC_BplOutput>..\Binaries</DCC_BplOutput>
     <DCC_DcpOutput>..\DCU</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\</DCC_ResourcePath>
-    <DCC_ObjPath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\</DCC_ObjPath>
-    <DCC_IncludePath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\..\Bulk Export</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\..\Bulk Export</DCC_ResourcePath>
+    <DCC_ObjPath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\..\Bulk Export</DCC_ObjPath>
+    <DCC_IncludePath>..\Authority Forms\;..\BASForm\;..\Bconnect\;..\Component\;..\Crypto\;..\Ecoding\;..\Ecoding\database\;..\Extended MAPI\;..\Extract\;..\Forex\;..\Graphs\;..\Import\;..\Lists\;..\Orpheus\;..\Printing\;..\WebNotes\;..\Win32\;..\..\Bulk Export</DCC_IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
