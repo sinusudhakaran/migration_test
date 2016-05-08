@@ -35,6 +35,8 @@ type
    protected
       procedure RenderTotalLine(double: boolean); override;
       procedure NewDetailLine;                    override;
+
+      function GetlPageWidth() : integer;
    public
       constructor Create( aOwner : TObject; fName : string); override;
       destructor  Destroy; override;
@@ -50,7 +52,7 @@ type
       procedure RenderRuledLine;                  overload; override;
       procedure RenderRuledLine(Style : TPenStyle);                  overload; override;
       procedure RenderColumnLine(ColNo: Integer); overload; override;
-      
+
       procedure Generate;                         override;
    end;
 
@@ -64,10 +66,12 @@ uses
   NewReportObj,
   OpXL2k,
   SysUtils,
+  UserReportSettings,
   ComObj;
 
 Const
-  PAGE_WIDTH = 225;
+  PAGE_WIDTH_LANDSCAPE = 225;
+  PAGE_WIDTH_PORTRAIT  = 140;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 constructor TRenderToFileExcel.Create( aOwner : TObject; fName : string);
@@ -131,7 +135,7 @@ procedure TRenderToFileExcel.Generate;
 //      is destroyed
 var
   i : integer;
-
+  
 begin
    //create the data module that contains the Excel component
    with MyDataModule do begin
@@ -164,6 +168,16 @@ begin
       OpExcel1.Workbooks[0].SaveAs(Filename);
    end;
 end;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TRenderToFileExcel.GetlPageWidth(): integer;
+begin
+  if Report.UserReportSettings.s7Orientation = BK_PORTRAIT then
+    Result := PAGE_WIDTH_PORTRAIT
+  else
+    Result := PAGE_WIDTH_LANDSCAPE;
+end;
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileExcel.NewDetailLine;
 begin
@@ -277,20 +291,24 @@ begin
     end
     else
       ExcelRange.AsRange.NumberFormat := '@';
+
     //set cell alignment
     {$WARNINGS OFF}
     case aCol.Alignment of
-       jtRight   : ExcelRange.AsRange.HorizontalAlignment := xlchaRight;
-       jtCenter  : ExcelRange.AsRange.HorizontalAlignment := xlchaCenter;
+      jtLeft   : ExcelRange.HorizontalAlignment := xlchaLeft;
+      jtRight  : ExcelRange.HorizontalAlignment := xlchaRight;
+      jtCenter : ExcelRange.HorizontalAlignment := xlchaCenter;
     end;
-     {$WARNINGS ON}
+    {$WARNINGS ON}
+
     //enter value
     ExcelRange.Value := text;
-    ExcelRange.ColumnWidth := trunc(PAGE_WIDTH * (aCol.WidthPercent/100));
+    ExcelRange.ColumnWidth := trunc(GetlPageWidth() * (aCol.WidthPercent/100));
   end;
   NewDetailLine;
 end;
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TRenderToFileExcel.RenderDetailSubTotal(const TotalName: string;
   NewLine, KeepTotals: Boolean; TotalSubName: string; Style: TStyleTypes);
 begin

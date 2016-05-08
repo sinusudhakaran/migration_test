@@ -400,7 +400,10 @@ begin
     else
       Show_Detail := 1;
 
-    AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_STATUS], Gcgap, 'Status', jtLeft);
+    // when Printing to file needs to not print the status column
+    if not (RunBtn = BTN_FILE) then
+      AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_STATUS], Gcgap, 'Status', jtLeft);
+
     AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_DATE], Gcgap, 'Date', jtLeft);
     AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_REF] + ExtraWidth, Gcgap, 'Reference', jtLeft);
     AddColAuto(Job,cleft, COL_SIZES[Show_Detail, COL_ACCOUNT], Gcgap, 'Account'  , jtLeft);
@@ -584,14 +587,18 @@ begin
     Exit;
 
   // State Image
-  if (Mgr.Transaction^.txDate_Transferred > 0) and (Mgr.Transaction^.txLocked) then
-    Rpt.PutImage(TRANSandLOCKED_IMG, IMG_SCALE_UP_PERCENT)
-  else if (Mgr.Transaction^.txDate_Transferred > 0) then
-    Rpt.PutImage(TRANSFERED_IMG, IMG_SCALE_UP_PERCENT)
-  else if (Mgr.Transaction^.txLocked) then
-    Rpt.PutImage(LOCKED_IMG, IMG_SCALE_UP_PERCENT)
-  else
-    SkipColumn();
+  // when Printing to file needs to not print the status column
+  if not (Params.RunBtn = BTN_FILE) then
+  begin
+    if (Mgr.Transaction^.txDate_Transferred > 0) and (Mgr.Transaction^.txLocked) then
+      Rpt.PutImage(TRANSandLOCKED_IMG, IMG_SCALE_UP_PERCENT)
+    else if (Mgr.Transaction^.txDate_Transferred > 0) then
+      Rpt.PutImage(TRANSFERED_IMG, IMG_SCALE_UP_PERCENT)
+    else if (Mgr.Transaction^.txLocked) then
+      Rpt.PutImage(LOCKED_IMG, IMG_SCALE_UP_PERCENT)
+    else
+      SkipColumn();
+  end;
 
   PutString( bkDate2Str ( Mgr.Transaction^.txDate_Effective ), Rpt.Params.WrapNarration );
   PutString( GetFormattedReference( Mgr.Transaction), Rpt.Params.WrapNarration);
@@ -641,13 +648,20 @@ begin
     RendEngCanvas.Font.Style := [];
 
   RenderDetailGrandTotal('');
-  RenderEmptyLine;
 
   slNotes := WrapTextIntoStringList(GetFullNotes(Mgr.Transaction), 300);
   try
+    if slNotes.Count > 0 then
+      RenderEmptyLine;
+
     for NoteLineIndex := 0 to slNotes.Count - 1 do
     begin
-      SkipColumns(2);
+      // when Printing to file needs to not print the status column
+      if Params.RunBtn = BTN_FILE then
+        SkipColumn
+      else
+        SkipColumns(2);
+
       PutStringMultipleColumns( slNotes.Strings[NoteLineIndex], COL_SHOW_ALL);
 
       if Assigned(RendEngCanvas) then
@@ -657,14 +671,6 @@ begin
   finally
     FreeAndNil(slNotes);
   end;
-
-  SkipColumns(2);
-  PutStringMultipleColumns(JNL_TYPE + btJournalRptNames[Mgr.Bank_Account.baFields.baAccount_Type], COL_SHOW_ALL);
-
-  if Assigned(RendEngCanvas) then
-    RendEngCanvas.Font.Style := [];
-
-  RenderDetailLine();
 
   RenderEmptyLine;
 end;
@@ -691,7 +697,11 @@ begin
   if not ValidateCurrentItem(Sender, Rpt.Params) then
     Exit;
 
-  SkipColumns(2);
+  // when Printing to file needs to not print the status column
+  if Params.RunBtn = BTN_FILE then
+    SkipColumn
+  else
+    SkipColumns(2);
 
   PutString(Mgr.Dissection^.dsReference, Rpt.Params.WrapNarration);
   PutString(Mgr.Dissection^.dsAccount, Rpt.Params.WrapNarration);
@@ -805,7 +815,11 @@ begin
   begin
     GSTTotal := pGSTTotal(GSTTotals.Items[GSTIndex])^;
 
-    SkipColumns(2);
+    // when Printing to file needs to not print the status column
+    if Params.RunBtn = BTN_FILE then
+      SkipColumn
+    else
+      SkipColumns(2);
 
     PutString(Mgr.Transaction^.txReference, Rpt.Params.WrapNarration);
     PutString(GSTTotal.gstControlAccount, Rpt.Params.WrapNarration);
