@@ -103,6 +103,8 @@ type
     FOldWebExportFormat: Byte;
     FOldID: string;
     FOldName: string;
+    FOldAccountingSystem : Byte;
+
 //DN Not required    BGLServerNoSignRequired : Boolean;
     procedure ShowBankLinkOnlineConfirmation;
     function VerifyForm : boolean;
@@ -448,6 +450,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.btnCancelClick(Sender: TObject);
 begin
+  if Assigned(MyClient) and IsMYOBLedger(MyClient.clFields.clCountry, MyClient.clFields.clAccounting_System_Used) then
+  begin
+    MyClient.clFields.clAccounting_System_Used := FOldAccountingSystem;
+    MyClient.clExtra.cemyMYOBClientIDSelected := FOldID;
+    MyClient.clExtra.cemyMYOBClientNameSelected := FOldName;
+  end;
+  
   OkPressed := false;
   close;
 end;
@@ -744,7 +753,6 @@ var
   SubIndex : integer;
   NewID : string;
   RefreshYourChart: Boolean;
-  OldAccountingSystem : Byte;
 begin
   LCLRec := nil;
 
@@ -752,12 +760,13 @@ begin
   with MyClient.clFields do
   begin
     Self.ClientHeight := gbxWebExport.Top + 96;
+    FOldAccountingSystem := clAccounting_System_Used;
     //*****************
     Self.ShowModal;
     //*****************
     if okPressed then
     begin
-      OldAccountingSystem := clAccounting_System_Used;
+
       with cmbSystem do begin
         clAccounting_System_Used := Integer( Items.Objects[ ItemIndex ] );
       end;
@@ -817,7 +826,7 @@ begin
                 if PracticeLedger.LoadingCOAForTheFirstTime then
                 begin
                   {No confirmation asked. Force refresh COA}
-                  S := 'This will automatically update your chart of accounts and GST setup.' +
+                  S := 'This will automatically update your chart of accounts and GST setup. ' +
                   'You will need to check some of your settings after this change. Do you want to continue?';
                   if (AskYesNo('Change accounting system', S, DLG_YES, 0 ) = DLG_YES ) then
                   begin
@@ -827,7 +836,7 @@ begin
                   end
                   else
                   begin
-                    clAccounting_System_Used := OldAccountingSystem;
+                    clAccounting_System_Used := FOldAccountingSystem;
                     MyClient.clExtra.cemyMYOBClientIDSelected := FOldID;
                     MyClient.clExtra.cemyMYOBClientNameSelected := FOldName;
 
@@ -967,6 +976,7 @@ begin
      end;
    end;
    result := okPressed;
+   FOldAccountingSystem := 0;;
 end;
 
 //------------------------------------------------------------------------------
@@ -1305,7 +1315,8 @@ begin
       //ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;
       SignInFrm.ShowFirmSelection := False;
-
+      //SignInFrm.ValidateClientAgainstFirm := True;
+      
       if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
       (not CurrUser.HasRestrictedAccess))) then
