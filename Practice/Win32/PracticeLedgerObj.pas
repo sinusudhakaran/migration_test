@@ -891,8 +891,8 @@ begin
         else
           sFinalMessage := 'Your chart of accounts has been updated.'#13#13;
 
-        sFinalMessage := sFinalMessage  + 'You need to check a couple of things:' + #13;
-        sFinalMessage := sFinalMessage  + '  1. Add missing control accounts in your GST setup'+ #13;
+        sFinalMessage := sFinalMessage  + 'You need to check a couple of things;' + #13;
+        sFinalMessage := sFinalMessage  + '  1. Add missing control accounts in your GST setup.'+ #13;
         sFinalMessage := sFinalMessage  + '  2. Update contra codes for your bank accounts.';
 
         HelpfulInfoMsg(sFinalMessage, 0 );
