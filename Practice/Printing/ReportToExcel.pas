@@ -36,7 +36,7 @@ type
       procedure RenderTotalLine(double: boolean); override;
       procedure NewDetailLine;                    override;
 
-      function GetlPageWidth() : integer;
+      function GetPageWidth() : integer;
    public
       constructor Create( aOwner : TObject; fName : string); override;
       destructor  Destroy; override;
@@ -170,7 +170,7 @@ begin
 end;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function TRenderToFileExcel.GetlPageWidth(): integer;
+function TRenderToFileExcel.GetPageWidth(): integer;
 begin
   if Report.UserReportSettings.s7Orientation = BK_PORTRAIT then
     Result := PAGE_WIDTH_PORTRAIT
@@ -303,7 +303,7 @@ begin
 
     //enter value
     ExcelRange.Value := text;
-    ExcelRange.ColumnWidth := trunc(GetlPageWidth() * (aCol.WidthPercent/100));
+    ExcelRange.ColumnWidth := trunc(GetPageWidth() * (aCol.WidthPercent/100));
   end;
   NewDetailLine;
 end;
