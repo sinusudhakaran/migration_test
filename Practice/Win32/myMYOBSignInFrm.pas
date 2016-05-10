@@ -50,16 +50,20 @@ type
     FForcedSignInSucceed : Boolean;
     FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
+    FValidateClientAgainstFirm : Boolean;
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
     procedure SaveUser;
     procedure UpdateControls;
+    procedure SaveMyMYOBUserDetails;
+    procedure ResetMyMYOBUserDetails;
   public
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
     property ShowFirmSelection : Boolean read FShowFirmSelection write FShowFirmSelection;
     property ShowClientSelection : Boolean read FShowClientSelection write FShowClientSelection;
+    property ValidateClientAgainstFirm : Boolean read FValidateClientAgainstFirm write FValidateClientAgainstFirm;
 
     property SelectedID: string read FSelectedID write FSelectedID;
     property SelectedName : string read FSelectedName write FSelectedName;
@@ -122,6 +126,10 @@ var
   OldCursor: TCursor;
   InvalidPass: boolean;
   BusinessFrm : TSelectBusinessForm;
+  ClientFirms : TFirms;
+  Firm : TFirm;
+  ClientHasAccessToFirm : Boolean;
+  i : Integer;
 begin
   if Not FIsSignIn then
   begin
@@ -170,16 +178,12 @@ begin
       lblForgotPassword.Visible := True;
       FIsSignIn := not FIsSignIn;
       UpdateControls;
-	  UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
-      UserINI_myMYOB_Random_Key := PracticeLedger.RandomKey;
-      UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
-      UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
-      WriteUsersINI(CurrUser.Code);
+      SaveMyMYOBUserDetails;
       btnSignIn.Default := False;
       if (FormShowType in [fsSignIn, fsFirmForceSignIn, fsSelectFirm]) and (ShowFirmSelection) then
       begin
         // Get Firms
-		if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
+        if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
@@ -198,6 +202,49 @@ begin
         btnOK.Visible := True;
         FForcedSignInSucceed := True;
         LoadFirms;
+      end;
+
+      if (FormShowType = fsSignIn) and (ValidateClientAgainstFirm) then
+      begin
+        ClientFirms := TFirms.Create;
+
+        if (not PracticeLedger.GetFirms(ClientFirms, sError)) then
+        begin
+          Screen.Cursor := OldCursor;
+          ShowConnectionError(sError);
+          ResetMyMYOBUserDetails;
+          ModalResult := mrCancel;
+        end;
+        ClientHasAccessToFirm := False;
+
+        for i := 0 to ClientFirms.Count - 1 do
+        begin
+          Firm := ClientFirms.GetItem(i);
+
+          if Assigned(Firm) then
+          begin
+            // Check for Practice Ledger
+            if Pos('PL',Firm.EligibleLicense) > 0 then
+            begin
+              if (Firm.ID = AdminSystem.fdFields.fdmyMYOBFirmID) then
+              begin
+                ClientHasAccessToFirm := True;
+                Break;
+              end;
+            end;
+          end;
+        end;
+        ClientFirms.Clear;
+        FreeAndNil(ClientFirms);
+        if not ClientHasAccessToFirm then
+        begin
+          Screen.Cursor := OldCursor;
+          sError := 'This login is a valid my.myob login, but it does not have access to the Ledger Firm. Please make sure you use a valid login';
+          ShowConnectionError(sError);
+          ResetMyMYOBUserDetails;
+          ModalResult := mrCancel;
+          Exit;
+        end;
       end;
 
       if (FormShowType = fsSignIn) and (ShowClientSelection) then
@@ -300,6 +347,7 @@ procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
 begin
   ShowClientSelection := False;
   ShowFirmSelection := False;
+  ValidateClientAgainstFirm := False;
 end;
 
 procedure TmyMYOBSignInForm.FormShow(Sender: TObject);
@@ -445,14 +493,13 @@ begin
 
   if PracticeLedger.Firms.Count = 0 then
     ModalResult := mrCancel;
-
   Row := 0;
   for i := 0 to PracticeLedger.Firms.Count - 1 do
   begin
     Firm := PracticeLedger.Firms.GetItem(i);
     if Assigned(Firm) then
     begin
-      // Check for Practice Ledger
+      // Check for Practice Ledger 
       if Pos('PL',Firm.EligibleLicense) > 0 then
       begin
         if (Firm.ID = FSelectedID) then
@@ -462,10 +509,28 @@ begin
       end;
     end;
   end;
-
   cmbSelectFirm.ItemIndex := Index;
   FOldFirmID := FSelectedID;
   cmbSelectFirm.SetFocus;
+end;
+
+procedure TmyMYOBSignInForm.ResetMyMYOBUserDetails;
+begin
+  UserINI_myMYOB_Access_Token := '';
+  UserINI_myMYOB_Random_Key := '';
+  UserINI_myMYOB_Refresh_Token := '';
+  UserINI_myMYOB_Expires_TokenAt := 0;
+
+  WriteUsersINI(CurrUser.Code);
+end;
+
+procedure TmyMYOBSignInForm.SaveMyMYOBUserDetails;
+begin
+  UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
+  UserINI_myMYOB_Random_Key := PracticeLedger.RandomKey;
+  UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
+  UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
+  WriteUsersINI(CurrUser.Code);
 end;
 
 procedure TmyMYOBSignInForm.SaveUser;
