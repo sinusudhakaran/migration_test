@@ -2011,7 +2011,7 @@ begin
          else begin
             //could be either a cheque or a withdrawl, if reference contains
             //a valid cheque no the set type of cheque
-            if ChequeNo > 0 then
+            if (fHasCheques) and (ChequeNo > 0) then
                pT^.txType := FindETInCombo(etChequeNZ)
             else
                pT^.txType := FindETInCombo(etWithdrawlNZ);
