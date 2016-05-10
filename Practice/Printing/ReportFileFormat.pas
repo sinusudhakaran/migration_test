@@ -74,12 +74,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TReportFileFormat.UseXLSXasExcelFormat: boolean;
-begin
-  Result := (fExcelVer >= 12); // Excel 2007 (v12.0) uses xlsx as the default
-end;
-
-//------------------------------------------------------------------------------
 function TReportFileFormat.GetExtension(aIndex: integer): string;
 begin
   case aIndex of
@@ -94,6 +88,12 @@ begin
     rfPDF        : Result := '.PDF';
     rfAcclipse   : Result := '.PDF';
   end;
+end;
+
+//------------------------------------------------------------------------------
+function TReportFileFormat.UseXLSXasExcelFormat: boolean;
+begin
+  Result := (fExcelVer >= 12); // Excel 2007 (v12.0) uses xlsx as the default
 end;
 
 //------------------------------------------------------------------------------
