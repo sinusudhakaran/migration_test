@@ -53,8 +53,8 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       ParentFont = False
     end
     object lblForgotPassword: TLabel
-      Left = 128
-      Top = 77
+      Left = 24
+      Top = 78
       Width = 131
       Height = 16
       Caption = 'Forgot your password?'
@@ -157,7 +157,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 0
     end
@@ -257,7 +257,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 0
+      ItemHeight = 16
       ParentFont = False
       TabOrder = 0
       OnChange = cmbSelectFirmChange

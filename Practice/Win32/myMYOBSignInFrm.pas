@@ -373,7 +373,7 @@ begin
       pnlLogin.Visible := True;
       Self.Height := 185;
       btnOK.Visible := False;
-      lblForgotPassword.Visible := False;
+      //lblForgotPassword.Visible := False;
     end;
     fsFirmForceSignIn :
     begin
@@ -595,7 +595,7 @@ begin
   edtPassword.Enabled := edtEmail.Enabled;
   lblEmail.Enabled := edtEmail.Enabled;
   lblPassword.Enabled := edtEmail.Enabled;
-  lblForgotPassword.Visible := (not FIsSignIn);
+  //lblForgotPassword.Visible := (not FIsSignIn);
 end;
 
 end.
