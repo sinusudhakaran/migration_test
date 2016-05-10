@@ -46,7 +46,7 @@ type
     FProcessingLogin : Boolean;
     FSelectedName: string;
     FSelectedID: string;
-    FOldFirmIndex : Integer;
+    FOldFirmID : string;
     FForcedSignInSucceed : Boolean;
     FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
@@ -170,7 +170,7 @@ begin
       lblForgotPassword.Visible := True;
       FIsSignIn := not FIsSignIn;
       UpdateControls;
-      UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
+	  UserINI_myMYOB_Access_Token := PracticeLedger.UnEncryptedToken;
       UserINI_myMYOB_Random_Key := PracticeLedger.RandomKey;
       UserINI_myMYOB_Refresh_Token := PracticeLedger.RefreshToken;
       UserINI_myMYOB_Expires_TokenAt := PracticeLedger.TokenExpiresAt;
@@ -179,14 +179,20 @@ begin
       if (FormShowType in [fsSignIn, fsFirmForceSignIn, fsSelectFirm]) and (ShowFirmSelection) then
       begin
         // Get Firms
-        FormShowType := fsSelectFirm;
-        if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
+		if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
         begin
           Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
           ModalResult := mrCancel;
         end;
         //pnlLogin.Visible := False;
+        if (FormShowType = fsFirmForceSignIn) then
+        begin
+          ModalResult := mrOk;
+          Exit;
+        end;
+
+        FormShowType := fsSelectFirm;
         pnlFirmSelection.Visible := True;
         Self.Height := 250;
         btnOK.Visible := True;
@@ -239,17 +245,24 @@ end;
 procedure TmyMYOBSignInForm.cmbSelectFirmChange(Sender: TObject);
 var
   Firm : TFirm;
+  iOldFirmIndex: Integer;
 begin
   if cmbSelectFirm.Items.Count <= 0 then
     Exit;
+    
+  iOldFirmIndex := -1;
 
-  if FOldFirmIndex = cmbSelectFirm.ItemIndex then
+  Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
+  iOldFirmIndex := cmbSelectFirm.ItemIndex;
+  
+  if not Assigned(Firm) then
+    Exit;
+
+  if FOldFirmID = Firm.ID then
     Exit;
 
   if FForcedSignInSucceed then
     Exit;
-    
-  Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
 
   if ((Trim(FSelectedID) <> '') and
       (Trim(FSelectedID) <> Firm.ID))
@@ -260,20 +273,27 @@ begin
                  'You need a MYOB sign in before changing the Firm.'#13#13+
                  'Do you want to continue?',DLG_YES, 0) = DLG_YES) then
     begin
-      cmbSelectFirm.ItemIndex := FOldFirmIndex;
+      cmbSelectFirm.ItemIndex := iOldFirmIndex;
       Exit;
     end;
-    cmbSelectFirm.ItemIndex := FOldFirmIndex;
+    SelectedID := Firm.ID;
+    SelectedName := Firm.Name;
+    cmbSelectFirm.Enabled := False;
     FormShowType := fsFirmForceSignIn;
+    FOldFirmID := SelectedID;
     FormShow(Self);
   end;
-
-  FOldFirmIndex := cmbSelectFirm.ItemIndex;
 end;
 
 procedure TmyMYOBSignInForm.cmbSelectFirmEnter(Sender: TObject);
+var
+  Firm : TFirm;
 begin
-  FOldFirmIndex := cmbSelectFirm.ItemIndex;
+  Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
+  if not Assigned(Firm) then
+    Exit;
+
+  FOldFirmID := Firm.ID;
 end;
 
 procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
@@ -313,6 +333,7 @@ begin
       pnlFirmSelection.Visible := True;
       Self.Height := 250;
       btnOK.Visible := False;
+      edtPassword.SetFocus;
     end;
     fsSelectFirm :
     begin
@@ -415,6 +436,7 @@ procedure TmyMYOBSignInForm.LoadFirms;
 var
   i, Index, Row: Integer;
   Firm : TFirm;
+  sSelectedID: string;
 begin
   cmbSelectFirm.Items.Clear;
   Index := 0;
@@ -423,13 +445,14 @@ begin
 
   if PracticeLedger.Firms.Count = 0 then
     ModalResult := mrCancel;
+
   Row := 0;
   for i := 0 to PracticeLedger.Firms.Count - 1 do
   begin
     Firm := PracticeLedger.Firms.GetItem(i);
     if Assigned(Firm) then
     begin
-      // Check for Practice Ledger 
+      // Check for Practice Ledger
       if Pos('PL',Firm.EligibleLicense) > 0 then
       begin
         if (Firm.ID = FSelectedID) then
@@ -439,8 +462,9 @@ begin
       end;
     end;
   end;
+
   cmbSelectFirm.ItemIndex := Index;
-  FOldFirmIndex := Index;
+  FOldFirmID := FSelectedID;
   cmbSelectFirm.SetFocus;
 end;
 
