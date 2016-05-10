@@ -92,6 +92,9 @@ type
 //------------------------------------------------------------------------------
 implementation
 
+uses
+  ReportFileFormat;
+
 const
   PAGE_TEXT_START = 200;
 

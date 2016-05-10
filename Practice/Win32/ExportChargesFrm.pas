@@ -253,6 +253,7 @@ uses
   StDate,
   EnterPwdDlg,
   glConst,
+  ReportFileFormat,
   bkProduct;
 
 {$R *.dfm}
@@ -525,7 +526,7 @@ begin
   s := 0;
   while (m < MAX_MONTHS_TO_SHOW) and (s < MAX_MONTHS_TO_SEARCH) do
   begin
-    Filename := DownloadWorkDir + FormatDateTime('mmmyyyy', D) + rfFileExtn[rfCSV];
+    Filename := DownloadWorkDir + FormatDateTime('mmmyyyy', D) + RptFileFormat.Extensions[rfCSV];
     if BKFileExists(Filename) then
     begin
       cmbMonths.Items.AddObject(FormatDateTime('mmmm', D) + ' ' + FormatDateTime('yy', D), TObject(s));
@@ -1103,7 +1104,7 @@ begin
   end;
 
   Month := Integer(cmbMonths.Items.Objects[cmbMonths.ItemIndex]);
-  Filename := DownloadWorkDir + FormatDateTime('mmmyyyy', IncMonth(Date, -Month)) + rfFileExtn[rfCSV];
+  Filename := DownloadWorkDir + FormatDateTime('mmmyyyy', IncMonth(Date, -Month)) + RptFileFormat.Extensions[rfCSV];
   Result := BKFileExists(Filename);
 end;
 
@@ -2602,3 +2603,4 @@ initialization
    DebugMe := DebugUnit( UnitName );
 
 end.
+

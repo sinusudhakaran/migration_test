@@ -242,6 +242,7 @@ uses
   SYusIO,
   BkConst,
   WinUtils,
+  ReportFileFormat,
   LogUtil;
 
 const
@@ -567,7 +568,7 @@ begin
 
   for FileIndex := 1 to 3 do
   begin
-    Filename := DataDir + 'Work\' + FormatDateTime('mmmyyyy', FirstDate) + rfFileExtn[rfCSV];
+    Filename := DataDir + 'Work\' + FormatDateTime('mmmyyyy', FirstDate) + RptFileFormat.Extensions[rfCSV];
     AssignFile(WorkFile, Filename);
     ReWrite(WorkFile);
 
@@ -1827,3 +1828,4 @@ begin
 end;
 
 end.
+

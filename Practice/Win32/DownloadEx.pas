@@ -59,8 +59,17 @@ uses
   syDLio,
   sySBio,
   SysUtils,
-  YesNoDlg, SYDEFS, BaseDisk, ECollect, dbList, SysObj32, SBAList32, dtList,
-  WinUtils, Windows, Merge32,
+  YesNoDlg,
+  SYDEFS,
+  BaseDisk,
+  ECollect,
+  dbList,
+  SysObj32,
+  SBAList32,
+  dtList,
+  WinUtils,
+  Windows,
+  Merge32,
   AuditMgr,
   clObj32,
   Files,
@@ -68,6 +77,7 @@ uses
   CsvParser,
   SecureOnlineAccounts,
   WarningMoreFrm,
+  ReportFileFormat,
   MainFrm;
 
 resourcestring
@@ -269,7 +279,7 @@ begin
      BD := IncDate(BD,0,1,0); // The month after..
   }
   while (BD < ED) do begin
-     Filename := DownloadWorkDir + Date2Str (BD,'nnnyyyy') + rfFileExtn[rfCSV];
+     Filename := DownloadWorkDir + Date2Str (BD,'nnnyyyy') + RptFileFormat.Extensions[rfCSV];
      if BKFileExists(Filename) then begin
         ProcessChargesFile(Filename, BD);
      end;
@@ -1256,3 +1266,4 @@ initialization
    //make sure unknown types match
    Assert( MoneyDef.Unknown = BaseDisk.Unknown, 'MoneyDef.Unknown = BaseDisk.Unknown');
 end.
+

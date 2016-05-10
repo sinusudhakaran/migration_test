@@ -99,6 +99,7 @@ uses
   ComboUtils,
   WebXOffice,
   glConst,
+  ReportFileFormat,
   strutils;
 
 //------------------------------------------------------------------------------
@@ -207,7 +208,7 @@ begin
                    (HideAcclipse or HideInOz or
                    (Assigned(MyClient) and (MyClient.clFields.clWeb_Export_Format <> wfWebX) and (MyClient.clFields.clWeb_Export_Format <> 255)) ) then
                  Continue;
-               Items.AddObject(rfNames[i], TObject(i));
+               Items.AddObject(RptFileFormat.Names[i], TObject(i));
              end;
            end;
 
@@ -246,7 +247,7 @@ begin
              (Assigned(MyClient) and (MyClient.clFields.clWeb_Export_Format <> wfWebX) and (MyClient.clFields.clWeb_Export_Format <> 255)) ) then
             Continue;
 
-          svdFilename.Filter := svdFileName.Filter + '|' + rfNames[i] + '|*' + rfFileExtn[i];
+          svdFilename.Filter := svdFileName.Filter + '|' + RptFileFormat.Names[i] + '|*' + RptFileFormat.Extensions[i];
         end;
 
         PreviousIndex := cmbFormat.ItemIndex;
@@ -272,7 +273,7 @@ begin
           FileFormat := GetSelectedIndex();
           // Add default filename back if the user hasnt specified a filename
           if ExtractFileExt(Filename) = '' then
-            Filename := 'Report' + rfFileExtn[FileFormat];
+            Filename := 'Report' + RptFileFormat.Extensions[FileFormat];
 
           Title := edtTitle.Text;
           Desc := edtDesc.Text;
@@ -611,7 +612,7 @@ begin
   if SelectedIndex > rfMax then
     Result := TCustomFileFormat(fCustomFileFormats.Items[SelectedIndex-1-rfMax]).Extension
   else
-    Result := rfFileExtn[SelectedIndex];
+    Result := RptFileFormat.Extensions[SelectedIndex];
 end;
 
 //------------------------------------------------------------------------------
@@ -633,3 +634,5 @@ begin
 end;
 
 end.
+
+

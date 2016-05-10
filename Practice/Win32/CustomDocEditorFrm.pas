@@ -197,7 +197,10 @@ uses
   Printers,
   RptParams,
   PrDiag,
-  PrntInfo, LogUtil, ReportTypes;
+  PrntInfo,
+  LogUtil,
+  ReportFileFormat,
+  ReportTypes;
 
 const
   CUSTOM_DOC_EXT = '.ftr';
@@ -580,7 +583,7 @@ begin
                      CreatePDF(TReportBase(LocalReport).GetRTF, LocalReport.RunFileName);
                      MsgStr := Format('Report saved to "%s".%s%sDo you want to view it now?',
                                       [LocalReport.RunFileName, #13#10, #13#10]);
-                     if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+                     if (AskYesNo(RptFileFormat.Names[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
                        ShellExecute(0, 'open', PChar(LocalReport.RunFileName), nil, nil, SW_SHOWMAXIMIZED);
                    end;
                  end;
@@ -1619,3 +1622,4 @@ finalization
   if Assigned(_CustomDocManager) then
     _CustomDocManager.Free;
 end.
+

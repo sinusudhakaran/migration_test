@@ -106,6 +106,7 @@ uses
   InstitutionCol,
   bkBranding,
   bkTemplates,
+  ReportFileFormat,
   bkProduct;
 
 const
@@ -990,7 +991,7 @@ begin
       MsgStr := Format('Report saved to "%s".%s%sDo you want to view it now?',
                     [ReportFile, #13#10, #13#10]); // Need to pass the path of the PDF to this function
 
-      if (AskYesNo(rfNames[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
+      if (AskYesNo(RptFileFormat.Names[rfPDF], MsgStr, DLG_YES, 0) = DLG_YES) then
         ShellExecute(0, 'open', PChar(ReportFile), nil, nil, SW_SHOWMAXIMIZED);
     except
       HelpfulErrorMsg('Error Saving ' + TProduct.BrandName + ' Customer Authority Form to - ' + ReportFile, 0);

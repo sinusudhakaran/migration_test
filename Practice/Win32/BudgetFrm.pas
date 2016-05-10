@@ -344,6 +344,7 @@ uses
    BudgetAutoGST,
    CodingFrm,
    JournalDlg,
+   ReportFileFormat,
    glConst;
 
 const
@@ -3184,7 +3185,7 @@ begin
 
           tblBudget.AllowRedraw := false;
           try
-            if (AskYesNo(rfNames[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
+            if (AskYesNo(RptFileFormat.Names[rfCSV], MsgStr, DLG_YES, 0) = DLG_YES) then
               ShellExecute(0, 'open', PChar(BudgetFilePath), nil, nil, SW_SHOWMAXIMIZED);
           finally
             tblBudget.AllowRedraw := true;
@@ -3871,3 +3872,4 @@ initialization
    DebugMe := DebugUnit(UnitName);
 
 end.
+

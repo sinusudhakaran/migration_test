@@ -382,6 +382,7 @@ uses
   CustomFileFormats,
   AttachReportToEmailDlg,
   strutils,
+  ReportFileFormat,
   MailFrm;
 
 const
@@ -553,15 +554,15 @@ var
      begin
        FileFormat := Params.GetBatchInteger('_FileType',rfExcel);
        if Params.RptBatch.RunFileLocation = '' then
-         FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat]
+         FileName := UserDir + FUserReportSettings.s7Report_Name + RptFileFormat.Extensions[FileFormat]
        else
-         FileName := Params.RptBatch.RunFileLocation + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+         FileName := Params.RptBatch.RunFileLocation + FUserReportSettings.s7Report_Name + RptFileFormat.Extensions[FileFormat];
      end
      else
      begin
        //Set default filename
        FileFormat := rfExcel;
-       FileName := UserDir + FUserReportSettings.s7Report_Name+ rfFileExtn[ FileFormat];
+       FileName := UserDir + FUserReportSettings.s7Report_Name + RptFileFormat.Extensions[FileFormat];
      end;
 
      if assigned(Params) then
@@ -617,7 +618,7 @@ var
   begin
     // User cancel?
     iReportFormat := rfPDF;
-    sReportName := FUserReportSettings.s7Report_Name + rfFileExtn[iReportFormat];
+    sReportName := FUserReportSettings.s7Report_Name + RptFileFormat.Extensions[iReportFormat];
     if not ShowAttachReportToEmailFrm(Application.MainForm, FileFormats,
       sReportName, iReportFormat) then
     begin
@@ -723,12 +724,12 @@ begin
                  FileFormat := FFileDest;
                  if not FileIsSet then
                  begin
-                   Filename := UserDir + FUserReportSettings.s7Report_Name + rfFileExtn[ FileFormat];
+                   Filename := UserDir + FUserReportSettings.s7Report_Name + RptFileFormat.Extensions[FileFormat];
                    // generate unique filename
                    i := 1;
                    while BKFileExists(FileName) do
                    begin
-                    FileName := UserDir + FUserReportSettings.s7Report_Name + IntToStr(i) + rfFileExtn[ FileFormat];
+                    FileName := UserDir + FUserReportSettings.s7Report_Name + IntToStr(i) + RptFileFormat.Extensions[FileFormat];
                     Inc(i);
                    end;
                  end
@@ -736,7 +737,7 @@ begin
                    FileName := ReportFile;
                end
                else
-                 FileName := UserDir + FUserReportSettings.s7Report_Name + rfFileExtn[ rfCSV];
+                 FileName := UserDir + FUserReportSettings.s7Report_Name + RptFileFormat.Extensions[rfCSV];
 
                DestinationPreChosen := FFileDest <> -1;
                //Ask for format and filename
@@ -825,7 +826,7 @@ begin
                         incUsage(params.UsageTitle(rdFile));
 
                      end else
-                        incUsage(Self.ReportTitle + '('+rfNames[FileFormat]+ ' File)');
+                       incUsage(Self.ReportTitle + '(' + RptFileFormat.Names[FileFormat] + ' File)');
 
 
                      //special case for excel. the render engine must be freed
@@ -846,7 +847,7 @@ begin
                                Filename := GetCurrentDir + '\' + Filename;
                             end;
                             FReportFile := Filename;
-                            if (AskToOpen) and (AskYesNo(rfNames[FileFormat], 'Report saved to "'+ FileName + '".' +
+                            if (AskToOpen) and (AskYesNo(RptFileFormat.Names[FileFormat], 'Report saved to "'+ FileName + '".' +
                                 #13#10 + #13#10 +
                                 'Do you want to view it now?', DLG_YES, 0) = DLG_YES) then
                             begin

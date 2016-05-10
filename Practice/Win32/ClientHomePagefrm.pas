@@ -263,16 +263,36 @@ uses
   ModalProcessorDlg,
   ClientReportScheduleDlg,
   Extract32,
-  Globals,SYDEFS, ToDoListUnit,StDate,Math,MainFrm, BKdateUtils, UpdateMF,baObj32,
-  ApplicationUtils, AutoSaveUtils, rptHome, ClientNotesFrm, Files, ClientManagerFrm, BudgetFrm,
-  bkXPThemes, ShellAPI, SimpleUIHomepagefrm,
-  ExchangeRateList, frmExchangeRates, GSTUTIL32, Dialogs,
+  Globals,
+  SYDEFS,
+  ToDoListUnit,
+  StDate,
+  Math,
+  MainFrm,
+  BKdateUtils,
+  UpdateMF,
+  baObj32,
+  ApplicationUtils,
+  AutoSaveUtils,
+  rptHome,
+  ClientNotesFrm,
+  Files,
+  ClientManagerFrm,
+  BudgetFrm,
+  bkXPThemes,
+  ShellAPI,
+  SimpleUIHomepagefrm,
+  ExchangeRateList,
+  frmExchangeRates,
+  GSTUTIL32,
+  Dialogs,
   ForexHelpers,
   YesNoDlg,
   ExchangeGainLossWiz,
   LockUtils,
   JournalDlg,
   bkProduct,
+  ReportFileFormat,
   RecommendedMems;
 {$R *.dfm}
 
@@ -1164,7 +1184,7 @@ begin //called when the client details change
             S := 'Send to ' + bkBranding.ProductOnlineName
          else if clEmail_Scheduled_Reports then begin
             if clEmail_Report_Format in [rfMin.. rfMax] then
-               S := 'Email ' + rfNames[clEmail_Report_Format]
+               S := 'Email ' + RptFileFormat.Names[clEmail_Report_Format]
             else S := 'Email'
          end else if clWebX_Export_Scheduled_Reports then
             S := 'Web File'
@@ -2156,5 +2176,6 @@ initialization
 finalization
   FreeAndNil(FClientHomePage);
 end.
+
 
 

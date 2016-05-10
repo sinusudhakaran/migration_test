@@ -156,8 +156,11 @@ uses
   BAObj32,
   StDate,
   ReportDefs,
-  CustomDocEditorFrm, UBatchBase,
-  bkBranding, bkProduct;
+  CustomDocEditorFrm,
+  UBatchBase,
+  bkBranding,
+  ReportFileFormat,
+  bkProduct;
 
 {$R *.DFM}
 
@@ -662,10 +665,10 @@ begin
   for i := roMin to roMax do cmbPeriod.items.add(roNames[i]);
 
   cmbEmailFormat.Clear;
-  cmbEmailFormat.items.AddObject( rfNames[ rfCSV], TObject( rfCSV));
-  cmbEmailFormat.items.AddObject( rfNames[ rfFixedWidth], TObject( rfFixedWidth));
-  cmbEmailFormat.items.AddObject( rfNames[ rfPDF], TObject( rfPDF));
-  cmbEmailFormat.items.AddObject( rfNames[ rfExcel], TObject( rfExcel));
+  cmbEmailFormat.items.AddObject( RptFileFormat.Names[ rfCSV], TObject( rfCSV));
+  cmbEmailFormat.items.AddObject( RptFileFormat.Names[ rfFixedWidth], TObject( rfFixedWidth));
+  cmbEmailFormat.items.AddObject( RptFileFormat.Names[ rfPDF], TObject( rfPDF));
+  cmbEmailFormat.items.AddObject( RptFileFormat.Names[ rfExcel], TObject( rfExcel));
 
   cmbBusinessProducts.Clear;
   for i := bpMin to bpMax do
@@ -1137,3 +1140,4 @@ begin
 end;
 
 end.
+

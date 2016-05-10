@@ -46,6 +46,7 @@ implementation
 
 uses
   bkXPThemes,
+  ReportFileFormat,
   Globals,
   ImagesFrm,
   ErrorMoreFrm,
@@ -125,7 +126,7 @@ begin
     if (FileFormats = []) or (TFileFormats(i) in FileFormats) then
     begin
       // Add item and actual file format
-      cmbFormat.AddItem(rfNames[i], TObject(i));
+      cmbFormat.AddItem(RptFileFormat.Names[i], TObject(i));
 
       // Default entry?
       if (i = aDefault) then
@@ -165,7 +166,7 @@ begin
   ASSERT((rfMin <= rfIndex) and (rfIndex <= rfMax));
 
   sOldExtn := ExtractFileExt(edtReportName.Text);
-  sNewExtn := rfFileExtn[rfIndex];
+  sNewExtn := RptFileFormat.Extensions[rfIndex];
 
   edtReportName.Text := StringReplace(edtReportName.Text, sOldExtn, sNewExtn, []);
 end;

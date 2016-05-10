@@ -1196,19 +1196,6 @@ CONST
    rfAcclipse       = 4;  rfMax = 4;
    {rfRTF            = 5; rfMax = 5;}
 
-   rfNames : array [ rfMin.. rfMax] of string[30] =
-      (
-       'Comma Separated (CSV)',
-       'Fixed Width Text (TXT)',
-       'Microsoft Excel (XLS)',
-       'Adobe Acrobat Format (PDF)',
-       'CCH Web Manager'{,
-       'Rich Text'}
-       );
-
-   rfFileExtn : array [ rfMin..rfMax] of string[4] =
-      ( '.CSV','.TXT' , '.XLS', '.PDF', '.PDF'{, '.RTF'});
-
    bpOFXV1 = 0; bpMin = 0;
    bpOFXV2 = 1;
    bpQIF = 2; bpMax = 2;

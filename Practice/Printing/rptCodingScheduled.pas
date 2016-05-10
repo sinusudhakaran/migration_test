@@ -98,11 +98,13 @@ uses
   infoMoreFrm,
   AutoCode32,
   NewReportUtils,
-  sydefs, ClientUtils,
+  sydefs,
+  ClientUtils,
   ToDoHandler,
   Admin32,
   RenderEngineObj,
   RptCoding,
+  ReportFileFormat,
   bkProduct;
 
 const
