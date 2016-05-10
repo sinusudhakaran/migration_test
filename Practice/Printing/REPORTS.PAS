@@ -118,7 +118,6 @@ uses
    AuditReportOptionsDlg,
    Files,
    RptContractorPayee,
-   ReportFileFormat,
    RptJournalList;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

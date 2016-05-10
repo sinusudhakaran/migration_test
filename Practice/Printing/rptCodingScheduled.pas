@@ -104,7 +104,6 @@ uses
   Admin32,
   RenderEngineObj,
   RptCoding,
-  ReportFileFormat,
   bkProduct;
 
 const

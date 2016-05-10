@@ -58,7 +58,6 @@ uses
   InstitutionCol,
   StrUtils,
   ExtractCommon,
-  ReportFileFormat,
   bkDateUtils;
 
 //------------------------------------------------------------------------------

@@ -134,7 +134,6 @@ uses
    SystemMemorisationList,
    SYDEFS,
    ForexHelpers,
-   ReportFileFormat,
    SimpleFundX;
 
 const
