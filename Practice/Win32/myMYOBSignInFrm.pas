@@ -239,7 +239,7 @@ begin
         if not ClientHasAccessToFirm then
         begin
           Screen.Cursor := OldCursor;
-          sError := 'This login is a valid my.myob login, but it does not have access to the Ledger Firm. Please make sure you use a valid login';
+          sError := 'Your MYOB Credential does not have access to the Firm. Please log in with a different MYOB Credential, or contact support.';
           ShowConnectionError(sError);
           ResetMyMYOBUserDetails;
           ModalResult := mrCancel;
