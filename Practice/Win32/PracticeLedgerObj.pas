@@ -518,7 +518,7 @@ begin
           begin
             if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
             begin
-              HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'".' + 
+              HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' + 
                  'You need to update these codes before you can export data.',  0 );
               Exit;
             end;
