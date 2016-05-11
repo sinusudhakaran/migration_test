@@ -658,6 +658,12 @@ begin
     Result := False;
   end;
 
+  //No validation required for AMEX
+  if ((cmbInstitution.Text <> '') and
+     (Assigned(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]))) and
+    (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX')) then
+    Exit;
+
   // Institution Other Name
   if Result and (fInstitutionType = inOther) and (edtInstitutionName.text = '') then
   begin
@@ -1555,29 +1561,28 @@ begin
   MailReplaceStrings.Clear;
   LoadMailTemplateFromResource := False;
   FMailSubject := '';
-  if (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX') then
-  begin
-    FMailSubject := 'Bank feed for American Express bank account/s';
-    //Link := '"https://qwww316.americanexpress.com/iFormsSecure/auth_reg/en_AU/iforms.do?cuid=RatingsAndReview_en_AU&evtsrc=link&evttype=0&cpid=email009%20&myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
-    Link := 'http://myob.com.au/AMEX?myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
 
-    LoadMailTemplateFromResource := True;
-    MailReplaceStrings.Add('AMEXBANKLINKSITE='+Link);
-    MailReplaceStrings.Add('#CODE='+AdminSystem.fdFields.fdBankLink_Code);
+  RunExitEvents;
+
+  if ValidateForm then
+  begin
+    if ((cmbInstitution.Text <> '') and
+       (Assigned(TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]))) and
+      (TInstitutionItem(cmbInstitution.Items.Objects[cmbInstitution.ItemIndex]).Code = 'AMEX')) then
+    begin
+      FMailSubject := 'Bank feed for American Express bank account/s';
+      //Link := '"https://qwww316.americanexpress.com/iFormsSecure/auth_reg/en_AU/iforms.do?cuid=RatingsAndReview_en_AU&evtsrc=link&evttype=0&cpid=email009%20&myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
+      Link := 'http://myob.com.au/AMEX?myobid='+AdminSystem.fdFields.fdBankLink_Code+ '&myobproduct=blp"';
+
+      LoadMailTemplateFromResource := True;
+      MailReplaceStrings.Add('AMEXBANKLINKSITE='+Link);
+      MailReplaceStrings.Add('#CODE='+AdminSystem.fdFields.fdBankLink_Code);
+    end
+    else
+      memAMEXEmailMessage.Clear;
 
     FButton := BTN_EMAIL;
     ModalResult := mrOk;
-  end
-  else
-  begin
-    memAMEXEmailMessage.Clear;
-    RunExitEvents;
-
-    if ValidateForm then
-    begin
-      FButton := BTN_EMAIL;
-      ModalResult := mrOk;
-    end;
   end;
 end;
 
