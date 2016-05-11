@@ -75,7 +75,8 @@ uses
   SupervisorX, DesktopSuperX, ProSuperX, SageHandisoftSuperX,
   RewardSuperXmlX, ClassSuperXmlX,
   MYOBAccRightX,
-  PracticeLedgerObj;
+  PracticeLedgerObj,
+  BKDefs;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -117,6 +118,8 @@ var
    PeriodIndex: Integer;
    PeriodList: TDateList;
    BankIndex: Integer;
+
+   ContraCodeInChart : pAccount_Rec;
 
    // Extracts the folder part of the path.
    // In case you're wondering why this is necessary, simply using ExtractFileDir on a directory
@@ -175,6 +178,17 @@ begin
                   if ContraDlg.GetContra( 'Enter Bank Account Contra Code', Msg, Contra_Code ) then
                      baContra_Account_Code := Contra_Code;
                end;
+
+               ContraCodeInChart := MyClient.clChart.FindCode( baContra_Account_Code );
+               if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code
+                      ContraCodeInChart.chInactive then // Contra code is not active
+               begin
+                 Msg := format( 'Your contra code for Bank Account number %s is ' +
+                                'not valid. Please update under Other Functions ' +
+                                '| Bank Accounts before exporting', [ baBank_Account_Number ] );
+                 HelpfulErrorMsg( Msg, 0, true );
+               end;
+
             end;
          end;
       end; { Contra Required }
@@ -187,7 +201,7 @@ begin
         // The default file name for BGL 360 is based off the current date,
         // so it shouldn't be saved as the path for next time
         clSave_Client_Files_To := ExtractFileDir(Path);
-      
+
       Try
          Case clCountry of
             whNewZealand :
