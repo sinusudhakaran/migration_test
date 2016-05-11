@@ -207,6 +207,7 @@ Var
    NewAccount : pAccount_Rec;
    i          : Byte;
    TemplateFileName : string;
+   TemplateError : TTemplateError;
 Begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -221,7 +222,7 @@ Begin
                  and not (MyClient.GSTHasBeenSetup) then begin
                     TemplateFileName := GLOBALS.TemplateDir + 'QUICKBKS.TPM';
                     If BKFileExists( TemplateFileName ) then
-                       Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+                       Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
                  end;
 
    whUK: colTax := 0;

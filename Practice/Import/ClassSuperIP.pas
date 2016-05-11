@@ -120,7 +120,7 @@ var
   CNode: IXMLNode;
   I: Integer;
   NewChart: TChart;
-
+  TemplateError : TTemplateError;
 
   procedure AddAccount(FromNode: IXMLNode);
   var NewAccount : pAccount_Rec;
@@ -176,7 +176,7 @@ begin
       if (not MyClient.GSTHasBeenSetup) then begin
          Chartfile := GLOBALS.TemplateDir + 'CLASS.TPM';
          if BKFileExists(Chartfile)  then
-            Templates.LoadTemplate(Chartfile, tpl_DontCreateChart);
+            Template.LoadTemplate(Chartfile, tpl_DontCreateChart, TemplateError);
       end;
 
       lXMLDoc := GetDataFile(Chartfile,ChartFilename);

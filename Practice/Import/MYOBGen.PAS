@@ -81,6 +81,7 @@ var
   CodeRec: TStringList;
   TemplateFileName: string;
   FirstLine : Boolean;
+  TemplateError : TTemplateError;
 begin
   OK := False;
 
@@ -114,7 +115,7 @@ begin
       begin
         TemplateFileName := GLOBALS.TemplateDir + 'MYOBACC.TPM';
         if BKFileExists(TemplateFileName) then
-          LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+          Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
       end;
     end;
 

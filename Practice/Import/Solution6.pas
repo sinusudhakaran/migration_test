@@ -182,6 +182,7 @@ var
   Fields            : Array[ 1..3 ] of ShortString;
   i                 : integer;
   HasDuplicates     : boolean;
+  TemplateError : TTemplateError;
 begin
   COM_FILE := EXECDIR + S6COM_FILE;
 
@@ -210,7 +211,8 @@ begin
       If ( MyClient.clFields.clCountry = whAustralia ) and GSTCodesInChart( TempFileName ) and not ( MyClient.GSTHasBeenSetup ) then
       Begin
          TemplateFileName := GLOBALS.TemplateDir + 'SOL6.TPM';
-         If BKFileExists( TemplateFileName ) then Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+         If BKFileExists( TemplateFileName ) then
+           Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
       end;
 
       {have a file to import - import into a new chart object}
@@ -427,6 +429,7 @@ var
   XmlChart : string;
   HasDuplicates : boolean;
   TemplateFilename : string;
+  TemplateError : TTemplateError;
 begin
   try
     //get the chart in xml format from bclink
@@ -443,7 +446,7 @@ begin
     begin
        TemplateFileName := GLOBALS.TemplateDir + 'SOL6.TPM';
        if BKFileExists( TemplateFileName ) then
-         Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+         Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
     end;
   except
     on E : ERefreshAbandoned do

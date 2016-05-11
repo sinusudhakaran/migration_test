@@ -4,7 +4,7 @@ interface
 
 uses CashbookMigration, sysUtils, CashbookMigrationRestData, uLkJSON,
     chList32, Classes, bkdefs, MoneyDef, TransactionUtils, bkchio, baObj32,
-    bkutil32, bkConst;
+    bkutil32, bkConst, Templates;
 
 type
   TTransType = (ttbank, ttJournals);
@@ -64,7 +64,7 @@ type
 
     function GetTaxCodeSplitUp(APLAcctType,APLTaxCode:string):Byte;
     function GetTaxCodeMerged(aGST_Class: byte): string;
-    function LoadPLGSTTemplate:Boolean;
+    function LoadPLGSTTemplate(var aTemplateError : TTemplateError):Boolean;
   end;
 
   TPracticeLedgerThread = class(TThread)
@@ -117,7 +117,7 @@ uses Globals, bkContactInformation, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
       ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls,
-      INISettings, Templates, GSTUTIL32;
+      INISettings, GSTUTIL32;
 
 function CheckFormyMYOBTokens(aUseRefreshToken:Boolean=True):Boolean;
 var
@@ -599,6 +599,7 @@ var
   SupportNumber: string;
   UnknownGSTCodesFound : Boolean;
   SignInFrm : TmyMYOBSignInForm;
+  TemplateError : TTemplateError;
 const
   TheMethod = 'FetchCOAFromAPI';
 begin
@@ -657,10 +658,22 @@ begin
 
     {Load GST Setup only for the first time client set up business, do this ONLY for Australain clients at the moment}
     if LoadingCOAForTheFirstTime  and (AdminSystem.fdFields.fdCountry = whAustralia) then
-      if not LoadPLGSTTemplate then
-        Exit;
+    begin
+      if not LoadPLGSTTemplate(TemplateError) then
+      begin
+        if TemplateError = trtDoesNotExist then
+          sError := 'MYOBLedger.tpm does not exist'
+        else
+          sError := 'MYOBLedger.tpm has invalid data';
 
-    UnknownGSTCodesFound:= ProcessChartOfAccounts(NewChart ,Accounts);
+        SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
+        HelpfulErrorMsg(sError + ', please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+                        0, false);
+        Exit;
+      end;
+    end;
+
+    UnknownGSTCodesFound := ProcessChartOfAccounts(NewChart, Accounts);
 
     if UnknownGSTCodesFound then
       LogUtil.LogMsg( lmError, UnitName, TheMethod + ' : The new chart file contained unknown GST Indicators' );
@@ -740,7 +753,7 @@ begin
   Result := TaxCodeMerge;
 end;
 
-function TPracticeLedger.LoadPLGSTTemplate: Boolean;
+function TPracticeLedger.LoadPLGSTTemplate(var aTemplateError : TTemplateError): Boolean;
 var
   TemplateFileName : string;
 begin
@@ -748,13 +761,10 @@ begin
 
   TemplateFileName := IncludeTrailingPathDelimiter(GLOBALS.TemplateDir) + 'MYOBLedger.TPM';
 
-  if not FileExists(TemplateFileName) then
-    Exit;
-
-  if LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate ) then
+  if Template.LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate, aTemplateError) then
   begin
     //HelpfulInfoMsg('MYOB Ledger GST template loaded from '+TemplateFileName, 0 );
-    LogUtil.LogMsg(lmInfo, UnitName, 'MYOB Ledger GST template loaded automatically from '+TemplateFileName);
+    LogUtil.LogMsg(lmInfo, UnitName, 'MYOB Ledger GST template loaded automatically from ' + TemplateFileName);
     //now reload the gst defaults for the client
     GSTUTIL32.ApplyDefaultGST(false);
     Result := True;

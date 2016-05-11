@@ -84,6 +84,7 @@ var
    OK                : Boolean;
    TemplateFileName  : ShortString;
    UnknownGSTCodesFound : Boolean;
+   TemplateError     : TTemplateError;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
    Result := False;
@@ -122,7 +123,7 @@ begin
         TemplateFileName := GLOBALS.TemplateDir + ATemplate;
         // make sure chart is not a directory!
         If BKFileExists( TemplateFileName ) and (not DirectoryExists(TemplateFileName)) then
-          Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+          Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
      end;
 
      try

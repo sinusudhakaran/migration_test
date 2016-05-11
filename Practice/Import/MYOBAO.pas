@@ -328,6 +328,7 @@ var
   GSTCodesInChart : boolean;
   i : integer;
   TemplateFileName : string;
+  TemplateError : TTemplateError;
 begin
    //determine if gst codes in chart
    GSTCodesInChart := false;
@@ -339,7 +340,8 @@ begin
       and not( MyClient.GSTHasBeenSetup ) then
    begin
       TemplateFileName := GLOBALS.TemplateDir + 'MYOBAO.TPM';
-      If BKFileExists( TemplateFileName ) then Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+      If BKFileExists( TemplateFileName ) then
+        Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
    end;
 end;
 

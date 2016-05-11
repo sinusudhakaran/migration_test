@@ -37,6 +37,7 @@ var
    OK                : Boolean;
    FieldList: TStringList;
    TemplateFileName: string;
+   TemplateError : TTemplateError;
 begin
    if DEBUG_ME then LogUtil.LogMsg(lmDebug, UNIT_NAME, ThisMethodName + ' Begins' );
    Result := False;
@@ -66,7 +67,7 @@ begin
         TemplateFileName := GLOBALS.TemplateDir + 'GENERIC.TPM';
         // make sure chart is not a directory!
         if BKFileExists(TemplateFileName) and (not DirectoryExists(TemplateFileName)) then
-          Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+          Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
      end;
 
      FieldList := TStringList.Create;

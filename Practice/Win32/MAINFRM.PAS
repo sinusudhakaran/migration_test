@@ -3926,7 +3926,7 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.DoLoadBasTemplate;
 begin
-   Templates.LoadFromTemplate;
+   Template.LoadFromTemplate;
    SendCmdToAllCodingWindows( ecRefreshTable);
 end;
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -5250,7 +5250,7 @@ begin
         mf_mcMaintainBankAccounts : DoMaintainBankAccounts;
         mf_mcMaintainMems : MaintainMems;
         mf_mcLoadBasTemplate : DoLoadBasTemplate;
-        mf_mcSaveBasTemplate : Templates.SaveAsTemplate;
+        mf_mcSaveBasTemplate : Template.SaveAsTemplate;
         mf_mcRefreshChart : DoRefreshChart;
         mf_mcExtract : DoExtract;
         mf_mcExportBNotesToFile : DoBNotesExport( ecDestFile);

@@ -81,6 +81,7 @@ var
   TemplateFileName : String;
   ChartFilename    : string;
   aMsg : string;
+  TemplateError : TTemplateError;
 begin
   ChartFilename := MyClient.clFields.clLoad_Client_Files_From;
 
@@ -117,7 +118,7 @@ begin
       begin
         TemplateFileName := GLOBALS.TemplateDir + 'APS.TPM';
         if BKFileExists(TemplateFileName) then
-          Templates.LoadTemplate(TemplateFilename, tpl_DontCreateChart);
+          Template.LoadTemplate(TemplateFilename, tpl_DontCreateChart, TemplateError);
       end;
 
       NewChart := TChart.Create(MyClient.ClientAuditMgr);
@@ -227,6 +228,7 @@ var
    TemplateFileName  : String;
    ChartFilename     : string;
    ChartFilePath     : string;
+   TemplateError     : TTemplateError;
 begin
   OK := False;
 
@@ -259,7 +261,8 @@ begin
      If ( clCountry = whAustralia ) and GSTCodesInChart( ChartFileName ) and ( not MyClient.GSTHasBeenSetup ) then
      Begin
         TemplateFileName := GLOBALS.TemplateDir + 'APS.TPM';
-        If BKFileExists( TemplateFileName ) then Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+        If BKFileExists( TemplateFileName ) then
+          Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
      end;
 
      try

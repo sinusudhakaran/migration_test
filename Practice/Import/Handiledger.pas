@@ -116,6 +116,7 @@ var
    ThisLine          : ShortString;
    NextLine          : ShortString;
    TemplateFileName  : ShortString;
+   TemplateError     : TTemplateError;
 begin
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
@@ -159,8 +160,9 @@ begin
 
         If GSTCodesInChart( ChartFileName ) and not ( MyClient.GSTHasBeenSetup ) then
         Begin
-           TemplateFileName := GLOBALS.TemplateDir + 'HL.TPM';
-           If BKFileExists( TemplateFileName ) then Templates.LoadTemplate( TemplateFilename, tpl_DontCreateChart );
+          TemplateFileName := GLOBALS.TemplateDir + 'HL.TPM';
+          If BKFileExists( TemplateFileName ) then
+            Template.LoadTemplate( TemplateFilename, tpl_DontCreateChart, TemplateError );
         end;
      
         AssignFile( F,ChartFileName );

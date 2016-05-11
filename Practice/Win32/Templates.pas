@@ -1,411 +1,754 @@
 unit Templates;
-
-(*
-   A template file is a text file which contains all the GST & BAS setup and
-   chart information for a client. We use some standard template files to create
-   default GST tables when we import a client's chart.
-*)
-{$I COMPILER}
-//{$I DEBUGME}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+//
+//   A template file is a text file which contains all the GST & BAS setup and
+//   chart information for a client. We use some standard template files to create
+//   default GST tables when we import a client's chart.
+//
+//------------------------------------------------------------------------------
 interface
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+uses
+  BKDefs,
+  chList32,
+  Classes;
 
 Type
-   tpl_CreateChartType = ( tpl_CreateChartFromTemplate, tpl_DontCreateChart );
-  
+  tpl_CreateChartType = ( tpl_CreateChartFromTemplate, tpl_DontCreateChart );
+  TTemplateError = (trtDoesNotExist, trtInvalid);
 
-Procedure SaveAsTemplate;
+  //----------------------------------------------------------------------------
+  TTemplates = class
+    private
+      function BooleanToYN(aValue : boolean) : string;
+    protected
+      // Save Template
+      function GetTemplateFileToSave(var aTemplateFileName: string) : boolean;
+      procedure WriteHeaderSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+      procedure WriteTaxStartsSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+      procedure WriteTaxTableSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+      procedure WriteChartSection(const aTemplateFile : TextFile; const aCLChart : TChart);
+      procedure WriteBASRulesSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
 
-Procedure LoadFromTemplate;
+      function GetFieldFromCurrentLine(const aCurrentLine : ShortString; aFieldNum : Integer ): ShortString;
+      function GetTemplateFileToLoad(var aTemplateFileName: string) : boolean;
+      procedure ClearGSTFields(var aCLFields : TClient_Rec);
+      procedure ClearBASFields(var aCLFields : TClient_Rec);
+      function ReadHeaderSection(const aTemplateFile : TextFile;
+                                 var aCurrentLine : ShortString;
+                                 var aMultiplyBy : Integer) : boolean;
+      function ReadTaxStartSection(const aTemplateFile : TextFile;
+                                   var aCurrentLine : ShortString;
+                                   var aCLFields : TClient_Rec) : boolean;
+      function ReadTaxTableSection(const aTemplateFile : TextFile;
+                                   var aCurrentLine : ShortString;
+                                   var aCLFields : TClient_Rec;
+                                   aMultiplyBy : Integer) : boolean;
+      function ReadChartSection(const aTemplateFile : TextFile;
+                                var aCurrentLine : ShortString;
+                                var aCLChart : TChart;
+                                aCreateChart : boolean) : boolean;
+      function ReadBASRulesSection(const aTemplateFile : TextFile;
+                                   var aCurrentLine : ShortString;
+                                   var aCLFields : TClient_Rec;
+                                   aMultiplyBy : Integer) : boolean;
+    public
+      procedure SaveAsTemplate;
 
-Function  LoadTemplate( Const TemplateFilename : String;
-                        Const CreateChartIfFound : tpl_CreateChartType ): Boolean; 
+      Procedure LoadFromTemplate;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      function  LoadTemplate(const aTemplateFilename : String;
+                             const aCreateChartifFound : tpl_CreateChartType;
+                             var aTemplateErrorType : TTemplateError ): Boolean;
+  end;
+
+  function Template : TTemplates;
+
+//------------------------------------------------------------------------------
 implementation
+
 uses
-   Globals,
-   glConst,
-   bkDateUtils,
-   StDate,
-   BASUtils,
-   SysUtils,
-   InfoMoreFrm,
-   StStrS,
-   Dialogs,
-   BKDefs,
-   BKConst,
-   BKchIO,
-   GenUtils,
-   GSTUtil32,
-   WinUtils,
-   YesNoDlg;
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  Globals,
+  glconst,
+  bkDateUtils,
+  StDate,
+  BASUtils,
+  SysUtils,
+  InfoMoreFrm,
+  StStrS,
+  Dialogs,
+  BKconst,
+  BKchIO,
+  GenUtils,
+  GSTUtil32,
+  WinUtils,
+  LogUtil,
+  YesNoDlg;
 
-Procedure SaveAsTemplate;
+const
+  TEMPLATE_VERSION = 2;
+  UnitName = 'Templates';
+  tsHeader   = 0;     tsMin = 0;
+  tsTaxStart = 1;
+  tsTaxTable = 2;
+  tsChart    = 3;
+  tsBASRules = 4;     tsMax = 4;
+  tsNames : Array[ tsMin..tsMax ] of String[20] =
+      (  'Header',
+         'Tax Start',
+         'Tax Table',
+         'Chart',
+         'BAS Rules');
 
-CONST
-   NY : Array[ Boolean ] of String[1] = ( 'N', 'Y' );
+var
+  fTemplate : TTemplates;
+  DebugMe : boolean = false;
 
-Var
-   F     : TextFile;
-   Buf   : Array[ 1..8192 ] of Byte;
-   TemplateFileName : String;
+//------------------------------------------------------------------------------
+function Template : TTemplates;
+begin
+  if not assigned(fTemplate) then
+  begin
+    fTemplate := TTemplates.Create;
+  end;
 
-   SD    : TSaveDialog;
-   AllOK : Boolean;
-   i     : Integer;
-Begin
-   If not Assigned( MyClient ) then exit;
+  result := fTemplate;
+end;
 
-   if not DirectoryExists( GLOBALS.TemplateDir ) then CreateDir( GLOBALS.TemplateDir );
+// TTemplates
+//------------------------------------------------------------------------------
+function TTemplates.BooleanToYN(aValue: boolean): string;
+begin
+  if aValue then
+    Result := 'Y'
+  else
+    Result := 'N';
+end;
 
-   //allow the user to select a different template name
-   SD := TSaveDialog.Create( NIL );
-   Try
-      SD.InitialDir := GLOBALS.TemplateDir;
-      SD.FileName   := MyClient.clFields.clCode + '.TPL';
-      SD.Filter     := 'Template files (*.tpl)|*.TPL';
-      SD.DefaultExt := 'TPL';
-      SD.Options    := [ ofNoChangeDir, ofHideReadOnly ];
-      If SD.Execute then
-         TemplateFileName := SD.FileName
-      else
-         exit;
-      while BKFileExists(TemplateFileName) do
+//------------------------------------------------------------------------------
+// Allow the user to select a different template name
+function TTemplates.GetTemplateFileToSave(var aTemplateFileName : string) : boolean;
+var
+  SaveDlg : TSaveDialog;
+begin
+  Result := false;
+
+  SaveDlg := TSaveDialog.Create( NIL );
+  try
+    SaveDlg.InitialDir := GLOBALS.TemplateDir;
+    SaveDlg.FileName   := MyClient.clFields.clCode + '.TPL';
+    SaveDlg.Filter     := 'Template files (*.tpl)|*.TPL';
+    SaveDlg.DefaultExt := 'TPL';
+    SaveDlg.Options    := [ ofNoChangeDir, ofHideReadOnly ];
+
+    if SaveDlg.Execute then
+      aTemplateFileName := SaveDlg.FileName
+    else
+      exit;
+
+    while BKFileExists(aTemplateFileName) do
+    begin
+      if AskYesNo('Overwrite File','The file ' + ExtractFileName(aTemplateFileName) +
+                  ' already exists. Overwrite?', dlg_yes, 0) = DLG_YES then
+        Break;
+
+      if not SaveDlg.Execute then
+        exit;
+
+      aTemplateFileName := SaveDlg.FileName
+    end;
+  finally
+    FreeAndNil(SaveDlg);
+    //make sure all relative paths are relative to data dir after browse
+    SysUtils.SetCurrentDir( Globals.DataDir);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.WriteHeaderSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'WriteHeaderSection called');
+
+  writeln(aTemplateFile, '[Template]');
+
+  writeln(aTemplateFile, 'Code=', aCLFields.clCode);
+  writeln(aTemplateFile, 'Name=', aCLFields.clName);
+  writeln(aTemplateFile, 'Version=' + inttostr(TEMPLATE_VERSION));
+
+  writeln(aTemplateFile);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.WriteTaxStartsSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+var
+  GSTAppliesIndex : integer;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'WriteTaxStartsSection called');
+
+  writeln(aTemplateFile, '[Tax Starts]');
+
+  for GSTAppliesIndex := 1 to 5 do
+    writeln(aTemplateFile, GSTAppliesIndex, '|', bkDate2Str(aCLFields.clGST_Applies_From[GSTAppliesIndex ]));
+
+  writeln(aTemplateFile);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.WriteTaxTableSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+var
+  GstIndex : integer;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'WriteTaxTableSection called');
+
+  writeln(aTemplateFile, '[Tax Table]');
+
+  for GstIndex := 1 to MAX_GST_CLASS do
+  begin
+    if aCLFields.clGST_Class_Codes[GstIndex ] <> '' then
+    begin
+      writeln(aTemplateFile,
+              GstIndex, '|',
+              aCLFields.clGST_Class_Codes[ GstIndex ], '|',
+              aCLFields.clGST_Class_Names[ GstIndex ], '|',
+              aCLFields.clGST_Rates[ GstIndex, 1 ]:0:0, '|',
+              aCLFields.clGST_Rates[ GstIndex, 2 ]:0:0, '|',
+              aCLFields.clGST_Rates[ GstIndex, 3 ]:0:0, '|',
+              aCLFields.clGST_Rates[ GstIndex, 4 ]:0:0, '|',
+              aCLFields.clGST_Rates[ GstIndex, 5 ]:0:0, '|',
+              aCLFields.clGST_Account_Codes[ GstIndex ], '|',
+              aCLFields.clGST_Business_Percent[ GstIndex]:0:0);
+    end;
+  end;
+
+  writeln(aTemplateFile);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.WriteChartSection(const aTemplateFile : TextFile; const aCLChart : TChart);
+var
+  ChartIndex : integer;
+  ChartAccount : pAccount_Rec;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'WriteChartSection called');
+
+  if not assigned(aCLChart) then
+    exit;
+
+  writeln(aTemplateFile, '[Chart]' );
+
+  for ChartIndex := 0 to aCLChart.ItemCount-1 do
+  begin
+    ChartAccount := aCLChart.Account_At(ChartIndex);
+
+    writeln(aTemplateFile,
+            ChartAccount^.chAccount_Code, '|',
+            ChartAccount^.chAccount_Description, '|',
+            ChartAccount^.chGST_Class, '|',
+            BooleanToYN(ChartAccount^.chPosting_Allowed), '|',
+            ChartAccount^.chAccount_Type, '|',
+            BooleanToYN(ChartAccount^.chEnter_Quantity));
+  end;
+
+  writeln(aTemplateFile);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.WriteBASRulesSection(const aTemplateFile : TextFile; const aCLFields : TClient_Rec);
+var
+  BASIndex : integer;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'WriteBASRulesSection called');
+
+  writeln(aTemplateFile, '[BAS Rules]');
+
+  for BASIndex := MIN_SLOT to MAX_SLOT do
+  begin
+    if aCLFields.clBAS_Field_Number[BASIndex] > 0 then
+    begin
+      writeln(aTemplateFile,
+              aCLFields.clBAS_Field_Number[BASIndex], '|',
+              aCLFields.clBAS_Field_Source[BASIndex], '|',
+              aCLFields.clBAS_Field_Account_Code[BASIndex], '|',
+              aCLFields.clBAS_Field_Balance_Type[BASIndex], '|',
+              aCLFields.clBAS_Field_Percent[BASIndex]:0:0);
+    end;
+  end;
+
+  writeln(aTemplateFile);
+end;
+
+//------------------------------------------------------------------------------
+function TTemplates.GetFieldFromCurrentLine(const aCurrentLine : ShortString; aFieldNum : Integer): ShortString;
+var
+  LineLength : integer;
+  LineIndex : integer;
+  CurrFieldNum : integer;
+begin
+  Result := '';
+  LineLength := length(aCurrentLine);
+
+  if LineLength = 0 then
+    exit;
+
+  CurrFieldNum := 1;
+  for LineIndex := 1 to LineLength do
+  begin
+    Case aCurrentLine[LineIndex] of
+      '|' : begin
+        if CurrFieldNum = aFieldNum then
+          exit;
+        Inc(CurrFieldNum);
+        Result := '';
+      end;
+    else
+      Result := Result + aCurrentLine[LineIndex];
+    end;
+  end;
+
+  if (CurrFieldNum = aFieldNum) then
+    exit;
+
+  Result := '';
+end;
+
+//------------------------------------------------------------------------------
+function TTemplates.GetTemplateFileToLoad(var aTemplateFileName: string): boolean;
+var
+  OpenDlg : TOpenDialog;
+begin
+  Result := false;
+  aTemplateFileName := '';
+
+  OpenDlg := TOpenDialog.Create(nil);
+  try
+    OpenDlg.InitialDir := GLOBALS.TemplateDir;
+    OpenDlg.Filter     := 'All Template files (*.tpl; *.tpm)|*.TPL;*.TPM|Template files (*.tpl)|*.TPL|Master Template files (*.tpm)|*.TPM';
+    OpenDlg.Filename   := '';
+    OpenDlg.Options    := [ofNoChangeDir, ofHideReadOnly];
+
+    if (OpenDlg.Execute) and (not (aTemplateFileName = '')) then
+    begin
+      aTemplateFileName := OpenDlg.FileName;
+      Result := true;
+    end;
+  finally
+    FreeAndNil(OpenDlg);
+    //make sure all relative paths are relative to data dir after browse
+    SysUtils.SetCurrentDir(Globals.DataDir);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.ClearBASFields(var aCLFields: TClient_Rec);
+begin
+  FillChar(aCLFields.clGST_Class_Codes      ,Sizeof(aCLFields.clGST_Class_Codes), 0);
+  FillChar(aCLFields.clGST_Applies_From     ,Sizeof(aCLFields.clGST_Applies_From), 0);
+  FillChar(aCLFields.clGST_Class_Names      ,Sizeof(aCLFields.clGST_Class_Names), 0);
+  FillChar(aCLFields.clGST_Class_Types      ,Sizeof(aCLFields.clGST_Class_Types), 0);
+  FillChar(aCLFields.clGST_Account_Codes    ,Sizeof(aCLFields.clGST_Account_Codes), 0);
+  FillChar(aCLFields.clGST_Rates            ,Sizeof(aCLFields.clGST_Rates), 0);
+  FillChar(aCLFields.clGST_Business_Percent ,Sizeof(aCLFields.clGST_Business_Percent), 0);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.ClearGSTFields(var aCLFields: TClient_Rec);
+begin
+  FillChar(aCLFields.clBAS_Field_Number       ,Sizeof(aCLFields.clBAS_Field_Number), 0);
+  FillChar(aCLFields.clBAS_Field_Source       ,Sizeof(aCLFields.clBAS_Field_Source), 0);
+  FillChar(aCLFields.clBAS_Field_Account_Code ,Sizeof(aCLFields.clBAS_Field_Account_Code), 0);
+  FillChar(aCLFields.clBAS_Field_Balance_Type ,Sizeof(aCLFields.clBAS_Field_Balance_Type), 0);
+  FillChar(aCLFields.clBAS_Field_Percent      ,Sizeof(aCLFields.clBAS_Field_Percent), 0);
+end;
+
+//------------------------------------------------------------------------------
+// Change to support 4.d.p. - do not upgrade new templates!
+function TTemplates.ReadHeaderSection(const aTemplateFile : TextFile;
+                                      var aCurrentLine : ShortString;
+                                      var aMultiplyBy : Integer): boolean;
+begin
+  Result := false;
+
+  if aCurrentLine = '[Template]' then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'ReadHeaderSection, ' + aCurrentLine + ' found.');
+
+    repeat
+      Readln( aTemplateFile, aCurrentLine );
+      if aCurrentLine <> '' then
       begin
-        if AskYesNo('Overwrite File','The file '+ExtractFileName(TemplateFileName)+' already exists. Overwrite?',dlg_yes,0) = DLG_YES then
-          Break;
-        if not SD.Execute then exit;
-        TemplateFileName := SD.FileName        
+        if Lowercase(aCurrentLine) = 'version=2' then
+          aMultiplyBy := 1;
       end;
-   Finally
-      SD.Free;
-      //make sure all relative paths are relative to data dir after browse
-      SysUtils.SetCurrentDir( Globals.DataDir);
-   end;
-   With MyClient.clFields do
-   Begin
-      AssignFile( F, TemplateFileName );
-      SetTextBuf( F, Buf );
-      Rewrite( F );
-      Try
-         Writeln( F, '[Template]' );
-         Writeln( F, 'Code=', clCode );
-         Writeln( F, 'Name=', clName );
-         Writeln( F, 'Version=2' );
-         Writeln( F, '[Tax Starts]' );
-         For i := 1 to 5 do Writeln( F, i, '|', bkDate2Str( clGST_Applies_From[ i ] ) );
-         Writeln( F );
-
-         Writeln( F, '[Tax Table]' );
-         For i := 1 to MAX_GST_CLASS do
-         Begin
-            If clGST_Class_Codes[ i ] <> '' then
-            Begin
-               Writeln( F,
-                  i, '|',
-                  clGST_Class_Codes[ i ], '|',
-                  clGST_Class_Names[ i ], '|',
-                  clGST_Rates[ i, 1 ]:0:0, '|',
-                  clGST_Rates[ i, 2 ]:0:0, '|',
-                  clGST_Rates[ i, 3 ]:0:0, '|',
-                  clGST_Rates[ i, 4 ]:0:0, '|',
-                  clGST_Rates[ i, 5 ]:0:0, '|',
-                  clGST_Account_Codes[ i ], '|',
-                  clGST_Business_Percent[ i]:0:0
-                  );
-            end;
-         end;
-         Writeln( F );
-
-         Writeln( F, '[Chart]' );
-         With MyClient.clChart do For i := 0 to Pred( ItemCount ) do With Account_At( i )^ do
-         Begin
-            Writeln( F,
-               chAccount_Code, '|',
-               chAccount_Description, '|',
-               chGST_Class, '|',
-               NY[ chPosting_Allowed ], '|',
-               chAccount_Type, '|',
-               NY[ chEnter_Quantity ]
-               );
-         end;
-         Writeln( F );
-
-         Writeln( F, '[BAS Rules]' );
-         For i := MIN_SLOT to MAX_SLOT do
-         Begin
-            If clBAS_Field_Number[ i ] > 0 then
-            Begin
-               Writeln( F, clBAS_Field_Number[ i ], '|',
-                           clBAS_Field_Source[ i ], '|',
-                           clBAS_Field_Account_Code[ i ], '|',
-                           clBAS_Field_Balance_Type[ i ], '|',
-                           clBAS_Field_Percent[i]:0:0
-                       );
-            end;
-         end;
-         Writeln( F );
-         AllOK := True;
-      Finally
-         CloseFile( F );
-      end;
-   end;
-   If AllOK then HelpfulInfoMsg( 'Template saved to '+ TemplateFileName, 0 );
+    until (aCurrentLine = '') or (aCurrentLine='[Tax Starts]');
+    Result := true;
+  end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+function TTemplates.ReadTaxStartSection(const aTemplateFile: TextFile;
+                                        var aCurrentLine: ShortString;
+                                        var aCLFields : TClient_Rec): boolean;
+var
+  GSTAppliesIndex : integer;
+begin
+  Result := false;
 
-Function  LoadTemplate( Const TemplateFilename : String;
-                        Const CreateChartIfFound : tpl_CreateChartType ): Boolean;
+  if aCurrentLine = '[Tax Starts]' then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'ReadTaxStartSection, ' + aCurrentLine + ' found.');
 
-   Function Field( Const L : ShortString; N : Integer ): ShortString;
-   Var
-      LLen   : Byte Absolute L;
-      i, No   : Byte;
-   Begin
-      Result := '';
-      If LLen = 0 then exit;
-
-      No  := 1;
-      For i := 1 to LLen do
-      Begin
-         Case L[i] of
-            '|' : Begin
-                     If No = N then exit;
-                     Inc( No );
-                     Result := '';
-                  end;
-            else Result := Result + L[i];
-         end;
-      end;   
-      If ( No = N ) then exit;
-      Result := '';
-   end;
-   
-Var
-   F                : TextFile;
-   Buf              : Array[ 1..8192 ] of Byte;
-   L                : ShortString;
-   CreateChart      : Boolean;
-   i, Slot          : Integer;
-   A                : pAccount_Rec;
-   V                : LongInt;
-   aCode            : BK5CodeStr;
-   aDesc            : String[80];
-   aGST_Class       : Integer;
-   aType            : Integer;
-   aQty             : Boolean;
-   aPostOK          : Boolean;
-   MultiplyBy       : Integer;
-Begin
-   Result := False;
-   If not Assigned( MyClient ) then exit;
-
-   If ( TemplateFileName = '' ) then exit;
-   If not BKFileExists( TemplateFileName ) then exit;
-
-   With MyClient, clFields do
-   Begin
-      FillChar( clGST_Class_Codes          , Sizeof( clGST_Class_Codes          ), 0 );
-      FillChar( clGST_Applies_From         , Sizeof( clGST_Applies_From         ), 0 );
-      FillChar( clGST_Class_Names          , Sizeof( clGST_Class_Names          ), 0 );
-      FillChar( clGST_Class_Types          , Sizeof( clGST_Class_Types          ), 0 );
-      FillChar( clGST_Account_Codes        , Sizeof( clGST_Account_Codes        ), 0 );
-      FillChar( clGST_Rates                , Sizeof( clGST_Rates                ), 0 );
-      FillChar( clGST_Business_Percent     , Sizeof( clGST_Business_Percent     ), 0 );
-   
-      FillChar( clBAS_Field_Number         , Sizeof( clBAS_Field_Number         ), 0 );
-      FillChar( clBAS_Field_Source         , Sizeof( clBAS_Field_Source         ), 0 );
-      FillChar( clBAS_Field_Account_Code   , Sizeof( clBAS_Field_Account_Code   ), 0 );
-      FillChar( clBAS_Field_Balance_Type   , Sizeof( clBAS_Field_Balance_Type   ), 0 );
-      FillChar( clBAS_Field_Percent        , Sizeof( clBAS_Field_Percent        ), 0 );
-
-      CreateChart := ( clChart.ItemCount = 0 ) and ( CreateChartIfFound = tpl_CreateChartFromTemplate );
-
-      Assign( F, TemplateFileName );
-      Try
-         SetTextBuf( F, Buf );
-         Reset( F );
-         // Change to support 4.d.p. - upgrade old templates
-         MultiplyBy := 100;
-         While not EOF( F ) do
-         Begin
-            Readln( F, L );
-
-            // -----------------------------------------------------------------
-
-            // Change to support 4.d.p. - do not upgrade new templates!
-            if L = '[Template]' then
-            begin
-               Repeat
-                  Readln( F, L );
-                  If L <> '' then
-                  Begin
-                    if Lowercase(L) = 'version=2' then
-                      MultiplyBy := 1;
-                  end;
-               Until ( L = '' ) or (L='[Tax Starts]');
-            end;
-
-            If L = '[Tax Starts]' then
-            Begin
-               Repeat
-                  Readln( F, L );
-                  If L <> '' then
-                  Begin
-                     i := GenUtils.Str2Long( Field( L, 1 ) );
-                     If i in [ 1..5 ] then
-                     Begin
-                        clGST_Applies_From[ i ] :=  bkStr2Date( Field( L, 2 ) );
-                     end;
-                  end;
-               Until ( L = '' );
-            end;
-
-            // -----------------------------------------------------------------
-
-            If L = '[Tax Table]' then
-            Begin
-               Repeat
-                  Readln( F, L );
-                  If L <> '' then
-                  Begin
-                     i := Str2Long( Field( L, 1 ) );
-                     If i in [ 1..MAX_GST_CLASS ] then
-                     Begin
-                        clGST_Class_Codes[ i ] := Field( L, 2 );
-                        clGST_Class_Names[ i ] := Field( L, 3 );
-                        V := Str2Long( Field( L, 4 ) ); clGST_Rates[ i, 1 ] := V * MultiplyBy;
-                        V := Str2Long( Field( L, 5 ) ); clGST_Rates[ i, 2 ] := V * MultiplyBy;
-                        V := Str2Long( Field( L, 6 ) ); clGST_Rates[ i, 3 ] := V * MultiplyBy;
-                        V := Str2Long( Field( L, 7 ) ); clGST_Rates[ i, 4 ] := V * MultiplyBy;
-                        V := Str2Long( Field( L, 8 ) ); clGST_Rates[ i, 5 ] := V * MultiplyBy;
-                        clGST_Account_Codes[ i ] := Field( L, 9 );
-                        V := Str2Long( Field( L, 10 )); clGST_Business_Percent[ i ] := V;
-                     end;
-                  end;
-               Until ( L = '' );
-            end;
-
-            // -----------------------------------------------------------------
-            
-            If L = '[Chart]' then
-            Begin
-               Repeat
-                  Readln( F, L );
-                  If L <> '' then
-                  Begin
-                     aCode := Field( L, 1 );
-                     aDesc := Field( L, 2 );
-                     aGST_Class := Str2Long( Field( L, 3 ) );
-                     aPostOK := ( Field( L, 4 ) = 'Y' );
-                     aType := Str2Long( Field( L, 5 ) );
-                     aQty := ( Field( L, 6 ) = 'Y' );
-
-                     If CreateChart then
-                     Begin
-                        With MyClient.clChart do
-                        Begin
-                           If FindCode( aCode ) = nil then
-                           begin
-                              A := New_Account_Rec;
-                              With A^ do
-                              Begin
-                                 chAccount_Code        := aCode;
-                                 chAccount_Description := aDesc;
-                                 If aGST_Class in [ 0..MAX_GST_CLASS ] then chGST_Class := aGST_Class;
-                                 chAccount_Type        := aType;
-                                 chPosting_Allowed     := aPostOK;
-                                 chEnter_Quantity      := aQty;
-                              end;
-                              MyClient.clChart.Insert( A );
-                           end;
-                        end;
-                     end
-                     else
-                     Begin
-                        With MyClient.clChart do
-                        Begin
-                           A := FindCode( aCode );
-                           If Assigned( A ) then With A^ do
-                           Begin
-                              If aGST_Class in [ 0..MAX_GST_CLASS ] then chGST_Class := aGST_Class;
-                           end;
-                        end;
-                     end;
-                  end;
-               Until ( L = '' );
-            end;
-
-            // -----------------------------------------------------------------
-
-            If L = '[BAS Rules]' then
-            Begin
-               Slot := 0;
-               Repeat
-                  Readln( F, L );
-                  If L <> '' then
-                  Begin
-                     i := Str2Long( Field( L, 1 ) );
-                     If i in [ bfMin..bfMax ] then
-                     Begin
-                        Inc( Slot );
-                        If ( Slot in [ MIN_SLOT..MAX_SLOT ] ) then
-                        Begin
-                           clBAS_Field_Number[ Slot ]       := i;
-                           clBAS_Field_Source[ Slot ]       := Str2Byte( Field( L, 2 ) );
-                           clBAS_Field_Account_Code[ Slot ] := Field( L, 3 );
-                           clBAS_Field_Balance_Type[ Slot ] := Str2Byte( Field( L, 4 ) );
-                           If Str2LongS( Field( L, 5 ), V ) then clBAS_Field_Percent[ Slot ] := V * MultiplyBy;
-                        end;
-                     end;
-                  end;
-               Until ( L = '' );
-            end;
-         end;
-         Result := True;
-      Finally
-         CloseFile( F );
+    repeat
+      Readln( aTemplateFile, aCurrentLine );
+      if aCurrentLine <> '' then
+      begin
+        GSTAppliesIndex := GenUtils.Str2Long(GetFieldFromCurrentLine(aCurrentLine, 1));
+        if GSTAppliesIndex in [1..5] then
+        begin
+          aCLFields.clGST_Applies_From[GSTAppliesIndex] := bkStr2Date(GetFieldFromCurrentLine(aCurrentLine, 2));
+        end;
       end;
-   end;
+      Result := true;
+    until (aCurrentLine = '');
+  end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+function TTemplates.ReadTaxTableSection(const aTemplateFile: TextFile;
+                                        var aCurrentLine: ShortString;
+                                        var aCLFields: TClient_Rec;
+                                        aMultiplyBy : Integer): boolean;
+var
+  FieldNum : integer;
+  Value : LongInt;
+begin
+  Result := false;
 
-Procedure LoadFromTemplate;
-Var
-   OD               : TOpenDialog;
-   TemplateFileName : String;
-Begin
-   If not Assigned( MyClient ) then exit;
+  if aCurrentLine = '[Tax Table]' then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'ReadTaxTableSection, ' + aCurrentLine + ' found.');
 
-   TemplateFileName := '';
+    repeat
+      Readln(aTemplateFile, aCurrentLine);
+      if aCurrentLine <> '' then
+      begin
+        FieldNum := Str2Long(GetFieldFromCurrentLine(aCurrentLine, 1));
+        if FieldNum in [1..MAX_GST_CLASS] then
+        begin
+          aCLFields.clGST_Class_Codes[FieldNum] := GetFieldFromCurrentLine(aCurrentLine, 2);
+          aCLFields.clGST_Class_Names[FieldNum] := GetFieldFromCurrentLine(aCurrentLine, 3);
 
-   OD := TOpenDialog.Create( NIL );
-   Try
-      OD.InitialDir := GLOBALS.TemplateDir;
-      OD.Filter     := 'All Template files (*.tpl; *.tpm)|*.TPL;*.TPM|Template files (*.tpl)|*.TPL|Master Template files (*.tpm)|*.TPM';
-      OD.Filename   := '';
-      OD.Options    := [ ofNoChangeDir, ofHideReadOnly ];
-      If OD.Execute then TemplateFileName := OD.FileName;
-   Finally
-      OD.Free;
-      //make sure all relative paths are relative to data dir after browse
-      SysUtils.SetCurrentDir( Globals.DataDir);
-   end;
+          Value := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 4));
+          aCLFields.clGST_Rates[FieldNum, 1] := Value * aMultiplyBy;
+          Value := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 5));
+          aCLFields.clGST_Rates[FieldNum, 2] := Value * aMultiplyBy;
+          Value := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 6));
+          aCLFields.clGST_Rates[FieldNum, 3] := Value * aMultiplyBy;
+          Value := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 7));
+          aCLFields.clGST_Rates[FieldNum, 4] := Value * aMultiplyBy;
+          Value := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 8));
+          aCLFields.clGST_Rates[FieldNum, 5] := Value * aMultiplyBy;
 
-   If TemplateFileName = '' then exit;
-
-   If LoadTemplate( TemplateFilename, tpl_CreateChartFromTemplate ) then begin
-      HelpfulInfoMsg( 'Template loaded from '+TemplateFileName, 0 );
-      //now reload the gst defaults for the client
-      GSTUTIL32.ApplyDefaultGST( false);
-   end;
+          aCLFields.clGST_Account_Codes[FieldNum] := GetFieldFromCurrentLine(aCurrentLine, 9);
+          Value := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 10));
+          aCLFields.clGST_Business_Percent[FieldNum] := Value;
+        end;
+      end;
+    until (aCurrentLine = '');
+    Result := true;
+  end;
 end;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
+function TTemplates.ReadChartSection(const aTemplateFile: TextFile;
+                                     var aCurrentLine: ShortString;
+                                     var aCLChart: TChart;
+                                     aCreateChart : boolean): boolean;
+var
+  ChartCode      : BK5CodeStr;
+  ChartDesc      : String[80];
+  ChartGST_Class : Integer;
+  ChartType      : Integer;
+  ChartQty       : Boolean;
+  ChartPostOK    : Boolean;
+  ChartAcc       : pAccount_Rec;
+begin
+  Result := false;
+
+  if not assigned(aCLChart) then
+    exit;
+
+  if aCurrentLine = '[Chart]' then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'ReadChartSection, ' + aCurrentLine + ' found.');
+
+    repeat
+      Readln(aTemplateFile, aCurrentLine);
+
+      if aCurrentLine <> '' then
+      begin
+        ChartCode      := GetFieldFromCurrentLine(aCurrentLine, 1);
+        ChartDesc      := GetFieldFromCurrentLine(aCurrentLine, 2);
+        ChartGST_Class := Str2Long(GetFieldFromCurrentLine(aCurrentLine, 3));
+        ChartPostOK    := (GetFieldFromCurrentLine(aCurrentLine, 4) = 'Y');
+        ChartType      := Str2Long( GetFieldFromCurrentLine(aCurrentLine, 5));
+        ChartQty       := (GetFieldFromCurrentLine(aCurrentLine, 6) = 'Y');
+
+        if aCreateChart then
+        begin
+          if aCLChart.FindCode(ChartCode) = nil then
+          begin
+            ChartAcc := New_Account_Rec;
+            ChartAcc^.chAccount_Code        := ChartCode;
+            ChartAcc^.chAccount_Description := ChartDesc;
+
+            if ChartGST_Class in [0..MAX_GST_CLASS] then
+              ChartAcc^.chGST_Class := ChartGST_Class;
+
+            ChartAcc^.chAccount_Type        := ChartType;
+            ChartAcc^.chPosting_Allowed     := ChartPostOK;
+            ChartAcc^.chEnter_Quantity      := ChartQty;
+
+            MyClient.clChart.Insert(ChartAcc);
+          end;
+        end
+        else
+        begin
+          ChartAcc := aCLChart.FindCode(ChartCode);
+          if Assigned(ChartAcc) then
+          begin
+            if ChartGST_Class in [ 0..MAX_GST_CLASS ] then
+              ChartAcc^.chGST_Class := ChartGST_Class;
+          end;
+        end;
+      end;
+    until (aCurrentLine = '');
+    Result := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTemplates.ReadBASRulesSection(const aTemplateFile: TextFile;
+                                        var aCurrentLine: ShortString;
+                                        var aCLFields: TClient_Rec;
+                                        aMultiplyBy : Integer): boolean;
+var
+  Slot : Integer;
+  FieldNum : integer;
+  Value : LongInt;
+begin
+  Result := false;
+
+  if aCurrentLine = '[BAS Rules]' then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'ReadBASRulesSection, ' + aCurrentLine + ' found.');
+
+    Slot := 0;
+    repeat
+      Readln(aTemplateFile, aCurrentLine);
+
+      if aCurrentLine <> '' then
+      begin
+        FieldNum := Str2Long(GetFieldFromCurrentLine(aCurrentLine, 1));
+
+        if FieldNum in [bfMin..bfMax] then
+        begin
+          Inc(Slot);
+
+          if (Slot in [MIN_SLOT..MAX_SLOT]) then
+          begin
+            aCLFields.clBAS_Field_Number[ Slot ]       := FieldNum;
+            aCLFields.clBAS_Field_Source[ Slot ]       := Str2Byte(GetFieldFromCurrentLine(aCurrentLine, 2));
+            aCLFields.clBAS_Field_Account_Code[ Slot ] := GetFieldFromCurrentLine(aCurrentLine, 3);
+            aCLFields.clBAS_Field_Balance_Type[ Slot ] := Str2Byte(GetFieldFromCurrentLine(aCurrentLine, 4));
+            if Str2LongS(GetFieldFromCurrentLine(aCurrentLine, 5), Value ) then
+              aCLFields.clBAS_Field_Percent[ Slot ] := Value * aMultiplyBy;
+          end;
+        end;
+      end;
+    until (aCurrentLine = '');
+    Result := true;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.SaveAsTemplate;
+var
+  TemplateFile : TextFile;
+  TemplateFileName : String;
+  AllOK : Boolean;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'SaveAsTemplate called');
+
+  if not assigned(MyClient) then
+    exit;
+
+  try
+    if not DirectoryExists(GLOBALS.TemplateDir) then
+      CreateDir(GLOBALS.TemplateDir);
+
+    if not GetTemplateFileToSave(TemplateFileName) then
+      exit;
+
+    AssignFile(TemplateFile, TemplateFileName);
+    Rewrite(TemplateFile);
+    try
+      WriteHeaderSection(TemplateFile, MyClient.clFields);
+      WriteTaxStartsSection(TemplateFile, MyClient.clFields);
+      WriteTaxTableSection(TemplateFile, MyClient.clFields);
+      WriteChartSection(TemplateFile, MyClient.clChart);
+      WriteBASRulesSection(TemplateFile, MyClient.clFields);
+
+      AllOK := True;
+    finally
+      CloseFile(TemplateFile);
+    end;
+
+    if AllOK then
+      HelpfulInfoMsg('Template saved to '+ TemplateFileName, 0 );
+  except
+    on E: Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, 'SaveAsTemplate : ' + E.Message);
+      raise;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.LoadFromTemplate;
+var
+  TemplateFileName : String;
+  TemplateErrorType : TTemplateError;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'LoadFromTemplate called');
+
+  if not Assigned(MyClient) then
+    exit;
+
+  if not GetTemplateFileToLoad(TemplateFileName) then
+    exit;
+
+  if LoadTemplate(TemplateFilename, tpl_CreateChartFromTemplate, TemplateErrorType) then
+  begin
+    HelpfulInfoMsg('Template loaded from '+TemplateFileName, 0);
+    //now reload the gst defaults for the client
+    GSTUTIL32.ApplyDefaultGST(false);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+function TTemplates.LoadTemplate(const aTemplateFilename: String;
+                                 const aCreateChartifFound: tpl_CreateChartType;
+                                 var aTemplateErrorType : TTemplateError): Boolean;
+
+var
+  TemplateFile : TextFile;
+  CurrentLine  : ShortString;
+  CreateChart  : Boolean;
+  MultiplyBy   : Integer;
+  Index : integer;
+  FoundSection : Array[tsMin..tsMax] of boolean;
+
+  procedure CheckDuplicate(aSection : integer);
+  begin
+    if FoundSection[aSection] then
+      raise Exception.Create('Error Reading Template ' + tsNames[aSection] + ' - Duplicate Section found.')
+    else
+      FoundSection[aSection] := true;
+  end;
+begin
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'LoadTemplate called, File : ' + aTemplateFilename);
+
+  Result := False;
+  if not Assigned(MyClient) then
+    exit;
+
+  if (aTemplateFilename = '') then
+    exit;
+
+  if not BKFileExists(aTemplateFilename) then
+  begin
+    aTemplateErrorType := trtDoesNotExist;
+    LogUtil.LogMsg(lmError, UnitName, 'LoadTemplate : File not found, ' + aTemplateFilename);
+    exit;
+  end;
+
+  try
+    for Index := tsMin to tsMax do
+      FoundSection[Index] := false;
+
+    ClearGSTFields(MyClient.clFields);
+    ClearBASFields(MyClient.clFields);
+
+    CreateChart := (MyClient.clChart.ItemCount = 0) and
+                   (aCreateChartifFound = tpl_CreateChartFromTemplate);
+
+    Assign(TemplateFile, aTemplateFilename);
+    try
+      Reset(TemplateFile);
+
+      // Change to support 4.d.p. - upgrade old templates
+      MultiplyBy := 100;
+
+      While not EOF(TemplateFile) do
+      begin
+        Readln(TemplateFile, CurrentLine);
+
+        if ReadHeaderSection(TemplateFile, CurrentLine, MultiplyBy) then
+          CheckDuplicate(tsHeader);
+        if ReadTaxStartSection(TemplateFile, CurrentLine, MyClient.clFields) then
+          CheckDuplicate(tsTaxStart);
+        if ReadTaxTableSection(TemplateFile, CurrentLine, MyClient.clFields, MultiplyBy) then
+          CheckDuplicate(tsTaxTable);
+        if ReadChartSection(TemplateFile, CurrentLine, MyClient.clChart, CreateChart) then
+          CheckDuplicate(tsChart);
+        if ReadBASRulesSection(TemplateFile, CurrentLine, MyClient.clFields, MultiplyBy) then
+          CheckDuplicate(tsBASRules);
+      end;
+
+      for Index := tsMin to tsMax do
+      begin
+        if not FoundSection[Index] then
+          raise Exception.Create('Error Reading Template ' + tsNames[Index] + ' - Section not found.')
+      end;
+
+      Result := True;
+    finally
+      CloseFile(TemplateFile);
+    end;
+  except
+    on E: Exception do
+    begin
+      LogUtil.LogMsg(lmError, UnitName, 'LoadTemplate : ' + E.Message);
+      aTemplateErrorType := trtInvalid;
+    end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+initialization
+begin
+  DebugMe := DebugUnit(UnitName);
+  fTemplate := nil;
+end;
+
+//------------------------------------------------------------------------------
+finalization
+begin
+  FreeAndNil(fTemplate);
+end;
+
 end.
