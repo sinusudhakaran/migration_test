@@ -180,8 +180,9 @@ begin
                end;
 
                ContraCodeInChart := MyClient.clChart.FindCode( baContra_Account_Code );
-               if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code
-                      ContraCodeInChart.chInactive then // Contra code is not active
+               if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code OR
+                      ( assigned( ContraCodeInChart ) and   // Contra Code is found AND the
+                        ContraCodeInChart.chInactive ) then // Contra code is not active
                begin
                  Msg := format( 'Your contra code for Bank Account number %s is ' +
                                 'not valid. Please update under Other Functions ' +
