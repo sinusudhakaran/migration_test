@@ -46,7 +46,8 @@ type
     function FetchCOAFromAPI(NewChart: TChart):Boolean;
     function ProcessChartOfAccounts(NewChart: TChart;Accounts: TChartOfAccountsData):Boolean;
 
-    function MYOBUserHasAccesToFirm( aMYOBFirmID : String ) : boolean;
+    function CountEligibleFirms ( RefreshPLFirms : boolean = false ) : integer;  // Fetches firms and returns count of Eligible Firms
+    function MYOBUserHasAccesToFirm( aMYOBFirmID : String; RefreshPLFirms : boolean ) : boolean;  //Checks if the MYOBUser Has Access to a firm
 
     procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 
@@ -773,7 +774,62 @@ begin
   end;
 end;
 
-function TPracticeLedger.MYOBUserHasAccesToFirm(aMYOBFirmID: String): boolean;
+function TPracticeLedger.CountEligibleFirms( aRefreshPLFirms : boolean = false ): integer;
+var
+  Firm        : TFirm;
+  liLoop      : integer;
+begin
+  result := false;
+  if aRefreshPLFirms then //Do we need to Refresh the PracticeLedger.Firms collection first?
+    if ( not PracticeLedger.GetFirms( PracticeLedger.Firms, sError ) ) then
+    begin
+      ShowConnectionError( sError );
+      exit;
+    end;
+  for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
+  begin
+    Firm := PracticeLedger.Firms.GetItem( liLoop );
+
+    if assigned( Firm ) then
+    begin
+      // Check for Practice Ledger
+      if Pos( 'PL',Firm.EligibleLicense ) > 0 then
+        inc( result );
+    end;
+  end;
+end;
+
+function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String; RefreshPLFirms : boolean ): boolean;
+var
+  Firm        : TFirm;
+  liLoop      : integer;
+begin
+  result := false;
+  if CountEligibleFirms( RefreshPLFirms ) > 0 then 
+  begin
+    for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
+    begin
+      Firm := PracticeLedger.Firms.GetItem( liLoop );
+
+      if assigned( Firm ) then
+      begin
+        // Check if this is the correct firm
+        if ( Firm.ID = aMYOBFirmID ) then
+        begin
+          // Check if the Firm is a eligible PracticeLedger Firm
+          if Pos( 'PL',Firm.EligibleLicense ) > 0 then 
+          begin
+            result := true;
+            Break;
+          end;
+        end;
+      end;
+    end;
+  end
+end;
+
+(*/////// DN - Redundant, there is a Firms Collection as part of the main TPracticeLedger class
+function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String ): boolean;
 var
   ClientFirms : TFirms;
   Firm        : TFirm;
@@ -812,6 +868,7 @@ begin
     FreeAndNil( ClientFirms );
   end;
 end;
+/////// DN - Redundant, there is a Firms Collection as part of the main TPracticeLedger class *)
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 const
