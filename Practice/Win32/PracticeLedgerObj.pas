@@ -46,6 +46,8 @@ type
     function FetchCOAFromAPI(NewChart: TChart):Boolean;
     function ProcessChartOfAccounts(NewChart: TChart;Accounts: TChartOfAccountsData):Boolean;
 
+    function MYOBUserHasAccesToFirm( aMYOBFirmID : String ) : boolean;
+
     procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 
     //Upload transactions
@@ -768,6 +770,46 @@ begin
     //now reload the gst defaults for the client
     GSTUTIL32.ApplyDefaultGST(false);
     Result := True;
+  end;
+end;
+
+function TPracticeLedger.MYOBUserHasAccesToFirm(aMYOBFirmID: String): boolean;
+var
+  ClientFirms : TFirms;
+  Firm        : TFirm;
+  liLoop      : integer;
+begin
+  result := false;
+  ClientFirms := TFirms.Create;
+  try
+    if ( PracticeLedger.GetFirms( ClientFirms, sError ) ) then
+    begin
+      for liLoop := 0 to ClientFirms.Count - 1 do
+      begin
+        Firm := ClientFirms.GetItem( liLoop );
+
+        if assigned( Firm ) then
+        begin
+          // Check for Practice Ledger
+          if Pos( 'PL',Firm.EligibleLicense ) > 0 then
+          begin
+            if ( Firm.ID = aMYOBFirmID ) then
+            begin
+              result := true;
+              Break;
+            end;
+          end;
+        end;
+      end;
+      ClientFirms.Clear;
+    end
+    else
+    begin
+      ShowConnectionError( sError );
+    end;
+  
+  finally
+    FreeAndNil( ClientFirms );
   end;
 end;
 
