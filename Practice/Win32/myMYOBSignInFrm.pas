@@ -306,16 +306,13 @@ end;
 procedure TmyMYOBSignInForm.cmbSelectFirmChange(Sender: TObject);
 var
   Firm : TFirm;
-  iOldFirmIndex: Integer;
+  iLoop : Integer;
 begin
   if cmbSelectFirm.Items.Count <= 0 then
     Exit;
-    
-  iOldFirmIndex := -1;
 
   Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
-  iOldFirmIndex := cmbSelectFirm.ItemIndex;
-  
+
   if not Assigned(Firm) then
     Exit;
 
@@ -334,9 +331,18 @@ begin
                  'You need a MYOB sign in before changing the Firm.'#13#13+
                  'Do you want to continue?',DLG_YES, 0) = DLG_YES) then
     begin
-      cmbSelectFirm.ItemIndex := iOldFirmIndex;
+      for iLoop := 0 to cmbSelectFirm.Items.Count - 1 do
+      begin
+        Firm := TFirm(cmbSelectFirm.Items.Objects[iLoop]);
+        if Assigned(Firm) and (FOldFirmID = Firm.ID) then
+        begin
+          cmbSelectFirm.ItemIndex := iLoop;
+          Break;
+        end;
+      end;
       Exit;
     end;
+
     SelectedID := Firm.ID;
     SelectedName := Firm.Name;
     cmbSelectFirm.Enabled := False;
@@ -395,6 +401,7 @@ begin
       pnlFirmSelection.Visible := True;
       Self.Height := 250;
       btnOK.Visible := False;
+      edtEmail.Enabled := False;
       edtPassword.SetFocus;
     end;
     fsSelectFirm :
