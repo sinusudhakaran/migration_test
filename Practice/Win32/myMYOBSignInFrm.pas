@@ -50,7 +50,7 @@ type
     FForcedSignInSucceed : Boolean;
     FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
-    FValidateClientAgainstFirm : Boolean;
+//    FValidateClientAgainstFirm : Boolean;
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
@@ -63,7 +63,7 @@ type
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
     property ShowFirmSelection : Boolean read FShowFirmSelection write FShowFirmSelection;
     property ShowClientSelection : Boolean read FShowClientSelection write FShowClientSelection;
-    property ValidateClientAgainstFirm : Boolean read FValidateClientAgainstFirm write FValidateClientAgainstFirm;
+//    property ValidateClientAgainstFirm : Boolean read FValidateClientAgainstFirm write FValidateClientAgainstFirm;
 
     property SelectedID: string read FSelectedID write FSelectedID;
     property SelectedName : string read FSelectedName write FSelectedName;
@@ -204,7 +204,9 @@ begin
         LoadFirms;
       end;
 
-      if (FormShowType = fsSignIn) and (ValidateClientAgainstFirm) then
+(*****      
+////////////////////////////////// Dave moved this code to outside on the AccoutingSytemFrm //////////////////////////////////////////
+      if (FormShowType = fsSignIn) then // and (ValidateClientAgainstFirm) then
       begin
         ClientFirms := TFirms.Create;
 
@@ -216,7 +218,6 @@ begin
           ModalResult := mrCancel;
         end;
         ClientHasAccessToFirm := False;
-
         for i := 0 to ClientFirms.Count - 1 do
         begin
           Firm := ClientFirms.GetItem(i);
@@ -236,17 +237,30 @@ begin
         end;
         ClientFirms.Clear;
         FreeAndNil(ClientFirms);
-        if not ClientHasAccessToFirm then
+        if not ClientHasAccessToFirm then 
+//        if not PracticeLedger.MYOBUserHasAccesToFirm( AdminSystem.fdFields.fdmyMYOBFirmID, false ) then
         begin
           Screen.Cursor := OldCursor;
           sError := 'Your MYOB Credential does not have access to the Firm. Please log in with a different MYOB Credential, or contact support.';
-          ShowConnectionError(sError);
+          HelpfulWarningMsg( sError, 0 );
           ResetMyMYOBUserDetails;
           ModalResult := mrCancel;
           Exit;
         end;
       end;
+////////////////////////////////// Dave Move this code to outside on the AccoutingSytemFrm //////////////////////////////////////////
+*********)
 
+      if not PracticeLedger.MYOBUserHasAccesToFirm( AdminSystem.fdFields.fdmyMYOBFirmID, false ) then
+        begin
+          Screen.Cursor := OldCursor;
+          sError := 'Your MYOB Credential does not have access to the Firm. Please log in with a different MYOB Credential, or contact support.';
+          HelpfulWarningMsg( sError, 0 );
+          ResetMyMYOBUserDetails;
+          ModalResult := mrCancel;
+          Exit;
+        end;
+        
       if (FormShowType = fsSignIn) and (ShowClientSelection) then
       begin // means show client - for a normal user
         // Get Businesses
@@ -347,7 +361,7 @@ procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
 begin
   ShowClientSelection := False;
   ShowFirmSelection := False;
-  ValidateClientAgainstFirm := False;
+//  ValidateClientAgainstFirm := False;
 end;
 
 procedure TmyMYOBSignInForm.FormShow(Sender: TObject);
@@ -402,6 +416,11 @@ begin
           ModalResult := mrCancel;
         end;
         LoadFirms;
+
+        if ( cmbSelectFirm.Items.Count = 0 ) then // There was no entitlement for any firms
+        begin
+
+        end;
       finally
         Screen.Cursor := OldCursor;
       end;
@@ -499,7 +518,7 @@ begin
     Firm := PracticeLedger.Firms.GetItem(i);
     if Assigned(Firm) then
     begin
-      // Check for Practice Ledger 
+      // Check for Practice Ledger
       if Pos('PL',Firm.EligibleLicense) > 0 then
       begin
         if (Firm.ID = FSelectedID) then

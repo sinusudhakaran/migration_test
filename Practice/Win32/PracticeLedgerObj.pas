@@ -46,8 +46,8 @@ type
     function FetchCOAFromAPI(NewChart: TChart):Boolean;
     function ProcessChartOfAccounts(NewChart: TChart;Accounts: TChartOfAccountsData):Boolean;
 
-    function CountEligibleFirms ( RefreshPLFirms : boolean = false ) : integer;  // Fetches firms and returns count of Eligible Firms
-    function MYOBUserHasAccesToFirm( aMYOBFirmID : String; RefreshPLFirms : boolean ) : boolean;  //Checks if the MYOBUser Has Access to a firm
+    function CountEligibleFirms ( aRefreshPLFirms : boolean = false ) : integer;  // Fetches firms and returns count of Eligible Firms
+    function MYOBUserHasAccesToFirm( aMYOBFirmID : String; aRefreshPLFirms : boolean ) : boolean;  //Checks if the MYOBUser Has Access to a firm
 
     procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 
@@ -778,12 +778,18 @@ function TPracticeLedger.CountEligibleFirms( aRefreshPLFirms : boolean = false )
 var
   Firm        : TFirm;
   liLoop      : integer;
+  sError: string;
 begin
-  result := false;
+  result := 0;
   if aRefreshPLFirms then //Do we need to Refresh the PracticeLedger.Firms collection first?
     if ( not PracticeLedger.GetFirms( PracticeLedger.Firms, sError ) ) then
     begin
-      ShowConnectionError( sError );
+      HelpfulErrorMsg(
+        format( 'Could not connect to MYOB service, please try again later. ' +
+          'If problem persists please contact %s support %s.',
+          [ SHORTAPPNAME,
+            TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ] ]),
+          0, false, sError, true);
       exit;
     end;
   for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
@@ -799,13 +805,13 @@ begin
   end;
 end;
 
-function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String; RefreshPLFirms : boolean ): boolean;
+function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String; aRefreshPLFirms : boolean ): boolean;
 var
   Firm        : TFirm;
   liLoop      : integer;
 begin
   result := false;
-  if CountEligibleFirms( RefreshPLFirms ) > 0 then 
+  if CountEligibleFirms( aRefreshPLFirms ) > 0 then 
   begin
     for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
     begin
