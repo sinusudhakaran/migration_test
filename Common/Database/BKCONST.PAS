@@ -29,6 +29,7 @@ CONST
   BRAND_NOTES_ONLINE = 'BankLink Notes Online';
   BRAND_SUPPORT = 'MYOB BankLink Support';
   BRAND_CASHBOOK_NAME = 'MYOB Essentials Cashbook';
+  BRAND_MYOB_LEDGER_NAME = 'MYOB Ledger';
 
   // Variations
   BRAND_BOOKS_K = 'BankLink Boo&ks';
@@ -553,7 +554,7 @@ CONST
         'QuickBooks 2008/2009',           //snQBWN
         'iFirm',                          //snAcclipse
         'MYOB General Journals (2012)' ,   //snMYOBAccRight
-        'MYOB Ledger'
+        BRAND_MYOB_LEDGER_NAME
          );
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -673,7 +674,7 @@ CONST
         'iFirm',                                      //saAcclipse
         'MYOB General Journals (2012)',                //snMYOBAccRight
         'BGL Simple Fund 360'  ,                       //saBGL360
-        'MYOB Ledger'                            //saMYOBOnlineLedger
+         BRAND_MYOB_LEDGER_NAME                        //saMYOBOnlineLedger
       );
 
       DESKTOP_SUPER_CHART_FILENAME = 'Desktop Super Chart List.csv';
