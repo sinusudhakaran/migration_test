@@ -17,6 +17,18 @@ const
   UPLOAD_RESP_DUPLICATE = 2;
   UPLOAD_RESP_CORUPT = 3;
 
+  AT_COSTOFSALES = 'cost_of_sales';
+  AT_EXPENSE = 'expense';
+  AT_OTHEREXPENSE = 'other_expense';
+  AT_ASSET = 'asset';
+  AT_INCOME = 'income';
+  AT_OTHERINCOME = 'other_income';
+  AT_LIABILITY = 'liability';
+  AT_EQUITY = 'equity';
+  AT_UNCATEGORISED = 'uncategorised';
+
+  ValidPLCodes : Array [1..9] of String[3] = ('CAP', 'EXP', 'FRE', 'GNR', 'GST', 'INP', 'ITS', 'NTR','NA');
+
 type
   TLicenceType = (ltCashbook, ltPracticeLedger);
   //----------------------------------------------------------------------------
@@ -58,6 +70,7 @@ type
     function GetItem(const aFirmID: string): TFirm;overload;
     property  Items[const aIndex: integer]: TFirm read GetItem; default;
 
+    function IsValidJSON(aJSONObject : TlkJSONobject):Boolean;
     procedure Read(const aJson: TlkJSONlist);
   end;
 
@@ -315,6 +328,7 @@ type
     function FindCode(aChartCode : string; var aChartOfAccountItem : TChartOfAccountData) : boolean;
 
     procedure Write(const aJson: TlkJSONobject);
+    function IsValidJSON(aJSON: TlkJSONobject):Boolean;
     procedure Read(aBusinessID: string; const aJson: TlkJSONobject);
 
   end;
@@ -518,6 +532,7 @@ type
     function GetItem(aIndex : integer) : TBusinessData;overload;
     function GetItem(aBusinessID : string) : TBusinessData;overload;
 
+    function IsValidJSON(aJSON: TlkJSONobject; aFirmID, aLicense: string):Boolean;
     procedure Read(aFirmID:string;LicenseType: TLicenceType;const aJson: TlkJSONObject);
   end;
 
@@ -699,7 +714,7 @@ var
   License : TlkJSONbase;
   i : Integer;
 begin
-  ASSERT(assigned(aJson));
+  ASSERT(Assigned(aJson));
 
   ID := aJson.getString('id');
   Name := aJson.getString('name');
@@ -740,25 +755,90 @@ begin
   end;
 end;
 
+function TFirms.IsValidJSON(aJSONObject: TlkJSONobject): Boolean;
+var
+  License : TlkJSONbase;
+  i : Integer;
+begin
+  Result := False;
+
+  if not Assigned(aJSONObject) then
+    Exit;
+
+  if not (Assigned(aJSONObject.Field['id']) and
+     Assigned(aJSONObject.Field['name']) and
+     Assigned(aJSONObject.Field['region']) and
+     Assigned(aJSONObject.Field['eligible_licence_codes'])) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Firm data received from API');
+    Exit;
+  end;
+
+  if ((Trim(aJSONObject.getString('id')) = '') or
+      (Trim(aJSONObject.getString('name')) = '') or
+      (Trim(aJSONObject.getString('region')) = '')) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Firm data received from API');
+    Exit;
+  end;
+
+  if not ((Trim(aJSONObject.getString('region'))= 'AU') or (Trim(aJSONObject.getString('region'))= 'NZ')) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
+    Exit;
+  end;
+
+  License := aJSONObject.Field['eligible_licence_codes'];
+  if Assigned(License) then
+  begin
+    if License.Count = 0 then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
+      Exit;
+    end;
+
+    for i := 0 to License.Count - 1 do
+    begin
+      if ((Trim(License.Child[i].Value) = '') or
+         (not((License.Child[i].Value = 'CB') or (License.Child[i].Value = 'PL')))) then
+      begin
+        if DebugMe then
+          LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
+        Exit;
+      end;
+    end;
+  end;
+  Result := True;
+end;
+
 procedure TFirms.Read(const aJson: TlkJSONlist);
 var
   i: integer;
   Child: TlkJSONobject;
   Firm: TFirm;
 begin
-  ASSERT(assigned(aJson));
+  ASSERT(Assigned(aJson));
 
   for i := 0 to aJson.Count-1 do
   begin
     Child := aJson.Child[i] as TlkJSONobject;
-
-    // New firm
-    Firm := TFirm.Create;
-    Add(Firm);
-
-    // Read firm
-    Firm.Read(Child);
+    if Assigned(Child) then
+    begin
+      if IsValidJSON(Child) then
+      begin
+        // New firm
+        Firm := TFirm.Create;
+        // Read firm
+        Firm.Read(Child);
+        Add(Firm);
+      end;
+    end;
   end;
+
   Self.Sort(CompareNames);
 end;
 
@@ -1428,7 +1508,7 @@ begin
   fBankOrCreditFlag := False;
   FIsSystemAccount := False;
   FSystemAccountType := '';
-  if ((aJson.Field['opening_balance'].SelfType <> jsNull)) then
+  if (Assigned(aJson.Field['opening_balance']) and (aJson.Field['opening_balance'].SelfType <> jsNull)) then
     fOpeningBalance := aJson.getInt('opening_balance');
   if (Assigned(aJson.Field['bank_or_credit_flag']) and (aJson.Field['bank_or_credit_flag'].SelfType <> jsNull)) then
     fBankOrCreditFlag := aJson.getBoolean('bank_or_credit_flag');
@@ -1462,6 +1542,80 @@ end;
 
 { TChartOfAccountsData }
 //------------------------------------------------------------------------------
+function TChartOfAccountsData.IsValidJSON(aJSON: TlkJSONobject): Boolean;
+var
+  AcctType, GSTCode : string;
+  i : Integer;
+  GSTValid : Boolean;
+begin
+  Result := False;
+  if not Assigned(aJSON) then
+    Exit;
+
+  if not (Assigned(aJSON.Field['id']) and
+     Assigned(aJSON.Field['name']) and
+     Assigned(aJSON.Field['number']) and
+     Assigned(aJSON.Field['business_id']) and
+     Assigned(aJSON.Field['tax_rate']) and
+     Assigned(aJSON.Field['account_type'])) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in COA data received from API');
+    Exit;
+  end;
+
+  try
+    if ((aJSON.getInt('id') <= 0) or
+        (Trim(aJson.getString('name')) = '') or
+        (Trim(aJson.getString('number')) = '') or
+        (Trim(aJson.getString('account_type')) = '') or
+        (Trim(aJson.getString('business_id')) = '') or
+        (Trim(aJson.getString('tax_rate')) = ''))then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in COA data received from API');
+      Exit;
+    end;
+  except
+    Exit; // exit if there is any exception while processing the integer type : typecast error
+  end;
+
+  AcctType := Trim(aJson.getString('account_type'));
+
+  if not ((AcctType = AT_COSTOFSALES) or
+      (AcctType = AT_EXPENSE) or
+      (AcctType = AT_OTHEREXPENSE) or
+      (AcctType = AT_ASSET) or
+      (AcctType = AT_INCOME) or
+      (AcctType = AT_OTHERINCOME) or
+      (AcctType = AT_LIABILITY) or
+      (AcctType = AT_EQUITY) or
+      (AcctType = AT_UNCATEGORISED)) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Invalid account type in COA data received from API ' + AcctType);
+    Exit;
+  end;
+
+  GSTCode := Trim(aJson.getString('tax_rate'));
+
+  GSTValid := False;
+  for i := 1 to High(ValidPLCodes) do
+  if GSTCode = ValidPLCodes[i] then
+  begin
+    GSTValid := True;
+    Break;
+  end;
+  if not GSTValid then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Invalid GST type in COA data received from API ' + AcctType);
+    Exit;
+  end;
+
+  Result := True;
+end;
+
 function TChartOfAccountsData.ItemAs(aIndex: integer): TChartOfAccountData;
 begin
   Result := TChartOfAccountData(Self.Items[aIndex]);
@@ -1477,6 +1631,9 @@ begin
   Clear;
 
   ASSERT(assigned(aJson));
+  if Trim(aBusinessID) = '' then
+  Exit;
+
   Field := aJson.Field['accounts'] as TlkJsonList;
 
   if not Assigned(Field) then
@@ -1486,12 +1643,14 @@ begin
   begin
     Child := Field.Child[i] as TlkJSONobject;
 
-    // New business
-    ChartOfAccount := TChartOfAccountData(Self.Add);
-    // Read business
-    ChartOfAccount.Read(Child);
+    if IsValidJSON(Child) then
+    begin
+      // New business
+      ChartOfAccount := TChartOfAccountData(Self.Add);
+      // Read business
+      ChartOfAccount.Read(Child);
+    end;
   end;
-
 end;
 
 //------------------------------------------------------------------------------
@@ -1797,11 +1956,12 @@ begin
 
   if ((aJson.Field['client_code'].SelfType <> jsNull)) then
     FClientCode := aJson.getString('client_code');
-  if ((aJson.Field['abn'].SelfType <> jsNull)) then
+
+  if (Assigned(aJson.Field['abn']) and (aJson.Field['abn'].SelfType <> jsNull)) then
     FABN := aJson.getString('abn');
   FFirmId := aJson.getString('firm_id');
   FVisibility := aJson.getBoolean('visibility');
-  if (aJson.Field['ird'].SelfType <> jsNull) then
+  if (Assigned(aJson.Field['ird']) and  (aJson.Field['ird'].SelfType <> jsNull)) then
     FIRD := aJson.getString('ird');
   if (Assigned(aJson.Field['licence_code'])) and (aJson.Field['licence_code'].SelfType <> jsNull) then
     FLicenseCode := aJson.getString('licence_code');
@@ -2134,6 +2294,53 @@ begin
   end;
 end;
 
+function TBusinesses.IsValidJSON(aJSON: TlkJSONobject; aFirmId, aLicense : string): Boolean;
+begin
+  Result := False;
+
+  if not Assigned(aJSON) then
+    Exit;
+
+  if not (Assigned(aJSON.Field['id']) and
+     Assigned(aJSON.Field['name']) and
+     Assigned(aJSON.Field['firm_id']) and
+     Assigned(aJSON.Field['licence_code']) and
+     Assigned(aJSON.Field['visibility']) and
+     Assigned(aJSON.Field['client_code'])) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Business data received from API');
+    Exit;
+  end;
+
+  if ((Trim(aJSON.getString('id')) = '') or
+      (Trim(aJSON.getString('name')) = '') or
+      (Trim(aJSON.getString('firm_id')) = '') or
+      (Trim(aJSON.getString('client_code')) = '') or
+      (Trim(aJSON.getString('licence_code')) = '')) then
+  begin
+    if DebugMe then
+      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Business data received from API');
+    Exit;
+  end;
+  
+  try
+    if ((Trim(aJSON.getString('firm_id')) <> aFirmId) or
+        (not aJson.getBoolean('visibility')) or
+        (Pos(aLicense, Trim(aJSON.getString('licence_code'))) <= 0)
+        ) then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, Trim(aJSON.getString('name')) + ' is filtered out after validating Firm_ID/Visibility/License_Code');
+      Exit;
+    end;
+  except
+    Exit;
+  end;
+
+  Result := True;
+end;
+
 procedure TBusinesses.Read(aFirmID: string;LicenseType: TLicenceType; const aJson: TlkJSONObject);
 var
   i: integer;
@@ -2145,29 +2352,35 @@ begin
   Clear;
 
   ASSERT(assigned(aJson));
+
+  if Trim(aFirmID) = '' then
+    Exit;
+    
   Field := aJson.Field['businesses'] as TlkJsonList;
 
   if not Assigned(Field) then
     Exit;
 
+  case LicenseType of
+    ltCashbook : LicenseTypeStr := 'CB';
+    ltPracticeLedger : LicenseTypeStr := 'PL';
+  end;
+  
   for i := 0 to Field.Count-1 do
   begin
     Child := Field.Child[i] as TlkJSONobject;
 
-    // New business
-    Business:= TBusinessData.Create;
-    // Read business
-    Business.Read(Child);
-    case LicenseType of
-      ltCashbook : LicenseTypeStr := 'CB';
-      ltPracticeLedger : LicenseTypeStr := 'PL';
-    end;
-    if (not Business.Visibility) or
-       ((Trim(aFirmID) = '') or (Business.FirmID <> aFirmID) or (Pos(LicenseTypeStr,Business.LicenseCode) <= 0)) then
-      FreeAndNil(Business)
-    else
+    if IsValidJSON(Child, aFirmID, LicenseTypeStr) then
+    begin
+      // New business
+      Business:= TBusinessData.Create;
+      // Read business
+      Business.Read(Child);
+
       Add(Business);
+    end;
   end;
+  
   Self.Sort(CompareNames);
 end;
 

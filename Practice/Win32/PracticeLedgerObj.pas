@@ -43,7 +43,7 @@ type
 
     //Refresh chart
     procedure RefreshChartFromPLAPI;
-    function FetchCOAFromAPI(NewChart: TChart):Boolean;
+    function FetchCOAFromAPI(NewChart: TChart; var ErrMsg : string):Boolean;
     function ProcessChartOfAccounts(NewChart: TChart;Accounts: TChartOfAccountsData):Boolean;
 
     function CountEligibleFirms ( aRefreshPLFirms : boolean = false ) : integer;  // Fetches firms and returns count of Eligible Firms
@@ -87,17 +87,6 @@ const
   GSTIncome = 'GSTI';
   GSTOutcome = 'GSTO';
   GSTUnCategorised = 'NONE';
-
-  AT_COSTOFSALES = 'cost_of_sales';
-  AT_EXPENSE = 'expense';
-  AT_OTHEREXPENSE = 'other_expense';
-  AT_ASSET = 'asset';
-  AT_INCOME = 'income';
-  AT_OTHERINCOME = 'other_income';
-  AT_LIABILITY = 'liability';
-  AT_EQUITY = 'equity';
-  AT_UNCATEGORISED = 'uncategorised';
-
 var
   DebugMe : boolean = false;
   PracticeLedger: TPracticeLedger;
@@ -115,7 +104,7 @@ var
 
 implementation
 
-uses Globals, bkContactInformation, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
+uses Globals, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       LogUtil, progress, software, chartutils, ovcDate,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
@@ -456,14 +445,14 @@ begin
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
     HelpfulErrorMsg('Online Firm should be associated before exporting data!',
-                      0, false, 'Make sure admin user setup an Online ledger firm before you export data to Online Ledger', true);
+                      0, false, 'Make sure admin user setup an Online ledger firm before you export data to ' +  GetAPIName , true);
     Exit;
   end;
 
   if Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '' then
   begin
     HelpfulErrorMsg('MYOB online client should be associated before exporting data!',
-                      0, false, 'Make sure you select an Online ledger client before you export data to Online Ledger', true);
+                      0, false, 'Make sure you select an Online ledger client before you export data to ' + GetAPIName, true);
     Exit;
   end;
 
@@ -476,7 +465,7 @@ begin
       if SignInFrm.ShowModal <> mrOK then
       begin
         HelpfulErrorMsg('Establish a MYOB login before export data',
-                      0, false, 'Sign in to MYOB portal to get the access tokens to communicate to Online Ledger', true);
+                      0, false, 'Sign in to MYOB portal to get the access tokens to communicate to ' + GetAPIName, true);
         Exit;
       end;
     finally
@@ -491,7 +480,7 @@ begin
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Begins' );
 
-  Msg := 'Export data [Online Practice Ledger API] from ' + BkDate2Str(FromDate) +
+  Msg := 'Export data [' + GetAPIName + ' API] from ' + BkDate2Str(FromDate) +
     ' to ' + bkDate2Str(ToDate);
 
   if DebugMe then
@@ -571,7 +560,7 @@ begin
         if Not FExportTerminated then
         Begin
           Result := True;
-          Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were exported to Online Ledger Account',[NoOfEntries] );
+          Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were exported to ' + GetAPIName + ' Account',[NoOfEntries] );
           LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
           HelpfulInfoMsg( Msg, 0 );
         end;
@@ -595,11 +584,10 @@ begin
   end;
 end;
 
-function TPracticeLedger.FetchCOAFromAPI(NewChart: TChart): Boolean;
+function TPracticeLedger.FetchCOAFromAPI(NewChart: TChart; var ErrMsg : string): Boolean;
 var
   Accounts : TChartOfAccountsData;
   sError: string;
-  SupportNumber: string;
   UnknownGSTCodesFound : Boolean;
   SignInFrm : TmyMYOBSignInForm;
   TemplateError : TTemplateError;
@@ -607,7 +595,7 @@ const
   TheMethod = 'FetchCOAFromAPI';
 begin
   Result := False;
-
+  ErrMsg := '';
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
@@ -636,8 +624,9 @@ begin
       SignInFrm.FormShowType := fsSignIn;
       if SignInFrm.ShowModal <> mrOK then
       begin
-        HelpfulErrorMsg('Establish a MYOB login before refresh chart',
-                      0, false, 'Sign in to MYOB portal to get the access tokens to communicate to Online Ledger', true);
+        ErrMsg := 'Establish a MYOB login before refresh chart';
+        HelpfulErrorMsg(ErrMsg,
+                      0, false, 'Sign in to MYOB portal to get the access tokens to communicate to ' + GetAPIName, true);
         Exit;
       end;
     finally
@@ -646,15 +635,24 @@ begin
     end;
   end;
 
+  if not MYOBUserHasAccesToFirm( AdminSystem.fdFields.fdmyMYOBFirmID, True) then
+  begin
+    ErrMsg := 'Your MYOB Credential does not have access to the Firm. Please log in with a different MYOB Credential, ' +
+      'or contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.' +
+      'The existing chart has not been modified.';
+    HelpfulWarningMsg( ErrMsg, 0 );
+    Exit;
+  end;
+
   Accounts := TChartOfAccountsData.Create(TChartOfAccountData);
   try
     RandomKey := UserINI_myMYOB_Random_Key;
     EncryptToken(UserINI_myMYOB_Access_Token);
     if not GetChartOfAccounts(MyClient.clExtra.cemyMYOBClientIDSelected, Accounts, sError) then
     begin
-      SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-      HelpfulErrorMsg('Could not connect to my.MYOB service, please try again later. ' +
-                      'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+      ErrMsg := 'Could not connect to my.MYOB service, please try again later. ' +
+                'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.';
+      HelpfulErrorMsg(ErrMsg,
                       0, false, sError, true);
       Exit;
     end;
@@ -665,12 +663,11 @@ begin
       if not LoadPLGSTTemplate(TemplateError) then
       begin
         if TemplateError = trtDoesNotExist then
-          sError := 'MYOBLedger.tpm does not exist'
+          ErrMsg := 'MYOBLedger.tpm does not exist'
         else
-          sError := 'MYOBLedger.tpm has invalid data';
+          ErrMsg := 'MYOBLedger.tpm has invalid data';
 
-        SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-        HelpfulErrorMsg(sError + ', please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+        HelpfulErrorMsg(ErrMsg + ', please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
                         0, false);
         Exit;
       end;
@@ -787,8 +784,7 @@ begin
       HelpfulErrorMsg(
         format( 'Could not connect to MYOB service, please try again later. ' +
           'If problem persists please contact %s support %s.',
-          [ SHORTAPPNAME,
-            TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ] ]),
+          [ SHORTAPPNAME, SupportNumber]),
           0, false, sError, true);
       exit;
     end;
@@ -817,7 +813,7 @@ begin
     begin
       Firm := PracticeLedger.Firms.GetItem( liLoop );
 
-      if assigned( Firm ) then
+      if Assigned( Firm ) then
       begin
         // Check if this is the correct firm
         if ( Firm.ID = aMYOBFirmID ) then
@@ -933,7 +929,7 @@ begin
     begin
       if (NewChart.FindCode(Account.Code) <> nil) then
         LogUtil.LogMsg( lmError, UnitName, 'Duplicate Code '+
-          Account.Code +' found in MYOB Ledger API' )
+          Account.Code +' found in ' + GetAPIName + ' API' )
       else
       begin
         NewAccount := New_Account_Rec;
@@ -948,7 +944,7 @@ begin
           NewAccount^.chGST_Class := GetTaxCodeSplitUp(Account.AccountType, Account.GstType);
         if ( NewAccount^.chGST_Class = 0 ) and ( Account.GstType <> '' ) then
         begin
-           LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in MYOB Ledger: '+ Account.Code );
+           LogUtil.LogMsg(lmError, UnitName, 'Unknown GST Indicator ' + Account.GstType + ' found in ' + GetAPIName + ': '+ Account.Code );
            Result := True;
         end;
         NewChart.Insert(NewAccount);
@@ -977,9 +973,9 @@ begin
       NewChart := TChart.Create(MyClient.ClientAuditMgr);
       UpdateAppStatus('Loading Chart','Reading Chart',0);
       try
-        if not FetchCOAFromAPI( NewChart ) then begin // Could not retreive the chart
-          Msg := 'Please select a client to refresh the chart from, via Other Functions | Accounting System';
+        if not FetchCOAFromAPI( NewChart, Msg ) then begin // Could not retreive the chart
           LogUtil.LogMsg( lmError, UnitName, ThisMethodName + ' : Client not selected.'  );
+          if Trim(Msg) =  '' then // If no message is already shown inside the functions, then show the below error message
           HelpfulErrorMsg( 'Please select a Client to refresh the chart from, ' +
             'via Other Functions | Accounting System' + #13+#13+
             'The existing chart has not been modified.', 0 );
@@ -1082,7 +1078,7 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running PracticeLedger.RollbackBatch, Error Message : ' + E.Message;
+        aError := 'Exception running ' + GetAPIName + '.RollbackBatch, Error Message : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
@@ -1090,7 +1086,7 @@ begin
     Result := True;
   finally
     SetDefaultTransferMethod;
-    
+
     if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
     if DebugMe then
@@ -1231,7 +1227,7 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running PracticeLedger.UploadToAPI, Error Message : ' + E.Message;
+        aError := 'Exception running ' + GetAPIName + '.UploadToAPI, Error Message : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
@@ -1293,7 +1289,7 @@ begin
               LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
               //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, DelErrorStr, True);
             end;
-            HelpfulErrorMsg('Exception in bank transaction export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
+            HelpfulErrorMsg('Exception in bank transaction export in ' + GetAPIName + '.ExportDataToAPI',0, false, ErrorStr, True);
 
             FExportTerminated := True;
             Exit;
@@ -1337,7 +1333,7 @@ begin
             //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
           end;
 
-          HelpfulErrorMsg('Exception in journal export in PracticeLedger.ExportDataToAPI',0, false, ErrorStr, True);
+          HelpfulErrorMsg('Exception in journal export in ' + GetAPIName + '.ExportDataToAPI',0, false, ErrorStr, True);
 
           FExportTerminated := True;
           Exit;

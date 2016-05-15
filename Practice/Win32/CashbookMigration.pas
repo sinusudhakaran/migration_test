@@ -16,11 +16,11 @@ uses
   clObj32,
   ChartExportToMYOBCashbook,
   BKWebBrowser,
-  ipshttps;
+  ipshttps,
+  bkContactInformation;
 
 const
   PUBLIC_KEY_FILE_CASHBOOK_TOKEN = 'PublicKeyMyobMigration.pke';
-
 type
 
   TDataRequestType = (drtSignIn, drtFirm, drtBusiness, drtCOA, drtTransactions,
@@ -114,6 +114,7 @@ type
     FRandomKey : string;
 
     procedure ProcessLargeReceivedData;
+    function ValidateJSONData:Boolean;
   protected
     FLicenseType : TLicenceType;
     FLargeJsonData : string;
@@ -122,9 +123,9 @@ type
     FDataError : string;
     FDataResponse : TlkJSONbase;
     FMappingsData : TMappingsData;
-
+    FSupportNumber : string;
     function ProcessErrorMessage(aErrorMessage: TlkJSONbase): string;
-    
+
     procedure LogHttpDebugSend(aCall : string;
                                aHeaders: THttpHeaders;
                                aPostData: TStringList); overload;
@@ -239,6 +240,8 @@ type
 
     function CheckForValidTokens:Boolean;
     procedure SetDefaultTransferMethod;
+    function GetAPIName:string;
+
     property OnProgressEvent : TProgressEvent read fProgressEvent write fProgressEvent;
     property MappingsData : TMappingsData read fMappingsData write fMappingsData;
     property HasProvisionalAccountsAndMoved : boolean read fHasProvisionalAccountsAndMoved;
@@ -250,6 +253,7 @@ type
     property RefreshToken : string read FRefreshToken write FRefreshToken;
     property TokenExpiresAt : TDateTime read FTokenExpiresAt write FTokenExpiresAt;
     property DataRequestType : TDataRequestType read FDataRequestType write FDataRequestType;
+    property SupportNumber : string read FSupportNumber write FSupportNumber;
   end;
 
   //----------------------------------------------------------------------------
@@ -725,6 +729,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TCashbookMigration.GetAPIName: string;
+begin
+  Result := '';
+
+  case FLicenseType of
+    ltCashbook : Result := 'CashbookMigration'; // This need to change at some point and use BRAND_CASHBOOK_NAME
+    ltPracticeLedger : Result := BRAND_MYOB_LEDGER_NAME;
+  end;
+end;
+
 function TCashbookMigration.GetBusinesses(aFirmID: string; LicenseType:TLicenceType;
   var aBusinesses: TBusinesses; var aError: string): Boolean;
 var
@@ -734,6 +748,7 @@ var
 begin
   Result := False;
   JsonObject := nil;
+  aError := '';
   try
     try
       sURL := PRACINI_CashbookAPIBusinessesURL;
@@ -753,6 +768,10 @@ begin
         ;
 
       aError := FDataError;
+
+      if Trim(FDataError) <> '' then
+        Exit;
+
       if Assigned(FDataResponse) then
       begin
         JsonObject := (FDataResponse as TlkJSONObject);
@@ -768,7 +787,7 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running PracticeLedger.Getbusinesses, Error Message : ' + E.Message;
+        aError := Format('Exception running %s.GetBusinesses, Error Message : ' + E.Message,[GetAPIName]);
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
@@ -815,6 +834,7 @@ var
 begin
   Result := False;
   JsonObject := nil;
+  aError := '';
   try
     try
       sURL := Format(PRACINI_CashbookAPICOAURL,[aBusinessID]);
@@ -833,6 +853,10 @@ begin
         ;
 
       aError := FDataError;
+
+      if Trim(FDataError) <> '' then
+        Exit;
+
       if Assigned(FDataResponse) then
       begin
         JsonObject := (FDataResponse as TlkJSONObject);
@@ -846,16 +870,15 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running PracticeLedger.GetCOA, Error Message : ' + E.Message;
+        aError := 'Exception running ' + GetAPIName + '.GetCOA, Error Message : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
     end;
   finally
-    if Assigned(FDataResponse) then    
+    if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
   end;
-
   Result := True;
 end;
 
@@ -1025,7 +1048,7 @@ begin
     end;
 
     FHttpRequester.HTTPMethod := aVerb;
-    
+
     if (aVerb = 'GET') then
     begin
       FHttpRequester.Get(aURL);
@@ -1154,6 +1177,7 @@ begin
 
     // Response
     aResponse := TlkJSON.ParseText(aRespStr);
+
     if not assigned(aResponse) then
       exit;
   except
@@ -1191,6 +1215,99 @@ begin
   if LenStr in [8,9,13] then
   begin
     Result := true;
+  end;
+end;
+
+function TCashbookMigration.ValidateJSONData: Boolean;
+begin
+  {This function validates JSON data before proceed}
+
+  try
+    FDataResponse := TlkJSON.ParseText(FLargeJsonData);
+  except
+    FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+    LogUtil.LogMsg(lmError, UnitName, FDataError);
+    Exit;
+  end;
+
+  if not Assigned(FDataResponse) then
+  begin
+    FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+    LogUtil.LogMsg(lmError, UnitName, FDataError);
+    Exit;
+  end;
+
+  case FDataRequestType of
+    drtFirm :
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONlist) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtBusiness :
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtCOA:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtTransactions:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtJournals:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtRollback:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
+    drtMigrateClient:
+    begin
+      if not (Assigned(FDataResponse)) or
+         not (FDataResponse is TlkJSONObject) then
+      begin
+        FDataError := 'We had trouble getting the right data from ' + GetAPIName + '. Please try again later, if problem persists contact support.';
+        LogUtil.LogMsg(lmError, UnitName, FDataError);
+        Exit;
+      end;
+    end;
   end;
 end;
 
@@ -2222,7 +2339,11 @@ begin
     JSONData := TStringList.Create;
     try
       JSONData.Add(FLargeJsonData);
-      JSONData.SaveToFile('PL_BusinessJSON.txt');
+      try
+        JSONData.SaveToFile('PL_BusinessJSON.txt');
+      except
+        // No need to do anything here
+      end;
     finally
       FreeAndNil(JSONData);
     end;
@@ -2231,83 +2352,9 @@ begin
   if Trim(FLargeJsonData) = '' then
     Exit;
 
-  FDataResponse := TlkJSON.ParseText(FLargeJsonData);
-
-  if not Assigned(FDataResponse) then
+  if not ValidateJSONData then
     Exit;
 
-  case FDataRequestType of
-    drtFirm :
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONlist) then
-      begin
-        FDataError := 'Error running CashbookMigration.GetFirms, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-    drtBusiness :
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONObject) then
-      begin
-        FDataError := 'Error running PracticeLedger.GetBusinesses, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-    drtCOA:
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONObject) then
-      begin
-        FDataError := 'Error running PracticeLedger.GetCOA, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-    drtTransactions:
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONObject) then
-      begin
-        FDataError := 'Error running PracticeLedger.UploadTransaction, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-    drtJournals:
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONObject) then
-      begin
-        FDataError := 'Error running PracticeLedger.UploadJournals, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-    drtRollback:
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONObject) then
-      begin
-        FDataError := 'Error running PracticeLedger.Rollback Batch, Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-    drtMigrateClient:
-    begin
-      if not (Assigned(FDataResponse)) or
-         not (FDataResponse is TlkJSONObject) then
-      begin
-        FDataError := 'Error running cashbook Migration , Error Message : No response from Server.';
-        LogUtil.LogMsg(lmError, UnitName, FDataError);
-        Exit;
-      end;
-    end;
-  end;
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, 'Response : ' + FLargeJsonData);
 end;
@@ -2330,7 +2377,7 @@ begin
   Token := '';
   NoOfSecondsToExpire := 0;
   FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
-
+  aError := '';
   // Setup REST request
   PostData := nil;
   js := nil;
@@ -2364,7 +2411,7 @@ begin
           LogUtil.LogMsg(lmInfo, UnitName, sError);
         end
         else
-          LogUtil.LogMsg(lmError, UnitName, 'Error running CashbookMigration.RefreshToken, Error Message : ' + sError);
+          LogUtil.LogMsg(lmError, UnitName, 'Error running ' + GetAPIName +'.RefreshToken, Error Message : ' + sError);
 
         aError := sError;
         Exit;
@@ -2375,13 +2422,16 @@ begin
 
       aError := FDataError;
 
+      if Trim(FDataError) <> '' then
+        Exit;
+
       // Parse JSON result
       if Assigned(FDataResponse) then
         js := FDataResponse as TlkJSONobject;
 
       if not assigned(js) then
       begin
-        aError := 'Error running CashbookMigration.Login, Error Message : No response from Server.';
+        aError := 'Error running ' + GetAPIName + '.Login, Error Message : No response from Server.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
@@ -2392,26 +2442,29 @@ begin
       NoOfSecondsToExpire := StrToIntDef(js.GetString('expires_in'),0);
       FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
 
-      if (Token <> '') then
+      if (Trim(Token) <> '') and
+        (Trim(FRefreshToken) <> '') and
+        (NoOfSecondsToExpire > 0) then
         EncryptToken(Token)
       else
       begin
-        aError := 'Error running CashbookMigration.RefreshToken, Error Message : Can not find Access Token in response.';
+        aError := 'Error running ' + GetAPIName + '.RefreshToken, Error Message : Can not find Access Token in response.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
+
       Result := True;
     except
       on E : Exception do
       begin
-        aError := 'Exception running CashbookMigration.RefreshToken, Error Message : ' + E.Message;
+        aError := 'Exception running ' + GetAPIName + '.RefreshToken, Error Message : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, aError);
         Exit;
       end;
     end;
   finally
     FreeAndNil(PostData);
-    if Assigned(FDataResponse) then    
+    if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
   end;
 end;
@@ -2713,6 +2766,10 @@ begin
 
   fProvisionalAccounts := TStringlist.Create;
   FLicenseType := ltCashbook;
+  
+  FSupportNumber := '';
+  if Assigned(AdminSystem) then
+    FSupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ]
 end;
 
 //------------------------------------------------------------------------------
@@ -2745,7 +2802,7 @@ begin
   FRefreshToken := '';
   NoOfSecondsToExpire := 0;
   FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
-
+  aError := '';
   if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
   begin
     HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
@@ -2787,7 +2844,7 @@ begin
           LogUtil.LogMsg(lmInfo, UnitName, sError);
         end
         else
-          LogUtil.LogMsg(lmError, UnitName, 'Error running CashbookMigration.Login, Error Message : ' + sError);
+          LogUtil.LogMsg(lmError, UnitName, 'Error running ' + GetAPIName + '.Login, Error Message : ' + sError);
 
         aError := sError;
         exit;
@@ -2797,6 +2854,8 @@ begin
         ;
 
       aError := FDataError;
+      if Trim(FDataError) <> '' then
+        Exit;
 
       // Parse JSON result
       if Assigned(FDataResponse) then
@@ -2804,7 +2863,7 @@ begin
 
       if not assigned(js) then
       begin
-        aError := 'Error running CashbookMigration.Login, Error Message : No response from Server.';
+        aError := 'Error running ' + GetAPIName + '.Login, Error Message : No response from Server.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
@@ -2815,11 +2874,13 @@ begin
       NoOfSecondsToExpire := StrToIntDef(js.GetString('expires_in'),0);
       FTokenExpiresAt := IncSecond(Now,NoOfSecondsToExpire);
 
-      if (Token <> '') then
+      if (Trim(Token) <> '') and
+        (Trim(FRefreshToken) <> '') and
+        (NoOfSecondsToExpire > 0)then
         EncryptToken(Token)
       else
       begin
-        aError := 'Error running CashbookMigration.Login, Error Message : Can not find Access Token in response.';
+        aError := 'Error running ' + GetAPIName + '.Login, Error Message : Can not find Access Token in response.';
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
@@ -2830,7 +2891,7 @@ begin
     except
       on E : Exception do
       begin
-        aError := 'Exception running CashbookMigration.Login, Error Message : ' + E.Message;
+        aError := 'Exception running ' + GetAPIName + ' .Login, Error Message : ' + E.Message;
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
@@ -2838,7 +2899,7 @@ begin
 
   finally
     FreeAndNil(PostData);
-    if Assigned(FDataResponse) then    
+    if Assigned(FDataResponse) then
       FreeAndNil(FDataResponse);
   end;
 end;
@@ -2852,6 +2913,7 @@ var
 begin
   Result := false;
   List := nil;
+  aError := '';
   try
     try
       sURL := PRACINI_CashbookAPIFirmsURL;
@@ -2871,6 +2933,10 @@ begin
         ;
 
       aError := FDataError;
+
+      if Trim(FDataError) <> '' then
+        Exit;
+
       if Assigned(FDataResponse) then
       begin
         List := (FDataResponse as TlkJSONlist);
@@ -2887,7 +2953,7 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running CashbookMigration.GetFirms, Error Message : ' + E.Message;
+        aError := Format('Exception running %s.GetFirms, Error Message : ' + E.Message, [GetAPIName]);
         LogUtil.LogMsg(lmError, UnitName, aError);
         exit;
       end;
