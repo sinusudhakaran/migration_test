@@ -57,7 +57,6 @@ type
     procedure SaveUser;
     procedure UpdateControls;
     procedure SaveMyMYOBUserDetails;
-    procedure ResetMyMYOBUserDetails;
   public
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
@@ -390,7 +389,7 @@ begin
           ModalResult := mrCancel;
         end;
 
-        if PracticeLedger.CountEligibleFirms >= 0 then begin
+        if PracticeLedger.CountEligibleFirms <= 0 then begin
           HelpfulWarningMsg( errMYOBCredential, 0 );
           PracticeLedger.ResetMyMYOBUserDetails;
           ModalResult := mrCancel;
@@ -509,16 +508,6 @@ begin
   cmbSelectFirm.ItemIndex := Index;
   FOldFirmID := FSelectedID;
   cmbSelectFirm.SetFocus;
-end;
-
-procedure TmyMYOBSignInForm.ResetMyMYOBUserDetails;
-begin
-  UserINI_myMYOB_Access_Token := '';
-  UserINI_myMYOB_Random_Key := '';
-  UserINI_myMYOB_Refresh_Token := '';
-  UserINI_myMYOB_Expires_TokenAt := 0;
-
-  WriteUsersINI(CurrUser.Code);
 end;
 
 procedure TmyMYOBSignInForm.SaveMyMYOBUserDetails;

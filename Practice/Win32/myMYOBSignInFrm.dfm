@@ -157,7 +157,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 16
+      ItemHeight = 0
       ParentFont = False
       TabOrder = 0
     end
@@ -257,7 +257,7 @@ object myMYOBSignInForm: TmyMYOBSignInForm
       Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
-      ItemHeight = 16
+      ItemHeight = 0
       ParentFont = False
       TabOrder = 0
       OnChange = cmbSelectFirmChange

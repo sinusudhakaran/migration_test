@@ -775,7 +775,7 @@ begin
         SignInFrm.FormShowType := fsSignIn;
       end
       else
-        if ( PracticeLedger.CountEligibleFirms( )  = 0  ) then // There was no entitlement for any firms
+        if ( PracticeLedger.CountEligibleFirms <= 0  ) then // There was no entitlement for any firms
         begin
           Screen.Cursor := OldCursor;
           PracticeLedger.ResetMyMYOBUserDetails;
