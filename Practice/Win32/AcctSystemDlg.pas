@@ -1315,7 +1315,7 @@ begin
       //ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;
       SignInFrm.ShowFirmSelection := False;
-      // SignInFrm.ValidateClientAgainstFirm := True;
+      SignInFrm.ValidateClientAgainstFirm := True;
       
       if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and

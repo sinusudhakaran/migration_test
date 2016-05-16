@@ -839,11 +839,11 @@ begin
   if aRefreshPLFirms then //Do we need to Refresh the PracticeLedger.Firms collection first?
     if ( not PracticeLedger.GetFirms( PracticeLedger.Firms, sError ) ) then
     begin
-      HelpfulErrorMsg(
+(*      HelpfulErrorMsg(
         format( 'Could not connect to MYOB service, please try again later. ' +
           'If problem persists please contact %s support %s.',
           [ SHORTAPPNAME, SupportNumber]),
-          0, false, sError, true);
+          0, false, sError, true);  *)
       exit;
     end;
   for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
@@ -879,7 +879,9 @@ begin
         if ( Firm.ID = aMYOBFirmID ) then
         begin
           // Check if the Firm is a eligible PracticeLedger Firm
-          if Pos( 'PL',Firm.EligibleLicense ) > 0 then 
+          if ( Pos( 'PL',Firm.EligibleLicense ) > 0 ) and
+             ( aFilterCountry and                                                // Filter just for the current Region
+               (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) ) then // AND Firm is in the current Region
           begin
             result := true;
             Break;

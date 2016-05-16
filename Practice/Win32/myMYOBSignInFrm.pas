@@ -50,7 +50,7 @@ type
     FForcedSignInSucceed : Boolean;
     FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
-//    FValidateClientAgainstFirm : Boolean;
+    FValidateClientAgainstFirm : Boolean;
     procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
@@ -62,7 +62,7 @@ type
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
     property ShowFirmSelection : Boolean read FShowFirmSelection write FShowFirmSelection;
     property ShowClientSelection : Boolean read FShowClientSelection write FShowClientSelection;
-//    property ValidateClientAgainstFirm : Boolean read FValidateClientAgainstFirm write FValidateClientAgainstFirm;
+    property ValidateClientAgainstFirm : Boolean read FValidateClientAgainstFirm write FValidateClientAgainstFirm;
 
     property SelectedID: string read FSelectedID write FSelectedID;
     property SelectedName : string read FSelectedName write FSelectedName;
@@ -217,7 +217,9 @@ begin
         LoadFirms;
       end;
 
-      if not PracticeLedger.MYOBUserHasAccesToFirm( AdminSystem.fdFields.fdmyMYOBFirmID, false ) then
+      if ( not PracticeLedger.MYOBUserHasAccesToFirm(
+                 AdminSystem.fdFields.fdmyMYOBFirmID, true ) ) and
+         (ValidateClientAgainstFirm) then
         begin
           Screen.Cursor := OldCursor;
           HelpfulWarningMsg( errMYOBCredential, 0 );
@@ -334,7 +336,7 @@ procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
 begin
   ShowClientSelection := False;
   ShowFirmSelection := False;
-//  ValidateClientAgainstFirm := False;
+  fValidateClientAgainstFirm := False;
 end;
 
 procedure TmyMYOBSignInForm.FormShow(Sender: TObject);
