@@ -2786,6 +2786,11 @@ const
 
   difFrequencyNames : array[difMin..difMax] of string[10] = ('', 'Monthly', 'Weekly', '', 'Daily');
 
+// Application Error messages
+  errMYOBCredential = 'MYOB Credential does not have access to the Firm. ' +
+    'Please log in with a different MYOB Credential, or contact support.';
+
+
 Const
   // Should be 4 (same as ExchangeRatesFrm)
   ForexDP : Integer = 4;
@@ -2802,6 +2807,7 @@ Const
   prfxInit = 0;   prfxMin = 0;
   prfxOn   = 1;
   prfxOff  = 2;   prfxMax = 2;
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 IMPLEMENTATION
