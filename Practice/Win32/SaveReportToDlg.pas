@@ -239,15 +239,18 @@ begin
         end;
 
         // Populate the browse dialog with standard constants
-        for i := 0 to rfMax do
+        for i := rfMin to rfMax do
         begin
-          HideInOz := Assigned(MyClient) and (MyClient.clFields.clCountry = whAustralia) and (MyClient.clFields.clWeb_Export_Format = 255);
-          if (i = rfAcclipse) and
-             (HideAcclipse or HideInOz or
-             (Assigned(MyClient) and (MyClient.clFields.clWeb_Export_Format <> wfWebX) and (MyClient.clFields.clWeb_Export_Format <> 255)) ) then
-            Continue;
+          if (FileFormats = []) or (TFileFormats(i) in FileFormats) then
+          begin
+            HideInOz := Assigned(MyClient) and (MyClient.clFields.clCountry = whAustralia) and (MyClient.clFields.clWeb_Export_Format = 255);
+            if (i = rfAcclipse) and
+               (HideAcclipse or HideInOz or
+               (Assigned(MyClient) and (MyClient.clFields.clWeb_Export_Format <> wfWebX) and (MyClient.clFields.clWeb_Export_Format <> 255)) ) then
+              Continue;
 
-          svdFilename.Filter := svdFileName.Filter + '|' + RptFileFormat.Names[i] + '|*' + RptFileFormat.Extensions[i];
+            svdFilename.Filter := svdFileName.Filter + '|' + RptFileFormat.Names[i] + '|*' + RptFileFormat.Extensions[i];
+          end;
         end;
 
         PreviousIndex := cmbFormat.ItemIndex;
