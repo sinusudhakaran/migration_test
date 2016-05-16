@@ -775,42 +775,47 @@ begin
     Exit;
   end;
 
-  if ((Trim(aJSONObject.getString('id')) = '') or
-      (Trim(aJSONObject.getString('name')) = '') or
-      (Trim(aJSONObject.getString('region')) = '')) then
-  begin
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Firm data received from API');
-    Exit;
-  end;
+  try
+    if ((Trim(aJSONObject.getString('id')) = '') or
+        (Trim(aJSONObject.getString('name')) = '') or
+        (Trim(aJSONObject.getString('region')) = '')) then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Firm data received from API');
+      Exit;
+    end;
 
-  if not ((Trim(aJSONObject.getString('region'))= 'AU') or (Trim(aJSONObject.getString('region'))= 'NZ')) then
-  begin
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
-    Exit;
-  end;
-
-  License := aJSONObject.Field['eligible_licence_codes'];
-  if Assigned(License) then
-  begin
-    if License.Count = 0 then
+    if not ((Trim(aJSONObject.getString('region'))= 'AU') or (Trim(aJSONObject.getString('region'))= 'NZ')) then
     begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
       Exit;
     end;
 
-    for i := 0 to License.Count - 1 do
+    License := aJSONObject.Field['eligible_licence_codes'];
+
+    if Assigned(License) then
     begin
-      if ((Trim(License.Child[i].Value) = '') or
-         (not((License.Child[i].Value = 'CB') or (License.Child[i].Value = 'PL')))) then
+      if License.Count = 0 then
       begin
         if DebugMe then
           LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
         Exit;
       end;
+
+      for i := 0 to License.Count - 1 do
+      begin
+        if ((Trim(License.Child[i].Value) = '') or
+           (not((License.Child[i].Value = 'CB') or (License.Child[i].Value = 'PL')))) then
+        begin
+          if DebugMe then
+            LogUtil.LogMsg(lmDebug, UnitName, 'Invalid region in Firm data received from API');
+          Exit;
+        end;
+      end;
     end;
+  except
+    Exit;
   end;
   Result := True;
 end;
@@ -835,7 +840,9 @@ begin
         // Read firm
         Firm.Read(Child);
         Add(Firm);
-      end;
+      end
+      else
+        LogUtil.LogMsg(lmInfo , UnitName, 'GET Firms API retrieved some invalid data');
     end;
   end;
 
@@ -1649,7 +1656,9 @@ begin
       ChartOfAccount := TChartOfAccountData(Self.Add);
       // Read business
       ChartOfAccount.Read(Child);
-    end;
+    end
+    else
+      LogUtil.LogMsg(lmInfo , UnitName, 'GET COA API retrieved some invalid data');
   end;
 end;
 
@@ -1961,7 +1970,7 @@ begin
     FABN := aJson.getString('abn');
   FFirmId := aJson.getString('firm_id');
   FVisibility := aJson.getBoolean('visibility');
-  if (Assigned(aJson.Field['ird']) and  (aJson.Field['ird'].SelfType <> jsNull)) then
+  if (Assigned(aJson.Field['ird']) and (aJson.Field['ird'].SelfType <> jsNull)) then
     FIRD := aJson.getString('ird');
   if (Assigned(aJson.Field['licence_code'])) and (aJson.Field['licence_code'].SelfType <> jsNull) then
     FLicenseCode := aJson.getString('licence_code');
@@ -2313,18 +2322,18 @@ begin
     Exit;
   end;
 
-  if ((Trim(aJSON.getString('id')) = '') or
-      (Trim(aJSON.getString('name')) = '') or
-      (Trim(aJSON.getString('firm_id')) = '') or
-      (Trim(aJSON.getString('client_code')) = '') or
-      (Trim(aJSON.getString('licence_code')) = '')) then
-  begin
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Business data received from API');
-    Exit;
-  end;
-  
   try
+    if ((Trim(aJSON.getString('id')) = '') or
+        (Trim(aJSON.getString('name')) = '') or
+        (Trim(aJSON.getString('firm_id')) = '') or
+        (Trim(aJSON.getString('client_code')) = '') or
+        (Trim(aJSON.getString('licence_code')) = '')) then
+    begin
+      if DebugMe then
+        LogUtil.LogMsg(lmDebug, UnitName, 'Missing fields in Business data received from API');
+      Exit;
+    end;
+
     if ((Trim(aJSON.getString('firm_id')) <> aFirmId) or
         (not aJson.getBoolean('visibility')) or
         (Pos(aLicense, Trim(aJSON.getString('licence_code'))) <= 0)
@@ -2355,7 +2364,7 @@ begin
 
   if Trim(aFirmID) = '' then
     Exit;
-    
+
   Field := aJson.Field['businesses'] as TlkJsonList;
 
   if not Assigned(Field) then
@@ -2365,7 +2374,7 @@ begin
     ltCashbook : LicenseTypeStr := 'CB';
     ltPracticeLedger : LicenseTypeStr := 'PL';
   end;
-  
+
   for i := 0 to Field.Count-1 do
   begin
     Child := Field.Child[i] as TlkJSONobject;
@@ -2378,9 +2387,11 @@ begin
       Business.Read(Child);
 
       Add(Business);
-    end;
+    end
+    else
+      LogUtil.LogMsg(lmInfo , UnitName, 'GET Businesses API retrieved some invalid data');
   end;
-  
+
   Self.Sort(CompareNames);
 end;
 
