@@ -119,7 +119,7 @@ var
    PeriodList: TDateList;
    BankIndex: Integer;
 
-   ContraCodeInChart : pAccount_Rec;
+//   ContraCodeInChart : pAccount_Rec;
 
    // Extracts the folder part of the path.
    // In case you're wondering why this is necessary, simply using ExtractFileDir on a directory
@@ -179,7 +179,7 @@ begin
                      baContra_Account_Code := Contra_Code;
                end;
 
-               ContraCodeInChart := MyClient.clChart.FindCode( baContra_Account_Code );
+(*               ContraCodeInChart := MyClient.clChart.FindCode( baContra_Account_Code );
                if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code OR
                       ( assigned( ContraCodeInChart ) and   // Contra Code is found AND the
                         ContraCodeInChart.chInactive ) then // Contra code is not active
@@ -189,7 +189,7 @@ begin
                                 '| Bank Accounts before exporting', [ baBank_Account_Number ] );
                  HelpfulErrorMsg( Msg, 0, true );
                end;
-
+*)
             end;
          end;
       end; { Contra Required }

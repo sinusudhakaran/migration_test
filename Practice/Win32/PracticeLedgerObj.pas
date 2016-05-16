@@ -441,6 +441,11 @@ var
   Selected: TStringList;
   ContraCode: string;
   SignInFrm : TmyMYOBSignInForm;
+
+  ContraCodeInChart  : pAccount_Rec;
+  InvalidContraCodes : TStringlist;
+  InvalidContras     : string;
+
 begin
   Result := False;
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
@@ -494,50 +499,83 @@ begin
   try
     with MyClient.clFields do
     begin
-      // Validate all bank transactions
-      for i := 0 to Pred( Selected.Count ) do
-      begin
-        BA := TBank_Account(Selected.Objects[i]);
-
-        with BA.baFields do
+      InvalidContraCodes := TStringlist.Create;
+      try
+        // Validate all bank transactions
+        for i := 0 to Pred( Selected.Count ) do
         begin
-          if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  ) = 0 then
-          begin
-            HelpfulInfoMsg( 'There are no new entries to extract, for ' + baBank_Account_Number +', in the selected date range.',0);
-            Exit;
-          end;
+          BA := TBank_Account(Selected.Objects[i]);
 
-          if (not AllowUncoded) then
+          with BA.baFields do
           begin
-            if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
+            if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  ) = 0 then
             begin
-              HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' + 
-                 'You need to update these codes before you can export data.',  0 );
+              HelpfulInfoMsg( 'There are no new entries to extract, for ' + baBank_Account_Number +', in the selected date range.',0);
               Exit;
             end;
-            if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
-            begin
-              HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
-                 'You must code all the entries before you can extract them.',  0 );
-              Exit;
-            end;
-          end;
 
-          if ((not AllowBlankContra) and (not AllowBlankContra)) then
-          begin
-            if BA.baFields.baContra_Account_Code = '' then
+            if (not AllowUncoded) then
             begin
-              if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
-                BA.baFields.baContra_Account_Code := ContraCode
-              else
+              if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
               begin
-                HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
-                  baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
+                HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' +
+                   'You need to update these codes before you can export data.',  0 );
+                Exit;
+              end;
+              if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
+              begin
+                HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
+                   'You must code all the entries before you can extract them.',  0 );
                 Exit;
               end;
             end;
+
+            if ((not AllowBlankContra) and (not AllowBlankContra)) then
+            begin
+              if BA.baFields.baContra_Account_Code = '' then
+              begin
+                if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
+                  BA.baFields.baContra_Account_Code := ContraCode
+                else
+                begin
+                  HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
+                    baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
+                  Exit;
+                end;
+              end;
+            end;
           end;
+
+          ContraCodeInChart := MyClient.clChart.FindCode( BA.baFields.baContra_Account_Code );
+          if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code OR
+                 ( assigned( ContraCodeInChart ) and   // Contra Code is found AND the
+                   ContraCodeInChart.chInactive ) then // Contra code is not active
+          begin
+            InvalidContraCodes.Add( BA.baFields.baBank_Account_Number );
+          end;
+
         end;
+
+        if InvalidContraCodes.Count > 0 then begin
+          InvalidContras := InvalidContraCodes[ 0 ];
+          for i := 1 to InvalidContraCodes.Count - 1 do
+            InvalidContras := format( '%s, %s', [ InvalidContras, InvalidContraCodes[ i ] ] );
+
+          if InvalidContraCodes.Count > 1 then
+            Msg := format( 'Your contra codes for Bank Account numbers %s are ' +
+                           'not valid. Please update under Other Functions ' +
+                           '| Bank Accounts before exporting', [ InvalidContras ] )
+          else
+            Msg := format( 'Your contra code for Bank Account number %s is ' +
+                           'not valid. Please update under Other Functions ' +
+                           '| Bank Accounts before exporting', [ InvalidContras ] );
+
+          HelpfulErrorMsg( Msg, 0, true );
+
+          exit; // Some contra codes are invalid, need the user to correct
+        end;
+      finally
+        freeAndNil( InvalidContraCodes );
       end;
 
       FBankAcctsToExport := TBankAccountsData.Create(TBankAccountData);
@@ -851,48 +889,6 @@ begin
     end;
   end
 end;
-
-(*/////// DN - Redundant, there is a Firms Collection as part of the main TPracticeLedger class
-function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String ): boolean;
-var
-  ClientFirms : TFirms;
-  Firm        : TFirm;
-  liLoop      : integer;
-begin
-  result := false;
-  ClientFirms := TFirms.Create;
-  try
-    if ( PracticeLedger.GetFirms( ClientFirms, sError ) ) then
-    begin
-      for liLoop := 0 to ClientFirms.Count - 1 do
-      begin
-        Firm := ClientFirms.GetItem( liLoop );
-
-        if assigned( Firm ) then
-        begin
-          // Check for Practice Ledger
-          if Pos( 'PL',Firm.EligibleLicense ) > 0 then
-          begin
-            if ( Firm.ID = aMYOBFirmID ) then
-            begin
-              result := true;
-              Break;
-            end;
-          end;
-        end;
-      end;
-      ClientFirms.Clear;
-    end
-    else
-    begin
-      ShowConnectionError( sError );
-    end;
-  
-  finally
-    FreeAndNil( ClientFirms );
-  end;
-end;
-/////// DN - Redundant, there is a Firms Collection as part of the main TPracticeLedger class *)
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 const
