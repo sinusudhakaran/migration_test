@@ -658,18 +658,25 @@ begin
     end;
 
     {Load GST Setup only for the first time client set up business, do this ONLY for Australain clients at the moment}
-    if LoadingCOAForTheFirstTime  and (AdminSystem.fdFields.fdCountry = whAustralia) then
+    if LoadingCOAForTheFirstTime then
     begin
-      if not LoadPLGSTTemplate(TemplateError) then
+      if (AdminSystem.fdFields.fdCountry = whAustralia) then
       begin
-        if TemplateError = trtDoesNotExist then
-          ErrMsg := 'MYOBLedger.tpm does not exist'
-        else
-          ErrMsg := 'MYOBLedger.tpm has invalid data';
+        if not LoadPLGSTTemplate(TemplateError) then
+        begin
+          if TemplateError = trtDoesNotExist then
+            ErrMsg := 'MYOBLedger.tpm does not exist'
+          else
+            ErrMsg := 'MYOBLedger.tpm has invalid data';
 
-        HelpfulErrorMsg(ErrMsg + ', please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-                        0, false);
-        Exit;
+          HelpfulErrorMsg(ErrMsg + ', please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+                          0, false);
+          Exit;
+        end;
+      end
+      else if (AdminSystem.fdFields.fdCountry = whNewZealand) then
+      begin
+        Template.LoadNZMYOBLedgerTemplate();
       end;
     end;
 

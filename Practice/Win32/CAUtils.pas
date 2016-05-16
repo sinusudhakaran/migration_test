@@ -117,7 +117,7 @@ Const
    vMax = 8;
    ValidCodes : Array[ vMin..vMax ] of String[1] = ( 'I','O','E','Z','1','2','3','4' );
 
-   ValidPLNZCodes : Array [1..5] of String[4] = ('GST', 'E', 'NTR', 'Z', 'I');
+   ValidPLNZCodes : Array [1..7] of String[4] = ('GST', 'E', 'NTR', 'Z', 'I', 'GSTI', 'GSTO');
    ValidPLAUCodes : Array [1..10] of String[4] = ('CAP', 'EXP', 'FRE', 'GNR', 'GST', 'INP', 'ITS', 'NTR', 'GSTI', 'GSTO');
 Var
    GSTCode : String[GST_CLASS_CODE_LENGTH];
@@ -138,7 +138,7 @@ Begin
       begin
         GSTCode := Copy( clGST_Class_Codes[ Rate ],1,4);
         if Trim(GSTCode) <> ''  then
-          for i := 1 to 5 do If Trim(GSTCode) = ValidPLNZCodes[ i ] then Exit;
+          for i := 1 to 7 do If Trim(GSTCode) = ValidPLNZCodes[ i ] then Exit;
       end
       else if ((clCountry = whAustralia) and (clAccounting_System_Used =  saMYOBOnlineLedger)) then
       begin

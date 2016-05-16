@@ -52,14 +52,18 @@ Type
                                    var aCurrentLine : ShortString;
                                    var aCLFields : TClient_Rec;
                                    aMultiplyBy : Integer) : boolean;
+      procedure SetGSTItem(var aCLFields : TClient_Rec;
+                           aIndex : integer; aClassCode, aClassName : string;
+                           aClassType : integer; aRate1 : integer);
     public
       procedure SaveAsTemplate;
 
-      Procedure LoadFromTemplate;
+      procedure LoadFromTemplate;
 
       function  LoadTemplate(const aTemplateFilename : String;
                              const aCreateChartifFound : tpl_CreateChartType;
                              var aTemplateErrorType : TTemplateError ): Boolean;
+      procedure LoadNZMYOBLedgerTemplate();
   end;
 
   function Template : TTemplates;
@@ -346,6 +350,16 @@ end;
 //------------------------------------------------------------------------------
 procedure TTemplates.ClearBASFields(var aCLFields: TClient_Rec);
 begin
+  FillChar(aCLFields.clBAS_Field_Number       ,Sizeof(aCLFields.clBAS_Field_Number), 0);
+  FillChar(aCLFields.clBAS_Field_Source       ,Sizeof(aCLFields.clBAS_Field_Source), 0);
+  FillChar(aCLFields.clBAS_Field_Account_Code ,Sizeof(aCLFields.clBAS_Field_Account_Code), 0);
+  FillChar(aCLFields.clBAS_Field_Balance_Type ,Sizeof(aCLFields.clBAS_Field_Balance_Type), 0);
+  FillChar(aCLFields.clBAS_Field_Percent      ,Sizeof(aCLFields.clBAS_Field_Percent), 0);
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.ClearGSTFields(var aCLFields: TClient_Rec);
+begin
   FillChar(aCLFields.clGST_Class_Codes      ,Sizeof(aCLFields.clGST_Class_Codes), 0);
   FillChar(aCLFields.clGST_Applies_From     ,Sizeof(aCLFields.clGST_Applies_From), 0);
   FillChar(aCLFields.clGST_Class_Names      ,Sizeof(aCLFields.clGST_Class_Names), 0);
@@ -353,16 +367,6 @@ begin
   FillChar(aCLFields.clGST_Account_Codes    ,Sizeof(aCLFields.clGST_Account_Codes), 0);
   FillChar(aCLFields.clGST_Rates            ,Sizeof(aCLFields.clGST_Rates), 0);
   FillChar(aCLFields.clGST_Business_Percent ,Sizeof(aCLFields.clGST_Business_Percent), 0);
-end;
-
-//------------------------------------------------------------------------------
-procedure TTemplates.ClearGSTFields(var aCLFields: TClient_Rec);
-begin
-  FillChar(aCLFields.clBAS_Field_Number       ,Sizeof(aCLFields.clBAS_Field_Number), 0);
-  FillChar(aCLFields.clBAS_Field_Source       ,Sizeof(aCLFields.clBAS_Field_Source), 0);
-  FillChar(aCLFields.clBAS_Field_Account_Code ,Sizeof(aCLFields.clBAS_Field_Account_Code), 0);
-  FillChar(aCLFields.clBAS_Field_Balance_Type ,Sizeof(aCLFields.clBAS_Field_Balance_Type), 0);
-  FillChar(aCLFields.clBAS_Field_Percent      ,Sizeof(aCLFields.clBAS_Field_Percent), 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -581,6 +585,24 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+procedure TTemplates.SetGSTItem(var aCLFields : TClient_Rec;
+                                aIndex : integer; aClassCode, aClassName : string;
+                                aClassType : integer; aRate1 : integer);
+begin
+  aCLFields.clGST_Class_Codes[aIndex]   := aClassCode;
+  aCLFields.clGST_Class_Names[aIndex]   := aClassName;
+  aCLFields.clGST_Class_Types[aIndex]   := aClassType;
+  aCLFields.clGST_Account_Codes[aIndex] := '';
+  aCLFields.clGST_Business_Percent[aIndex] := 0;  //not used for NZ but make sure zero anyway
+
+  aCLFields.clGST_Rates[aIndex, 1] := aRate1 * 10000;
+  aCLFields.clGST_Rates[aIndex, 2] := 0;
+  aCLFields.clGST_Rates[aIndex, 3] := 0;
+  aCLFields.clGST_Rates[aIndex, 4] := 0;
+  aCLFields.clGST_Rates[aIndex, 5] := 0;
+end;
+
+//------------------------------------------------------------------------------
 procedure TTemplates.SaveAsTemplate;
 var
   TemplateFile : TextFile;
@@ -736,6 +758,20 @@ begin
       aTemplateErrorType := trtInvalid;
     end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TTemplates.LoadNZMYOBLedgerTemplate;
+begin
+  ClearGSTFields(MyClient.clFields);
+
+  SetGSTItem(MyClient.clFields, 1, 'GSTI', 'GST (Input)',              gtExpenditureGST, 15);
+  SetGSTItem(MyClient.clFields, 2, 'GSTO', 'GST (Output)',             gtIncomeGST,      15);
+  SetGSTItem(MyClient.clFields, 3, 'E',    'Exempt',                   gtExempt,         0);
+  SetGSTItem(MyClient.clFields, 4, 'NTR',  'Not Reportable',           gtExempt,         0);
+  SetGSTItem(MyClient.clFields, 5, 'Z',    'Zero Rated',               gtZeroRated,      0);
+  SetGSTItem(MyClient.clFields, 6, 'I',    'GST on imported supplies', gtCustoms,        0);
+  SetGSTItem(MyClient.clFields, 7, 'NONE', 'Uncategorised',            gtExempt,         0);
 end;
 
 //------------------------------------------------------------------------------
