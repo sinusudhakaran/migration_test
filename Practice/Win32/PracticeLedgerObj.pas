@@ -46,8 +46,9 @@ type
     function FetchCOAFromAPI(NewChart: TChart; var ErrMsg : string):Boolean;
     function ProcessChartOfAccounts(NewChart: TChart;Accounts: TChartOfAccountsData):Boolean;
 
-    function CountEligibleFirms ( aRefreshPLFirms : boolean = false ) : integer;  // Fetches firms and returns count of Eligible Firms
-    function MYOBUserHasAccesToFirm( aMYOBFirmID : String; aRefreshPLFirms : boolean ) : boolean;  //Checks if the MYOBUser Has Access to a firm
+    procedure ResetMyMYOBUserDetails;
+    function CountEligibleFirms ( aRefreshPLFirms : boolean = false; aFilterCountry : boolean = true ) : integer;  // Fetches firms and returns count of Eligible Firms
+    function MYOBUserHasAccesToFirm( aMYOBFirmID : String; aRefreshPLFirms : boolean; aFilterCountry : boolean = true  ) : boolean;  //Checks if the MYOBUser Has Access to a firm
 
     procedure PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 
@@ -778,7 +779,19 @@ begin
   end;
 end;
 
-function TPracticeLedger.CountEligibleFirms( aRefreshPLFirms : boolean = false ): integer;
+procedure TPracticeLedger.ResetMyMYOBUserDetails;
+begin
+  UserINI_myMYOB_Access_Token := '';
+  UserINI_myMYOB_Random_Key := '';
+  UserINI_myMYOB_Refresh_Token := '';
+  UserINI_myMYOB_Expires_TokenAt := 0;
+
+  WriteUsersINI(CurrUser.Code);
+end;
+
+
+
+function TPracticeLedger.CountEligibleFirms( aRefreshPLFirms : boolean = false; aFilterCountry : boolean = true ): integer;
 var
   Firm        : TFirm;
   liLoop      : integer;
@@ -802,19 +815,21 @@ begin
     if assigned( Firm ) then
     begin
       // Check for Practice Ledger
-      if Pos( 'PL',Firm.EligibleLicense ) > 0 then
+      if ( Pos( 'PL',Firm.EligibleLicense ) > 0 ) and
+         ( aFilterCountry and                                                // Filter just for the current Region
+           (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) ) then // AND Firm is in the current Region
         inc( result );
     end;
   end;
 end;
 
-function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String; aRefreshPLFirms : boolean ): boolean;
+function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String; aRefreshPLFirms : boolean; aFilterCountry : boolean = true  ): boolean;
 var
   Firm        : TFirm;
   liLoop      : integer;
 begin
   result := false;
-  if CountEligibleFirms( aRefreshPLFirms ) > 0 then 
+  if CountEligibleFirms( aRefreshPLFirms, aFilterCountry ) > 0 then 
   begin
     for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
     begin

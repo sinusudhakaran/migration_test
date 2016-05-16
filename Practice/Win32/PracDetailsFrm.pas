@@ -771,8 +771,17 @@ begin
     else
     begin
       SignInFrm.FormShowType := fsSelectFirm;
-      if Trim(FFirmID) = '' then
+      if ( Trim(FFirmID) = '' ) then begin
         SignInFrm.FormShowType := fsSignIn;
+      end
+      else
+        if ( PracticeLedger.CountEligibleFirms( )  = 0  ) then // There was no entitlement for any firms
+        begin
+          Screen.Cursor := OldCursor;
+          PracticeLedger.ResetMyMYOBUserDetails;
+          SignInFrm.FormShowType := fsSignIn;
+          HelpfulErrorMsg( errMYOBCredential, 0 );
+        end;
     end;
     SignInFrm.SelectedID := FFirmID;
     SignInFrm.SelectedName := FFirmName;

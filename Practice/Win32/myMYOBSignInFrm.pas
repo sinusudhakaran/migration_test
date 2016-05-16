@@ -79,7 +79,7 @@ implementation
 
 uses ShellApi, Globals, CashbookMigration, WarningMoreFrm, bkContactInformation,
   ErrorMoreFrm, SYDEFS, Admin32, LogUtil, AuditMgr, IniSettings,
-  SelectBusinessFrm, YesNoDlg;
+  SelectBusinessFrm, YesNoDlg, bkConst;
 
 {$R *.dfm}
 
@@ -196,6 +196,20 @@ begin
           Exit;
         end;
 
+        if PracticeLedger.CountEligibleFirms <= 0 then begin
+          SelectedID   := '';
+          SelectedName := '';
+
+          HelpfulErrorMsg( errMYOBCredential, 0 );
+
+          FIsSignIn := not FIsSignIn;
+          UpdateControls;
+          btnSignIn.Default := False;
+
+          PracticeLedger.ResetMyMYOBUserDetails;
+          Exit;
+        end;
+
         FormShowType := fsSelectFirm;
         pnlFirmSelection.Visible := True;
         Self.Height := 250;
@@ -204,59 +218,11 @@ begin
         LoadFirms;
       end;
 
-(*****      
-////////////////////////////////// Dave moved this code to outside on the AccoutingSytemFrm //////////////////////////////////////////
-      if (FormShowType = fsSignIn) then // and (ValidateClientAgainstFirm) then
-      begin
-        ClientFirms := TFirms.Create;
-
-        if (not PracticeLedger.GetFirms(ClientFirms, sError)) then
-        begin
-          Screen.Cursor := OldCursor;
-          ShowConnectionError(sError);
-          ResetMyMYOBUserDetails;
-          ModalResult := mrCancel;
-        end;
-        ClientHasAccessToFirm := False;
-        for i := 0 to ClientFirms.Count - 1 do
-        begin
-          Firm := ClientFirms.GetItem(i);
-
-          if Assigned(Firm) then
-          begin
-            // Check for Practice Ledger
-            if Pos('PL',Firm.EligibleLicense) > 0 then
-            begin
-              if (Firm.ID = AdminSystem.fdFields.fdmyMYOBFirmID) then
-              begin
-                ClientHasAccessToFirm := True;
-                Break;
-              end;
-            end;
-          end;
-        end;
-        ClientFirms.Clear;
-        FreeAndNil(ClientFirms);
-        if not ClientHasAccessToFirm then 
-//        if not PracticeLedger.MYOBUserHasAccesToFirm( AdminSystem.fdFields.fdmyMYOBFirmID, false ) then
-        begin
-          Screen.Cursor := OldCursor;
-          sError := 'Your MYOB Credential does not have access to the Firm. Please log in with a different MYOB Credential, or contact support.';
-          HelpfulWarningMsg( sError, 0 );
-          ResetMyMYOBUserDetails;
-          ModalResult := mrCancel;
-          Exit;
-        end;
-      end;
-////////////////////////////////// Dave Move this code to outside on the AccoutingSytemFrm //////////////////////////////////////////
-*********)
-
       if not PracticeLedger.MYOBUserHasAccesToFirm( AdminSystem.fdFields.fdmyMYOBFirmID, false ) then
         begin
           Screen.Cursor := OldCursor;
-          sError := 'Your MYOB Credential does not have access to the Firm. Please log in with a different MYOB Credential, or contact support.';
-          HelpfulWarningMsg( sError, 0 );
-          ResetMyMYOBUserDetails;
+          HelpfulWarningMsg( errMYOBCredential, 0 );
+          PracticeLedger.ResetMyMYOBUserDetails;
           ModalResult := mrCancel;
           Exit;
         end;
@@ -356,11 +322,13 @@ procedure TmyMYOBSignInForm.cmbSelectFirmEnter(Sender: TObject);
 var
   Firm : TFirm;
 begin
-  Firm := TFirm(cmbSelectFirm.Items.Objects[cmbSelectFirm.ItemIndex]);
-  if not Assigned(Firm) then
-    Exit;
+  if ( cmbSelectFirm.ItemIndex >= 0 ) then begin
+    Firm := TFirm(cmbSelectFirm.Items.Objects[ cmbSelectFirm.ItemIndex ]);
+    if not Assigned(Firm) then
+      Exit;
 
-  FOldFirmID := Firm.ID;
+    FOldFirmID := Firm.ID;
+  end;
 end;
 
 procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
@@ -418,16 +386,18 @@ begin
         // Get Firms
         if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
         begin
-          Screen.Cursor := OldCursor;
           ShowConnectionError(sError);
           ModalResult := mrCancel;
         end;
-        LoadFirms;
 
-        if ( cmbSelectFirm.Items.Count = 0 ) then // There was no entitlement for any firms
-        begin
-
+        if PracticeLedger.CountEligibleFirms >= 0 then begin
+          HelpfulWarningMsg( errMYOBCredential, 0 );
+          PracticeLedger.ResetMyMYOBUserDetails;
+          ModalResult := mrCancel;
+          Exit;
         end;
+
+        LoadFirms;
       finally
         Screen.Cursor := OldCursor;
       end;
@@ -530,7 +500,8 @@ begin
       begin
         if (Firm.ID = FSelectedID) then
           Index := Row;
-        cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
+        if (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) then
+          cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
         Inc(Row);
       end;
     end;
