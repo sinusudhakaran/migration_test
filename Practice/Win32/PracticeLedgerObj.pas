@@ -501,47 +501,47 @@ begin
     begin
       InvalidContraCodes := TStringlist.Create;
       try
-        // Validate all bank transactions
-        for i := 0 to Pred( Selected.Count ) do
-        begin
-          BA := TBank_Account(Selected.Objects[i]);
+      // Validate all bank transactions
+      for i := 0 to Pred( Selected.Count ) do
+      begin
+        BA := TBank_Account(Selected.Objects[i]);
 
-          with BA.baFields do
+        with BA.baFields do
+        begin
+          if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  ) = 0 then
           begin
-            if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  ) = 0 then
+            HelpfulInfoMsg( 'There are no new entries to extract, for ' + baBank_Account_Number +', in the selected date range.',0);
+            Exit;
+          end;
+
+          if (not AllowUncoded) then
+          begin
+            if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
             begin
-              HelpfulInfoMsg( 'There are no new entries to extract, for ' + baBank_Account_Number +', in the selected date range.',0);
+              HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' + 
+                 'You need to update these codes before you can export data.',  0 );
               Exit;
             end;
-
-            if (not AllowUncoded) then
+            if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
             begin
-              if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
-              begin
-                HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' +
-                   'You need to update these codes before you can export data.',  0 );
-                Exit;
-              end;
-              if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
-              begin
-                HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
-                   'You must code all the entries before you can extract them.',  0 );
-                Exit;
-              end;
+              HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
+                 'You must code all the entries before you can extract them.',  0 );
+              Exit;
             end;
+          end;
 
-            if ((not AllowBlankContra) and (not AllowBlankContra)) then
+          if ((not AllowBlankContra) and (not AllowBlankContra)) then
+          begin
+            if BA.baFields.baContra_Account_Code = '' then
             begin
-              if BA.baFields.baContra_Account_Code = '' then
+              if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
+                BA.baFields.baContra_Account_Code := ContraCode
+              else
               begin
-                if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
-                  BA.baFields.baContra_Account_Code := ContraCode
-                else
-                begin
-                  HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
-                    baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
-                  Exit;
-                end;
+                HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
+                  baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
+                Exit;
+              end;
               end;
             end;
           end;
@@ -552,9 +552,9 @@ begin
                    ContraCodeInChart.chInactive ) then // Contra code is not active
           begin
             InvalidContraCodes.Add( BA.baFields.baBank_Account_Number );
-          end;
+            end;
 
-        end;
+          end;
 
         if InvalidContraCodes.Count > 0 then begin
           InvalidContras := InvalidContraCodes[ 0 ];
@@ -839,12 +839,7 @@ begin
   if aRefreshPLFirms then //Do we need to Refresh the PracticeLedger.Firms collection first?
     if ( not PracticeLedger.GetFirms( PracticeLedger.Firms, sError ) ) then
     begin
-(*      HelpfulErrorMsg(
-        format( 'Could not connect to MYOB service, please try again later. ' +
-          'If problem persists please contact %s support %s.',
-          [ SHORTAPPNAME, SupportNumber]),
-          0, false, sError, true);  *)
-      exit;
+      Exit;
     end;
   for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
   begin
@@ -883,13 +878,13 @@ begin
              ( aFilterCountry and                                                // Filter just for the current Region
                (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) ) then // AND Firm is in the current Region
           begin
-            result := true;
-            Break;
+              result := true;
+              Break;
+            end;
           end;
         end;
       end;
-    end;
-  end
+    end
 end;
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
@@ -1199,6 +1194,7 @@ begin
       end;
     end;
   end;
+
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');
 end;
@@ -1216,6 +1212,7 @@ begin
   aError := '';
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
+
   try
     try
       if TypeOfTrans = ttbank then
@@ -1268,6 +1265,7 @@ var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
   ErrorStr,DelErrorStr, RespStr : string;
+  SetTransferFlag: Boolean;
   //BankAcToExport: TBankAccountData;
 begin
   if DebugMe then
@@ -1285,7 +1283,7 @@ begin
         Continue;
 
       FromIndex := 0;
-
+      SetTransferFlag := True;
       for j := 1 to Ceil(FBankAcctToExport.Transactions.Count / MAXENTRIES) do
       begin
         RequestJson :=  TlkJSONobject.Create();
@@ -1303,7 +1301,7 @@ begin
           begin
             LogUtil.LogMsg(lmError, UnitName, ErrorStr);
             //Rollback all batches transferred
-
+            SetTransferFlag := False;
             if not RollbackBatch(FBankAcctToExport.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
             begin
               LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
@@ -1314,13 +1312,13 @@ begin
             FExportTerminated := True;
             Exit;
           end;
-
-          SetTransferredFlag(Selected,TypeOfTrans, FromIndex);
         finally
           FreeAndNil(RequestJson);
         end;
         FromIndex := FromIndex + MAXENTRIES;
       end;
+      if SetTransferFlag then
+        SetTransferredFlag(Selected,TypeOfTrans, 0);
     end;
   end
   else if ((TypeOfTrans = ttJournals) and Assigned(FJournalsData)) then
@@ -1329,6 +1327,7 @@ begin
     if DebugMe then
       LogUtil.LogMsg(lmDebug, UnitName, ' Exporting journal transactions');
 
+    SetTransferFlag := True;
     for i := 1 to Ceil(FJournalsData.ItemCount/MAXENTRIES) do
     begin
       RequestJson :=  TlkJSONobject.Create();
@@ -1352,18 +1351,20 @@ begin
             LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
             //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
           end;
-
+          SetTransferFlag := False;
           HelpfulErrorMsg('Exception in journal export in ' + GetAPIName + '.ExportDataToAPI',0, false, ErrorStr, True);
 
           FExportTerminated := True;
           Exit;
         end;
-        SetTransferredFlag(Selected, TypeOfTrans, FromIndex);
+//        SetTransferredFlag(Selected, TypeOfTrans, FromIndex);
       finally
         FreeAndNil(RequestJson);
       end;
       FromIndex := FromIndex + MAXENTRIES;
     end;
+    if SetTransferFlag then
+      SetTransferredFlag(Selected,TypeOfTrans, 0);
   end;
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' ends');

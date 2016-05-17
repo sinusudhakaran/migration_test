@@ -1,7 +1,7 @@
 object dlgAdminOptions: TdlgAdminOptions
   Left = 317
   Top = 231
-  ActiveControl = edtBGLClientID
+  ActiveControl = chkExtractQty
   BorderStyle = bsDialog
   Caption = 'System Options'
   ClientHeight = 471
@@ -60,7 +60,7 @@ object dlgAdminOptions: TdlgAdminOptions
     Top = 0
     Width = 618
     Height = 433
-    ActivePage = tsBGL360
+    ActivePage = tsInterfaces
     Align = alTop
     MultiLine = True
     TabOrder = 1

@@ -165,12 +165,19 @@ begin
     if not PracticeLedger.Login(edtEmail.Text, edtPassword.Text, sError, InvalidPass) then
     begin
       Screen.Cursor := OldCursor;
-
       if InvalidPass then
         HelpfulWarningMsg(sError, 0)
       else
         ShowConnectionError(sError);
-      edtEmail.SetFocus;
+
+      if FormShowType in [fsFirmForceSignIn] then
+      begin
+        edtEmail.Enabled := False;
+        edtPassword.Enabled := True;
+        edtPassword.SetFocus;
+      end
+      else
+        edtEmail.SetFocus;
     end
     else
     begin
@@ -204,8 +211,9 @@ begin
           FIsSignIn := not FIsSignIn;
           UpdateControls;
           btnSignIn.Default := False;
-
           PracticeLedger.ResetMyMYOBUserDetails;
+          if edtEmail.Enabled then
+            edtEmail.Setfocus;
           Exit;
         end;
 
@@ -217,9 +225,8 @@ begin
         LoadFirms;
       end;
 
-      if ( not PracticeLedger.MYOBUserHasAccesToFirm(
-                 AdminSystem.fdFields.fdmyMYOBFirmID, true ) ) and
-         (ValidateClientAgainstFirm) then
+      if ValidateClientAgainstFirm and ( not PracticeLedger.MYOBUserHasAccesToFirm(
+          AdminSystem.fdFields.fdmyMYOBFirmID, true ) )then
         begin
           Screen.Cursor := OldCursor;
           HelpfulWarningMsg( errMYOBCredential, 0 );
@@ -227,7 +234,7 @@ begin
           ModalResult := mrCancel;
           Exit;
         end;
-        
+
       if (FormShowType = fsSignIn) and (ShowClientSelection) then
       begin // means show client - for a normal user
         // Get Businesses
@@ -260,9 +267,9 @@ begin
       else if (FormShowType = fsSignIn) then
         btnOKClick(Self);
     end;
-    edtPassword.Enabled := edtEmail.Enabled;
+    {edtPassword.Enabled := edtEmail.Enabled;
     lblEmail.Enabled := edtEmail.Enabled;
-    lblPassword.Enabled := edtEmail.Enabled;
+    lblPassword.Enabled := edtEmail.Enabled;}
 
   finally
     Screen.Cursor := OldCursor;
@@ -371,6 +378,7 @@ begin
       Self.Height := 250;
       btnOK.Visible := False;
       edtEmail.Enabled := False;
+      edtPassword.Enabled := True;
       edtPassword.SetFocus;
     end;
     fsSelectFirm :
@@ -490,6 +498,7 @@ begin
 
   if PracticeLedger.Firms.Count = 0 then
     ModalResult := mrCancel;
+
   Row := 0;
   for i := 0 to PracticeLedger.Firms.Count - 1 do
   begin

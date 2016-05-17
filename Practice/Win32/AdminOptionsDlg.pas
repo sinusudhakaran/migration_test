@@ -1110,14 +1110,36 @@ begin
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;
   try
-    if (not CheckFormyMYOBTokens) then
+
+    (*if (not CheckFormyMYOBTokens) then
       SignInFrm.FormShowType := fsSignIn
     else
     begin
       SignInFrm.FormShowType := fsSelectFirm;
       if Trim(FFirmID) = '' then
         SignInFrm.FormShowType := fsSignIn;
+    end;*)
+
+    if (not CheckFormyMYOBTokens) then
+      SignInFrm.FormShowType := fsSignIn
+    else
+    begin
+      SignInFrm.FormShowType := fsSelectFirm;
+      if ( Trim(FFirmID) = '' ) then begin
+        SignInFrm.FormShowType := fsSignIn;
+      end
+      else
+      begin
+        if ( PracticeLedger.CountEligibleFirms(True) <= 0  ) then // There was no entitlement for any firms
+        begin
+          Screen.Cursor := OldCursor;
+          PracticeLedger.ResetMyMYOBUserDetails;
+          SignInFrm.FormShowType := fsSignIn;
+          HelpfulErrorMsg( errMYOBCredential, 0 );
+        end;
+      end;
     end;
+
     SignInFrm.SelectedID := FFirmID;
     SignInFrm.SelectedName := FFirmName;
 
