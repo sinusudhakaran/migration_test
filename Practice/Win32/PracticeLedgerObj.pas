@@ -876,6 +876,47 @@ begin
              ( aFilterCountry and                                                // Filter just for the current Region
                ( whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) ) then // AND Firm is in the current Region
           begin
+              result := true;
+              Break;
+            end;
+          end;
+        end;
+      end;
+    end
+end;
+  for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
+  begin
+    Firm := PracticeLedger.Firms.GetItem( liLoop );
+
+    if assigned( Firm ) then
+    begin
+      // Check for Practice Ledger
+      if Pos( 'PL',Firm.EligibleLicense ) > 0 then
+        inc( result );
+    end;
+  end;
+end;
+
+function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String; aRefreshPLFirms : boolean ): boolean;
+var
+  Firm        : TFirm;
+  liLoop      : integer;
+begin
+  result := false;
+  if CountEligibleFirms( aRefreshPLFirms ) > 0 then 
+  begin
+    for liLoop := 0 to PracticeLedger.Firms.Count - 1 do
+    begin
+      Firm := PracticeLedger.Firms.GetItem( liLoop );
+
+      if Assigned( Firm ) then
+      begin
+        // Check if this is the correct firm
+        if ( Firm.ID = aMYOBFirmID ) then
+        begin
+          // Check if the Firm is a eligible PracticeLedger Firm
+          if Pos( 'PL',Firm.EligibleLicense ) > 0 then 
+          begin
             result := true;
             Break;
           end;
@@ -884,6 +925,48 @@ begin
     end;
   end
 end;
+
+(*/////// DN - Redundant, there is a Firms Collection as part of the main TPracticeLedger class
+function TPracticeLedger.MYOBUserHasAccesToFirm( aMYOBFirmID: String ): boolean;
+var
+  ClientFirms : TFirms;
+  Firm        : TFirm;
+  liLoop      : integer;
+begin
+  result := false;
+  ClientFirms := TFirms.Create;
+  try
+    if ( PracticeLedger.GetFirms( ClientFirms, sError ) ) then
+    begin
+      for liLoop := 0 to ClientFirms.Count - 1 do
+      begin
+        Firm := ClientFirms.GetItem( liLoop );
+
+        if assigned( Firm ) then
+        begin
+          // Check for Practice Ledger
+          if Pos( 'PL',Firm.EligibleLicense ) > 0 then
+          begin
+            if ( Firm.ID = aMYOBFirmID ) then
+            begin
+              result := true;
+              Break;
+            end;
+          end;
+        end;
+      end;
+      ClientFirms.Clear;
+    end
+    else
+    begin
+      ShowConnectionError( sError );
+    end;
+  
+  finally
+    FreeAndNil( ClientFirms );
+  end;
+end;
+/////// DN - Redundant, there is a Firms Collection as part of the main TPracticeLedger class *)
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
 const
