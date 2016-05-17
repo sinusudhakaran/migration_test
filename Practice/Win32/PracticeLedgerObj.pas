@@ -827,8 +827,6 @@ begin
   WriteUsersINI(CurrUser.Code);
 end;
 
-
-
 function TPracticeLedger.CountEligibleFirms( aRefreshPLFirms : boolean = false; aFilterCountry : boolean = true ): integer;
 var
   Firm        : TFirm;
