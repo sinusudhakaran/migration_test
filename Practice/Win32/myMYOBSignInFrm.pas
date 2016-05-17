@@ -225,15 +225,16 @@ begin
         LoadFirms;
       end;
 
-      if ValidateClientAgainstFirm and ( not PracticeLedger.MYOBUserHasAccesToFirm(
-          AdminSystem.fdFields.fdmyMYOBFirmID, true ) )then
-        begin
-          Screen.Cursor := OldCursor;
-          HelpfulWarningMsg( errMYOBCredential, 0 );
-          PracticeLedger.ResetMyMYOBUserDetails;
-          ModalResult := mrCancel;
-          Exit;
-        end;
+      if ValidateClientAgainstFirm then
+      if not PracticeLedger.MYOBUserHasAccesToFirm
+            (AdminSystem.fdFields.fdmyMYOBFirmID, True)then
+      begin
+        Screen.Cursor := OldCursor;
+        HelpfulWarningMsg( errMYOBCredential, 0 );
+        PracticeLedger.ResetMyMYOBUserDetails;
+        ModalResult := mrCancel;
+        Exit;
+      end;
 
       if (FormShowType = fsSignIn) and (ShowClientSelection) then
       begin // means show client - for a normal user
