@@ -874,15 +874,15 @@ begin
           // Check if the Firm is a eligible PracticeLedger Firm
           if ( Pos( 'PL',Firm.EligibleLicense ) > 0 ) and
              ( aFilterCountry and                                                // Filter just for the current Region
-               (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) ) then // AND Firm is in the current Region
+               ( whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) ) then // AND Firm is in the current Region
           begin
-              result := true;
-              Break;
-            end;
+            result := true;
+            Break;
           end;
         end;
       end;
-    end
+    end;
+  end
 end;
 
 procedure TPracticeLedger.PrepareTransAndJournalsToExport(Selected:TStringList;TypeOfTrans: TTransType;FromDate, ToDate : Integer);
