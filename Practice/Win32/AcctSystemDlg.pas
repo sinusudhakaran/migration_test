@@ -1316,7 +1316,7 @@ begin
       SignInFrm.FormShowType := fsSignIn;
       SignInFrm.ShowFirmSelection := False;
       SignInFrm.ValidateClientAgainstFirm := True;
-      
+
       if ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
       (not CurrUser.HasRestrictedAccess))) then
@@ -1351,6 +1351,14 @@ begin
           end;
         end;
       end;
+    end
+    else if not PracticeLedger.MYOBUserHasAccesToFirm
+      (AdminSystem.fdFields.fdmyMYOBFirmID, True)then
+    begin
+      Screen.Cursor := OldCursor;
+      HelpfulWarningMsg( errMYOBCredential, 0 );
+      PracticeLedger.ResetMyMYOBUserDetails;
+      Exit;
     end;
 
     if ((CheckFormyMYOBTokens) and ShowClientScreen and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID) <> '')) then
