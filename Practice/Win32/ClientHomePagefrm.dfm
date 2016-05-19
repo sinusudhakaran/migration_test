@@ -91,10 +91,19 @@ object frmClientHomePage: TfrmClientHomePage
           Caption = '-'
         end
         item
+          Caption = '-'
+        end
+        item
+          Action = acGoToMYOBBusiness
+        end
+        item
+          Caption = '-'
+        end
+        item
           Action = acHelp
         end>
       Opened = True
-      OpenedHeight = 400
+      OpenedHeight = 456
       SmallImages = AppImages.ilFileActions_ClientMgr
       Caption = 'Client Tasks'
       Font.Charset = DEFAULT_CHARSET
@@ -635,6 +644,11 @@ object frmClientHomePage: TfrmClientHomePage
       ImageIndex = 23
       Visible = False
       OnExecute = acExchangeGainLossExecute
+    end
+    object acGoToMYOBBusiness: TAction
+      Caption = 'Go to MYOB Ledger business page'
+      ImageIndex = 20
+      OnExecute = acGoToMYOBBusinessExecute
     end
   end
   object pmNodes: TPopupMenu

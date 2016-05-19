@@ -34,7 +34,8 @@ type
     HPR_Status,
     HPR_ExchangeGainLoss_NewData, // New data only
     HPR_ExchangeGainLoss_Rates,   // Exchange Rates only
-    HPR_ExchangeGainLoss_Message   // Only Show Message
+    HPR_ExchangeGainLoss_Message,   // Only Show Message
+    HPR_MYOBLink
     );
   THP_Refresh = set of THP_RefreshItem;
 const
@@ -120,6 +121,7 @@ type
     Shape6: TShape;
     Shape5: TShape;
     Shape10: TShape;
+    acGoToMYOBBusiness: TAction;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -167,6 +169,7 @@ type
     procedure acForexRatesMissingExecute(Sender: TObject);
     procedure RefreshExchangeRates;
     procedure acExchangeGainLossExecute(Sender: TObject);
+    procedure acGoToMYOBBusinessExecute(Sender: TObject);
 
   private
     FTheClient: TClientObj;
@@ -198,6 +201,7 @@ type
     procedure RefreshExchangeGainLoss;
     procedure RefreshExchangeGainLossRates;
     procedure RefreshExchangeGainLossDelete;
+    procedure RefreshMYOBLink;
     procedure SetShowLegend(const Value: Boolean);
     property ShowLegend : Boolean read FShowLegend write SetShowLegend;
     procedure UpdateRefresh;
@@ -293,7 +297,10 @@ uses
   JournalDlg,
   bkProduct,
   ReportFileFormat,
-  RecommendedMems;
+  RecommendedMems,
+  Software,
+  WarningMoreFrm,
+  PracticeLedgerObj;
 {$R *.dfm}
 
 var
@@ -803,9 +810,9 @@ begin //RefreshCoding
       with ClientTree.Header do
           ClientTree.SortTree( SortColumn, SortDirection);
 
+      RefreshMYOBLink;
+      
       Reselect;
-
-
    finally
       ClientTree.EndUpdate;
       ForeignItem := nil;
@@ -832,7 +839,7 @@ begin
     Exit;
 
   if Assigned(AdminSystem) then begin
-    //Books Secure Client file exchange rates do not get updated 
+    //Books Secure Client file exchange rates do not get updated
     if TheClient.HasForeignCurrencyAccounts and (TheClient.clFields.clDownload_From = dlAdminSystem) then begin
       LExchangeRates := GetExchangeRates;
       try
@@ -1057,8 +1064,11 @@ end;
 
 procedure TfrmClientHomePage.ProcessExternalCmd(Command: TExternalCmd);
 begin
-   if not FClosing then
-      RefreshRequest := [HPR_Coding]; // Should Check the command...
+  if not FClosing then
+    RefreshRequest := [HPR_Coding]; // Should Check the command...
+
+  if Command in [ecRefreshMYOBLink] then
+    RefreshRequest := RefreshRequest + [HPR_MYOBLink];
 end;
 
 procedure TfrmClientHomePage.RefreshClient;
@@ -1203,8 +1213,8 @@ begin //called when the client details change
 
    if FTheClient.clFields.clWeb_Export_Format =  wfWebNotes then
        CheckAvailableWebNotesData;
-
-   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshClient');
+       
+  if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Exit RefreshClient');
 end;
 
 
@@ -1318,6 +1328,21 @@ begin
     acForexRatesMissing.Caption := MISSING_EXCHANGE_RATES + ISOCodes;
     acForexRatesMissing.Visible := True;
   end;
+end;
+
+procedure TfrmClientHomePage.RefreshMYOBLink;
+begin
+  if not Assigned(FTheClient) then
+    Exit;
+
+  acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
+                              CheckFormyMYOBTokens and
+                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
+
+  acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
+
+  if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
+    GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
 end;
 
 procedure TfrmClientHomePage.RefreshMems;
@@ -1722,6 +1747,8 @@ begin
               ShowWindow(Self.Handle, SW_RESTORE);
            Self.BringToFront;
         end;
+        if ([HPR_MYOBLink] * FRefreshRequest) <> [] then
+           RefreshMYOBLink;
 
         FRefreshRequest := [];
      finally
@@ -1823,6 +1850,34 @@ begin
     end;
   finally
     ApplicationUtils.EnableMainForm;
+  end;
+end;
+
+procedure TfrmClientHomePage.acGoToMYOBBusinessExecute(Sender: TObject);
+var
+  BusinessLink : string;
+  OldCursor: TCursor;
+begin
+  //Go to business link
+  if (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) = '') or (not CheckFormyMYOBTokens) then
+  begin
+    HelpfulWarningMsg('Please make sure you have selected a MYOB business', 0);
+    acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
+                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
+    Exit;
+  end;
+
+  OldCursor := Screen.Cursor;
+  Screen.Cursor := crHourglass;
+  try
+    BusinessLink := Format(PRACINI_CashbookTransactionViewURL,[MyClient.clExtra.cemyMYOBClientIDSelected]);
+
+    if Length(BusinessLink) = 0 then
+      Exit;
+
+    ShellExecute(0, 'open', PChar(BusinessLink), nil, nil, SW_NORMAL);
+  finally
+    Screen.Cursor := OldCursor;
   end;
 end;
 

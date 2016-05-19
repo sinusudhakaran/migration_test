@@ -23,6 +23,7 @@ type
     class function CashbookAPIFirmsURL : String; static;
 
     class function CashbookAPIBusinessesURL : String; static;
+    class function CashbookTransactionViewURL : String; static;
     class function CashbookAPITransactionsURL: string; static;
     class function CashbookAPIJournalsURL : string; static;
     class function CashbookAPICOAURL : String; static;
@@ -341,6 +342,11 @@ end;
 class function TUrls.CashbookAPITransactionsURL: string;
 begin
   Result := 'https://cashbook.myob.com.au/api/businesses/%s/bank_transactions';
+end;
+
+class function TUrls.CashbookTransactionViewURL: String;
+begin
+  Result := 'https://cashbook.myob.com.au/#businesses/%s/bank_transactions';
 end;
 
 class function TUrls.ProvisionalAccountUrl: String;

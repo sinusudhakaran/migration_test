@@ -90,7 +90,8 @@ type
 
                   ecRecommendedMems,
                   ecSuggestedMemCount,
-                  ecRefreshSuggestedMem
+                  ecRefreshSuggestedMem ,
+                  ecRefreshMYOBLink
                   );
 
 implementation

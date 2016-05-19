@@ -2947,7 +2947,10 @@ begin
      EditPracticeDetails(Self);
 
      if Assigned( MyClient) then
+     begin
        Merge32.SyncClientToAdmin( MyClient, false, false);
+       SendCmdToAllCodingWindows( ecRefreshMYOBLink);
+     end;
 
      ReloadCustomLogo;
      UpdateClientManagerCaption(AdminSystem.fdFields.fdPractice_Name_for_Reports);
@@ -2983,7 +2986,10 @@ begin
 
   RefreshClientManager;
   if Assigned( MyClient) then
+  begin
     Merge32.SyncClientToAdmin( MyClient, false, false);
+    SendCmdToAllCodingWindows( ecRefreshMYOBLink);
+  end;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 procedure TfrmMain.mniSystemGroupsClick(Sender: TObject);
@@ -4212,6 +4218,8 @@ begin
       Close
   else if not AutoSaveOutstanding then
      ResetAutoSave;
+  if Assigned(MyClient) then
+    SendCmdToAllCodingWindows( ecRefreshMYOBLink);
 end;
 
 procedure TfrmMain.mniUnpresentedItemsClick(Sender: TObject);

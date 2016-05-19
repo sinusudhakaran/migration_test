@@ -664,6 +664,7 @@ var
     PRACINI_CashbookAPILoginScope            : String = '';
     PRACINI_CashbookAPIFirmsURL              : String = '';
     PRACINI_CashbookAPIBusinessesURL   : String = '';
+    PRACINI_CashbookTransactionViewURL   : String = ''; // This is to show the transactions list of the selected business
     PRACINI_CashbookAPITransactionsURL : String = '';
     PRACINI_CashbookAPIJournalsURL     : string = '';
     PRACINI_CashbookAPICOAURL          : String = '';
