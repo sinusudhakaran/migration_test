@@ -74,7 +74,7 @@ Source: "Publickeys\PublicKeyMyobMigration.pke"; DestDir : "{app}\Publickeys"
 
 Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
 Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"
-Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"; check PracticeServiceINICheck;
+Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"; Check: PracticeServiceINICheck;
 
 [Icons]
 Name: "{group}\MYOB BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
