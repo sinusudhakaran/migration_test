@@ -76,7 +76,7 @@ Source: "Publickeys\PublicKeyMyobMigration.pke"; DestDir : "{app}\Publickeys"
 
 Source: "..\Binaries\PracticeApplicationService.exe"; DestDir: "{app}\Practice Server"
 Source: "..\Binaries\PracticeServerConsole.exe"; DestDir: "{app}\Practice Server"
-Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"
+Source: "..\Practice Server\Service\PracticeApplicationService.ini"; DestDir: "{app}\Practice Server"; Check: PracticeServiceINICheck;
 
 [Icons]
 Name: "{group}\BankLink Practice"; Filename: "{app}\BK5WIN.EXE"
@@ -92,3 +92,11 @@ Filename: "{app}\BK5WIN.EXE"; Description : "Start BankLink Practice"; WorkingDi
 [Registry]
 Root: HKCU; Subkey: "Software\BankLink"; Flags: uninsdeletekeyifempty
 Root: HKCU; Subkey: "Software\BankLink\"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
+
+[Code]
+function PracticeServiceINICheck:Boolean;
+begin
+  Result := True;
+  if FileExists(ExpandConstant('{app}') + '\Practice Server\PracticeApplicationService.ini') then
+    Result := False;
+end;
