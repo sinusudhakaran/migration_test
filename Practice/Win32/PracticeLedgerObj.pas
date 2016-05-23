@@ -30,7 +30,7 @@ type
     procedure SetTransferredFlag(Selected : TStringList;TypeOfTrans: TTransType;FromIndex:Integer);
     //Call Rollback api to rollback a batch of transaction
     function RollbackBatch(aBatchRef: string;
-      var aRespStr, aError: string;
+      var aRespStr, aErrorDescription: string;
       aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
   public
     //Couldn't make these private variables and add property since the getfirms and getbusiness need var list to be passed
@@ -54,7 +54,7 @@ type
 
     //Upload transactions
     function UploadToAPI(RequestData: TlkJSONobject;
-            var aRespStr, aError: string;
+            var aRespStr : string; var aErrorCode : integer; var aErrorDescription: string;
             aEncryptToken: Boolean; TypeOfTrans: TTransType):Boolean;
 
     //Export data to pl api
@@ -114,7 +114,8 @@ uses Globals, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
 
 function CheckFormyMYOBTokens(aUseRefreshToken:Boolean=True):Boolean;
 var
-  sError : string;
+  liErrorCode : integer;
+  lsErrorDescription : string;
   InvalidPass : Boolean;
 begin
   Result := False;
@@ -141,7 +142,7 @@ begin
         if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
           Exit;
 
-        if PracticeLedger.RefreshTheToken(sError, InvalidPass) then
+        if PracticeLedger.RefreshTheToken(liErrorCode, lsErrorDescription, InvalidPass) then
         begin
           Result := True;
 
@@ -153,11 +154,11 @@ begin
           PracticeLedger.UnEncryptedToken := UserINI_myMYOB_Access_Token;
           PracticeLedger.RandomKey := UserINI_myMYOB_Random_Key;
           PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
-          
+
         end
         else
         begin
-          LogUtil.LogMsg(lmError, UnitName, sError);
+          LogUtil.LogMsg(lmError, UnitName, lsErrorDescription);
           //Result := PracticeLedger.RefreshTheToken(sError, InvalidPass);
         end;
       end;
@@ -626,7 +627,8 @@ end;
 function TPracticeLedger.FetchCOAFromAPI(NewChart: TChart; var ErrMsg : string): Boolean;
 var
   Accounts : TChartOfAccountsData;
-  sError: string;
+  liErrorCode : integer;
+  lsErrorDescription: string;
   UnknownGSTCodesFound : Boolean;
   SignInFrm : TmyMYOBSignInForm;
   TemplateError : TTemplateError;
@@ -687,12 +689,13 @@ begin
   try
     RandomKey := UserINI_myMYOB_Random_Key;
     EncryptToken(UserINI_myMYOB_Access_Token);
-    if not GetChartOfAccounts(MyClient.clExtra.cemyMYOBClientIDSelected, Accounts, sError) then
+    if not GetChartOfAccounts(MyClient.clExtra.cemyMYOBClientIDSelected, Accounts,
+             liErrorCode, lsErrorDescription) then
     begin
       ErrMsg := 'Could not connect to my.MYOB service, please try again later. ' +
                 'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.';
       HelpfulErrorMsg(ErrMsg,
-                      0, false, sError, true);
+                      0, false, lsErrorDescription, true);
       Exit;
     end;
 
@@ -831,11 +834,13 @@ function TPracticeLedger.CountEligibleFirms( aRefreshPLFirms : boolean = false; 
 var
   Firm        : TFirm;
   liLoop      : integer;
-  sError: string;
+
+  liErrorCode: integer;
+  lsErrorDescription: string;
 begin
   result := 0;
   if aRefreshPLFirms then //Do we need to Refresh the PracticeLedger.Firms collection first?
-    if ( not PracticeLedger.GetFirms( PracticeLedger.Firms, sError ) ) then
+    if ( not PracticeLedger.GetFirms( PracticeLedger.Firms, liErrorCode, lsErrorDescription ) ) then
     begin
       Exit;
     end;
@@ -1040,13 +1045,15 @@ begin
 end;
 
 function TPracticeLedger.RollbackBatch(aBatchRef: string;
-  var aRespStr, aError: string;
+  var aRespStr, aErrorDescription: string;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
   RespStr : string;
   RequestJson : TlkJSONobject;
   Response : TlkJSONObject;
+
+  liErrorCode : integer;
 const
   TheMethod = 'RollbackBatch';
 begin
@@ -1075,14 +1082,14 @@ begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestJson));
 
-      if not DoDeleteSecureJson(sURL, RequestJson,RespStr, aError) then
+      if not DoDeleteSecureJson( sURL, RequestJson, RespStr, liErrorCode, aErrorDescription ) then
         Exit;
 
       //Wait til data gets transferred completely
       while (FDataTransferStarted) do
         ;
 
-      aError := FDataError;
+      aErrorDescription := FDataError;
       if Assigned(FDataResponse) then
       begin
         Response := FDataResponse as TlkJSONObject;
@@ -1091,8 +1098,8 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running ' + GetAPIName + '.RollbackBatch, Error Message : ' + E.Message;
-        LogUtil.LogMsg(lmError, UnitName, aError);
+        aErrorDescription := 'Exception running ' + GetAPIName + '.RollbackBatch, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aErrorDescription);
         Exit;
       end;
     end;
@@ -1198,7 +1205,7 @@ begin
 end;
 
 function TPracticeLedger.UploadToAPI(RequestData: TlkJSONobject;
-  var aRespStr, aError: string;
+  var aRespStr : string; var aErrorCode : integer; var aErrorDescription: string;
   aEncryptToken: Boolean; TypeOfTrans: TTransType): Boolean;
 var
   sURL: string;
@@ -1207,7 +1214,8 @@ const
 begin
   Result := False;
   aRespStr:= '';
-  aError := '';
+  aErrorCode := 0;
+  aErrorDescription := '';
   if DebugMe then
     LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins');
 
@@ -1227,7 +1235,7 @@ begin
       if DebugMe then
         LogUtil.LogMsg(lmDebug,UnitName, TheMethod + ': ' + TlkJSON.GenerateText(RequestData));
 
-      Result := DoHttpSecureJson(sURL, RequestData, aRespStr, aError);
+      Result := DoHttpSecureJson(sURL, RequestData, aRespStr, aErrorCode, aErrorDescription);
 
       //Wait til data gets transferred completely
       //while (FDataTransferStarted) do
@@ -1242,8 +1250,8 @@ begin
     except
       on E: Exception do
       begin
-        aError := 'Exception running ' + GetAPIName + '.UploadToAPI, Error Message : ' + E.Message;
-        LogUtil.LogMsg(lmError, UnitName, aError);
+        aErrorDescription := format( 'Exception running %s. UploadToAPI, Error Message : %s', [ GetAPIName, E.Message ] );
+        LogUtil.LogMsg(lmError, UnitName, aErrorDescription);
         Exit;
       end;
     end;
@@ -1262,7 +1270,8 @@ const
 var
   i, j , FromIndex: Integer;
   RequestJson : TlkJSONobject;
-  ErrorStr,DelErrorStr, RespStr : string;
+  liErrorCode : integer;
+  lsErrorDescription,DelErrorStr, RespStr : string;
   SetTransferFlag: Boolean;
   //BankAcToExport: TBankAccountData;
 begin
@@ -1295,9 +1304,9 @@ begin
           end;
 
           //send to api
-          if not UploadToAPI(RequestJson,RespStr, ErrorStr,False, TypeOfTrans) then
+          if not UploadToAPI( RequestJson, RespStr, liErrorCode, lsErrorDescription, False, TypeOfTrans) then
           begin
-            LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+            LogUtil.LogMsg(lmError, UnitName, lsErrorDescription);
             //Rollback all batches transferred
             SetTransferFlag := False;
             if not RollbackBatch(FBankAcctToExport.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
@@ -1305,7 +1314,7 @@ begin
               LogUtil.LogMsg(lmError, UnitName, DelErrorStr);
               //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, DelErrorStr, True);
             end;
-            HelpfulErrorMsg('Exception in bank transaction export in ' + GetAPIName + '.ExportDataToAPI',0, false, ErrorStr, True);
+            HelpfulErrorMsg('Exception in bank transaction export in ' + GetAPIName + '.ExportDataToAPI',0, false, lsErrorDescription, True);
 
             FExportTerminated := True;
             Exit;
@@ -1340,9 +1349,9 @@ begin
         end;
 
         //send to api
-        if not UploadToAPI(RequestJson, RespStr, ErrorStr, False, TypeOfTrans) then
+        if not UploadToAPI(RequestJson, RespStr, liErrorCode, lsErrorDescription, False, TypeOfTrans) then
         begin
-          LogUtil.LogMsg(lmError, UnitName, ErrorStr);
+          LogUtil.LogMsg(lmError, UnitName, lsErrorDescription);
           //Rollback all batches transferred
           if not RollbackBatch(FJournalsData.BatchRef,RespStr, DelErrorStr,False, TypeOfTrans) then
           begin
@@ -1350,7 +1359,7 @@ begin
             //HelpfulErrorMsg('Exception in journal export in PracticeLedger.RollbackBatch',0, false, ErrorStr, True);
           end;
           SetTransferFlag := False;
-          HelpfulErrorMsg('Exception in journal export in ' + GetAPIName + '.ExportDataToAPI',0, false, ErrorStr, True);
+          HelpfulErrorMsg('Exception in journal export in ' + GetAPIName + '.ExportDataToAPI',0, false, lsErrorDescription, True);
 
           FExportTerminated := True;
           Exit;
@@ -1381,7 +1390,8 @@ procedure TPracticeLedgerThread.Execute;
 const
   TheMethod = 'TPracticeLedgerThread.Execute';
 var
-  sError: string;
+  liErrorCode : integer;
+  lsErrorDescription: string;
 begin
   FreeOnTerminate := True;
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, TheMethod + ' begins' );
@@ -1397,13 +1407,13 @@ begin
       PracticeLedger.Firms.Clear;
       PracticeLedger.Businesses.Clear;
 
-      if not PracticeLedger.GetFirms(PracticeLedger.Firms, sError) then
-        LogUtil.LogMsg(lmError,UnitName, sError);
+      if not PracticeLedger.GetFirms( PracticeLedger.Firms, liErrorCode, lsErrorDescription ) then
+        LogUtil.LogMsg(lmError, UnitName, lsErrorDescription);
 
       if (IsDownloadBusiness and Assigned(AdminSystem) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID)<>'')) then
       begin
-        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID,  ltPracticeLedger,PracticeLedger.Businesses, sError) then
-          LogUtil.LogMsg(lmError,UnitName, sError);
+        if not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID,  ltPracticeLedger, PracticeLedger.Businesses, liErrorCode, lsErrorDescription) then
+          LogUtil.LogMsg(lmError, UnitName, lsErrorDescription);
       end;
     end;
 

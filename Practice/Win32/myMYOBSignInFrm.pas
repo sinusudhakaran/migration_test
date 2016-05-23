@@ -121,7 +121,8 @@ end;
 
 procedure TmyMYOBSignInForm.btnSignInClick(Sender: TObject);
 var
-  sError: string;
+  liErrorCode : integer;
+  lsErrorDescription: string;
   OldCursor: TCursor;
   InvalidPass: boolean;
   BusinessFrm : TSelectBusinessForm;
@@ -162,13 +163,15 @@ begin
     PracticeLedger.EncryptToken(UserINI_myMYOB_Access_Token);
 
     //my.MYOB login
-    if not PracticeLedger.Login(edtEmail.Text, edtPassword.Text, sError, InvalidPass) then
+    if not PracticeLedger.Login(edtEmail.Text, edtPassword.Text, liErrorCode,
+             lsErrorDescription, InvalidPass) then
     begin
       Screen.Cursor := OldCursor;
       if InvalidPass then
-        HelpfulWarningMsg(sError, 0)
+        HelpfulWarningMsg(lsErrorDescription, 0)
       else
-        ShowConnectionError(sError);
+// DN - P5-1077        ShowConnectionError(sErrorDescription);
+        ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
 
       if FormShowType in [fsFirmForceSignIn] then
       begin
@@ -190,10 +193,13 @@ begin
       if (FormShowType in [fsSignIn, fsFirmForceSignIn, fsSelectFirm]) and (ShowFirmSelection) then
       begin
         // Get Firms
-        if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
+        if ((PracticeLedger.Firms.Count = 0) and
+             (not PracticeLedger.GetFirms(PracticeLedger.Firms, liErrorCode,
+                    lsErrorDescription))) then
         begin
           Screen.Cursor := OldCursor;
-          ShowConnectionError(sError);
+// DN - P5-1077          ShowConnectionError(lsErrorDescription);
+          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
           ModalResult := mrCancel;
         end;
         //pnlLogin.Visible := False;
@@ -240,10 +246,15 @@ begin
       if (FormShowType = fsSignIn) and (ShowClientSelection) then
       begin // means show client - for a normal user
         // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger ,PracticeLedger.Businesses, sError))) then
+        if ((PracticeLedger.Businesses.Count = 0) and
+             (not PracticeLedger.GetBusinesses(
+                    AdminSystem.fdFields.fdmyMYOBFirmID ,
+                    ltPracticeLedger ,PracticeLedger.Businesses,
+                    liErrorCode, lsErrorDescription))) then
         begin
           Screen.Cursor := OldCursor;
-          ShowConnectionError(sError);
+// DN - P5-1077          ShowConnectionError(lsErrorDescription);
+          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
           ModalResult := mrCancel;
         end;
         FormShowType := fsSelectClient;
@@ -351,7 +362,8 @@ end;
 
 procedure TmyMYOBSignInForm.FormShow(Sender: TObject);
 var
-  sError: string;
+  liErrorCode: integer;
+  lsErrorDescription: string;
   OldCursor: TCursor;
 begin
   FIsSignIn := True;
@@ -399,9 +411,12 @@ begin
         PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
         Application.ProcessMessages;
         // Get Firms
-        if ((PracticeLedger.Firms.Count = 0) and (not PracticeLedger.GetFirms(PracticeLedger.Firms, sError))) then
+        if ((PracticeLedger.Firms.Count = 0) and
+             (not PracticeLedger.GetFirms(PracticeLedger.Firms, liErrorCode,
+                    lsErrorDescription))) then
         begin
-          ShowConnectionError(sError);
+// DN - P5-1077          ShowConnectionError(lsErrorDescription);
+          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
           ModalResult := mrCancel;
         end;
 
@@ -429,10 +444,14 @@ begin
         PracticeLedger.RefreshToken := UserINI_myMYOB_Refresh_Token;
         Application.ProcessMessages;
         // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID, ltPracticeLedger,PracticeLedger.Businesses, sError))) then
+        if ((PracticeLedger.Businesses.Count = 0) and
+           (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID,
+                  ltPracticeLedger,PracticeLedger.Businesses, liErrorCode,
+                  lsErrorDescription))) then
         begin
           Screen.Cursor := OldCursor;
-          ShowConnectionError(sError);
+// DN - P5-1077          ShowConnectionError(lsErrorDescription);
+          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
           ModalResult := mrCancel;
         end;
         LoadBusinesses;
@@ -577,9 +596,11 @@ var
   SupportNumber : string;
 begin
   SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
-                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-                  0, false, aError, true);
+//DN - P5-1077  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
+//DN - P5-1077                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+//DN - P5-1077                  0, false, aError, true);
+
+  HelpfulErrorMsg( aError, 0 );
 end;
 
 procedure TmyMYOBSignInForm.UpdateControls;

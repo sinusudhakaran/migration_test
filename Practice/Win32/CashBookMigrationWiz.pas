@@ -553,7 +553,8 @@ procedure TFrmCashBookMigrationWiz.DoBeforeMoveToStep(OldStepID : integer; var N
 
 var
   MovingForward : boolean;
-  sError : string;
+  liErrorCode : integer;
+  lsErrorDescription : string;
   InvalidPass : boolean;
 
 begin
@@ -569,9 +570,10 @@ begin
         // Actual login
         if MinutesBetween(fSignInTime, now()) > 1 then
         begin
-          if not MigrateCashbook.Login(fEmail, fPassword, sError, InvalidPass) then
+          if not MigrateCashbook.Login(fEmail, fPassword, liErrorCode, lsErrorDescription, InvalidPass) then
           begin
-            ShowConnectionError(sError);
+// DN - P5-1077            ShowConnectionError(lsErrorDescription);
+            ShowConnectionError( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ) );
             Cancel := true;
             exit;
           end;
@@ -762,15 +764,17 @@ var
   SupportNumber : string;
 begin
   SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-  HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
-                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-                  0, false, aError, true);
+//DN - P5-1077  HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
+//DN - P5-1077                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+//DN - P5-1077                  0, false, aError, true);
+  HelpfulErrorMsg( aError, 0 );
 end;
 
 //------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.SignIn;
 var
-  sError: string;
+  liErrorCode : integer;
+  lsErrorDescription: string;
   OldCursor: TCursor;
   InvalidPass : boolean;
 begin
@@ -779,14 +783,16 @@ begin
   UpdateSignInControls(true);
   try
     // Actual login
-    if not MigrateCashbook.Login(edtEmail.Text, edtPassword.Text, sError, InvalidPass) then
+    if not MigrateCashbook.Login(edtEmail.Text, edtPassword.Text, liErrorCode,
+             lsErrorDescription, InvalidPass) then
     begin
       Screen.Cursor := OldCursor;
 
       if InvalidPass then
-        HelpfulWarningMsg(sError, 0)
+        HelpfulWarningMsg(lsErrorDescription, 0)
       else
-        ShowConnectionError(sError);
+// DN - P5-1077        ShowConnectionError(lsErrorDescription);
+        ShowConnectionError( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ) );
 
       UpdateSignInControls(false);
       edtEmail.SetFocus;
@@ -794,10 +800,11 @@ begin
     end;
 
     // Get firms
-    if not MigrateCashbook.GetFirms(fFirms, sError) then
+    if not MigrateCashbook.GetFirms(fFirms, liErrorCode, lsErrorDescription) then
     begin
       Screen.Cursor := OldCursor;
-      ShowConnectionError(sError);
+// DN - P5-1077      ShowConnectionError(lsErrorDescription);
+      ShowConnectionError( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ) );
       UpdateSignInControls(false);
       edtEmail.SetFocus;
       exit;

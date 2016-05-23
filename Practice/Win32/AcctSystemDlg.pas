@@ -1056,9 +1056,12 @@ var
   SupportNumber : string;
 begin
   SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
-                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-                  0, false, aError, true);
+//DN - P5-1077  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
+//DN - P5-1077                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
+//DN - P5-1077                  0, false, aError, true);
+//DN - P5-1077
+
+  HelpfulErrorMsg( aError, 0 );
 end;
 
 //------------------------------------------------------------------------------
@@ -1286,7 +1289,8 @@ var
   OldCursor: TCursor;
   SaveBusiness : Boolean;
   SelectBusinessFrm : TSelectBusinessForm;
-  sError : string;
+  liErrorCode : integer;
+  lsErrorDescription : string;
   ShowClientScreen : Boolean;
 begin
   if not Assigned(AdminSystem) then
@@ -1368,10 +1372,14 @@ begin
         // Get Businesses
         Screen.Cursor := crHourGlass;
         try
-          if ((PracticeLedger.Businesses.Count = 0) and (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID , ltPracticeLedger,PracticeLedger.Businesses, sError))) then
+          if ((PracticeLedger.Businesses.Count = 0) and
+             (not PracticeLedger.GetBusinesses(AdminSystem.fdFields.fdmyMYOBFirmID ,
+                    ltPracticeLedger,PracticeLedger.Businesses, liErrorCode,
+                    lsErrorDescription))) then
           begin
             Screen.Cursor := OldCursor;
-            ShowConnectionError(sError);
+// DN - P5-1077            ShowConnectionError(lsErrorDescription);
+            ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
             Exit;
           end;
         finally
