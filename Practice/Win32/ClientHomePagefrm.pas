@@ -22,7 +22,7 @@ uses
   CheckWebNotesData,
   RzTabs,
   OSFont,
-  ExchangeGainLoss;
+  ExchangeGainLoss, Buttons;
 
 type
   THP_RefreshItem = (
@@ -122,6 +122,7 @@ type
     Shape5: TShape;
     Shape10: TShape;
     acGoToMYOBBusiness: TAction;
+    btnExtractToMYOB: TBitBtn;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -170,6 +171,10 @@ type
     procedure RefreshExchangeRates;
     procedure acExchangeGainLossExecute(Sender: TObject);
     procedure acGoToMYOBBusinessExecute(Sender: TObject);
+    procedure btnExtractToMYOBClick(Sender: TObject);
+    procedure btnExtractToMYOBMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure btnExtractToMYOBMouseLeave(Sender: TObject);
 
   private
     FTheClient: TClientObj;
@@ -208,9 +213,10 @@ type
     { Private declarations }
     procedure wmsyscommand( var msg: TWMSyscommand ); message wm_syscommand;
     procedure UMRefreshExchangeGainLoss(var Msg: TMessage); message UM_REFRESH_EXCHANGE_GAIN_LOSS;
+    procedure PositionMYOBExtractBtn;
   protected
     FLEFeedbackForm: TForm;
-    
+
     function GetGlobalRedrawForeign: boolean; override;
     procedure SetGlobalRedrawForeign(Value: boolean); override;
     procedure UpdateActions; override;
@@ -630,6 +636,9 @@ begin //RefreshCoding
          else
            ClientTree.Header.Columns[ 4 ].Options := ClientTree.Header.Columns[ 4 ].Options - [ coVisible ];
 
+         PositionMYOBExtractBtn;
+
+
          TreeList.Refresh;
 
 
@@ -910,7 +919,7 @@ begin
 end;
 
 procedure TfrmClientHomePage.FormCreate(Sender: TObject);
-var I,lw : Integer;
+var I,lw: Integer;
 const
    NoSelection : TGridRect = (Left:-1; Top:-1; Right:-1; Bottom:-1 );
 
@@ -1060,6 +1069,35 @@ procedure TfrmClientHomePage.Lock;
 begin
   if DebugMe then LogUtil.LogMsg(lmDebug,UnitName,'Lock');
   inc(FLockCount);
+end;
+
+procedure TfrmClientHomePage.PositionMYOBExtractBtn;
+var
+  iLoop, GridColumnWidth : Integer;
+begin
+  GridColumnWidth := 0;
+
+  for iLoop := Low(UserINI_HP_Column_Widths) to high(UserINI_HP_Column_Widths) do
+  begin
+    if UserINI_HP_Column_Widths[iLoop] > 0 then
+    begin
+      ClientTree.Header.Columns[iLoop].Width := UserINI_HP_Column_Widths[iLoop];
+      if (iLoop = 4) then
+      begin
+        if FTheClient.HasForeignCurrencyAccounts then
+          GridColumnWidth := GridColumnWidth + UserINI_HP_Column_Widths[iLoop]
+      end
+      else
+        GridColumnWidth := GridColumnWidth + UserINI_HP_Column_Widths[iLoop];
+    end;
+  end;
+  btnExtractToMYOB.Left := ClientTree.Left +  GridColumnWidth + 10;
+
+  if FTheClient.HasForeignCurrencyAccounts then
+    ClientTree.Header.Columns[ 4 ].Options := ClientTree.Header.Columns[ 4 ].Options + [ coVisible ]
+  else
+    ClientTree.Header.Columns[ 4 ].Options := ClientTree.Header.Columns[ 4 ].Options - [ coVisible ];
+
 end;
 
 procedure TfrmClientHomePage.ProcessExternalCmd(Command: TExternalCmd);
@@ -1343,6 +1381,8 @@ begin
 
   if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
     GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
+  btnExtractToMYOB.Visible := acGoToMYOBBusiness.Visible;
+  btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
 end;
 
 procedure TfrmClientHomePage.RefreshMems;
@@ -1995,6 +2035,43 @@ begin
    finally
       Unlock;
    end;
+end;
+
+procedure TfrmClientHomePage.btnExtractToMYOBClick(Sender: TObject);
+var
+  FromDate, ToDate : Integer;
+  DR : TDateRange;
+begin
+  FromDate := 0;
+  ToDate := 0;
+  {DR := GetSelectDateRange;
+  if Assigned(DR) then
+  begin
+    FromDate := DR.FromDate;
+    ToDate := DR.ToDate;
+  end;
+
+  Retrieved := False;
+  RetrieveRange;
+
+  // Note: do this before we enter the coding screens
+  if Retrieved then
+    RefreshHomePage([HPR_ExchangeGainLoss_NewData]);}
+
+  ExtractData(FromDate, ToDate);
+  //The transfered flag may now be set, reload any coding windows that are visible
+  SendCmdToAllCodingWindows( ecReloadTrans);
+end;
+
+procedure TfrmClientHomePage.btnExtractToMYOBMouseLeave(Sender: TObject);
+begin
+  Screen.Cursor := crDefault;
+end;
+
+procedure TfrmClientHomePage.btnExtractToMYOBMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  Screen.Cursor := crHandPoint;
 end;
 
 procedure TfrmClientHomePage.btnMonthLeftClick(Sender: TObject);
