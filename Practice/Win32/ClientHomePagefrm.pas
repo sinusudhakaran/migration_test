@@ -1374,13 +1374,16 @@ begin
     Exit;
 
   acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
-                              CheckFormyMYOBTokens and
-                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
+                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '') and
+                              (Trim(UserINI_myMYOB_Access_Token) <> '') and
+                              (Trim(UserINI_myMYOB_Random_Key) <> '') and
+                              ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now)));
 
   acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
 
   if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
     GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
+
   btnExtractToMYOB.Visible := acGoToMYOBBusiness.Visible;
   btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
 end;

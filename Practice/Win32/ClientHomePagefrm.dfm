@@ -95,6 +95,7 @@ object frmClientHomePage: TfrmClientHomePage
         end
         item
           Action = acGoToMYOBBusiness
+          Visible = False
         end
         item
           Caption = '-'
@@ -103,7 +104,7 @@ object frmClientHomePage: TfrmClientHomePage
           Action = acHelp
         end>
       Opened = True
-      OpenedHeight = 456
+      OpenedHeight = 400
       SmallImages = AppImages.ilFileActions_ClientMgr
       Caption = 'Client Tasks'
       Font.Charset = DEFAULT_CHARSET
@@ -355,6 +356,7 @@ object frmClientHomePage: TfrmClientHomePage
         ParentShowHint = False
         ShowHint = True
         TabOrder = 5
+        Visible = False
         OnClick = btnExtractToMYOBClick
         OnMouseLeave = btnExtractToMYOBMouseLeave
         OnMouseMove = btnExtractToMYOBMouseMove
@@ -957,6 +959,7 @@ object frmClientHomePage: TfrmClientHomePage
     object acGoToMYOBBusiness: TAction
       Caption = 'Go to MYOB Ledger business page'
       ImageIndex = 20
+      Visible = False
       OnExecute = acGoToMYOBBusinessExecute
     end
   end
