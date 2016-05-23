@@ -764,6 +764,8 @@ end;
 procedure TTemplates.LoadNZMYOBLedgerTemplate;
 begin
   ClearGSTFields(MyClient.clFields);
+  // Start date is hardcoded for NZ version
+  MyClient.clFields.clGST_Applies_From[1] := bkStr2Date('01/01/00');
 
   SetGSTItem(MyClient.clFields, 1, 'GSTI', 'GST (Input)',              gtExpenditureGST, 15);
   SetGSTItem(MyClient.clFields, 2, 'GSTO', 'GST (Output)',             gtIncomeGST,      15);
