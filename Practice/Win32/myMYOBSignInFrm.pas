@@ -186,6 +186,7 @@ begin
       UpdateControls;
       SaveMyMYOBUserDetails;
       btnSignIn.Default := False;
+
       if (FormShowType in [fsSignIn, fsFirmForceSignIn, fsSelectFirm]) and (ShowFirmSelection) then
       begin
         // Get Firms
@@ -221,7 +222,7 @@ begin
         pnlFirmSelection.Visible := True;
         Self.Height := 250;
         btnOK.Visible := True;
-        FForcedSignInSucceed := True;
+        //FForcedSignInSucceed := True;
         LoadFirms;
       end;
 
@@ -323,6 +324,7 @@ begin
     cmbSelectFirm.Enabled := False;
     FormShowType := fsFirmForceSignIn;
     FOldFirmID := SelectedID;
+
     FormShow(Self);
   end;
 end;
@@ -353,6 +355,7 @@ var
   OldCursor: TCursor;
 begin
   FIsSignIn := True;
+  UpdateControls;
   FProcessingLogin := False;
   edtPassword.Text := '';
   edtEmail.Text := CurrUser.MYOBEmailAddress;
@@ -364,6 +367,7 @@ begin
   pnlLogin.Visible := False;
   btnOK.Visible := True;
   lblForgotPassword.Visible := True;
+
   case FormShowType of
     fsSignIn :
     begin
@@ -379,6 +383,7 @@ begin
       Self.Height := 250;
       btnOK.Visible := False;
       edtEmail.Enabled := False;
+
       edtPassword.Enabled := True;
       edtPassword.SetFocus;
     end;
@@ -583,6 +588,7 @@ begin
   begin
     edtEmail.Enabled := True;
     btnSignIn.Caption := 'Login';
+    btnSignIn.Default := True;
   end
   else
   begin
