@@ -335,6 +335,8 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure mnuMatchStatementDetailsClick(Sender: TObject);
     procedure cbAccountingChange(Sender: TObject);
+    procedure tblSplitKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Private declarations }
     PopulatePayee : boolean;
@@ -1865,10 +1867,26 @@ begin
   end;
 end;
 
+procedure TdlgMemorise.tblSplitKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.tblSplitBeginEdit(Sender: TObject; RowNum,
   ColNum: Integer; var AllowIt: Boolean);
 begin
+  if ColNum = GSTCodeCol then
+  begin
+    if chkMaster.Checked then
+    begin
+      HelpfulInfoMsg( 'GST cannot be overridden for a memorisation at MASTER level. MASTER memorised entries always apply GST at the default rate for the account in the client''s chart.', 0 );
+      AllowIt := False;
+      Exit;
+    end;
+  end;
+
   if ColNum <> 1 then
     tblSplitInEdit := true;
 end;
