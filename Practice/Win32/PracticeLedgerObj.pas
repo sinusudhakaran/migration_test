@@ -1015,14 +1015,15 @@ begin
            raise EExtractData.CreateFmt( '%s - %s : %s', [ UnitName, ThisMethodName, Msg ] );
         end;
 
-        if LoadingCOAForTheFirstTime then
-          sFinalMessage := 'Your chart of accounts and ' + QuotedStr('GST Setup') + ' have been updated.'#13#13
+        if LoadingCOAForTheFirstTime then begin
+          sFinalMessage := 'Your chart of accounts and ' + QuotedStr('GST Setup') + ' have been updated.'#13#13;
+          sFinalMessage := sFinalMessage  + 'You need to check a couple of things;' + #13;
+          sFinalMessage := sFinalMessage  + '  1. Add missing control accounts in your GST setup.'+ #13;
+          sFinalMessage := sFinalMessage  + '  2. Update contra codes for your bank accounts.';
+        end
         else
           sFinalMessage := 'Your chart of accounts has been updated.'#13#13;
 
-        sFinalMessage := sFinalMessage  + 'You need to check a couple of things;' + #13;
-        sFinalMessage := sFinalMessage  + '  1. Add missing control accounts in your GST setup.'+ #13;
-        sFinalMessage := sFinalMessage  + '  2. Update contra codes for your bank accounts.';
 
         HelpfulInfoMsg(sFinalMessage, 0 );
         ClearStatus(True);
