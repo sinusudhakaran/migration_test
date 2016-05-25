@@ -1376,8 +1376,12 @@ begin
   acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
                               (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '') and
                               (Trim(UserINI_myMYOB_Access_Token) <> '') and
-                              (Trim(UserINI_myMYOB_Random_Key) <> '') and
-                              ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now)));
+                              (Trim(UserINI_myMYOB_Random_Key) <> '');
+  if acGoToMYOBBusiness.Visible then
+  begin
+    if not ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now))) then
+      acGoToMYOBBusiness.Visible := CheckFormyMYOBTokens;
+  end;
 
   acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
 
@@ -1915,10 +1919,16 @@ begin
   try
     BusinessLink := Format(PRACINI_CashbookTransactionViewURL,[MyClient.clExtra.cemyMYOBClientIDSelected]);
 
+    {Headers := 'Content-Type: ' + CASHBOOK_CONTENT_TYPE + CRLF +
+    'Accept: ' + CASHBOOK_ACCEPT + CRLF +
+    'Authorization: ' + CASHBOOK_AUTH_PREFIX + PracticeLedger.EncryptedToken + CRLF +
+    'x-myobapi-accesstoken: ' + PracticeLedger.EncryptedToken;}
+
     if Length(BusinessLink) = 0 then
       Exit;
 
     ShellExecute(0, 'open', PChar(BusinessLink), nil, nil, SW_NORMAL);
+    //WB.Navigate(BusinessLink, EmptyParam,EmptyParam,EmptyParam,Headers);
   finally
     Screen.Cursor := OldCursor;
   end;
@@ -2043,7 +2053,6 @@ end;
 procedure TfrmClientHomePage.btnExtractToMYOBClick(Sender: TObject);
 var
   FromDate, ToDate : Integer;
-  DR : TDateRange;
 begin
   FromDate := 0;
   ToDate := 0;
