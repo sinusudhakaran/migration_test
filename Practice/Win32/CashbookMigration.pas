@@ -230,6 +230,7 @@ type
     function MigrateClient(aClient : TClientObj; aSelectedData: TSelectedData;
                var aUploadID : string; var aErrorCode : integer;
                var aErrorDescription: string): boolean;
+    function GetSupportNumber : string;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -242,11 +243,11 @@ type
     procedure MarkSelectedClients(aFileStatus: Integer; aSelectClients : TStringList);
     procedure MarkSelectClient(aFileStatus: Integer; aClientCode : string);
 
-    function Login(const aEmail: string; const aPassword: string; 
-               var aErrorCode : integer; var aErrorDescription : string; 
+    function Login(const aEmail: string; const aPassword: string;
+               var aErrorCode : integer; var aErrorDescription : string;
                var aInvalidPass : boolean): boolean;
     function RefreshTheToken(var aErrorCode : integer; var aErrorDescription : string; var aInvalidPass : boolean):Boolean;
-    function GetFirms( var aFirms: TFirms; var aErrorCode : integer; 
+    function GetFirms( var aFirms: TFirms; var aErrorCode : integer;
                var aErrorDescription: string ): boolean;
     function GetBusinesses( aFirmID: string; LicenseType:TLicenceType;
                var aBusinesses: TBusinesses; var aErrorCode : integer;
@@ -274,7 +275,7 @@ type
     property RefreshToken : string read FRefreshToken write FRefreshToken;
     property TokenExpiresAt : TDateTime read FTokenExpiresAt write FTokenExpiresAt;
     property DataRequestType : TDataRequestType read FDataRequestType write FDataRequestType;
-    property SupportNumber : string read FSupportNumber write FSupportNumber;
+    property SupportNumber : string read GetSupportNumber; // write FSupportNumber;
   end;
 
   //----------------------------------------------------------------------------
@@ -3115,6 +3116,20 @@ begin
   end;
 
   Result := true;
+end;
+
+function TCashbookMigration.GetSupportNumber: string;
+begin
+  FSupportNumber := '';
+  try
+    if Assigned(AdminSystem) then
+      FSupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ]
+    else
+      if assigned( myClient ) then
+        FSupportNumber := TContactInformation.SupportPhoneNo[ myClient.clFields.clCountry ];
+  finally
+    result := FSupportNumber;
+  end;
 end;
 
 //------------------------------------------------------------------------------
