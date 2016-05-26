@@ -2582,7 +2582,7 @@ begin
                   'please contact support (%s)', [ SupportNumber ] );
     end;
     // TCP/IP Errors
-    10004, 10009, 1014, 1022, 1024, 1035..1071, 10091..10093, 11001..11004 : begin
+    10004, 10009, 10014, 10022, 10024, 10035..10071, 10091..10093, 11001..11004 : begin
       result := format( 'We had trouble connecting you, ' +
                   'please try again later, if problem persists ' +
                   'contact support (%s)', [ SupportNumber ] );
