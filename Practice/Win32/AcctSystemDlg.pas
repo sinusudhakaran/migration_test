@@ -169,10 +169,11 @@ uses
   PracticeLedgerObj,
   bkContactInformation,
   CashbookMigrationRestData,
-  AuditMgr;
+  AuditMgr,
+  ipsHTTPS;
 
 const
-  UnitName = 'PRACDETAILSFRM';
+  UnitName = 'AcctSystemDlg';
   NO_DEFAULT_SYSTEM = 'No defaults were loaded because a default %s system has not been set up.';
 
 //------------------------------------------------------------------------------
@@ -1311,10 +1312,10 @@ begin
   Screen.Cursor := crHourGlass;
   ShowClientScreen := True;
   try
-    if ((not CheckFormyMYOBTokens) or
+    if ( ((not CheckFormyMYOBTokens) or
       ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
-      (not CurrUser.HasRestrictedAccess)))) then
+      (not CurrUser.HasRestrictedAccess)))) ) or ( DebugMe ) then
     begin
       //ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;

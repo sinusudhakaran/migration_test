@@ -315,7 +315,8 @@ uses
   CountryUtils,
   dateUtils,
   Variants,
-  WarningMoreFrm;
+  WarningMoreFrm,
+  Dialogs;
 
 const
   UnitName = 'CashbookMigration';
@@ -2579,7 +2580,7 @@ begin
     1105, 1117, 1119, 1120 : begin
       result := format( 'Could not connect to the service, ' +
                   'please try again later, if problem persists ' +
-                  'contact support (%s)', [ fSupportNumber ] );
+                  'contact support (%s)', [ SupportNumber ] );
     end;
 
     // SSL Errors
@@ -2587,14 +2588,18 @@ begin
     // Http Access Denied error
     10013 : begin
       result := format( 'Could not authenticate with the server, ' +
-                  'please contact support (%s)', [ fSupportNumber ] );
+                  'please contact support (%s)', [ SupportNumber ] );
     end;
     // TCP/IP Errors
     10004, 10009, 1014, 1022, 1024, 1035..1071, 10091..10093, 11001..11004 : begin
       result := format( 'We had trouble connecting you, ' +
                   'please try again later, if problem persists ' +
-                  'contact support (%s)', [ fSupportNumber ] );
-    end;
+                  'contact support (%s)', [ SupportNumber ] );
+    end
+    else
+      result := format( 'An unexpected error occured, ErrorCode=%d, ' +
+                  'please try again later, if problem persists ' +
+                  'contact support (%s)', [ aErrorCode, SupportNumber ] );
   end;
 end;
 
@@ -2950,6 +2955,17 @@ begin
   js := nil;
   try
     try
+      if DebugMe then
+      begin
+        if InputQuery('Debug', 'Enter the Connection error code to test for?', aErrorDescription ) then
+        begin
+          if TryStrToInt( aErrorDescription, aErrorCode ) then begin
+            aErrorDescription := 'I dunno Captain';
+            raise EipsHTTPS.CreateCode( aErrorCode, aErrorDescription );
+          end;
+        end;
+      end;
+
       Headers.ContentType := MY_DOT_CONTENT_TYPE;
 
       PostData := TStringList.Create;
