@@ -125,11 +125,6 @@ type
     FMappingsData : TMappingsData;
     FSupportNumber : string;
 
-//    fIPWorksErrorCode: Integer;
-//    fIPWorksErrorDescription: String;
-
-//    procedure OnIPWorksError( Sender: TObject; ErrorCode: Integer; const Description: String );
-
     function ProcessErrorMessage(aErrorMessage: TlkJSONbase): string;
 
     procedure LogHttpDebugSend(aCall : string;
@@ -751,8 +746,6 @@ begin
   FHttpRequester.OnTransfer                := DoHttpTransfer;
   FHttpRequester.OnEndTransfer             := DoHttpEndTransfer;
   FHttpRequester.OnHeader                  := DoHttpHeader;
-
-///  FHttpRequester.OnError                   := OnIPWorksError;
 
   FHttpRequester.AuthScheme   := authBasic;
 
@@ -2457,7 +2450,6 @@ var
   PostData: TStringList;
   js: TlkJSONobject;
   sResponse: string;
-//  sError: string;
   Token : string;
   NoOfSecondsToExpire : Integer;
 begin
@@ -2506,7 +2498,6 @@ begin
         else
           LogUtil.LogMsg(lmError, UnitName, 'Error running ' + GetAPIName +'.RefreshToken, Error Message : ' + aErrorDescription);
 
-//        aErrorDescription := sError;
         Exit;
       end;
 
@@ -2928,7 +2919,6 @@ var
   PostData: TStringList;
   js: TlkJSONobject;
   sResponse: string;
-//  sError: string;
   Token : string;
   NoOfSecondsToExpire : Integer;
 begin
@@ -3333,15 +3323,6 @@ begin
   else
     Result := mgsPartial;
 end;
-
-(*
-procedure TCashbookMigration.OnIPWorksError(Sender: TObject; ErrorCode: Integer;
-  const Description: String);
-begin
-  fIPWorksErrorCode        := ErrorCode;
-  fIPWorksErrorDescription := Description;
-end;
-*)
 
 initialization
 begin

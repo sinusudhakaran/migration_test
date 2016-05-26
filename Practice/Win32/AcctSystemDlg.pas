@@ -110,7 +110,6 @@ type
     function VerifyForm : boolean;
     procedure FillSystemList;
     procedure DoReBranding;
-    procedure ShowConnectionError(aError : string);
     procedure SetupInitialSystem(aInWizard:Boolean);
   protected
     procedure UpdateActions; override;
@@ -1052,19 +1051,6 @@ begin
   end;
 end;
 
-procedure TdlgAcctSystem.ShowConnectionError(aError: string);
-var
-  SupportNumber : string;
-begin
-  SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-//DN - P5-1077  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
-//DN - P5-1077                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-//DN - P5-1077                  0, false, aError, true);
-//DN - P5-1077
-
-  HelpfulErrorMsg( aError, 0 );
-end;
-
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FillSystemList;
 var
@@ -1379,8 +1365,7 @@ begin
                     lsErrorDescription))) then
           begin
             Screen.Cursor := OldCursor;
-// DN - P5-1077            ShowConnectionError(lsErrorDescription);
-            ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
+            HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
             Exit;
           end;
         finally

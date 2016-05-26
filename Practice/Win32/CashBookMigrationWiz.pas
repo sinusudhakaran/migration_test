@@ -153,7 +153,6 @@ type
 
     procedure SignIn();
     procedure SignOut();
-    procedure ShowConnectionError(aError : string);
 
     // Wizard steps
     function  GetOrderArrayPos(ForStepID : integer) : integer;
@@ -572,8 +571,7 @@ begin
         begin
           if not MigrateCashbook.Login(fEmail, fPassword, liErrorCode, lsErrorDescription, InvalidPass) then
           begin
-// DN - P5-1077            ShowConnectionError(lsErrorDescription);
-            ShowConnectionError( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ) );
+            HelpfulErrorMsg( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ), 0 );
             Cancel := true;
             exit;
           end;
@@ -759,18 +757,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TFrmCashBookMigrationWiz.ShowConnectionError(aError: string);
-var
-  SupportNumber : string;
-begin
-  SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-//DN - P5-1077  HelpfulErrorMsg('Could not connect to migration service, please try again later. ' +
-//DN - P5-1077                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-//DN - P5-1077                  0, false, aError, true);
-  HelpfulErrorMsg( aError, 0 );
-end;
-
-//------------------------------------------------------------------------------
 procedure TFrmCashBookMigrationWiz.SignIn;
 var
   liErrorCode : integer;
@@ -791,8 +777,7 @@ begin
       if InvalidPass then
         HelpfulWarningMsg(lsErrorDescription, 0)
       else
-// DN - P5-1077        ShowConnectionError(lsErrorDescription);
-        ShowConnectionError( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ) );
+        HelpfulErrorMsg( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ), 0 );
 
       UpdateSignInControls(false);
       edtEmail.SetFocus;
@@ -803,8 +788,7 @@ begin
     if not MigrateCashbook.GetFirms(fFirms, liErrorCode, lsErrorDescription) then
     begin
       Screen.Cursor := OldCursor;
-// DN - P5-1077      ShowConnectionError(lsErrorDescription);
-      ShowConnectionError( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ) );
+      HelpfulErrorMsg( MigrateCashbook.ReturnGenericErrorMessage( liErrorCode ), 0 );
       UpdateSignInControls(false);
       edtEmail.SetFocus;
       exit;

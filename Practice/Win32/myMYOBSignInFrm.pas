@@ -51,7 +51,6 @@ type
     FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
     FValidateClientAgainstFirm : Boolean;
-    procedure ShowConnectionError(aError : string);
     procedure LoadFirms;
     procedure LoadBusinesses;
     procedure SaveUser;
@@ -170,8 +169,7 @@ begin
       if InvalidPass then
         HelpfulWarningMsg(lsErrorDescription, 0)
       else
-// DN - P5-1077        ShowConnectionError(sErrorDescription);
-        ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
+        HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
 
       if FormShowType in [fsFirmForceSignIn] then
       begin
@@ -198,8 +196,7 @@ begin
                     lsErrorDescription))) then
         begin
           Screen.Cursor := OldCursor;
-// DN - P5-1077          ShowConnectionError(lsErrorDescription);
-          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
+          HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
           ModalResult := mrCancel;
         end;
         //pnlLogin.Visible := False;
@@ -253,8 +250,7 @@ begin
                     liErrorCode, lsErrorDescription))) then
         begin
           Screen.Cursor := OldCursor;
-// DN - P5-1077          ShowConnectionError(lsErrorDescription);
-          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
+          HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
           ModalResult := mrCancel;
         end;
         FormShowType := fsSelectClient;
@@ -415,8 +411,7 @@ begin
              (not PracticeLedger.GetFirms(PracticeLedger.Firms, liErrorCode,
                     lsErrorDescription))) then
         begin
-// DN - P5-1077          ShowConnectionError(lsErrorDescription);
-          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
+          HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
           ModalResult := mrCancel;
         end;
 
@@ -450,8 +445,7 @@ begin
                   lsErrorDescription))) then
         begin
           Screen.Cursor := OldCursor;
-// DN - P5-1077          ShowConnectionError(lsErrorDescription);
-          ShowConnectionError( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ) );
+          HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
           ModalResult := mrCancel;
         end;
         LoadBusinesses;
@@ -589,18 +583,6 @@ begin
       end;
     end;
   end;
-end;
-
-procedure TmyMYOBSignInForm.ShowConnectionError(aError: string);
-var
-  SupportNumber : string;
-begin
-  SupportNumber := TContactInformation.SupportPhoneNo[ AdminSystem.fdFields.fdCountry ];
-//DN - P5-1077  HelpfulErrorMsg('Could not connect to MYOB service, please try again later. ' +
-//DN - P5-1077                  'If problem persists please contact ' + SHORTAPPNAME + ' support ' + SupportNumber + '.',
-//DN - P5-1077                  0, false, aError, true);
-
-  HelpfulErrorMsg( aError, 0 );
 end;
 
 procedure TmyMYOBSignInForm.UpdateControls;
