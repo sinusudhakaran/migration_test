@@ -965,20 +965,26 @@ begin
   pcOptions.ActivePage := tsGeneral;
   btnReportPwd.Enabled := chkReportPwd.Checked;
 
+  lblFirmName.Visible := False;
+  lblFirmName.Caption := '';
+
   if not (CheckFormyMYOBTokens) then
     btnConnectMYOB.Caption := 'MYOB Login'
   else
+  begin
     btnConnectMYOB.Caption := 'Select MYOB Firm';
 
-  if Assigned(AdminSystem) then
-  begin
-    FFirmID := AdminSystem.fdFields.fdmyMYOBFirmID;
-    FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
+    if Assigned(AdminSystem) then
+    begin
+      FFirmID := AdminSystem.fdFields.fdmyMYOBFirmID;
+      FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
 
-    if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
-      lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
-    else
-      lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+      if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
+        lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
+      else
+        lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+      lblFirmName.Visible := True;
+    end;
   end;
 end;
 
@@ -1110,18 +1116,12 @@ begin
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;
   try
-
-    (*if (not CheckFormyMYOBTokens) then
-      SignInFrm.FormShowType := fsSignIn
-    else
-    begin
-      SignInFrm.FormShowType := fsSelectFirm;
-      if Trim(FFirmID) = '' then
-        SignInFrm.FormShowType := fsSignIn;
-    end;*)
-
     if (not CheckFormyMYOBTokens) then
-      SignInFrm.FormShowType := fsSignIn
+    begin
+      SignInFrm.FormShowType := fsSignIn;
+      FFirmID := '';
+      FFirmName := '';
+    end
     else
     begin
       SignInFrm.FormShowType := fsSelectFirm;
@@ -1158,7 +1158,7 @@ begin
         MyClient.clExtra.cemyMYOBClientNameSelected := '';
         if Assigned(PracticeLedger) then
           PracticeLedger.Businesses.Clear;
-          
+
         SaveClient(false);
       end;
     end;
@@ -1167,7 +1167,8 @@ begin
       lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
     else
       lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ FFirmName;
-
+    lblFirmName.Visible := True;
+    
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'MYOB Login'
     else
