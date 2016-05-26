@@ -319,6 +319,8 @@ type
     property SystemAccountType: string read FSystemAccountType write FSystemAccountType;
   end;
 
+  TChartOfAccountsType = ( tcoaCashbook, tcoaPracticeLedger );
+  TValidLedgerCodes    = array of String[3];
   //----------------------------------------------------------------------------
   TChartOfAccountsData = class(TCollection)
   private
@@ -328,9 +330,18 @@ type
     function FindCode(aChartCode : string; var aChartOfAccountItem : TChartOfAccountData) : boolean;
 
     procedure Write(const aJson: TlkJSONobject);
-    function IsValidJSON(aJSON: TlkJSONobject):Boolean;
-    procedure Read(aBusinessID: string; const aJson: TlkJSONobject);
+    function IsValidJSON( aJSON: TlkJSONobject; aValidLedgerCodes : TValidLedgerCodes ):Boolean;
+    procedure Read(aBusinessID: string; const aJson: TlkJSONobject;
+                aChartOfAccountsType : tChartOfAccountsType = tcoaCashbook ); virtual;
 
+  end;
+
+  //----------------------------------------------------------------------------
+  TPracticeLedgerChartOfAccountsData = class( TChartOfAccountsData )
+  private
+  protected
+  public
+    procedure Read(aBusinessID: string; const aJson: TlkJSONobject); reintroduce;
   end;
 
   //----------------------------------------------------------------------------
@@ -1549,7 +1560,7 @@ end;
 
 { TChartOfAccountsData }
 //------------------------------------------------------------------------------
-function TChartOfAccountsData.IsValidJSON(aJSON: TlkJSONobject): Boolean;
+function TChartOfAccountsData.IsValidJSON( aJSON: TlkJSONobject; aValidLedgerCodes : TValidLedgerCodes ): Boolean;
 var
   AcctType, GSTCode : string;
   i : Integer;
@@ -2429,6 +2440,14 @@ begin
     Line := ItemAs(i);
     Line.Write(LineData, True);
   end;
+end;
+
+{ TPracticeLedgerChartOfAccountsData }
+
+procedure TPracticeLedgerChartOfAccountsData.Read(aBusinessID: string;
+  const aJson: TlkJSONobject);
+begin
+  inherited Read( aBusinessID, aJson, tcoaPracticeLedger );
 end;
 
 initialization

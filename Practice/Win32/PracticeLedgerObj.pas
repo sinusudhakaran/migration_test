@@ -685,7 +685,7 @@ begin
     Exit;
   end;
 
-  Accounts := TChartOfAccountsData.Create(TChartOfAccountData);
+  Accounts := TPracticeLedgerChartOfAccountsData.Create(TChartOfAccountData);
   try
     RandomKey := UserINI_myMYOB_Random_Key;
     EncryptToken(UserINI_myMYOB_Access_Token);
@@ -1305,7 +1305,7 @@ begin
           end;
 
           //send to api
-          if not UploadToAPI( RequestJson, RespStr, liErrorCode, lsErrorDescription, False, TypeOfTrans) then
+          if not  UploadToAPI( RequestJson, RespStr, liErrorCode, lsErrorDescription, False, TypeOfTrans) then
           begin
             LogUtil.LogMsg(lmError, UnitName, lsErrorDescription);
             //Rollback all batches transferred
