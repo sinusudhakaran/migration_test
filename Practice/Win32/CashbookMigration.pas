@@ -2575,7 +2575,7 @@ begin
     end;
 
     // SSL Errors
-    271..276, 280..284, //and
+    270..276, 280..284, //and
     // Http Access Denied error
     10013 : begin
       result := format( 'Could not authenticate with the server, ' +
