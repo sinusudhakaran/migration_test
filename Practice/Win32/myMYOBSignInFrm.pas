@@ -305,7 +305,7 @@ begin
   if FForcedSignInSucceed then
     Exit;
 
-  if ((Trim(FSelectedID) <> '') and
+  if (//(Trim(FSelectedID) <> '') and
       (Trim(FSelectedID) <> Firm.ID))
   then
   begin
