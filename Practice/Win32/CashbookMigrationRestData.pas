@@ -1639,14 +1639,20 @@ begin
   Result := TChartOfAccountData(Self.Items[aIndex]);
 end;
 
-procedure TChartOfAccountsData.Read(aBusinessID: string; const aJson: TlkJSONobject);
+procedure TChartOfAccountsData.Read(aBusinessID: string; const aJson: TlkJSONobject;
+                aChartOfAccountsType : tChartOfAccountsType = tcoaCashbook );
 var
   i: integer;
   Child: TlkJSONobject;
   Field : TlkJSONlist;
   ChartOfAccount: TChartOfAccountData;
+  aValidLedgerCodes : TValidLedgerCodes;
 begin
   Clear;
+
+  // Ralph Added code to fix compile issue this needs to change
+  setLength(aValidLedgerCodes,1);
+  aValidLedgerCodes[0] := 'ABC';
 
   ASSERT(assigned(aJson));
   if Trim(aBusinessID) = '' then
@@ -1661,7 +1667,7 @@ begin
   begin
     Child := Field.Child[i] as TlkJSONobject;
 
-    if IsValidJSON(Child) then
+    if IsValidJSON(Child, aValidLedgerCodes) then
     begin
       // New business
       ChartOfAccount := TChartOfAccountData(Self.Add);
