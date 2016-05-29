@@ -527,11 +527,14 @@ begin
       // Check for Practice Ledger
       if Pos('PL',Firm.EligibleLicense) > 0 then
       begin
-        if (Firm.ID = FSelectedID) then
-          Index := Row;
         if (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) then
+        begin
+          if (Firm.ID = FSelectedID) then
+            Index := Row;
+
           cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
-        Inc(Row);
+          Inc(Row);
+        end;
       end;
     end;
   end;
