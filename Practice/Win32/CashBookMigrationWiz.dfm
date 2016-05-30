@@ -240,6 +240,7 @@ object frmCashBookMigrationWiz: TfrmCashBookMigrationWiz
             Top = 128
             Width = 131
             Height = 16
+            Cursor = crHandPoint
             Caption = 'Forgot your password?'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlue
