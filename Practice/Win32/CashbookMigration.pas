@@ -2953,7 +2953,7 @@ begin
         if InputQuery('Debug', 'Enter the Connection error code to test for?', aErrorDescription ) then
         begin
           if TryStrToInt( aErrorDescription, aErrorCode ) then begin
-            aErrorDescription := 'I dunno Captain, this just doesn't look like an Integer';
+            aErrorDescription := 'I dunno Captain, this just doesn''t look like an Integer';
             raise EipsHTTPS.CreateCode( aErrorCode, aErrorDescription );
           end;
         end;
