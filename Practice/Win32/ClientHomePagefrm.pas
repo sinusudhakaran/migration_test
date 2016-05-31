@@ -1917,18 +1917,14 @@ begin
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
   try
+    if Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '' then
+      Exit;
+      
     BusinessLink := Format(PRACINI_CashbookTransactionViewURL,[MyClient.clExtra.cemyMYOBClientIDSelected]);
-
-    {Headers := 'Content-Type: ' + CASHBOOK_CONTENT_TYPE + CRLF +
-    'Accept: ' + CASHBOOK_ACCEPT + CRLF +
-    'Authorization: ' + CASHBOOK_AUTH_PREFIX + PracticeLedger.EncryptedToken + CRLF +
-    'x-myobapi-accesstoken: ' + PracticeLedger.EncryptedToken;}
 
     if Length(BusinessLink) = 0 then
       Exit;
-
     ShellExecute(0, 'open', PChar(BusinessLink), nil, nil, SW_NORMAL);
-    //WB.Navigate(BusinessLink, EmptyParam,EmptyParam,EmptyParam,Headers);
   finally
     Screen.Cursor := OldCursor;
   end;
