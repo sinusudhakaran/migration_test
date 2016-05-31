@@ -1103,10 +1103,12 @@ end;
 procedure TfrmClientHomePage.ProcessExternalCmd(Command: TExternalCmd);
 begin
   if not FClosing then
+  begin
     RefreshRequest := [HPR_Coding]; // Should Check the command...
 
-  if Command in [ecRefreshMYOBLink] then
-    RefreshRequest := RefreshRequest + [HPR_MYOBLink];
+    if Command in [ecRefreshMYOBLink] then
+      RefreshRequest := RefreshRequest + [HPR_MYOBLink];
+  end;
 end;
 
 procedure TfrmClientHomePage.RefreshClient;
@@ -1377,19 +1379,24 @@ begin
                               (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '') and
                               (Trim(UserINI_myMYOB_Access_Token) <> '') and
                               (Trim(UserINI_myMYOB_Random_Key) <> '');
+
+  if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
+    GrpAction.Items[14].Visible := False;
+  btnExtractToMYOB.Visible := False;
+
   if acGoToMYOBBusiness.Visible then
   begin
     if not ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now))) then
       acGoToMYOBBusiness.Visible := CheckFormyMYOBTokens;
+
+    acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
+
+    if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
+      GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
+
+    btnExtractToMYOB.Visible := acGoToMYOBBusiness.Visible;
+    btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
   end;
-
-  acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
-
-  if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
-    GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
-
-  btnExtractToMYOB.Visible := acGoToMYOBBusiness.Visible;
-  btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
 end;
 
 procedure TfrmClientHomePage.RefreshMems;
