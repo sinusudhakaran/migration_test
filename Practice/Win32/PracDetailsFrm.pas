@@ -769,8 +769,6 @@ begin
     if (not CheckFormyMYOBTokens) then
     begin
       SignInFrm.FormShowType := fsSignIn;
-      FFirmID := '';
-      FFirmName := '';
     end
     else
     begin

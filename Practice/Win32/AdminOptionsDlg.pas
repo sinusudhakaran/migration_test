@@ -968,6 +968,12 @@ begin
   lblFirmName.Visible := False;
   lblFirmName.Caption := '';
 
+  if Assigned(AdminSystem) then
+  begin
+    FFirmID := AdminSystem.fdFields.fdmyMYOBFirmID;
+    FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
+  end;
+
   if not (CheckFormyMYOBTokens) then
     btnConnectMYOB.Caption := 'MYOB Login'
   else
@@ -976,13 +982,11 @@ begin
 
     if Assigned(AdminSystem) then
     begin
-      FFirmID := AdminSystem.fdFields.fdmyMYOBFirmID;
-      FFirmName := AdminSystem.fdFields.fdmyMYOBFirmName;
-
       if Trim(AdminSystem.fdFields.fdmyMYOBFirmName) = '' then
         lblFirmName.Caption := 'No firm selected for MYOB Ledger Export'
       else
         lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ AdminSystem.fdFields.fdmyMYOBFirmName;
+        
       lblFirmName.Visible := True;
     end;
   end;
@@ -1119,8 +1123,8 @@ begin
     if (not CheckFormyMYOBTokens) then
     begin
       SignInFrm.FormShowType := fsSignIn;
-      FFirmID := '';
-      FFirmName := '';
+      //FFirmID := '';
+//      /FFirmName := '';
     end
     else
     begin
@@ -1168,7 +1172,7 @@ begin
     else
       lblFirmName.Caption := 'Firm selected for MYOB Ledger Export: '+ FFirmName;
     lblFirmName.Visible := True;
-    
+
     if not (CheckFormyMYOBTokens) then
       btnConnectMYOB.Caption := 'MYOB Login'
     else

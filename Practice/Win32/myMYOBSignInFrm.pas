@@ -51,11 +51,12 @@ type
     FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
     FValidateClientAgainstFirm : Boolean;
-    procedure LoadFirms;
+    function LoadFirms:Boolean;
     procedure LoadBusinesses;
     procedure SaveUser;
     procedure UpdateControls;
     procedure SaveMyMYOBUserDetails;
+    function ChangeFirm():Boolean;
   public
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
@@ -103,18 +104,6 @@ begin
       end;
     end;
   end;
-  (*else if (FormShowType = fsSelectClient) then
-  begin
-    if ((Trim(cmbSelectClient.Items.Text) <> '') and (cmbSelectClient.ItemIndex >= 0)) then
-    begin
-      Business := TBusinessData(cmbSelectClient.Items.Objects[cmbSelectClient.ItemIndex]);
-      if Assigned(Business) then
-      begin
-        FSelectedID := Business.ID;
-        FSelectedName := Business.Name;
-      end;
-    end;
-  end;*)
   ModalResult := mrOk;
 end;
 
@@ -125,10 +114,6 @@ var
   OldCursor: TCursor;
   InvalidPass: boolean;
   BusinessFrm : TSelectBusinessForm;
-  ClientFirms : TFirms;
-  Firm : TFirm;
-  ClientHasAccessToFirm : Boolean;
-  i : Integer;
 begin
   if Not FIsSignIn then
   begin
@@ -199,7 +184,6 @@ begin
           HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
           ModalResult := mrCancel;
         end;
-        //pnlLogin.Visible := False;
         if (FormShowType = fsFirmForceSignIn) then
         begin
           ModalResult := mrOk;
@@ -225,8 +209,11 @@ begin
         pnlFirmSelection.Visible := True;
         Self.Height := 250;
         btnOK.Visible := True;
-        //FForcedSignInSucceed := True;
-        LoadFirms;
+        if not LoadFirms then
+        begin
+          PostMessage(Self.Handle,wm_close,0,0);
+          Exit;
+        end;
       end;
 
       if ValidateClientAgainstFirm then
@@ -268,29 +255,22 @@ begin
         finally
           FreeAndNil(BusinessFrm);
         end;
-        //pnlLogin.Visible := False;
-        //pnlClientSelection.Visible := True;
-        //Self.Height := 300;
-        //btnOK.Visible := True;
       end
       else if (FormShowType = fsSignIn) then
         btnOKClick(Self);
     end;
-    {edtPassword.Enabled := edtEmail.Enabled;
-    lblEmail.Enabled := edtEmail.Enabled;
-    lblPassword.Enabled := edtEmail.Enabled;}
-
   finally
     Screen.Cursor := OldCursor;
     FProcessingLogin := False;
   end;
 end;
 
-procedure TmyMYOBSignInForm.cmbSelectFirmChange(Sender: TObject);
+function TmyMYOBSignInForm.ChangeFirm: Boolean;
 var
   Firm : TFirm;
   iLoop : Integer;
 begin
+  Result := True;
   if cmbSelectFirm.Items.Count <= 0 then
     Exit;
 
@@ -305,7 +285,7 @@ begin
   if FForcedSignInSucceed then
     Exit;
 
-  if (//(Trim(FSelectedID) <> '') and
+  if ((Trim(FSelectedID) <> '') and
       (Trim(FSelectedID) <> Firm.ID))
   then
   begin
@@ -314,6 +294,7 @@ begin
                  'You need a MYOB sign in before changing the Firm.'#13#13+
                  'Do you want to continue?',DLG_YES, 0) = DLG_YES) then
     begin
+      Result := False;
       for iLoop := 0 to cmbSelectFirm.Items.Count - 1 do
       begin
         Firm := TFirm(cmbSelectFirm.Items.Objects[iLoop]);
@@ -334,6 +315,11 @@ begin
 
     FormShow(Self);
   end;
+end;
+
+procedure TmyMYOBSignInForm.cmbSelectFirmChange(Sender: TObject);
+begin
+  ChangeFirm;
 end;
 
 procedure TmyMYOBSignInForm.cmbSelectFirmEnter(Sender: TObject);
@@ -412,17 +398,22 @@ begin
                     lsErrorDescription))) then
         begin
           HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
-          ModalResult := mrCancel;
+          PostMessage(Self.Handle,wm_close,0,0);
         end;
 
         if PracticeLedger.CountEligibleFirms <= 0 then begin
           HelpfulWarningMsg( errMYOBCredential, 0 );
           PracticeLedger.ResetMyMYOBUserDetails;
-          ModalResult := mrCancel;
+          PostMessage(Self.Handle,wm_close,0,0);
           Exit;
         end;
 
-        LoadFirms;
+        if not LoadFirms then
+        begin
+          PostMessage(Self.Handle,wm_close,0,0);
+          Exit;
+        end;
+
       finally
         Screen.Cursor := OldCursor;
       end;
@@ -446,7 +437,7 @@ begin
         begin
           Screen.Cursor := OldCursor;
           HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
-          ModalResult := mrCancel;
+          PostMessage(Self.Handle,wm_close,0,0);
         end;
         LoadBusinesses;
       finally
@@ -504,21 +495,22 @@ begin
   cmbSelectClient.SetFocus;
 end;
 
-procedure TmyMYOBSignInForm.LoadFirms;
+function TmyMYOBSignInForm.LoadFirms:Boolean;
 var
   i, Index, Row: Integer;
   Firm : TFirm;
-  sSelectedID: string;
 begin
+  Result := False;
   cmbSelectFirm.Items.Clear;
   Index := 0;
   if not Assigned(PracticeLedger.Firms) then
     Exit;
 
   if PracticeLedger.Firms.Count = 0 then
-    ModalResult := mrCancel;
+    Exit;
 
   Row := 0;
+  Result := True;
   for i := 0 to PracticeLedger.Firms.Count - 1 do
   begin
     Firm := PracticeLedger.Firms.GetItem(i);
@@ -530,7 +522,9 @@ begin
         if (whShortNames[ AdminSystem.fdFields.fdCountry ] = Firm.Region ) then
         begin
           if (Firm.ID = FSelectedID) then
+          begin
             Index := Row;
+          end;
 
           cmbSelectFirm.Items.AddObject(Firm.Name, TObject(Firm));
           Inc(Row);
@@ -540,7 +534,12 @@ begin
   end;
   cmbSelectFirm.ItemIndex := Index;
   FOldFirmID := FSelectedID;
-  cmbSelectFirm.SetFocus;
+
+  if not ChangeFirm then
+  begin
+    Result := False;
+    Exit;
+  end;
 end;
 
 procedure TmyMYOBSignInForm.SaveMyMYOBUserDetails;
