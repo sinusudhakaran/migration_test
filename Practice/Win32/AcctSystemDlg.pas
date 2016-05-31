@@ -177,7 +177,7 @@ const
 
 var
   DebugMe                 : boolean = false;
-  
+  DebugGenericCommsErrors : boolean = false;
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FormCreate(Sender: TObject);
 begin
