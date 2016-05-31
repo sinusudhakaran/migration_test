@@ -57,6 +57,7 @@ type
     procedure UpdateControls;
     procedure SaveMyMYOBUserDetails;
     function ChangeFirm():Boolean;
+    procedure ForceModelCancel;
   public
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
@@ -211,7 +212,7 @@ begin
         btnOK.Visible := True;
         if not LoadFirms then
         begin
-          PostMessage(Self.Handle,wm_close,0,0);
+          ForceModelCancel;
           Exit;
         end;
       end;
@@ -335,6 +336,11 @@ begin
   end;
 end;
 
+procedure TmyMYOBSignInForm.ForceModelCancel;
+begin
+  PostMessage(Self.Handle,wm_close,0,0);
+end;
+
 procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
 begin
   ShowClientSelection := False;
@@ -398,19 +404,19 @@ begin
                     lsErrorDescription))) then
         begin
           HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
-          PostMessage(Self.Handle,wm_close,0,0);
+          ForceModelCancel;
         end;
 
         if PracticeLedger.CountEligibleFirms <= 0 then begin
           HelpfulWarningMsg( errMYOBCredential, 0 );
           PracticeLedger.ResetMyMYOBUserDetails;
-          PostMessage(Self.Handle,wm_close,0,0);
+          ForceModelCancel;
           Exit;
         end;
 
         if not LoadFirms then
         begin
-          PostMessage(Self.Handle,wm_close,0,0);
+          ForceModelCancel;
           Exit;
         end;
 
@@ -437,7 +443,7 @@ begin
         begin
           Screen.Cursor := OldCursor;
           HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
-          PostMessage(Self.Handle,wm_close,0,0);
+          ForceModelCancel;
         end;
         LoadBusinesses;
       finally
@@ -510,7 +516,6 @@ begin
     Exit;
 
   Row := 0;
-  Result := True;
   for i := 0 to PracticeLedger.Firms.Count - 1 do
   begin
     Firm := PracticeLedger.Firms.GetItem(i);
@@ -535,11 +540,7 @@ begin
   cmbSelectFirm.ItemIndex := Index;
   FOldFirmID := FSelectedID;
 
-  if not ChangeFirm then
-  begin
-    Result := False;
-    Exit;
-  end;
+  Result := ChangeFirm;  
 end;
 
 procedure TmyMYOBSignInForm.SaveMyMYOBUserDetails;
