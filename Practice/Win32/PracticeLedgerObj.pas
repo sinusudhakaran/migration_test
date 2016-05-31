@@ -88,8 +88,8 @@ const
   GSTIncome = 'GSTI';
   GSTOutcome = 'GSTO';
   GSTUnCategorised = 'NONE';
+
 var
-  DebugMe : boolean = false;
   PracticeLedger: TPracticeLedger;
   NoOfEntries : LongInt;
   PracticeLedgerThread : TPracticeLedgerThread;
@@ -112,6 +112,9 @@ uses Globals, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls,
       INISettings, GSTUTIL32;
 
+var
+  DebugMe : boolean = false;
+  
 function CheckFormyMYOBTokens(aUseRefreshToken:Boolean=True):Boolean;
 var
   liErrorCode : integer;

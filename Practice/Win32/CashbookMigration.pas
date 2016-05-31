@@ -244,9 +244,11 @@ type
     function RefreshTheToken(var aErrorCode : integer; var aErrorDescription : string; var aInvalidPass : boolean):Boolean;
     function GetFirms( var aFirms: TFirms; var aErrorCode : integer;
                var aErrorDescription: string ): boolean;
+// Move to PracticeLedgerObj
     function GetBusinesses( aFirmID: string; LicenseType:TLicenceType;
                var aBusinesses: TBusinesses; var aErrorCode : integer;
                var aErrorDescription: string):Boolean;
+// Move to PracticeLedgerObj
     function GetChartOfAccounts( aBusinessID:string;var aChartOfAccounts: TChartOfAccountsData;
                var aErrorCode : integer; var aErrorDescription:string):Boolean;
 
@@ -330,7 +332,8 @@ const
 
 var
   fCashbookMigration: TCashbookMigration;
-  DebugMe : boolean = false;
+  DebugMe                 : boolean = false;
+  DebugGenericCommsErrors : boolean = false;
 
 { TURLThread }
 //------------------------------------------------------------------------------
@@ -2945,12 +2948,12 @@ begin
   js := nil;
   try
     try
-      if DebugMe then
+      if DebugGenericCommsErrors then
       begin
         if InputQuery('Debug', 'Enter the Connection error code to test for?', aErrorDescription ) then
         begin
           if TryStrToInt( aErrorDescription, aErrorCode ) then begin
-            aErrorDescription := 'I dunno Captain';
+            aErrorDescription := 'I dunno Captain, this just doesn't look like an Integer';
             raise EipsHTTPS.CreateCode( aErrorCode, aErrorDescription );
           end;
         end;
@@ -3327,6 +3330,7 @@ end;
 initialization
 begin
   DebugMe := DebugUnit(UnitName);
+  DebugGenericCommsErrors := DebugUnit('DebugGenericCommsErrors');
   fCashbookMigration := nil;
 end;
 

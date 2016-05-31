@@ -175,6 +175,9 @@ const
   UnitName = 'AcctSystemDlg';
   NO_DEFAULT_SYSTEM = 'No defaults were loaded because a default %s system has not been set up.';
 
+var
+  DebugMe                 : boolean = false;
+  
 //------------------------------------------------------------------------------
 procedure TdlgAcctSystem.FormCreate(Sender: TObject);
 begin
@@ -1301,7 +1304,7 @@ begin
     if ( ((not CheckFormyMYOBTokens) or
       ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
-      (not CurrUser.HasRestrictedAccess)))) ) or ( DebugMe ) then
+      (not CurrUser.HasRestrictedAccess)))) ) or ( DebugGenericCommsErrors ) then
     begin
       //ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;
@@ -1549,6 +1552,12 @@ end;
 procedure TdlgAcctSystem.btnSetBankpathClick(Sender: TObject);
 begin
   MYOBAO_Utils.SetBankPath;
+end;
+
+initialization
+begin
+  DebugMe := DebugUnit(UnitName);
+  DebugGenericCommsErrors := DebugUnit('DebugGenericCommsErrors');
 end;
 
 end.
