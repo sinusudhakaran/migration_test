@@ -2,7 +2,7 @@ unit PracticeLedgerObj;
 
 interface
 
-uses CashbookMigration, sysUtils, CashbookMigrationRestData, uLkJSON,
+uses CashbookMigration, sysUtils, CashbookMigrationRestData, PracticeLedgerRestData, uLkJSON,
     chList32, Classes, bkdefs, MoneyDef, TransactionUtils, bkchio, baObj32,
     bkutil32, bkConst, Templates;
 
@@ -66,6 +66,14 @@ type
     procedure AddTransactionToExpList;
     function GetBankAccount(aIndex: Integer):TBankAccountData;
 
+// Move to PracticeLedgerObj
+    function GetBusinesses( aFirmID: string; LicenseType:TLicenceType;
+               var aBusinesses: TBusinesses; var aErrorCode : integer;
+               var aErrorDescription: string):Boolean; override;
+// Move to PracticeLedgerObj
+    function GetChartOfAccounts( aBusinessID:string;var aChartOfAccounts: TChartOfAccountsData;
+               var aErrorCode : integer; var aErrorDescription:string):Boolean; override;
+
     function GetTaxCodeSplitUp(APLAcctType,APLTaxCode:string):Byte;
     function GetTaxCodeMerged(aGST_Class: byte): string;
     function LoadPLGSTTemplate(var aTemplateError : TTemplateError):Boolean;
@@ -110,7 +118,7 @@ uses Globals, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
       ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls,
-      INISettings, GSTUTIL32;
+      INISettings, GSTUTIL32, ipshttps;
 
 var
   DebugMe : boolean = false;
@@ -688,7 +696,7 @@ begin
     Exit;
   end;
 
-  Accounts := TPracticeLedgerChartOfAccountsData.Create(TChartOfAccountData);
+  Accounts := TPracticeLedgerChartOfAccountsData.Create(TPracticeLedgerChartOfAccountData, AdminSystem.fdFields.fdCountry);
   try
     RandomKey := UserINI_myMYOB_Random_Key;
     EncryptToken(UserINI_myMYOB_Access_Token);
@@ -744,6 +752,140 @@ begin
   Result := Nil;
   if ((FBankAcctsToExport.Count > 0)  and (aIndex < FBankAcctsToExport.Count)) then
     Result := TBankAccountData(FBankAcctsToExport.ItemAs(aIndex));
+end;
+
+function TPracticeLedger.GetBusinesses(aFirmID: string; LicenseType:TLicenceType;
+  var aBusinesses: TBusinesses; var aErrorCode : integer; var aErrorDescription: string): Boolean;
+var
+  sURL: string;
+  JsonObject: TlkJSONObject;
+  RespStr : string;
+begin
+  Result := False;
+  JsonObject := nil;
+  aErrorCode        := low( integer ); // Ensure that the Errorcode reports Not Applicable
+  aErrorDescription := '';
+  try
+    try
+      sURL := PRACINI_CashbookAPIBusinessesURL;
+      FDataRequestType := drtBusiness;
+
+      if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+      begin
+        HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+        Exit;
+      end;
+
+      if not DoHttpSecureJson(sURL, nil, RespStr, aErrorCode, aErrorDescription) then
+        Exit;
+
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aErrorDescription := FDataError;
+
+      if Trim(FDataError) <> '' then
+        Exit;
+
+      if Assigned(FDataResponse) then
+      begin
+        JsonObject := (FDataResponse as TlkJSONObject);
+        RespStr := TlkJSON.GenerateText(JsonObject);
+      end;
+
+      if DebugMe then
+        LogUtil.LogMsg(lmInfo, UnitName, RespStr);
+
+      if Assigned(aBusinesses) and Assigned(JsonObject) then
+        aBusinesses.Read(aFirmID,LicenseType,JsonObject);
+
+    except
+      on E: EipsHTTPS do  // ipsHttps Exception
+      begin
+        aErrorCode        := E.Code;
+        aErrorDescription := E.Message;
+      end;
+      on E: Exception do
+      begin
+        aErrorCode        := low( integer ); // Ensure that the Errorcode reports Not Applicable
+        aErrorDescription := Format('Exception running %s.GetBusinesses, Error Message : ' + E.Message,[GetAPIName]);
+        LogUtil.LogMsg(lmError, UnitName, aErrorDescription);
+        Exit;
+      end;
+    end;
+  finally
+    if Assigned(FDataResponse) then
+      FreeAndNil(FDataResponse);
+  end;
+
+  Result := True;
+end;
+
+function TPracticeLedger.GetChartOfAccounts(aBusinessID: string; var aChartOfAccounts: TChartOfAccountsData;
+           var aErrorCode : integer; var aErrorDescription: string): Boolean;
+var
+  sURL: string;
+  JsonObject: TlkJSONObject;
+  RespStr : string;
+begin
+  Result := False;
+  JsonObject := nil;
+  aErrorCode        := low( integer ); // Ensure that the Errorcode reports Not Applicable
+  aErrorDescription := '';
+  try
+    try
+      sURL := Format(PRACINI_CashbookAPICOAURL,[aBusinessID]);
+      FDataRequestType := drtCOA;
+      if not FileExists(GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN) then
+      begin
+        HelpfulWarningMsg('File ' + GLOBALS.PublicKeysDir + PUBLIC_KEY_FILE_CASHBOOK_TOKEN + ' is missing in the folder', 0);
+        Exit;
+      end;
+
+      if not DoHttpSecureJson(sURL, nil, RespStr, aErrorCode, aErrorDescription) then
+        Exit;
+
+      //Wait til data gets transferred completely
+      while (FDataTransferStarted) do
+        ;
+
+      aErrorDescription := FDataError;
+
+      if Trim(FDataError) <> '' then
+        Exit;
+
+      if Assigned(FDataResponse) then
+      begin
+        JsonObject := (FDataResponse as TlkJSONObject);
+        RespStr := TlkJSON.GenerateText(FDataResponse);
+      end;
+      if Assigned(aChartOfAccounts) and Assigned(JsonObject) then
+      begin
+        aChartOfAccounts.Read(aBusinessID,JsonObject);
+      end;
+
+    except
+      on E: EipsHTTPS do  // ipsHttps Exception
+      begin
+        aErrorDescription := format ( 'Exception running %s.GetCOA, Error Code : %d, ' +
+          'Error Message : ', [ GetAPIName, E.Code, E.Message ] );
+        LogUtil.LogMsg(lmError, UnitName, aErrorDescription);
+        Exit;
+      end;
+      on E: Exception do
+      begin
+        aErrorCode        := low( integer ); // Ensure that the Errorcode reports Not Applicable
+        aErrorDescription := 'Exception running ' + GetAPIName + '.GetCOA, Error Message : ' + E.Message;
+        LogUtil.LogMsg(lmError, UnitName, aErrorDescription);
+        Exit;
+      end;
+    end;
+  finally
+    if Assigned(FDataResponse) then
+      FreeAndNil(FDataResponse);
+  end;
+  Result := True;
 end;
 
 function TPracticeLedger.GetTaxCodeSplitUp(APLAcctType,

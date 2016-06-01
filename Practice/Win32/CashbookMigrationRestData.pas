@@ -27,8 +27,6 @@ const
   AT_EQUITY = 'equity';
   AT_UNCATEGORISED = 'uncategorised';
 
-  ValidPLCodes : Array [1..9] of String[3] = ('CAP', 'EXP', 'FRE', 'GNR', 'GST', 'INP', 'ITS', 'NTR','NA');
-
 type
   TLicenceType = (ltCashbook, ltPracticeLedger);
   //----------------------------------------------------------------------------
@@ -300,7 +298,7 @@ type
     FSystemAccountType: string;
   public
     procedure Write(const aJson: TlkJSONobject);
-    procedure Read(const aJson: TlkJSONobject);
+    procedure Read(const aJson: TlkJSONobject); virtual;
 
     property ID: Integer read FID write FID;
     property Code : string read fCode write fCode;
@@ -319,29 +317,20 @@ type
     property SystemAccountType: string read FSystemAccountType write FSystemAccountType;
   end;
 
-  TChartOfAccountsType = ( tcoaCashbook, tcoaPracticeLedger );
-  TValidLedgerCodes    = array of String[3];
   //----------------------------------------------------------------------------
   TChartOfAccountsData = class(TCollection)
   private
+  protected
+    function CreateAndAddAccountToChart: TChartOfAccountData; virtual;
   public
     function ItemAs(aIndex : integer) : TChartOfAccountData;
 
     function FindCode(aChartCode : string; var aChartOfAccountItem : TChartOfAccountData) : boolean;
 
-    procedure Write(const aJson: TlkJSONobject);
-    function IsValidJSON( aJSON: TlkJSONobject; aValidLedgerCodes : TValidLedgerCodes ):Boolean;
-    procedure Read(aBusinessID: string; const aJson: TlkJSONobject;
-                aChartOfAccountsType : tChartOfAccountsType = tcoaCashbook ); virtual;
+    procedure Write(const aJson: TlkJSONobject );
+    function IsValidJSON( aJSON: TlkJSONobject ):Boolean;
+    procedure Read(aBusinessID: string; const aJson: TlkJSONobject ); 
 
-  end;
-
-  //----------------------------------------------------------------------------
-  TPracticeLedgerChartOfAccountsData = class( TChartOfAccountsData )
-  private
-  protected
-  public
-    procedure Read(aBusinessID: string; const aJson: TlkJSONobject); reintroduce;
   end;
 
   //----------------------------------------------------------------------------
@@ -1560,11 +1549,10 @@ end;
 
 { TChartOfAccountsData }
 //------------------------------------------------------------------------------
-function TChartOfAccountsData.IsValidJSON( aJSON: TlkJSONobject; aValidLedgerCodes : TValidLedgerCodes ): Boolean;
+function TChartOfAccountsData.IsValidJSON( aJSON: TlkJSONobject ):Boolean;
 var
-  AcctType, GSTCode : string;
-  i : Integer;
-  GSTValid : Boolean;
+  AcctType : string;
+
 begin
   Result := False;
   if not Assigned(aJSON) then
@@ -1615,22 +1603,6 @@ begin
     Exit;
   end;
 
-  GSTCode := Trim(aJson.getString('tax_rate'));
-
-  GSTValid := False;
-  for i := 1 to High(ValidPLCodes) do
-  if GSTCode = ValidPLCodes[i] then
-  begin
-    GSTValid := True;
-    Break;
-  end;
-  if not GSTValid then
-  begin
-    if DebugMe then
-      LogUtil.LogMsg(lmDebug, UnitName, 'Invalid GST type in COA data received from API ' + AcctType);
-    Exit;
-  end;
-
   Result := True;
 end;
 
@@ -1639,20 +1611,20 @@ begin
   Result := TChartOfAccountData(Self.Items[aIndex]);
 end;
 
-procedure TChartOfAccountsData.Read(aBusinessID: string; const aJson: TlkJSONobject;
-                aChartOfAccountsType : tChartOfAccountsType = tcoaCashbook );
+function TChartOfAccountsData.CreateAndAddAccountToChart : TChartOfAccountData;
+begin
+  result := TChartOfAccountData(Self.Add);
+end;
+
+procedure TChartOfAccountsData.Read(aBusinessID: string; const aJson: TlkJSONobject );
 var
   i: integer;
   Child: TlkJSONobject;
   Field : TlkJSONlist;
   ChartOfAccount: TChartOfAccountData;
-  aValidLedgerCodes : TValidLedgerCodes;
+
 begin
   Clear;
-
-  // Ralph Added code to fix compile issue this needs to change
-  setLength(aValidLedgerCodes,1);
-  aValidLedgerCodes[0] := 'ABC';
 
   ASSERT(assigned(aJson));
   if Trim(aBusinessID) = '' then
@@ -1667,15 +1639,15 @@ begin
   begin
     Child := Field.Child[i] as TlkJSONobject;
 
-    if IsValidJSON(Child, aValidLedgerCodes) then
+    if IsValidJSON( Child ) then
     begin
       // New business
-      ChartOfAccount := TChartOfAccountData(Self.Add);
+      ChartOfAccount := CreateAndAddAccountToChart;
       // Read business
       ChartOfAccount.Read(Child);
     end
     else
-      LogUtil.LogMsg(lmInfo , UnitName, 'GET COA API retrieved some invalid data');
+      LogUtil.LogMsg(lmInfo , UnitName, 'GET COA API has retrieved invalid data');
   end;
 end;
 
@@ -2446,14 +2418,6 @@ begin
     Line := ItemAs(i);
     Line.Write(LineData, True);
   end;
-end;
-
-{ TPracticeLedgerChartOfAccountsData }
-
-procedure TPracticeLedgerChartOfAccountsData.Read(aBusinessID: string;
-  const aJson: TlkJSONobject);
-begin
-  inherited Read( aBusinessID, aJson, tcoaPracticeLedger );
 end;
 
 initialization

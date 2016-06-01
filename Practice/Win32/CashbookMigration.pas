@@ -247,10 +247,10 @@ type
 // Move to PracticeLedgerObj
     function GetBusinesses( aFirmID: string; LicenseType:TLicenceType;
                var aBusinesses: TBusinesses; var aErrorCode : integer;
-               var aErrorDescription: string):Boolean;
+               var aErrorDescription: string):Boolean; virtual; abstract;
 // Move to PracticeLedgerObj
     function GetChartOfAccounts( aBusinessID:string;var aChartOfAccounts: TChartOfAccountsData;
-               var aErrorCode : integer; var aErrorDescription:string):Boolean;
+               var aErrorCode : integer; var aErrorDescription:string):Boolean; virtual; abstract;
 
     function MigrateClients(aSelectClients : TStringList;
                             aSelectedData : TSelectedData;
@@ -766,7 +766,7 @@ begin
     ltPracticeLedger : Result := BRAND_MYOB_LEDGER_NAME;
   end;
 end;
-
+(*
 function TCashbookMigration.GetBusinesses(aFirmID: string; LicenseType:TLicenceType;
   var aBusinesses: TBusinesses; var aErrorCode : integer; var aErrorDescription: string): Boolean;
 var
@@ -834,7 +834,7 @@ begin
 
   Result := True;
 end;
-
+*)
 function TCashbookMigration.GetCashBookGSTType(aGSTMapCol : TGSTMapCol; aGSTClassId : byte): string;
 var
   GSTClassTypeIndicator : byte;
@@ -860,6 +860,7 @@ begin
   Result := CashBookGstClassCode;
 end;
 
+(*
 function TCashbookMigration.GetChartOfAccounts(aBusinessID: string; var aChartOfAccounts: TChartOfAccountsData;
            var aErrorCode : integer; var aErrorDescription: string): Boolean;
 var
@@ -925,6 +926,7 @@ begin
   end;
   Result := True;
 end;
+*)
 
 //------------------------------------------------------------------------------
 function TCashbookMigration.GetTimeFrameStart(aFinancialYearStart: TStDate): TStDate;
