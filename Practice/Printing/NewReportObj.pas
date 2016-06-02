@@ -1997,6 +1997,8 @@ begin
     ReportColumn.WrappedStr.Clear;
     ReportColumn.DoWrapStr := true;
     ColomnWidth := ReportColumn.CanvasWidth;
+    if ColomnWidth = 0 then
+      Exit;
 
     // Check if the Full text fits into the column
     TextWidth := GetTextWidth(FullText);
