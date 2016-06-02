@@ -1376,9 +1376,7 @@ begin
     Exit;
 
   acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
-                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '') and
-                              (Trim(UserINI_myMYOB_Access_Token) <> '') and
-                              (Trim(UserINI_myMYOB_Random_Key) <> '');
+                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
 
   if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
     GrpAction.Items[14].Visible := False;
@@ -1386,16 +1384,18 @@ begin
 
   if acGoToMYOBBusiness.Visible then
   begin
-    if not ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now))) then
-      acGoToMYOBBusiness.Visible := CheckFormyMYOBTokens;
-
     acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
 
     if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
       GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
 
-    btnExtractToMYOB.Visible := acGoToMYOBBusiness.Visible;
-    btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
+    btnExtractToMYOB.Visible := (Trim(UserINI_myMYOB_Access_Token) <> '') and (Trim(UserINI_myMYOB_Random_Key) <> '');
+    if (btnExtractToMYOB.Visible and
+        (not ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now))))) then
+    begin
+      btnExtractToMYOB.Visible := CheckFormyMYOBTokens;
+      btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
+    end;
   end;
 end;
 
@@ -1913,20 +1913,17 @@ var
   OldCursor: TCursor;
 begin
   //Go to business link
-  if (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) = '') or (not CheckFormyMYOBTokens) then
-  begin
-    HelpfulWarningMsg('Please make sure you have selected a MYOB business', 0);
-    acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
-                              (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
+  acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
+                            (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
+  if (not acGoToMYOBBusiness.Visible) then
     Exit;
-  end;
 
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourglass;
   try
     if Trim(MyClient.clExtra.cemyMYOBClientIDSelected) = '' then
       Exit;
-      
+
     BusinessLink := Format(PRACINI_CashbookTransactionViewURL,[MyClient.clExtra.cemyMYOBClientIDSelected]);
 
     if Length(BusinessLink) = 0 then
