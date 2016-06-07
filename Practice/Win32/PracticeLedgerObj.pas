@@ -208,7 +208,8 @@ var
   DissRec: pDissection_Rec;
   AllocationItem : TAllocationData;
   AccRec : pAccount_Rec;
-  S : ShortString;
+// P5-1068 Validation of Contra-Code  S : ShortString;
+  NarrationLength : integer;
 
   procedure FixAllocationValues(aAllocationsData: TAllocationsData);
   var
@@ -242,16 +243,26 @@ begin
     //if ( txFirst_Dissection = nil ) then
     begin
       //txDate_Transferred := CurrentDate;
-      S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
+// P5-1068 Validation of Contra-Code      S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
       if ( txGST_Class=0 ) then txGST_Amount := 0;
       // Check if Transaction is not finalized and not presented
       if (txDate_Transferred > 0) then
         Exit;
 
+      NarrationLength := length( txStatement_Details );
+      if NarrationLength > 255 then
+        NarrationLength := 255;
+
+
       TransactionItem := TTransactionData.Create(FBankAcctToExport.Transactions);
       TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
       TransactionItem.SequenceNo  := txSequence_No;
-      TransactionItem.Description := txStatement_Details;
+
+      TransactionItem.Description := copy( txStatement_Details, 1, NarrationLength );
+      if length( TransactionItem.Description ) = 0 then
+        TransactionItem.Description := '_';
+
+
       TransactionItem.Amount      := trunc(txAmount);
       TransactionItem.Reference   := TrimLeadZ(txReference);
 
@@ -278,17 +289,24 @@ begin
           begin
             AccRec := MyClient.clChart.FindCode(DissRec^.dsAccount );
             if not Assigned(AccRec) then
-              AllocationItem.AccountNumber := ''
+              AllocationItem.AccountNumber := ''                            // Need to ensure that it is in the system
             else
               AllocationItem.AccountNumber := DissRec^.dsAccount;
           end;
 
           AllocationItem.Description := DissRec^.dsGL_Narration;
+          if length( AllocationItem.Description ) = 0 then
+            AllocationItem.Description := '_';
+          
           AllocationItem.Amount := Trunc(DissRec^.dsAmount);
           AllocationItem.TaxAmount := Trunc(DissRec^.dsGST_Amount);
           AllocationItem.TaxRate := GetTaxCodeMerged(DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
           if Trim(AllocationItem.TaxRate) = '' then
-            AllocationItem.TaxRate := 'NA';
+            HelpfulErrorMsg( 'There are transactions without a GST code, ' +  // P5-1068 Validation of Contra-Code
+              'please make sure your Chart of Accounts is up to date.', 0 );  // P5-1068 Validation of Contra-Code
+// P5-1068 Validation of Contra-Code             AllocationItem.TaxRate := 'NA';
+
+
           AllocationItem.Quantity := DissRec^.dsQuantity;
           AllocationItem.PayeeNumber := DissRec^.dsPayee_Number;
           AllocationItem.JobCode := DissRec^.dsJob_Code;
@@ -513,47 +531,48 @@ begin
     begin
       InvalidContraCodes := TStringlist.Create;
       try
-      // Validate all bank transactions
-      for i := 0 to Pred( Selected.Count ) do
-      begin
-        BA := TBank_Account(Selected.Objects[i]);
-
-        with BA.baFields do
+        // Validate all bank transactions
+        for i := 0 to Pred( Selected.Count ) do
         begin
-          if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  ) = 0 then
-          begin
-            HelpfulInfoMsg( 'There are no new entries to extract, for ' + baBank_Account_Number +', in the selected date range.',0);
-            Exit;
-          end;
+          BA := TBank_Account(Selected.Objects[i]);
 
-          if (not AllowUncoded) then
+          with BA.baFields do
           begin
-            if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
+            if TravUtils.NumberAvailableForExport( BA, FromDate, ToDate  ) = 0 then
             begin
-              HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' + 
-                 'You need to update these codes before you can export data.',  0 );
+              HelpfulInfoMsg( 'There are no new entries to extract, for ' + baBank_Account_Number +', in the selected date range.',0);
               Exit;
             end;
-            if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
-            begin
-              HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
-                 'You must code all the entries before you can extract them.',  0 );
-              Exit;
-            end;
-          end;
 
-          if ((not AllowBlankContra) and (not AllowBlankContra)) then
-          begin
-            if BA.baFields.baContra_Account_Code = '' then
+            if (not AllowUncoded) then
             begin
-              if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
-                BA.baFields.baContra_Account_Code := ContraCode
-              else
+              if (not TravUtils.AllGSTCoded(BA, FromDate, ToDate)) then
               begin
-                HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
-                  baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
+                HelpfulInfoMsg('We found some transactions with invalid GST codes in account "'+ baBank_Account_Number+'". ' +
+                   'You need to update these codes before you can export data.',  0 );
                 Exit;
               end;
+              if (not TravUtils.AllCoded(BA, FromDate, ToDate)) then
+              begin
+                HelpfulInfoMsg( 'Account "'+ baBank_Account_Number+'" has uncoded entries. ' +
+                   'You must code all the entries before you can extract them.',  0 );
+                Exit;
+              end;
+            end;
+
+  // P5-1068 Validation of Contra-Code https://myobconfluence.atlassian.net/wiki/display/BP/Validation+Changes         if ((not AllowBlankContra) and (not AllowBlankContra)) then
+            if true then // // P5-1068 Validation of Contra-Code - force to true ((not AllowBlankContra) and (not AllowBlankContra)) then
+            begin
+              if BA.baFields.baContra_Account_Code = '' then
+              begin
+                if TfrmContraCodeEntry.EnterContraCode(BA.baFields.baBank_Account_Name, ContraCode) then
+                  BA.baFields.baContra_Account_Code := ContraCode
+                else
+                begin
+                  HelpfulInfoMsg( 'Before you can extract these entries, you must specify a contra account code for bank account "'+
+                    baBank_Account_Number + '". To do this, go to the Other Functions|Bank Accounts option and edit the account', 0 );
+                  Exit;
+                end;
               end;
             end;
           end;
@@ -561,12 +580,13 @@ begin
           ContraCodeInChart := MyClient.clChart.FindCode( BA.baFields.baContra_Account_Code );
           if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code OR
                  ( assigned( ContraCodeInChart ) and   // Contra Code is found AND the
-                   ContraCodeInChart.chInactive ) then // Contra code is not active
+                   ContraCodeInChart.chInactive ) or   // Contra code is not active
+                 ( length( BA.baFields.baContra_Account_Code ) > 255 ) then // Contra code is too long for MYOB Ledger (Max 255) 
           begin
             InvalidContraCodes.Add( BA.baFields.baBank_Account_Number );
-            end;
-
           end;
+
+        end;
 
         if InvalidContraCodes.Count > 0 then begin
           InvalidContras := InvalidContraCodes[ 0 ];
