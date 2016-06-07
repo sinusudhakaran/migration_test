@@ -122,7 +122,8 @@ type
     Shape5: TShape;
     Shape10: TShape;
     acGoToMYOBBusiness: TAction;
-    btnExtractToMYOB: TBitBtn;
+    pnlExtractData: TPanel;
+    shpBtnExtractData: TRzShapeButton;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -171,10 +172,7 @@ type
     procedure RefreshExchangeRates;
     procedure acExchangeGainLossExecute(Sender: TObject);
     procedure acGoToMYOBBusinessExecute(Sender: TObject);
-    procedure btnExtractToMYOBClick(Sender: TObject);
-    procedure btnExtractToMYOBMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure btnExtractToMYOBMouseLeave(Sender: TObject);
+    procedure shpBtnExtractDataClick(Sender: TObject);
 
   private
     FTheClient: TClientObj;
@@ -638,9 +636,7 @@ begin //RefreshCoding
 
          PositionMYOBExtractBtn;
 
-
          TreeList.Refresh;
-
 
          // Periods
          // Shouldrealy  move this..(Not showing..)
@@ -1022,9 +1018,6 @@ begin
   FClientHomePage := NIL;
 end;
 
-
-
-
 procedure TfrmClientHomePage.FormShow(Sender: TObject);
 begin
   try
@@ -1091,7 +1084,6 @@ begin
         GridColumnWidth := GridColumnWidth + UserINI_HP_Column_Widths[iLoop];
     end;
   end;
-  btnExtractToMYOB.Left := ClientTree.Left +  GridColumnWidth + 10;
 
   if FTheClient.HasForeignCurrencyAccounts then
     ClientTree.Header.Columns[ 4 ].Options := ClientTree.Header.Columns[ 4 ].Options + [ coVisible ]
@@ -1378,24 +1370,16 @@ begin
   acGoToMYOBBusiness.Visible := IsMYOBLedger(FTheClient.clFields.clCountry, FTheClient.clFields.clAccounting_System_Used) and
                               (Trim(FTheClient.clExtra.cemyMYOBClientIDSelected) <> '');
 
-  if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
-    GrpAction.Items[14].Visible := False;
-  btnExtractToMYOB.Visible := False;
+  GrpAction.Items[14].Visible := Assigned(GrpAction.Items[14]) and
+        (GrpAction.Items[14].Action = acGoToMYOBBusiness) and
+        acGoToMYOBBusiness.Visible;
+
+  pnlExtractData.Visible := acGoToMYOBBusiness.Visible;
 
   if acGoToMYOBBusiness.Visible then
   begin
     acGoToMYOBBusiness.Caption := 'Open ' + FTheClient.clExtra.cemyMYOBClientNameSelected + ' in MYOB Ledger';
-
-    if Assigned(GrpAction.Items[14]) and (GrpAction.Items[14].Action = acGoToMYOBBusiness) then
-      GrpAction.Items[14].Visible := acGoToMYOBBusiness.Visible;
-
-    btnExtractToMYOB.Visible := (Trim(UserINI_myMYOB_Access_Token) <> '') and (Trim(UserINI_myMYOB_Random_Key) <> '');
-    if (btnExtractToMYOB.Visible and
-        (not ((UserINI_myMYOB_Expires_TokenAt = 0) or (UserINI_myMYOB_Expires_TokenAt > (Now))))) then
-    begin
-      btnExtractToMYOB.Visible := CheckFormyMYOBTokens;
-      btnExtractToMYOB.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
-    end;
+    pnlExtractData.Hint := 'Extract data to ' + FTheClient.clExtra.cemyMYOBClientNameSelected;
   end;
 end;
 
@@ -1714,6 +1698,17 @@ procedure TfrmClientHomePage.sgLegendSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
 begin
    ClientTree.SetFocus;
+end;
+
+procedure TfrmClientHomePage.shpBtnExtractDataClick(Sender: TObject);
+var
+  FromDate, ToDate : Integer;
+begin
+  FromDate := 0;
+  ToDate := 0;
+  ExtractData(FromDate, ToDate);
+  //The transfered flag may now be set, reload any coding windows that are visible
+  SendCmdToAllCodingWindows( ecReloadTrans);
 end;
 
 procedure TfrmClientHomePage.Unlock;
@@ -2048,42 +2043,6 @@ begin
    finally
       Unlock;
    end;
-end;
-
-procedure TfrmClientHomePage.btnExtractToMYOBClick(Sender: TObject);
-var
-  FromDate, ToDate : Integer;
-begin
-  FromDate := 0;
-  ToDate := 0;
-  {DR := GetSelectDateRange;
-  if Assigned(DR) then
-  begin
-    FromDate := DR.FromDate;
-    ToDate := DR.ToDate;
-  end;
-
-  Retrieved := False;
-  RetrieveRange;
-
-  // Note: do this before we enter the coding screens
-  if Retrieved then
-    RefreshHomePage([HPR_ExchangeGainLoss_NewData]);}
-
-  ExtractData(FromDate, ToDate);
-  //The transfered flag may now be set, reload any coding windows that are visible
-  SendCmdToAllCodingWindows( ecReloadTrans);
-end;
-
-procedure TfrmClientHomePage.btnExtractToMYOBMouseLeave(Sender: TObject);
-begin
-  Screen.Cursor := crDefault;
-end;
-
-procedure TfrmClientHomePage.btnExtractToMYOBMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  Screen.Cursor := crHandPoint;
 end;
 
 procedure TfrmClientHomePage.btnMonthLeftClick(Sender: TObject);
