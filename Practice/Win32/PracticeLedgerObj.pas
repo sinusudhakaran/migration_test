@@ -375,6 +375,9 @@ begin
     JournalItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
     JournalItem.SequenceNo  := txSequence_No;
     JournalItem.Description := txGL_Narration;
+    if length( JournalItem.Description ) = 0 then
+      JournalItem.Description := '_';
+    
     JournalItem.Reference   := TrimLeadZ(txReference);
     JournalItem.JournalAccountName := Bank_Account.baFields.baBank_Account_Number;
     JournalItem.JournalContraCode := Bank_Account.baFields.baContra_Account_Code;
