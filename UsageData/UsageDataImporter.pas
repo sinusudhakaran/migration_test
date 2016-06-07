@@ -204,7 +204,7 @@ const
   USAGEDATA_FILE_PREFIX = 'UsageStats';
   PRACTICE_FILE_PREFIX = 'PracticeData';
   DATA_FOLDER = 'C:\My Documents\Usage Stats\Test';
-  WAIT_TIMEOUT = 10000;
+  WAIT_TIMEOUT = 2000;
   TIMER_VALUE  = 1000;
   IMPORT_LINES_TO_PROCESS = 20;
   NULLSTR = 'NULL';
@@ -345,7 +345,7 @@ const
      'DiskPcOsVersion',
      'SQLSessionId');
 
-  RPT_FEATURE_COLS = 131;
+  RPT_FEATURE_COLS = 132;
   ReportFeatureNames : Array[1..RPT_FEATURE_COLS] of String[50] =
     ('One_Page_Summary',
      'Annual_GST_information_report',
@@ -380,6 +380,7 @@ const
      'GST_Return',
      'GST_calculation_sheet_372',
      'GST_Report_Preview',
+     'General_Report_Preview',
      'Exception',
      'Cash_Flow_-_Date_to_Date',
      'Cash_Flow_-_Budget_Remaining',
@@ -778,7 +779,20 @@ procedure TUsageDataImporter.ProcessFiles;
 var
   FileIndex : integer;
   FileData : TFileData;
+
+  //----------------------------------------------------------------------------
+  function CheckAndLogStop() : boolean;
+  begin
+    if fCurrentServiceStatus = usStop then
+    begin
+      logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Service Stopped.', 0, false);
+      Result := true;
+    end
+    else
+      Result := false;
+  end;
 begin
+  fFilesToProcess.Sort;
   for FileIndex := 0 to fFilesToProcess.Count - 1 do
   begin
     FileData := TFileData(fFilesToProcess.Objects[FileIndex]);
@@ -786,7 +800,19 @@ begin
     case FileData.State of
       fsAdded, fsWaitingForAccess : begin
         if CanAccessFile(FileDirectory + '\' + FileData.Name + '.' + RAW_DATA_EXT) then
-          CleanFile(FileData)
+        begin
+          CleanFile(FileData);
+
+          if CheckAndLogStop() then Exit;
+
+          ImportFile(FileData);
+
+          if CheckAndLogStop() then Exit;
+
+          FinnishFile(FileData);
+
+          if CheckAndLogStop() then Exit;
+        end
         else
         begin
           if FileData.StartTickCount + WAIT_TIMEOUT > GetTickCount() then
@@ -794,12 +820,6 @@ begin
           else
             FileData.State := fsWaitingForAccess;
         end;
-      end;
-      fsCleaned : begin
-        ImportFile(FileData);
-      end;
-      fsImported : begin
-        FinnishFile(FileData);
       end;
     end;
   end;
@@ -1044,8 +1064,6 @@ begin
       ftPractice   : ImportPracticeFile(aFileData.Name);
     end;
 
-    aFileData.State := fsImported;
-
     logutil.LogMsg(lmInfo, UNIT_NAME, 'Finished Importing ' + aFileData.FileTypeName + ' File, ' +
                                        FileDirectory + '\' + aFileData.Name + '.' + CLEAN_EXT, 0, false);
   except
@@ -1213,24 +1231,23 @@ begin
                     end;
                   end;
                 end;
+
+                Forms.Application.ProcessMessages;
+                inc(BatchNumber);
+                if Frac(BatchNumber/10) = 0 then
+                begin
+                  logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Batch - ' +  inttostr(BatchNumber) +
+                                                    ' ,SQL Lines in Batch - ' + inttostr(fNumOfSQLStatements), 0, false);
+                  fNumOfSQLStatements := 0;
+                end;
+
+                if fCurrentServiceStatus = usStop then
+                  Exit;
+
                 if fSQLQuery.SQL.Count > 0 then
                 begin
                   try
-                    Forms.Application.ProcessMessages;
                     fSQLQuery.ExecSQL();
-                    inc(BatchNumber);
-                    if Frac(BatchNumber/10) = 0 then
-                    begin
-                      logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Batch - ' +  inttostr(BatchNumber) +
-                                                        ' ,SQL Lines in Batch - ' + inttostr(fNumOfSQLStatements), 0, false);
-                      fNumOfSQLStatements := 0;
-                    end;
-
-                    if fCurrentServiceStatus = usStop then
-                    begin
-                      logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Service Stopped.', 0, false);
-                      Exit;
-                    end;
 
                   except
                     on E : exception do
@@ -1253,8 +1270,9 @@ begin
             end;
           end;
 
-          logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Batch - ' +  inttostr(BatchNumber) +
-                                            ' ,SQL Lines - ' + inttostr(fNumOfSQLStatements), 0, false);
+          if fNumOfSQLStatements > 0 then
+            logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Batch - ' +  inttostr(BatchNumber) +
+                                              ' ,SQL Lines - ' + inttostr(fNumOfSQLStatements), 0, false);
         finally
           closefile(CleanFile);
         end;
@@ -2047,6 +2065,9 @@ end;
 //------------------------------------------------------------------------------
 function TUsageDataImporter.SetServiceState(aValue : TServiceState) : boolean;
 begin
+  if fCurrentServiceStatus := usStop then
+    Exit;
+
   fCurrentServiceStatus := aValue;
   Result := true;
 end;

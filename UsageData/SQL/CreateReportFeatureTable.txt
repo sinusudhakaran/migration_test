@@ -1,0 +1,33 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ReportFeature]') AND type in (N'U'))
+DROP TABLE [dbo].[ReportFeature]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ReportFeature](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PracticeInfoId] [int] NOT NULL,
+        [ReportId] [int] NOT NULL,
+	[ReportTypeId] [int] NOT NULL,
+	[ReportDestId] [int] NOT NULL,
+	[UploadDateTime] [datetime] NOT NULL,
+	[Count] [int] NOT NULL,
+ CONSTRAINT [PK_ReportFeature] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+

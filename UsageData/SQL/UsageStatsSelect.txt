@@ -1,0 +1,3 @@
+Select *
+  from BK_V_USAGEINFOXML_NONXML
+ where se_TimeStamp > ''

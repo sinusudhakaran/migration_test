@@ -1,0 +1,126 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[PracticeInfo]') AND type in (N'U'))
+DROP TABLE [dbo].[PracticeInfo]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[PracticeInfo](
+	[Id] [int] NOT NULL,
+	[COUNTRYID] [int] NULL,
+	[PRODUCTIONCLIENTTYPEID] [int] NULL,
+	[CODE] [varchar](50) NULL,
+	[NAME] [varchar](255) NULL,
+	[ADDRESS1LINE1] [varchar](255) NULL,
+	[ADDRESS1LINE2] [varchar](255) NULL,
+	[SUBURB1] [varchar](255) NULL,
+	[CITY1] [varchar](255) NULL,
+	[ADDRESS1] [varchar](255) NULL,
+	[STATE1ID] [int] NULL,
+	[POSTCODE1] [varchar](50) NULL,
+	[ADDRESS2LINE1] [varchar](255) NULL,
+	[ADDRESS2LINE2] [varchar](255) NULL,
+	[SUBURB2] [varchar](255) NULL,
+	[CITY2] [varchar](255) NULL,
+	[ADDRESS2] [varchar](255) NULL,
+	[STATE2ID] [int] NULL,
+	[POSTCODE2] [varchar](50) NULL,
+	[ADDRESS2ISDELIVERY] [bit] NULL,
+	[PHONE1] [varchar](255) NULL,
+	[PHONE2] [varchar](255) NULL,
+	[FAX1] [varchar](255) NULL,
+	[FAX2] [varchar](255) NULL,
+	[EMAIL1] [varchar](255) NULL,
+	[EMAIL2] [varchar](255) NULL,
+	[EMAIL3] [varchar](255) NULL,
+	[SUPERFUNDNOOFACCOUNTS] [int] NULL,
+	[ACTIVE] [bit] NULL,
+	[ESTNOOFCLIENTS] [int] NULL,
+	[BLBUILD] [varchar](255) NULL,
+	[ADDDATE] [datetime] NULL,
+	[PRODADDDATE] [datetime] NULL,
+	[EDITDATE] [datetime] NULL,
+	[LRN] [int] NULL,
+	[CONTRACTDATE] [datetime] NULL,
+	[FLOPPYDISKSIZEID] [int] NULL,
+	[FLOPPYDISKTYPEID] [int] NULL,
+	[LASTDISKNUMBER] [int] NULL,
+	[LASTDISKSENT] [int] NULL,
+	[FREQUENCYID] [int] NULL,
+	[INSTITUTIONID] [int] NULL,
+	[TAGGEDFORDELETION] [bit] NULL,
+	[CLIENTRATINGID] [int] NULL,
+	[QUESTIONAIREINFO] [varchar](255) NULL,
+	[MOBILE1] [varchar](255) NULL,
+	[MOBILE2] [varchar](255) NULL,
+	[CLIENTSTATUSID] [int] NULL,
+	[BLBCONNECT] [varchar](255) NULL,
+	[BLIPADDRESS] [varchar](255) NULL,
+	[BLSERVER] [varchar](255) NULL,
+	[REGIONID] [int] NULL,
+	[ALLOWMAIL] [bit] NULL,
+	[ALLOWPHONE] [bit] NULL,
+	[ALLOWFAX] [bit] NULL,
+	[ALLOWEMAIL] [bit] NULL,
+	[TERRITORYID] [int] NULL,
+	[CLIENTORIGINID] [int] NULL,
+	[CLIENTORIGINDETAILS] [varchar](255) NULL,
+	[SHORTNOTE] [varchar](255) NULL,
+	[ISOVERDUE] [bit] NULL,
+	[AllowEMailDownload] [bit] NULL,
+	[DownloadEMailAddress] [varchar](255) NULL,
+	[OVERDUETRIGGER_TOTAL] [int] NULL,
+	[OVERDUETRIGGER_30PLUS] [int] NULL,
+	[OVERDUETRIGGER_60PLUS] [int] NULL,
+	[OVERDUETRIGGER_90PLUS] [int] NULL,
+	[WEBSITEADDRESS] [varchar](255) NULL,
+	[WEBSITETYPEID] [int] NULL,
+	[SERVICEAGREEMENTPRESENT] [bit] NULL,
+	[LONGITUDE] [int] NULL,
+	[LATITUDE] [int] NULL,
+	[ADDRESS1COUNTRY] [varchar](255) NULL,
+	[ADDRESS2COUNTRY] [varchar](255) NULL,
+	[DELETEDATE] [datetime] NULL,
+	[NOOFPROVACCOUNTS] [int] NULL,
+	[NOOFPROVACCOUNTSBILLED] [int] NULL,
+	[ONLINE_SERVICEAGMTPRESENT] [bit] NULL,
+	[NO_GSTVAT] [bit] NULL,
+	[ATRISK] [bit] NULL,
+	[NOOFACCOUNTSOFFSITE_ONLINE] [int] NULL,
+	[UploadDateTime] [datetime] NULL,
+	[UploadState] [varchar](50) NULL,
+	[UploadUsing] [varchar](50) NULL,
+	[PracticeVersion] [varchar](50) NULL,
+	[DiskPcOsVersion] [varchar](50) NULL,
+	[SQLSessionId] [int] NULL,
+ CONSTRAINT [PK_PracticeInfo] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+CREATE NONCLUSTERED INDEX [K_PracticeInfoCode] ON [dbo].[PracticeInfo] 
+(
+	[CODE] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+GO
+
+
+

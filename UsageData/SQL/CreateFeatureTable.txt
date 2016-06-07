@@ -1,0 +1,3455 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acclipse_Export]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acclipse_Export]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acclipse_File]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acclipse_File]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acclipse_Import]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acclipse_Import]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Accrual_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Accrual_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Accrual_Journals(Home_Page)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Accrual_Journals(Home_Page)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Accomplish_CashManager]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Accomplish_CashManager]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_AccPac_for_Windows]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_AccPac_for_Windows]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_AccPac_Plus]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_AccPac_Plus]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Accomplish_CashManager]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Accomplish_CashManager]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_AccPac_for_Windows]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_AccPac_for_Windows]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_AccPac_Plus]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_AccPac_Plus]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_ASCII_CSV]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_ASCII_CSV]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Attach]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Attach]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Attach_5]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Attach_5]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Attach_Business_Partner]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Attach_Business_Partner]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Attache_Business_Partner]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Attache_Business_Partner]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_BCS_Accounting]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_BCS_Accounting]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Beyond_Private_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Beyond_Private_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_BGL_Simple_Fund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_BGL_Simple_Fund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_BGL_Simple_Fund_360]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_BGL_Simple_Fund_360]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_BGL_Simple_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_BGL_Simple_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Business_Products_-_OFX_V1]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Business_Products_-_OFX_V1]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Business_Products_-_OFX_V2]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Business_Products_-_OFX_V2]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Business_Products_-_QIF]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Business_Products_-_QIF]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_CaseWare]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_CaseWare]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_CA-Systems_GL]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_CA-Systems_GL]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Catsoft_Ledgercat_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Catsoft_Ledgercat_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Cee-Data]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Cee-Data]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Charter_QX]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Charter_QX]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Class_Super]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Class_Super]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Class_Super_(Super-IP)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Class_Super_(Super-IP)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Comparto]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Comparto]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Concept_Cash_Manager]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Concept_Cash_Manager]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Concept_Cash_Manager_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Concept_Cash_Manager_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Coopers]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Coopers]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Desktop_Super]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Desktop_Super]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_EasyBooks]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_EasyBooks]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_EasyBooks_NZ]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_EasyBooks_NZ]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Generic]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Generic]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Global_Accounting]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Global_Accounting]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_HandiSoft_HandiLedger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_HandiSoft_HandiLedger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_HAPAS_Client_Accounting]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_HAPAS_Client_Accounting]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_iFirm]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_iFirm]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Intech]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Intech]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_IRESS_Xplan]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_IRESS_Xplan]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Kellogg_FRS]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Kellogg_FRS]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Ledger_Assistant]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Ledger_Assistant]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Ledger_Elite]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Ledger_Elite]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Master_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Master_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MGL_General_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MGL_General_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_Accountants_Enterprise_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Accountants_Enterprise_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_Accountants_Enterprise_MAS]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Accountants_Enterprise_MAS]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_Accountants_Office]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Accountants_Office]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_AO_(manual_posting)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_AO_(manual_posting)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_General_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_General_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_General_Journals_(2012)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_General_Journals_(2012)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_SuperFund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_SuperFund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_MYOB_Transaction_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Transaction_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Other]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Other]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Praemium]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Praemium]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Professional_Accounting_7]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Professional_Accounting_7]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Professional_Accounting_XPA_8]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Professional_Accounting_XPA_8]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Proflex]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Proflex]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_QuickBooks]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_QuickBooks]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_QuickBooks_20072008]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_QuickBooks_20072008]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_QuickBooks_20082009]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_QuickBooks_20082009]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Sage_50_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Sage_50_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Sage_HandiSoft_SuperFund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Sage_HandiSoft_SuperFund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_SmartBooks_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_SmartBooks_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_SmartLink]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_SmartLink]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Solution_6_MAS_(CLSY2K)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_(CLSY2K)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Solution_6_MAS_3_(CLS)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_3_(CLS)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Solution_6_MAS_4.1_(CLS)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_4.1_(CLS)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Solution_6_MAS_4.1_(MAS)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_4.1_(MAS)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Supercorp_Superfund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Supercorp_Superfund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Supercorp_Supervisor_II]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Supercorp_Supervisor_II]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_superMate]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_superMate]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_Teletax_Ledger_Windows]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_Teletax_Ledger_Windows]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Acounts_The_Client_Accountant]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Acounts_The_Client_Accountant]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_ASCII_CSV]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_ASCII_CSV]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Attach]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Attach]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Attach_5]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Attach_5]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Attach_Business_Partner]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Attach_Business_Partner]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Attache_Business_Partner]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Attache_Business_Partner]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_BCS_Accounting]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_BCS_Accounting]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Beyond_Private_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Beyond_Private_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_BGL_Simple_Fund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_BGL_Simple_Fund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_BGL_Simple_Fund_360]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_BGL_Simple_Fund_360]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_BGL_Simple_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_BGL_Simple_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Business_Products_-_OFX_V1]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Business_Products_-_OFX_V1]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Business_Products_-_OFX_V2]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Business_Products_-_OFX_V2]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Business_Products_-_QIF]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Business_Products_-_QIF]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_CaseWare]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_CaseWare]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_CA-Systems_GL]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_CA-Systems_GL]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Catsoft_Ledgercat_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Catsoft_Ledgercat_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Cee-Data]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Cee-Data]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Charter_QX]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Charter_QX]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Class_Super]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Class_Super]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Class_Super_(Super-IP)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Class_Super_(Super-IP)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Comparto]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Comparto]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Concept_Cash_Manager]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Concept_Cash_Manager]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Concept_Cash_Manager_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Concept_Cash_Manager_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Desktop_Super]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Desktop_Super]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_EasyBooks]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_EasyBooks]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_EasyBooks_NZ]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_EasyBooks_NZ]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Generic]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Generic]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Global_Accounting]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Global_Accounting]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_HandiSoft_HandiLedger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_HandiSoft_HandiLedger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_HAPAS_Client_Accounting]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_HAPAS_Client_Accounting]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_iFirm]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_iFirm]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Intech]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Intech]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_IRESS_Xplan]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_IRESS_Xplan]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Kellogg_FRS]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Kellogg_FRS]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Ledger_Assistant]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Ledger_Assistant]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Ledger_Elite]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Ledger_Elite]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Master_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Master_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MGL_General_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MGL_General_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_Accountants_Enterprise_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_Accountants_Enterprise_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_Accountants_Enterprise_MAS]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_Accountants_Enterprise_MAS]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_Accountants_Office]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_Accountants_Office]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_AO_(manual_posting)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_AO_(manual_posting)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_General_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_General_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_General_Journals_(2012)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_General_Journals_(2012)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_Ledger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_Ledger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_SuperFund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_SuperFund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_MYOB_Transaction_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_MYOB_Transaction_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Other]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Other]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Praemium]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Praemium]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Professional_Accounting_7]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Professional_Accounting_7]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Professional_Accounting_XPA_8]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Professional_Accounting_XPA_8]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Proflex]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Proflex]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_QuickBooks]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_QuickBooks]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_QuickBooks_20072008]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_QuickBooks_20072008]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_QuickBooks_20082009]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_QuickBooks_20082009]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Sage_50_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Sage_50_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Sage_HandiSoft_SuperFund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Sage_HandiSoft_SuperFund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_SmartBooks_2000]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_SmartBooks_2000]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_SmartLink]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_SmartLink]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Solution_6_MAS_(CLSY2K)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_(CLSY2K)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Solution_6_MAS_3_(CLS)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_3_(CLS)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Solution_6_MAS_4.1_(CLS)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_4.1_(CLS)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Solution_6_MAS_4.1_(MAS)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_4.1_(MAS)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Supercorp_Superfund]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Supercorp_Superfund]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Supercorp_Supervisor_II]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Supercorp_Supervisor_II]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_superMate]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_superMate]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_Teletax_Ledger_Windows]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_Teletax_Ledger_Windows]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Acct_System_The_Client_Accountant]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Acct_System_The_Client_Accountant]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Balance_Sheet_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Balance_Sheet_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Balance_Sheet_Report_-_Set_up_Titles_and_Headings]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Balance_Sheet_Report_-_Set_up_Titles_and_Headings]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Budgets]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Budgets]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Business_Norm_Percentages_Report(View)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Business_Norm_Percentages_Report(View)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Flow_Report_-_12_Months_Actual]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Flow_Report_-_12_Months_Actual]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Flow_Report_-_Actual]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Actual]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Flow_Report_-_Actual_Budget_and_Variance]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Actual_Budget_and_Variance]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Flow_Report_-_Custom]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Custom]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Flow_Report_-_From_Date_to_Date]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Flow_Report_-_From_Date_to_Date]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Flow_Report_-_Set_up_Titles_and_Headings]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Set_up_Titles_and_Headings]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Cash_Journals(Home_Page)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Cash_Journals(Home_Page)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_CCH_Export]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_CCH_Export]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_CCH_Import]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_CCH_Import]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Check_In]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Check_In]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Check_In_DDE]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Check_In_DDE]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Check_Out]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Check_Out]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Check_Out_(Scheduled)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Check_Out_(Scheduled)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Check_Out_Send]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Check_Out_Send]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Client_Files_Received]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Client_Files_Received]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Client_Files_Sent]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Client_Files_Sent]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Client_Groups]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Client_Groups]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Client_Types]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Client_Types]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Coding_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Coding_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Combine_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Combine_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Combine_Manual_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Combine_Manual_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Custom_Documents]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Custom_Documents]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Detailed_Bank_Reconciliation]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Detailed_Bank_Reconciliation]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Detailed_System_Download_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Detailed_System_Download_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Divisions]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Divisions]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Do_Coding]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Do_Coding]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Do_Coding(Homepage)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Do_Coding(Homepage)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Download_Log_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Download_Log_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Edit_Superfund_Dissection]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Edit_Superfund_Dissection]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Edit_Superfund_Journal]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Edit_Superfund_Journal]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Edit_Superfund_Memorisation]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Edit_Superfund_Memorisation]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Edit_Superfund_Payee]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Edit_Superfund_Payee]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Edit_Superfund_Transaction]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Edit_Superfund_Transaction]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Email_Signature]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Email_Signature]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Exception_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Exception_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Export_Budgets]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Export_Budgets]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Export_Charges_APS]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Export_Charges_APS]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Export_Charges_HandiLedger]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Export_Charges_HandiLedger]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Export_Charges_MYOB]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Export_Charges_MYOB]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Export_Charges_MYOBAO]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Export_Charges_MYOBAO]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Export_Charges_Other]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Export_Charges_Other]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Find_and_Replace]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Find_and_Replace]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Graphs_-_Set_up_Titles_and_Headings]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Graphs_-_Set_up_Titles_and_Headings]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_GST_Audit_Trail]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_GST_Audit_Trail]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Historic_Transactions]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Historic_Transactions]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Historic_Transactions_CSV]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Historic_Transactions_CSV]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Historical_Entries]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Historical_Entries]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Historical_Transactions]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Historical_Transactions]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Historical_Transactions_CSV]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Historical_Transactions_CSV]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Import_Budgets]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Import_Budgets]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Jobs]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Jobs]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Ledger_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Ledger_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_List_System_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_List_System_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_List_System_Client_Report_Options]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_List_System_Client_Report_Options]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_List_System_Clients_by_Staff_Member]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_List_System_Clients_by_Staff_Member]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_List_Unpresented_Items]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_List_Unpresented_Items]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Load_BAS_Template]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Load_BAS_Template]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Maintain_Chart]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Maintain_Chart]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Manual_Entries]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Manual_Entries]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Manual_Transactions]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Manual_Transactions]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Memorised_Entries]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Memorised_Entries]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Actual_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Actual_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Admin_DualAccountingSystems]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Admin_DualAccountingSystems]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_(Archived)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_(Archived)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_(Foreign)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_(Foreign)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_(Prospects)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_(Prospects)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_with_Divisions]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_with_Divisions]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_with_Jobs]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_with_Jobs]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_with_Manual_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_with_Manual_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_with_Memorised_Entries]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_with_Memorised_Entries]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_with_Payees]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_with_Payees]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Files_with_Provisional_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Files_with_Provisional_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Groups]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Groups]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Client_Types]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Client_Types]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Manual_Bank_Accounts]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Manual_Bank_Accounts]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_User_Resets]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_User_Resets]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_No_of_Users]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_No_of_Users]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Non-Transferring_Journals_-_GST_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_GST_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Non-Transferring_Journals_-_GST_Journals(Home_Page)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_GST_Journals(Home_Page)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Non-Transferring_Journals_-_Stock_Adjustment_Journals]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Stock_Adjustment_Journals]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Non-Transferring_Journals_-_Stock_Adjustment_Journals(Home_Page)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Stock_Adjustment_Journals(Home_Page)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Non-Transferring_Journals_-_Year_End_Adjustments]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Year_End_Adjustments]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Non-Transferring_Journals_-_Year_End_Adjustments(Home_Page)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Year_End_Adjustments(Home_Page)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Notes_DDE_Import]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Notes_DDE_Import]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Notes_Email]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Notes_Email]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Notes_File]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Notes_File]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Notes_Import]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Notes_Import]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_One_Page_Summary_Graph]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_One_Page_Summary_Graph]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Opening_Balances]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Opening_Balances]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Opening_Balances(Home_Page)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Opening_Balances(Home_Page)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Payees]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Payees]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Practice_Logo]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Practice_Logo]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Profit_and_Loss_Report_-_12_Months_Actual]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_12_Months_Actual]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Profit_and_Loss_Report_-_Actual]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Actual]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Profit_and_Loss_Report_-_Actual_and_Budget]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Actual_and_Budget]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Profit_and_Loss_Report_-_Custom]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Custom]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Profit_and_Loss_Report_-_Set_up_Titles_and_Headings]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Set_up_Titles_and_Headings]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Provisional_Transactions]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Provisional_Transactions]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Provisional_Transactions_CSV]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Provisional_Transactions_CSV]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Purge_Entries]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Purge_Entries]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Report_and_Graph_Options]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Report_and_Graph_Options]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(Favourite)(File)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(Favourite)(File)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(Favourite)(View)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(Favourite)(View)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(File)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(File)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(Generate)(Email)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(Generate)(Email)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(Generate)(Print)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(Generate)(Print)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(Generate)(View)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(Generate)(View)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(Print)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(Print)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales(View)]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales(View)]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sales_Graph]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sales_Graph]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Save_BAS_Template]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Save_BAS_Template]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_BankLink_Online]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_BankLink_Online]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_Checked_Out]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_Checked_Out]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_Emailed]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_Emailed]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_Faxed]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_Faxed]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_Notes]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_Notes]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_Printed]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_Printed]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_-_Web]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_-_Web]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Annually]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Annually]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_BankLink_Books]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_BankLink_Books]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_BankLink_Notes]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_BankLink_Notes]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_BankLink_Online]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_BankLink_Online]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Business_Products]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Business_Products]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Check_Out]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Check_Out]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_CSV_Export]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_CSV_Export]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Dont_Send]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Dont_Send]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Email]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Email]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Four_Months]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Four_Months]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Month]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Month]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Month_and_Quarter]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Month_and_Quarter]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Month_and_Two_Months]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Month_and_Two_Months]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Six_Months]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Six_Months]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Three_Months]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Three_Months]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Two_Months]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Two_Months]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Every_Two_Months_then_Month]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Every_Two_Months_then_Month]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Fax]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Fax]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_None]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_None]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Printer]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Printer]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sched_Rep_Web]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sched_Rep_Web]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Scheduled_Reports]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Scheduled_Reports]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Send_Books]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Send_Books]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Send_ClientFile]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Send_ClientFile]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Send_Query]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Send_Query]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Spending_by_Payee_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Spending_by_Payee_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Stataments_and_Download_Documents]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Stataments_and_Download_Documents]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Sub_Groups]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Sub_Groups]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Summarised_Bank_Reconciliation]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Summarised_Bank_Reconciliation]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_System_Client_Status_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_System_Client_Status_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Transfer_Manual_Account_Entries]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Transfer_Manual_Account_Entries]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Trial_Balance_Report]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Trial_Balance_Report]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_WebNote_Export]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_WebNote_Export]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_WebNotes_Import]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_WebNotes_Import]
+END
+
+GO
+
+IF  EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[DF_Feature_Year_End_Balances]') AND type = 'D')
+BEGIN
+ALTER TABLE [dbo].[Feature] DROP CONSTRAINT [DF_Feature_Year_End_Balances]
+END
+
+GO
+
+USE [P5UsageStats]
+GO
+
+/****** Object:  Table [dbo].[Feature]    Script Date: 06/07/2016 08:58:56 ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Feature]') AND type in (N'U'))
+DROP TABLE [dbo].[Feature]
+GO
+
+USE [P5UsageStats]
+GO
+
+/****** Object:  Table [dbo].[Feature]    Script Date: 06/07/2016 08:58:58 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Feature](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PracticeInfoId] [int] NOT NULL,
+	[UploadDateTime] [datetime] NOT NULL,
+	[Acclipse_Export] [int] NOT NULL,
+	[Acclipse_File] [int] NOT NULL,
+	[Acclipse_Import] [int] NOT NULL,
+	[Accrual_Journals] [int] NOT NULL,
+	[Accrual_Journals(Home_Page)] [int] NOT NULL,
+	[Acct_System] [int] NOT NULL,
+	[Acct_System_Accomplish_CashManager] [int] NOT NULL,
+	[Acct_System_AccPac_for_Windows] [int] NOT NULL,
+	[Acct_System_AccPac_Plus] [int] NOT NULL,
+	[Acct_System_Acounts] [int] NOT NULL,
+	[Acct_System_Acounts_Accomplish_CashManager] [int] NOT NULL,
+	[Acct_System_Acounts_AccPac_for_Windows] [int] NOT NULL,
+	[Acct_System_Acounts_AccPac_Plus] [int] NOT NULL,
+	[Acct_System_Acounts_ASCII_CSV] [int] NOT NULL,
+	[Acct_System_Acounts_Attach] [int] NOT NULL,
+	[Acct_System_Acounts_Attach_5] [int] NOT NULL,
+	[Acct_System_Acounts_Attach_Business_Partner] [int] NOT NULL,
+	[Acct_System_Acounts_Attache_Business_Partner] [int] NOT NULL,
+	[Acct_System_Acounts_BCS_Accounting] [int] NOT NULL,
+	[Acct_System_Acounts_Beyond_Private_Ledger] [int] NOT NULL,
+	[Acct_System_Acounts_BGL_Simple_Fund] [int] NOT NULL,
+	[Acct_System_Acounts_BGL_Simple_Fund_360] [int] NOT NULL,
+	[Acct_System_Acounts_BGL_Simple_Ledger] [int] NOT NULL,
+	[Acct_System_Acounts_Business_Products_-_OFX_V1] [int] NOT NULL,
+	[Acct_System_Acounts_Business_Products_-_OFX_V2] [int] NOT NULL,
+	[Acct_System_Acounts_Business_Products_-_QIF] [int] NOT NULL,
+	[Acct_System_Acounts_CaseWare] [int] NOT NULL,
+	[Acct_System_Acounts_CA-Systems_GL] [int] NOT NULL,
+	[Acct_System_Acounts_Catsoft_Ledgercat_2000] [int] NOT NULL,
+	[Acct_System_Acounts_Cee-Data] [int] NOT NULL,
+	[Acct_System_Acounts_Charter_QX] [int] NOT NULL,
+	[Acct_System_Acounts_Class_Super] [int] NOT NULL,
+	[Acct_System_Acounts_Class_Super_(Super-IP)] [int] NOT NULL,
+	[Acct_System_Acounts_Comparto] [int] NOT NULL,
+	[Acct_System_Acounts_Concept_Cash_Manager] [int] NOT NULL,
+	[Acct_System_Acounts_Concept_Cash_Manager_2000] [int] NOT NULL,
+	[Acct_System_Acounts_Coopers] [int] NOT NULL,
+	[Acct_System_Acounts_Desktop_Super] [int] NOT NULL,
+	[Acct_System_Acounts_EasyBooks] [int] NOT NULL,
+	[Acct_System_Acounts_EasyBooks_NZ] [int] NOT NULL,
+	[Acct_System_Acounts_Generic] [int] NOT NULL,
+	[Acct_System_Acounts_Global_Accounting] [int] NOT NULL,
+	[Acct_System_Acounts_HandiSoft_HandiLedger] [int] NOT NULL,
+	[Acct_System_Acounts_HAPAS_Client_Accounting] [int] NOT NULL,
+	[Acct_System_Acounts_iFirm] [int] NOT NULL,
+	[Acct_System_Acounts_Intech] [int] NOT NULL,
+	[Acct_System_Acounts_IRESS_Xplan] [int] NOT NULL,
+	[Acct_System_Acounts_Kellogg_FRS] [int] NOT NULL,
+	[Acct_System_Acounts_Ledger_Assistant] [int] NOT NULL,
+	[Acct_System_Acounts_Ledger_Elite] [int] NOT NULL,
+	[Acct_System_Acounts_Master_2000] [int] NOT NULL,
+	[Acct_System_Acounts_MGL_General_Ledger] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_Accountants_Enterprise_Accounts] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_Accountants_Enterprise_MAS] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_Accountants_Office] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_AO_(manual_posting)] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_General_Journals] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_General_Journals_(2012)] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_Ledger] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_SuperFund] [int] NOT NULL,
+	[Acct_System_Acounts_MYOB_Transaction_Journals] [int] NOT NULL,
+	[Acct_System_Acounts_Other] [int] NOT NULL,
+	[Acct_System_Acounts_Praemium] [int] NOT NULL,
+	[Acct_System_Acounts_Professional_Accounting_7] [int] NOT NULL,
+	[Acct_System_Acounts_Professional_Accounting_XPA_8] [int] NOT NULL,
+	[Acct_System_Acounts_Proflex] [int] NOT NULL,
+	[Acct_System_Acounts_QuickBooks] [int] NOT NULL,
+	[Acct_System_Acounts_QuickBooks_20072008] [int] NOT NULL,
+	[Acct_System_Acounts_QuickBooks_20082009] [int] NOT NULL,
+	[Acct_System_Acounts_Sage_50_Accounts] [int] NOT NULL,
+	[Acct_System_Acounts_Sage_HandiSoft_SuperFund] [int] NOT NULL,
+	[Acct_System_Acounts_SmartBooks_2000] [int] NOT NULL,
+	[Acct_System_Acounts_SmartLink] [int] NOT NULL,
+	[Acct_System_Acounts_Solution_6_MAS_(CLSY2K)] [int] NOT NULL,
+	[Acct_System_Acounts_Solution_6_MAS_3_(CLS)] [int] NOT NULL,
+	[Acct_System_Acounts_Solution_6_MAS_4.1_(CLS)] [int] NOT NULL,
+	[Acct_System_Acounts_Solution_6_MAS_4.1_(MAS)] [int] NOT NULL,
+	[Acct_System_Acounts_Supercorp_Superfund] [int] NOT NULL,
+	[Acct_System_Acounts_Supercorp_Supervisor_II] [int] NOT NULL,
+	[Acct_System_Acounts_superMate] [int] NOT NULL,
+	[Acct_System_Acounts_Teletax_Ledger_Windows] [int] NOT NULL,
+	[Acct_System_Acounts_The_Client_Accountant] [int] NOT NULL,
+	[Acct_System_ASCII_CSV] [int] NOT NULL,
+	[Acct_System_Attach] [int] NOT NULL,
+	[Acct_System_Attach_5] [int] NOT NULL,
+	[Acct_System_Attach_Business_Partner] [int] NOT NULL,
+	[Acct_System_Attache_Business_Partner] [int] NOT NULL,
+	[Acct_System_BCS_Accounting] [int] NOT NULL,
+	[Acct_System_Beyond_Private_Ledger] [int] NOT NULL,
+	[Acct_System_BGL_Simple_Fund] [int] NOT NULL,
+	[Acct_System_BGL_Simple_Fund_360] [int] NOT NULL,
+	[Acct_System_BGL_Simple_Ledger] [int] NOT NULL,
+	[Acct_System_Business_Products_-_OFX_V1] [int] NOT NULL,
+	[Acct_System_Business_Products_-_OFX_V2] [int] NOT NULL,
+	[Acct_System_Business_Products_-_QIF] [int] NOT NULL,
+	[Acct_System_CaseWare] [int] NOT NULL,
+	[Acct_System_CA-Systems_GL] [int] NOT NULL,
+	[Acct_System_Catsoft_Ledgercat_2000] [int] NOT NULL,
+	[Acct_System_Cee-Data] [int] NOT NULL,
+	[Acct_System_Charter_QX] [int] NOT NULL,
+	[Acct_System_Class_Super] [int] NOT NULL,
+	[Acct_System_Class_Super_(Super-IP)] [int] NOT NULL,
+	[Acct_System_Comparto] [int] NOT NULL,
+	[Acct_System_Concept_Cash_Manager] [int] NOT NULL,
+	[Acct_System_Concept_Cash_Manager_2000] [int] NOT NULL,
+	[Acct_System_Desktop_Super] [int] NOT NULL,
+	[Acct_System_EasyBooks] [int] NOT NULL,
+	[Acct_System_EasyBooks_NZ] [int] NOT NULL,
+	[Acct_System_Generic] [int] NOT NULL,
+	[Acct_System_Global_Accounting] [int] NOT NULL,
+	[Acct_System_HandiSoft_HandiLedger] [int] NOT NULL,
+	[Acct_System_HAPAS_Client_Accounting] [int] NOT NULL,
+	[Acct_System_iFirm] [int] NOT NULL,
+	[Acct_System_Intech] [int] NOT NULL,
+	[Acct_System_IRESS_Xplan] [int] NOT NULL,
+	[Acct_System_Kellogg_FRS] [int] NOT NULL,
+	[Acct_System_Ledger_Assistant] [int] NOT NULL,
+	[Acct_System_Ledger_Elite] [int] NOT NULL,
+	[Acct_System_Master_2000] [int] NOT NULL,
+	[Acct_System_MGL_General_Ledger] [int] NOT NULL,
+	[Acct_System_MYOB] [int] NOT NULL,
+	[Acct_System_MYOB_Accountants_Enterprise_Accounts] [int] NOT NULL,
+	[Acct_System_MYOB_Accountants_Enterprise_MAS] [int] NOT NULL,
+	[Acct_System_MYOB_Accountants_Office] [int] NOT NULL,
+	[Acct_System_MYOB_AO_(manual_posting)] [int] NOT NULL,
+	[Acct_System_MYOB_General_Journals] [int] NOT NULL,
+	[Acct_System_MYOB_General_Journals_(2012)] [int] NOT NULL,
+	[Acct_System_MYOB_Ledger] [int] NOT NULL,
+	[Acct_System_MYOB_SuperFund] [int] NOT NULL,
+	[Acct_System_MYOB_Transaction_Journals] [int] NOT NULL,
+	[Acct_System_Other] [int] NOT NULL,
+	[Acct_System_Praemium] [int] NOT NULL,
+	[Acct_System_Professional_Accounting_7] [int] NOT NULL,
+	[Acct_System_Professional_Accounting_XPA_8] [int] NOT NULL,
+	[Acct_System_Proflex] [int] NOT NULL,
+	[Acct_System_QuickBooks] [int] NOT NULL,
+	[Acct_System_QuickBooks_20072008] [int] NOT NULL,
+	[Acct_System_QuickBooks_20082009] [int] NOT NULL,
+	[Acct_System_Sage_50_Accounts] [int] NOT NULL,
+	[Acct_System_Sage_HandiSoft_SuperFund] [int] NOT NULL,
+	[Acct_System_SmartBooks_2000] [int] NOT NULL,
+	[Acct_System_SmartLink] [int] NOT NULL,
+	[Acct_System_Solution_6_MAS_(CLSY2K)] [int] NOT NULL,
+	[Acct_System_Solution_6_MAS_3_(CLS)] [int] NOT NULL,
+	[Acct_System_Solution_6_MAS_4.1_(CLS)] [int] NOT NULL,
+	[Acct_System_Solution_6_MAS_4.1_(MAS)] [int] NOT NULL,
+	[Acct_System_Supercorp_Superfund] [int] NOT NULL,
+	[Acct_System_Supercorp_Supervisor_II] [int] NOT NULL,
+	[Acct_System_superMate] [int] NOT NULL,
+	[Acct_System_Teletax_Ledger_Windows] [int] NOT NULL,
+	[Acct_System_The_Client_Accountant] [int] NOT NULL,
+	[Balance_Sheet_Report] [int] NOT NULL,
+	[Balance_Sheet_Report_-_Set_up_Titles_and_Headings] [int] NOT NULL,
+	[Budgets] [int] NOT NULL,
+	[Business_Norm_Percentages_Report(View)] [int] NOT NULL,
+	[Cash_Flow_Report_-_12_Months_Actual] [int] NOT NULL,
+	[Cash_Flow_Report_-_Actual] [int] NOT NULL,
+	[Cash_Flow_Report_-_Actual_Budget_and_Variance] [int] NOT NULL,
+	[Cash_Flow_Report_-_Custom] [int] NOT NULL,
+	[Cash_Flow_Report_-_From_Date_to_Date] [int] NOT NULL,
+	[Cash_Flow_Report_-_Set_up_Titles_and_Headings] [int] NOT NULL,
+	[Cash_Journals] [int] NOT NULL,
+	[Cash_Journals(Home_Page)] [int] NOT NULL,
+	[CCH_Export] [int] NOT NULL,
+	[CCH_Import] [int] NOT NULL,
+	[Check_In] [int] NOT NULL,
+	[Check_In_DDE] [int] NOT NULL,
+	[Check_Out] [int] NOT NULL,
+	[Check_Out_(Scheduled)] [int] NOT NULL,
+	[Check_Out_Send] [int] NOT NULL,
+	[Client_Files_Received] [int] NOT NULL,
+	[Client_Files_Sent] [int] NOT NULL,
+	[Client_Groups] [int] NOT NULL,
+	[Client_Types] [int] NOT NULL,
+	[Coding_Report] [int] NOT NULL,
+	[Combine_Bank_Accounts] [int] NOT NULL,
+	[Combine_Manual_Bank_Accounts] [int] NOT NULL,
+	[Custom_Documents] [int] NOT NULL,
+	[Detailed_Bank_Reconciliation] [int] NOT NULL,
+	[Detailed_System_Download_Report] [int] NOT NULL,
+	[Divisions] [int] NOT NULL,
+	[Do_Coding] [int] NOT NULL,
+	[Do_Coding(Homepage)] [int] NOT NULL,
+	[Download_Log_Report] [int] NOT NULL,
+	[Edit_Superfund_Dissection] [int] NOT NULL,
+	[Edit_Superfund_Journal] [int] NOT NULL,
+	[Edit_Superfund_Memorisation] [int] NOT NULL,
+	[Edit_Superfund_Payee] [int] NOT NULL,
+	[Edit_Superfund_Transaction] [int] NOT NULL,
+	[Email_Signature] [int] NOT NULL,
+	[Exception_Report] [int] NOT NULL,
+	[Export_Budgets] [int] NOT NULL,
+	[Export_Charges_APS] [int] NOT NULL,
+	[Export_Charges_HandiLedger] [int] NOT NULL,
+	[Export_Charges_MYOB] [int] NOT NULL,
+	[Export_Charges_MYOBAO] [int] NOT NULL,
+	[Export_Charges_Other] [int] NOT NULL,
+	[Find_and_Replace] [int] NOT NULL,
+	[Graphs_-_Set_up_Titles_and_Headings] [int] NOT NULL,
+	[GST_Audit_Trail] [int] NOT NULL,
+	[Historic_Transactions] [int] NOT NULL,
+	[Historic_Transactions_CSV] [int] NOT NULL,
+	[Historical_Entries] [int] NOT NULL,
+	[Historical_Transactions] [int] NOT NULL,
+	[Historical_Transactions_CSV] [int] NOT NULL,
+	[Import_Budgets] [int] NOT NULL,
+	[Jobs] [int] NOT NULL,
+	[Ledger_Report] [int] NOT NULL,
+	[List_System_Bank_Accounts] [int] NOT NULL,
+	[List_System_Client_Report_Options] [int] NOT NULL,
+	[List_System_Clients_by_Staff_Member] [int] NOT NULL,
+	[List_Unpresented_Items] [int] NOT NULL,
+	[Load_BAS_Template] [int] NOT NULL,
+	[Maintain_Chart] [int] NOT NULL,
+	[Manual_Entries] [int] NOT NULL,
+	[Manual_Transactions] [int] NOT NULL,
+	[Memorised_Entries] [int] NOT NULL,
+	[No_of_Actual_Bank_Accounts] [int] NOT NULL,
+	[No_of_Admin_DualAccountingSystems] [int] NOT NULL,
+	[No_of_Client_Files] [int] NOT NULL,
+	[No_of_Client_Files_(Archived)] [int] NOT NULL,
+	[No_of_Client_Files_(Foreign)] [int] NOT NULL,
+	[No_of_Client_Files_(Prospects)] [int] NOT NULL,
+	[No_of_Client_Files_with_Divisions] [int] NOT NULL,
+	[No_of_Client_Files_with_Jobs] [int] NOT NULL,
+	[No_of_Client_Files_with_Manual_Bank_Accounts] [int] NOT NULL,
+	[No_of_Client_Files_with_Memorised_Entries] [int] NOT NULL,
+	[No_of_Client_Files_with_Payees] [int] NOT NULL,
+	[No_of_Client_Files_with_Provisional_Bank_Accounts] [int] NOT NULL,
+	[No_of_Client_Groups] [int] NOT NULL,
+	[No_of_Client_Types] [int] NOT NULL,
+	[No_of_Manual_Bank_Accounts] [int] NOT NULL,
+	[No_of_User_Resets] [int] NOT NULL,
+	[No_of_Users] [int] NOT NULL,
+	[Non-Transferring_Journals_-_GST_Journals] [int] NOT NULL,
+	[Non-Transferring_Journals_-_GST_Journals(Home_Page)] [int] NOT NULL,
+	[Non-Transferring_Journals_-_Stock_Adjustment_Journals] [int] NOT NULL,
+	[Non-Transferring_Journals_-_Stock_Adjustment_Journals(Home_Page)] [int] NOT NULL,
+	[Non-Transferring_Journals_-_Year_End_Adjustments] [int] NOT NULL,
+	[Non-Transferring_Journals_-_Year_End_Adjustments(Home_Page)] [int] NOT NULL,
+	[Notes_DDE_Import] [int] NOT NULL,
+	[Notes_Email] [int] NOT NULL,
+	[Notes_File] [int] NOT NULL,
+	[Notes_Import] [int] NOT NULL,
+	[One_Page_Summary_Graph] [int] NOT NULL,
+	[Opening_Balances] [int] NOT NULL,
+	[Opening_Balances(Home_Page)] [int] NOT NULL,
+	[Payees] [int] NOT NULL,
+	[Practice_Logo] [int] NOT NULL,
+	[Profit_and_Loss_Report_-_12_Months_Actual] [int] NOT NULL,
+	[Profit_and_Loss_Report_-_Actual] [int] NOT NULL,
+	[Profit_and_Loss_Report_-_Actual_and_Budget] [int] NOT NULL,
+	[Profit_and_Loss_Report_-_Custom] [int] NOT NULL,
+	[Profit_and_Loss_Report_-_Set_up_Titles_and_Headings] [int] NOT NULL,
+	[Provisional_Transactions] [int] NOT NULL,
+	[Provisional_Transactions_CSV] [int] NOT NULL,
+	[Purge_Entries] [int] NOT NULL,
+	[Report_and_Graph_Options] [int] NOT NULL,
+	[Sales(Favourite)(File)] [int] NOT NULL,
+	[Sales(Favourite)(View)] [int] NOT NULL,
+	[Sales(File)] [int] NOT NULL,
+	[Sales(Generate)(Email)] [int] NOT NULL,
+	[Sales(Generate)(Print)] [int] NOT NULL,
+	[Sales(Generate)(View)] [int] NOT NULL,
+	[Sales(Print)] [int] NOT NULL,
+	[Sales(View)] [int] NOT NULL,
+	[Sales_Graph] [int] NOT NULL,
+	[Save_BAS_Template] [int] NOT NULL,
+	[Sched_Rep_-_BankLink_Online] [int] NOT NULL,
+	[Sched_Rep_-_Checked_Out] [int] NOT NULL,
+	[Sched_Rep_-_Emailed] [int] NOT NULL,
+	[Sched_Rep_-_Faxed] [int] NOT NULL,
+	[Sched_Rep_-_Notes] [int] NOT NULL,
+	[Sched_Rep_-_Printed] [int] NOT NULL,
+	[Sched_Rep_-_Web] [int] NOT NULL,
+	[Sched_Rep_Annually] [int] NOT NULL,
+	[Sched_Rep_BankLink_Books] [int] NOT NULL,
+	[Sched_Rep_BankLink_Notes] [int] NOT NULL,
+	[Sched_Rep_BankLink_Online] [int] NOT NULL,
+	[Sched_Rep_Business_Products] [int] NOT NULL,
+	[Sched_Rep_Check_Out] [int] NOT NULL,
+	[Sched_Rep_CSV_Export] [int] NOT NULL,
+	[Sched_Rep_Dont_Send] [int] NOT NULL,
+	[Sched_Rep_Email] [int] NOT NULL,
+	[Sched_Rep_Every_Four_Months] [int] NOT NULL,
+	[Sched_Rep_Every_Month] [int] NOT NULL,
+	[Sched_Rep_Every_Month_and_Quarter] [int] NOT NULL,
+	[Sched_Rep_Every_Month_and_Two_Months] [int] NOT NULL,
+	[Sched_Rep_Every_Six_Months] [int] NOT NULL,
+	[Sched_Rep_Every_Three_Months] [int] NOT NULL,
+	[Sched_Rep_Every_Two_Months] [int] NOT NULL,
+	[Sched_Rep_Every_Two_Months_then_Month] [int] NOT NULL,
+	[Sched_Rep_Fax] [int] NOT NULL,
+	[Sched_Rep_None] [int] NOT NULL,
+	[Sched_Rep_Printer] [int] NOT NULL,
+	[Sched_Rep_Web] [int] NOT NULL,
+	[Scheduled_Reports] [int] NOT NULL,
+	[Send_Books] [int] NOT NULL,
+	[Send_ClientFile] [int] NOT NULL,
+	[Send_Query] [int] NOT NULL,
+	[Spending_by_Payee_Report] [int] NOT NULL,
+	[Stataments_and_Download_Documents] [int] NOT NULL,
+	[Sub_Groups] [int] NOT NULL,
+	[Summarised_Bank_Reconciliation] [int] NOT NULL,
+	[System_Client_Status_Report] [int] NOT NULL,
+	[Transfer_Manual_Account_Entries] [int] NOT NULL,
+	[Trial_Balance_Report] [int] NOT NULL,
+	[WebNote_Export] [int] NOT NULL,
+	[WebNotes_Import] [int] NOT NULL,
+	[Year_End_Balances] [int] NOT NULL,
+ CONSTRAINT [PK_Feature] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acclipse_Export]  DEFAULT ((0)) FOR [Acclipse_Export]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acclipse_File]  DEFAULT ((0)) FOR [Acclipse_File]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acclipse_Import]  DEFAULT ((0)) FOR [Acclipse_Import]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Accrual_Journals]  DEFAULT ((0)) FOR [Accrual_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Accrual_Journals(Home_Page)]  DEFAULT ((0)) FOR [Accrual_Journals(Home_Page)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System]  DEFAULT ((0)) FOR [Acct_System]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Accomplish_CashManager]  DEFAULT ((0)) FOR [Acct_System_Accomplish_CashManager]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_AccPac_for_Windows]  DEFAULT ((0)) FOR [Acct_System_AccPac_for_Windows]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_AccPac_Plus]  DEFAULT ((0)) FOR [Acct_System_AccPac_Plus]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts]  DEFAULT ((0)) FOR [Acct_System_Acounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Accomplish_CashManager]  DEFAULT ((0)) FOR [Acct_System_Acounts_Accomplish_CashManager]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_AccPac_for_Windows]  DEFAULT ((0)) FOR [Acct_System_Acounts_AccPac_for_Windows]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_AccPac_Plus]  DEFAULT ((0)) FOR [Acct_System_Acounts_AccPac_Plus]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_ASCII_CSV]  DEFAULT ((0)) FOR [Acct_System_Acounts_ASCII_CSV]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Attach]  DEFAULT ((0)) FOR [Acct_System_Acounts_Attach]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Attach_5]  DEFAULT ((0)) FOR [Acct_System_Acounts_Attach_5]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Attach_Business_Partner]  DEFAULT ((0)) FOR [Acct_System_Acounts_Attach_Business_Partner]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Attache_Business_Partner]  DEFAULT ((0)) FOR [Acct_System_Acounts_Attache_Business_Partner]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_BCS_Accounting]  DEFAULT ((0)) FOR [Acct_System_Acounts_BCS_Accounting]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Beyond_Private_Ledger]  DEFAULT ((0)) FOR [Acct_System_Acounts_Beyond_Private_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_BGL_Simple_Fund]  DEFAULT ((0)) FOR [Acct_System_Acounts_BGL_Simple_Fund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_BGL_Simple_Fund_360]  DEFAULT ((0)) FOR [Acct_System_Acounts_BGL_Simple_Fund_360]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_BGL_Simple_Ledger]  DEFAULT ((0)) FOR [Acct_System_Acounts_BGL_Simple_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Business_Products_-_OFX_V1]  DEFAULT ((0)) FOR [Acct_System_Acounts_Business_Products_-_OFX_V1]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Business_Products_-_OFX_V2]  DEFAULT ((0)) FOR [Acct_System_Acounts_Business_Products_-_OFX_V2]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Business_Products_-_QIF]  DEFAULT ((0)) FOR [Acct_System_Acounts_Business_Products_-_QIF]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_CaseWare]  DEFAULT ((0)) FOR [Acct_System_Acounts_CaseWare]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_CA-Systems_GL]  DEFAULT ((0)) FOR [Acct_System_Acounts_CA-Systems_GL]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Catsoft_Ledgercat_2000]  DEFAULT ((0)) FOR [Acct_System_Acounts_Catsoft_Ledgercat_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Cee-Data]  DEFAULT ((0)) FOR [Acct_System_Acounts_Cee-Data]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Charter_QX]  DEFAULT ((0)) FOR [Acct_System_Acounts_Charter_QX]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Class_Super]  DEFAULT ((0)) FOR [Acct_System_Acounts_Class_Super]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Class_Super_(Super-IP)]  DEFAULT ((0)) FOR [Acct_System_Acounts_Class_Super_(Super-IP)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Comparto]  DEFAULT ((0)) FOR [Acct_System_Acounts_Comparto]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Concept_Cash_Manager]  DEFAULT ((0)) FOR [Acct_System_Acounts_Concept_Cash_Manager]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Concept_Cash_Manager_2000]  DEFAULT ((0)) FOR [Acct_System_Acounts_Concept_Cash_Manager_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Coopers]  DEFAULT ((0)) FOR [Acct_System_Acounts_Coopers]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Desktop_Super]  DEFAULT ((0)) FOR [Acct_System_Acounts_Desktop_Super]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_EasyBooks]  DEFAULT ((0)) FOR [Acct_System_Acounts_EasyBooks]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_EasyBooks_NZ]  DEFAULT ((0)) FOR [Acct_System_Acounts_EasyBooks_NZ]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Generic]  DEFAULT ((0)) FOR [Acct_System_Acounts_Generic]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Global_Accounting]  DEFAULT ((0)) FOR [Acct_System_Acounts_Global_Accounting]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_HandiSoft_HandiLedger]  DEFAULT ((0)) FOR [Acct_System_Acounts_HandiSoft_HandiLedger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_HAPAS_Client_Accounting]  DEFAULT ((0)) FOR [Acct_System_Acounts_HAPAS_Client_Accounting]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_iFirm]  DEFAULT ((0)) FOR [Acct_System_Acounts_iFirm]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Intech]  DEFAULT ((0)) FOR [Acct_System_Acounts_Intech]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_IRESS_Xplan]  DEFAULT ((0)) FOR [Acct_System_Acounts_IRESS_Xplan]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Kellogg_FRS]  DEFAULT ((0)) FOR [Acct_System_Acounts_Kellogg_FRS]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Ledger_Assistant]  DEFAULT ((0)) FOR [Acct_System_Acounts_Ledger_Assistant]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Ledger_Elite]  DEFAULT ((0)) FOR [Acct_System_Acounts_Ledger_Elite]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Master_2000]  DEFAULT ((0)) FOR [Acct_System_Acounts_Master_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MGL_General_Ledger]  DEFAULT ((0)) FOR [Acct_System_Acounts_MGL_General_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Accountants_Enterprise_Accounts]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_Accountants_Enterprise_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Accountants_Enterprise_MAS]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_Accountants_Enterprise_MAS]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Accountants_Office]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_Accountants_Office]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_AO_(manual_posting)]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_AO_(manual_posting)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_General_Journals]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_General_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_General_Journals_(2012)]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_General_Journals_(2012)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Ledger]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_SuperFund]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_SuperFund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_MYOB_Transaction_Journals]  DEFAULT ((0)) FOR [Acct_System_Acounts_MYOB_Transaction_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Other]  DEFAULT ((0)) FOR [Acct_System_Acounts_Other]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Praemium]  DEFAULT ((0)) FOR [Acct_System_Acounts_Praemium]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Professional_Accounting_7]  DEFAULT ((0)) FOR [Acct_System_Acounts_Professional_Accounting_7]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Professional_Accounting_XPA_8]  DEFAULT ((0)) FOR [Acct_System_Acounts_Professional_Accounting_XPA_8]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Proflex]  DEFAULT ((0)) FOR [Acct_System_Acounts_Proflex]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_QuickBooks]  DEFAULT ((0)) FOR [Acct_System_Acounts_QuickBooks]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_QuickBooks_20072008]  DEFAULT ((0)) FOR [Acct_System_Acounts_QuickBooks_20072008]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_QuickBooks_20082009]  DEFAULT ((0)) FOR [Acct_System_Acounts_QuickBooks_20082009]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Sage_50_Accounts]  DEFAULT ((0)) FOR [Acct_System_Acounts_Sage_50_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Sage_HandiSoft_SuperFund]  DEFAULT ((0)) FOR [Acct_System_Acounts_Sage_HandiSoft_SuperFund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_SmartBooks_2000]  DEFAULT ((0)) FOR [Acct_System_Acounts_SmartBooks_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_SmartLink]  DEFAULT ((0)) FOR [Acct_System_Acounts_SmartLink]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_(CLSY2K)]  DEFAULT ((0)) FOR [Acct_System_Acounts_Solution_6_MAS_(CLSY2K)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_3_(CLS)]  DEFAULT ((0)) FOR [Acct_System_Acounts_Solution_6_MAS_3_(CLS)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_4.1_(CLS)]  DEFAULT ((0)) FOR [Acct_System_Acounts_Solution_6_MAS_4.1_(CLS)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Solution_6_MAS_4.1_(MAS)]  DEFAULT ((0)) FOR [Acct_System_Acounts_Solution_6_MAS_4.1_(MAS)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Supercorp_Superfund]  DEFAULT ((0)) FOR [Acct_System_Acounts_Supercorp_Superfund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Supercorp_Supervisor_II]  DEFAULT ((0)) FOR [Acct_System_Acounts_Supercorp_Supervisor_II]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_superMate]  DEFAULT ((0)) FOR [Acct_System_Acounts_superMate]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_Teletax_Ledger_Windows]  DEFAULT ((0)) FOR [Acct_System_Acounts_Teletax_Ledger_Windows]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Acounts_The_Client_Accountant]  DEFAULT ((0)) FOR [Acct_System_Acounts_The_Client_Accountant]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_ASCII_CSV]  DEFAULT ((0)) FOR [Acct_System_ASCII_CSV]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Attach]  DEFAULT ((0)) FOR [Acct_System_Attach]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Attach_5]  DEFAULT ((0)) FOR [Acct_System_Attach_5]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Attach_Business_Partner]  DEFAULT ((0)) FOR [Acct_System_Attach_Business_Partner]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Attache_Business_Partner]  DEFAULT ((0)) FOR [Acct_System_Attache_Business_Partner]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_BCS_Accounting]  DEFAULT ((0)) FOR [Acct_System_BCS_Accounting]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Beyond_Private_Ledger]  DEFAULT ((0)) FOR [Acct_System_Beyond_Private_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_BGL_Simple_Fund]  DEFAULT ((0)) FOR [Acct_System_BGL_Simple_Fund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_BGL_Simple_Fund_360]  DEFAULT ((0)) FOR [Acct_System_BGL_Simple_Fund_360]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_BGL_Simple_Ledger]  DEFAULT ((0)) FOR [Acct_System_BGL_Simple_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Business_Products_-_OFX_V1]  DEFAULT ((0)) FOR [Acct_System_Business_Products_-_OFX_V1]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Business_Products_-_OFX_V2]  DEFAULT ((0)) FOR [Acct_System_Business_Products_-_OFX_V2]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Business_Products_-_QIF]  DEFAULT ((0)) FOR [Acct_System_Business_Products_-_QIF]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_CaseWare]  DEFAULT ((0)) FOR [Acct_System_CaseWare]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_CA-Systems_GL]  DEFAULT ((0)) FOR [Acct_System_CA-Systems_GL]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Catsoft_Ledgercat_2000]  DEFAULT ((0)) FOR [Acct_System_Catsoft_Ledgercat_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Cee-Data]  DEFAULT ((0)) FOR [Acct_System_Cee-Data]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Charter_QX]  DEFAULT ((0)) FOR [Acct_System_Charter_QX]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Class_Super]  DEFAULT ((0)) FOR [Acct_System_Class_Super]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Class_Super_(Super-IP)]  DEFAULT ((0)) FOR [Acct_System_Class_Super_(Super-IP)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Comparto]  DEFAULT ((0)) FOR [Acct_System_Comparto]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Concept_Cash_Manager]  DEFAULT ((0)) FOR [Acct_System_Concept_Cash_Manager]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Concept_Cash_Manager_2000]  DEFAULT ((0)) FOR [Acct_System_Concept_Cash_Manager_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Desktop_Super]  DEFAULT ((0)) FOR [Acct_System_Desktop_Super]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_EasyBooks]  DEFAULT ((0)) FOR [Acct_System_EasyBooks]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_EasyBooks_NZ]  DEFAULT ((0)) FOR [Acct_System_EasyBooks_NZ]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Generic]  DEFAULT ((0)) FOR [Acct_System_Generic]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Global_Accounting]  DEFAULT ((0)) FOR [Acct_System_Global_Accounting]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_HandiSoft_HandiLedger]  DEFAULT ((0)) FOR [Acct_System_HandiSoft_HandiLedger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_HAPAS_Client_Accounting]  DEFAULT ((0)) FOR [Acct_System_HAPAS_Client_Accounting]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_iFirm]  DEFAULT ((0)) FOR [Acct_System_iFirm]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Intech]  DEFAULT ((0)) FOR [Acct_System_Intech]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_IRESS_Xplan]  DEFAULT ((0)) FOR [Acct_System_IRESS_Xplan]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Kellogg_FRS]  DEFAULT ((0)) FOR [Acct_System_Kellogg_FRS]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Ledger_Assistant]  DEFAULT ((0)) FOR [Acct_System_Ledger_Assistant]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Ledger_Elite]  DEFAULT ((0)) FOR [Acct_System_Ledger_Elite]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Master_2000]  DEFAULT ((0)) FOR [Acct_System_Master_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MGL_General_Ledger]  DEFAULT ((0)) FOR [Acct_System_MGL_General_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB]  DEFAULT ((0)) FOR [Acct_System_MYOB]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_Accountants_Enterprise_Accounts]  DEFAULT ((0)) FOR [Acct_System_MYOB_Accountants_Enterprise_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_Accountants_Enterprise_MAS]  DEFAULT ((0)) FOR [Acct_System_MYOB_Accountants_Enterprise_MAS]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_Accountants_Office]  DEFAULT ((0)) FOR [Acct_System_MYOB_Accountants_Office]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_AO_(manual_posting)]  DEFAULT ((0)) FOR [Acct_System_MYOB_AO_(manual_posting)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_General_Journals]  DEFAULT ((0)) FOR [Acct_System_MYOB_General_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_General_Journals_(2012)]  DEFAULT ((0)) FOR [Acct_System_MYOB_General_Journals_(2012)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_Ledger]  DEFAULT ((0)) FOR [Acct_System_MYOB_Ledger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_SuperFund]  DEFAULT ((0)) FOR [Acct_System_MYOB_SuperFund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_MYOB_Transaction_Journals]  DEFAULT ((0)) FOR [Acct_System_MYOB_Transaction_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Other]  DEFAULT ((0)) FOR [Acct_System_Other]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Praemium]  DEFAULT ((0)) FOR [Acct_System_Praemium]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Professional_Accounting_7]  DEFAULT ((0)) FOR [Acct_System_Professional_Accounting_7]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Professional_Accounting_XPA_8]  DEFAULT ((0)) FOR [Acct_System_Professional_Accounting_XPA_8]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Proflex]  DEFAULT ((0)) FOR [Acct_System_Proflex]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_QuickBooks]  DEFAULT ((0)) FOR [Acct_System_QuickBooks]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_QuickBooks_20072008]  DEFAULT ((0)) FOR [Acct_System_QuickBooks_20072008]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_QuickBooks_20082009]  DEFAULT ((0)) FOR [Acct_System_QuickBooks_20082009]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Sage_50_Accounts]  DEFAULT ((0)) FOR [Acct_System_Sage_50_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Sage_HandiSoft_SuperFund]  DEFAULT ((0)) FOR [Acct_System_Sage_HandiSoft_SuperFund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_SmartBooks_2000]  DEFAULT ((0)) FOR [Acct_System_SmartBooks_2000]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_SmartLink]  DEFAULT ((0)) FOR [Acct_System_SmartLink]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_(CLSY2K)]  DEFAULT ((0)) FOR [Acct_System_Solution_6_MAS_(CLSY2K)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_3_(CLS)]  DEFAULT ((0)) FOR [Acct_System_Solution_6_MAS_3_(CLS)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_4.1_(CLS)]  DEFAULT ((0)) FOR [Acct_System_Solution_6_MAS_4.1_(CLS)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Solution_6_MAS_4.1_(MAS)]  DEFAULT ((0)) FOR [Acct_System_Solution_6_MAS_4.1_(MAS)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Supercorp_Superfund]  DEFAULT ((0)) FOR [Acct_System_Supercorp_Superfund]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Supercorp_Supervisor_II]  DEFAULT ((0)) FOR [Acct_System_Supercorp_Supervisor_II]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_superMate]  DEFAULT ((0)) FOR [Acct_System_superMate]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_Teletax_Ledger_Windows]  DEFAULT ((0)) FOR [Acct_System_Teletax_Ledger_Windows]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Acct_System_The_Client_Accountant]  DEFAULT ((0)) FOR [Acct_System_The_Client_Accountant]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Balance_Sheet_Report]  DEFAULT ((0)) FOR [Balance_Sheet_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Balance_Sheet_Report_-_Set_up_Titles_and_Headings]  DEFAULT ((0)) FOR [Balance_Sheet_Report_-_Set_up_Titles_and_Headings]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Budgets]  DEFAULT ((0)) FOR [Budgets]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Business_Norm_Percentages_Report(View)]  DEFAULT ((0)) FOR [Business_Norm_Percentages_Report(View)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Flow_Report_-_12_Months_Actual]  DEFAULT ((0)) FOR [Cash_Flow_Report_-_12_Months_Actual]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Actual]  DEFAULT ((0)) FOR [Cash_Flow_Report_-_Actual]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Actual_Budget_and_Variance]  DEFAULT ((0)) FOR [Cash_Flow_Report_-_Actual_Budget_and_Variance]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Custom]  DEFAULT ((0)) FOR [Cash_Flow_Report_-_Custom]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Flow_Report_-_From_Date_to_Date]  DEFAULT ((0)) FOR [Cash_Flow_Report_-_From_Date_to_Date]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Flow_Report_-_Set_up_Titles_and_Headings]  DEFAULT ((0)) FOR [Cash_Flow_Report_-_Set_up_Titles_and_Headings]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Journals]  DEFAULT ((0)) FOR [Cash_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Cash_Journals(Home_Page)]  DEFAULT ((0)) FOR [Cash_Journals(Home_Page)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_CCH_Export]  DEFAULT ((0)) FOR [CCH_Export]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_CCH_Import]  DEFAULT ((0)) FOR [CCH_Import]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Check_In]  DEFAULT ((0)) FOR [Check_In]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Check_In_DDE]  DEFAULT ((0)) FOR [Check_In_DDE]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Check_Out]  DEFAULT ((0)) FOR [Check_Out]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Check_Out_(Scheduled)]  DEFAULT ((0)) FOR [Check_Out_(Scheduled)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Check_Out_Send]  DEFAULT ((0)) FOR [Check_Out_Send]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Client_Files_Received]  DEFAULT ((0)) FOR [Client_Files_Received]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Client_Files_Sent]  DEFAULT ((0)) FOR [Client_Files_Sent]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Client_Groups]  DEFAULT ((0)) FOR [Client_Groups]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Client_Types]  DEFAULT ((0)) FOR [Client_Types]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Coding_Report]  DEFAULT ((0)) FOR [Coding_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Combine_Bank_Accounts]  DEFAULT ((0)) FOR [Combine_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Combine_Manual_Bank_Accounts]  DEFAULT ((0)) FOR [Combine_Manual_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Custom_Documents]  DEFAULT ((0)) FOR [Custom_Documents]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Detailed_Bank_Reconciliation]  DEFAULT ((0)) FOR [Detailed_Bank_Reconciliation]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Detailed_System_Download_Report]  DEFAULT ((0)) FOR [Detailed_System_Download_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Divisions]  DEFAULT ((0)) FOR [Divisions]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Do_Coding]  DEFAULT ((0)) FOR [Do_Coding]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Do_Coding(Homepage)]  DEFAULT ((0)) FOR [Do_Coding(Homepage)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Download_Log_Report]  DEFAULT ((0)) FOR [Download_Log_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Edit_Superfund_Dissection]  DEFAULT ((0)) FOR [Edit_Superfund_Dissection]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Edit_Superfund_Journal]  DEFAULT ((0)) FOR [Edit_Superfund_Journal]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Edit_Superfund_Memorisation]  DEFAULT ((0)) FOR [Edit_Superfund_Memorisation]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Edit_Superfund_Payee]  DEFAULT ((0)) FOR [Edit_Superfund_Payee]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Edit_Superfund_Transaction]  DEFAULT ((0)) FOR [Edit_Superfund_Transaction]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Email_Signature]  DEFAULT ((0)) FOR [Email_Signature]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Exception_Report]  DEFAULT ((0)) FOR [Exception_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Export_Budgets]  DEFAULT ((0)) FOR [Export_Budgets]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Export_Charges_APS]  DEFAULT ((0)) FOR [Export_Charges_APS]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Export_Charges_HandiLedger]  DEFAULT ((0)) FOR [Export_Charges_HandiLedger]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Export_Charges_MYOB]  DEFAULT ((0)) FOR [Export_Charges_MYOB]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Export_Charges_MYOBAO]  DEFAULT ((0)) FOR [Export_Charges_MYOBAO]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Export_Charges_Other]  DEFAULT ((0)) FOR [Export_Charges_Other]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Find_and_Replace]  DEFAULT ((0)) FOR [Find_and_Replace]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Graphs_-_Set_up_Titles_and_Headings]  DEFAULT ((0)) FOR [Graphs_-_Set_up_Titles_and_Headings]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_GST_Audit_Trail]  DEFAULT ((0)) FOR [GST_Audit_Trail]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Historic_Transactions]  DEFAULT ((0)) FOR [Historic_Transactions]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Historic_Transactions_CSV]  DEFAULT ((0)) FOR [Historic_Transactions_CSV]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Historical_Entries]  DEFAULT ((0)) FOR [Historical_Entries]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Historical_Transactions]  DEFAULT ((0)) FOR [Historical_Transactions]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Historical_Transactions_CSV]  DEFAULT ((0)) FOR [Historical_Transactions_CSV]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Import_Budgets]  DEFAULT ((0)) FOR [Import_Budgets]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Jobs]  DEFAULT ((0)) FOR [Jobs]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Ledger_Report]  DEFAULT ((0)) FOR [Ledger_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_List_System_Bank_Accounts]  DEFAULT ((0)) FOR [List_System_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_List_System_Client_Report_Options]  DEFAULT ((0)) FOR [List_System_Client_Report_Options]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_List_System_Clients_by_Staff_Member]  DEFAULT ((0)) FOR [List_System_Clients_by_Staff_Member]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_List_Unpresented_Items]  DEFAULT ((0)) FOR [List_Unpresented_Items]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Load_BAS_Template]  DEFAULT ((0)) FOR [Load_BAS_Template]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Maintain_Chart]  DEFAULT ((0)) FOR [Maintain_Chart]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Manual_Entries]  DEFAULT ((0)) FOR [Manual_Entries]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Manual_Transactions]  DEFAULT ((0)) FOR [Manual_Transactions]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Memorised_Entries]  DEFAULT ((0)) FOR [Memorised_Entries]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Actual_Bank_Accounts]  DEFAULT ((0)) FOR [No_of_Actual_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Admin_DualAccountingSystems]  DEFAULT ((0)) FOR [No_of_Admin_DualAccountingSystems]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files]  DEFAULT ((0)) FOR [No_of_Client_Files]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_(Archived)]  DEFAULT ((0)) FOR [No_of_Client_Files_(Archived)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_(Foreign)]  DEFAULT ((0)) FOR [No_of_Client_Files_(Foreign)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_(Prospects)]  DEFAULT ((0)) FOR [No_of_Client_Files_(Prospects)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_with_Divisions]  DEFAULT ((0)) FOR [No_of_Client_Files_with_Divisions]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_with_Jobs]  DEFAULT ((0)) FOR [No_of_Client_Files_with_Jobs]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_with_Manual_Bank_Accounts]  DEFAULT ((0)) FOR [No_of_Client_Files_with_Manual_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_with_Memorised_Entries]  DEFAULT ((0)) FOR [No_of_Client_Files_with_Memorised_Entries]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_with_Payees]  DEFAULT ((0)) FOR [No_of_Client_Files_with_Payees]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Files_with_Provisional_Bank_Accounts]  DEFAULT ((0)) FOR [No_of_Client_Files_with_Provisional_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Groups]  DEFAULT ((0)) FOR [No_of_Client_Groups]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Client_Types]  DEFAULT ((0)) FOR [No_of_Client_Types]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Manual_Bank_Accounts]  DEFAULT ((0)) FOR [No_of_Manual_Bank_Accounts]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_User_Resets]  DEFAULT ((0)) FOR [No_of_User_Resets]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_No_of_Users]  DEFAULT ((0)) FOR [No_of_Users]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_GST_Journals]  DEFAULT ((0)) FOR [Non-Transferring_Journals_-_GST_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_GST_Journals(Home_Page)]  DEFAULT ((0)) FOR [Non-Transferring_Journals_-_GST_Journals(Home_Page)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Stock_Adjustment_Journals]  DEFAULT ((0)) FOR [Non-Transferring_Journals_-_Stock_Adjustment_Journals]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Stock_Adjustment_Journals(Home_Page)]  DEFAULT ((0)) FOR [Non-Transferring_Journals_-_Stock_Adjustment_Journals(Home_Page)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Year_End_Adjustments]  DEFAULT ((0)) FOR [Non-Transferring_Journals_-_Year_End_Adjustments]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Non-Transferring_Journals_-_Year_End_Adjustments(Home_Page)]  DEFAULT ((0)) FOR [Non-Transferring_Journals_-_Year_End_Adjustments(Home_Page)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Notes_DDE_Import]  DEFAULT ((0)) FOR [Notes_DDE_Import]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Notes_Email]  DEFAULT ((0)) FOR [Notes_Email]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Notes_File]  DEFAULT ((0)) FOR [Notes_File]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Notes_Import]  DEFAULT ((0)) FOR [Notes_Import]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_One_Page_Summary_Graph]  DEFAULT ((0)) FOR [One_Page_Summary_Graph]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Opening_Balances]  DEFAULT ((0)) FOR [Opening_Balances]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Opening_Balances(Home_Page)]  DEFAULT ((0)) FOR [Opening_Balances(Home_Page)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Payees]  DEFAULT ((0)) FOR [Payees]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Practice_Logo]  DEFAULT ((0)) FOR [Practice_Logo]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_12_Months_Actual]  DEFAULT ((0)) FOR [Profit_and_Loss_Report_-_12_Months_Actual]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Actual]  DEFAULT ((0)) FOR [Profit_and_Loss_Report_-_Actual]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Actual_and_Budget]  DEFAULT ((0)) FOR [Profit_and_Loss_Report_-_Actual_and_Budget]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Custom]  DEFAULT ((0)) FOR [Profit_and_Loss_Report_-_Custom]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Profit_and_Loss_Report_-_Set_up_Titles_and_Headings]  DEFAULT ((0)) FOR [Profit_and_Loss_Report_-_Set_up_Titles_and_Headings]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Provisional_Transactions]  DEFAULT ((0)) FOR [Provisional_Transactions]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Provisional_Transactions_CSV]  DEFAULT ((0)) FOR [Provisional_Transactions_CSV]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Purge_Entries]  DEFAULT ((0)) FOR [Purge_Entries]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Report_and_Graph_Options]  DEFAULT ((0)) FOR [Report_and_Graph_Options]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(Favourite)(File)]  DEFAULT ((0)) FOR [Sales(Favourite)(File)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(Favourite)(View)]  DEFAULT ((0)) FOR [Sales(Favourite)(View)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(File)]  DEFAULT ((0)) FOR [Sales(File)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(Generate)(Email)]  DEFAULT ((0)) FOR [Sales(Generate)(Email)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(Generate)(Print)]  DEFAULT ((0)) FOR [Sales(Generate)(Print)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(Generate)(View)]  DEFAULT ((0)) FOR [Sales(Generate)(View)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(Print)]  DEFAULT ((0)) FOR [Sales(Print)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales(View)]  DEFAULT ((0)) FOR [Sales(View)]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sales_Graph]  DEFAULT ((0)) FOR [Sales_Graph]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Save_BAS_Template]  DEFAULT ((0)) FOR [Save_BAS_Template]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_BankLink_Online]  DEFAULT ((0)) FOR [Sched_Rep_-_BankLink_Online]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_Checked_Out]  DEFAULT ((0)) FOR [Sched_Rep_-_Checked_Out]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_Emailed]  DEFAULT ((0)) FOR [Sched_Rep_-_Emailed]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_Faxed]  DEFAULT ((0)) FOR [Sched_Rep_-_Faxed]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_Notes]  DEFAULT ((0)) FOR [Sched_Rep_-_Notes]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_Printed]  DEFAULT ((0)) FOR [Sched_Rep_-_Printed]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_-_Web]  DEFAULT ((0)) FOR [Sched_Rep_-_Web]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Annually]  DEFAULT ((0)) FOR [Sched_Rep_Annually]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_BankLink_Books]  DEFAULT ((0)) FOR [Sched_Rep_BankLink_Books]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_BankLink_Notes]  DEFAULT ((0)) FOR [Sched_Rep_BankLink_Notes]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_BankLink_Online]  DEFAULT ((0)) FOR [Sched_Rep_BankLink_Online]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Business_Products]  DEFAULT ((0)) FOR [Sched_Rep_Business_Products]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Check_Out]  DEFAULT ((0)) FOR [Sched_Rep_Check_Out]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_CSV_Export]  DEFAULT ((0)) FOR [Sched_Rep_CSV_Export]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Dont_Send]  DEFAULT ((0)) FOR [Sched_Rep_Dont_Send]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Email]  DEFAULT ((0)) FOR [Sched_Rep_Email]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Four_Months]  DEFAULT ((0)) FOR [Sched_Rep_Every_Four_Months]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Month]  DEFAULT ((0)) FOR [Sched_Rep_Every_Month]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Month_and_Quarter]  DEFAULT ((0)) FOR [Sched_Rep_Every_Month_and_Quarter]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Month_and_Two_Months]  DEFAULT ((0)) FOR [Sched_Rep_Every_Month_and_Two_Months]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Six_Months]  DEFAULT ((0)) FOR [Sched_Rep_Every_Six_Months]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Three_Months]  DEFAULT ((0)) FOR [Sched_Rep_Every_Three_Months]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Two_Months]  DEFAULT ((0)) FOR [Sched_Rep_Every_Two_Months]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Every_Two_Months_then_Month]  DEFAULT ((0)) FOR [Sched_Rep_Every_Two_Months_then_Month]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Fax]  DEFAULT ((0)) FOR [Sched_Rep_Fax]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_None]  DEFAULT ((0)) FOR [Sched_Rep_None]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Printer]  DEFAULT ((0)) FOR [Sched_Rep_Printer]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sched_Rep_Web]  DEFAULT ((0)) FOR [Sched_Rep_Web]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Scheduled_Reports]  DEFAULT ((0)) FOR [Scheduled_Reports]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Send_Books]  DEFAULT ((0)) FOR [Send_Books]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Send_ClientFile]  DEFAULT ((0)) FOR [Send_ClientFile]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Send_Query]  DEFAULT ((0)) FOR [Send_Query]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Spending_by_Payee_Report]  DEFAULT ((0)) FOR [Spending_by_Payee_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Stataments_and_Download_Documents]  DEFAULT ((0)) FOR [Stataments_and_Download_Documents]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Sub_Groups]  DEFAULT ((0)) FOR [Sub_Groups]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Summarised_Bank_Reconciliation]  DEFAULT ((0)) FOR [Summarised_Bank_Reconciliation]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_System_Client_Status_Report]  DEFAULT ((0)) FOR [System_Client_Status_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Transfer_Manual_Account_Entries]  DEFAULT ((0)) FOR [Transfer_Manual_Account_Entries]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Trial_Balance_Report]  DEFAULT ((0)) FOR [Trial_Balance_Report]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_WebNote_Export]  DEFAULT ((0)) FOR [WebNote_Export]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_WebNotes_Import]  DEFAULT ((0)) FOR [WebNotes_Import]
+GO
+
+ALTER TABLE [dbo].[Feature] ADD  CONSTRAINT [DF_Feature_Year_End_Balances]  DEFAULT ((0)) FOR [Year_End_Balances]
+GO
+
+

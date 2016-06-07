@@ -1,0 +1,45 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Coding]') AND type in (N'U'))
+DROP TABLE [dbo].[Coding]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Coding](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PracticeInfoId] [int] NOT NULL,
+	[CodingYear] [int] NOT NULL,
+	[CodingMonth] [int] NOT NULL,
+	[Count] [int] NOT NULL,
+	[CodingTypeId] [int] NOT NULL,
+ CONSTRAINT [PK_Coding] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+IF  EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Coding]') AND name = N'FK_CodingPracticeInfoId')
+DROP INDEX [FK_CodingPracticeInfoId] ON [dbo].[Coding] WITH ( ONLINE = OFF )
+GO
+
+USE [P5UsageStats]
+GO
+
+CREATE NONCLUSTERED INDEX [FK_CodingPracticeInfoId] ON [dbo].[Coding] 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+GO
+
+
