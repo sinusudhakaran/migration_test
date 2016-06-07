@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2016/05/13 11:38:45.077.pas,C:\Users\ralph.austen\Documents\RAD Studio\Projects\Unit1.pas=C:\My Documents\Projects\UsageService\srvMain.pas</Transaction>
+    <Transaction>2016/05/13 11:38:45.077.dfm,C:\Users\ralph.austen\Documents\RAD Studio\Projects\Unit1.dfm=C:\My Documents\Projects\UsageService\srvMain.dfm</Transaction>
+    <Transaction>2016/05/13 11:38:55.541.dproj,C:\Users\ralph.austen\Documents\RAD Studio\Projects\Project2.dproj=C:\My Documents\Projects\UsageService\UsageService.dproj</Transaction>
+    <Transaction>2016/05/18 10:29:47.918.pas,C:\My Documents\Projects\UsageService\Unit1.pas=C:\My Documents\Projects\UsageService\UsageDataImpoter.pas</Transaction>
+  </Transactions>
+</BorlandProject>
