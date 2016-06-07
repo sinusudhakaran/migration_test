@@ -345,7 +345,7 @@ const
      'DiskPcOsVersion',
      'SQLSessionId');
 
-  RPT_FEATURE_COLS = 129;
+  RPT_FEATURE_COLS = 131;
   ReportFeatureNames : Array[1..RPT_FEATURE_COLS] of String[50] =
     ('One_Page_Summary',
      'Annual_GST_information_report',
@@ -379,6 +379,7 @@ const
      'Detailed_Coding_by_Job',
      'GST_Return',
      'GST_calculation_sheet_372',
+     'GST_Report_Preview',
      'Exception',
      'Cash_Flow_-_Date_to_Date',
      'Cash_Flow_-_Budget_Remaining',
@@ -470,6 +471,7 @@ const
      'System_Accounts',
      'Audit_Report',
      'Payments',
+     'Sales',
      'Taxable_Payments',
      'Taxable_Payments_-_Summarised',
      'Taxable_Payments_-_Detailed',
@@ -666,13 +668,15 @@ begin
   else if aInMonth = 'OCT' then Result := 10
   else if aInMonth = 'NOV' then Result := 11
   else if aInMonth = 'DEC' then Result := 12
+  else Result := 1;
 end;
 
 //------------------------------------------------------------------------------
 function TUsageDataImporter.GetCountryIdFromCode(aCode: string): integer;
 begin
   if aCode = 'NZ' then Result := 1
-  else if aCode = 'OZ' then Result := 2;
+  else if aCode = 'OZ' then Result := 2
+  else Result := 1;
 end;
 
 //------------------------------------------------------------------------------
@@ -680,7 +684,6 @@ procedure TUsageDataImporter.SearchAndAddFiles(aDirectory : string);
 var
   SearchRec  : TSearchRec;
   FindResult : integer;
-  FileIndex  : integer;
   FoundIndex : integer;
   UsageDataLength : integer;
   PracticeLength : integer;
@@ -924,7 +927,6 @@ var
   CleanFile : TextFile;
   RawLine : string;
   LineCols : TStringList;
-  ColIndex : integer;
 begin
   assignfile(RawDataFile, FileDirectory + '\' + aFileName + '.' + TEMP_EXT);
   reset(RawDataFile);
@@ -964,8 +966,6 @@ const
 var
   RawDataFile : File;
   CleanFile : File;
-  RawLine : string;
-  LineCols : TStringList;
   ColIndex : integer;
   NumRead    : integer;
   NumToWrite : integer;
@@ -1073,7 +1073,6 @@ var
   LineArrId    : Array[1..IMPORT_LINES_TO_PROCESS] of integer;
   SQLIdList : TStringList;
   SQLCodingList : TStringList;
-  ColIndex : integer;
   LineIndex : integer;
   ProcessIndex : integer;
   FoundCode : string;
@@ -1277,14 +1276,12 @@ end;
 function TUsageDataImporter.FillFeatures(aXMLString: WideString; var aFeatureList: TList; aLogError : boolean) : boolean;
 var
   NewFeatureItem : TFeatureItem;
-  FeatureItem : TFeatureItem;
   FeatureIndex : integer;
   XMLData : IXMLDocument;
   CurrentNode : IXMLNode;
   CleanText : string;
   Found : boolean;
 begin
-  Result := false;
   XMLData := CreateXMLDoc;
   try
     try
@@ -1537,11 +1534,13 @@ begin
       ReportIndex := GetReportFeatureIndex(ReportName);
 
       InsertText := 'insert into [reportfeature] ([PracticeInfoId], ' +
+                                                 '[ReportId], ' +
                                                  '[ReportTypeId], ' +
                                                  '[ReportDestId], ' +
                                                  '[UploadDateTime], ' +
                                                  '[Count]) ';
       ValuesText := 'values (' + inttostr(aId) + ',' +
+                                 inttostr(ReportIndex) + ',' +
                                  inttostr(Integer(FeatureType)) + ',' +
                                  inttostr(Integer(FeatureDest)) + ',''' +
                                  aTimeStamp + ''',' +
@@ -1640,7 +1639,6 @@ var
   LineArrCols : Array[1..IMPORT_LINES_TO_PROCESS] of TStringList;
   LineArrState : Array[1..IMPORT_LINES_TO_PROCESS] of TImportLineState;
   SQLIdList : TStringList;
-  ColIndex : integer;
   LineIndex : integer;
   ProcessIndex : integer;
   FoundId : integer;
@@ -2089,8 +2087,6 @@ procedure TUsageDataImporter.SetupDatabase(aHostName : string;
                                            aDatabase : string;
                                            aUserName : string;
                                            aPassword : string);
-var
-  ParamString : widestring;
 begin
   fSQLConnection := TSQLConnection.Create(Nil);
   fSQLConnection.DriverName    := 'MSSQL';
