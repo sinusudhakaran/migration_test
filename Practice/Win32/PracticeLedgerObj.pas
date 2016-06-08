@@ -243,7 +243,7 @@ begin
     //if ( txFirst_Dissection = nil ) then
     begin
       //txDate_Transferred := CurrentDate;
-// P5-1068 Validation of Contra-Code      S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
+      // P5-1068 Validation of Contra-Code      S :=  GetNarration(TransAction,Bank_Account.baFields.baAccount_Type);
       if ( txGST_Class=0 ) then txGST_Amount := 0;
       // Check if Transaction is not finalized and not presented
       if (txDate_Transferred > 0) then
@@ -252,7 +252,6 @@ begin
       NarrationLength := length( txStatement_Details );
       if NarrationLength > 255 then
         NarrationLength := 255;
-
 
       TransactionItem := TTransactionData.Create(FBankAcctToExport.Transactions);
       TransactionItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
@@ -302,10 +301,7 @@ begin
           AllocationItem.TaxAmount := Trunc(DissRec^.dsGST_Amount);
           AllocationItem.TaxRate := GetTaxCodeMerged(DissRec^.dsGST_Class);//GetCashBookGSTType(aGSTMapCol, DissRec^.dsGST_Class);
           if Trim(AllocationItem.TaxRate) = '' then
-            HelpfulErrorMsg( 'There are transactions without a GST code, ' +  // P5-1068 Validation of Contra-Code
-              'please make sure your Chart of Accounts is up to date.', 0 );  // P5-1068 Validation of Contra-Code
-// P5-1068 Validation of Contra-Code             AllocationItem.TaxRate := 'NA';
-
+            AllocationItem.TaxRate := 'NA';
 
           AllocationItem.Quantity := DissRec^.dsQuantity;
           AllocationItem.PayeeNumber := DissRec^.dsPayee_Number;
@@ -563,8 +559,8 @@ begin
               end;
             end;
 
-  // P5-1068 Validation of Contra-Code https://myobconfluence.atlassian.net/wiki/display/BP/Validation+Changes         if ((not AllowBlankContra) and (not AllowBlankContra)) then
-            if true then // // P5-1068 Validation of Contra-Code - force to true ((not AllowBlankContra) and (not AllowBlankContra)) then
+            // P5-1068 Validation of Contra-Code https://myobconfluence.atlassian.net/wiki/display/BP/Validation+Changes         if ((not AllowBlankContra) and (not AllowBlankContra)) then
+            if (not AllowBlankContra) then // // P5-1068 Validation of Contra-Code - force to true ((not AllowBlankContra) and (not AllowBlankContra)) then
             begin
               if BA.baFields.baContra_Account_Code = '' then
               begin
