@@ -1272,7 +1272,7 @@ begin
 
           if fNumOfSQLStatements > 0 then
             logutil.LogMsg(lmInfo, UNIT_NAME, 'Importing Batch - ' +  inttostr(BatchNumber) +
-                                              ' ,SQL Lines - ' + inttostr(fNumOfSQLStatements), 0, false);
+                                              ' ,SQL Lines in Batch - ' + inttostr(fNumOfSQLStatements), 0, false);
         finally
           closefile(CleanFile);
         end;
@@ -2065,7 +2065,8 @@ end;
 //------------------------------------------------------------------------------
 function TUsageDataImporter.SetServiceState(aValue : TServiceState) : boolean;
 begin
-  if fCurrentServiceStatus := usStop then
+  Result := false;
+  if fCurrentServiceStatus = usStop then
     Exit;
 
   fCurrentServiceStatus := aValue;
