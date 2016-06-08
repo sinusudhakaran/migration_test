@@ -208,7 +208,6 @@ var
   DissRec: pDissection_Rec;
   AllocationItem : TAllocationData;
   AccRec : pAccount_Rec;
-// P5-1068 Validation of Contra-Code  S : ShortString;
   NarrationLength : integer;
 
   procedure FixAllocationValues(aAllocationsData: TAllocationsData);
@@ -249,7 +248,7 @@ begin
       if (txDate_Transferred > 0) then
         Exit;
 
-      NarrationLength := length( txStatement_Details );
+      NarrationLength := Length(Trim(txStatement_Details));
       if NarrationLength > 255 then
         NarrationLength := 255;
 
@@ -258,7 +257,7 @@ begin
       TransactionItem.SequenceNo  := txSequence_No;
 
       TransactionItem.Description := copy( txStatement_Details, 1, NarrationLength );
-      if length( TransactionItem.Description ) = 0 then
+      if Length(Trim(TransactionItem.Description)) = 0 then
         TransactionItem.Description := '_';
 
 
@@ -294,7 +293,7 @@ begin
           end;
 
           AllocationItem.Description := DissRec^.dsGL_Narration;
-          if length( AllocationItem.Description ) = 0 then
+          if Length(Trim(AllocationItem.Description)) = 0 then
             AllocationItem.Description := '_';
           
           AllocationItem.Amount := Trunc(DissRec^.dsAmount);
@@ -371,7 +370,7 @@ begin
     JournalItem.Date        := StDateToDateString('yyyy-mm-dd', txDate_Effective, true);
     JournalItem.SequenceNo  := txSequence_No;
     JournalItem.Description := txGL_Narration;
-    if length( JournalItem.Description ) = 0 then
+    if Length(Trim(JournalItem.Description )) = 0 then
       JournalItem.Description := '_';
     
     JournalItem.Reference   := TrimLeadZ(txReference);
@@ -559,8 +558,7 @@ begin
               end;
             end;
 
-            // P5-1068 Validation of Contra-Code https://myobconfluence.atlassian.net/wiki/display/BP/Validation+Changes         if ((not AllowBlankContra) and (not AllowBlankContra)) then
-            if (not AllowBlankContra) then // // P5-1068 Validation of Contra-Code - force to true ((not AllowBlankContra) and (not AllowBlankContra)) then
+            if (not AllowBlankContra) then
             begin
               if BA.baFields.baContra_Account_Code = '' then
               begin
@@ -580,7 +578,7 @@ begin
           if not assigned( ContraCodeInChart ) or      // Couldn't find the Contra code OR
                  ( assigned( ContraCodeInChart ) and   // Contra Code is found AND the
                    ContraCodeInChart.chInactive ) or   // Contra code is not active
-                 ( length( BA.baFields.baContra_Account_Code ) > 255 ) then // Contra code is too long for MYOB Ledger (Max 255) 
+                 ( Length(Trim(BA.baFields.baContra_Account_Code)) > 255 ) then // Contra code is too long for MYOB Ledger (Max 255) 
           begin
             InvalidContraCodes.Add( BA.baFields.baBank_Account_Number );
           end;
