@@ -51,29 +51,6 @@ type
                       ilInsert           = 3,
                       ilUpdate           = 4);
 
-  TFeatureType = (ftNormal          = 1,
-                  ftGenerate        = 2,
-                  ftFavourite       = 3,
-                  ftScheduled       = 4);
-
-  TFeatureDest = (fdNone          = 1,
-                  fdView          = 2,
-                  fdPrint         = 3,
-                  fdFile          = 4,
-                  fdEmail         = 5,
-                  fdFax           = 6,
-                  fdEcoding       = 7,
-                  fdCSVExport     = 8,
-                  fdWebX          = 9,
-                  fdCheckOut      = 10,
-                  fdBusProd       = 11,
-                  fdCSVFile       = 12,
-                  fdTXTFile       = 13,
-                  fdXLSXFile      = 14,
-                  fdXLSFile       = 15,
-                  fdPDFFile       = 16,
-                  fdCCHFile       = 17);
-
   TUsageStates = set of TServiceState;
 
   //----------------------------------------------------------------------------
@@ -162,8 +139,8 @@ type
 
     function IsReportFeature(aFeature : string; var aReportName: string) : boolean;
     procedure GetReportFeatureTypeAndDest(aFeature, aReportName: string;
-                                          var aFeatureType : TFeatureType;
-                                          var aFeatureDest : TFeatureDest);
+                                          var aFeatureType : integer;
+                                          var aFeatureDest : integer);
     function GetReportFeatureIndex(aReportName : string) : integer;
     procedure SearchAndAddFiles(aDirectory : string);
     function CanAccessFile(aFileName : string) : boolean;
@@ -174,12 +151,14 @@ type
     procedure CleanPracticeFile(aFileName : string);
     procedure CleanPracticeFileTabsEOL(aFileName : string);
 
+    function GetFeatureTypeId(aFeatureName : string; var aSQLCodingList : TStringList) : integer;
+
     procedure ImportFile(var aFileData : TFileData);
     procedure ImportUsageFile(aFileName : string);
     function FillFeatures(aXMLString: WideString; var aFeatureList : TList; aLogError : boolean) : boolean;
     procedure ClearFeatures(var aFeatureList : TList);
     function GetPracticeUsageUpdateSQL(aColumnValues: TStringList; aPracticeInfoId : integer): string;
-    function GetFeatureInsertFromXML(aId: integer; aTimeStamp : string; var aFeatureList : TList): string;
+    procedure GetFeatureInsertFromXML(aId: integer; aTimeStamp : string; var aFeatureList : TList; var aSQLCodingList : TStringList);
     procedure GetReportFeatureInsertFromXML(aId: integer; aTimeStamp : string; var aFeatureList : TList; var aSQLCodingList : TStringList);
     procedure GetCodingInsertFromXML(aId: integer; var aFeatureList : TList; var aSQLCodingList : TStringList);
     procedure ImportPracticeFile(aFileName : string);
@@ -240,31 +219,6 @@ const
   CLEAN_EXT    = 'CLN';
   RAW_DONE_EXT = 'RAW';
   ERROR_EXT    = 'ERR';
-
-  FeatureTypeNames : Array[ftNormal..ftScheduled] of String[20] =
-    ('',
-     '(Generate)',
-     '(Favourite)',
-     '(Scheduled)');
-
-  FeatureDestNames : Array[fdNone..fdCCHFile] of String[40] =
-    ('',
-     '(View)',
-     '(Print)',
-     '(File)',
-     '(Email)',
-     '(Fax)',
-     '(Ecoding)',
-     '(CSVExport)',
-     '(WebX)',
-     '(FCheckOut)',
-     '(BusinessProduct)',
-     '(Comma Separated (CSV) File)',
-     '(Fixed Width Text (TXT) File)',
-     '(Microsoft Excel (XLSX) File)',
-     '(Microsoft Excel (XLS) File)',
-     '(Adobe Acrobat Format (PDF) File)',
-     '(CCH Web Manager File)');
 
   USAGE_FILE_COLS = 12;
   USG_XML             = 0;
@@ -370,141 +324,6 @@ const
      'PracticeVersion',
      'DiskPcOsVersion',
      'SQLSessionId');
-
-  RPT_FEATURE_COLS = 132;
-  ReportFeatureNames : Array[1..RPT_FEATURE_COLS] of String[50] =
-    ('One_Page_Summary',
-     'Annual_GST_information_report',
-     'Annual_GST_Return',
-     'List_Chart_of_Accounts',
-     'List_Entries',
-     'List_Journals',
-     'List_Bank_Accounts',
-     'List_Payees',
-     'Ledger_-_Detailed',
-     'Coding',
-     'Coding_-_Standard',
-     'Coding_-_Two_Column',
-     'Coding_-_Details_Only',
-     'Coding_-_Anomalies',
-     'Coding_Report_Preview',
-     'Cash_Flow',
-     'Cash_Flow_-_Actual',
-     'Cash_Flow_-_Actual_and_Budget',
-     'Cash_Flow_-_Actual_Budget_and_Variance',
-     'Cash_Flow_-_12_Months_Actual',
-     'Cash_Flow_-_12_Months_Actual_or_Budget',
-     'Bank_Reconciliation',
-     'Bank_Reconciliation_-_Summarised',
-     'Bank_Reconciliation_-_Detailed',
-     'Payee_Spending',
-     'Payee_Spending_-_Summarised',
-     'Payee_Spending_-_Detailed',
-     'Coding_by_Job',
-     'Summarised_Coding_by_Job',
-     'Detailed_Coding_by_Job',
-     'GST_Return',
-     'GST_calculation_sheet_372',
-     'GST_Report_Preview',
-     'General_Report_Preview',
-     'Exception',
-     'Cash_Flow_-_Date_to_Date',
-     'Cash_Flow_-_Budget_Remaining',
-     'Profit_and_Loss',
-     'Profit_and_Loss_-_Date_to_Date',
-     'Profit_and_Loss_-_Budget_Remaining',
-     'Profit_and_Loss_-_Actual',
-     'Profit_and_Loss_-_Actual_and_last_Year',
-     'Profit_and_Loss_-_Actual_and_Budget',
-     'Profit_and_Loss_-_Actual_Budget_and_last_Year',
-     'Profit_and_Loss_-_Actual_Budget_and_Variance',
-     'Profit_and_Loss_-_12_Months_Actual',
-     'Profit_and_Loss_-_12_Months_Actual_or_Budget',
-     'Profit_and_Loss_-_12_Months_Budget',
-     'Profit_and_Loss_-_Export',
-     'GST_Summary',
-     'GST_Allocation_Summary',
-     'GST_Reconciliation',
-     'GST_Audit',
-     'Budget_Listing',
-     'Cash_Flow_-_12_Months_Budget',
-     'Client_Header',
-     'Sort_Header',
-     'Staff_Member_Header',
-     'Group_Header',
-     'Client_Type_Header',
-     'Download_Report',
-     'Latest_Charges',
-     'List_Reports_Due',
-     'List_Admin_Bank_Accounts',
-     'List_Admin_Inactive_Bank_Accounts',
-     'List_Manual_Bank_Accounts',
-     'List_Provisional_Bank_Accounts',
-     'List_Clients_by_Staff_Member',
-     'List_Client_Report_Options',
-     'Download_Log',
-     'Trial_Balance',
-     'Income_and_Expenditure',
-     'Business_Activity_Statement',
-     'BAS_Calculation_Sheet',
-     'Off-site_Download_Log',
-     'Business_Norm_Percentages_Report',
-     'GST_Overrides',
-     'List_GST_Details',
-     'Scheduled_Reports_Summary',
-     'List_Memorisations',
-     'Client_Status_Report',
-     'Cash_Flow_-_This_Year_Last_Year_and_Variance',
-     'Ledger',
-     'Ledger_-_Summarised',
-     'Client_File_Access_Control',
-     'Cash_Flow_Single_Period',
-     'Cash_Flow_Multiple_Periods',
-     'Profit_and_Loss_Single_Period',
-     'Profit_and_Loss_Multiple_Periods',
-     'Balance_Sheet',
-     'Balance_Sheet_Single_Period',
-     'Balance_Sheet_Multiple_Periods',
-     'Balance_Sheet_Export',
-     'Summary_Download_Report',
-     'Unpresented_Items',
-     'List_Divisions',
-     'List_Jobs',
-     'List_Sub-groups',
-     'List_Entries_(incl._Notes)',
-     'Listings_Report_Preview',
-     'Coding_-_Standard_with_Notes',
-     'Coding_-_Two_Column_with_Notes',
-     'Cash_Flow_Export',
-     'Tasks',
-     'All_Open_Tasks',
-     'Missing_Cheques',
-     'Activity_Statement_Summary',
-     'Test_Fax',
-     'Mail_Merge_(Print)_Summary',
-     'Mail_Merge_(Email)_Summary',
-     'Disk_Image_Documents',
-     'List_Charges',
-     'BankLink_Client_Authority',
-     'BankLink_Third_Party_Authority',
-     'Clients_Report',
-     'Client_Home_Report',
-     'List_Groups',
-     'List_Client_Types',
-     'VAT_Return',
-     'Foreign_Exchange_Report',
-     'Coding_Optimisation_Report',
-     'Custom_Document',
-     'System_Accounts',
-     'Audit_Report',
-     'Payments',
-     'Sales',
-     'Taxable_Payments',
-     'Taxable_Payments_-_Summarised',
-     'Taxable_Payments_-_Detailed',
-     'Trading_Results',
-     'Total_Bank_Balance',
-     'ZZZ');
 
 { TFileData }
 //------------------------------------------------------------------------------
@@ -754,32 +573,34 @@ end;
 
 //------------------------------------------------------------------------------
 function TUsageDataImporter.GetCodingTypeId(aCodingStr: string): integer;
+var
+  CodingIndex : integer;
 begin
-  if aCodingStr = 'Mem' then Result := 0
-  else if aCodingStr = 'Man' then Result := 1
-  else if aCodingStr = 'Anl' then Result := 2
-  else if aCodingStr = 'Pay' then Result := 3
-  else if aCodingStr = 'MMem' then Result := 4
-  else if aCodingStr = 'Sup' then Result := 5
-  else if aCodingStr = 'Notes' then Result := 6
-  else if aCodingStr = 'Not' then Result := 7
-  else
-    Result := -1;
+  Result := -1;
+  for CodingIndex := 0 to High(fCodingType) do
+  begin
+    if fCodingType[CodingIndex].Code = aCodingStr then
+    begin
+      Result := fCodingType[CodingIndex].Id;
+      Exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 function TUsageDataImporter.GetCodingTypeName(aCodingStr: string): string;
+var
+  CodingIndex : integer;
 begin
-  if aCodingStr = 'Mem' then Result := 'Memorisation'
-  else if aCodingStr = 'Man' then Result := 'Manual'
-  else if aCodingStr = 'Anl' then Result := 'Analysis'
-  else if aCodingStr = 'Pay' then Result := 'Payee'
-  else if aCodingStr = 'MMem' then Result := 'MasterMemorisation'
-  else if aCodingStr = 'Sup' then Result := 'Man_Super'
-  else if aCodingStr = 'Notes' then Result := 'Notes'
-  else if aCodingStr = 'Not' then Result := 'UnCoded'
-  else
-    Result := 'Error';
+  Result := '';
+  for CodingIndex := 0 to High(fCodingType) do
+  begin
+    if fCodingType[CodingIndex].Code = aCodingStr then
+    begin
+      Result := fCodingType[CodingIndex].Name;
+      Exit;
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1180,6 +1001,45 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+function TUsageDataImporter.GetFeatureTypeId(aFeatureName: string; var aSQLCodingList : TStringList): integer;
+const
+  INSERT_SQL = 'Insert into FeatureType(Id, Name) values (%s);';
+var
+  FeatureTypeIndex : integer;
+  FeatureId : integer;
+  Values : string;
+begin
+  for FeatureTypeIndex := 0 to High(fFeatureType) do
+  begin
+    if fFeatureType[FeatureTypeIndex].Name = aFeatureName then
+    begin
+      Result := fFeatureType[FeatureTypeIndex].Id;
+      Exit;
+    end;
+  end;
+  // Didn't find Feature Type Name add one to SQL and List
+
+  // Get Next Available Id
+  FeatureTypeIndex := High(fFeatureType);
+  if FeatureTypeIndex < 0 then
+    FeatureId := 1
+  else
+    FeatureId := fFeatureType[FeatureTypeIndex].Id + 1;
+
+  // Add SQL for new feature
+  Values := inttostr(FeatureId) + ', ''' + aFeatureName + '''';
+  inc(FeatureTypeIndex);
+  aSQLCodingList.Add(Format(INSERT_SQL, [Values]));
+
+  // Add Array for new feature
+  SetLength(fFeatureType, FeatureTypeIndex+1);
+  fFeatureType[FeatureTypeIndex].Id := FeatureId;
+  fFeatureType[FeatureTypeIndex].Name := aFeatureName;
+
+  Result := FeatureId;
+end;
+
+//------------------------------------------------------------------------------
 procedure TUsageDataImporter.ImportFile(var aFileData: TFileData);
 begin
   aFileData.State := fsImporting;
@@ -1328,10 +1188,15 @@ begin
                                                                   LineArrId[LineIndex]));
 
                       // Add Feature Data to DB
-                      inc(fNumOfSQLStatements);
-                      fSQLQuery.SQL.Add(GetFeatureInsertFromXML(LineArrId[LineIndex],
-                                                                LineArrCols[LineIndex].Strings[USG_TimeStamp],
-                                                                FeatureList));
+                      GetFeatureInsertFromXML(LineArrId[LineIndex],
+                                              LineArrCols[LineIndex].Strings[USG_TimeStamp],
+                                              FeatureList,
+                                              SQLCodingList);
+                      for CodingIndex := 0 to SQLCodingList.Count - 1 do
+                      begin
+                        inc(fNumOfSQLStatements);
+                        fSQLQuery.SQL.Add(SQLCodingList.Strings[CodingIndex]);
+                      end;
 
                       // Add Report Feature Data to DB
                       GetReportFeatureInsertFromXML(LineArrId[LineIndex],
@@ -1511,9 +1376,9 @@ begin
   Result := false;
   aReportName := '';
 
-  for ReportIndex := 1 to RPT_FEATURE_COLS do
+  for ReportIndex := 0 to length(fReport)-1 do
   begin
-    RptCleanFeatue := CleanFeatureName(ReportFeatureNames[ReportIndex]);
+    RptCleanFeatue := CleanFeatureName(fReport[ReportIndex].Name);
     RptCleanLen := Length(RptCleanFeatue);
     FeatureLen  := Length(aFeature);
 
@@ -1541,36 +1406,38 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TUsageDataImporter.GetReportFeatureTypeAndDest(aFeature, aReportName: string;
-                                                         var aFeatureType: TFeatureType;
-                                                         var aFeatureDest: TFeatureDest);
+                                                         var aFeatureType : integer;
+                                                         var aFeatureDest : integer);
 var
-  FeatureType : TFeatureType;
-  FeatureDest : TFeatureDest;
+  FeatureTypeIndex : integer;
+  FeatureDestIndex : integer;
   CheckStr : string;
 begin
   if aFeature = aReportName then
   begin
-    aFeatureType := ftNormal;
-    aFeatureDest := fdNone;
+    aFeatureType := 1;
+    aFeatureDest := 1;
     Exit;
   end;
 
   CheckStr := RightStr(aFeature, length(aFeature) - length(aReportName));
 
-  for FeatureType := ftNormal to ftScheduled do
+  // Get Feature Type Id using name as search criteria
+  for FeatureTypeIndex := 0 to High(fReportType) do
   begin
-    if ContainsText(CheckStr, FeatureTypeNames[FeatureType]) then
+    if ContainsText(CheckStr, fReportType[FeatureTypeIndex].Name) then
     begin
-      aFeatureType := FeatureType;
+      aFeatureType := fReportType[FeatureTypeIndex].Id;
       break;
     end;
   end;
 
-  for FeatureDest := fdNone to fdCCHFile do
+  // Get Feature Dest Id using name as search criteria
+  for FeatureDestIndex := 0 to High(fReportDest) do
   begin
-    if ContainsText(CheckStr, FeatureDestNames[FeatureDest]) then
+    if ContainsText(CheckStr, fReportDest[FeatureDestIndex].Name) then
     begin
-      aFeatureDest := FeatureDest;
+      aFeatureDest := fReportDest[FeatureDestIndex].Id;
       break;
     end;
   end;
@@ -1582,11 +1449,11 @@ var
   Index : integer;
 begin
   Result := -1;
-  for Index := 1 to RPT_FEATURE_COLS do
+  for Index := 0 to length(fReport)-1 do
   begin
-    if ReportFeatureNames[Index] = aReportName then
+    if fReport[Index].Name = aReportName then
     begin
-      Result := Index;
+      Result := fReport[Index].Id;
       Exit;
     end;
   end;
@@ -1623,17 +1490,16 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-function TUsageDataImporter.GetFeatureInsertFromXML(aId: integer; aTimeStamp : string; var aFeatureList : TList): string;
+procedure TUsageDataImporter.GetFeatureInsertFromXML(aId: integer; aTimeStamp : string; var aFeatureList : TList; var aSQLCodingList : TStringList);
 var
   InsertText : string;
   ValuesText : string;
   FeatureIndex : integer;
+  FeatureId : integer;
   FeatureItem : TFeatureItem;
   ReportName: string;
 begin
-  Result := '';
-  InsertText := 'insert into [feature] ([PracticeInfoId], [UploadDateTime]';
-  ValuesText := 'values (' + inttostr(aId) + ',''' + aTimeStamp + '''' ;
+  aSQLCodingList.Clear;
 
   for FeatureIndex := 0 to aFeatureList.Count - 1 do
   begin
@@ -1643,15 +1509,17 @@ begin
        (not (leftstr(FeatureItem.Name, 5) = 'User_')) and
        (not (IsReportFeature(FeatureItem.Name, ReportName))) then
     begin
-      InsertText := InsertText + ',[' + FeatureItem.Name + ']';
-      ValuesText := ValuesText + ',' + FeatureItem.Count;
+      FeatureId := GetFeatureTypeId(FeatureItem.Name, aSQLCodingList);
+
+      InsertText := 'insert into [feature] ([PracticeInfoId], [FeatureTypeId], [UploadDateTime], [Count]) ';
+      ValuesText := 'values (' + inttostr(aId) + ', ' +
+                                 inttostr(FeatureId) + ',''' +
+                                 aTimeStamp + ''', ' +
+                                 FeatureItem.Count + ');';
+
+      aSQLCodingList.Add(InsertText + ValuesText);
     end;
   end;
-
-  InsertText := InsertText + ') ';
-  ValuesText := ValuesText + ');';
-
-  Result := InsertText + ValuesText;
 end;
 
 //------------------------------------------------------------------------------
@@ -1662,8 +1530,8 @@ var
   FeatureIndex : integer;
   FeatureItem : TFeatureItem;
   ReportName: string;
-  FeatureType : TFeatureType;
-  FeatureDest : TFeatureDest;
+  FeatureType : integer;
+  FeatureDest : integer;
   ReportIndex : integer;
 begin
   aSQLCodingList.Clear;
@@ -1687,8 +1555,8 @@ begin
                                                  '[Count]) ';
       ValuesText := 'values (' + inttostr(aId) + ',' +
                                  inttostr(ReportIndex) + ',' +
-                                 inttostr(Integer(FeatureType)) + ',' +
-                                 inttostr(Integer(FeatureDest)) + ',''' +
+                                 inttostr(FeatureType) + ',' +
+                                 inttostr(FeatureDest) + ',''' +
                                  aTimeStamp + ''',' +
                                  FeatureItem.Count + ')';
 
