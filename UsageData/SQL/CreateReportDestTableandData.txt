@@ -1,0 +1,46 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ReportDest]') AND type in (N'U'))
+DROP TABLE [dbo].[ReportDest]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ReportDest](
+	[Id] [int] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+ CONSTRAINT [PK_ReportDest] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+Insert into ReportDest(Id, Name) values (1, 'None');
+Insert into ReportDest(Id, Name) values (2, 'View');
+Insert into ReportDest(Id, Name) values (3, 'Print');
+Insert into ReportDest(Id, Name) values (4, 'File');
+Insert into ReportDest(Id, Name) values (5, 'Email');
+Insert into ReportDest(Id, Name) values (6, 'Fax');
+Insert into ReportDest(Id, Name) values (7, 'Ecoding');
+Insert into ReportDest(Id, Name) values (8, 'CSVExport');
+Insert into ReportDest(Id, Name) values (9, 'WebX');
+Insert into ReportDest(Id, Name) values (10, 'FCheckOut');
+Insert into ReportDest(Id, Name) values (11, 'BusinessProduct');
+Insert into ReportDest(Id, Name) values (12, 'Comma Separated (CSV) File');
+Insert into ReportDest(Id, Name) values (13, 'Fixed Width Text (TXT) File');
+Insert into ReportDest(Id, Name) values (14, 'Microsoft Excel (XLSX) File');
+Insert into ReportDest(Id, Name) values (15, 'Microsoft Excel (XLS) File');
+Insert into ReportDest(Id, Name) values (16, 'Adobe Acrobat Format (PDF) File');
+Insert into ReportDest(Id, Name) values (17, 'CCH Web Manager File');
+
+GO

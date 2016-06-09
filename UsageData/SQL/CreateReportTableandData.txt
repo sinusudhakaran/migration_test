@@ -1,0 +1,161 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Report]') AND type in (N'U'))
+DROP TABLE [dbo].[Report]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Report](
+	[Id] [int] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+ CONSTRAINT [PK_Report] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+Insert into Report(Id, Name) values (1, 'Activity_Statement_Summary');
+Insert into Report(Id, Name) values (2, 'All_Open_Tasks');
+Insert into Report(Id, Name) values (3, 'Annual_GST_information_report');
+Insert into Report(Id, Name) values (4, 'Annual_GST_Return');
+Insert into Report(Id, Name) values (5, 'Audit_Report');
+Insert into Report(Id, Name) values (6, 'Balance_Sheet');
+Insert into Report(Id, Name) values (7, 'Balance_Sheet_Export');
+Insert into Report(Id, Name) values (8, 'Balance_Sheet_Multiple_Periods');
+Insert into Report(Id, Name) values (9, 'Balance_Sheet_Single_Period');
+Insert into Report(Id, Name) values (10, 'Bank_Reconciliation');
+Insert into Report(Id, Name) values (11, 'Bank_Reconciliation_-_Detailed');
+Insert into Report(Id, Name) values (12, 'Bank_Reconciliation_-_Summarised');
+Insert into Report(Id, Name) values (13, 'BankLink_Client_Authority');
+Insert into Report(Id, Name) values (14, 'BankLink_Third_Party_Authority');
+Insert into Report(Id, Name) values (15, 'BAS_Calculation_Sheet');
+Insert into Report(Id, Name) values (16, 'Budget_Listing');
+Insert into Report(Id, Name) values (17, 'Business_Activity_Statement');
+Insert into Report(Id, Name) values (18, 'Business_Norm_Percentages_Report');
+Insert into Report(Id, Name) values (19, 'Cash_Flow');
+Insert into Report(Id, Name) values (20, 'Cash_Flow_-_12_Months_Actual');
+Insert into Report(Id, Name) values (21, 'Cash_Flow_-_12_Months_Actual_or_Budget');
+Insert into Report(Id, Name) values (22, 'Cash_Flow_-_12_Months_Budget');
+Insert into Report(Id, Name) values (23, 'Cash_Flow_-_Actual');
+Insert into Report(Id, Name) values (24, 'Cash_Flow_-_Actual_and_Budget');
+Insert into Report(Id, Name) values (25, 'Cash_Flow_-_Actual_Budget_and_Variance');
+Insert into Report(Id, Name) values (26, 'Cash_Flow_-_Budget_Remaining');
+Insert into Report(Id, Name) values (27, 'Cash_Flow_-_Date_to_Date');
+Insert into Report(Id, Name) values (28, 'Cash_Flow_-_This_Year_Last_Year_and_Variance');
+Insert into Report(Id, Name) values (29, 'Cash_Flow_Export');
+Insert into Report(Id, Name) values (30, 'Cash_Flow_Multiple_Periods');
+Insert into Report(Id, Name) values (31, 'Cash_Flow_Single_Period');
+Insert into Report(Id, Name) values (32, 'Client_File_Access_Control');
+Insert into Report(Id, Name) values (33, 'Client_Header');
+Insert into Report(Id, Name) values (34, 'Client_Home_Report');
+Insert into Report(Id, Name) values (35, 'Client_Status_Report');
+Insert into Report(Id, Name) values (36, 'Client_Type_Header');
+Insert into Report(Id, Name) values (37, 'Clients_Report');
+Insert into Report(Id, Name) values (38, 'Coding');
+Insert into Report(Id, Name) values (39, 'Coding_-_Anomalies');
+Insert into Report(Id, Name) values (40, 'Coding_-_Details_Only');
+Insert into Report(Id, Name) values (41, 'Coding_-_Standard');
+Insert into Report(Id, Name) values (42, 'Coding_-_Standard_with_Notes');
+Insert into Report(Id, Name) values (43, 'Coding_-_Two_Column');
+Insert into Report(Id, Name) values (44, 'Coding_-_Two_Column_with_Notes');
+Insert into Report(Id, Name) values (45, 'Coding_by_Job');
+Insert into Report(Id, Name) values (46, 'Coding_Optimisation_Report');
+Insert into Report(Id, Name) values (47, 'Coding_Report_Preview');
+Insert into Report(Id, Name) values (48, 'Custom_Document');
+Insert into Report(Id, Name) values (49, 'Detailed_Coding_by_Job');
+Insert into Report(Id, Name) values (50, 'Disk_Image_Documents');
+Insert into Report(Id, Name) values (51, 'Download_Log');
+Insert into Report(Id, Name) values (52, 'Download_Report');
+Insert into Report(Id, Name) values (53, 'Exception');
+Insert into Report(Id, Name) values (54, 'Foreign_Exchange_Report');
+Insert into Report(Id, Name) values (55, 'General_Report_Preview');
+Insert into Report(Id, Name) values (56, 'Group_Header');
+Insert into Report(Id, Name) values (57, 'GST_Allocation_Summary');
+Insert into Report(Id, Name) values (58, 'GST_Audit');
+Insert into Report(Id, Name) values (59, 'GST_calculation_sheet_372');
+Insert into Report(Id, Name) values (60, 'GST_Overrides');
+Insert into Report(Id, Name) values (61, 'GST_Reconciliation');
+Insert into Report(Id, Name) values (62, 'GST_Report_Preview');
+Insert into Report(Id, Name) values (63, 'GST_Return');
+Insert into Report(Id, Name) values (64, 'GST_Summary');
+Insert into Report(Id, Name) values (65, 'Income_and_Expenditure');
+Insert into Report(Id, Name) values (66, 'Latest_Charges');
+Insert into Report(Id, Name) values (67, 'Ledger');
+Insert into Report(Id, Name) values (68, 'Ledger_-_Detailed');
+Insert into Report(Id, Name) values (69, 'Ledger_-_Summarised');
+Insert into Report(Id, Name) values (70, 'List_Admin_Bank_Accounts');
+Insert into Report(Id, Name) values (71, 'List_Admin_Inactive_Bank_Accounts');
+Insert into Report(Id, Name) values (72, 'List_Bank_Accounts');
+Insert into Report(Id, Name) values (73, 'List_Charges');
+Insert into Report(Id, Name) values (74, 'List_Chart_of_Accounts');
+Insert into Report(Id, Name) values (75, 'List_Client_Report_Options');
+Insert into Report(Id, Name) values (76, 'List_Client_Types');
+Insert into Report(Id, Name) values (77, 'List_Clients_by_Staff_Member');
+Insert into Report(Id, Name) values (78, 'List_Divisions');
+Insert into Report(Id, Name) values (79, 'List_Entries');
+Insert into Report(Id, Name) values (80, 'List_Entries_(incl._Notes)');
+Insert into Report(Id, Name) values (81, 'List_Groups');
+Insert into Report(Id, Name) values (82, 'List_GST_Details');
+Insert into Report(Id, Name) values (83, 'List_Jobs');
+Insert into Report(Id, Name) values (84, 'List_Journals');
+Insert into Report(Id, Name) values (85, 'List_Manual_Bank_Accounts');
+Insert into Report(Id, Name) values (86, 'List_Memorisations');
+Insert into Report(Id, Name) values (87, 'List_Payees');
+Insert into Report(Id, Name) values (88, 'List_Provisional_Bank_Accounts');
+Insert into Report(Id, Name) values (89, 'List_Reports_Due');
+Insert into Report(Id, Name) values (90, 'List_Sub-groups');
+Insert into Report(Id, Name) values (91, 'Listings_Report_Preview');
+Insert into Report(Id, Name) values (92, 'Mail_Merge_(Email)_Summary');
+Insert into Report(Id, Name) values (93, 'Mail_Merge_(Print)_Summary');
+Insert into Report(Id, Name) values (94, 'Missing_Cheques');
+Insert into Report(Id, Name) values (95, 'Off-site_Download_Log');
+Insert into Report(Id, Name) values (96, 'One_Page_Summary');
+Insert into Report(Id, Name) values (97, 'Payee_Spending');
+Insert into Report(Id, Name) values (98, 'Payee_Spending_-_Detailed');
+Insert into Report(Id, Name) values (99, 'Payee_Spending_-_Summarised');
+Insert into Report(Id, Name) values (100, 'Payments');
+Insert into Report(Id, Name) values (101, 'Profit_and_Loss');
+Insert into Report(Id, Name) values (102, 'Profit_and_Loss_-_12_Months_Actual');
+Insert into Report(Id, Name) values (103, 'Profit_and_Loss_-_12_Months_Actual_or_Budget');
+Insert into Report(Id, Name) values (104, 'Profit_and_Loss_-_12_Months_Budget');
+Insert into Report(Id, Name) values (105, 'Profit_and_Loss_-_Actual');
+Insert into Report(Id, Name) values (106, 'Profit_and_Loss_-_Actual_and_Budget');
+Insert into Report(Id, Name) values (107, 'Profit_and_Loss_-_Actual_and_last_Year');
+Insert into Report(Id, Name) values (108, 'Profit_and_Loss_-_Actual_Budget_and_last_Year');
+Insert into Report(Id, Name) values (109, 'Profit_and_Loss_-_Actual_Budget_and_Variance');
+Insert into Report(Id, Name) values (110, 'Profit_and_Loss_-_Budget_Remaining');
+Insert into Report(Id, Name) values (111, 'Profit_and_Loss_-_Date_to_Date');
+Insert into Report(Id, Name) values (112, 'Profit_and_Loss_-_Export');
+Insert into Report(Id, Name) values (113, 'Profit_and_Loss_Multiple_Periods');
+Insert into Report(Id, Name) values (114, 'Profit_and_Loss_Single_Period');
+Insert into Report(Id, Name) values (115, 'Sales');
+Insert into Report(Id, Name) values (116, 'Scheduled_Reports_Summary');
+Insert into Report(Id, Name) values (117, 'Sort_Header');
+Insert into Report(Id, Name) values (118, 'Staff_Member_Header');
+Insert into Report(Id, Name) values (119, 'Summarised_Coding_by_Job');
+Insert into Report(Id, Name) values (120, 'Summary_Download_Report');
+Insert into Report(Id, Name) values (121, 'System_Accounts');
+Insert into Report(Id, Name) values (122, 'Tasks');
+Insert into Report(Id, Name) values (123, 'Taxable_Payments');
+Insert into Report(Id, Name) values (124, 'Taxable_Payments_-_Detailed');
+Insert into Report(Id, Name) values (125, 'Taxable_Payments_-_Summarised');
+Insert into Report(Id, Name) values (126, 'Test_Fax');
+Insert into Report(Id, Name) values (127, 'Total_Bank_Balance');
+Insert into Report(Id, Name) values (128, 'Trading_Results');
+Insert into Report(Id, Name) values (129, 'Trial_Balance');
+Insert into Report(Id, Name) values (130, 'Unpresented_Items');
+Insert into Report(Id, Name) values (131, 'VAT_Return');
+Insert into Report(Id, Name) values (132, 'ZZZ');
+
+GO

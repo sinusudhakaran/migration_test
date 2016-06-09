@@ -10,6 +10,19 @@ uses
   ExtCtrls;
 
 type
+  TIDName = record
+    Id : integer;
+    Name : string;
+  end;
+  TArrIDName = Array of TIDName;
+
+  TIDCodeName = record
+    Id : integer;
+    Code : string;
+    Name : string;
+  end;
+  TArrIDCodeName = Array of TIDCodeName;
+
   TServiceState = (usStop          = 1,
                    usStopping      = 2,
                    usStarting      = 3,
@@ -116,6 +129,12 @@ type
     fDatabase : string;
     fUserName : string;
     fPassword : string;
+
+    fCodingType  : TArrIDCodeName;
+    fFeatureType : TArrIDName;
+    fReportDest  : TArrIDName;
+    fReportType  : TArrIDName;
+    fReport      : TArrIDName;
   protected
     function GetCleanString(aValue : string) : string;
 
@@ -126,6 +145,13 @@ type
     procedure AddUpdIntValue(aColumn : integer; var aResStr : string; aColumnValues : TStringList; aAddComma : boolean; aDefault : string);
     procedure AddUpdStrValue(aColumn : integer; var aResStr : string; aColumnValues : TStringList; aAddComma : boolean);
     procedure AddUpdDateValue(aColumn : integer; var aResStr : string; aColumnValues : TStringList; aAddComma : boolean; aDefault : string);
+
+    procedure FillLookupData();
+    procedure FillIdName(var aArrIdName : TArrIDName; aTableName : string);
+    procedure FillIdCodeName(var aArrIdCodeName : TArrIDCodeName; aTableName : string);
+    procedure ClearLookupData();
+    procedure ClearIdName(var aArrIdName : TArrIDName);
+    procedure ClearIdCodeName(var aArrIdCodeName : TArrIDCodeName);
 
     function CleanXML(aInstring: string): string;
     function CleanFeatureName(aInstring: string): string;
@@ -579,6 +605,108 @@ procedure TUsageDataImporter.AddUpdDateValue(aColumn: integer; var aResStr: stri
 begin
   aResStr := aResStr + PracInfoFieldNames[aColumn+1] + '=';
   AddDateValue(aResStr, aColumnValues.Strings[aColumn], aAddComma, aDefault);
+end;
+
+//------------------------------------------------------------------------------
+procedure TUsageDataImporter.FillLookupData;
+begin
+  FillIdCodeName(fCodingType, 'CodingType');
+  FillIdName(fFeatureType, 'FeatureType');
+  FillIdName(fReportDest, 'ReportDest');
+  FillIdName(fReportType, 'ReportType');
+  FillIdName(fReport, 'Report');
+end;
+
+//------------------------------------------------------------------------------
+procedure TUsageDataImporter.FillIdName(var aArrIdName : TArrIDName; aTableName : string);
+Const
+  SELECT_DATA = 'Select * from %s order by id asc;';
+var
+  Index : integer;
+begin
+  fSQLDataSet.CommandText := Format(SELECT_DATA, [aTableName]);
+  fSQLDataSet.Prepared := true;
+  fSQLDataSet.Open;
+
+  try
+    SetLength(aArrIdName, fSQLDataSet.RecordCount);
+    Index := 0;
+
+    fSQLDataSet.First;
+    while (not fSQLDataSet.Eof) do
+    begin
+      aArrIdName[Index].Id   := fSQLDataSet.FieldByName('Id').AsInteger;
+      aArrIdName[Index].Name := fSQLDataSet.FieldByName('Name').AsString;
+
+      fSQLDataSet.Next;
+      inc(Index);
+    end;
+  finally
+    fSQLDataSet.Close;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TUsageDataImporter.FillIdCodeName(var aArrIdCodeName : TArrIDCodeName; aTableName : string);
+Const
+  SELECT_DATA = 'Select * from %s order by id asc;';
+var
+  Index : integer;
+begin
+  fSQLDataSet.CommandText := Format(SELECT_DATA, [aTableName]);
+  fSQLDataSet.Prepared := true;
+  fSQLDataSet.Open;
+
+  try
+    SetLength(aArrIdCodeName, fSQLDataSet.RecordCount);
+    Index := 0;
+
+    fSQLDataSet.First;
+    while (not fSQLDataSet.Eof) do
+    begin
+      aArrIdCodeName[Index].Id   := fSQLDataSet.FieldByName('Id').AsInteger;
+      aArrIdCodeName[Index].Code := fSQLDataSet.FieldByName('Code').AsString;
+      aArrIdCodeName[Index].Name := fSQLDataSet.FieldByName('Name').AsString;
+
+      fSQLDataSet.Next;
+      inc(Index);
+    end;
+  finally
+    fSQLDataSet.Close;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TUsageDataImporter.ClearLookupData();
+begin
+  ClearIdCodeName(fCodingType);
+  ClearIdName(fFeatureType);
+  ClearIdName(fReportDest);
+  ClearIdName(fReportType);
+  ClearIdName(fReport);
+end;
+
+//------------------------------------------------------------------------------
+procedure TUsageDataImporter.ClearIdName(var aArrIdName : TArrIDName);
+var
+  Index : integer;
+begin
+  for Index := 0 to length(aArrIdName) - 1 do
+    aArrIdName[Index].Name := '';
+  SetLength(aArrIdName, 0);
+end;
+
+//------------------------------------------------------------------------------
+procedure TUsageDataImporter.ClearIdCodeName(var aArrIdCodeName : TArrIDCodeName);
+var
+  Index : integer;
+begin
+  for Index := 0 to length(aArrIdCodeName) - 1 do
+  begin
+    aArrIdCodeName[Index].Code := '';
+    aArrIdCodeName[Index].Name := '';
+  end;
+  SetLength(aArrIdCodeName, 0);
 end;
 
 //------------------------------------------------------------------------------
@@ -2049,6 +2177,8 @@ begin
   SetupDatabase(fHostName, fDatabase, fUserName, fPassword);
   fSQLConnection.Connected := true;
 
+  FillLookupData();
+
   SetServiceState(usWaiting);
 end;
 
@@ -2057,6 +2187,7 @@ procedure TUsageDataImporter.StopService;
 begin
   fCurrentServiceStatus := usStopping;
 
+  ClearLookupData();
   fSQLConnection.Connected := false;
 
   SetServiceState(usStop);

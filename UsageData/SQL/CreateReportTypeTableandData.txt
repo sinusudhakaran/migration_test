@@ -1,0 +1,33 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ReportType]') AND type in (N'U'))
+DROP TABLE [dbo].[ReportType]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ReportType](
+	[Id] [int] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+ CONSTRAINT [PK_ReportType] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+Insert into ReportType(Id, Name) values (1, 'None');
+Insert into ReportType(Id, Name) values (2, 'Generate');
+Insert into ReportType(Id, Name) values (3, 'Favourite');
+Insert into ReportType(Id, Name) values (4, 'Scheduled');
+
+GO

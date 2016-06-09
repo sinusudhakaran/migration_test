@@ -1,0 +1,63 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[OsVersions]') AND type in (N'U'))
+DROP TABLE [dbo].[OsVersions]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[OsVersions](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+	[OsVersion] [varchar](50) NULL,
+	[OsVerNumber] [varchar](50) NULL,
+	[OsName] [varchar](50) NULL,
+ CONSTRAINT [PK_OSVersions] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 98 4.10.2222 A', '4.10.2222', 'Windows 98');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 2000 5.00.2195 Service', '5.00.2195', 'Windows 2000');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.01.2600 Serv', '5.01.2600', 'Windows XP');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.01.2600 Service', '5.01.2600', 'Windows XP');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.01.2600 Service P', '5.01.2600', 'Windows XP');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.01.2600 Service Pa', '5.01.2600', 'Windows XP');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.02.3790', '5.02.3790', 'Windows XP x64');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.02.3790 Serv', '5.02.3790', 'Windows XP x64');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.02.3790 Service P', '5.02.3790', 'Windows XP x64');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.02.3790 Service Pa', '5.02.3790', 'Windows XP x64');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 5.02.3790 Service Pack 1', '5.02.3790', 'Windows XP x64');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 2000 6.00.6000', '6.00.6000', 'Windows Vista');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 2000 6.00.6001 Se', '6.00.6001', 'Windows Vista');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 2000 6.00.6001 Service', '6.00.6001', 'Windows Vista');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 2000 6.00.6002 Se', '6.00.6002', 'Windows Vista');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows 2000 6.00.6002 Service', '6.00.6002', 'Windows Vista');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.01.7022', '6.01.7022', 'Windows 7');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.01.7600', '6.01.7600', 'Windows 7');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.01.7600 Serv', '6.01.7600', 'Windows 7');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.01.7601 Serv', '6.01.7601', 'Windows 7');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.01.7601 Service', '6.01.7601', 'Windows 7');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.01.7601 Service P', '6.01.7601', 'Windows 7');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('Windows XP 6.02.9200', '6.02.9200', 'Windows 8');
+Insert into OsVersions(OsVersion, OsVerNumber, OsName) values ('N/A', 'N/A', '');
+
+GO
+
+
