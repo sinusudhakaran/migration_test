@@ -118,7 +118,11 @@ uses Globals, GSTCalc32, ErrorMoreFrm, WarningMoreFrm,
       Bk5Except, InfoMoreFrm, DlgSelect, bkDateUtils, Traverse, TravUtils,
       ContraCodeEntryfrm, StDateSt, GenUtils, FrmChartExportMapGSTClass,
       ChartExportToMYOBCashbook, Math, myMYOBSignInFrm, Forms, Controls,
-      INISettings, GSTUTIL32, ipshttps;
+      INISettings, GSTUTIL32, ipshttps, UsageUtils;
+
+const
+  USAGE_CLIENTS_MIGRATED = 'MYOB_Ledger_Extract_Count';
+  USAGE_CLIENT_ERRORS = 'MYOB_Ledger_Extract_ErrorCount';
 
 var
   DebugMe : boolean = false;
@@ -626,12 +630,16 @@ begin
         end;
 
         if Not FExportTerminated then
-        Begin
+        begin
           Result := True;
           Msg := SysUtils.Format( 'Extract Data Complete. %d Entries were exported to ' + GetAPIName + ' Account',[NoOfEntries] );
           LogUtil.LogMsg(lmInfo, UnitName, ThisMethodName + ' : ' + Msg );
           HelpfulInfoMsg( Msg, 0 );
-        end;
+          IncUsage(USAGE_CLIENTS_MIGRATED);
+        end
+        else
+          IncUsage(USAGE_CLIENT_ERRORS);
+
       finally
         if Assigned(FBankAcctsToExport) then
         begin

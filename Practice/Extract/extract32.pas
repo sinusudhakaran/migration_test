@@ -76,6 +76,8 @@ uses
   RewardSuperXmlX, ClassSuperXmlX,
   MYOBAccRightX,
   PracticeLedgerObj,
+  SYDEFS,
+  UsageUtils,
   BKDefs;
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -106,6 +108,8 @@ procedure ExtractData(const Fromdate: Integer = 0; const Todate: Integer = 0);
 
 const
    ThisMethodName = 'ExtractData';
+   ACCT_SYS_EXTRACT_COUNT = 'AcctSysExtrCount';
+   ACCT_SYS_EXTRACT_ERROR_COUNT = 'AcctSysExtrErrCount';
 
 var
    FD, TD       : integer;
@@ -118,6 +122,8 @@ var
    PeriodIndex: Integer;
    PeriodList: TDateList;
    BankIndex: Integer;
+   SysClientRec : pClient_File_Rec;
+   AccSysName : string;
 
    // Extracts the folder part of the path.
    // In case you're wondering why this is necessary, simply using ExtractFileDir on a directory
@@ -152,6 +158,10 @@ begin
    CheckForMissingExchangeRates(FD, TD);
 
    { Check that we have a contra account code and enter it if necessary }
+
+   SysClientRec := AdminSystem.fdSystem_Client_File_List.FindCode(MyClient.clFields.clCode);
+   if Assigned(SysClientRec) then
+     AccSysName := SysClientRec^.cfAccounting_System;
 
    with MyClient, clFields do
    begin
@@ -188,6 +198,8 @@ begin
         // The default file name for BGL 360 is based off the current date,
         // so it shouldn't be saved as the path for next time
         clSave_Client_Files_To := ExtractFileDir(Path);
+
+
 
       Try
          Case clCountry of
@@ -324,32 +336,43 @@ begin
              BA.baFinalized_Exchange_Rate_List.AddExchangeRate(PeriodList[PeriodIndex], BA.Default_Forex_Conversion_Rate(PeriodList[PeriodIndex]));  
            end;
          end;
-           
 
+         if  AccSysName <> '' then
+           IncUsage(ACCT_SYS_EXTRACT_COUNT + ' ' + AccSysName);
       except
-         on e : EFCreateError do begin
-            Msg := 'Please ensure this is a valid file name, and you have access rights to the directory.';
-            HelpfulErrorMsg( Msg, 0, False, E.Message, True );
-            Msg := 'EFCreateError : '+E.Message;
-            LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
-         end;
-         on e : EInOutError do begin
-            Msg := 'EInOutError occurred';
-            HelpfulErrorMsg(Msg,0, false, E.Message, True);
-            Logutil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
-         end;
+        on e : EFCreateError do
+        begin
+          Msg := 'Please ensure this is a valid file name, and you have access rights to the directory.';
+          HelpfulErrorMsg( Msg, 0, False, E.Message, True );
+          Msg := 'EFCreateError : '+E.Message;
+          LogUtil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg );
+          if  AccSysName <> '' then
+            IncUsage(ACCT_SYS_EXTRACT_ERROR_COUNT + ' ' + AccSysName);
+        end;
+        on e : EInOutError do
+        begin
+          Msg := 'EInOutError occurred';
+          HelpfulErrorMsg(Msg,0, false, E.Message, True);
+          Logutil.LogMsg(lmError, UnitName, ThisMethodName + ' : ' + Msg);
+          if  AccSysName <> '' then
+            IncUsage(ACCT_SYS_EXTRACT_ERROR_COUNT + ' ' + AccSysName);
+        end;
 
-         on e : EOleSysError do
-         begin
-            Msg := 'Error extracting data.';
-            HelpfulErrorMsg(Msg,0, True, E.Message + ' ' + E.ClassName, True);
-         end;
+        on e : EOleSysError do
+        begin
+          Msg := 'Error extracting data.';
+          HelpfulErrorMsg(Msg,0, True, E.Message + ' ' + E.ClassName, True);
+          if  AccSysName <> '' then
+            IncUsage(ACCT_SYS_EXTRACT_ERROR_COUNT + ' ' + AccSysName);
+        end;
 
-         on e : EInterfaceError do
-         begin
-            Msg := 'Error extracting data.';
-            HelpfulErrorMsg(Msg,0, True, E.Message + ' ' + E.ClassName, True);
-         end;
+        on e : EInterfaceError do
+        begin
+          Msg := 'Error extracting data.';
+          HelpfulErrorMsg(Msg,0, True, E.Message + ' ' + E.ClassName, True);
+          if  AccSysName <> '' then
+            IncUsage(ACCT_SYS_EXTRACT_ERROR_COUNT + ' ' + AccSysName);
+        end;
       end;
    end;
    if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, ThisMethodName + ' Ends' );

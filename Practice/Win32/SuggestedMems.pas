@@ -169,12 +169,14 @@ uses
   MemoriseDlg,
   Autocode32,
   mxUtils,
+  UsageUtils,
   LogUtil;
 
 const
   UnitName = 'SuggestedMems';
   UnitNameExt = 'SuggestedMemsExt';
   ManualCodedBy = [cbManual, cbECodingManual];
+  USAGE_ADDED_MEM_FROM_SUGGESTION_COUNT = 'SuggestedMemsNewMemFromPopupCount';
 
 var
   fSuggestedMems: TSuggestedMems;
@@ -1637,6 +1639,8 @@ begin
 
     // OK pressed, and insert mem?
     Result := CreateMemorisation(aBankAccount, Mem);
+    if Result then
+      incUsage(USAGE_ADDED_MEM_FROM_SUGGESTION_COUNT);
   finally
     FreeAndNil(Mem);
   end;

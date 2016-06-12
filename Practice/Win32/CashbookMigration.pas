@@ -313,6 +313,7 @@ uses
   dateUtils,
   Variants,
   WarningMoreFrm,
+  UsageUtils,
   Dialogs;
 
 const
@@ -329,6 +330,8 @@ const
 
   CASHBOOK_SYSTEM_ACCOUNTS : Array[0..8] of string =
     ('2-2000','2-2200','2-2400','2-2800','3-1600','3-1800','3-8000','3-8001','3-9999');
+  USAGE_CLIENTS_MIGRATED = 'Cashbook_Migration_MigratedCount';
+  USAGE_CLIENT_ERRORS = 'Cashbook_Migration_ErrorCount';
 
 var
   fCashbookMigration: TCashbookMigration;
@@ -3313,6 +3316,12 @@ begin
       inc(aNumErrorClients);
     end;
   end;
+
+  if (aSelectClients.Count - aClientErrors.Count) > 0 then
+    IncUsage(USAGE_CLIENTS_MIGRATED, False, aSelectClients.Count - aClientErrors.Count);
+
+  if (aClientErrors.Count) > 0 then
+    IncUsage(USAGE_CLIENT_ERRORS, False, aClientErrors.Count);
 
   if PRACINI_CashbookModifiedCodeCount <> fNumCodeReplaced then
   begin

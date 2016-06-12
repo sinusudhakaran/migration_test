@@ -21,6 +21,7 @@ uses
    CodingStatsList32,csDefs,bkDateUtils,
    SysUtils, eCollect, StStrS, StDateSt, StDate, LockUtils,
   Globals, LogUtil, GlobalCache, Windows, SyDefs, BkConst, Admin32, Classes,
+  inisettings,
   bkProduct;
 // -----------------------------------------------------------------------------
 
@@ -55,7 +56,9 @@ var
   i: Integer;
   u: pUser_Rec;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Reset Usage Data Begins');
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Delete Usage Data.');
+
   SysUtils.DeleteFile(UsageDir + USAGE_FILE);
   FreeAndNil( UsageList );
   UsageList := TUsageList.Create;
@@ -69,7 +72,6 @@ begin
     end;
     SaveAdminSystem;
   end;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Reset Usage Data Ends');
 end;
 
 function CurrentUsageXML: string;
@@ -79,7 +81,6 @@ var
   P: pUsageStatistics;
   i: Integer;
 begin
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Convert Usage to XML Begins');
   SaveUsage;
   FileName := UsageDir + USAGE_FILE;
   Totals := TUsageList.Create;
@@ -95,7 +96,6 @@ begin
     FreeAndNil( Totals ) ;
   end;
   Result := XML;
-  if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'Convert Usage to XML Ends');
 end;
 
 procedure IncUsage( const AName: ShortString; const Replace: Boolean = False; const Count: Integer = 1 ) ;
@@ -113,6 +113,9 @@ begin
     UsageList.Insert( P ) ;
   end;
   Inc( P.Counter, Count ) ;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Inc Usage Data, Name - ' + AName + ', Current Value - ' + inttostr(P.Counter));
 end;
 
 procedure SetUsage( const AName: ShortString; const Count: Integer ) ;
@@ -131,6 +134,9 @@ begin
   end
   else
     p.Counter := Count;
+
+  if DebugMe then
+    LogUtil.LogMsg(lmDebug, UnitName, 'Set Usage Data, Name - ' + AName + ', Value - ' + inttostr(P.Counter));
 end;
 
 { TUsageList }
@@ -229,6 +235,9 @@ var
   p: pClient_File_Rec;
   u: pUser_Rec;
   lPractice: TSystem_Coding_Statistics;
+  ClientFileRec : pClient_File_Rec;
+  AdminClientIndex : integer;
+  NumClientDisabledSuggestedMems : integer;
 
     procedure WriteCodingStats(Value: pCoding_Statistics_Rec);
     var lDate: string;
@@ -285,7 +294,7 @@ begin
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'UpdateSystemCounters Begins');
   // update admin system entries
   If (not Assigned(AdminSystem)) or (not AdminSystem.fdFields.fdCollect_Usage_Data) or
-     (not Assigned(UsageList)) then exit;
+   (not Assigned(UsageList)) then exit;
   ArchiveCount := 0;
   ForeignCount := 0;
   ManualCount := 0;
@@ -296,64 +305,90 @@ begin
   ResetCount := 0;
   JobsCount := 0;
   DivisionsCount := 0;
+
   for i := roMin to roMax do
     SetUsage(SCHED_REP_ID_TEXT + ' ' + roNames[i], 0);
+
   for i := srdMin to srdMax do
     SetUsage(SCHED_REP_ID_TEXT + ' ' + srdNames[i], 0);
 
   UsageList.ResetSubStr(ACCT_SYS_ID_TEXT);
   UsageList.ResetSubStr(ACCT_SYS_COUNT_TEXT);
 
-     for i := 0 to Pred(AdminSystem.fdSystem_Client_File_List.ItemCount) do begin
-        p := AdminSystem.fdSystem_Client_File_List.Client_File_At(i);
-        if p.cfArchived then
-           Inc(ArchiveCount);
-        if p.cfForeign_File then
-           Inc(ForeignCount);
-        if p.cfManual_Account_Count > 0 then begin
-           Inc(ManualCount);
-           ManualAccountsTotal := ManualAccountsTotal + p.cfManual_Account_Count;
-        end;
-        if p.cfMem_Count > 0 then
-           Inc(MemCount);
-        if p.cfPayee_Count > 0 then
-           Inc(PayeeCount);
-        if p.cfClient_Type = ctProspect then
-           Inc(ProspectCount);
-        if p.cfAccounting_System <> '' then begin
-           IncUsage(ACCT_SYS_ID_TEXT + ' ' + p.cfAccounting_System, True);
-           IncUsage(ACCT_SYS_COUNT_TEXT + ' ' + p.cfAccounting_System, True, P.cfBank_Account_Count  );
-        end;
-        if p.cfReporting_Period in [roMin..roMax] then
-           IncUsage(SCHED_REP_ID_TEXT + ' ' + roNames[ p.cfReporting_Period]);
-        if p.cfSchd_Rep_Method in [srdMin..srdMax] then
-           IncUsage(SCHED_REP_ID_TEXT + ' ' + srdNames[ p.cfSchd_Rep_Method]);
-        if p.cfJob_Count <> 0 then
-           inc(JobsCount);
-        if p.cfDivision_Count <> 0 then
-           inc(DivisionsCount);
-     end;
+  for i := 0 to Pred(AdminSystem.fdSystem_Client_File_List.ItemCount) do
+  begin
+    p := AdminSystem.fdSystem_Client_File_List.Client_File_At(i);
 
-     SetUsage('No of Client Files', AdminSystem.fdSystem_Client_File_List.ItemCount);
-     SetUsage('No of Client Files (Archived)', ArchiveCount);
-     SetUsage('No of Client Files (Foreign)', ForeignCount);
-     SetUsage('No of Client Files with Manual Bank Accounts', ManualCount);
-     SetUsage('No of Client Files with Memorised Entries', MemCount);
-     SetUsage('No of Client Files with Payees', PayeeCount);
-     SetUsage('No of Client Files (Prospects)', ProspectCount);
-     SetUsage('No of Actual Bank Accounts', AdminSystem.fdSystem_Bank_Account_List.ItemCount);
-     SetUsage('No of Manual Bank Accounts', ManualAccountsTotal);
-     SetUsage('No of Users', AdminSystem.fdSystem_User_List.ItemCount);
-     SetUsage('No of Client Files with Jobs', JobsCount);
-     SetUsage('No of Client Files with Divisions', DivisionsCount);
-     SetUsage('No of Client Types',AdminSystem.fdSystem_Client_Type_List.ItemCount);
-     SetUsage('No of Client Groups',AdminSystem.fdSystem_Group_List.ItemCount);
-     if AdminSystem.DualAccountingSystem then
-        SetUsage('No of Admin DualAccountingSystems',1)
-     else
-        SetUsage('No of Admin DualAccountingSystems',0);
+    if p.cfArchived then
+      Inc(ArchiveCount);
 
-     SetProvisionalClients;
+    if p.cfForeign_File then
+      Inc(ForeignCount);
+
+    if p.cfManual_Account_Count > 0 then
+    begin
+      Inc(ManualCount);
+      ManualAccountsTotal := ManualAccountsTotal + p.cfManual_Account_Count;
+    end;
+
+    if p.cfMem_Count > 0 then
+       Inc(MemCount);
+
+    if p.cfPayee_Count > 0 then
+       Inc(PayeeCount);
+
+    if p.cfClient_Type = ctProspect then
+       Inc(ProspectCount);
+
+    if p.cfAccounting_System <> '' then begin
+       IncUsage(ACCT_SYS_ID_TEXT + ' ' + p.cfAccounting_System, True);
+       IncUsage(ACCT_SYS_COUNT_TEXT + ' ' + p.cfAccounting_System, True, P.cfBank_Account_Count  );
+    end;
+    if p.cfReporting_Period in [roMin..roMax] then
+       IncUsage(SCHED_REP_ID_TEXT + ' ' + roNames[ p.cfReporting_Period]);
+    if p.cfSchd_Rep_Method in [srdMin..srdMax] then
+       IncUsage(SCHED_REP_ID_TEXT + ' ' + srdNames[ p.cfSchd_Rep_Method]);
+    if p.cfJob_Count <> 0 then
+       inc(JobsCount);
+    if p.cfDivision_Count <> 0 then
+       inc(DivisionsCount);
+  end;
+
+  // Loop through System Clients and read any mem ini settings in
+  NumClientDisabledSuggestedMems := 0;
+  for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
+  begin
+   ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
+
+   ReadMemorisationINI(ClientFileRec^.cfFile_Code);
+
+   if MEMSINI_SupportOptions = meiDisableSuggestedMems then
+     inc(NumClientDisabledSuggestedMems);
+  end;
+
+  if NumClientDisabledSuggestedMems > 0 then
+   SetUsage('No of Client Files with Suggested Mems Disabled', NumClientDisabledSuggestedMems);
+
+  SetUsage('No of Client Files', AdminSystem.fdSystem_Client_File_List.ItemCount);
+  SetUsage('No of Client Files (Archived)', ArchiveCount);
+  SetUsage('No of Client Files (Foreign)', ForeignCount);
+  SetUsage('No of Client Files with Manual Bank Accounts', ManualCount);
+  SetUsage('No of Client Files with Memorised Entries', MemCount);
+  SetUsage('No of Client Files with Payees', PayeeCount);
+  SetUsage('No of Client Files (Prospects)', ProspectCount);
+  SetUsage('No of Actual Bank Accounts', AdminSystem.fdSystem_Bank_Account_List.ItemCount);
+  SetUsage('No of Manual Bank Accounts', ManualAccountsTotal);
+  SetUsage('No of Users', AdminSystem.fdSystem_User_List.ItemCount);
+  SetUsage('No of Client Files with Jobs', JobsCount);
+  SetUsage('No of Client Files with Divisions', DivisionsCount);
+  SetUsage('No of Client Types',AdminSystem.fdSystem_Client_Type_List.ItemCount);
+  SetUsage('No of Client Groups',AdminSystem.fdSystem_Group_List.ItemCount);
+  if AdminSystem.DualAccountingSystem then
+    SetUsage('No of Admin DualAccountingSystems',1)
+  else
+    SetUsage('No of Admin DualAccountingSystems',0);
+
+  SetProvisionalClients;
 
   for i := 0 to Pred(AdminSystem.fdSystem_User_List.ItemCount) do
   begin
@@ -369,13 +404,14 @@ begin
   // Work out what dates to get;
   lPractice := CodingStatsList32.CodingStatsManager.GetPracticeStats;
   try
-     lMonth := GetFirstDayOfMonth (CurrentDate);
-     for I := 1 to PracticeCodingMonths do begin
-        WriteCodingStats(lPractice.FindClientMonth(PracticeLRN, lMonth));
-        LMonth := IncDate(LMonth,0,-1,0);
-     end;
+    lMonth := GetFirstDayOfMonth (CurrentDate);
+    for I := 1 to PracticeCodingMonths do
+    begin
+      WriteCodingStats(lPractice.FindClientMonth(PracticeLRN, lMonth));
+      LMonth := IncDate(LMonth,0,-1,0);
+    end;
   finally
-     lPractice.Free;
+    lPractice.Free;
   end;
 
   if DebugMe then LogUtil.LogMsg(lmDebug, UnitName, 'UpdateSystemCounters Ends');
@@ -407,7 +443,6 @@ begin
     try
 
       // Monthly Totals
-
       FileName := UsageDir + USAGE_FILE;
       Totals := TUsageList.Create;
       try
@@ -418,51 +453,6 @@ begin
       finally
         FreeAndNil( Totals ) ;
       end;
-
-    // Monthly Totals By User - not currently required
-
-{     FileName := UsageDir + 'USAGE.CURRENT.' + GlobalCache.cache_Current_Username;
-      Totals := TUsageList.Create;
-      try
-        Totals.LoadFromFile( FileName ) ;
-        UsageList.AppendTo( Totals ) ;
-        Totals.SaveToFile( FileName ) ;
-      finally
-        FreeAndNil( Totals ) ;
-      end;}
-
-      // Totals - not currently required
-
-{     FileName := UsageDir + 'USAGE.TOTALS';
-      Totals := TUsageList.Create;
-      try
-        Totals.LoadFromFile( FileName ) ;
-        UsageList.AppendTo( Totals ) ;
-        Totals.SaveToFile( FileName ) ;
-      finally
-        FreeAndNil( Totals ) ;
-      end;
-
-      AssignFile( F, LogFileName ) ;
-      if not FileExists( LogFileName ) then
-        Rewrite( F )
-      else
-        Append( F ) ;
-      try
-        Writeln( F ) ;
-        Writeln( F, 'User ', GlobalCache.cache_Current_Username, ' Session ended ', CurrentDateString( 'dd-nnn-yyyy', False ) + ' ' + CurrentTimeString( 'hh:mm', False ) ) ;
-        Writeln( F ) ;
-        Writeln( F, 'Operation                                      Count' ) ;
-        Writeln( F ) ;
-        for i := UsageList.First to UsageList.Last do
-        begin
-          P := pUsageStatistics( UsageList.At( i ) ) ;
-          Writeln( F, Format( '%-40s  %10d', [ P.Name, P.Counter ] ) ) ;
-        end;
-        Writeln( F ) ;
-      finally
-        CloseFile( F ) ;
-      end;}
 
     finally
       FileLocking.ReleaseLock( ltUsageStatistics ) ;
