@@ -1,36 +1,77 @@
 [Closed Files]
-File_0=TSourceModule,'C:\TFS\Practice\Dev\Common\Lib\StackTracing.pas',0,1,1,55,13,0,0,,
-File_1=TSourceModule,'C:\TFS\Practice\Dev\Common\Lib\PracticeClientServer.pas',0,1,1,35,15,0,0,,
-File_2=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\LOGUTIL.PAS',0,1,60,1,86,0,0,,
-File_3=TSourceModule,'C:\My Documents\Projects\UsageService\UsageDataImporter.pas',0,1,141,47,164,0,0,,
-File_4=TSourceModule,'C:\TFS\Practice\Dev\practice\win32\fcopy.pas',0,1,1,69,4,0,0,,
-File_5=TSourceModule,'C:\TFS\Practice\Dev\Common\Lib\TSUtils.pas',0,1,1,45,14,0,0,,
-File_6=TSourceModule,'C:\Components\OmniXML\omniXML.pas',0,1,1,45,3786,0,0,,
-File_7=TSourceModule,'c:\program files (x86)\codegear\rad studio\5.0\source\database\src\pas\dbx\driver\DBXCommon.pas',0,1,6375,1,6407,0,0,,
-File_8=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\LockUtils.pas',0,1,33,1,409,0,0,,
-File_9=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\ErrorLog.pas',0,1,464,1,484,0,0,,
+File_0=TSourceModule,'C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpShared.pas',0,1,365,1,385,0,0,,
+File_1=TSourceModule,'C:\TFS\Practice\Dev\Practice\BConnect\formBConnect.pas',0,1,1274,7,1286,0,0,,
+File_2=TSourceModule,'C:\TFS\Practice\Dev\practice\win32\LockUtils.pas',0,1,254,1,274,0,0,,
+File_3=TSourceModule,'C:\TFS\Practice\Dev\Common\Lib\StackTracing.pas',0,1,1,55,13,0,0,,
+File_4=TSourceModule,'C:\TFS\Practice\Dev\Common\Lib\PracticeClientServer.pas',0,1,1,35,15,0,0,,
+File_5=TSourceModule,'C:\TFS\Practice\Dev\Practice\Win32\LOGUTIL.PAS',0,1,60,1,86,0,0,,
+File_6=TSourceModule,'C:\My Documents\Projects\UsageService\UsageDataImporter.pas',0,1,141,47,164,0,0,,
+File_7=TSourceModule,'C:\TFS\Practice\Dev\practice\win32\fcopy.pas',0,1,1,69,4,0,0,,
+File_8=TSourceModule,'C:\TFS\Practice\Dev\Common\Lib\TSUtils.pas',0,1,1,45,14,0,0,,
 
 [Modules]
-Module0=C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas
-Module1=C:\My Documents\Projects\UsageService\UnitTest.pas
-Count=2
+Module0=C:\TFS\Practice\Dev\UsageData\UsageDataReporting.pas
+Module1=C:\TFS\Practice\Dev\UsageData\UnitTest.pas
+Module2=C:\TFS\Practice\Dev\Practice\Win32\CashbookMigration.pas
+Module3=C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpExcel.pas
+Module4=C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpXLXP.pas
+Module5=c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\RTL\SYS\System.pas
+Module6=c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\VCL\Graphics.pas
+Module7=C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas
+Count=8
 EditWindowCount=1
+
+[C:\TFS\Practice\Dev\UsageData\UsageDataReporting.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[C:\TFS\Practice\Dev\UsageData\UnitTest.pas]
+ModuleType=TSourceModule
+FormState=1
+FormOnTop=1
+
+[C:\TFS\Practice\Dev\Practice\Win32\CashbookMigration.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpExcel.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpXLXP.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\RTL\SYS\System.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
+
+[c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\VCL\Graphics.pas]
+ModuleType=TSourceModule
+FormState=0
+FormOnTop=0
 
 [C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas]
 ModuleType=TSourceModule
 FormState=0
 FormOnTop=0
 
-[C:\My Documents\Projects\UsageService\UnitTest.pas]
-ModuleType=TSourceModule
-FormState=1
-FormOnTop=0
-
 [EditWindow0]
-ViewCount=2
-CurrentEditView=C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas
+ViewCount=8
+CurrentEditView=C:\TFS\Practice\Dev\UsageData\UsageDataReporting.pas
 View0=0
 View1=1
+View2=2
+View3=3
+View4=4
+View5=5
+View6=6
+View7=7
 PercentageSizes=1
 Create=1
 Visible=1
@@ -63,25 +104,91 @@ BottomMiddelPanelData=0000080001000100000009000000446F636B5369746530301900000000
 
 [View0]
 CustomEditViewType=TEditView
-Module=C:\My Documents\Projects\UsageService\UnitTest.pas
-CursorX=40
-CursorY=19
-TopLine=1
-LeftCol=1
-Elisions=
-Bookmarks=
-EditViewName=C:\My Documents\Projects\UsageService\UnitTest.pas
-
-[View1]
-CustomEditViewType=TEditView
 Module=C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas
-CursorX=38
-CursorY=766
-TopLine=763
+CursorX=39
+CursorY=1228
+TopLine=1226
 LeftCol=1
 Elisions=
 Bookmarks=
 EditViewName=C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas
+
+[View1]
+CustomEditViewType=TEditView
+Module=C:\TFS\Practice\Dev\UsageData\UnitTest.pas
+CursorX=86
+CursorY=109
+TopLine=88
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=Borland.FormDesignerView
+
+[View2]
+CustomEditViewType=TEditView
+Module=C:\TFS\Practice\Dev\UsageData\UsageDataReporting.pas
+CursorX=70
+CursorY=643
+TopLine=615
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\TFS\Practice\Dev\UsageData\UsageDataReporting.pas
+
+[View3]
+CustomEditViewType=TEditView
+Module=C:\TFS\Practice\Dev\Practice\Win32\CashbookMigration.pas
+CursorX=1
+CursorY=54
+TopLine=40
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\TFS\Practice\Dev\Practice\Win32\CashbookMigration.pas
+
+[View4]
+CustomEditViewType=TEditView
+Module=C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpXLXP.pas
+CursorX=33
+CursorY=16891
+TopLine=16871
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpXLXP.pas
+
+[View5]
+CustomEditViewType=TEditView
+Module=c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\RTL\SYS\System.pas
+CursorX=1
+CursorY=13
+TopLine=1
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\RTL\SYS\System.pas
+
+[View6]
+CustomEditViewType=TEditView
+Module=C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpExcel.pas
+CursorX=1
+CursorY=1805
+TopLine=1785
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=C:\TFS\Practice\Dev\Components\SourceForge Officepartner\source\OpExcel.pas
+
+[View7]
+CustomEditViewType=TEditView
+Module=c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\VCL\Graphics.pas
+CursorX=1
+CursorY=88
+TopLine=68
+LeftCol=1
+Elisions=
+Bookmarks=
+EditViewName=c:\program files (x86)\codegear\rad studio\5.0\SOURCE\WIN32\VCL\Graphics.pas
 
 [Watches]
 Count=0
@@ -108,8 +215,7 @@ Dockable=1
 StayOnTop=0
 
 [Breakpoints]
-Count=1
-Breakpoint0='C:\TFS\Practice\Dev\UsageData\UsageDataImporter.pas',704,'',0,1,'',1,0,0,'',1,'','','',0
+Count=0
 
 [AddressBreakpoints]
 Count=0
@@ -397,6 +503,11 @@ Dockable=1
 StayOnTop=0
 SplitPos=111
 
+[PropInspDesignerSelection]
+ArrangeBy=Name
+SelectedItem=AutoSize,
+ExpandedItems=ActiveControl=0,Anchors=0,BorderIcons=0,Constraints=0,Font=0,GlassFrame=0,Margins=0
+
 [ModelViewTool]
 PercentageSizes=1
 Create=1
@@ -422,8 +533,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-321
-Top=-817
+Left=-330
+Top=-849
 Width=3565
 Height=4822
 MaxLeft=-1
@@ -441,8 +552,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-321
-Top=-817
+Left=-330
+Top=-849
 Width=13607
 Height=208
 MaxLeft=-1
@@ -460,8 +571,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-321
-Top=-817
+Left=-330
+Top=-849
 Width=3565
 Height=4822
 MaxLeft=-1
@@ -479,8 +590,8 @@ Create=1
 Visible=0
 Docked=1
 State=0
-Left=-321
-Top=-817
+Left=-330
+Top=-849
 Width=3565
 Height=2297
 MaxLeft=-1
@@ -542,8 +653,8 @@ Create=1
 Visible=0
 Docked=0
 State=0
-Left=2232
-Top=1238
+Left=3196
+Top=1594
 Width=5780
 Height=6723
 MaxLeft=-6
@@ -624,7 +735,7 @@ Visible=0
 Docked=1
 State=0
 Left=0
-Top=0
+Top=23
 Width=2339
 Height=1475
 MaxLeft=-1
@@ -637,7 +748,7 @@ Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=RefactoringForm
-TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,RefactoringsView,UsagesView,QAView,MetricsView
+TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,QAView,MetricsView,RefactoringsView,UsagesView
 
 [DockSite1]
 HostDockSite=DockBottomPanel

@@ -1,0 +1,72 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FeatureGroup]') AND type in (N'U'))
+DROP TABLE [dbo].[FeatureGroup]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[FeatureGroup](
+	[Id]    [int] NOT NULL,
+        [Usage] [int] NOT NULL,
+	[Name]  [nvarchar](100) NOT NULL,
+ CONSTRAINT [PK_FeatureGroup] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+Insert into FeatureGroup(Id, Usage, Name) Values (1, 1, 'CCH');
+Insert into FeatureGroup(Id, Usage, Name) Values (2, 1, 'Accrual Journals');
+Insert into FeatureGroup(Id, Usage, Name) Values (3, 1, 'Budgets');
+Insert into FeatureGroup(Id, Usage, Name) Values (4, 1, 'CheckIn CheckOut');
+Insert into FeatureGroup(Id, Usage, Name) Values (5, 1, 'ECFH');
+Insert into FeatureGroup(Id, Usage, Name) Values (6, 1, 'Client Groups');
+Insert into FeatureGroup(Id, Usage, Name) Values (7, 1, 'Client Types');
+Insert into FeatureGroup(Id, Usage, Name) Values (8, 1, 'Combine Bank Accounts');
+Insert into FeatureGroup(Id, Usage, Name) Values (9, 1, 'Combine Manual Bank Accounts');
+Insert into FeatureGroup(Id, Usage, Name) Values (10, 1, 'Custom Documents');
+Insert into FeatureGroup(Id, Usage, Name) Values (11, 1, 'Divisions');
+Insert into FeatureGroup(Id, Usage, Name) Values (12, 1, 'Do Coding');
+Insert into FeatureGroup(Id, Usage, Name) Values (13, 1, 'Edit Superfund');
+Insert into FeatureGroup(Id, Usage, Name) Values (14, 1, 'Email Signature');
+Insert into FeatureGroup(Id, Usage, Name) Values (15, 1, 'Export Charges');
+Insert into FeatureGroup(Id, Usage, Name) Values (16, 1, 'Find and Replace');
+Insert into FeatureGroup(Id, Usage, Name) Values (17, 1, 'Historical Transactions');
+Insert into FeatureGroup(Id, Usage, Name) Values (18, 1, 'Jobs');
+Insert into FeatureGroup(Id, Usage, Name) Values (19, 1, 'BAS Template');
+Insert into FeatureGroup(Id, Usage, Name) Values (20, 1, 'Maintain Chart');
+Insert into FeatureGroup(Id, Usage, Name) Values (21, 1, 'Manual Entries');
+Insert into FeatureGroup(Id, Usage, Name) Values (22, 1, 'Memorised Entries');
+Insert into FeatureGroup(Id, Usage, Name) Values (23, 1, 'Notes');
+Insert into FeatureGroup(Id, Usage, Name) Values (24, 1, 'Notes Online');
+Insert into FeatureGroup(Id, Usage, Name) Values (25, 1, 'Graphs');
+Insert into FeatureGroup(Id, Usage, Name) Values (26, 1, 'Opening Balances');
+Insert into FeatureGroup(Id, Usage, Name) Values (27, 1, 'Payees');
+Insert into FeatureGroup(Id, Usage, Name) Values (28, 1, 'Practice Logo');
+Insert into FeatureGroup(Id, Usage, Name) Values (29, 1, 'Provisional Transactions');
+Insert into FeatureGroup(Id, Usage, Name) Values (30, 1, 'Purge Entries');
+Insert into FeatureGroup(Id, Usage, Name) Values (31, 1, 'Scheduled Reports');
+Insert into FeatureGroup(Id, Usage, Name) Values (32, 1, 'Email');
+Insert into FeatureGroup(Id, Usage, Name) Values (33, 0, 'Reports');
+Insert into FeatureGroup(Id, Usage, Name) Values (34, 1, 'Sub Groups');
+Insert into FeatureGroup(Id, Usage, Name) Values (35, 0, 'Account System');
+Insert into FeatureGroup(Id, Usage, Name) Values (36, 1, 'Cash Journals');
+Insert into FeatureGroup(Id, Usage, Name) Values (37, 0, 'Number Of');
+
+Insert into FeatureGroup(Id, Usage, Name) Values (39, 1, 'Historical Entries');
+Insert into FeatureGroup(Id, Usage, Name) Values (40, 1, 'Non-Transferring Journals');
+Insert into FeatureGroup(Id, Usage, Name) Values (41, 1, 'Year End Balances');
+
+
+GO

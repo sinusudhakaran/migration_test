@@ -15,6 +15,13 @@ object TestForm: TTestForm
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
+  object lblReportProgress: TLabel
+    Left = 272
+    Top = 238
+    Width = 274
+    Height = 13
+    AutoSize = False
+  end
   object btnStop: TButton
     Left = 471
     Top = 257
@@ -33,5 +40,14 @@ object TestForm: TTestForm
     Caption = 'Start'
     TabOrder = 1
     OnClick = btnStartClick
+  end
+  object btnRunUsageReports: TButton
+    Left = 272
+    Top = 257
+    Width = 112
+    Height = 25
+    Caption = 'Run Usage Reports'
+    TabOrder = 2
+    OnClick = btnRunUsageReportsClick
   end
 end

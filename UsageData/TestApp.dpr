@@ -2,7 +2,8 @@ program TestApp;
 
 uses
   Forms,
-  UnitTest in 'UnitTest.pas' {TestForm};
+  UnitTest in 'UnitTest.pas' {TestForm},
+  UsageDataReporting in 'UsageDataReporting.pas';
 
 {$R *.res}
 
