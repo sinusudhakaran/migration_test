@@ -73,6 +73,8 @@ uses
   OsFont,
   MemTranSortedList,
   SpinnerFrm,
+  Contnrs,
+  clObj32,
   ovcpf;
 
 type
@@ -98,24 +100,69 @@ type
 
   TDoneThreadEvent = procedure() of object;
 
+  TMasterMemItem = class(TObject)
+  private
+    fLevel : integer;
+    fName  : string;
+  public
+    property Level : integer read fLevel write fLevel;
+    property Name  : string read fName write fName;
+  end;
+
+  TMasterMemProcessStage = (msgInstitution, msgMasterList, msgFinished);
+  TMasterMemProcessStep = (mstInitilize, mstProcessClient, mstProcessAccount, mstFinished);
+
   //----------------------------------------------------------------------------
+  // Thread used to populate the affected accounts of a master mem that is will be created
+  // by the current setup.
+  // The work done in the thread is split into 2 stages and each stage and 3 Steps
+  // Stage 1 - Institution
+  //    Step 1 - Initilize
+  //    Step 2 - Client Process
+  //    Step 3 - Account Process
+  // Stage 2 - Master Mems List
+  //    Step 1 - Initilize
+  //    Step 2 - Client Process
+  //    Step 3 - Account Process
   TMasterTreeThread = class(TThread)
   private
-    fMasterTreeView : TTreeView;
+    fMasterMemList : TObjectList;
+    fWorkerMem : TMemorisation;
+    fNumOfSplitLines : integer;
+
     fSourceBankAccount : TBank_Account;
-    fdlgMemorise : TdlgMemorise;
     fSourceTransaction : pTransaction_Rec;
     fBankPrefix : string;
     fDoneThreadEvent : TDoneThreadEvent;
     fApplyToAccSystem : boolean;
     fAccountSystemAppliedto : byte;
 
-    procedure RefreshMasterMemTree();
+    fProcessStage : TMasterMemProcessStage;
+    fProcessStep : TMasterMemProcessStep;
+    fClientCount: integer;
+    fClientIndex : integer;
+    fCltClient : TClientObj;
+    fAccountCount: integer;
+    fAccountIndex : integer;
+    fInstitutionList : TStringList;
+    fFoundFirstClientAccount : boolean;
+    fFoundFirstAccount : boolean;
+    fAccountInstitutions : string;
+
+    procedure AddToMasterMemList(aLevel : integer; aName : string);
+
+    procedure InitlizeVars();
+    procedure ClientInitilizeStep();
+    procedure ClientProcessStep();
+    procedure AccountProcessStep();
+    procedure FinishedEvent();
   public
     procedure Execute; override;
 
-    property DlgMemorise : TdlgMemorise read fdlgMemorise write fdlgMemorise;
-    property MasterTreeView : TTreeView read fMasterTreeView write fMasterTreeView;
+    property MasterMemList : TObjectList read fMasterMemList write fMasterMemList;
+    property WorkerMem : TMemorisation read fWorkerMem write fWorkerMem;
+    property NumOfSplitLines : integer read fNumOfSplitLines write fNumOfSplitLines;
+
     property SourceBankAccount : TBank_Account read fSourceBankAccount write fSourceBankAccount;
     property SourceTransaction : pTransaction_Rec read fSourceTransaction write fSourceTransaction;
     property BankPrefix : string read fBankPrefix write fBankPrefix;
@@ -375,6 +422,8 @@ type
     fTempSuggMem : pMemTranSortedListRec;
 
     fMasterTreeThread : TMasterTreeThread;
+    fMasterMemList : TObjectList;
+    fWorkerMem : TMemorisation;
 
     fDirty : boolean;
     ffrmSpinner : TfrmSpinner;
@@ -440,7 +489,7 @@ type
     procedure UpdateControls();
     procedure RefreshMemTransactions();
     procedure RefreshMasterMemTree();
-    procedure AfterRefreshMasterMemTreeEvent();
+    procedure AfterFillMasterMemEvent();
     procedure TerminateMasterThread();
 
     procedure ShowIssueHint(const RowNum, ColNum: Integer);
@@ -529,7 +578,6 @@ uses
   PayeeObj,
   PayeeRecodeDlg,
   SuggestedMems,
-  clObj32,
   Files,
   bkBranding,
   NewHints,
@@ -1032,174 +1080,214 @@ end;
 
 //------------------------------------------------------------------------------
 { TMasterTreeThread }
-procedure TMasterTreeThread.RefreshMasterMemTree();
+procedure TMasterTreeThread.AddToMasterMemList(aLevel : integer; aName : string);
 var
-  SearchPrefix : string;
-  CltClient : TClientObj;
-  ClientFileRec : pClient_File_Rec;
-  AdminClientIndex : integer;
-  BankAccIndex : integer;
-  BankAcc : TBank_Account;
-  FoundFirstAccount : boolean;
-  FoundFirstClientAccount : boolean;
-  RootNode : TTreeNode;
-  ClientNode : TTreeNode;
-  TempMem : TMemorisation;
-  Institution : string;
-  NunOfSplitLines : integer;
-  InstitutionList : TStringList;
-  FoundAcc : pSystem_Bank_Account_Rec;
+  NewMasterMemItem : TMasterMemItem;
 begin
-  RootNode := nil;
-  ClientNode := nil;
-  FoundFirstAccount := false;
+  NewMasterMemItem := TMasterMemItem.Create();
+  NewMasterMemItem.Level := aLevel;
+  NewMasterMemItem.Name  := aName;
 
-  InstitutionList := TStringList.create();
-  try
-    TempMem := TMemorisation.Create(nil);
-    try
-      DlgMemorise.SaveToMemRec(TempMem, SourceTransaction, true, NunOfSplitLines, true);
+  fMasterMemList.Add(NewMasterMemItem);
+end;
 
-      fMasterTreeView.Items.BeginUpdate;
-      try
-        fMasterTreeView.Items.Clear;
+//------------------------------------------------------------------------------
+procedure TMasterTreeThread.InitlizeVars;
+begin
+  fProcessStage := msgInstitution;
+  fProcessStep  := mstInitilize;
 
-        for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
-        begin
-          ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
+  fClientCount := 0;
+  fClientIndex := 0;
+  fAccountCount := 0;
+  fAccountIndex := 0;
+  fAccountInstitutions := '';
+  fFoundFirstClientAccount := false;
+  fFoundFirstAccount := false;
+end;
 
-          if ClientFileRec^.cfForeign_File then
-            Continue;
-
-          OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
-          try
-            if not Assigned(CltClient) then
-              Continue;
-
-            if CltClient.clExtra.ceBlock_Client_Edit_Mems then
-              Continue;
-
-            if (ApplyToAccSystem) and
-               (AccountSystemAppliedto <> CltClient.clFields.clAccounting_System_Used) then
-              Continue;
-
-            for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
-            begin
-              BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-
-              if not BankAcc.baFields.baApply_Master_Memorised_Entries then
-                Continue;
-
-              SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
-
-              if BankPrefix <> SearchPrefix then
-                Continue;
-
-              FoundAcc := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAcc.baFields.baBank_Account_Number);
-              if assigned(FoundAcc) then
-              begin
-                Institution := FoundAcc^.sbInstitution;
-                if trim(Institution) = '' then
-                  Continue;
-
-                if InstitutionList.IndexOf( Institution) = - 1 then
-                  InstitutionList.Add( Institution);
-              end;
-            end;
-
-          finally
-            FreeAndNil(CltClient);
-          end;
-        end;
-
-        Institution := StringReplace(InstitutionList.CommaText, ',', ', ', [rfReplaceAll]);
-        Institution := BankPrefix + ' (' + StringReplace(Institution, '"', '', [rfReplaceAll]) + ')';
-
-        for AdminClientIndex := 0 to AdminSystem.fdSystem_Client_File_List.ItemCount-1 do
-        begin
-          ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(AdminClientIndex);
-
-          if ClientFileRec^.cfForeign_File then
-            Continue;
-
-          OpenAClientForRead( ClientFileRec^.cfFile_Code, CltClient );
-          try
-            if not Assigned(CltClient) then
-              Continue;
-
-            if CltClient.clExtra.ceBlock_Client_Edit_Mems then
-              Continue;
-
-            if (ApplyToAccSystem) and
-               (AccountSystemAppliedto <> CltClient.clFields.clAccounting_System_Used) then
-              Continue;
-
-            //Screen.Cursor := crHourglass;
-            FoundFirstClientAccount := false;
-
-            for BankAccIndex := 0 to CltClient.clBank_Account_List.ItemCount-1 do
-            begin
-              BankAcc := CltClient.clBank_Account_List.Bank_Account_At(BankAccIndex);
-
-              if not BankAcc.baFields.baApply_Master_Memorised_Entries then
-                Continue;
-
-              SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
-
-              if BankPrefix <> SearchPrefix then
-                Continue;
-
-              if (not FoundFirstClientAccount) or (not FoundFirstAccount) then
-              begin
-                if (not FoundFirstAccount) then
-                begin
-                  RootNode := fMasterTreeView.Items.Add( NIL, Institution);
-
-                  FoundFirstAccount := true;
-                end;
-
-                if FoundFirstAccount then
-                  ClientNode := fMasterTreeView.Items.AddChild(RootNode, CltClient.clFields.clCode );
-
-                FoundFirstClientAccount := true;
-              end;
-
-              if (FoundFirstAccount and FoundFirstClientAccount) then
-                fMasterTreeView.Items.AddChild(ClientNode, BankAcc.baFields.baBank_Account_Number );
-            end;
-
-          finally
-            FreeAndNil(CltClient);
-          end;
-        end;
-      finally
-        if Assigned(RootNode) then
-        begin
-          fMasterTreeView.FullExpand;
-          RootNode.Selected := true;
-          RootNode.Focused := true;
-        end;
-        fMasterTreeView.Items.EndUpdate;
-      end;
-    finally
-      FreeAndNil(TempMem);
+//------------------------------------------------------------------------------
+procedure TMasterTreeThread.ClientInitilizeStep();
+begin
+  // Sets up the client Count and Index for the next steps
+  fClientIndex := -1;
+  fClientCount := AdminSystem.fdSystem_Client_File_List.ItemCount;
+  if fClientCount = 0 then
+  begin
+    fProcessStage := msgFinished;
+    fProcessStep := mstFinished;
+  end
+  else
+  begin
+    fProcessStep := mstProcessClient;
+    if fProcessStage = msgMasterList then
+    begin
+      fAccountInstitutions := StringReplace(fInstitutionList.CommaText, ',', ', ', [rfReplaceAll]);
+      fAccountInstitutions := BankPrefix + ' (' + StringReplace(fAccountInstitutions, '"', '', [rfReplaceAll]) + ')';
     end;
-  finally
-    FreeAndNil(InstitutionList);
   end;
 end;
 
 //------------------------------------------------------------------------------
+procedure TMasterTreeThread.ClientProcessStep();
+var
+  ClientFileRec : pClient_File_Rec;
+begin
+  // does 1 itteration through the Client Loop
+
+  if Assigned(fCltClient) then
+    FreeAndNil(fCltClient);
+
+  inc(fClientIndex);
+  if fClientIndex > (fClientCount-1) then
+  begin
+    if fProcessStage = msgInstitution then
+    begin
+      fProcessStage := msgMasterList;
+      fProcessStep := mstInitilize;
+    end
+    else if fProcessStage = msgMasterList then
+    begin
+      fProcessStage := msgFinished;
+      fProcessStep := mstFinished;
+    end;
+
+    Exit;
+  end;
+
+  ClientFileRec := AdminSystem.fdSystem_Client_File_List.Client_File_At(fClientIndex);
+
+  if ClientFileRec^.cfForeign_File then
+    Exit;
+
+  OpenAClientForRead( ClientFileRec^.cfFile_Code, fCltClient );
+
+  if not Assigned(fCltClient) then
+    Exit;
+
+  if fCltClient.clExtra.ceBlock_Client_Edit_Mems then
+    Exit;
+
+  if (ApplyToAccSystem) and
+     (AccountSystemAppliedto <> fCltClient.clFields.clAccounting_System_Used) then
+    Exit;
+
+  fAccountCount := fCltClient.clBank_Account_List.ItemCount;
+  if fAccountCount > 0 then
+  begin
+    fAccountIndex := -1;
+    fFoundFirstClientAccount := false;
+    fProcessStep := mstProcessAccount;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TMasterTreeThread.AccountProcessStep();
+var
+  BankAcc : TBank_Account;
+  SearchPrefix : string;
+  AccountRec : pSystem_Bank_Account_Rec;
+  Institution : string;
+begin
+  // does 1 itteration through the Account Loop
+  inc(fAccountIndex);
+  if fAccountIndex > (fAccountCount-1) then
+  begin
+    fProcessStep := mstProcessClient;
+    Exit;
+  end;
+
+  BankAcc := fCltClient.clBank_Account_List.Bank_Account_At(fAccountIndex);
+
+  if not BankAcc.baFields.baApply_Master_Memorised_Entries then
+    Exit;
+
+  SearchPrefix := mxFiles32.GetBankPrefix(BankAcc.baFields.baBank_Account_Number);
+
+  if BankPrefix <> SearchPrefix then
+    Exit;
+
+  if fProcessStage = msgInstitution then
+  begin
+    // Builds up a list of institutions
+    AccountRec := AdminSystem.fdSystem_Bank_Account_List.FindCode(BankAcc.baFields.baBank_Account_Number);
+    if assigned(AccountRec) then
+    begin
+      Institution := AccountRec^.sbInstitution;
+      if trim(Institution) = '' then
+        Exit;
+
+      if fInstitutionList.IndexOf( Institution) = - 1 then
+        fInstitutionList.Add( Institution);
+    end;
+  end
+  else if fProcessStage = msgMasterList then
+  begin
+    // builds up a tree list of Institutions -> Clients -> Accounts
+    if (not fFoundFirstClientAccount) or (not fFoundFirstAccount) then
+    begin
+      if (not fFoundFirstAccount) then
+      begin
+        AddToMasterMemList(1, fAccountInstitutions);
+        fFoundFirstAccount := true;
+      end;
+
+      if (not fFoundFirstClientAccount) then
+        AddToMasterMemList(2, fCltClient.clFields.clCode);
+
+      fFoundFirstClientAccount := true;
+    end;
+
+    if (fFoundFirstAccount and fFoundFirstClientAccount) then
+      AddToMasterMemList(3, BankAcc.baFields.baBank_Account_Number);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+procedure TMasterTreeThread.FinishedEvent;
+begin
+  fDoneThreadEvent();
+end;
+
+//------------------------------------------------------------------------------
 procedure TMasterTreeThread.Execute;
+var
+  Finished : boolean;
 begin
   inherited;
 
-  if Assigned(fMasterTreeView) then
-  begin
-    RefreshMasterMemTree();
-    if Assigned(fDoneThreadEvent) then
-      fDoneThreadEvent();
+  FreeOnTerminate := True;
+  Finished := false;
+  InitlizeVars();
+
+  // Most of the code being called is external to the thread and that is the reason
+  // for all the Synchronise calls
+  fInstitutionList := TStringList.Create;
+  try
+    while (not Terminated) and (not Finished) do
+    begin
+      if Assigned(fMasterMemList) then
+      begin
+        case fProcessStep of
+          mstInitilize : Synchronize(Self, ClientInitilizeStep);
+          mstProcessClient : Synchronize(Self, ClientProcessStep);
+          mstProcessAccount : Synchronize(Self, AccountProcessStep);
+          mstFinished : begin
+            try
+              if Assigned(fDoneThreadEvent) then
+                Synchronize(Self, FinishedEvent);
+            finally
+              Finished := true;
+            end;
+          end;
+        end;
+      end;
+    end;
+  finally
+    FreeAndNil(fInstitutionList);
   end;
+
+  Terminate;
 end;
 
 //------------------------------------------------------------------------------
@@ -1358,6 +1446,8 @@ begin
     FIssueHint.Canvas.Font.Name := 'Courier';
     FIssueHint.Canvas.Font.Size := 5;
   end;
+
+  fMasterMemList := TObjectList.Create;
 end;
 
 //------------------------------------------------------------------------------
@@ -1374,8 +1464,16 @@ begin
   treView.Items.Clear;
 
   FreeAndNil(fMemTranSortedList);
-  FreeAndNil(fMasterTreeThread);
   FreeAndNil(ffrmSpinner);
+
+  if Assigned(fWorkerMem) then
+    FreeAndNil(fWorkerMem);
+
+  fMasterMemList.Clear();
+  FreeAndNil(fMasterMemList);
+  fMasterTreeThread := nil;
+
+  inherited;
 end;
 
 //------------------------------------------------------------------------------
@@ -1566,8 +1664,6 @@ begin
   if not Loading then
   begin
     fDirty := true;
-    if fDlgEditMode in ALL_NO_MASTER then
-      TerminateMasterThread();
     RefreshAccTranControls();
   end;
 end;
@@ -1578,8 +1674,6 @@ begin
   if not Loading then
   begin
     fDirty := true;
-    if fDlgEditMode in ALL_NO_MASTER then
-      TerminateMasterThread();
     RefreshAccTranControls();
   end;
 end;
@@ -2170,15 +2264,12 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.TerminateMasterThread;
-var
-  ThreadReturn : Dword;
 begin
   if Assigned(fMasterTreeThread) then
-  begin
-    GetExitCodeThread(fMasterTreeThread.Handle, ThreadReturn);
-    TerminateThread(fMasterTreeThread.Handle, ThreadReturn);
-    AfterRefreshMasterMemTreeEvent();
-  end;
+    if not fMasterTreeThread.Terminated then
+      fMasterTreeThread.Terminate;
+
+  fMasterTreeThread := nil;
 end;
 
 //------------------------------------------------------------------------------
@@ -3273,7 +3364,18 @@ end;
 
 //------------------------------------------------------------------------------
 procedure TdlgMemorise.RefreshMasterMemTree;
+var
+  NumOfSplitLines : integer;
 begin
+  // if the Thread is already running stop it
+  if Assigned(fMasterTreeThread) then
+  begin
+    if not fMasterTreeThread.Terminated  then
+      fMasterTreeThread.Terminate;
+
+    fMasterTreeThread := nil;
+  end;
+
   pnlMessage.Visible := false;
   ffrmSpinner.ShowSpinner('Calculating',
                           pnlMain.Top + pnlMatchingTransactions.Top +
@@ -3283,14 +3385,26 @@ begin
   Setfocus();
 
   treView.Items.Clear;
-  FreeAndNil(fMasterTreeThread);
+
+  if Assigned(fWorkerMem) then
+    FreeAndNil(fWorkerMem);
+
+  fMasterMemList.Clear();
+
+  // The SaveToMemRec is a function on this Dialog and it has alot of call to controls
+  // this really should be moved to another utils unit. When this mems form is rewriten,
+  // this should be done as part of that.
+  fWorkerMem := TMemorisation.Create(nil);
+  SaveToMemRec(fWorkerMem, SourceTransaction, true, NumOfSplitLines, true);
+
   fMasterTreeThread := TMasterTreeThread.Create(true);
-  fMasterTreeThread.MasterTreeView         := treView;
+  fMasterTreeThread.MasterMemList          := fMasterMemList;
+  fMasterTreeThread.WorkerMem              := fWorkerMem;
+  fMasterTreeThread.NumOfSplitLines        := NumOfSplitLines;
   fMasterTreeThread.SourceBankAccount      := BankAccount;
   fMasterTreeThread.SourceTransaction      := SourceTransaction;
-  fMasterTreeThread.DlgMemorise            := Self;
   fMasterTreeThread.BankPrefix             := BankPrefix;
-  fMasterTreeThread.DoneThreadEvent        := AfterRefreshMasterMemTreeEvent;
+  fMasterTreeThread.DoneThreadEvent        := AfterFillMasterMemEvent;
   fMasterTreeThread.ApplyToAccSystem       := chkAccountsystem.Checked;
   fMasterTreeThread.AccountSystemAppliedto := GetAccountingSystem;
 
@@ -3298,8 +3412,45 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-procedure TdlgMemorise.AfterRefreshMasterMemTreeEvent;
+procedure TdlgMemorise.AfterFillMasterMemEvent;
+var
+  MasterMemIndex : integer;
+  MasterMemItem : TMasterMemItem;
+  RootNode : TTreeNode;
+  ClientNode : TTreeNode;
 begin
+  // using the Object list that was filled by the thread, populated the Tree list
+  RootNode := nil;
+  ClientNode := nil;
+  treView.Items.BeginUpdate;
+  try
+    for MasterMemIndex := 0 to fMasterMemList.Count-1 do
+    begin
+      MasterMemItem := TMasterMemItem(fMasterMemList.Items[MasterMemIndex]);
+
+      case MasterMemItem.Level of
+        1 : RootNode := treView.Items.Add(NIL, MasterMemItem.Name);
+        2 : begin
+          if Assigned(RootNode) then
+            ClientNode := treView.Items.AddChild(RootNode, MasterMemItem.Name);
+        end;
+        3 : begin
+          if Assigned(ClientNode) then
+            treView.Items.AddChild(ClientNode, MasterMemItem.Name);
+        end;
+      end;
+    end;
+
+    treView.FullExpand;
+    if Assigned(RootNode) then
+    begin
+      RootNode.Selected := true;
+      RootNode.Focused := true;
+    end;
+  finally
+    treView.Items.EndUpdate;
+  end;
+
   if (Assigned(ffrmSpinner)) and
      (ffrmSpinner.HandleAllocated) then
     ffrmSpinner.CloseSpinner;
@@ -3615,8 +3766,6 @@ begin
       HelpfulInfoMsg('Payees or Jobs cannot be used in Master Memorisations.'#13'The Payees or Jobs you have used in this memorisation will not be saved.', 0);
   end;
 
-  if fDlgEditMode in ALL_NO_MASTER then
-    TerminateMasterThread();
   RefreshAccTranControls();
 end;
 //------------------------------------------------------------------------------
