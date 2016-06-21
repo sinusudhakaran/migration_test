@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2016/06/13 14:25:20.853.pas,C:\Users\Sinu.Sudhakaran\Documents\RAD Studio\Projects\Unit4.pas=C:\TFS\Practice\Dev\Practice\Win32\UFrmTestRESTClient.pas</Transaction>
+    <Transaction>2016/06/13 14:25:20.854.dfm,C:\Users\Sinu.Sudhakaran\Documents\RAD Studio\Projects\Unit4.dfm=C:\TFS\Practice\Dev\Practice\Win32\UFrmTestRESTClient.dfm</Transaction>
+    <Transaction>2016/06/13 14:25:27.951.dproj,C:\Users\Sinu.Sudhakaran\Documents\RAD Studio\Projects\Project1.dproj=C:\TFS\Practice\Dev\Practice\Win32\TestRESTClientApp.dproj</Transaction>
+  </Transactions>
+</BorlandProject>
