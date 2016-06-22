@@ -299,7 +299,8 @@ uses
   INISettings,
   PracticeLedgerObj,
   myMYOBSignInFrm,
-  Files;
+  Files,
+  AppMessages;
 
 const
   UnitName = 'PRACDETAILSFRM';

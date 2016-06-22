@@ -169,7 +169,8 @@ uses
   bkContactInformation,
   CashbookMigrationRestData,
   AuditMgr,
-  ipsHTTPS;
+  ipsHTTPS,
+  AppMessages;
 
 const
   UnitName = 'AcctSystemDlg';
@@ -1281,16 +1282,15 @@ var
   SelectBusinessFrm : TSelectBusinessForm;
   liErrorCode : integer;
   lsErrorDescription : string;
-  ShowClientScreen : Boolean;
 begin
   if not Assigned(AdminSystem) then
     Exit;
 
   if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
   begin
-    if (not (CurrUser.CanAccessAdmin and (not CurrUser.HasRestrictedAccess))) then // not admin user
+    if (not CurrUser.IsAdminUser) then // not admin user
     begin
-      HelpfulErrorMsg('No MYOB firm is associated to practice yet#13#10make sure administrator do that before you choose a client.  ', 0);
+      HelpfulErrorMsg(errNoMYOBFirmSelection, 0);
       Exit;
     end;
   end;
@@ -1299,14 +1299,12 @@ begin
   SignInFrm := TmyMYOBSignInForm.Create(Nil);
   OldCursor := Screen.Cursor;
   Screen.Cursor := crHourGlass;
-  ShowClientScreen := True;
   try
     if ( ((not CheckFormyMYOBTokens) or
       ((Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '') and
       (CurrUser.CanAccessAdmin and
       (not CurrUser.HasRestrictedAccess)))) ) or ( DebugGenericCommsErrors ) then
     begin
-      //ShowClientScreen := False;
       SignInFrm.FormShowType := fsSignIn;
       SignInFrm.ShowFirmSelection := False;
       SignInFrm.ValidateClientAgainstFirm := True;
@@ -1316,7 +1314,6 @@ begin
       (not CurrUser.HasRestrictedAccess))) then
       begin
         SignInFrm.ShowFirmSelection := True;
-        //ShowClientScreen := True;
       end;
 
       if (SignInFrm.ShowModal = mrOK) then
@@ -1355,7 +1352,7 @@ begin
       Exit;
     end;
 
-    if ((CheckFormyMYOBTokens) and ShowClientScreen and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID) <> '')) then
+    if ((CheckFormyMYOBTokens) and (Trim(AdminSystem.fdFields.fdmyMYOBFirmID) <> '')) then
     begin
       SelectBusinessFrm := TSelectBusinessForm.Create(Self);
       try

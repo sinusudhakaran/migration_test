@@ -48,7 +48,6 @@ type
     FSelectedID: string;
     FOldFirmID : string;
     FForcedSignInSucceed : Boolean;
-    FShowClientSelection : Boolean;
     FIsSignIn : Boolean;
     FValidateClientAgainstFirm : Boolean;
     function LoadFirms:Boolean;
@@ -62,7 +61,6 @@ type
     { Public declarations }
     property FormShowType : TFormShowType read FFormShowType write FFormShowType;
     property ShowFirmSelection : Boolean read FShowFirmSelection write FShowFirmSelection;
-    property ShowClientSelection : Boolean read FShowClientSelection write FShowClientSelection;
     property ValidateClientAgainstFirm : Boolean read FValidateClientAgainstFirm write FValidateClientAgainstFirm;
 
     property SelectedID: string read FSelectedID write FSelectedID;
@@ -79,7 +77,8 @@ implementation
 
 uses ShellApi, Globals, CashbookMigration, WarningMoreFrm, bkContactInformation,
   ErrorMoreFrm, SYDEFS, Admin32, LogUtil, AuditMgr, IniSettings,
-  SelectBusinessFrm, YesNoDlg, bkConst;
+  SelectBusinessFrm, YesNoDlg, bkConst,
+  AppMessages;
 
 {$R *.dfm}
 
@@ -114,7 +113,6 @@ var
   lsErrorDescription: string;
   OldCursor: TCursor;
   InvalidPass: boolean;
-  BusinessFrm : TSelectBusinessForm;
 begin
   if Not FIsSignIn then
   begin
@@ -183,7 +181,8 @@ begin
         begin
           Screen.Cursor := OldCursor;
           HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
-          ModalResult := mrCancel;
+          ForceModelCancel;
+          Exit;
         end;
         if (FormShowType = fsFirmForceSignIn) then
         begin
@@ -218,46 +217,34 @@ begin
       end;
 
       if ValidateClientAgainstFirm then
-      if not PracticeLedger.MYOBUserHasAccesToFirm
-            (AdminSystem.fdFields.fdmyMYOBFirmID, True)then
       begin
-        Screen.Cursor := OldCursor;
-        HelpfulWarningMsg( errMYOBCredential, 0 );
-        PracticeLedger.ResetMyMYOBUserDetails;
-        ModalResult := mrCancel;
-        Exit;
-      end;
+        {if not admin user and no firm is selected yet, show an error message and exit,
+        only admin can choose a firm}
 
-      if (FormShowType = fsSignIn) and (ShowClientSelection) then
-      begin // means show client - for a normal user
-        // Get Businesses
-        if ((PracticeLedger.Businesses.Count = 0) and
-             (not PracticeLedger.GetBusinesses(
-                    AdminSystem.fdFields.fdmyMYOBFirmID ,
-                    ltPracticeLedger ,PracticeLedger.Businesses,
-                    liErrorCode, lsErrorDescription))) then
+        if Trim(AdminSystem.fdFields.fdmyMYOBFirmID) = '' then
+        begin
+          if not CurrUser.IsAdminUser then
+          begin
+            begin
+              Screen.Cursor := OldCursor;
+              HelpfulWarningMsg( errNoMYOBFirmSelection, 0 );
+              ForceModelCancel;
+              Exit;
+            end;
+          end;
+        end
+        else if not PracticeLedger.MYOBUserHasAccesToFirm
+              (AdminSystem.fdFields.fdmyMYOBFirmID, True)then
         begin
           Screen.Cursor := OldCursor;
-          HelpfulErrorMsg( PracticeLedger.ReturnGenericErrorMessage( liErrorCode ), 0 );
-          ModalResult := mrCancel;
+          HelpfulWarningMsg( errMYOBCredential, 0 );
+          PracticeLedger.ResetMyMYOBUserDetails;
+          ForceModelCancel;
+          Exit;
         end;
-        FormShowType := fsSelectClient;
-        BusinessFrm := TSelectBusinessForm.Create(Self);
-        try
-          if BusinessFrm.ShowModal = mrOk then
-          begin
-            FSelectedID := BusinessFrm.SelectedBusinessID;
-            FSelectedName := BusinessFrm.SelectedBusinessName;
+      end;
 
-            btnOKClick(Self);
-          end
-          else
-            ModalResult := mrCancel;
-        finally
-          FreeAndNil(BusinessFrm);
-        end;
-      end
-      else if (FormShowType = fsSignIn) then
+      if (FormShowType = fsSignIn) then
         btnOKClick(Self);
     end;
   finally
@@ -343,7 +330,6 @@ end;
 
 procedure TmyMYOBSignInForm.FormCreate(Sender: TObject);
 begin
-  ShowClientSelection := False;
   ShowFirmSelection := False;
   fValidateClientAgainstFirm := False;
 end;

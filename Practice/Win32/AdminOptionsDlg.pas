@@ -237,7 +237,8 @@ uses
   bkProduct,
   myMYOBSignInFrm,
   PracticeLedgerObj,
-  Files;
+  Files,
+  AppMessages;
 
 {$R *.dfm}
 
