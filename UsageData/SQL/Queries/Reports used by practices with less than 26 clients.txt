@@ -1,0 +1,40 @@
+select PRA.CoreId,
+       Max(isnull(FET.Count,0)) as FeatCount
+  from (select *, (ClientCount - ClientArchivedCount) as NonArchived from
+       (select PRA.Id as CoreId,
+               PRA.CountryId,
+               PRA.Code,
+               PRA.UploadDateTime,
+               PRA.PracticeVersion,
+               PRA.DiskPcOsVersion,
+               MAX(FT1.count) as ClientCount,
+               isnull(MAX(FT2.count),0) as ClientArchivedCount
+          from PracticeInfo PRA
+                 inner join
+               Feature      FT1 on PRA.Id = FT1.PracticeInfoId
+                               and FT1.FeatureTypeId = 221
+                 left join
+               Feature      FT2 on PRA.Id = FT2.PracticeInfoId
+                               and FT2.FeatureTypeId = 222
+         group by PRA.Id,
+                  PRA.CountryId,
+                  PRA.Code,
+                  PRA.NAME,
+                  PRA.UploadDateTime,
+                  PRA.PracticeVersion,
+                  PRA.DiskPcOsVersion) PRA
+            where (ClientCount - ClientArchivedCount) < 26) PRA
+
+         left join
+       (select RFT.PracticeInfoId,
+               RFT.Count,
+               RPT.Name
+          from Reportfeature RFT
+                 inner join
+               Report        RPT on RFT.ReportId = RPT.Id
+                                and RPT.ReportGroupId = 27) FET on PRA.CoreId = FET.PracticeInfoId
+ group by PRA.CoreId
+ order by PRA.CoreId
+ 
+
+ 

@@ -1,0 +1,57 @@
+USE [P5UsageStats]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ReportGroup]') AND type in (N'U'))
+DROP TABLE [dbo].[ReportGroup]
+GO
+
+USE [P5UsageStats]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ReportGroup](
+	[Id] [int] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+ CONSTRAINT [PK_ReportGroup] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+Insert into ReportGroup(Id, Name) values (1, 'Coding Report');
+Insert into ReportGroup(Id, Name) values (2, 'Ledger Report');
+Insert into ReportGroup(Id, Name) values (3, 'Cash Flow Report');
+Insert into ReportGroup(Id, Name) values (4, 'Profit and Loss Report');
+Insert into ReportGroup(Id, Name) values (5, 'Trial Balance Report');
+Insert into ReportGroup(Id, Name) values (6, 'Balance Sheet Report');
+Insert into ReportGroup(Id, Name) values (7, 'Bank Reconciliation Report');
+Insert into ReportGroup(Id, Name) values (8, 'GST Report');
+Insert into ReportGroup(Id, Name) values (9, 'Spending by Payee Report');
+Insert into ReportGroup(Id, Name) values (10, 'Taxable Payments Report');
+Insert into ReportGroup(Id, Name) values (11, 'Coding by Job Report');
+Insert into ReportGroup(Id, Name) values (12, 'Exception Report');
+Insert into ReportGroup(Id, Name) values (13, 'Listing Report');
+Insert into ReportGroup(Id, Name) values (14, 'Download Report');
+Insert into ReportGroup(Id, Name) values (15, 'Tasks Report');
+Insert into ReportGroup(Id, Name) values (16, 'Audit Report');
+Insert into ReportGroup(Id, Name) values (17, 'Authority Form');
+Insert into ReportGroup(Id, Name) values (18, 'BAS Calculation Sheet');
+Insert into ReportGroup(Id, Name) values (19, 'Business Norm Percentages Report');
+Insert into ReportGroup(Id, Name) values (20, 'Client Report');
+Insert into ReportGroup(Id, Name) values (21, 'Custom Document');
+Insert into ReportGroup(Id, Name) values (22, 'Foreign Exchange Report');
+Insert into ReportGroup(Id, Name) values (23, 'General Report');
+Insert into ReportGroup(Id, Name) values (24, 'Group Report');
+Insert into ReportGroup(Id, Name) values (25, 'Income and Expenditure Report');
+Insert into ReportGroup(Id, Name) values (26, 'Charges Report');
+Insert into ReportGroup(Id, Name) values (27, 'Mail Merge');
+Insert into ReportGroup(Id, Name) values (28, 'Other');
+
+GO

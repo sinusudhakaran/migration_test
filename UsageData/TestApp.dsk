@@ -29,7 +29,7 @@ FormOnTop=0
 [C:\TFS\Practice\Dev\UsageData\UnitTest.pas]
 ModuleType=TSourceModule
 FormState=1
-FormOnTop=1
+FormOnTop=0
 
 [C:\TFS\Practice\Dev\Practice\Win32\CashbookMigration.pas]
 ModuleType=TSourceModule
@@ -89,15 +89,15 @@ DockedToMainForm=1
 MessageView=MessageView@EditWindow0
 BorlandEditorCodeExplorer=BorlandEditorCodeExplorer@EditWindow0
 TopPanelSize=0
-LeftPanelSize=1893
+LeftPanelSize=1310
 LeftPanelClients=StructureView,PropertyInspector
-LeftPanelData=000008000101000000003B110000000000000165070000000000000100000000530E00001100000053747275637475726556696577466F726D0100000000911B00001100000050726F7065727479496E73706563746F72FFFFFFFF
+LeftPanelData=00000800010100000000B815000000000000011E050000000000000100000000601100001100000053747275637475726556696577466F726D0100000000BF2200001100000050726F7065727479496E73706563746F72FFFFFFFF
 RightPanelSize=2000
 RightPanelClients=DockSite2,ToolForm
-RightPanelData=000008000101000000003B1100000000000001D00700000000000001000000004412000009000000446F636B53697465320100000000911B000008000000546F6F6C466F726DFFFFFFFF
-BottomPanelSize=1810
+RightPanelData=00000800010100000000B81500000000000001D00700000000000001000000004412000009000000446F636B53697465320100000000BF22000008000000546F6F6C466F726DFFFFFFFF
+BottomPanelSize=0
 BottomPanelClients=MessageView@EditWindow0,DockSite1
-BottomPanelData=0000080001020100000009000000446F636B5369746531803E0000000000000212070000000000000100000000803E00000B0000004D65737361676556696577FFFFFFFF
+BottomPanelData=000008000102020000000B0000004D6573736167655669657709000000446F636B5369746531803E0000000000000212070000000000000100000000803E00000B0000004D65737361676556696577FFFFFFFF
 BottomMiddlePanelSize=0
 BottomMiddlePanelClients=DockSite0
 BottomMiddelPanelData=0000080001000100000009000000446F636B5369746530301900000000000000751B000000000000FFFFFFFF
@@ -127,9 +127,9 @@ EditViewName=Borland.FormDesignerView
 [View2]
 CustomEditViewType=TEditView
 Module=C:\TFS\Practice\Dev\UsageData\UsageDataReporting.pas
-CursorX=70
-CursorY=643
-TopLine=615
+CursorX=49
+CursorY=573
+TopLine=530
 LeftCol=1
 Elisions=
 Bookmarks=
@@ -268,11 +268,11 @@ State=0
 Left=0
 Top=514
 Width=2000
-Height=2248
+Height=4158
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=2000
-ClientHeight=2248
+ClientHeight=4158
 TBDockHeight=7000
 LRDockWidth=2000
 Dockable=1
@@ -490,23 +490,18 @@ Visible=1
 Docked=1
 State=0
 Left=0
-Top=408
-Width=1893
-Height=3297
+Top=490
+Width=1310
+Height=4396
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1893
-ClientHeight=3297
+ClientWidth=1310
+ClientHeight=4396
 TBDockHeight=406
-LRDockWidth=1893
+LRDockWidth=1310
 Dockable=1
 StayOnTop=0
 SplitPos=111
-
-[PropInspDesignerSelection]
-ArrangeBy=Name
-SelectedItem=AutoSize,
-ExpandedItems=ActiveControl=0,Anchors=0,BorderIcons=0,Constraints=0,Font=0,GlassFrame=0,Margins=0
 
 [ModelViewTool]
 PercentageSizes=1
@@ -636,14 +631,14 @@ Docked=1
 State=0
 Left=0
 Top=23
-Width=1893
-Height=3545
+Width=1310
+Height=4356
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1893
-ClientHeight=3545
+ClientWidth=1310
+ClientHeight=4356
 TBDockHeight=3673
-LRDockWidth=1893
+LRDockWidth=1310
 Dockable=1
 StayOnTop=0
 
@@ -653,8 +648,8 @@ Create=1
 Visible=0
 Docked=0
 State=0
-Left=3196
-Top=1594
+Left=12518
+Top=1990
 Width=5780
 Height=6723
 MaxLeft=-6
@@ -688,7 +683,7 @@ StayOnTop=0
 [MessageView@EditWindow0]
 PercentageSizes=1
 Create=1
-Visible=1
+Visible=0
 Docked=1
 State=0
 Left=0
@@ -748,7 +743,7 @@ Dockable=1
 StayOnTop=0
 TabPosition=1
 ActiveTabID=RefactoringForm
-TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,QAView,MetricsView,RefactoringsView,UsagesView
+TabDockClients=RefactoringForm,FindReferencsForm,ToDo List,RefactoringsView,UsagesView,QAView,MetricsView
 
 [DockSite1]
 HostDockSite=DockBottomPanel

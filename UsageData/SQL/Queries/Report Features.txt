@@ -1,0 +1,15 @@
+ select PRA.CountryId,
+       RPT.Name as Report,
+       RPD.Name as Destination,
+       SUM(RPF.Count) as FeatureCount 
+  from ReportFeature RPF
+         left join
+       Report        RPT on RPF.ReportId = RPT.id
+         left join
+       ReportDest    RPD on RPF.ReportDestId = RPD.id
+         left join
+       ReportType    RPY on RPF.ReportTypeId = RPY.id
+         Left join 
+       PracticeInfo  PRA on RPF.PracticeInfoId = PRA.id
+ where RPF.UploadDateTime > '2016-05-25 00:00:00'
+ group by PRA.CountryId, RPT.Name, RPD.Name  

@@ -1,0 +1,21 @@
+select ACC.CountryId,
+       ACC.Name,
+       SUM(ACC.AccSystemAccountCount)
+  from
+(select PRA.CountryId,
+       PRA.Code,
+       FTT.Name,
+       MAX(FET.Count) as AccSystemAccountCount
+  from Feature      FET
+         left join
+       FeatureType  FTT on FET.FeatureTypeId = FTT.Id
+         left join
+       PracticeInfo PRA on FET.PracticeInfoId = PRA.id   
+ where FeatureTypeId in (select Id from featuretype where Name like 'Acct_System_Acounts_%')
+ Group by PRA.CountryId,
+          PRA.Code,
+          FTT.Name) ACC
+Group by ACC.CountryId,
+         ACC.Name  
+order by ACC.CountryId,
+         ACC.Name      

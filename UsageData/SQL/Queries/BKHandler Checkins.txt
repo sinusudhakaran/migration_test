@@ -1,0 +1,10 @@
+select PRA.CountryId,
+       PRA.CODE, 
+       SUM(FET.COUNT) as CheckInDDECount
+  from Feature      FET
+         left join
+       PracticeInfo PRA on FET.PracticeInfoId = PRA.id
+ where featureTypeId = 168 
+   and FET.UploadDateTime > '2016-05-25 00:00:00'
+ group by PRA.CountryId,
+          PRA.CODE

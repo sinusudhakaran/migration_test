@@ -1,0 +1,27 @@
+select CountryId,
+       CODE,
+       CheckType,
+       sum(CheckCount) as CheckCount
+  from  
+(select PRA.CountryId,
+       PRA.CODE, 
+       FET.COUNT as CheckCount,
+       'Check In' as CheckType
+  from Feature      FET
+         left join
+       PracticeInfo PRA on FET.PracticeInfoId = PRA.id
+ where featureTypeId in (167,168) 
+   and FET.UploadDateTime > '2016-05-25 00:00:00'
+       union
+select PRA.CountryId,
+       PRA.CODE, 
+       FET.COUNT as CheckCount,
+       'Check Out' as CheckType
+  from Feature      FET
+         left join
+       PracticeInfo PRA on FET.PracticeInfoId = PRA.id
+ where featureTypeId in (169,170,171) 
+   and FET.UploadDateTime > '2016-05-25 00:00:00') CHK
+ group by CountryId,
+          CODE,
+          CheckType 

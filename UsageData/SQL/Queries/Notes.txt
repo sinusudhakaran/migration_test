@@ -1,0 +1,19 @@
+select CountryId,
+       CODE,
+       NotesType,
+       sum(NotesCount) as NotesCount
+  from  
+(select PRA.CountryId,
+       PRA.CODE, 
+       FTT.name as NotesType,
+       FET.COUNT as NotesCount
+  from Feature      FET
+         left join
+       FeatureType  FTT on FET.FeatureTypeId = FTT.Id  
+         left join
+       PracticeInfo PRA on FET.PracticeInfoId = PRA.id
+ where featureTypeId in (242,243,244,245) 
+   and FET.UploadDateTime > '2016-05-25 00:00:00') CHK
+ group by CountryId,
+          CODE,
+          NotesType 
