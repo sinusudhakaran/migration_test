@@ -55,7 +55,8 @@ Function SaveChartTo(ClientCode: string; Var aFileName: string; aInitDir: string
 
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
   const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
-  KeepPostingAllowed: boolean = false; OldChartOnlyKeepAndSetInActive : Boolean = false) : boolean;
+  KeepPostingAllowed: boolean = false; OldChartOnlyKeepAndSetInActive : Boolean = false;
+  ForceActivateChart: Boolean= False) : boolean;
 
 Function GetChartFileName( ClientCode  : string;
                            aInitDir    : string;
@@ -209,7 +210,8 @@ End;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function MergeCharts(var NewChart : TChart; const aClient : TClientObj;
   const ReplaceChartID: Boolean = False; KeepSubAndReportGroups: Boolean = false;
-  KeepPostingAllowed: boolean = false; OldChartOnlyKeepAndSetInActive : Boolean = false): boolean;
+  KeepPostingAllowed: boolean = false; OldChartOnlyKeepAndSetInActive : Boolean = false;
+  ForceActivateChart: Boolean= False): boolean;
 // Used by each of the import chart routines to merge the new chart list into
 // the existing chart list.
 const
@@ -293,6 +295,18 @@ begin
        end;
      end;
 
+    if ForceActivateChart then
+    begin
+      for ei := 0 to ClientChart.ItemCount-1 do
+      begin
+        ExistingAccount := ClientChart.Account_At(ei);
+
+        NewAccount := NewChart.FindCode(ExistingAccount.chAccount_Code);
+        if ExistingAccount.chInactive and Assigned(NewAccount) then
+          ExistingAccount.chInactive := False;
+      end;
+    end;
+
      // Don't delete inactive chart codes
      for ei := 0 to ClientChart.ItemCount-1 do
      begin
@@ -370,8 +384,8 @@ begin
           NewAccount.chLinked_Account_CS      := ExistingAccount.chLinked_Account_CS;
           NewAccount.chHide_In_Basic_Chart    := ExistingAccount.chHide_In_Basic_Chart;
           NewAccount.chInactive               := ExistingAccount.chInactive;
-
-       end else
+       end
+       else
           NewAccount.chAccount_Type := atNone; // N/A
 
        //make sure we don't set it to bkFORCE_GST_CLASS_TO_ZERO
