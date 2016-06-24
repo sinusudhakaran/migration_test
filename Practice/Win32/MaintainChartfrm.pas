@@ -1027,7 +1027,7 @@ begin
   lblInactive.Enabled := chkInactive.Enabled;
 
   // Inactive column
-  fShowInactive := assigned(AdminSystem);
+  fShowInactive := False; //assigned(AdminSystem);
   UpdateInactiveColumn;
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
